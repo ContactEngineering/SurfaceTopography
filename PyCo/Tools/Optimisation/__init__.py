@@ -5,9 +5,9 @@
 
 @author Till Junge <till.junge@kit.edu>
 
-@date   27 Jan 2015
+@date   17 Sep 2015
 
-@brief  Testing Module for PyCo
+@brief  optimisation helpers in PyCo
 
 @section LICENCE
 
@@ -28,4 +28,21 @@ along with GNU Emacs; see the file COPYING. If not, write to the
 Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 """
+
+from .common import ReachedTolerance, ReachedMaxiter, FailedIterate
+from .common import ReachedMaxiterWarning
+from .common import intersection_confidence_region
+from .common import dogleg
+from .common import steihaug_toint
+from .common import modified_cholesky
+from .common import first_wolfe_condition
+from .common import second_wolfe_condition
+from .common import line_search
+from .common import construct_augmented_lagrangian
+from .common import construct_augm_lag_grad
+from .common import construct_augm_lag_hess
+from .AugmentedLagrangian import augmented_lagrangian
+from .ConstrainedConjugateGradients import constrained_conjugate_gradients
+from .NewtonLineSearch import newton_linesearch
+from .NewtonConfidenceRegion import newton_confidence_region
 

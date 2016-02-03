@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   setup.py
+@file   __init__.py
 
 @author Till Junge <till.junge@kit.edu>
 
 @date   26 Jan 2015
 
-@brief  Installation script
+@brief  Defines all solvers used in PyCo
 
 @section LICENCE
 
@@ -29,16 +29,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 """
 
-from setuptools import setup, find_packages
-
-setup(
-    name = "PyCo",
-    version = "0.9",
-    packages = find_packages(),
-    # metadata for upload to PyPI
-    author = "Till Junge",
-    author_email = "till.junge@kit.edu",
-    description = "Simple contact mechanics code",
-    license = "GPLv3",
-    test_suite = 'tests'
-)
+from .Systems import IncompatibleFormulationError
+from .Systems import IncompatibleResolutionError
+from .Systems import SmoothContactSystem
+from .SmoothSystemSpecialisations import FastSmoothContactSystem
+from .Factory import SystemFactory
