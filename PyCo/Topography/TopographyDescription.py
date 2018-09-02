@@ -79,14 +79,14 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def compute_rms_height(self, kind='Sq'):
         "computes the rms height fluctuation of the topography"
-        return compute_rms_height(self.profile(), kind=kind)
+        return compute_rms_height(self.array(), kind=kind)
 
     def compute_rms_height_q_space(self):
         """
         computes the rms height fluctuation of the topography in the
         frequency domain
         """
-        delta = self.profile()
+        delta = self.array()
         delta -= delta.mean()
         area = np.prod(self.size)
         nb_pts = np.prod(self.resolution)
@@ -95,12 +95,12 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def compute_rms_slope(self):
         "computes the rms height gradient fluctuation of the topography"
-        return compute_rms_slope(self.profile(),
+        return compute_rms_slope(self.array(),
                                  size=self.size, dim=self.dim)
 
     def compute_rms_curvature(self):
         "computes the rms curvature fluctuation of the topography"
-        return compute_rms_curvature(self.profile(),
+        return compute_rms_curvature(self.array(),
                                      size=self.size, dim=self.dim)
 
     def compute_rms_slope_q_space(self):
@@ -116,25 +116,25 @@ class Topography(object, metaclass=abc.ABCMeta):
         qy = np.where(qy <= ny / 2, 2 * np.pi * qy / sy, 2 * np.pi * (ny - qy) / sy)
         q = np.sqrt((qx * qx).reshape(-1, 1) + (qy * qy).reshape(1, -1))
 
-        h_q = np.fft.fft2(self.profile())
+        h_q = np.fft.fft2(self.array())
         return np.sqrt(
             np.mean(q ** 2 * h_q * np.conj(h_q)).real / (
-                    float(self.profile().shape[0]) * float(self.profile().shape[1])))
+                    float(self.array().shape[0]) * float(self.array().shape[1])))
 
     def adjust(self):
         """
         shifts topography up or down so that a zero displacement would lead to a
         zero gap
         """
-        self.adjustment = self.profile().max()
+        self.adjustment = self.array().max()
 
-    def profile(self):
+    def array(self):
         """ returns an array of possibly adjusted heights
         """
-        return self._profile() - self.adjustment
+        return self._array() - self.adjustment
 
     @abc.abstractmethod
-    def _profile(self):
+    def _array(self):
         """ returns an array of heights
         """
         raise NotImplementedError()
@@ -151,7 +151,7 @@ class Topography(object, metaclass=abc.ABCMeta):
     __rmul__ = __mul__
 
     def __getitem__(self, index):
-        return self._profile()[index] - self.adjustment
+        return self._array()[index] - self.adjustment
 
     @property
     def dim(self, ):
@@ -241,7 +241,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         if compress:
             if not fname.endswith('.gz'):
                 fname = fname + ".gz"
-        np.savetxt(fname, self.profile())
+        np.savetxt(fname, self.array())
 
     def estimate_laplacian(self, coords):
         """
@@ -265,7 +265,7 @@ class Topography(object, metaclass=abc.ABCMeta):
                 coord_copy = list(coords)
                 coord_copy[i] = i_val
                 try:
-                    fun_val[j] = self.profile()[tuple(coord_copy)]
+                    fun_val[j] = self.array()[tuple(coord_copy)]
                 except IndexError as err:
                     raise IndexError(
                         ("{}:\ncoords = {}, i = {}, j = {}, irange = {}, "
@@ -354,10 +354,10 @@ class ScaledTopography(Topography):
         """ Set info dictionary """
         self.parent_topography.info = info
 
-    def _profile(self):
+    def _array(self):
         """ Computes the combined profile.
         """
-        return self.coeff * self.parent_topography.profile()
+        return self.coeff * self.parent_topography.array()
 
 
 class DetrendedTopography(Topography):
@@ -384,7 +384,7 @@ class DetrendedTopography(Topography):
 
     def _detrend(self):
         if self._detrend_mode is None or self._detrend_mode == 'center':
-            self._coeffs = [-self.parent_topography.profile().mean()]
+            self._coeffs = [-self.parent_topography.array().mean()]
         elif self._detrend_mode == 'height':
             self._coeffs = [-s for s in compute_tilt_from_height(self.parent_topography)]
         elif self._detrend_mode == 'slope':
@@ -481,7 +481,7 @@ class DetrendedTopography(Topography):
         self._detrend_mode = detrend_mode
         self._detrend()
 
-    def _profile(self):
+    def _array(self):
         """ Computes the combined profile.
         """
         nx, ny = self.shape
@@ -493,16 +493,16 @@ class DetrendedTopography(Topography):
         y = np.arange(ny).reshape(1, -1) * sy / ny
         if len(self._coeffs) == 1:
             h0, = self._coeffs
-            return self.parent_topography.profile() + h0
+            return self.parent_topography.array() + h0
         elif len(self._coeffs) == 3:
             m, n, h0 = self._coeffs
-            return self.parent_topography.profile() + h0 + m * x + n * y
+            return self.parent_topography.array() + h0 + m * x + n * y
         else:
             m, n, mm, nn, mn, h0 = self._coeffs
             xx = x * x
             yy = y * y
             xy = x * y
-            return self.parent_topography.profile() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+            return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -561,11 +561,11 @@ class TranslatedTopography(Topography):
         else:
             self.offset = (offset, offsety)
 
-    def _profile(self):
+    def _array(self):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
-        return np.roll(np.roll(self.parent_topography.profile(), offsetx, axis=0),
+        return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0),
                        offsety, axis=1)
 
 
@@ -610,11 +610,11 @@ class CompoundTopography(Topography):
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
-    def _profile(self):
+    def _array(self):
         """ Computes the combined profile
         """
-        return (self.parent_topography_a.profile() +
-                self.parent_topography_b.profile())
+        return (self.parent_topography_a.array() +
+                self.parent_topography_b.array())
 
 
 class NumpyTopography(Topography):
@@ -636,7 +636,7 @@ class NumpyTopography(Topography):
         super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape),
                          size=size, unit=unit)
 
-    def _profile(self):
+    def _array(self):
         return self.__h
 
     def __getstate__(self):
@@ -841,9 +841,9 @@ class PlasticTopography(Topography):
     def undeformed_profile(self):
         """ Returns the undeformed profile of the topography.
         """
-        return self.parent_topography.profile()
+        return self.parent_topography.array()
 
-    def _profile(self):
+    def _array(self):
         """ Computes the combined profile.
         """
         return self.undeformed_profile() + self.plastic_displ
