@@ -78,12 +78,12 @@ class Topography(object, metaclass=abc.ABCMeta):
          self.adjustment) = state
 
     def compute_rms_height(self, kind='Sq'):
-        "computes the rms height fluctuation of the surface"
+        "computes the rms height fluctuation of the topography"
         return compute_rms_height(self.profile(), kind=kind)
 
     def compute_rms_height_q_space(self):
         """
-        computes the rms height fluctuation of the surface in the
+        computes the rms height fluctuation of the topography in the
         frequency domain
         """
         delta = self.profile()
@@ -94,12 +94,12 @@ class Topography(object, metaclass=abc.ABCMeta):
         return 1 / area * np.sqrt((np.conj(H) * H).sum().real)
 
     def compute_rms_slope(self):
-        "computes the rms height gradient fluctuation of the surface"
+        "computes the rms height gradient fluctuation of the topography"
         return compute_rms_slope(self.profile(),
                                  size=self.size, dim=self.dim)
 
     def compute_rms_curvature(self):
-        "computes the rms curvature fluctuation of the surface"
+        "computes the rms curvature fluctuation of the topography"
         return compute_rms_curvature(self.profile(),
                                      size=self.size, dim=self.dim)
 
@@ -123,7 +123,7 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def adjust(self):
         """
-        shifts surface up or down so that a zero displacement would lead to a
+        shifts topography up or down so that a zero displacement would lead to a
         zero gap
         """
         self.adjustment = self.profile().max()
@@ -175,7 +175,7 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def set_size(self, size, s_y=None):
         """ Deprecated, do not use.
-        set the size of the surface """
+        set the size of the topography """
         warnings.warn('.set_size(x) is deprecated; please use .size = x',
                       DeprecationWarning)
         self.size = size
@@ -189,14 +189,14 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     @size.setter
     def size(self, size):
-        """ set the size of the surface """
+        """ set the size of the toporgraphy """
         if not hasattr(size, "__iter__"):
             size = (size,)
         else:
             size = tuple(size)
         if len(size) != self.dim:
             raise self.Error(
-                ("The dimension of this surface is {}, you have specified an "
+                ("The dimension of this topography is {}, you have specified an "
                  "incompatible size of dimension {} ({}).").format(
                     self.dim, len(size), size))
         self._size = size
@@ -230,12 +230,12 @@ class Topography(object, metaclass=abc.ABCMeta):
     @property
     def has_undefined_data(self):
         try:
-            return self.surf.has_undefined_data
+            return self.parent_topography.has_undefined_data
         except:
             return False
 
     def save(self, fname, compress=True):
-        """ saves the surface as a NumpyTxtSurface. Warning: This only saves
+        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
             the profile; the size is not contained in the file
         """
         if compress:
@@ -278,24 +278,24 @@ class Topography(object, metaclass=abc.ABCMeta):
 class ScaledTopography(Topography):
     """ used when geometries are scaled
     """
-    name = 'scaled_surface'
+    name = 'scaled_topography'
 
-    def __init__(self, surf, coeff):
+    def __init__(self, topography, coeff):
         """
         Keyword Arguments:
-        surf  -- Topography to scale
+        topography  -- Topography to scale
         coeff -- Scaling factor
         """
         super().__init__()
-        assert isinstance(surf, Topography)
-        self.surf = surf
+        assert isinstance(topography, Topography)
+        self.parent_topography = topography
         self.coeff = float(coeff)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.surf, self.coeff)
+        state = (super().__getstate__(), self.parent_topography, self.coeff)
         return state
 
     def __setstate__(self, state):
@@ -303,7 +303,7 @@ class ScaledTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.surf, self.coeff = state
+        superstate, self.parent_topography, self.coeff = state
         super().__setstate__(superstate)
 
     @property
@@ -311,14 +311,14 @@ class ScaledTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.dim
+        return self.parent_topography.dim
 
     @property
     def resolution(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.resolution
+        return self.parent_topography.resolution
 
     shape = resolution
 
@@ -327,78 +327,78 @@ class ScaledTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.size
+        return self.parent_topography.size
 
     @size.setter
     def size(self, size):
-        """ set the size of the surface """
-        self.surf.size = size
+        """ set the size of the topography"""
+        self.parent_topography.size = size
 
     @property
     def unit(self, ):
         """ Return unit """
-        return self.surf.unit
+        return self.parent_topography.unit
 
     @unit.setter
     def unit(self, unit):
         """ Set unit """
-        self.surf.unit = unit
+        self.parent_topography.unit = unit
 
     @property
     def info(self, ):
         """ Return info dictionary """
-        return self.surf.info
+        return self.parent_topography.info
 
     @info.setter
     def info(self, info):
         """ Set info dictionary """
-        self.surf.info = info
+        self.parent_topography.info = info
 
     def _profile(self):
         """ Computes the combined profile.
         """
-        return self.coeff * self.surf.profile()
+        return self.coeff * self.parent_topography.profile()
 
 
 class DetrendedTopography(Topography):
-    """ used when surface needs to be tilted
+    """ used when topography needs to be tilted
     """
-    name = 'detrended_surface'
+    name = 'detrended_topography'
 
-    def __init__(self, surf, detrend_mode='slope'):
+    def __init__(self, topography, detrend_mode='slope'):
         """
         Keyword Arguments:
-        surf -- Topography to scale
+        topography -- Topography to scale
         detrend_mode -- Possible keywords:
-            'center': center the surface, no trent correction.
+            'center': center the topography, no trent correction.
             'height': adjust slope such that rms height is minimized.
             'slope': adjust slope such that rms slope is minimized.
             'curvature': adjust slope and curvature such that rms height is
             minimized.
         """
         super().__init__()
-        assert isinstance(surf, Topography)
-        self.surf = surf
+        assert isinstance(topography, Topography)
+        self.parent_topography = topography
         self._detrend_mode = detrend_mode
         self._detrend()
 
     def _detrend(self):
         if self._detrend_mode is None or self._detrend_mode == 'center':
-            self._coeffs = [-self.surf.profile().mean()]
+            self._coeffs = [-self.parent_topography.profile().mean()]
         elif self._detrend_mode == 'height':
-            self._coeffs = [-s for s in compute_tilt_from_height(self.surf)]
+            self._coeffs = [-s for s in compute_tilt_from_height(self.parent_topography)]
         elif self._detrend_mode == 'slope':
             try:
-                sx, sy = self.surf.size
+                sx, sy = self.parent_topography.size
             except:
-                sx, sy = self.surf.shape
-            nx, ny = self.surf.shape
-            self._coeffs = [-s.mean() for s in compute_slope(self.surf)]
+                sx, sy = self.parent_topography.shape
+            nx, ny = self.parent_topography.shape
+            self._coeffs = [-s.mean() for s in compute_slope(self.parent_topography)]
             slx, sly = self._coeffs
-            self._coeffs += [-self.surf[...].mean() - slx * sx * (nx - 1) / (2 * nx)
+            self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
                              - sly * sy * (ny - 1) / (2 * ny)]
         elif self._detrend_mode == 'curvature':
-            self._coeffs = [-s for s in compute_tilt_and_curvature(self.surf)]
+            self._coeffs = [-s for s in compute_tilt_and_curvature(self.parent_topography)]
         else:
             raise ValueError("Unknown detrend mode '{}'." \
                              .format(self._detrend_mode))
@@ -407,7 +407,7 @@ class DetrendedTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.surf, self._detrend_mode,
+        state = (super().__getstate__(), self.parent_topography, self._detrend_mode,
                  self._coeffs)
         return state
 
@@ -416,7 +416,7 @@ class DetrendedTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        (superstate, self.surf, self._detrend_mode, self._coeffs) = state
+        (superstate, self.parent_topography, self._detrend_mode, self._coeffs) = state
         super().__setstate__(superstate)
 
     @property
@@ -424,14 +424,14 @@ class DetrendedTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.dim
+        return self.parent_topography.dim
 
     @property
     def resolution(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.resolution
+        return self.parent_topography.resolution
 
     shape = resolution
 
@@ -440,33 +440,33 @@ class DetrendedTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.size
+        return self.parent_topography.size
 
     @size.setter
     def size(self, size):
-        """ set the size of the surface """
-        self.surf.size = size
+        """ set the size of the topography"""
+        self.parent_topography.size = size
         self._detrend()
 
     @property
     def unit(self, ):
         """ Return unit """
-        return self.surf.unit
+        return self.parent_topography.unit
 
     @unit.setter
     def unit(self, unit):
         """ Set unit """
-        self.surf.unit = unit
+        self.parent_topography.unit = unit
 
     @property
     def info(self, ):
         """ Return info dictionary """
-        return self.surf.info
+        return self.parent_topography.info
 
     @info.setter
     def info(self, info):
         """ Set info dictionary """
-        self.surf.info = info
+        self.parent_topography.info = info
 
     @property
     def coeffs(self, ):
@@ -493,16 +493,16 @@ class DetrendedTopography(Topography):
         y = np.arange(ny).reshape(1, -1) * sy / ny
         if len(self._coeffs) == 1:
             h0, = self._coeffs
-            return self.surf.profile() + h0
+            return self.parent_topography.profile() + h0
         elif len(self._coeffs) == 3:
             m, n, h0 = self._coeffs
-            return self.surf.profile() + h0 + m * x + n * y
+            return self.parent_topography.profile() + h0 + m * x + n * y
         else:
             m, n, mm, nn, mn, h0 = self._coeffs
             xx = x * x
             yy = y * y
             xy = x * y
-            return self.surf.profile() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+            return self.parent_topography.profile() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -519,17 +519,17 @@ class DetrendedTopography(Topography):
 class TranslatedTopography(Topography):
     """ used when geometries are translated
     """
-    name = 'translated_surface'
+    name = 'translated_topography'
 
-    def __init__(self, surf, offset=(0, 0)):
+    def __init__(self, topography, offset=(0, 0)):
         """
         Keyword Arguments:
-        surf  -- Topography to translate
+        topography  -- Topography to translate
         offset -- Translation offset in number of grid points
         """
         super().__init__()
-        assert isinstance(surf, Topography)
-        self.surf = surf
+        assert isinstance(topography, Topography)
+        self.parent_topography = topography
         self.offset = offset
 
     @property
@@ -537,14 +537,14 @@ class TranslatedTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.dim
+        return self.parent_topography.dim
 
     @property
     def resolution(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.resolution
+        return self.parent_topography.resolution
 
     shape = resolution
 
@@ -553,7 +553,7 @@ class TranslatedTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.size
+        return self.parent_topography.size
 
     def set_offset(self, offset, offsety=None):
         if offsety is None:
@@ -565,32 +565,32 @@ class TranslatedTopography(Topography):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
-        return np.roll(np.roll(self.surf.profile(), offsetx, axis=0),
+        return np.roll(np.roll(self.parent_topography.profile(), offsetx, axis=0),
                        offsety, axis=1)
 
 
 class CompoundTopography(Topography):
     """ used when geometries are combined
     """
-    name = 'combined_surface'
+    name = 'combined_topography'
 
-    def __init__(self, surf_a, surf_b):
-        """ Behaves like a surface that is a sum  of two Surfaces
+    def __init__(self, topography_a, topography_b):
+        """ Behaves like a topography that is a sum of two Topographies
         Keyword Arguments:
-        surf_a   -- first surface of the compound
-        surf_b   -- second surface of the compound
+        topography_a   -- first topography of the compound
+        topography_b   -- second topography of the compound
         """
         super().__init__()
 
         def combined_val(prop_a, prop_b, propname):
             """
-            surfaces can have a fixed or dynamic, adaptive resolution (or other
+            topographies can have a fixed or dynamic, adaptive resolution (or other
             attributes). This function assures that -- if this function is
-            called for two surfaces with fixed resolutions -- the resolutions
+            called for two topographies with fixed resolutions -- the resolutions
             are identical
             Parameters:
-            prop_a   -- field of one surf
-            prop_b   -- field of other surf
+            prop_a   -- field of one topography
+            prop_b   -- field of other topography
             propname -- field identifier (for error messages only)
             """
             if prop_a is None:
@@ -602,30 +602,30 @@ class CompoundTopography(Topography):
                             propname, prop_a, prop_b)
                 return prop_a
 
-        self._dim = combined_val(surf_a.dim, surf_b.dim, 'dim')
-        self._resolution = combined_val(surf_a.resolution,
-                                        surf_b.resolution, 'resolution')
-        self._size = combined_val(surf_a.size,
-                                  surf_b.size, 'size')
-        self.surf_a = surf_a
-        self.surf_b = surf_b
+        self._dim = combined_val(topography_a.dim, topography_b.dim, 'dim')
+        self._resolution = combined_val(topography_a.resolution,
+                                        topography_b.resolution, 'resolution')
+        self._size = combined_val(topography_a.size,
+                                  topography_b.size, 'size')
+        self.parent_topography_a = topography_a
+        self.parent_topography_b = topography_b
 
     def _profile(self):
         """ Computes the combined profile
         """
-        return (self.surf_a.profile() +
-                self.surf_b.profile())
+        return (self.parent_topography_a.profile() +
+                self.parent_topography_b.profile())
 
 
 class NumpyTopography(Topography):
-    """ Dummy surface from a static array
+    """ Dummy topography from a static array
     """
-    name = 'surface_from_np_array'
+    name = 'topography_from_np_array'
 
     def __init__(self, profile, size=None, unit=None):
         """
         Keyword Arguments:
-        profile -- surface profile
+        profile -- topography profile
         """
 
         # Automatically turn this into a masked array if there is data missing
@@ -660,7 +660,7 @@ class NumpyTopography(Topography):
 
 
 class Sphere(NumpyTopography):
-    """ Spherical surface. Corresponds to a cylinder in 2D
+    """ Spherical topography. Corresponds to a cylinder in 2D
     """
     name = 'sphere'
 
@@ -673,9 +673,9 @@ class Sphere(NumpyTopography):
         resolution -- self-explanatory
         size       -- self-explanatory
         centre     -- specifies the coordinates (in length units, not pixels).
-                      by default, the sphere is centred in the surface
+                      by default, the sphere is centred in the topography
         standoff   -- when using interaction forces with ranges of the order
-                      the radius, you might want to set the surface outside of
+                      the radius, you might want to set the topography outside of
                       the spere to far away, maybe even pay the price of inf,
                       if your interaction has no cutoff
         periodic   -- whether the sphere can wrap around. tricky for large
@@ -737,16 +737,16 @@ class Sphere(NumpyTopography):
 class PlasticTopography(Topography):
     """ Topography with an additional plastic deformation field.
     """
-    name = 'surface_with_plasticity'
+    name = 'topography_with_plasticity'
 
-    def __init__(self, surface, hardness, plastic_displ=None):
+    def __init__(self, topography, hardness, plastic_displ=None):
         """
         Keyword Arguments:
-        surface -- surface profile
+        topography -- topography profile
         hardness -- penetration hardness
         plastic_displ -- initial plastic displacements
         """
-        self.surf = surface
+        self.parent_topography = topography
         self.hardness = hardness
         self.adjustment = 0.0
         if plastic_displ is None:
@@ -757,7 +757,7 @@ class PlasticTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.surf, self.hardness,
+        state = (super().__getstate__(), self.parent_topography, self.hardness,
                  self.plastic_displ)
         return state
 
@@ -766,7 +766,7 @@ class PlasticTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.surf, self.hardness, self.plastic_displ = state
+        superstate, self.parent_topography, self.hardness, self.plastic_displ = state
         super().__setstate__(superstate)
 
     @property
@@ -774,14 +774,14 @@ class PlasticTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.dim
+        return self.parent_topography.dim
 
     @property
     def resolution(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.resolution
+        return self.parent_topography.resolution
 
     shape = resolution
 
@@ -790,32 +790,32 @@ class PlasticTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self.surf.size
+        return self.parent_topography.size
 
     @size.setter
     def size(self, size):
-        """ set the size of the surface """
-        self.surf.size = size
+        """ set the size of the topography """
+        self.parent_topography.size = size
 
     @property
     def unit(self, ):
         """ Return unit """
-        return self.surf.unit
+        return self.parent_topography.unit
 
     @unit.setter
     def unit(self, unit):
         """ Set unit """
-        self.surf.unit = unit
+        self.parent_topography.unit = unit
 
     @property
     def info(self, ):
         """ Return info dictionary """
-        return self.surf.info
+        return self.parent_topography.info
 
     @info.setter
     def info(self, info):
         """ Set info dictionary """
-        self.surf.info = info
+        self.parent_topography.info = info
 
     @property
     def hardness(self):
@@ -839,9 +839,9 @@ class PlasticTopography(Topography):
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):
-        """ Returns the undeformed profile of the surface.
+        """ Returns the undeformed profile of the topography.
         """
-        return self.surf.profile()
+        return self.parent_topography.profile()
 
     def _profile(self):
         """ Computes the combined profile.
