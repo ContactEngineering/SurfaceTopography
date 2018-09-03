@@ -37,9 +37,9 @@ import warnings
 
 import numpy as np
 
-from ..Tools import (compute_rms_height, compute_rms_slope, compute_slope,
-                     compute_rms_curvature, compute_tilt_from_height,
-                     compute_tilt_and_curvature)
+from .common import compute_derivative
+from .Detrending import compute_tilt_from_height, compute_tilt_and_curvature
+from .ScalarParameters import compute_rms_height, compute_rms_slope, compute_rms_curvature
 
 
 class Topography(object, metaclass=abc.ABCMeta):
@@ -393,7 +393,7 @@ class DetrendedTopography(Topography):
             except:
                 sx, sy = self.parent_topography.shape
             nx, ny = self.parent_topography.shape
-            self._coeffs = [-s.mean() for s in compute_slope(self.parent_topography)]
+            self._coeffs = [-s.mean() for s in compute_derivative(self.parent_topography)]
             slx, sly = self._coeffs
             self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
                              - sly * sy * (ny - 1) / (2 * ny)]
