@@ -65,35 +65,36 @@ def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
     # Compute FFT and normalize
     if periodic:
         surface_qy = np.fft.fft(surface_xy[:, :], axis=0)
-        C_qy = abs(surface_qy)**2  # pylint: disable=invalid-name
-        A_xy = np.fft.ifft(C_qy, axis=0).real/nx
+        C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
+        A_xy = np.fft.ifft(C_qy, axis=0).real / nx
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, :]-A_xy
+        A_xy = A_xy[0, :] - A_xy
 
-        A = A_xy[:nx//2, :]
-        A[1:nx//2, :] += A_xy[nx-1:(nx+1)//2:-1, :]
+        A = A_xy[:nx // 2, :]
+        A[1:nx // 2, :] += A_xy[nx - 1:(nx + 1) // 2:-1, :]
         A /= 2
 
-        r = sx*np.arange(nx//2)/nx
+        r = sx * np.arange(nx // 2) / nx
     else:
-        surface_qy = np.fft.fft(surface_xy[:, :], n=2*nx-1, axis=0)
-        C_qy = abs(surface_qy)**2  # pylint: disable=invalid-name
-        normx = (np.abs(np.arange(2*nx-1) - (nx-1))+1).reshape(-1, 1)
-        A_xy = np.fft.ifft(C_qy, axis=0).real/normx
+        surface_qy = np.fft.fft(surface_xy[:, :], n=2 * nx - 1, axis=0)
+        C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
+        normx = (np.abs(np.arange(2 * nx - 1) - (nx - 1)) + 1).reshape(-1, 1)
+        A_xy = np.fft.ifft(C_qy, axis=0).real / normx
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, :]-A_xy
+        A_xy = A_xy[0, :] - A_xy
 
         A = A_xy[:nx, :]
-        A[1:nx, :] += A_xy[2*nx-1:nx-1:-1, :]
+        A[1:nx, :] += A_xy[2 * nx - 1:nx - 1:-1, :]
         A /= 2
 
-        r = sx*np.arange(nx)/nx
+        r = sx * np.arange(nx) / nx
 
     return r, A.mean(axis=1)
+
 
 def autocorrelation_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
                        size=None, periodic=False, return_map=False):
@@ -129,43 +130,43 @@ def autocorrelation_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
     sx, sy = _get_size(surface_xy, size)
 
     # Pixel size
-    area0 = (sx/nx)*(sy/ny)
+    area0 = (sx / nx) * (sy / ny)
 
     # Compute FFT and normalize
     if periodic:
         surface_qk = np.fft.fft2(surface_xy[:, :])
-        C_qk = abs(surface_qk)**2  # pylint: disable=invalid-name
-        A_xy = np.fft.ifft2(C_qk).real/(nx*ny)
+        C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
+        A_xy = np.fft.ifft2(C_qk).real / (nx * ny)
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, 0]-A_xy
+        A_xy = A_xy[0, 0] - A_xy
 
         if nbins is None:
             return A_xy
 
         # Radial average
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
-            A_xy, (sx+sy)/4, nbins, size=(sx, sy))
+            A_xy, (sx + sy) / 4, nbins, size=(sx, sy))
     else:
-        surface_qk = np.fft.fft2(surface_xy[:, :], s=(2*nx-1, 2*ny-1))
-        C_qk = abs(surface_qk)**2  # pylint: disable=invalid-name
-        normx = (np.abs(np.arange(2*nx-1) - (nx-1))+1).reshape(-1, 1)
-        normy = (np.abs(np.arange(2*ny-1) - (ny-1))+1).reshape(1, -1)
-        A_xy = np.fft.ifft2(C_qk).real/(normx*normy)
+        surface_qk = np.fft.fft2(surface_xy[:, :], s=(2 * nx - 1, 2 * ny - 1))
+        C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
+        normx = (np.abs(np.arange(2 * nx - 1) - (nx - 1)) + 1).reshape(-1, 1)
+        normy = (np.abs(np.arange(2 * ny - 1) - (ny - 1)) + 1).reshape(1, -1)
+        A_xy = np.fft.ifft2(C_qk).real / (normx * normy)
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, 0]-A_xy
+        A_xy = A_xy[0, 0] - A_xy
 
         if nbins is None:
             return A_xy
 
         # Radial average
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
-            A_xy, (sx+sy)/2, nbins, size=(sx*(2*nx-1)/nx, sy*(2*ny-1)/ny))
+            A_xy, (sx + sy) / 2, nbins, size=(sx * (2 * nx - 1) / nx, sy * (2 * ny - 1) / ny))
 
     if return_map:
-        return r_val[n>0], A_val[n>0], A_xy
+        return r_val[n > 0], A_val[n > 0], A_xy
     else:
-        return r_val[n>0], A_val[n>0]
+        return r_val[n > 0], A_val[n > 0]
