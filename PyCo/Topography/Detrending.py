@@ -56,7 +56,7 @@ def _get_size(surface_xy, size=None):
     return size
 
 
-def compute_tilt_from_height(arr, size=None, full_output=False):
+def tilt_from_height(arr, size=None, full_output=False):
     """
     Data in arr is interpreted as height information of a tilted and shifted
     surface.
@@ -96,11 +96,11 @@ def compute_tilt_from_height(arr, size=None, full_output=False):
         return coeffs
 
 
-def compute_tilt_from_slope(arr, size=None):
+def tilt_from_slope(arr, size=None):
     return [x.mean() for x in compute_derivative(arr, size)]
 
 
-def compute_tilt_and_curvature(arr, size=None, full_output=False):
+def tilt_and_curvature(arr, size=None, full_output=False):
     """
     Data in arr is interpreted as height information of a tilted and shifted
     surface.
@@ -154,7 +154,7 @@ def shift_and_tilt(arr, full_output=False):
     returns an array of same shape and size as arr, but shifted and tilted so
     that mean(arr) = 0 and mean(arr**2) is minimized
     """
-    coeffs, location_matrix = compute_tilt_from_height(arr, full_output=True)
+    coeffs, location_matrix = tilt_from_height(arr, full_output=True)
     coeffs = np.matrix(coeffs).T
     offsets = np.matrix(arr[...].reshape((-1, 1)))
     if full_output:
@@ -204,7 +204,7 @@ def shift_and_tilt_from_slope(arr, size=None):
     that mean(arr) = 0 and mean(arr') = 0
     """
     nx, ny = arr.shape
-    mean_slope = compute_tilt_from_slope(arr, size)
+    mean_slope = tilt_from_slope(arr, size)
     tilt_correction = sum([x*y for x, y in
                            zip(mean_slope,
                                np.meshgrid(np.arange(nx)-nx//2,

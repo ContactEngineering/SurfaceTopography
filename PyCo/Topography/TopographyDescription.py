@@ -38,8 +38,8 @@ import warnings
 import numpy as np
 
 from .common import compute_derivative
-from .Detrending import compute_tilt_from_height, compute_tilt_and_curvature
-from .ScalarParameters import compute_rms_height, compute_rms_slope, compute_rms_curvature
+from .Detrending import tilt_from_height, tilt_and_curvature
+from .ScalarParameters import rms_height, rms_slope, rms_curvature
 
 
 class Topography(object, metaclass=abc.ABCMeta):
@@ -77,11 +77,11 @@ class Topography(object, metaclass=abc.ABCMeta):
         (self._resolution, self._dim, self._size, self._unit,
          self.adjustment) = state
 
-    def compute_rms_height(self, kind='Sq'):
+    def rms_height(self, kind='Sq'):
         "computes the rms height fluctuation of the topography"
-        return compute_rms_height(self.array(), kind=kind)
+        return rms_height(self.array(), kind=kind)
 
-    def compute_rms_height_q_space(self):
+    def rms_height_q_space(self):
         """
         computes the rms height fluctuation of the topography in the
         frequency domain
@@ -93,17 +93,17 @@ class Topography(object, metaclass=abc.ABCMeta):
         H = area / nb_pts * np.fft.fftn(delta)
         return 1 / area * np.sqrt((np.conj(H) * H).sum().real)
 
-    def compute_rms_slope(self):
+    def rms_slope(self):
         "computes the rms height gradient fluctuation of the topography"
-        return compute_rms_slope(self.array(),
-                                 size=self.size, dim=self.dim)
+        return rms_slope(self.array(),
+                         size=self.size, dim=self.dim)
 
-    def compute_rms_curvature(self):
+    def rms_curvature(self):
         "computes the rms curvature fluctuation of the topography"
-        return compute_rms_curvature(self.array(),
-                                     size=self.size, dim=self.dim)
+        return rms_curvature(self.array(),
+                             size=self.size, dim=self.dim)
 
-    def compute_rms_slope_q_space(self):
+    def rms_slope_q_space(self):
         """
         taken from roughness in pycontact
         """
@@ -386,7 +386,7 @@ class DetrendedTopography(Topography):
         if self._detrend_mode is None or self._detrend_mode == 'center':
             self._coeffs = [-self.parent_topography.array().mean()]
         elif self._detrend_mode == 'height':
-            self._coeffs = [-s for s in compute_tilt_from_height(self.parent_topography)]
+            self._coeffs = [-s for s in tilt_from_height(self.parent_topography)]
         elif self._detrend_mode == 'slope':
             try:
                 sx, sy = self.parent_topography.size
@@ -398,7 +398,7 @@ class DetrendedTopography(Topography):
             self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
                              - sly * sy * (ny - 1) / (2 * ny)]
         elif self._detrend_mode == 'curvature':
-            self._coeffs = [-s for s in compute_tilt_and_curvature(self.parent_topography)]
+            self._coeffs = [-s for s in tilt_and_curvature(self.parent_topography)]
         else:
             raise ValueError("Unknown detrend mode '{}'." \
                              .format(self._detrend_mode))

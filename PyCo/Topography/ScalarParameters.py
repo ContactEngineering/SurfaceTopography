@@ -37,7 +37,7 @@ import numpy as np
 from .common import compute_derivative
 
 
-def compute_rms_height(profile, kind='Sq'):
+def rms_height(profile, kind='Sq'):
     "computes the rms height fluctuation of the surface"
     if kind == 'Sq':
         return np.sqrt(((profile[...]-profile[...].mean())**2).mean())
@@ -47,13 +47,13 @@ def compute_rms_height(profile, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def compute_rms_slope(profile, size=None, dim=None):
+def rms_slope(profile, size=None, dim=None):
     "computes the rms height gradient fluctuation of the surface"
     diff = compute_derivative(profile, size, dim)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
 
-def compute_rms_curvature(profile, size=None, dim=None):
+def rms_curvature(profile, size=None, dim=None):
     "computes the rms height gradient fluctuation of the surface"
     curv = compute_derivative(profile, size, dim, n=2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
