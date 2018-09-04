@@ -7,7 +7,7 @@
 
 @date   26 Jan 2015
 
-@brief  Base class for geometric descriptions
+@brief  Base class for geometric topogography descriptions
 
 @section LICENCE
 
@@ -100,8 +100,7 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def rms_curvature(self):
         "computes the rms curvature fluctuation of the topography"
-        return rms_curvature(self.array(),
-                             size=self.size, dim=self.dim)
+        return rms_curvature(self.array(), size=self.size, dim=self.dim)
 
     def rms_slope_q_space(self):
         """
@@ -176,8 +175,7 @@ class Topography(object, metaclass=abc.ABCMeta):
     def set_size(self, size, s_y=None):
         """ Deprecated, do not use.
         set the size of the topography """
-        warnings.warn('.set_size(x) is deprecated; please use .size = x',
-                      DeprecationWarning)
+        warnings.warn('.set_size(x) is deprecated; please use .size = x', DeprecationWarning)
         self.size = size
 
     @property
@@ -197,8 +195,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         if len(size) != self.dim:
             raise self.Error(
                 ("The dimension of this topography is {}, you have specified an "
-                 "incompatible size of dimension {} ({}).").format(
-                    self.dim, len(size), size))
+                 "incompatible size of dimension {} ({}).").format(self.dim, len(size), size))
         self._size = size
 
     @property
@@ -269,8 +266,7 @@ class Topography(object, metaclass=abc.ABCMeta):
                 except IndexError as err:
                     raise IndexError(
                         ("{}:\ncoords = {}, i = {}, j = {}, irange = {}, "
-                         "coord_copy = {}").format(
-                            err, coords, i, j, irange, coord_copy))  # nopep8
+                         "coord_copy = {}").format(err, coords, i, j, irange, coord_copy))
             laplacian += (fun_val[0] + fun_val[2] - 2 * fun_val[1]) / pixel_size ** 2
         return laplacian
 
@@ -407,8 +403,7 @@ class DetrendedTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.parent_topography, self._detrend_mode,
-                 self._coeffs)
+        state = (super().__getstate__(), self.parent_topography, self._detrend_mode, self._coeffs)
         return state
 
     def __setstate__(self, state):
@@ -512,8 +507,7 @@ class DetrendedTopography(Topography):
         elif len(self._coeffs) == 3:
             return '{2} + {0} x + {1} y'.format(*str_coeffs)
         else:
-            return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy' \
-                .format(*str_coeffs)
+            return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(*str_coeffs)
 
 
 class TranslatedTopography(Topography):
@@ -565,8 +559,7 @@ class TranslatedTopography(Topography):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
-        return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0),
-                       offsety, axis=1)
+        return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0), offsety, axis=1)
 
 
 class CompoundTopography(Topography):
@@ -603,10 +596,8 @@ class CompoundTopography(Topography):
                 return prop_a
 
         self._dim = combined_val(topography_a.dim, topography_b.dim, 'dim')
-        self._resolution = combined_val(topography_a.resolution,
-                                        topography_b.resolution, 'resolution')
-        self._size = combined_val(topography_a.size,
-                                  topography_b.size, 'size')
+        self._resolution = combined_val(topography_a.resolution, topography_b.resolution, 'resolution')
+        self._size = combined_val(topography_a.size, topography_b.size, 'size')
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
@@ -630,11 +621,9 @@ class NumpyTopography(Topography):
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(profile))) > 0:
-            profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)),
-                                         profile)
+            profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
         self.__h = profile
-        super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape),
-                         size=size, unit=unit)
+        super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape), size=size, unit=unit)
 
     def _array(self):
         return self.__h
@@ -664,8 +653,7 @@ class Sphere(NumpyTopography):
     """
     name = 'sphere'
 
-    def __init__(self, radius, resolution, size, centre=None, standoff=0,
-                 periodic=False):
+    def __init__(self, radius, resolution, size, centre=None, standoff=0, periodic=False):
         """
         Simple shere geometry.
         Parameters:
@@ -704,21 +692,13 @@ class Sphere(NumpyTopography):
                                    res, endpoint=False) % size - size / 2
 
         if dim == 1:
-            r2 = get_r(resolution[0],
-                       size[0],
-                       centre[0]) ** 2
+            r2 = get_r(resolution[0], size[0], centre[0]) ** 2
         elif dim == 2:
-            rx2 = (get_r(resolution[0],
-                         size[0],
-                         centre[0]) ** 2).reshape((-1, 1))
-            ry2 = (get_r(resolution[1],
-                         size[1],
-                         centre[1])) ** 2
+            rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape((-1, 1))
+            ry2 = (get_r(resolution[1], size[1], centre[1])) ** 2
             r2 = rx2 + ry2
         else:
-            raise Exception(
-                ("Problem has to be 1- or 2-dimensional. "
-                 "Yours is {}-dimensional").format(dim))
+            raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
         radius2 = radius ** 2  # avoid nans for small radiio
         outside = r2 > radius2
         r2[outside] = radius2
@@ -757,8 +737,7 @@ class PlasticTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.parent_topography, self.hardness,
-                 self.plastic_displ)
+        state = (super().__getstate__(), self.parent_topography, self.hardness, self.plastic_displ)
         return state
 
     def __setstate__(self, state):
@@ -834,8 +813,7 @@ class PlasticTopography(Topography):
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
         if plastic_displ.shape != self.shape:
-            raise ValueError('Resolution of profile and plastic displacement '
-                             'must match.')
+            raise ValueError('Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):
