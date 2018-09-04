@@ -34,8 +34,8 @@ SOFTWARE.
 
 import numpy as np
 import scipy.stats as stats
-from ..Topography import NumpyTopography
-from ..Tools.common import compute_wavevectors, ifftn, fftn
+from PyCo.Topography import NumpyTopography
+from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
 
 
 class RandomSurfaceExact(object):
