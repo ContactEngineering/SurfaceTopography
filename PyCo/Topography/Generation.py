@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   SurfaceGeneration.py
+@file   Generation.py
 
 @author Till Junge <till.junge@kit.edu>
 
@@ -37,6 +37,9 @@ import scipy.stats as stats
 from PyCo.Topography import NumpyTopography
 from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
 
+
+# FIXME: Not sure topography generation should be classes. These should probably
+# be turned into individual functions.
 
 class RandomSurfaceExact(object):
     """ Metasurface with exact power spectrum"""
