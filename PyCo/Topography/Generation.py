@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   SurfaceGeneration.py
+@file   Generation.py
 
 @author Till Junge <till.junge@kit.edu>
 
@@ -34,10 +34,12 @@ SOFTWARE.
 
 import numpy as np
 import scipy.stats as stats
-from ..Surface import NumpySurface
-from ..Tools.common import compute_wavevectors, ifftn, fftn
-from .SurfaceAnalysis import CharacterisePeriodicSurface
+from PyCo.Topography import NumpyTopography
+from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
 
+
+# FIXME: Not sure topography generation should be classes. These should probably
+# be turned into individual functions.
 
 class RandomSurfaceExact(object):
     """ Metasurface with exact power spectrum"""
@@ -235,7 +237,7 @@ class RandomSurfaceExact(object):
         area = np.prod(self.size)
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
-        return NumpySurface(profile, self.size)
+        return NumpyTopography(profile, self.size)
 
 
 class RandomSurfaceGaussian(RandomSurfaceExact):
@@ -296,7 +298,7 @@ class CapillaryWavesExact(object):
                              dimension. If the tuple has less entries than dimensions,
                              the last value in repeated.
         mass_density      -- Mass density
-        surface_tension   -- Surface tension
+        surface_tension   -- Topography tension
         bending_stiffness -- Bending stiffness
         rms_height        -- root mean square asperity height
         rms_slope         -- root mean square slope of surface
@@ -406,4 +408,4 @@ class CapillaryWavesExact(object):
         area = np.prod(self.size)
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
-        return NumpySurface(profile, self.size)
+        return NumpyTopography(profile, self.size)

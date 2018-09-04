@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   __init__.py
+@file   ScalarParameters.py
 
 @author Till Junge <till.junge@kit.edu>
 
-@date   26 Jan 2015
+@date   11 Feb 2015
 
-@brief  defines all surface types used in PyCo
+@brief  Bin for small common helper function and classes
 
 @section LICENCE
 
-Copyright 2015-2017 Till Junge, Lars Pastewka
+Copyright 2015-2018 Till Junge, Lars Pastewka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .SurfaceDescription import (CompoundSurface, DetrendedSurface,
-                                 NumpySurface, PlasticSurface,
-                                 ScaledSurface, Sphere, Surface,
-                                 TranslatedSurface)
-from .FromFile import (NumpyTxtSurface, NumpyAscSurface, read, read_asc,
-                       read_di, read_h5, read_hgt, read_ibw, read_mat,
-                       read_matrix, read_opd, read_x3p, read_xyz)
+import numpy as np
+
+from .common import compute_derivative
+
+
+def rms_height(profile, kind='Sq'):
+    "computes the rms height fluctuation of the surface"
+    if kind == 'Sq':
+        return np.sqrt(((profile[...]-profile[...].mean())**2).mean())
+    elif kind == 'Rq':
+        return np.sqrt(((profile[...]-profile[...].mean(axis=0))**2).mean())
+    else:
+        raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
+
+
+def rms_slope(profile, size=None, dim=None):
+    "computes the rms height gradient fluctuation of the surface"
+    diff = compute_derivative(profile, size, dim)
+    return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
+
+
+def rms_curvature(profile, size=None, dim=None):
+    "computes the rms height gradient fluctuation of the surface"
+    curv = compute_derivative(profile, size, dim, n=2)
+    return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())

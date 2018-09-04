@@ -5,9 +5,9 @@
 
 @author Till Junge <till.junge@kit.edu>
 
-@date   27 Jan 2015
+@date   26 Jan 2015
 
-@brief  Helper tools for PyCo
+@brief  defines all surface types used in PyCo
 
 @section LICENCE
 
@@ -32,7 +32,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .SurfaceAnalysis import CharacterisePeriodicSurface, CharacteriseSurface
-from .SurfaceModification import (ModifyExistingPeriodicSurface,
-                                  estimate_short_cutoff)
-from .ScanningProbe import scan_surface
+from .common import compute_derivative
+from .Autocorrelation import autocorrelation_1D, autocorrelation_2D
+from .Detrending import (tilt_from_height, tilt_from_slope, tilt_and_curvature, shift_and_tilt,
+                         shift_and_tilt_approx, shift_and_tilt_from_slope)
+from .PowerSpectrum import power_spectrum_1D, power_spectrum_2D
+from .ScalarParameters import rms_height, rms_slope, rms_curvature
+from .TopographyDescription import (CompoundTopography, DetrendedTopography,
+                                    NumpyTopography, PlasticTopography,
+                                    ScaledTopography, Sphere, Topography,
+                                    TranslatedTopography)
+from .FromFile import (NumpyTxtSurface, NumpyAscSurface, read, read_asc,
+                       read_di, read_h5, read_hgt, read_ibw, read_mat,
+                       read_matrix, read_opd, read_x3p, read_xyz)
