@@ -67,8 +67,8 @@ def checkerboard_tilt_correction(arr, sd, size=None):
     nb_dim = len(arr.shape)
 
     # compute unique consecutive index for each subdivided region
-    region_coord = (np.arange(arr.shape[i])*sd[i]//arr.shape[i]
-                    for i in range(nb_dim))
+    region_coord = [np.arange(arr.shape[i])*sd[i]//arr.shape[i]
+                    for i in range(nb_dim)]
     if nb_dim > 1:
         region_coord = np.meshgrid(*region_coord, indexing='ij')
     region_index = region_coord[0]
