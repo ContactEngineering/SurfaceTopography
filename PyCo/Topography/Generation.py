@@ -59,7 +59,7 @@ class RandomSurfaceExact(object):
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
         hurst      -- Hurst exponent
-        rms_height -- root mean square asperity height
+        rms_height -- root mean square height of surface
         rms_slope  -- root mean square slope of surface
         seed       -- (default hash(None)) for repeatability, the random number
                       generator is seeded previous to outputting the generated
@@ -255,7 +255,7 @@ class RandomSurfaceGaussian(RandomSurfaceExact):
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
         hurst      -- Hurst exponent
-        rms_height -- root mean square asperity height
+        rms_height -- root mean square height of surface
         rms_slope  -- root mean square slope of surface
         seed       -- (default hash(None)) for repeatability, the random number
                       generator is seeded previous to outputting the generated
@@ -300,7 +300,7 @@ class CapillaryWavesExact(object):
         mass_density      -- Mass density
         surface_tension   -- Topography tension
         bending_stiffness -- Bending stiffness
-        rms_height        -- root mean square asperity height
+        rms_height        -- root mean square height of surface
         rms_slope         -- root mean square slope of surface
         seed              -- (default hash(None)) for repeatability, the random number
                              generator is seeded previous to outputting the generated
