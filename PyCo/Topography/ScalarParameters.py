@@ -54,6 +54,9 @@ def rms_slope(profile, size=None, dim=None):
 
 
 def rms_curvature(profile, size=None, dim=None):
-    "computes the rms height gradient fluctuation of the surface"
+    """
+    computes the rms Laplacian of the surface
+    the rms mean-curvature would be half of this
+    """
     curv = compute_derivative(profile, size, dim, n=2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
