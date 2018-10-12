@@ -41,6 +41,7 @@ from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
 # FIXME: Not sure topography generation should be classes. These should probably
 # be turned into individual functions.
 
+# FIXME: In contrast to what is explained in docstrings, this functions don't work for the generation of 1D data or 2D data with nx and ny diferent, tests are only for square resolution
 class RandomSurfaceExact(object):
     """ Metasurface with exact power spectrum"""
     Error = Exception
