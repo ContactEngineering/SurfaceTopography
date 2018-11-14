@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   common.py
+@file   Autocorrelation.py
 
-@author Till Junge <till.junge@kit.edu>
+@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
-@date   11 Feb 2015
+@date   09 May 2018
 
-@brief  Bin for small common helper function and classes
+@brief  Height-difference autocorrelation functions
 
 @section LICENCE
 
@@ -40,7 +40,15 @@ from PyCo.Topography.common import _get_size, radial_average
 def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
                        size=None, periodic=False):
     """
-    Compute height-difference autocorrelation function and radial average.
+    Compute the one-dimensional height-difference autocorrelation function (ACF).
+
+    For non-periodic surfaces the ACF at distance d is given by:
+
+    .. math::
+
+      \text{ACF}(d) = \sum_{i=0}^{n-d-1} \frac{1}{n-d) \frac{1}{2} \left( h_i - h_{i+d} \right)^2
+                    = \frac{1}{2(n-d)} \sum_{i=0}^{n-d-1} \left( h_i^2 + h_{i+d}^2 \right) -
+                      \frac{1}{n-d} \sum_{i=0}^{n-d-1} h_i h_{i+d}
 
     Parameters
     ----------
@@ -78,18 +86,20 @@ def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
 
         r = sx * np.arange(nx // 2) / nx
     else:
-        surface_qy = np.fft.fft(surface_xy[:, :], n=2 * nx - 1, axis=0)
+        p = surface_xy[:, :]
+
+        # Compute height-height autocorrelation function
+        surface_qy = np.fft.fft(p, n=2 * nx - 1, axis=0)
         C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
-        normx = (np.abs(np.arange(2 * nx - 1) - (nx - 1)) + 1).reshape(-1, 1)
-        A_xy = np.fft.ifft(C_qy, axis=0).real / normx
+        A_xy = np.fft.ifft(C_qy, axis=0).real
+
+        # Correction to turn height-height into height-difference autocorrelation
+        p_sq = p**2
+        A0_xy = (np.cumsum(p_sq, axis=0)[::-1] + np.cumsum(p_sq[::-1], axis=0)[::-1])/2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, :] - A_xy
-
-        A = A_xy[:nx, :]
-        A[1:nx, :] += A_xy[2 * nx - 1:nx - 1:-1, :]
-        A /= 2
+        A = ((A0_xy - A_xy[:nx, :]).T / (nx - np.arange(nx))).T
 
         r = sx * np.arange(nx) / nx
 
