@@ -86,7 +86,7 @@ def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
 
         r = sx * np.arange(nx // 2) / nx
     else:
-        p = surface_xy[:, :]
+        p = surface_xy[...]
 
         # Compute height-height autocorrelation function
         surface_qy = np.fft.fft(p, n=2 * nx - 1, axis=0)
@@ -95,7 +95,7 @@ def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
 
         # Correction to turn height-height into height-difference autocorrelation
         p_sq = p**2
-        A0_xy = (np.cumsum(p_sq, axis=0)[::-1] + np.cumsum(p_sq[::-1], axis=0)[::-1])/2
+        A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[::-1])/2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
@@ -159,15 +159,21 @@ def autocorrelation_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
             A_xy, (sx + sy) / 4, nbins, size=(sx, sy))
     else:
-        surface_qk = np.fft.fft2(surface_xy[:, :], s=(2 * nx - 1, 2 * ny - 1))
+        p = surface_xy[...]
+
+        # Compute height-height autocorrelation function
+        surface_qk = np.fft.fft2(p, s=(2 * nx - 1, 2 * ny - 1))
         C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
-        normx = (np.abs(np.arange(2 * nx - 1) - (nx - 1)) + 1).reshape(-1, 1)
-        normy = (np.abs(np.arange(2 * ny - 1) - (ny - 1)) + 1).reshape(1, -1)
-        A_xy = np.fft.ifft2(C_qk).real / (normx * normy)
+        A_xy = np.fft.ifft2(C_qk).real
+
+        # Correction to turn height-height into height-difference autocorrelation
+        p_sq = p**2
+        A0_xy = (p_sq.cumsum(axis=0).cumsum(axis=1)[::-1, ::-1] + \
+                 p_sq[::-1, ::-1].cumsum(axis=0).cumsum(axis=1)[::-1, ::-1])/2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = A_xy[0, 0] - A_xy
+        A_xy = (A0_xy - A_xy[:nx, :ny]) / ((nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         if nbins is None:
             return A_xy
