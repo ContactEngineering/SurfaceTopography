@@ -40,7 +40,7 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from .TopographyDescription import NumpyTopography, ScaledTopography
+from .TopographyDescription import NonuniformTopography, UniformNumpyTopography, ScaledTopography
 
 ###
 
@@ -98,7 +98,7 @@ def read_matrix(fobj, size=None, factor=None):
                 raise FileNotFoundError(
                     "No such file or directory: '{}(.gz)'".format(
                         fobj))
-    surface = NumpyTopography(np.loadtxt(fobj), size=size)
+    surface = UniformNumpyTopography(np.loadtxt(fobj), size=size)
     if factor is not None:
         surface = ScaledTopography(surface, factor)
     return surface
@@ -208,6 +208,8 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
                     process_comment(line)
     data = np.array(data)
     nx, ny = data.shape
+    if nx == 2 or ny == 2:
+        raise Exception("This file has just two rows or two columns and is more likely a line scan than a map.")
     if xres is not None and xres != nx:
         raise Exception(
             "The number of rows (={}) read from the file '{}' does "
@@ -254,10 +256,10 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
             zfac *= height_units[zunit] / height_units[unit]
 
     if xsiz is None or ysiz is None:
-        surface = NumpyTopography(data, unit=unit)
+        surface = UniformNumpyTopography(data, unit=unit)
     else:
-        surface = NumpyTopography(data, size=(x_factor * xsiz, x_factor * ysiz),
-                                  unit=unit)
+        surface = UniformNumpyTopography(data, size=(x_factor * xsiz, x_factor * ysiz),
+                                         unit=unit)
     surface = ScaledTopography(surface, zfac)
     return surface
 
@@ -265,7 +267,7 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
 NumpyAscSurface = read_asc  # pylint: disable=invalid-name
 
 
-def read_xyz(fobj):
+def read_xyz(fobj, unit=None):
     """
     Load xyz-file
     TODO: LARS_DOC
@@ -273,32 +275,51 @@ def read_xyz(fobj):
     fobj -- filename or file object
     """
     # pylint: disable=invalid-name
-    x, y, z = np.loadtxt(fobj, unpack=True)  # pylint: disable=invalid-name
 
-    # Sort x-values into bins. Assume points on surface are equally spaced.
-    dx = x[1] - x[0]
-    binx = np.array(x / dx + 0.5, dtype=int)
-    n = np.bincount(binx)
-    ny = n[0]
-    assert np.all(n == ny)
+    if not hasattr(fobj, 'read'):
+        if not os.path.isfile(fobj):
+            raise FileNotFoundError(
+                "No such file or directory: '{}(.gz)'".format(fobj))
+        fname = fobj
+        fobj = open(fname)
 
-    # Sort y-values into bins.
-    dy = y[binx == 0][1] - y[binx == 0][0]
-    biny = np.array(y / dy + 0.5, dtype=int)
-    n = np.bincount(biny)
-    nx = n[0]
-    assert np.all(n == nx)
+    data = np.loadtxt(fobj, unpack=True)
+    if len(data) == 2:
+        # This is a line scan.
+        x, z = data
+        x -= np.min(x)
 
-    # Sort data into bins.
-    data = np.zeros((nx, ny))
-    data[binx, biny] = z
+        return NonuniformTopography(x, z, size=np.max(x), unit=unit)
+    elif len(data) == 3:
+        # This is a topography map.
+        x, y, z = data
 
-    # Sanity check. Should be covered by above asserts.
-    value_present = np.zeros((nx, ny), dtype=bool)
-    value_present[binx, biny] = True
-    assert np.all(value_present)
+        # Sort x-values into bins. Assume points on surface are equally spaced.
+        dx = x[1] - x[0]
+        binx = np.array(x / dx + 0.5, dtype=int)
+        n = np.bincount(binx)
+        ny = n[0]
+        assert np.all(n == ny) # FIXME: Turn assert into exception
 
-    return NumpyTopography(data, size=(dx * nx, dy * ny))
+        # Sort y-values into bins.
+        dy = y[binx == 0][1] - y[binx == 0][0]
+        biny = np.array(y / dy + 0.5, dtype=int)
+        n = np.bincount(biny)
+        nx = n[0]
+        assert np.all(n == nx) # FIXME: Turn assert into exception
+
+        # Sort data into bins.
+        data = np.zeros((nx, ny))
+        data[binx, biny] = z
+
+        # Sanity check. Should be covered by above asserts.
+        value_present = np.zeros((nx, ny), dtype=bool)
+        value_present[binx, biny] = True
+        assert np.all(value_present) # FIXME: Turn assert into exception
+
+        return UniformNumpyTopography(data, size=(dx * nx, dy * ny), unit=unit)
+    else:
+        raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
 
 
 def read_x3p(fobj):
@@ -372,7 +393,7 @@ def read_x3p(fobj):
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
 
-    return NumpyTopography(data, size=(xinc * nx, yinc * ny))
+    return UniformNumpyTopography(data, size=(xinc * nx, yinc * ny))
 
 
 def read_mat(fobj, size=None, factor=None, unit=None):
@@ -399,7 +420,7 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         except (AttributeError, ValueError):
             pass
         if is_2darray:
-            surface = NumpyTopography(value, size=size, unit=unit)
+            surface = UniformNumpyTopography(value, size=size, unit=unit)
             if factor is not None:
                 surface = ScaledTopography(surface, factor)
             surfaces += [surface]
@@ -491,8 +512,8 @@ def read_opd(fobj):
         raise IOError('No data block encountered.')
 
     # Height are in nm, width in mm
-    surface = NumpyTopography(data, size=(nx * pixel_size, ny * pixel_size * aspect),
-                              unit='mm')
+    surface = UniformNumpyTopography(data, size=(nx * pixel_size, ny * pixel_size * aspect),
+                                     unit='mm')
     surface = ScaledTopography(surface, wavelength / mult * 1e-6)
     return surface
 
@@ -602,7 +623,7 @@ def read_di(fobj):
             else:
                 unit = (xy_unit, height_unit)
 
-            surface = NumpyTopography(unscaleddata.T, size=(sx, sy), unit=unit)
+            surface = UniformNumpyTopography(unscaleddata.T, size=(sx, sy), unit=unit)
             surface.info.update(dict(data_source=image_data_key))
             surface = ScaledTopography(surface, hard_scale * hard_to_soft * soft_scale)
             surfaces += [surface]
@@ -645,7 +666,7 @@ def read_ibw(fobj):
     sfA = wave['wave_header']['sfA']
     nx, ny = data.shape
 
-    surface = NumpyTopography(data, size=(nx * sfA[0], ny * sfA[1]), unit=z_unit)
+    surface = UniformNumpyTopography(data, size=(nx * sfA[0], ny * sfA[1]), unit=z_unit)
 
     return surface
 
@@ -678,13 +699,13 @@ def read_hgt(fobj):
     if close_file:
         fobj.close()
 
-    return NumpyTopography(data)
+    return UniformNumpyTopography(data)
 
 
 def read_h5(fobj):
     import h5py
     h5 = h5py.File(fobj)
-    return NumpyTopography(h5['surface'][...])
+    return UniformNumpyTopography(h5['surface'][...])
 
 
 def detect_format(fobj):
@@ -746,6 +767,7 @@ def detect_format(fobj):
         except:
             pass
 
+        # Try opening igor binary wave and see if it fails
         fobj.seek(file_pos)
         import igor.binarywave as ibw
         try:
@@ -755,6 +777,13 @@ def detect_format(fobj):
             else:
                 fobj.seek(file_pos)
             return 'ibw'
+        except:
+            pass
+
+        # Finally, this could be a line scan in text format
+        try:
+            read_xyz(fobj)
+            return 'xyz'
         except:
             pass
 
