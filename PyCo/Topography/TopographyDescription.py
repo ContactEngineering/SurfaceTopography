@@ -347,6 +347,10 @@ class ChildTopography(Topography):
         return self.parent_topography.area_per_pt
 
     @property
+    def pixel_size(self):
+        return self.parent_topography.pixel_size
+
+    @property
     def has_undefined_data(self):
         try:
             return self.parent_topography.has_undefined_data
