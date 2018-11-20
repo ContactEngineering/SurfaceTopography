@@ -144,7 +144,7 @@ def autocorrelation_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
 
     # Compute FFT and normalize
     if periodic:
-        surface_qk = np.fft.fft2(surface_xy.array())
+        surface_qk = np.fft.fft2(surface_xy[...])
         C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft2(C_qk).real / (nx * ny)
 
@@ -159,7 +159,7 @@ def autocorrelation_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
             A_xy, (sx + sy) / 4, nbins, size=(sx, sy))
     else:
-        p = surface_xy.array()
+        p = surface_xy[...]
 
         # Compute height-height autocorrelation function
         surface_qk = np.fft.fft2(p, s=(2 * nx - 1, 2 * ny - 1))
