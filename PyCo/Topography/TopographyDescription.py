@@ -143,7 +143,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Set info dictionary """
         self._info = info
 
-    @abc.abstractmethod
+    #@abc.abstractmethod - FIXME: make abstract again
     def array(self):
         """ Return topography data on a homogeneous grid. """
         raise NotImplementedError
@@ -421,12 +421,8 @@ class NonuniformTopography(SizedTopography):
     only supports line scans, i.e. one-dimensional topographies.
     """
 
-    _is_uniform = False
-
-    def __init__(self, x, y, size=None, unit=None):
+    def __init__(self, size=None, unit=None):
         super().__init__(dim=2, size=size, unit=unit)
-        self.__x = x
-        self.__h = y
 
     @property
     def is_periodic(self):
@@ -435,9 +431,6 @@ class NonuniformTopography(SizedTopography):
     @property
     def is_uniform(self):
         return False
-
-    def points(self):
-        return self.__x, self.__h
 
 
 class ScaledTopography(ChildTopography):
@@ -688,8 +681,8 @@ class UniformNumpyTopography(UniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        super().__setstate__(state[0])
-        self.__h = state[1]
+        superstate, self.__h = state
+        super().__setstate__(superstate)
 
     def array(self):
         """
@@ -711,8 +704,33 @@ class UniformNumpyTopography(UniformTopography):
         np.savetxt(fname, self.array())
 
 
-class NonuniformNumpyTopgraphy(NonuniformTopography):
-    pass
+class NonuniformNumpyTopography(NonuniformTopography):
+    """
+    Nonunform topography with point list consisting of static numpy arrays.
+    """
+
+    def __init__(self, x, y, size=None, unit=None):
+        super().__init__(size=size, unit=unit)
+        self.__x = x
+        self.__h = y
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self.__x, self.__h
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self.__x, self.__h = state
+        super().__setstate__(superstate)
+
+    def points(self):
+        return self.__x, self.__h
 
 
 # TODO: Turn into generator function
