@@ -69,7 +69,7 @@ def compute_derivative(profile, size=None, dim=None, n=1):
             for d in dims]
 
 
-def radial_average(C_xy, rmax, nbins, size=None):
+def radial_average(C_xy, rmax, nbins, size=None, full=True):
     """
     Compute radial average of quantities reported on a 2D grid.
 
@@ -82,8 +82,13 @@ def radial_average(C_xy, rmax, nbins, size=None):
     nbins : int
         Number of bins for averaging.
     size : (float, float), optional
-        Physical size of the 2D grid. (Default: Size is equal to number of grid
-        points.)
+        Physical size of the 2D grid. (Default: Size is equal to number of
+        grid points.)
+    full : bool
+        Number of quadrants contained in data. (Default: True)
+        True: Full radial average from 0 to 2*pi.
+        False: Only the one quarter of the full circle is present. Radial
+        average from 0 to pi/2.
 
     Returns
     -------
@@ -100,9 +105,12 @@ def radial_average(C_xy, rmax, nbins, size=None):
     nx, ny = C_xy.shape
     sx = sy = 1.
     x = np.arange(nx)
-    x = np.where(x > nx//2, nx-x, x)/nx
     y = np.arange(ny)
-    y = np.where(y > ny//2, ny-y, y)/ny
+    if full:
+        x = np.where(x > nx//2, nx-x, x)
+        y = np.where(y > ny//2, ny-y, y)
+    x = x/nx
+    y = y/ny
 
     rmin = 0.0
 
