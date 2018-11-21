@@ -60,3 +60,15 @@ def rms_curvature(profile, size=None, dim=None):
     """
     curv = compute_derivative(profile, size, dim, n=2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
+
+
+def rms_height_nonuniform(x, y, kind='Sq'):
+    raise NotImplementedError
+
+
+def rms_slope_nonuniform(x, y):
+    raise NotImplementedError
+
+
+def rms_curvature_nonuniform(x, y):
+    raise NotADirectoryError

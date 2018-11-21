@@ -38,6 +38,10 @@ from scipy.signal import get_window
 from PyCo.Topography.common import _get_size, radial_average
 
 
+def power_spectrum_nonuniform_1D(x, y):
+    pass
+
+
 def power_spectrum_1D(surface_xy,  # pylint: disable=invalid-name
                       size=None, window=None, fold=True):
     """

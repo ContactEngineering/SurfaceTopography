@@ -39,104 +39,40 @@ import numpy as np
 
 from .common import compute_derivative
 from .Detrending import tilt_from_height, tilt_and_curvature
-from .ScalarParameters import rms_height, rms_slope, rms_curvature
+from .ScalarParameters import (rms_height, rms_slope, rms_curvature, rms_height_nonuniform, rms_slope_nonuniform,
+                               rms_curvature_nonuniform)
 
 
 class Topography(object, metaclass=abc.ABCMeta):
-    """ Base class for geometries. These are used to define height profiles for
-         contact problems"""
+    """
+    Base class for topography geometries. These are used to define height
+    profiles for contact problems or for spectral or other type of analysis.
+    """
+
+    name = 'topography'
 
     class Error(Exception):
         # pylint: disable=missing-docstring
         pass
 
-    name = 'generic_geom'
-
-    def __init__(self, resolution=None, dim=None, size=None, unit=None,
-                 adjustment=0.):
-        self._resolution = resolution
-        self._dim = dim
-        self._size = size
-        self._unit = unit
+    def __init__(self):
         self._info = {}
-        self.adjustment = adjustment
+
+    def __getitem__(self, index):
+        return self.array()[index]
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (self._resolution, self._dim, self._size, self._unit,
-                 self.adjustment)
-        return state
+        return self._info
 
     def __setstate__(self, state):
         """ Upon unpickling, it is called with the unpickled state
         Keyword Arguments:
         state -- result of __getstate__
         """
-        (self._resolution, self._dim, self._size, self._unit,
-         self.adjustment) = state
-
-    def rms_height(self, kind='Sq'):
-        "computes the rms height fluctuation of the topography"
-        return rms_height(self.array(), kind=kind)
-
-    def rms_height_q_space(self):
-        """
-        computes the rms height fluctuation of the topography in the
-        frequency domain
-        """
-        delta = self.array()
-        delta -= delta.mean()
-        area = np.prod(self.size)
-        nb_pts = np.prod(self.resolution)
-        H = area / nb_pts * np.fft.fftn(delta)
-        return 1 / area * np.sqrt((np.conj(H) * H).sum().real)
-
-    def rms_slope(self):
-        "computes the rms height gradient fluctuation of the topography"
-        return rms_slope(self.array(),
-                         size=self.size, dim=self.dim)
-
-    def rms_curvature(self):
-        "computes the rms curvature fluctuation of the topography"
-        return rms_curvature(self.array(), size=self.size, dim=self.dim)
-
-    def rms_slope_q_space(self):
-        """
-        taken from roughness in pycontact
-        """
-        # pylint: disable=invalid-name
-        nx, ny = self.resolution
-        sx, sy = self.size
-        qx = np.arange(nx, dtype=np.float64)
-        qx = np.where(qx <= nx / 2, 2 * np.pi * qx / sx, 2 * np.pi * (nx - qx) / sx)
-        qy = np.arange(ny, dtype=np.float64)
-        qy = np.where(qy <= ny / 2, 2 * np.pi * qy / sy, 2 * np.pi * (ny - qy) / sy)
-        q = np.sqrt((qx * qx).reshape(-1, 1) + (qy * qy).reshape(1, -1))
-
-        h_q = np.fft.fft2(self.array())
-        return np.sqrt(
-            np.mean(q ** 2 * h_q * np.conj(h_q)).real / (
-                    float(self.array().shape[0]) * float(self.array().shape[1])))
-
-    def adjust(self):
-        """
-        shifts topography up or down so that a zero displacement would lead to a
-        zero gap
-        """
-        self.adjustment = self.array().max()
-
-    def array(self):
-        """ returns an array of possibly adjusted heights
-        """
-        return self._array() - self.adjustment
-
-    @abc.abstractmethod
-    def _array(self):
-        """ returns an array of heights
-        """
-        raise NotImplementedError()
+        self._info = state
 
     def __add__(self, other):
         return CompoundTopography(self, other)
@@ -149,8 +85,134 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     __rmul__ = __mul__
 
-    def __getitem__(self, index):
-        return self._array()[index] - self.adjustment
+    @property
+    def is_periodic(self):
+        """ Returns whether the surface is periodic. """
+        return False
+
+    @property
+    @abc.abstractmethod
+    def is_uniform(self):
+        """
+        Returns whether data resides on a uniform grid. This has the
+        implication, that the array() method return the topography data.
+        """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def dim(self, ):
+        """ needs to be testable to make sure that geometry and halfspace are
+            compatible
+        """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def size(self, ):
+        """ needs to be testable to make sure that geometry and halfspace are
+            compatible
+        """
+        raise NotImplementedError
+
+    @size.setter
+    @abc.abstractmethod
+    def size(self, size):
+        """ set the size of the topography """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def unit(self, ):
+        """ Return unit """
+        raise NotImplementedError
+
+    @unit.setter
+    @abc.abstractmethod
+    def unit(self, unit):
+        """ Set unit """
+        raise NotImplementedError
+
+    @property
+    def info(self, ):
+        """ Return info dictionary """
+        return self._info
+
+    @info.setter
+    def info(self, info):
+        """ Set info dictionary """
+        self._info = info
+
+    @abc.abstractmethod
+    def array(self):
+        """ Return topography data on a homogeneous grid. """
+        raise NotImplementedError
+
+    #@abc.abstractmethod - FIXME: make abstract again
+    def points(self):
+        """ Return topography data on an inhomogeneous grid as a list of points. """
+        raise NotImplementedError
+
+    def rms_height(self, kind='Sq'):
+        """
+        RMS height fluctuation of the topography.
+
+        Parameters
+        ----------
+        kind : str
+            String specifying the kind of analysis to carry out. 'Sq' is
+            areal RMS height and 'Rq' means is RMS height from line scans.
+
+        Returns
+        -------
+        rms_height : float
+            Scalar containing the RMS height
+        """
+        if self.is_uniform:
+            return rms_height(self.array(), kind=kind)
+        else:
+            return rms_height_nonuniform(*self.points(), kind=kind)
+
+    def rms_slope(self):
+        """computes the rms height gradient fluctuation of the topography"""
+        if self.is_uniform:
+            return rms_slope(self.array(), size=self.size, dim=self.dim)
+        else:
+            return rms_slope_nonuniform(*self.points(), size=self.size, dim=self.dim)
+
+    def rms_curvature(self):
+        """computes the rms curvature fluctuation of the topography"""
+        if self.is_uniform:
+            return rms_curvature(self.array(), size=self.size, dim=self.dim)
+        else:
+            return rms_curvature_nonuniform(*self.points(), size=self.size, dim=self.dim)
+
+
+class SizedTopography(Topography):
+    """
+    Topography that stores its own size.
+    """
+
+    def __init__(self, dim=None, size=None, unit=None):
+        super().__init__()
+        self._dim = dim
+        self._size = size
+        self._unit = unit
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self._dim, self._size, self._unit
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._dim, self._size, self._unit = state
+        super().__setstate__(superstate)
 
     @property
     def dim(self, ):
@@ -158,25 +220,6 @@ class Topography(object, metaclass=abc.ABCMeta):
             compatible
         """
         return self._dim
-
-    @property
-    def pixel_size(self):
-        return np.asarray(self.size) / np.asarray(self.resolution)
-
-    @property
-    def resolution(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self._resolution
-
-    shape = resolution
-
-    def set_size(self, size, s_y=None):
-        """ Deprecated, do not use.
-        set the size of the topography """
-        warnings.warn('.set_size(x) is deprecated; please use .size = x', DeprecationWarning)
-        self.size = size
 
     @property
     def size(self, ):
@@ -187,7 +230,7 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     @size.setter
     def size(self, size):
-        """ set the size of the toporgraphy """
+        """ set the size of the topography """
         if not hasattr(size, "__iter__"):
             size = (size,)
         else:
@@ -208,90 +251,33 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Set unit """
         self._unit = unit
 
-    @property
-    def info(self, ):
-        """ Return info dictionary """
-        return self._info
 
-    @info.setter
-    def info(self, info):
-        """ Set info dictionary """
-        self._info = info
-
-    @property
-    def area_per_pt(self):
-        if self.size is None:
-            return 1
-        return np.prod([s / r for s, r in zip(self.size, self.resolution)])
-
-    @property
-    def has_undefined_data(self):
-        try:
-            return self.parent_topography.has_undefined_data
-        except:
-            return False
-
-    def save(self, fname, compress=True):
-        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
-            the profile; the size is not contained in the file
-        """
-        if compress:
-            if not fname.endswith('.gz'):
-                fname = fname + ".gz"
-        np.savetxt(fname, self.array())
-
-    def estimate_laplacian(self, coords):
-        """
-        estimate the local laplacian at coords by finite differences
-        Keyword Arguments:
-        coords --
-        """
-        laplacian = 0.
-        for i in range(self.dim):
-            pixel_size = self.size[i] / self.resolution[i]
-            coord = coords[i]
-            if coord == 0:
-                delta = 1
-            elif coord == self.resolution[i] - 1:
-                delta = -1
-            else:
-                delta = 0
-            irange = (coords[i] - 1 + delta, coords[i] + delta, coords[i] + 1 + delta)
-            fun_val = np.zeros(len(irange))
-            for j, i_val in enumerate(irange):
-                coord_copy = list(coords)
-                coord_copy[i] = i_val
-                try:
-                    fun_val[j] = self.array()[tuple(coord_copy)]
-                except IndexError as err:
-                    raise IndexError(
-                        ("{}:\ncoords = {}, i = {}, j = {}, irange = {}, "
-                         "coord_copy = {}").format(err, coords, i, j, irange, coord_copy))
-            laplacian += (fun_val[0] + fun_val[2] - 2 * fun_val[1]) / pixel_size ** 2
-        return laplacian
-
-
-class ScaledTopography(Topography):
-    """ used when geometries are scaled
+class ChildTopography(Topography):
     """
-    name = 'scaled_topography'
+    Base class of topographies with parent. Having a parent means that the
+    data is owned by the parent, but the present class performs
+    transformations on that data. This is a simple realization of a
+    processing pipeline. Note that child topographies don't store their
+    own size etc. but pass this information through to the parent.
+    """
+    name = "child_topography"
 
-    def __init__(self, topography, coeff):
+    def __init__(self, topography):
         """
-        Keyword Arguments:
-        topography  -- Topography to scale
-        coeff -- Scaling factor
+        Arguments
+        ---------
+        topography : Topography
+            The parent topography.
         """
         super().__init__()
         assert isinstance(topography, Topography)
         self.parent_topography = topography
-        self.coeff = float(coeff)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.parent_topography, self.coeff)
+        state = super().__getstate__(), self.parent_topography
         return state
 
     def __setstate__(self, state):
@@ -299,18 +285,27 @@ class ScaledTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.parent_topography, self.coeff = state
+        superstate, self.parent_topography = state
         super().__setstate__(superstate)
 
     @property
-    def dim(self, ):
+    def is_periodic(self):
+        return self.parent_topography.is_periodic
+
+    @property
+    def is_uniform(self):
+        """ Stored on a uniform grid? """
+        return self.parent_topography.is_uniform
+
+    @property
+    def dim(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
         return self.parent_topography.dim
 
     @property
-    def resolution(self, ):
+    def resolution(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
@@ -319,7 +314,7 @@ class ScaledTopography(Topography):
     shape = resolution
 
     @property
-    def size(self, ):
+    def size(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
@@ -331,7 +326,7 @@ class ScaledTopography(Topography):
         self.parent_topography.size = size
 
     @property
-    def unit(self, ):
+    def unit(self):
         """ Return unit """
         return self.parent_topography.unit
 
@@ -341,22 +336,146 @@ class ScaledTopography(Topography):
         self.parent_topography.unit = unit
 
     @property
-    def info(self, ):
+    def info(self):
         """ Return info dictionary """
-        return self.parent_topography.info
+        info = self.parent_topography.info.copy()
+        info.update(self._info)
+        return info
 
-    @info.setter
-    def info(self, info):
-        """ Set info dictionary """
-        self.parent_topography.info = info
+    @property
+    def area_per_pt(self):
+        return self.parent_topography.area_per_pt
 
-    def _array(self):
+    @property
+    def pixel_size(self):
+        return self.parent_topography.pixel_size
+
+    @property
+    def has_undefined_data(self):
+        try:
+            return self.parent_topography.has_undefined_data
+        except:
+            return False
+
+
+class UniformTopography(SizedTopography):
+    """
+    Topography that lives on a uniform grid.
+    """
+
+    name = 'generic_geom'
+
+    def __init__(self, resolution=None, dim=None, size=None, unit=None):
+        super().__init__(dim=dim, size=size, unit=unit)
+        self._resolution = resolution
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self._resolution
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._resolution = state
+        super().__setstate__(superstate)
+
+    @property
+    def is_periodic(self):
+        return False
+
+    @property
+    def is_uniform(self):
+        return True
+
+    def points(self):
+        return tuple(np.meshgrid(*(np.arange(r)*s/r for s, r in zip(self.size, self.resolution)))+[self.array()])
+
+    @property
+    def pixel_size(self):
+        return np.asarray(self.size) / np.asarray(self.resolution)
+
+    @property
+    def resolution(self, ):
+        """ needs to be testable to make sure that geometry and halfspace are
+            compatible
+        """
+        return self._resolution
+
+    shape = resolution
+
+    @property
+    def area_per_pt(self):
+        if self.size is None:
+            return 1
+        return np.prod([s / r for s, r in zip(self.size, self.resolution)])
+
+
+class NonuniformTopography(SizedTopography):
+    """
+    Base class for topographies that live on a non-uniform grid. Currently
+    only supports line scans, i.e. one-dimensional topographies.
+    """
+
+    _is_uniform = False
+
+    def __init__(self, x, y, size=None, unit=None):
+        super().__init__(dim=2, size=size, unit=unit)
+        self.__x = x
+        self.__h = y
+
+    @property
+    def is_periodic(self):
+        return False
+
+    @property
+    def is_uniform(self):
+        return False
+
+    def points(self):
+        return self.__x, self.__h
+
+
+class ScaledTopography(ChildTopography):
+    """ used when geometries are scaled
+    """
+    name = 'scaled_topography'
+
+    def __init__(self, topography, coeff):
+        """
+        Keyword Arguments:
+        topography  -- Topography to scale
+        coeff -- Scaling factor
+        """
+        super().__init__(topography)
+        self.coeff = float(coeff)
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self.coeff
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self.coeff = state
+        super().__setstate__(superstate)
+
+    def array(self):
         """ Computes the combined profile.
         """
         return self.coeff * self.parent_topography.array()
 
 
-class DetrendedTopography(Topography):
+class DetrendedTopography(ChildTopography):
     """ used when topography needs to be tilted
     """
     name = 'detrended_topography'
@@ -366,15 +485,14 @@ class DetrendedTopography(Topography):
         Keyword Arguments:
         topography -- Topography to scale
         detrend_mode -- Possible keywords:
-            'center': center the topography, no trent correction.
+            'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
             'slope': adjust slope such that rms slope is minimized.
             'curvature': adjust slope and curvature such that rms height is
             minimized.
         """
-        super().__init__()
+        super().__init__(topography)
         assert isinstance(topography, Topography)
-        self.parent_topography = topography
         self._detrend_mode = detrend_mode
         self._detrend()
 
@@ -403,7 +521,7 @@ class DetrendedTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.parent_topography, self._detrend_mode, self._coeffs)
+        state = super().__getstate__(), self._detrend_mode, self._coeffs
         return state
 
     def __setstate__(self, state):
@@ -411,57 +529,8 @@ class DetrendedTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        (superstate, self.parent_topography, self._detrend_mode, self._coeffs) = state
+        superstate, self._detrend_mode, self._coeffs = state
         super().__setstate__(superstate)
-
-    @property
-    def dim(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.dim
-
-    @property
-    def resolution(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.resolution
-
-    shape = resolution
-
-    @property
-    def size(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.size
-
-    @size.setter
-    def size(self, size):
-        """ set the size of the topography"""
-        self.parent_topography.size = size
-        self._detrend()
-
-    @property
-    def unit(self, ):
-        """ Return unit """
-        return self.parent_topography.unit
-
-    @unit.setter
-    def unit(self, unit):
-        """ Set unit """
-        self.parent_topography.unit = unit
-
-    @property
-    def info(self, ):
-        """ Return info dictionary """
-        return self.parent_topography.info
-
-    @info.setter
-    def info(self, info):
-        """ Set info dictionary """
-        self.parent_topography.info = info
 
     @property
     def coeffs(self, ):
@@ -476,7 +545,7 @@ class DetrendedTopography(Topography):
         self._detrend_mode = detrend_mode
         self._detrend()
 
-    def _array(self):
+    def array(self):
         """ Computes the combined profile.
         """
         nx, ny = self.shape
@@ -510,7 +579,7 @@ class DetrendedTopography(Topography):
             return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(*str_coeffs)
 
 
-class TranslatedTopography(Topography):
+class TranslatedTopography(ChildTopography):
     """ used when geometries are translated
     """
     name = 'translated_topography'
@@ -521,51 +590,32 @@ class TranslatedTopography(Topography):
         topography  -- Topography to translate
         offset -- Translation offset in number of grid points
         """
-        super().__init__()
+        super().__init__(topography)
         assert isinstance(topography, Topography)
-        self.parent_topography = topography
-        self.offset = offset
+        self._offset = offset
 
     @property
-    def dim(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.dim
+    def offset(self, ):
+        return self._offset
 
-    @property
-    def resolution(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.resolution
-
-    shape = resolution
-
-    @property
-    def size(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.size
-
-    def set_offset(self, offset, offsety=None):
+    @offset.setter
+    def offset(self, offset, offsety=None):
         if offsety is None:
             self.offset = offset
         else:
             self.offset = (offset, offsety)
 
-    def _array(self):
+    def array(self):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
         return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0), offsety, axis=1)
 
 
-class CompoundTopography(Topography):
+class CompoundTopography(SizedTopography):
     """ used when geometries are combined
     """
-    name = 'combined_topography'
+    name = 'compound_topography'
 
     def __init__(self, topography_a, topography_b):
         """ Behaves like a topography that is a sum of two Topographies
@@ -601,17 +651,18 @@ class CompoundTopography(Topography):
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
-    def _array(self):
+    def array(self):
         """ Computes the combined profile
         """
         return (self.parent_topography_a.array() +
                 self.parent_topography_b.array())
 
 
-class NumpyTopography(Topography):
-    """ Dummy topography from a static array
+class UniformNumpyTopography(UniformTopography):
     """
-    name = 'topography_from_np_array'
+    Topography from a static numpy array.
+    """
+    name = 'uniform_numpy_topography'
 
     def __init__(self, profile, size=None, unit=None):
         """
@@ -625,14 +676,11 @@ class NumpyTopography(Topography):
         self.__h = profile
         super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape), size=size, unit=unit)
 
-    def _array(self):
-        return self.__h
-
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.__h)
+        state = super().__getstate__(), self.__h
         return state
 
     def __setstate__(self, state):
@@ -643,12 +691,32 @@ class NumpyTopography(Topography):
         super().__setstate__(state[0])
         self.__h = state[1]
 
+    def array(self):
+        """
+        Returns array containing the topography data.
+        """
+        return self.__h
+
     @property
     def has_undefined_data(self):
         return np.ma.getmask(self.__h) is not np.ma.nomask
 
+    def save(self, fname, compress=True):
+        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
+            the profile; the size is not contained in the file
+        """
+        if compress:
+            if not fname.endswith('.gz'):
+                fname = fname + ".gz"
+        np.savetxt(fname, self.array())
 
-class Sphere(NumpyTopography):
+
+class NonuniformNumpyTopgraphy(NonuniformTopography):
+    pass
+
+
+# TODO: Turn into generator function
+class Sphere(UniformNumpyTopography):
     """ Spherical topography. Corresponds to a cylinder in 2D
     """
     name = 'sphere'
@@ -714,10 +782,10 @@ class Sphere(NumpyTopography):
         return self._centre
 
 
-class PlasticTopography(Topography):
+class PlasticTopography(ChildTopography):
     """ Topography with an additional plastic deformation field.
     """
-    name = 'topography_with_plasticity'
+    name = 'plastic_topography'
 
     def __init__(self, topography, hardness, plastic_displ=None):
         """
@@ -726,9 +794,8 @@ class PlasticTopography(Topography):
         hardness -- penetration hardness
         plastic_displ -- initial plastic displacements
         """
-        self.parent_topography = topography
+        super().__init__(topography)
         self.hardness = hardness
-        self.adjustment = 0.0
         if plastic_displ is None:
             plastic_displ = np.zeros(self.shape)
         self.plastic_displ = plastic_displ
@@ -737,7 +804,7 @@ class PlasticTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = (super().__getstate__(), self.parent_topography, self.hardness, self.plastic_displ)
+        state = super().__getstate__(), self.hardness, self.plastic_displ
         return state
 
     def __setstate__(self, state):
@@ -745,56 +812,8 @@ class PlasticTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.parent_topography, self.hardness, self.plastic_displ = state
+        superstate, self.hardness, self.plastic_displ = state
         super().__setstate__(superstate)
-
-    @property
-    def dim(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.dim
-
-    @property
-    def resolution(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.resolution
-
-    shape = resolution
-
-    @property
-    def size(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self.parent_topography.size
-
-    @size.setter
-    def size(self, size):
-        """ set the size of the topography """
-        self.parent_topography.size = size
-
-    @property
-    def unit(self, ):
-        """ Return unit """
-        return self.parent_topography.unit
-
-    @unit.setter
-    def unit(self, unit):
-        """ Set unit """
-        self.parent_topography.unit = unit
-
-    @property
-    def info(self, ):
-        """ Return info dictionary """
-        return self.parent_topography.info
-
-    @info.setter
-    def info(self, info):
-        """ Set info dictionary """
-        self.parent_topography.info = info
 
     @property
     def hardness(self):
@@ -821,7 +840,7 @@ class PlasticTopography(Topography):
         """
         return self.parent_topography.array()
 
-    def _array(self):
+    def array(self):
         """ Computes the combined profile.
         """
         return self.undeformed_profile() + self.plastic_displ
