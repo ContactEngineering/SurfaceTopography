@@ -38,7 +38,7 @@ from .Detrending import (tilt_from_height, tilt_from_slope, tilt_and_curvature, 
                          shift_and_tilt_approx, shift_and_tilt_from_slope)
 from .PowerSpectrum import power_spectrum_1D, power_spectrum_2D
 from .ScalarParameters import rms_height, rms_slope, rms_curvature
-from .TopographyBase import UniformNumpyTopography, NonuniformNumpyTopography
+from .TopographyBase import NonuniformNumpyTopography, Topography, UniformNumpyTopography
 from .TopographyPipeline import CompoundTopography, DetrendedTopography, ScaledTopography, TranslatedTopography
 from .TopographySpecial import PlasticTopography, Sphere
 from .FromFile import (NumpyTxtSurface, NumpyAscSurface, read, read_asc,
