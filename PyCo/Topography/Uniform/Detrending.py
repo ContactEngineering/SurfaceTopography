@@ -35,7 +35,7 @@ SOFTWARE.
 import numpy as np
 import scipy
 
-from .common import compute_derivative
+from ..common import compute_derivative
 
 
 def _get_size(surface_xy, size=None):

@@ -35,8 +35,8 @@ SOFTWARE.
 import numpy as np
 
 from .common import compute_derivative
-from .Detrending import tilt_from_height, tilt_and_curvature
-from .TopographyBase import ChildTopography, SizedTopography
+from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
+from .TopographyBase import ChildTopography, SizedTopography, Topography
 
 class ScaledTopography(ChildTopography):
     """ used when geometries are scaled

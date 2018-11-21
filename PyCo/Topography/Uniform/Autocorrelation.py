@@ -34,7 +34,7 @@ SOFTWARE.
 
 import numpy as np
 
-from PyCo.Topography.common import _get_size, radial_average
+from ..common import _get_size, radial_average
 
 
 def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name

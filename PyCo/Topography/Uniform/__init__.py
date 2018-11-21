@@ -1,16 +1,17 @@
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   VariableBandwidthTests.py
+@file   __init__.py
 
 @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
-@date   06 Sep 2018
+@date   21 Nov 2018
 
-@brief  Test tools for variable bandwidth analysis.
+@brief  Module containing all functions operating on nonuniform topographies
 
 @section LICENCE
 
-Copyright 2015-2018 Till Junge, Lars Pastewka
+Copyright 2018 Lars Pastewka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,30 +32,3 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import unittest
-
-import numpy as np
-
-from PyCo.Topography.Uniform.VariableBandwidth import checkerboard_tilt_correction
-from .PyCoTest import PyCoTestCase
-
-###
-
-class TestAnalysis(PyCoTestCase):
-
-    def test_checkerboard_tilt_correction_2d(self):
-        arr = np.zeros([4, 4])
-        arr[:2, :2] = 1.0
-        outarr = checkerboard_tilt_correction(arr, (4, 4, 4), (1, 1, 1))
-        self.assertArrayAlmostEqual(outarr, np.zeros([4, 4]))
-
-        arr = np.zeros([4, 4])
-        arr[:2, :2] = 1.0
-        arr[:2, 1] = 2.0
-        outarr = checkerboard_tilt_correction(arr, (4, 4, 4), (1, 1, 1))
-        self.assertArrayAlmostEqual(outarr, np.zeros([4, 4]))
-
-###
-
-if __name__ == '__main__':
-    unittest.main()

@@ -36,8 +36,7 @@ import abc
 
 import numpy as np
 
-from .ScalarParameters import (rms_height, rms_slope, rms_curvature, rms_height_nonuniform, rms_slope_nonuniform,
-                               rms_curvature_nonuniform)
+from .Uniform.ScalarParameters import rms_height, rms_slope, rms_curvature
 
 
 class Topography(object, metaclass=abc.ABCMeta):
