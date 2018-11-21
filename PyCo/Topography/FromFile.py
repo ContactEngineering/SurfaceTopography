@@ -40,7 +40,8 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from .TopographyDescription import NonuniformNumpyTopography, UniformNumpyTopography, ScaledTopography
+from .TopographyBase import NonuniformNumpyTopography, UniformNumpyTopography
+from .TopographyPipeline import ScaledTopography
 
 ###
 
