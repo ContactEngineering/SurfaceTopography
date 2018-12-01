@@ -1,36 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-"""
-@file   Autocorrelation.py
 
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
+# @file   Autocorrelation.py
+#
+# @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
+#
+# @date   09 May 2018
+#
+# @brief  Height-difference autocorrelation functions
+#
+# @section LICENCE
+#
+# Copyright 2015-2017 Till Junge, Lars Pastewka
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
-@date   09 May 2018
-
-@brief  Height-difference autocorrelation functions
-
-@section LICENCE
-
-Copyright 2015-2017 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 
 import numpy as np
 
@@ -39,16 +39,24 @@ from PyCo.Topography.common import _get_size, radial_average
 
 def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
                        size=None, periodic=False):
-    """
+    r"""
     Compute the one-dimensional height-difference autocorrelation function (ACF).
 
     For non-periodic surfaces the ACF at distance d is given by:
 
-    .. math::
+       .. math::
+         :nowrap:
 
-      \text{ACF}(d) = \sum_{i=0}^{n-d-1} \frac{1}{n-d) \frac{1}{2} \left( h_i - h_{i+d} \right)^2
-                    = \frac{1}{2(n-d)} \sum_{i=0}^{n-d-1} \left( h_i^2 + h_{i+d}^2 \right) -
-                      \frac{1}{n-d} \sum_{i=0}^{n-d-1} h_i h_{i+d}
+         \begin{equation}
+         \begin{split}
+
+          \text{ACF}(d) =& \sum_{i=0}^{n-d-1} \frac{1}{n-d} \frac{1}{2} \left( h_i - h_{i+d} \right)^2 \\
+
+                        =& \frac{1}{2(n-d)} \sum_{i=0}^{n-d-1} \left( h_i^2 + h_{i+d}^2 \right)
+                         - \frac{1}{n-d} \sum_{i=0}^{n-d-1} h_i h_{i+d}
+          \end{split}
+          \end{equation}
+
 
     Parameters
     ----------
