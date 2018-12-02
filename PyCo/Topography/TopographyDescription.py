@@ -55,8 +55,9 @@ class Topography(object, metaclass=abc.ABCMeta):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self):
+    def __init__(self,pnp = None):
         self._info = {}
+        self.pnp = np if pnp is None else pnp
 
     def __getitem__(self, index):
         return self.array()[index]
@@ -73,6 +74,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         state -- result of __getstate__
         """
         self._info = state
+        self.pnp = np # TODO: DISCUSS: in the case of parallelized code the user will need to set the parallelnumpy by himself
 
     def __add__(self, other):
         return CompoundTopography(self, other)
@@ -193,8 +195,8 @@ class SizedTopography(Topography):
     Topography that stores its own size.
     """
 
-    def __init__(self, dim=None, size=None, unit=None):
-        super().__init__()
+    def __init__(self, dim=None, size=None, unit=None, pnp = None):
+        super().__init__(pnp)
         self._dim = dim
         self._size = size
         self._unit = unit
@@ -269,7 +271,7 @@ class ChildTopography(Topography):
         topography : Topography
             The parent topography.
         """
-        super().__init__()
+        super().__init__(topography.pnp)
         assert isinstance(topography, Topography)
         self.parent_topography = topography
 
@@ -365,15 +367,26 @@ class UniformTopography(SizedTopography):
 
     name = 'generic_geom'
 
-    def __init__(self, resolution=None, dim=None, size=None, unit=None):
-        super().__init__(dim=dim, size=size, unit=unit)
+    def __init__(self, resolution=None, dim=None, size=None, unit=None,subdomain_location = None, subdomain_resolution = None,  pnp = None):
+        super().__init__(dim=dim, size=size, unit=unit,pnp = pnp)
         self._resolution = resolution
+        if subdomain_location is None or subdomain_resolution is None:
+            if subdomain_resolution is not None and subdomain_resolution != resolution:
+                raise ValueError("subdomain_resolution doesn't batch resolution but no subdomain location given ")
+            if subdomain_location is not None and subdomain_location != (0,0):
+                raise ValueError("subdomain_location != (0,0) but no subdomain resolution provided")
+            self.subdomain_resolution = resolution
+            self.subdomain_location = (0, 0)
+        else:
+            self.subdomain_location = subdomain_location
+            self.subdomain_resolution = subdomain_resolution
+
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._resolution
+        state = super().__getstate__(), self._resolution, self.subdomain_location, self.subdomain_resolution
         return state
 
     def __setstate__(self, state):
@@ -381,7 +394,7 @@ class UniformTopography(SizedTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._resolution = state
+        superstate, self._resolution, self.subdomain_location, self.subdomain_resolution = state
         super().__setstate__(superstate)
 
     @property
@@ -414,6 +427,9 @@ class UniformTopography(SizedTopography):
             return 1
         return np.prod([s / r for s, r in zip(self.size, self.resolution)])
 
+    @property
+    def subdomain_slice(self):
+        return tuple([ slice(s,s+n) for s,n in zip(self.subdomain_location,self.subdomain_resolution)])
 
 class NonuniformTopography(SizedTopography):
     """
@@ -648,6 +664,10 @@ class CompoundTopography(SizedTopography):
         self._dim = combined_val(topography_a.dim, topography_b.dim, 'dim')
         self._resolution = combined_val(topography_a.resolution, topography_b.resolution, 'resolution')
         self._size = combined_val(topography_a.size, topography_b.size, 'size')
+        self.subdomain_location = combined_val(topography_a, topography_b, 'subdomain_location')
+        self.subdomain_resolution = combined_val(topography_a, topography_b, 'subdomain_resolution')
+        self.pnp = combined_val(topography_a,topography_b,'pnp')
+
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
@@ -664,7 +684,7 @@ class UniformNumpyTopography(UniformTopography):
     """
     name = 'uniform_numpy_topography'
 
-    def __init__(self, profile, size=None, unit=None):
+    def __init__(self, profile, size=None, unit=None, resolution = None, subdomain_location = None ,pnp = None):
         """
         Keyword Arguments:
         profile -- topography profile
@@ -674,7 +694,12 @@ class UniformNumpyTopography(UniformTopography):
         if np.sum(np.logical_not(np.isfinite(profile))) > 0:
             profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
         self.__h = profile
-        super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape), size=size, unit=unit)
+        subdomain_resolution = self.__h.shape
+
+        if resolution is None:
+            resolution = subdomain_resolution
+
+        super().__init__(resolution=resolution, dim=len(self.__h.shape), size=size, unit=unit,subdomain_location=subdomain_location,subdomain_resolution=subdomain_resolution,pnp=pnp)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
