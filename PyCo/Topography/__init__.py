@@ -42,6 +42,8 @@ from .TopographyDescription import (CompoundTopography, DetrendedTopography,
                                     UniformNumpyTopography, PlasticTopography,
                                     ScaledTopography, Sphere, Topography,
                                     TranslatedTopography)
+
 from .FromFile import (NumpyTxtSurface, NumpyAscSurface, read, read_asc,
                        read_di, read_h5, read_hgt, read_ibw, read_mat,
                        read_matrix, read_opd, read_x3p, read_xyz)
+from .ParallelFromFile import MPITopographyLoader
