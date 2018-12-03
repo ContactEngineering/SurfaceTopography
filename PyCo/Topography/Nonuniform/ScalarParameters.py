@@ -55,12 +55,12 @@ def rms_height(x, h):
         Array containing positions. This function assumes that this array is
         sorted in ascending order.
     h : array_like
-        Array containing heights
+        Array containing heights.
 
     Returns
     -------
     rms_height : float
-        Root-mean square height
+        Root-mean square height.
     """
     dx = np.diff(x)
     L = x[-1] - x[0]
@@ -68,3 +68,37 @@ def rms_height(x, h):
     h0 = h - mean_h
 
     return np.sqrt(np.sum((h0[:-1]**2 + h0[1:]**2 + h0[:-1]*h0[1:])*dx)/(3*L))
+
+
+def rms_slope(x, h):
+    """
+    Computes root-mean square slope fluctuation of the line scan:
+
+    .. math:: h^\prime_\text{rms} = \left[ \frac{1}{L} \int_0^L dx\, \left(\frac{\partial h}{\partial x}\right)^2 \right]^{1/2}
+
+    Function approximates topography between data points as piece-wise linear.
+    The piece-wise linear section between point :math:`i` and point
+    :math:`i+1` contributes
+
+    .. math:: \int_{0}^{\Delta x_i} dx\, \left( \frac{\Delta h_i}{\Delta x_i} \right)^2 = \frac{\Delta h_i^2}{\Delta x_i}
+
+    where :math:`\Delta x_i=x_{i+1}-x_i` and :math:`\Delta h_i=h_{i+1}-h_i` to the above integral.
+
+    Parameters
+    ----------
+    x : array_like
+        Array containing positions. This function assumes that this array is
+        sorted in ascending order.
+    h : array_like
+        Array containing heights.
+
+    Returns
+    -------
+    rms_slope : float
+        Root-mean square slope.
+    """
+    dh = np.diff(h)
+    dx = np.diff(x)
+    L = x[-1] - x[0]
+
+    return np.sqrt(np.sum(dh**2/dx)/L)
