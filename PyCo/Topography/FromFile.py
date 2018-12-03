@@ -40,7 +40,8 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from .TopographyDescription import NonuniformTopography, UniformNumpyTopography, ScaledTopography
+from .TopographyBase import NonuniformNumpyTopography, UniformNumpyTopography
+from .TopographyPipeline import ScaledTopography
 
 ###
 
@@ -276,20 +277,26 @@ def read_xyz(fobj, unit=None):
     """
     # pylint: disable=invalid-name
 
+    close_file = False
     if not hasattr(fobj, 'read'):
         if not os.path.isfile(fobj):
             raise FileNotFoundError(
                 "No such file or directory: '{}(.gz)'".format(fobj))
         fname = fobj
         fobj = open(fname)
+        close_file = True
 
     data = np.loadtxt(fobj, unpack=True)
+
+    if close_file:
+        fobj.close()
+
     if len(data) == 2:
         # This is a line scan.
         x, z = data
         x -= np.min(x)
 
-        return NonuniformTopography(x, z, size=np.max(x), unit=unit)
+        return NonuniformNumpyTopography(x, z, size=np.max(x), unit=unit)
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
@@ -783,6 +790,10 @@ def detect_format(fobj):
         # Finally, this could be a line scan in text format
         try:
             read_xyz(fobj)
+            if close_file:
+                fobj.close()
+            else:
+                fobj.seek(file_pos)
             return 'xyz'
         except:
             pass

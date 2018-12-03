@@ -34,7 +34,7 @@ SOFTWARE.
 
 import numpy as np
 
-from PyCo.Topography.common import _get_size
+from ..common import _get_size
 
 
 def checkerboard_tilt_correction(arr, sd, size=None):
