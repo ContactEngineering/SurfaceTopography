@@ -38,13 +38,31 @@ from .common import compute_derivative
 
 
 def rms_height(profile, kind='Sq' , resolution = None,pnp = np):
-    "computes the rms height fluctuation of the surface"
+    """computes the rms height fluctuation of the surface
 
-    if hasattr(profile,"rms_height"): # FIXME
+    Parameters
+    ----------
+    profile: np.array, :obj: `UniformTopography`
+    kind: {'Sq','Rq'} , optional
+    resolution: tuple or list, optional
+    pnp: module or :obj: ParallelNumpy, optional
+
+
+    Returns
+    -------
+    float
+    ..math \sqrt{\Sigma_i (h_i - <h_i>)^2}
+
+    MPI Parallelisation:
+
+    When profile represents only a part of the data (attributed to the processor), you should provide the resolution of
+    the full data with `resolution` and `pnp`.
+
+    """
+    if hasattr(profile,"rms_height"):
         return profile.rms_height(kind=kind)
 
     if resolution == None: # then profile will be interpreted as the total data
-
         resolution = profile.shape
 
     n=np.prod(resolution)
@@ -54,16 +72,19 @@ def rms_height(profile, kind='Sq' , resolution = None,pnp = np):
     decomp_axis = [full != loc for full, loc in zip(np.array(resolution),profile.shape)]
 
     if kind == 'Sq':
-        return np.sqrt(pnp.sum((profile[...]-pnp.sum(profile[...]) / n )**2)/n)
+        return np.sqrt(pnp.sum((profile-pnp.sum(profile) / n )**2)/n)
     elif kind == 'Rq':
         temppnp = pnp if decomp_axis[0] == True else np
-        return np.sqrt(temppnp.sum((profile[...]-temppnp.sum(profile[...],axis=0) / resolution[0])**2) / n)
+        return np.sqrt(temppnp.sum((profile-temppnp.sum(profile,axis=0) / resolution[0])**2) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
 def rms_slope(profile, size=None, dim=None):
     "computes the rms height gradient fluctuation of the surface"
+    if hasattr(profile,"rms_slope"):
+        return profile.rms_height(size=size, dim=dim)
+
     diff = compute_derivative(profile, size, dim)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
@@ -73,6 +94,9 @@ def rms_curvature(profile, size=None, dim=None):
     computes the rms Laplacian of the surface
     the rms mean-curvature would be half of this
     """
+    if hasattr(profile,"rms_curvature"):
+        return profile.rms_height(size=size, dim=dim)
+
     curv = compute_derivative(profile, size, dim, n=2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 
