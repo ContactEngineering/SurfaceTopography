@@ -102,6 +102,11 @@ class Topography(object, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @property
+    def is_MPI(self):
+        """ stores only a subdomain of the data ? """
+        raise NotImplementedError
+
+    @property
     @abc.abstractmethod
     def dim(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
@@ -171,12 +176,14 @@ class Topography(object, metaclass=abc.ABCMeta):
             Scalar containing the RMS height
         """
         if self.is_uniform:
-            return rms_height(self.array(), kind=kind)
+            return rms_height(self.array(), kind=kind,resolution=self.resolution,pnp = self.pnp)
         else:
             return rms_height_nonuniform(*self.points(), kind=kind)
 
     def rms_slope(self):
         """computes the rms height gradient fluctuation of the topography"""
+        if self.is_MPI: raise NotImplementedError
+
         if self.is_uniform:
             return rms_slope(self.array(), size=self.size, dim=self.dim)
         else:
@@ -184,6 +191,7 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     def rms_curvature(self):
         """computes the rms curvature fluctuation of the topography"""
+        if self.is_MPI: raise NotImplementedError
         if self.is_uniform:
             return rms_curvature(self.array(), size=self.size, dim=self.dim)
         else:
@@ -300,6 +308,11 @@ class ChildTopography(Topography):
         return self.parent_topography.is_uniform
 
     @property
+    def is_MPI(self):
+        """ stores only a subdomain of the data ? """
+        return self.parent_topography.is_MPI
+
+    @property
     def dim(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
@@ -404,6 +417,10 @@ class UniformTopography(SizedTopography):
     @property
     def is_uniform(self):
         return True
+
+    @property
+    def is_MPI(self):
+        return self.resolution != self.subdomain_resolution
 
     def points(self):
         return tuple(np.meshgrid(*(np.arange(r)*s/r for s, r in zip(self.size, self.resolution)))+[self.array()])
@@ -684,22 +701,55 @@ class UniformNumpyTopography(UniformTopography):
     """
     name = 'uniform_numpy_topography'
 
-    def __init__(self, profile, size=None, unit=None, resolution = None, subdomain_location = None ,pnp = None):
+    def __init__(self, profile, size=None, unit=None, resolution = None, subdomain_location = None , subdomain_resolution=None,pnp = None):
         """
         Keyword Arguments:
-        profile -- topography profile
+        profile -- local or global topography profile
+        resolution -- resolution of global topography
+        size --
+
+        Three examples for the construction of the Object
+        1.
+        >>> UniformNumpyTopography((nx,ny) array[,size,unit])
+        2.
+        >>> UniformNumpyTopography((nx,ny) array, subdomain_location=(ix,iy), subdomain_resoluion=(sd_nx,sd_ny),pnp = ParallelNumpy instance, [,size=,unit=])
+        3.
+        >>> UniformNumpyTopography((sd_nx,sd_ny) array, resolution = (nx,ny), subdomain_location=(ix,iy),pnp = ParallelNumpy instance,  [,size,unit])
         """
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(profile))) > 0:
             profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
-        self.__h = profile
-        subdomain_resolution = self.__h.shape
+        if subdomain_location is not None:
+            if subdomain_resolution is None: # profile is local data
+                # case 3. : no parallelization
+                if resolution is None:
+                    raise ValueError("Assuming you provided the local data as array, you should provide the global resolution")
 
-        if resolution is None:
-            resolution = subdomain_resolution
+                subdomain_resolution = profile.shape
+                super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,
+                                 subdomain_location=subdomain_location, subdomain_resolution=subdomain_resolution,
+                                 pnp=pnp)
+                self.__h = profile
 
-        super().__init__(resolution=resolution, dim=len(self.__h.shape), size=size, unit=unit,subdomain_location=subdomain_location,subdomain_resolution=subdomain_resolution,pnp=pnp)
+            else: # global data provided
+                # case 2. : no parallelization
+                if resolution is None:
+                    resolution = profile.shape
+                elif resolution != profile.shape:
+                    raise ValueError("Assuming you provided global data, resolution ({})  mismatch the shape of the data ({})".format(resolution,profile.shape))
+
+                super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,
+                                 subdomain_location=subdomain_location, subdomain_resolution=subdomain_resolution,
+                                 pnp=pnp)
+                self.__h = profile[self.subdomain_slice]
+        else: # case 1. : no parallelization
+            if not ((resolution is None or resolution == profile.shape) and subdomain_location is None and subdomain_resolution is None):
+                raise ValueError("invalid combination of arguments")
+            resolution= subdomain_resolution = profile.shape
+            super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,subdomain_location=subdomain_location,subdomain_resolution=subdomain_resolution,pnp=pnp)
+            self.__h = profile
+
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -746,7 +796,7 @@ class Sphere(UniformNumpyTopography):
     """
     name = 'sphere'
 
-    def __init__(self, radius, resolution, size, centre=None, standoff=0, periodic=False):
+    def __init__(self, radius, resolution, size, centre=None, standoff=0, periodic=False, **kwargs):
         """
         Simple shere geometry.
         Parameters:
@@ -797,7 +847,7 @@ class Sphere(UniformNumpyTopography):
         r2[outside] = radius2
         h = np.sqrt(radius2 - r2) - radius
         h[outside] -= standoff
-        super().__init__(h)
+        super().__init__(h,**kwargs)
         self._size = size
         self._centre = centre
 

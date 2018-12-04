@@ -37,12 +37,27 @@ import numpy as np
 from .common import compute_derivative
 
 
-def rms_height(profile, kind='Sq'):
+def rms_height(profile, kind='Sq' , resolution = None,pnp = np):
     "computes the rms height fluctuation of the surface"
+
+    if hasattr(profile,"rms_height"): # FIXME
+        return profile.rms_height(kind=kind)
+
+    if resolution == None: # then profile will be interpreted as the total data
+
+        resolution = profile.shape
+
+    n=np.prod(resolution)
+
+    # check if data is decomposed between processors or not in each direction.
+    # TODO: maybe handle this in pnp already ?
+    decomp_axis = [full != loc for full, loc in zip(np.array(resolution),profile.shape)]
+
     if kind == 'Sq':
-        return np.sqrt(((profile[...]-profile[...].mean())**2).mean())
+        return np.sqrt(pnp.sum((profile[...]-pnp.sum(profile[...]) / n )**2)/n)
     elif kind == 'Rq':
-        return np.sqrt(((profile[...]-profile[...].mean(axis=0))**2).mean())
+        temppnp = pnp if decomp_axis[0] == True else np
+        return np.sqrt(temppnp.sum((profile[...]-temppnp.sum(profile[...],axis=0) / resolution[0])**2) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
