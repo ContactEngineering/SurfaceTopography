@@ -183,9 +183,8 @@ class SizedTopography(Topography):
     Topography that stores its own size.
     """
 
-    def __init__(self, dim=None, size=None, unit=None):
+    def __init__(self, size=None, unit=None):
         super().__init__()
-        self._dim = dim
         self._size = size
         self._unit = unit
 
@@ -209,7 +208,7 @@ class SizedTopography(Topography):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
-        return self._dim
+        return len(self.resolution)
 
     @property
     def size(self, ):
@@ -356,7 +355,7 @@ class UniformTopography(SizedTopography):
     name = 'generic_geom'
 
     def __init__(self, resolution=None, dim=None, size=None, unit=None):
-        super().__init__(dim=dim, size=size, unit=unit)
+        super().__init__(size=size, unit=unit)
         self._resolution = resolution
 
     def __getstate__(self):
@@ -401,6 +400,15 @@ class UniformTopography(SizedTopography):
             return 1
         return np.prod([s / r for s, r in zip(self.size, self.resolution)])
 
+    def slope(self):
+        grid_spacing = np.array(self.size) / np.array(self.resolution)
+        if dim is None:
+            dims = range(len(profile.shape))
+        else:
+            dims = range(dim)
+        return [np.diff(profile[...], n=n, axis=d) / grid_spacing[d] ** n
+                for d in dims]
+
 
 class NonuniformTopography(SizedTopography):
     """
@@ -409,7 +417,7 @@ class NonuniformTopography(SizedTopography):
     """
 
     def __init__(self, size=None, unit=None):
-        super().__init__(dim=2, size=size, unit=unit)
+        super().__init__(size=size, unit=unit)
 
     @property
     def is_periodic(self):
@@ -418,6 +426,10 @@ class NonuniformTopography(SizedTopography):
     @property
     def is_uniform(self):
         return False
+
+    @property
+    def dim(self):
+        return 1
 
 
 class UniformNumpyTopography(UniformTopography):
