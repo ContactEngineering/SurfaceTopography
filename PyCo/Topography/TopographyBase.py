@@ -36,7 +36,8 @@ import abc
 
 import numpy as np
 
-from .Uniform.ScalarParameters import rms_height, rms_slope, rms_curvature
+import PyCo.Topography.Uniform.ScalarParameters as Uniform
+import PyCo.Topography.Nonuniform.ScalarParameters as Nonuniform
 
 
 class Topography(object, metaclass=abc.ABCMeta):
@@ -133,10 +134,14 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Return topography data on a homogeneous grid. """
         raise NotImplementedError
 
-    #@abc.abstractmethod - FIXME: make abstract again
     def points(self):
         """ Return topography data on an inhomogeneous grid as a list of points. """
-        raise NotImplementedError
+        if self.is_uniform:
+            return tuple(
+                np.meshgrid(*(np.arange(r) * s / r for s, r in zip(self.size, self.resolution)), indexing='ij') +
+                            [self.array()])
+        else:
+            raise NotImplementedError
 
     def rms_height(self, kind='Sq'):
         """
@@ -154,23 +159,23 @@ class Topography(object, metaclass=abc.ABCMeta):
             Scalar containing the RMS height
         """
         if self.is_uniform:
-            return rms_height(self.array(), kind=kind)
+            return Uniform.rms_height(self.array(), kind=kind)
         else:
-            return rms_height_nonuniform(*self.points(), kind=kind)
+            return Uniform.rms_height(*self.points(), kind=kind)
 
     def rms_slope(self):
         """computes the rms height gradient fluctuation of the topography"""
         if self.is_uniform:
-            return rms_slope(self.array(), size=self.size, dim=self.dim)
+            return Uniform.rms_slope(self.array(), size=self.size, dim=self.dim)
         else:
-            return rms_slope_nonuniform(*self.points(), size=self.size, dim=self.dim)
+            return Nonuniform.rms_slope(*self.points(), size=self.size, dim=self.dim)
 
     def rms_curvature(self):
         """computes the rms curvature fluctuation of the topography"""
         if self.is_uniform:
-            return rms_curvature(self.array(), size=self.size, dim=self.dim)
+            return Uniform.rms_curvature(self.array(), size=self.size, dim=self.dim)
         else:
-            return rms_curvature_nonuniform(*self.points(), size=self.size, dim=self.dim)
+            return Nonuniform.rms_curvature(*self.points(), size=self.size, dim=self.dim)
 
 
 class SizedTopography(Topography):
@@ -376,9 +381,6 @@ class UniformTopography(SizedTopography):
     @property
     def is_uniform(self):
         return True
-
-    def points(self):
-        return tuple(np.meshgrid(*(np.arange(r)*s/r for s, r in zip(self.size, self.resolution)))+[self.array()])
 
     @property
     def pixel_size(self):
