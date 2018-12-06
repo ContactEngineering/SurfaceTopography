@@ -1,4 +1,4 @@
-from  PyCo.Tools import MPIFileIO
+import MPITools.FileIO
 from PyCo.Topography import UniformNumpyTopography
 
 
@@ -37,7 +37,7 @@ class MPITopographyLoader():
         self.size = None  # will stay None if the file doesn't provide the information.
         self.unit = None
 
-        self.mpi_file= MPIFileIO.MPIFileViewFactory(fn, comm, format=format)
+        self.mpi_file= MPITools.FileIO.MPIFileViewFactory(fn, comm, format=format)
         self.dtype = self.mpi_file.dtype
         self.resolution = self.mpi_file.resolution
 
@@ -55,5 +55,5 @@ class MPITopographyLoader():
 
 # TODO: Does this belong here ?
 def save_npy(fn, topography):
-    MPIFileIO.save_npy(fn=fn, data=topography.array(), subdomain_location=topography.subdomain_location,
+    MPITools.FileIO.save_npy(fn=fn, data=topography.array(), subdomain_location=topography.subdomain_location,
                        resolution=topography.subdomain_resolution, comm=topography.comm)
