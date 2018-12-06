@@ -83,7 +83,7 @@ def rms_height(profile, kind='Sq' , resolution = None,pnp = np):
 def rms_slope(profile, size=None, dim=None):
     "computes the rms height gradient fluctuation of the surface"
     if hasattr(profile,"rms_slope"):
-        return profile.rms_height(size=size, dim=dim)
+        return profile.rms_slope()
 
     diff = compute_derivative(profile, size, dim)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
@@ -95,7 +95,7 @@ def rms_curvature(profile, size=None, dim=None):
     the rms mean-curvature would be half of this
     """
     if hasattr(profile,"rms_curvature"):
-        return profile.rms_height(size=size, dim=dim)
+        return profile.rms_curvature()
 
     curv = compute_derivative(profile, size, dim, n=2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
