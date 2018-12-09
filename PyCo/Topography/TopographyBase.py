@@ -36,9 +36,6 @@ import abc
 
 import numpy as np
 
-import PyCo.Topography.Uniform.ScalarParameters as Uniform
-import PyCo.Topography.Nonuniform.ScalarParameters as Nonuniform
-
 
 class Topography(object, metaclass=abc.ABCMeta):
     """
@@ -129,6 +126,10 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Set info dictionary """
         self._info = info
 
+    @property
+    def grid_spacing(self):
+        return np.array(self.size) / np.array(self.resolution)
+
     #@abc.abstractmethod - FIXME: make abstract again
     def array(self):
         """ Return topography data on a homogeneous grid. """
@@ -142,6 +143,18 @@ class Topography(object, metaclass=abc.ABCMeta):
                             [self.array()])
         else:
             raise NotImplementedError
+
+    def derivative(self, n=1):
+        if self.is_uniform:
+            from .Uniform.ScalarParameters import _derivative
+            return _derivative(self.array(), self.size, n)
+        else:
+            if n != 1:
+                raise RuntimeError('Currently only first derivatives are supported for nonuniform topographies.')
+            x, h = self.points()
+            dh = np.diff(h)
+            dx = np.diff(x)
+            return dh / dx
 
     def rms_height(self, kind='Sq'):
         """
@@ -158,24 +171,33 @@ class Topography(object, metaclass=abc.ABCMeta):
         rms_height : float
             Scalar containing the RMS height
         """
+        if kind == 'Sq' and self.dim == 1:
+            raise RuntimeError('Areal rms height (Sq) can only be computed '
+                               'for two-dimensional topographies.')
         if self.is_uniform:
-            return Uniform.rms_height(self.array(), kind=kind)
+            from .Uniform.ScalarParameters import rms_height
+            return rms_height(self.array(), kind=kind)
         else:
-            return Uniform.rms_height(*self.points(), kind=kind)
+            from .Nonuniform.ScalarParameters import rms_height
+            return rms_height(*self.points())
 
     def rms_slope(self):
         """computes the rms height gradient fluctuation of the topography"""
         if self.is_uniform:
-            return Uniform.rms_slope(self.array(), size=self.size, dim=self.dim)
+            from .Uniform.ScalarParameters import rms_slope
+            return rms_slope(self.array(), size=self.size)
         else:
-            return Nonuniform.rms_slope(*self.points(), size=self.size, dim=self.dim)
+            from .Nonuniform.ScalarParameters import rms_slope
+            return rms_slope(*self.points())
 
     def rms_curvature(self):
         """computes the rms curvature fluctuation of the topography"""
         if self.is_uniform:
-            return Uniform.rms_curvature(self.array(), size=self.size, dim=self.dim)
+            from .Uniform.ScalarParameters import rms_curvature
+            return rms_curvature(self.array(), size=self.size)
         else:
-            return Nonuniform.rms_curvature(*self.points(), size=self.size, dim=self.dim)
+            from .Nonuniform.ScalarParameters import rms_curvature
+            return rms_curvature(*self.points())
 
 
 class SizedTopography(Topography):
@@ -345,171 +367,3 @@ class ChildTopography(Topography):
             return self.parent_topography.has_undefined_data
         except:
             return False
-
-
-class UniformTopography(SizedTopography):
-    """
-    Topography that lives on a uniform grid.
-    """
-
-    name = 'generic_geom'
-
-    def __init__(self, resolution=None, dim=None, size=None, unit=None):
-        super().__init__(size=size, unit=unit)
-        self._resolution = resolution
-
-    def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
-        """
-        state = super().__getstate__(), self._resolution
-        return state
-
-    def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
-        """
-        superstate, self._resolution = state
-        super().__setstate__(superstate)
-
-    @property
-    def is_periodic(self):
-        return False
-
-    @property
-    def is_uniform(self):
-        return True
-
-    @property
-    def pixel_size(self):
-        return np.asarray(self.size) / np.asarray(self.resolution)
-
-    @property
-    def resolution(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
-            compatible
-        """
-        return self._resolution
-
-    shape = resolution
-
-    @property
-    def area_per_pt(self):
-        if self.size is None:
-            return 1
-        return np.prod([s / r for s, r in zip(self.size, self.resolution)])
-
-    def slope(self):
-        grid_spacing = np.array(self.size) / np.array(self.resolution)
-        if dim is None:
-            dims = range(len(profile.shape))
-        else:
-            dims = range(dim)
-        return [np.diff(profile[...], n=n, axis=d) / grid_spacing[d] ** n
-                for d in dims]
-
-
-class NonuniformTopography(SizedTopography):
-    """
-    Base class for topographies that live on a non-uniform grid. Currently
-    only supports line scans, i.e. one-dimensional topographies.
-    """
-
-    def __init__(self, size=None, unit=None):
-        super().__init__(size=size, unit=unit)
-
-    @property
-    def is_periodic(self):
-        return False
-
-    @property
-    def is_uniform(self):
-        return False
-
-    @property
-    def dim(self):
-        return 1
-
-
-class UniformNumpyTopography(UniformTopography):
-    """
-    Topography from a static numpy array.
-    """
-    name = 'uniform_numpy_topography'
-
-    def __init__(self, profile, size=None, unit=None):
-        """
-        Keyword Arguments:
-        profile -- topography profile
-        """
-
-        # Automatically turn this into a masked array if there is data missing
-        if np.sum(np.logical_not(np.isfinite(profile))) > 0:
-            profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
-        self.__h = profile
-        super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape), size=size, unit=unit)
-
-    def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
-        """
-        state = super().__getstate__(), self.__h
-        return state
-
-    def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
-        """
-        superstate, self.__h = state
-        super().__setstate__(superstate)
-
-    def array(self):
-        """
-        Returns array containing the topography data.
-        """
-        return self.__h
-
-    @property
-    def has_undefined_data(self):
-        return np.ma.getmask(self.__h) is not np.ma.nomask
-
-    def save(self, fname, compress=True):
-        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
-            the profile; the size is not contained in the file
-        """
-        if compress:
-            if not fname.endswith('.gz'):
-                fname = fname + ".gz"
-        np.savetxt(fname, self.array())
-
-
-class NonuniformNumpyTopography(NonuniformTopography):
-    """
-    Nonunform topography with point list consisting of static numpy arrays.
-    """
-
-    def __init__(self, x, y, size=None, unit=None):
-        super().__init__(size=size, unit=unit)
-        self.__x = x
-        self.__h = y
-
-    def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
-        """
-        state = super().__getstate__(), self.__x, self.__h
-        return state
-
-    def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
-        """
-        superstate, self.__x, self.__h = state
-        super().__setstate__(superstate)
-
-    def points(self):
-        return self.__x, self.__h
-

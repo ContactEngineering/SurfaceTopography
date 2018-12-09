@@ -34,7 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
-from .TopographyBase import ChildTopography, UniformNumpyTopography
+from .TopographyBase import ChildTopography
+from .TopographyUniform import UniformNumpyTopography
 
 
 # TODO: Turn into generator function

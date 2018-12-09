@@ -53,22 +53,6 @@ def _get_size(surface_xy, size=None):
     return size
 
 
-def compute_derivative(profile, size=None, dim=None, n=1):
-    """
-    Compute local slope
-    """
-    resolution = profile.shape
-    size = _get_size(profile, size)
-
-    grid_spacing = np.array(size)/np.array(resolution)
-    if dim is None:
-        dims = range(len(profile.shape))
-    else:
-        dims = range(dim)
-    return [np.diff(profile[...], n=n, axis=d)/grid_spacing[d]**n
-            for d in dims]
-
-
 def radial_average(C_xy, rmax, nbins, size=None, full=True):
     """
     Compute radial average of quantities reported on a 2D grid.

@@ -34,7 +34,6 @@ SOFTWARE.
 
 import numpy as np
 
-from .common import compute_derivative
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 from .TopographyBase import ChildTopography, SizedTopography, Topography
 
@@ -105,7 +104,7 @@ class DetrendedTopography(ChildTopography):
             except:
                 sx, sy = self.parent_topography.shape
             nx, ny = self.parent_topography.shape
-            self._coeffs = [-s.mean() for s in compute_derivative(self.parent_topography)]
+            self._coeffs = [-s.mean() for s in self.parent_topography.derivative()]
             slx, sly = self._coeffs
             self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
                              - sly * sy * (ny - 1) / (2 * ny)]

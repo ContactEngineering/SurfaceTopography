@@ -34,30 +34,49 @@ SOFTWARE.
 
 import numpy as np
 
-from ..common import compute_derivative
+from ..common import _get_size
 
 
 def rms_height(profile, kind='Sq'):
     "computes the rms height fluctuation of the surface"
+    if hasattr(profile, "rms_height"):
+        return profile.rms_height(kind=kind)
+
     if kind == 'Sq':
-        return np.sqrt(((profile[...]-profile[...].mean())**2).mean())
+        return np.sqrt(((profile-profile.mean())**2).mean())
     elif kind == 'Rq':
-        return np.sqrt(((profile[...]-profile[...].mean(axis=0))**2).mean())
+        return np.sqrt(((profile-profile.mean(axis=0))**2).mean())
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def rms_slope(profile, size=None, dim=None):
+def _derivative(profile, size, n):
+    grid_spacing = np.array(size)/np.array(profile.shape)
+    return np.array([np.diff(profile, n=n, axis=d) / grid_spacing[d] ** n
+                     for d in range(len(profile.shape))])
+
+
+def rms_slope(profile, size=None):
     "computes the rms height gradient fluctuation of the surface"
-    diff = compute_derivative(profile, size, dim)
+    if hasattr(profile, "rms_slope"):
+        return profile.rms_slope(kind=kind)
+
+    size = _get_size(profile, size)
+
+    diff = _derivative(profile, size, 1)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
 
-def rms_curvature(profile, size=None, dim=None):
+def rms_curvature(profile, size=None):
     """
     computes the rms Laplacian of the surface
     the rms mean-curvature would be half of this
     """
-    curv = compute_derivative(profile, size, dim, n=2)
+    if hasattr(profile, "rms_curvature"):
+        return profile.rms_curvature(kind=kind)
+
+    size = _get_size(profile, size)
+
+    curv = _derivative(profile, size, 2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 
