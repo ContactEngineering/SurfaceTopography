@@ -73,20 +73,25 @@ class ScaledTopography(ChildTopography):
 
 
 class DetrendedTopography(ChildTopography):
-    """ used when topography needs to be tilted
+    """
+    Remove trends from a topography. This is achieved by fitting polynomials
+    to the topography data to extract trend lines. The resulting topography
+    is then detrended by substracting these trend lines.
     """
     name = 'detrended_topography'
 
     def __init__(self, topography, detrend_mode='slope'):
         """
-        Keyword Arguments:
-        topography -- Topography to scale
-        detrend_mode -- Possible keywords:
+        Parameters
+        ----------
+        topography : Topography
+            Topography to be detrended.
+        detrend_mode : str
             'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
             'slope': adjust slope such that rms slope is minimized.
             'curvature': adjust slope and curvature such that rms height is
-            minimized.
+            minimized. (Default: 'slope')
         """
         super().__init__(topography)
         assert isinstance(topography, Topography)
@@ -94,25 +99,35 @@ class DetrendedTopography(ChildTopography):
         self._detrend()
 
     def _detrend(self):
-        if self._detrend_mode is None or self._detrend_mode == 'center':
-            self._coeffs = [-self.parent_topography.array().mean()]
-        elif self._detrend_mode == 'height':
-            self._coeffs = [-s for s in tilt_from_height(self.parent_topography)]
-        elif self._detrend_mode == 'slope':
-            try:
-                sx, sy = self.parent_topography.size
-            except:
-                sx, sy = self.parent_topography.shape
-            nx, ny = self.parent_topography.shape
-            self._coeffs = [-s.mean() for s in self.parent_topography.derivative()]
-            slx, sly = self._coeffs
-            self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
-                             - sly * sy * (ny - 1) / (2 * ny)]
-        elif self._detrend_mode == 'curvature':
-            self._coeffs = [-s for s in tilt_and_curvature(self.parent_topography)]
-        else:
-            raise ValueError("Unknown detrend mode '{}'." \
-                             .format(self._detrend_mode))
+        if self.dim == 1:
+            if self._detrend_mode is None or self._detrend_mode == 'center':
+                self._coeffs = (-self.parent_topography.mean(), )
+            elif self._detrend_mode == 'height':
+                from .Nonuniform.Detrending import polyfit
+                self._coeffs = polyfit(*self.parent_topography.points(), 1)
+            else:
+                raise ValueError("Unsupported detrend mode '{}' for line scans." \
+                                 .format(self._detrend_mode))
+        else: # self.dim == 2
+            if self._detrend_mode is None or self._detrend_mode == 'center':
+                self._coeffs = [-self.parent_topography.mean()]
+            elif self._detrend_mode == 'height':
+                self._coeffs = [-s for s in tilt_from_height(self.parent_topography)]
+            elif self._detrend_mode == 'slope':
+                try:
+                    sx, sy = self.parent_topography.size
+                except:
+                    sx, sy = self.parent_topography.shape
+                nx, ny = self.parent_topography.shape
+                self._coeffs = [-s.mean() for s in self.parent_topography.derivative()]
+                slx, sly = self._coeffs
+                self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
+                                 - sly * sy * (ny - 1) / (2 * ny)]
+            elif self._detrend_mode == 'curvature':
+                self._coeffs = [-s for s in tilt_and_curvature(self.parent_topography)]
+            else:
+                raise ValueError("Unsupported detrend mode '{}' for 2D topographies." \
+                                 .format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -145,25 +160,49 @@ class DetrendedTopography(ChildTopography):
     def array(self):
         """ Computes the combined profile.
         """
-        nx, ny = self.shape
-        try:
-            sx, sy = self.size
-        except:
-            sx, sy = nx, ny
-        x = np.arange(nx).reshape(-1, 1) * sx / nx
-        y = np.arange(ny).reshape(1, -1) * sy / ny
+        xy = np.meshgrid(*(np.arange(n) * s / n for s, n in zip(self.size, self.shape)), indexing='ij')
         if len(self._coeffs) == 1:
             h0, = self._coeffs
             return self.parent_topography.array() + h0
+        elif len(self._coeffs) == 2:
+            h0, m = self._coeffs
+            return self.parent_topography.array() - h0 - m * xy
         elif len(self._coeffs) == 3:
             m, n, h0 = self._coeffs
+            x, y = xy
             return self.parent_topography.array() + h0 + m * x + n * y
-        else:
+        elif len(self._coeffs) == 6:
+            x, y = xy
             m, n, mm, nn, mn, h0 = self._coeffs
             xx = x * x
             yy = y * y
             xy = x * y
             return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+        else:
+            raise RuntimeError('Unknown size of coefficients tuple.')
+
+    def points(self):
+        if len(self._coeffs) == 1:
+            x, h = self.parent_topography.points()
+            h0, = self._coeffs
+            return x, h + h0
+        elif len(self._coeffs) == 2:
+            x, h = self.parent_topography.points()
+            h0, m = self._coeffs
+            return x, h - h0 - m * x
+        elif len(self._coeffs) == 3:
+            x, y, h = self.parent_topography.points()
+            m, n, h0 = self._coeffs
+            return x, y, h + h0 + m * x + n * y
+        elif len(self._coeffs) == 6:
+            x, y, h = self.parent_topography.points()
+            m, n, mm, nn, mn, h0 = self._coeffs
+            xx = x * x
+            yy = y * y
+            xy = x * y
+            return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+        else:
+            raise RuntimeError('Unknown size of coefficients tuple.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
