@@ -177,10 +177,10 @@ class Topography(object, metaclass=abc.ABCMeta):
             the direction of the derivative.
         """
         if self.is_uniform:
-            from .Uniform.ScalarParameters.common import _derivative
+            from .Uniform.common import _derivative
             return _derivative(self.array(), self.size, n, self.is_periodic)
         else:
-            from .Uniform.ScalarParameters.common import _derivative
+            from .Uniform.common import _derivative
             return _derivative(*self.points, n)
 
     def rms_height(self, kind='Sq'):
