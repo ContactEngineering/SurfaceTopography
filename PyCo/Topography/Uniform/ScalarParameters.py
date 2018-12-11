@@ -34,7 +34,7 @@ SOFTWARE.
 
 import numpy as np
 
-from ..common import _get_size
+from .common import _derivative, _get_size
 
 
 def rms_height(profile, kind='Sq'):
@@ -50,24 +50,18 @@ def rms_height(profile, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def _derivative(profile, size, n):
-    grid_spacing = np.array(size)/np.array(profile.shape)
-    return np.array([np.diff(profile, n=n, axis=d) / grid_spacing[d] ** n
-                     for d in range(len(profile.shape))])
-
-
-def rms_slope(profile, size=None):
+def rms_slope(profile, size=None, periodic=False):
     "computes the rms height gradient fluctuation of the surface"
     if hasattr(profile, "rms_slope"):
         return profile.rms_slope(kind=kind)
 
     size = _get_size(profile, size)
 
-    diff = _derivative(profile, size, 1)
+    diff = _derivative(profile, size, 1, periodic)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
 
-def rms_curvature(profile, size=None):
+def rms_curvature(profile, size=None, periodic=False):
     """
     computes the rms Laplacian of the surface
     the rms mean-curvature would be half of this
@@ -77,6 +71,6 @@ def rms_curvature(profile, size=None):
 
     size = _get_size(profile, size)
 
-    curv = _derivative(profile, size, 2)
+    curv = _derivative(profile, size, 2, periodic)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 

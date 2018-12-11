@@ -44,9 +44,10 @@ class UniformTopography(SizedTopography):
 
     name = 'generic_geom'
 
-    def __init__(self, resolution=None, dim=None, size=None, unit=None):
+    def __init__(self, resolution=None, dim=None, size=None, unit=None, periodic=False):
         super().__init__(size=size, unit=unit)
         self._resolution = resolution
+        self._periodic = periodic
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -65,7 +66,7 @@ class UniformTopography(SizedTopography):
 
     @property
     def is_periodic(self):
-        return False
+        return self._periodic
 
     @property
     def is_uniform(self):

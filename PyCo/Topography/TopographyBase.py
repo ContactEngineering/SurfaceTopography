@@ -144,17 +144,44 @@ class Topography(object, metaclass=abc.ABCMeta):
         else:
             raise NotImplementedError
 
-    def derivative(self, n=1):
+    def mean(self):
+        """
+        Compute mean value of topography.
+
+        Returns
+        -------
+        mean : float
+            Mean value.
+        """
         if self.is_uniform:
-            from .Uniform.ScalarParameters import _derivative
-            return _derivative(self.array(), self.size, n)
+            return self.array().mean()
         else:
-            if n != 1:
-                raise RuntimeError('Currently only first derivatives are supported for nonuniform topographies.')
             x, h = self.points()
-            dh = np.diff(h)
-            dx = np.diff(x)
-            return dh / dx
+            return np.trapz(h, x)/(x[-1]-x[0])
+
+    def derivative(self, n=1):
+        """
+        Compute derivative of topography.
+
+        Parameters
+        ----------
+        n : int
+            Order of derivative.
+
+        Returns
+        -------
+        derivative : array
+            Array with derivative values. If dimension of the topography is
+            unity (line scan), then an array of the same shape as the
+            topography is returned. Otherwise, the first array index contains
+            the direction of the derivative.
+        """
+        if self.is_uniform:
+            from .Uniform.ScalarParameters.common import _derivative
+            return _derivative(self.array(), self.size, n, self.is_periodic)
+        else:
+            from .Uniform.ScalarParameters.common import _derivative
+            return _derivative(*self.points, n)
 
     def rms_height(self, kind='Sq'):
         """
@@ -185,7 +212,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         """computes the rms height gradient fluctuation of the topography"""
         if self.is_uniform:
             from .Uniform.ScalarParameters import rms_slope
-            return rms_slope(self.array(), size=self.size)
+            return rms_slope(self.array(), size=self.size, periodic=self.is_periodic)
         else:
             from .Nonuniform.ScalarParameters import rms_slope
             return rms_slope(*self.points())
@@ -194,7 +221,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         """computes the rms curvature fluctuation of the topography"""
         if self.is_uniform:
             from .Uniform.ScalarParameters import rms_curvature
-            return rms_curvature(self.array(), size=self.size)
+            return rms_curvature(self.array(), size=self.size, periodic=self.is_periodic)
         else:
             from .Nonuniform.ScalarParameters import rms_curvature
             return rms_curvature(*self.points())

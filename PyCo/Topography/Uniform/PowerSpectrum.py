@@ -35,7 +35,8 @@ SOFTWARE.
 import numpy as np
 from scipy.signal import get_window
 
-from ..common import _get_size, radial_average
+from .common import _get_size
+from ..common import radial_average
 
 
 def power_spectrum_1D(surface_xy,  # pylint: disable=invalid-name

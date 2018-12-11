@@ -34,7 +34,8 @@
 
 import numpy as np
 
-from ..common import _get_size, radial_average
+from .common import _get_size
+from ..common import radial_average
 
 
 def autocorrelation_1D(surface_xy,  # pylint: disable=invalid-name
