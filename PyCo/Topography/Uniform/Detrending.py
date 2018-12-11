@@ -7,7 +7,7 @@
 
 @date   11 Feb 2015
 
-@brief  Bin for small common helper function and classes
+@brief  Helper functions to compute trends of surfaces
 
 @section LICENCE
 
@@ -35,13 +35,19 @@ SOFTWARE.
 import numpy as np
 import scipy
 
-from .common import _get_size
+from .common import _derivative, _get_size
 
 
 def tilt_from_height(arr, size=None, full_output=False):
     """
-    Data in arr is interpreted as height information of a tilted and shifted
-    surface.
+    Compute the tilt plane that if subtracted minimizes the rms height of the
+    surface. The tilt plane is parameterized as:
+
+    .. math::
+
+        p(x, y) = h_0 + m x + n y
+
+    The values of :math:`m`, :math:`n` and :math:`h0` are return by this function.
 
     idea as follows
 
@@ -52,6 +58,23 @@ def tilt_from_height(arr, size=None, full_output=False):
        dofs = n_x, n_y, d = X
 
     solution X_s = arg_min ((arr - ň.x + d)^2).sum()
+
+    Parameters
+    ----------
+    arr : array, UniformTopography
+        Height information.
+    size : tuple of floats
+        Physical size of the topography. Size is automatically determined
+        if a UniformTopography object is passed as arr. (Default: None)
+
+    Returns
+    -------
+    m : float
+        Slope in x-direction.
+    n : float
+        Slope in y-direction.
+    h0 : float
+        Mean value.
     """
     size = _get_size(arr, size)
     arr = arr[...]
@@ -78,8 +101,8 @@ def tilt_from_height(arr, size=None, full_output=False):
         return coeffs
 
 
-def tilt_from_slope(arr, size=None):
-    return [x.mean() for x in compute_derivative(arr, size)]
+def tilt_from_slope(arr, size=None, periodic=False):
+    return [x.mean() for x in _derivative(arr, _get_size(arr, size), 1, periodic)]
 
 
 def tilt_and_curvature(arr, size=None, full_output=False):

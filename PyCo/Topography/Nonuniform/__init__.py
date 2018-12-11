@@ -32,4 +32,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .ScalarParameters import rms_height
+from .ScalarParameters import rms_height, rms_slope
