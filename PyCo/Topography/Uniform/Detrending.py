@@ -35,23 +35,7 @@ SOFTWARE.
 import numpy as np
 import scipy
 
-
-def _get_size(surface_xy, size=None):
-    """
-    Get the physical size of the topography map. Defaults to the shape of
-    the array if no other information is present.
-    """
-    if size is None:
-        if isinstance(surface_xy, np.ndarray):
-            size = surface_xy.shape
-        else:
-            try:
-                size = surface_xy.size
-            except:
-                pass
-    if size is None:
-        size = surface_xy.shape
-    return size
+from .common import _get_size
 
 
 def tilt_from_height(arr, size=None, full_output=False):

@@ -206,7 +206,7 @@ class Topography(object, metaclass=abc.ABCMeta):
             return rms_height(self.array(), kind=kind)
         else:
             from .Nonuniform.ScalarParameters import rms_height
-            return rms_height(*self.points())
+            return rms_height(*self.points(), kind=kind)
 
     def rms_slope(self):
         """computes the rms height gradient fluctuation of the topography"""
