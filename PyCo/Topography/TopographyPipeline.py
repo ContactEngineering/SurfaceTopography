@@ -37,6 +37,7 @@ import numpy as np
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 from .TopographyBase import ChildTopography, SizedTopography, Topography
 
+
 class ScaledTopography(ChildTopography):
     """ used when geometries are scaled
     """
@@ -77,9 +78,10 @@ class ScaledTopography(ChildTopography):
         if self.dim == 1:
             x, h = self.parent_topography.points()
             return x, self.coeff * h
-        else: # self.dim == 2
+        else:  # self.dim == 2
             x, y, h = self.parent_topography.points()
             return x, y, self.coeff * h
+
 
 class DetrendedTopography(ChildTopography):
     """
@@ -110,7 +112,7 @@ class DetrendedTopography(ChildTopography):
     def _detrend(self):
         if self.dim == 1:
             if self._detrend_mode is None or self._detrend_mode == 'center':
-                self._coeffs = (-self.parent_topography.mean(), )
+                self._coeffs = (-self.parent_topography.mean(),)
             elif self._detrend_mode == 'height':
                 from .Nonuniform.Detrending import polyfit
                 self._coeffs = polyfit(*self.parent_topography.points(), 1)
@@ -120,7 +122,7 @@ class DetrendedTopography(ChildTopography):
             else:
                 raise ValueError("Unsupported detrend mode '{}' for line scans." \
                                  .format(self._detrend_mode))
-        else: # self.dim == 2
+        else:  # self.dim == 2
             if self._detrend_mode is None or self._detrend_mode == 'center':
                 self._coeffs = [-self.parent_topography.mean()]
             elif self._detrend_mode == 'height':
@@ -182,7 +184,7 @@ class DetrendedTopography(ChildTopography):
                 return self.parent_topography.array() - a0 - a1 * x - a2 * x * x
             else:
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
-        else: # self.dim == 2
+        else:  # self.dim == 2
             x, y = np.meshgrid(*(np.arange(n) * s / n for s, n in zip(self.size, self.shape)), indexing='ij')
             if len(self._coeffs) == 3:
                 m, n, h0 = self._coeffs
@@ -198,19 +200,19 @@ class DetrendedTopography(ChildTopography):
 
     def points(self):
         if self.dim == 1:
-             x, h = self.parent_topography.points()
-             if len(self._coeffs) == 1:
-                  a0, = self._coeffs
-                  return x, h + a0
-             elif len(self._coeffs) == 2:
-                  a0, a1 = self._coeffs
-                  return x, h - a0 - a1 * x
-             elif len(self._coeffs) == 3:
-                 a0, a1, a2 = self._coeffs
-                 return x, h - a0 - a1 * x - a2 * x * x
-             else:
-                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
-        else: # self.dim == 2
+            x, h = self.parent_topography.points()
+            if len(self._coeffs) == 1:
+                a0, = self._coeffs
+                return x, h + a0
+            elif len(self._coeffs) == 2:
+                a0, a1 = self._coeffs
+                return x, h - a0 - a1 * x
+            elif len(self._coeffs) == 3:
+                a0, a1, a2 = self._coeffs
+                return x, h - a0 - a1 * x - a2 * x * x
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple for line scans.')
+        else:  # self.dim == 2
             x, y, h = self.parent_topography.points()
             if len(self._coeffs) == 3:
                 m, n, h0 = self._coeffs
