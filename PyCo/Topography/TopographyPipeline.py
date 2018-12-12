@@ -67,10 +67,19 @@ class ScaledTopography(ChildTopography):
         super().__setstate__(superstate)
 
     def array(self):
-        """ Computes the combined profile.
+        """ Computes the rescaled profile.
         """
         return self.coeff * self.parent_topography.array()
 
+    def points(self):
+        """ Computes the rescaled profile.
+        """
+        if self.dim == 1:
+            x, h = self.parent_topography.points()
+            return x, self.coeff * h
+        else: # self.dim == 2
+            x, y, h = self.parent_topography.points()
+            return x, y, self.coeff * h
 
 class DetrendedTopography(ChildTopography):
     """
