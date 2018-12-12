@@ -80,7 +80,7 @@ class DetrendedTopography(ChildTopography):
     """
     name = 'detrended_topography'
 
-    def __init__(self, topography, detrend_mode='slope'):
+    def __init__(self, topography, detrend_mode='height'):
         """
         Parameters
         ----------
@@ -105,6 +105,9 @@ class DetrendedTopography(ChildTopography):
             elif self._detrend_mode == 'height':
                 from .Nonuniform.Detrending import polyfit
                 self._coeffs = polyfit(*self.parent_topography.points(), 1)
+            elif self._detrend_mode == 'curvature':
+                from .Nonuniform.Detrending import polyfit
+                self._coeffs = polyfit(*self.parent_topography.points(), 2)
             else:
                 raise ValueError("Unsupported detrend mode '{}' for line scans." \
                                  .format(self._detrend_mode))
@@ -114,10 +117,7 @@ class DetrendedTopography(ChildTopography):
             elif self._detrend_mode == 'height':
                 self._coeffs = [-s for s in tilt_from_height(self.parent_topography)]
             elif self._detrend_mode == 'slope':
-                try:
-                    sx, sy = self.parent_topography.size
-                except:
-                    sx, sy = self.parent_topography.shape
+                sx, sy = self.parent_topography.size
                 nx, ny = self.parent_topography.shape
                 self._coeffs = [-s.mean() for s in self.parent_topography.derivative()]
                 slx, sly = self._coeffs
@@ -160,49 +160,60 @@ class DetrendedTopography(ChildTopography):
     def array(self):
         """ Computes the combined profile.
         """
-        xy = np.meshgrid(*(np.arange(n) * s / n for s, n in zip(self.size, self.shape)), indexing='ij')
         if len(self._coeffs) == 1:
-            h0, = self._coeffs
-            return self.parent_topography.array() + h0
-        elif len(self._coeffs) == 2:
-            h0, m = self._coeffs
-            return self.parent_topography.array() - h0 - m * xy
-        elif len(self._coeffs) == 3:
-            m, n, h0 = self._coeffs
-            x, y = xy
-            return self.parent_topography.array() + h0 + m * x + n * y
-        elif len(self._coeffs) == 6:
-            x, y = xy
-            m, n, mm, nn, mn, h0 = self._coeffs
-            xx = x * x
-            yy = y * y
-            xy = x * y
-            return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
-        else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            a0, = self._coeffs
+            return self.parent_topography.array() + a0
+        elif self.dim == 1:
+            x = np.arange(n) * self.size / self.shape[0]
+            if len(self._coeffs) == 2:
+                a0, a1 = self._coeffs
+                return self.parent_topography.array() - a0 - a1 * x
+            elif len(self._coeffs) == 3:
+                a0, a1, a2 = self._coeffs
+                return self.parent_topography.array() - a0 - a1 * x - a2 * x * x
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple for line scans.')
+        else: # self.dim == 2
+            x, y = np.meshgrid(*(np.arange(n) * s / n for s, n in zip(self.size, self.shape)), indexing='ij')
+            if len(self._coeffs) == 3:
+                m, n, h0 = self._coeffs
+                return self.parent_topography.array() + h0 + m * x + n * y
+            elif len(self._coeffs) == 6:
+                m, n, mm, nn, mn, h0 = self._coeffs
+                xx = x * x
+                yy = y * y
+                xy = x * y
+                return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple for 2D topographies.')
 
     def points(self):
-        if len(self._coeffs) == 1:
-            x, h = self.parent_topography.points()
-            h0, = self._coeffs
-            return x, h + h0
-        elif len(self._coeffs) == 2:
-            x, h = self.parent_topography.points()
-            h0, m = self._coeffs
-            return x, h - h0 - m * x
-        elif len(self._coeffs) == 3:
+        if self.dim == 1:
+             x, h = self.parent_topography.points()
+             if len(self._coeffs) == 1:
+                  a0, = self._coeffs
+                  return x, h + a0
+             elif len(self._coeffs) == 2:
+                  a0, a1 = self._coeffs
+                  return x, h - a0 - a1 * x
+             elif len(self._coeffs) == 3:
+                 a0, a1, a2 = self._coeffs
+                 return x, h - a0 - a1 * x - a2 * x * x
+             else:
+                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
+        else: # self.dim == 2
             x, y, h = self.parent_topography.points()
-            m, n, h0 = self._coeffs
-            return x, y, h + h0 + m * x + n * y
-        elif len(self._coeffs) == 6:
-            x, y, h = self.parent_topography.points()
-            m, n, mm, nn, mn, h0 = self._coeffs
-            xx = x * x
-            yy = y * y
-            xy = x * y
-            return self.parent_topography.array() + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
-        else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            if len(self._coeffs) == 3:
+                m, n, h0 = self._coeffs
+                return x, y, h + h0 + m * x + n * y
+            elif len(self._coeffs) == 6:
+                m, n, mm, nn, mn, h0 = self._coeffs
+                xx = x * x
+                yy = y * y
+                xy = x * y
+                return x, y, h + h0 + m * x + n * y + mm * xx + nn * yy + mn * xy
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple for 2D topographies.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
