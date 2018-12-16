@@ -124,12 +124,11 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
     z_factor -- multiplication factor for height
     """
 
+    close_file = False
     if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            raise FileNotFoundError(
-                "No such file or directory: '{}(.gz)'".format(fobj))
         fname = fobj
-        fobj = open(fname)
+        fobj = open(fname, 'r')
+        close_file = True
 
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
@@ -199,15 +198,18 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
                 zunit = mangle_height_unit(match.group('unit'))
 
     data = []
-    with fobj as file_handle:
-        for line in file_handle:
-            line_elements = line.strip().split()
-            if len(line) > 0:
-                try:
-                    dummy = float(line_elements[0])
-                    data += [[float(strval) for strval in line_elements]]
-                except ValueError:
-                    process_comment(line)
+    for line in fobj:
+        line_elements = line.strip().split()
+        if len(line) > 0:
+            try:
+                dummy = float(line_elements[0])
+                data += [[float(strval) for strval in line_elements]]
+            except ValueError:
+                process_comment(line)
+
+    if close_file:
+        fobj.close()
+
     data = np.array(data)
     nx, ny = data.shape
     if nx == 2 or ny == 2:
@@ -733,6 +735,7 @@ def detect_format(fobj):
         except:
             pass
 
+        fname = fobj
         fobj = open(fobj, 'rb')
         close_file = True
 
@@ -742,52 +745,59 @@ def detect_format(fobj):
     fobj.seek(file_pos)
 
     # Check for magic string
-    if magic.startswith(b'\*File list'):
-        if close_file:
-            fobj.close()
-        return 'di'
-    elif magic.startswith(b'\001\000Directory'):
-        if close_file:
-            fobj.close()
-        return 'opd'
-    else:
-        # Try opening at matlab and see if it fails
-        try:
-            from scipy.io import loadmat
-            loadmat(fobj)
+    if 'b' in fobj.mode:
+        if magic.startswith(b'\*File list'):
             if close_file:
                 fobj.close()
-            else:
-                fobj.seek(file_pos)
-            return 'mat'
-        except:
-            pass
-
-        # Try opening zip and see if it fails
-        try:
-            with ZipFile(fobj, 'r') as zipfile:
-                if 'main.xml' in zipfile.namelist():
-                    if close_file:
-                        fobj.close()
-                    else:
-                        fobj.seek(file_pos)
-                    return 'x3p'
-        except:
-            pass
-
-        # Try opening igor binary wave and see if it fails
-        fobj.seek(file_pos)
-        import igor.binarywave as ibw
-        try:
-            ibw.load(fobj)
+            return 'di'
+        elif magic.startswith(b'\001\000Directory'):
             if close_file:
                 fobj.close()
-            else:
-                fobj.seek(file_pos)
-            return 'ibw'
-        except:
-            pass
+            return 'opd'
+        else:
+            # Try opening at matlab and see if it fails
+            try:
+                from scipy.io import loadmat
+                loadmat(fobj)
+                if close_file:
+                    fobj.close()
+                else:
+                    fobj.seek(file_pos)
+                return 'mat'
+            except:
+                pass
 
+            # Try opening zip and see if it fails
+            try:
+                with ZipFile(fobj, 'r') as zipfile:
+                    if 'main.xml' in zipfile.namelist():
+                        if close_file:
+                            fobj.close()
+                        else:
+                            fobj.seek(file_pos)
+                        return 'x3p'
+            except:
+                pass
+
+            # Try opening igor binary wave and see if it fails
+            fobj.seek(file_pos)
+            import igor.binarywave as ibw
+            try:
+                ibw.load(fobj)
+                if close_file:
+                    fobj.close()
+                else:
+                    fobj.seek(file_pos)
+                return 'ibw'
+            except:
+                pass
+
+    if close_file:
+        fobj.close()
+        # Reopen in text mode
+        fobj = open(fname, 'r')
+
+    if 'b' not in fobj.mode:
         # Finally, this could be a line scan in text format
         try:
             read_xyz(fobj)
@@ -808,9 +818,9 @@ def detect_format(fobj):
 
 def read(fobj, format=None):
     if format is None:
-        format = 'asc'
-        if not hasattr(fobj, 'read'):
-            format = os.path.splitext(fobj)[-1][1:]
+        format = detect_format(fobj)
+        if format is None:
+            format = 'asc'
 
     readers = {'di': read_di,
                'h5': read_h5,
