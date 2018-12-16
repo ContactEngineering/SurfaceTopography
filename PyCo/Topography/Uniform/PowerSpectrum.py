@@ -7,7 +7,7 @@
 
 @date   09 May 2018
 
-@brief  Bin for small common helper function and classes
+@brief  Power-spectral density for uniform topographies.
 
 @section LICENCE
 

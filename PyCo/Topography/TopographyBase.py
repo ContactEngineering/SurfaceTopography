@@ -226,6 +226,18 @@ class Topography(object, metaclass=abc.ABCMeta):
             from .Nonuniform.ScalarParameters import rms_curvature
             return rms_curvature(*self.points())
 
+    def power_spectrum_1D(window=None):
+        """computes the one-dimensional power-spectrum"""
+        if window is None:
+            if not self.periodic:
+                window = 'hann'
+        if self.is_uniform:
+            from .Uniform.PowerSpectrum import power_spectrum_1D
+            return power_spectrum_1D(self.array(), size=self.size, window=window)
+        else:
+            from .Nonuniform.PowerSpectrum import power_spectrum
+            return power_spectrum(*self.points(), window=window)
+
 
 class SizedTopography(Topography):
     """
