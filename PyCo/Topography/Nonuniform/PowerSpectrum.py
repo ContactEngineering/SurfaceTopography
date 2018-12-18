@@ -35,6 +35,25 @@ SOFTWARE.
 import numpy as np
 
 
+def dsinc(x):
+    """Derivative of the numpy.sinc function"""
+    tol = 1e-6
+    x = np.asarray(x)
+    small_values = np.abs(x) < tol
+    if small_values.sum() > 0:
+        ret = np.zeros_like(x)
+
+        # For small values, use the Taylor series expansion (accurate to O(x^^))
+        ret[small_values] = -x[small_values] / 3 + x[small_values] ** 3 / 30
+
+        # For large values, use the normal expression
+        large_values = np.logical_not(small_values)
+        ret[large_values] = (np.cos(x[large_values]) - np.sinc(x[large_values])) / x[large_values]
+        return ret
+    else:
+        return (np.cos(np.pi * x) - np.sinc(x)) / x
+
+
 def ft_rectangle(a, q):
     """
     Fourier transform of a rectangle, :math:`f(x) = 1` for :math:``|x| < a`,
@@ -43,7 +62,8 @@ def ft_rectangle(a, q):
 
         \\tilde{f}(q) = 2a \\sin(aq)/aq = 2a \\sinc(aq)
     """
-    return 2 * a * np.sin(a * q) / (a * q)
+    # np.sinc is sin(pi*x)/(pi*x)
+    return 2 * a * np.sinc(a * q / np.pi)
 
 
 def ft_one_sided_triangle(a, q):
@@ -54,8 +74,11 @@ def ft_one_sided_triangle(a, q):
     ..math ::
 
         \\tilde{f}(q) = 2ia^2 [\\cos(aq)/(aq) - \\sin(aq)/(aq)^2]
+
+    Returned value does not contain the factor of :math:`i`, i.e. this
+    function is real-valued.
     """
-    return 2j * a * a * (np.cos(a * q) / (a * q) - np.sin(a * q) / ((a * q) ** 2))
+    return 2 * a * a * dsinc(a * q / np.pi) / np.pi
 
 
 def apply_window(x, y, window=None):
@@ -81,11 +104,10 @@ def power_spectrum(x, y, q=None, window=None):
     y : array
         y-coordinates of the points.
     q : array, optional
-        Wavevectors at which to compute the power-spectral density. If
-        omitted, wavevectors are equally spaced with a spacing that
-        corresponds to :math:`2\\pi/\lambda` where :math:`\\lambda` is the
-        shortest distance between two points in the `x`-array.
-        (Default: None)
+        Wavevectors at which to compute the PSD. If omitted, wavevectors are
+        equally spaced with a spacing that corresponds to :math:`2\\pi/\lambda`
+        where :math:`\\lambda` is the shortest distance between two points in
+        the `x`-array. (Default: None)
     window : str, optional
         Name of the window function to apply before computing the PSD.
         Presently only supports Hann window ('hann') or no window (None or
@@ -94,9 +116,12 @@ def power_spectrum(x, y, q=None, window=None):
 
     Returns
     -------
-
+    q : array
+        Wavevector array at which the PSD has been computed.
+    C : array
+        PSD values.
     """
-    y = apply_window(x, y, window)
+    y = apply_window(x, y, window=window)
     if q is None:
         L = x[-1] - x[0]
         q = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
@@ -108,5 +133,5 @@ def power_spectrum(x, y, q=None, window=None):
             a /= 2
             x0 = (x1 + x2) / 2
             y0 = (y1 + y2) / 2
-            y_q += (y0 * ft_rectangle(a, q) + slope * ft_one_sided_triangle(a, q)) * np.exp(-1j * x0 * q) / (2 * a)
-    return (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
+            y_q += (y0 * ft_rectangle(a, q) + 1j * slope * ft_one_sided_triangle(a, q)) * np.exp(-1j * x0 * q) / (2 * a)
+    return q, (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
