@@ -44,7 +44,7 @@ class UniformTopography(SizedTopography):
 
     name = 'generic_geom'
 
-    def __init__(self, resolution=None, dim=None, size=None, unit=None, periodic=False):
+    def __init__(self, resolution=None, size=None, unit=None, periodic=False):
         super().__init__(size=size, unit=unit)
         self._resolution = resolution
         self._periodic = periodic
@@ -108,7 +108,7 @@ class UniformNumpyTopography(UniformTopography):
     """
     name = 'uniform_numpy_topography'
 
-    def __init__(self, profile, size=None, unit=None):
+    def __init__(self, profile, size=None, unit=None, periodic=False):
         """
         Keyword Arguments:
         profile -- topography profile
@@ -118,7 +118,7 @@ class UniformNumpyTopography(UniformTopography):
         if np.sum(np.logical_not(np.isfinite(profile))) > 0:
             profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
         self.__h = profile
-        super().__init__(resolution=self.__h.shape, dim=len(self.__h.shape), size=size, unit=unit)
+        super().__init__(resolution=self.__h.shape, size=size, unit=unit, periodic=periodic)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for

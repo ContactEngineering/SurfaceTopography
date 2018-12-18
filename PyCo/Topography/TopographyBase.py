@@ -226,10 +226,27 @@ class Topography(object, metaclass=abc.ABCMeta):
             from .Nonuniform.ScalarParameters import rms_curvature
             return rms_curvature(*self.points())
 
-    def power_spectrum_1D(window=None):
-        """computes the one-dimensional power-spectrum"""
+    def power_spectrum_1D(self, window=None):
+        """
+        Computes the one-dimensional power-spectral density (PSD).
+
+        Parameters
+        ----------
+        window : str
+            Name of window function to apply. Currently only supported is
+            'hann'. Set to the string 'None' to disable window function.
+            If set to None, a Hann window is applied if the topography is
+            nonperiodic and no window is applied for periodic topographies.
+
+        Returns
+        -------
+        q : array
+            Array containing wavevectors. Unit: 1/length
+        C : array
+            Array containing the PSD for each wavevector. Unit: length^3
+        """
         if window is None:
-            if not self.periodic:
+            if not self.is_periodic:
                 window = 'hann'
         if self.is_uniform:
             from .Uniform.PowerSpectrum import power_spectrum_1D

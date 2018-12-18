@@ -37,21 +37,28 @@ import numpy as np
 
 def ft_rectangle(a, q):
     """
-    Fourier transform of a rectangle, f(x) = 1 for |x| < a:
-      2a sin(aq)/aq = 2a sinc(aq)
+    Fourier transform of a rectangle, :math:`f(x) = 1` for :math:``|x| < a`,
+
+    ..math ::
+
+        \\tilde{f}(q) = 2a \\sin(aq)/aq = 2a \\sinc(aq)
     """
     return 2 * a * np.sin(a * q) / (a * q)
 
 
 def ft_one_sided_triangle(a, q):
     """
-    Fourier transform of the one-sided triangle, f(x) = x for |x| < a:
-      2ia^2 [cos(aq)/(aq) - sin(aq)/(aq)^2]
+    Fourier transform of the one-sided triangle, :math:`f(x) = x` for
+    :math:`|x| < a`,
+
+    ..math ::
+
+        \\tilde{f}(q) = 2ia^2 [\\cos(aq)/(aq) - \\sin(aq)/(aq)^2]
     """
     return 2j * a * a * (np.cos(a * q) / (a * q) - np.sin(a * q) / ((a * q) ** 2))
 
 
-def apply_window(x, y, window):
+def apply_window(x, y, window=None):
     if window == 'hann':
         l = x.max() - x.min()
         return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / l)) * y
@@ -62,6 +69,33 @@ def apply_window(x, y, window):
 
 
 def power_spectrum(x, y, q=None, window=None):
+    """
+    Compute power-spectral density (PSD) for a nonuniform topography. The
+    topography is assumed to be given by a series of points connected by
+    straight lines.
+
+    Parameters
+    ----------
+    x : array
+        x-coordinates of the points.
+    y : array
+        y-coordinates of the points.
+    q : array, optional
+        Wavevectors at which to compute the power-spectral density. If
+        omitted, wavevectors are equally spaced with a spacing that
+        corresponds to :math:`2\\pi/\lambda` where :math:`\\lambda` is the
+        shortest distance between two points in the `x`-array.
+        (Default: None)
+    window : str, optional
+        Name of the window function to apply before computing the PSD.
+        Presently only supports Hann window ('hann') or no window (None or
+        'None').
+        (Default: None)
+
+    Returns
+    -------
+
+    """
     y = apply_window(x, y, window)
     if q is None:
         L = x[-1] - x[0]

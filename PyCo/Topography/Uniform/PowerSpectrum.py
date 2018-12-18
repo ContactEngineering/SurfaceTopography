@@ -39,14 +39,14 @@ from .common import _get_size
 from ..common import radial_average
 
 
-def power_spectrum_1D(surface_xy,  # pylint: disable=invalid-name
-                      size=None, window=None, fold=True):
+def power_spectrum_1D(topography,  # pylint: disable=invalid-name
+                      size=None, window=None):
     """
     Compute power spectrum from 1D FFT.
 
     Parameters
     ----------
-    surface_xy : array_like
+    topography : array_like
         2D-array of surface topography
     size : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of grid
@@ -54,8 +54,6 @@ def power_spectrum_1D(surface_xy,  # pylint: disable=invalid-name
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
-    fold : bool, optional
-        Fold +q and -q branches. (Default: True)
 
     Returns
     -------
@@ -65,38 +63,47 @@ def power_spectrum_1D(surface_xy,  # pylint: disable=invalid-name
         Power spectrum. (Units: length**3)
     """
     # pylint: disable=invalid-name
-    nx, dummy_ny = surface_xy.shape
-    sx, dummy_sy = _get_size(surface_xy, size)
+    if hasattr(topography, "power_spectrum_1D"):
+        return topography.power_spectrum_1D(window=window)
+
+    n = topography.shape
+    s = _get_size(topography, size)
+
+    try:
+        nx, ny = n
+        sx, sy = s
+    except:
+        nx, = n
+        sx, = s
 
     # Construct and apply window
     if window is not None:
         win = get_window(window, nx)
         # Normalize window
         win *= np.sqrt(nx/(win**2).sum())
-        surface_xy = win.reshape(-1, 1)*surface_xy[:, :]
+        topography = (win * topography.T).T
 
     # Pixel size
     len0 = sx/nx
 
     # Compute FFT and normalize
-    surface_qy = len0*np.fft.fft(surface_xy[:, :], axis=0)
+    fourier_topography = len0*np.fft.fft(topography, axis=0)
     dq = 2*np.pi/sx
     q = dq*np.arange(nx//2)
 
     # This is the raw power spectral density
-    C_raw = (abs(surface_qy)**2)/sx
+    C_raw = (np.abs(fourier_topography)**2)/sx
 
     # Fold +q and -q branches. Note: Entry q=0 appears just once, hence exclude
     # from average!
-    if fold:
-        C_all = C_raw[:nx//2, :]
-        C_all[1:nx//2, :] += C_raw[nx-1:(nx+1)//2:-1, :]
-        C_all /= 2
+    C_all = C_raw[:nx//2, ...]
+    C_all[1:nx//2, ...] += C_raw[nx-1:(nx+1)//2:-1, ...]
+    C_all /= 2
 
-        return q, C_all.mean(axis=1)
+    if len(topography.shape) == 1:
+        return q, C_all
     else:
-        return (np.roll(np.append(np.append(q, [2*np.pi*(nx//2)/sx]), -q[:0:-1]),
-                        nx//2), np.roll(C_raw.mean(axis=1), nx//2))
+        return q, C_all.mean(axis=1)
 
 
 def get_window_2D(window, nx, ny, size=None):
@@ -121,7 +128,7 @@ def get_window_2D(window, nx, ny, size=None):
         raise ValueError("Unknown window type '{}'".format(window))
 
 
-def power_spectrum_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
+def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
                       size=None, window=None, normalize_window=True,
                       return_map=False):
     """
@@ -129,7 +136,7 @@ def power_spectrum_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    surface_xy : array_like
+    topography : array_like
         2D-array of surface topography
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller
@@ -152,8 +159,8 @@ def power_spectrum_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = surface_xy.shape
-    sx, sy = _get_size(surface_xy, size)
+    nx, ny = topography.shape
+    sx, sy = _get_size(topography, size)
 
     # Construct and apply window
     if window is not None:
@@ -161,13 +168,13 @@ def power_spectrum_2D(surface_xy, nbins=100,  # pylint: disable=invalid-name
         # Normalize window
         if normalize_window:
             win *= np.sqrt(nx*ny/(win**2).sum())
-        surface_xy = win*surface_xy[:, :]
+        topography = win * topography[:, :]
 
     # Pixel size
     area0 = (sx/nx)*(sy/ny)
 
     # Compute FFT and normalize
-    surface_qk = area0*np.fft.fft2(surface_xy[:, :])
+    surface_qk = area0*np.fft.fft2(topography[:, :])
     C_qk = abs(surface_qk)**2/(sx*sy)  # pylint: disable=invalid-name
 
     if nbins is None:
