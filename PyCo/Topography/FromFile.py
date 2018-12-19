@@ -707,6 +707,19 @@ def read_hgt(fobj):
 
 
 def read_h5(fobj):
+    """
+    HDF5 data format from the Contact Mechanics Challenge.
+
+    Parameters
+    ----------
+    fobj : str or file object
+        File name or stream.
+
+    Returns
+    -------
+    topography : UniformNumpyTopography
+        Topography object.
+    """
     import h5py
     h5 = h5py.File(fobj)
     return UniformNumpyTopography(h5['surface'][...])
