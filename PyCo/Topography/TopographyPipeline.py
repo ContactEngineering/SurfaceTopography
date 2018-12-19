@@ -83,6 +83,60 @@ class ScaledTopography(ChildTopography):
             return x, y, self.coeff * h
 
 
+class InterpolatedTopography(ChildTopography):
+    """
+    Interpolate a topography onto a uniform grid.
+    """
+    name = 'interpolated_topography'
+
+    def __init__(self, topography, x):
+        """
+        Parameters
+        ----------
+        topography : Topography
+            Topography to interpolate.
+        x : array
+            Interpolation points.
+        """
+        super().__init__(topography)
+        self.x = x
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self.x
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self.x = state
+        super().__setstate__(superstate)
+
+    def array(self):
+        """ Computes the rescaled profile.
+        """
+        return np.interp(self.x, *self.parent_topography.points())
+
+    @property
+    def resolution(self):
+        """Return resolution, i.e. number of pixels, of the topography."""
+        return self.x.shape
+
+    @property
+    def size(self):
+        """Return physical size of the topography."""
+        return self.x[-1] - self.x[0],
+
+    @property
+    def is_uniform(self):
+        """ Stored on a uniform grid? """
+        return True
+
+
 class DetrendedTopography(ChildTopography):
     """
     Remove trends from a topography. This is achieved by fitting polynomials

@@ -35,6 +35,7 @@ SOFTWARE.
 import os
 import re
 import xml.etree.ElementTree as ElementTree
+from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
 
@@ -51,6 +52,54 @@ voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
 
+###
+
+def binary(func):
+    def func_wrapper(fobj, *args, **kwargs):
+        close_file = False
+        if not hasattr(fobj, 'read'):
+            fobj = open(fobj, 'rb')
+            close_file = True
+        retvals = func(fobj, *args, **kwargs)
+        if close_file:
+            fobj.close()
+        return retvals
+
+    return func_wrapper
+
+
+def text(func):
+    def func_wrapper(fobj, *args, **kwargs):
+        close_file = False
+        if not hasattr(fobj, 'read'):
+            fobj = open(fobj, 'r')
+            fobj_text = fobj
+            close_file = True
+        elif 'b' in fobj.mode:
+            fobj_text = TextIOWrapper(fobj)
+        else:
+            fobj_text = fobj
+
+        try:
+            retvals = func(fobj_text, *args, **kwargs)
+        except:
+            # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
+            # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
+            # exception. We need to detach the TextIOWrapper before exiting.
+            if 'b' in fobj.mode:
+                fobj_text.detach()
+            raise
+
+        if 'b' in fobj.mode:
+            fobj_text.detach()
+            fobj_text = fobj
+        if close_file:
+            fobj_text.close()
+        return retvals
+
+    return func_wrapper
+
+###
 
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
@@ -82,6 +131,7 @@ def mangle_height_unit(unit):
         return unit
 
 
+@text
 def read_matrix(fobj, size=None, factor=None):
     """
     Reads a surface profile from a text file and presents in in a
@@ -91,24 +141,13 @@ def read_matrix(fobj, size=None, factor=None):
     Keyword Arguments:
     fobj -- filename or file object
     """
-    if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            zfobj = fobj + ".gz"
-            if os.path.isfile(zfobj):
-                fobj = zfobj
-            else:
-                raise FileNotFoundError(
-                    "No such file or directory: '{}(.gz)'".format(
-                        fobj))
     surface = UniformNumpyTopography(np.loadtxt(fobj), size=size)
     if factor is not None:
         surface = ScaledTopography(surface, factor)
     return surface
 
 
-NumpyTxtSurface = read_matrix  # pylint: disable=invalid-name
-
-
+@text
 def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
@@ -118,17 +157,11 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
     surface are in meters.
 
     Keyword Arguments:
-    fobj -- filename or file object
+    fobj_in -- filename or file object
     unit -- name of surface units, one of m, mm, μm/um, nm, A
     x_factor -- multiplication factor for size
     z_factor -- multiplication factor for height
     """
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fname = fobj
-        fobj = open(fname, 'r')
-        close_file = True
 
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
@@ -207,9 +240,6 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
             except ValueError:
                 process_comment(line)
 
-    if close_file:
-        fobj.close()
-
     data = np.array(data)
     nx, ny = data.shape
     if nx == 2 or ny == 2:
@@ -268,31 +298,23 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
     return surface
 
 
-NumpyAscSurface = read_asc  # pylint: disable=invalid-name
-
-
+@text
 def read_xyz(fobj, unit=None):
     """
-    Load xyz-file
-    TODO: LARS_DOC
-    Keyword Arguments:
-    fobj -- filename or file object
+    Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
+
+    Parameters
+    ----------
+    fobj : str or file object
+         File name or stream.
+
+    Returns
+    -------
+    topography : Topography
+        Topography object.
     """
     # pylint: disable=invalid-name
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            raise FileNotFoundError(
-                "No such file or directory: '{}(.gz)'".format(fobj))
-        fname = fobj
-        fobj = open(fname)
-        close_file = True
-
     data = np.loadtxt(fobj, unpack=True)
-
-    if close_file:
-        fobj.close()
 
     if len(data) == 2:
         # This is a line scan.
@@ -440,6 +462,7 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         return surfaces
 
 
+@binary
 def read_opd(fobj):
     """
     Load Wyko Vision OPD file.
@@ -456,11 +479,6 @@ def read_opd(fobj):
         blkname = fobj.read(16).split(b'\0', 1)[0].decode('latin-1')
         blktype, blklen, blkattr = unpack('<hlH', fobj.read(8))
         return blkname, blktype, blklen, blkattr
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
 
     # Header
     tmp = fobj.read(2)
@@ -515,9 +533,6 @@ def read_opd(fobj):
         else:
             fobj.read(l)
 
-    if close_file:
-        fobj.close()
-
     if data is None:
         raise IOError('No data block encountered.')
 
@@ -528,6 +543,7 @@ def read_opd(fobj):
     return surface
 
 
+@binary
 def read_di(fobj):
     """
     Load Digital Instrument's Nanoscope files.
@@ -537,11 +553,6 @@ def read_di(fobj):
     Keyword Arguments:
     fobj -- filename or file object
     """
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
 
     parameters = []
     section_name = None
@@ -638,15 +649,13 @@ def read_di(fobj):
             surface = ScaledTopography(surface, hard_scale * hard_to_soft * soft_scale)
             surfaces += [surface]
 
-    if close_file:
-        fobj.close()
-
     if len(surfaces) == 1:
         return surfaces[0]
     else:
         return surfaces
 
 
+@binary
 def read_ibw(fobj):
     """
     Read IGOR Binary Wave files.
@@ -656,15 +665,7 @@ def read_ibw(fobj):
     """
     from igor.binarywave import load
 
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
-
     wave = load(fobj)['wave']
-
-    if close_file:
-        fobj.close()
 
     channel = 0
     data = wave['wData'][:, :, channel].copy()
@@ -681,6 +682,7 @@ def read_ibw(fobj):
     return surface
 
 
+@binary
 def read_hgt(fobj):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
@@ -689,11 +691,6 @@ def read_hgt(fobj):
     Keyword Arguments:
     fobj -- filename or file object
     """
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
-
     fobj.seek(0, 2)
     fsize = fobj.tell()
     fobj.seek(0)
@@ -705,9 +702,6 @@ def read_hgt(fobj):
                                                                     dim))
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
-
-    if close_file:
-        fobj.close()
 
     return UniformNumpyTopography(data)
 
@@ -722,8 +716,11 @@ def detect_format(fobj):
     """
     Detect file format based on its content.
 
-    Keyword Arguments:
-    fobj -- filename or file object
+    Parameters
+    ----------
+    fobj : string or file object
+        File name or open stream. Note that the stream should be opened as
+        binary, otherwise the binary formats will not be detected.
     """
 
     close_file = False
@@ -792,28 +789,22 @@ def detect_format(fobj):
             except:
                 pass
 
-    if close_file:
-        fobj.close()
-        # Reopen in text mode
-        fobj = open(fname, 'r')
-
-    if 'b' not in fobj.mode:
-        # Finally, this could be a line scan in text format
-        try:
-            read_xyz(fobj)
-            if close_file:
-                fobj.close()
-            else:
-                fobj.seek(file_pos)
-            return 'xyz'
-        except:
-            pass
-
+    # Finally, this could be a line scan in text format
+    try:
+        read_xyz(fobj)
         if close_file:
             fobj.close()
         else:
             fobj.seek(file_pos)
-        return None
+        return 'xyz'
+    except:
+        pass
+
+    if close_file:
+        fobj.close()
+    else:
+        fobj.seek(file_pos)
+    return None
 
 
 def read(fobj, format=None):

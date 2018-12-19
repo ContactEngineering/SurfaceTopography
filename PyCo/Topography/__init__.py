@@ -40,8 +40,8 @@ from PyCo.Topography.Uniform.ScalarParameters import rms_height, rms_slope, rms_
 from .TopographyBase import Topography
 from .TopographyUniform import UniformNumpyTopography
 from .TopographyNonuniform import NonuniformNumpyTopography
-from .TopographyPipeline import CompoundTopography, DetrendedTopography, ScaledTopography, TranslatedTopography
+from .TopographyPipeline import (CompoundTopography, DetrendedTopography, InterpolatedTopography, ScaledTopography,
+                                 TranslatedTopography)
 from .TopographySpecial import PlasticTopography, Sphere
-from .FromFile import (NumpyTxtSurface, NumpyAscSurface, read, read_asc,
-                       read_di, read_h5, read_hgt, read_ibw, read_mat,
-                       read_matrix, read_opd, read_x3p, read_xyz)
+from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
+                       read_xyz)
