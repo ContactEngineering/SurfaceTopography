@@ -33,6 +33,7 @@ SOFTWARE.
 """
 
 import os
+import io
 import re
 import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
@@ -75,7 +76,7 @@ def text(func):
             fobj = open(fobj, 'r')
             fobj_text = fobj
             close_file = True
-        elif 'b' in fobj.mode:
+        elif is_binary_stream(fobj):
             fobj_text = TextIOWrapper(fobj)
         else:
             fobj_text = fobj
@@ -86,11 +87,11 @@ def text(func):
             # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
             # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
             # exception. We need to detach the TextIOWrapper before exiting.
-            if 'b' in fobj.mode:
+            if is_binary_stream(fobj):
                 fobj_text.detach()
             raise
 
-        if 'b' in fobj.mode:
+        if is_binary_stream(fobj):
             fobj_text.detach()
             fobj_text = fobj
         if close_file:
@@ -98,6 +99,14 @@ def text(func):
         return retvals
 
     return func_wrapper
+
+def is_binary_stream(fobj):
+    """
+
+    :param fobj:
+    :return:
+    """
+    return isinstance(fobj, io.BytesIO) or (hasattr(fobj, 'mode') and 'b' in fobj.mode)
 
 ###
 
@@ -742,7 +751,7 @@ def detect_format(fobj):
     fobj.seek(file_pos)
 
     # Check for magic string
-    if 'b' in fobj.mode:
+    if is_binary_stream(fobj):
         if magic.startswith(b'\*File list'):
             if close_file:
                 fobj.close()
