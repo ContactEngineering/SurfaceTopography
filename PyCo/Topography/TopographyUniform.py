@@ -83,7 +83,7 @@ class UniformTopography(SizedTopography):
         """
         return self._resolution
 
-    @property
+    @SizedTopography.size.getter
     def size(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
