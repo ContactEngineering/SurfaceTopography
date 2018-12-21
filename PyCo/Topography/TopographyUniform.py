@@ -42,7 +42,7 @@ class UniformTopography(SizedTopography):
     Topography that lives on a uniform grid.
     """
 
-    name = 'generic_geom'
+    name = 'uniform_topography'
 
     def __init__(self, resolution=None, size=None, unit=None, periodic=False):
         super().__init__(size=size, unit=unit)
@@ -106,6 +106,7 @@ class UniformNumpyTopography(UniformTopography):
     """
     Topography from a static numpy array.
     """
+
     name = 'uniform_numpy_topography'
 
     def __init__(self, profile, size=None, unit=None, periodic=False):

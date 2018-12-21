@@ -41,6 +41,8 @@ class NonuniformTopography(SizedTopography):
     only supports line scans, i.e. one-dimensional topographies.
     """
 
+    name = 'nonuniform_topography'
+
     def __init__(self, size=None, unit=None):
         super().__init__(size=size, unit=unit)
 
@@ -61,6 +63,8 @@ class NonuniformNumpyTopography(NonuniformTopography):
     """
     Nonunform topography with point list consisting of static numpy arrays.
     """
+
+    name = 'nonuniform_numpy_topography'
 
     def __init__(self, x, y, size=None, unit=None):
         super().__init__(size=size, unit=unit)
