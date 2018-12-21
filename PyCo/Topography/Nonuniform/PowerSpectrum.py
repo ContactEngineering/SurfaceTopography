@@ -35,8 +35,13 @@ SOFTWARE.
 import numpy as np
 
 
+def sinc(x):
+    """sinc function"""
+    return np.sinc(x/np.pi)
+
+
 def dsinc(x):
-    """Derivative of the numpy.sinc function"""
+    """Derivative of the sinc function"""
     tol = 1e-6
     x = np.asarray(x)
     small_values = np.abs(x) < tol
@@ -51,34 +56,34 @@ def dsinc(x):
         ret[large_values] = (np.cos(x[large_values]) - np.sinc(x[large_values])) / x[large_values]
         return ret
     else:
-        return (np.cos(np.pi * x) - np.sinc(x)) / x
+        return (np.cos(x) - sinc(x)) / x
 
 
-def ft_rectangle(a, q):
+def ft_rectangle(q):
     """
-    Fourier transform of a rectangle, :math:`f(x) = 1` for :math:``|x| < a`,
+    Fourier transform of a rectangle, :math:`f(x) = 1` for :math:``|x| < 1/2`,
 
     ..math ::
 
-        \\tilde{f}(q) = 2a \\sin(aq)/aq = 2a \\sinc(aq)
+        \\tilde{f}(q) = 2\\sin(q/2)/q = \\sinc(q/2)
     """
-    # np.sinc is sin(pi*x)/(pi*x)
-    return 2 * a * np.sinc(a * q / np.pi)
+    # np.sinc is sin(pi*x)/(pi*x), sinc is sin(x)/xCo
+    return sinc(q / 2)
 
 
-def ft_one_sided_triangle(a, q):
+def ft_one_sided_triangle(q):
     """
     Fourier transform of the one-sided triangle, :math:`f(x) = x` for
-    :math:`|x| < a`,
+    :math:`|x| < 1/2`,
 
     ..math ::
 
-        \\tilde{f}(q) = 2ia^2 [\\cos(aq)/(aq) - \\sin(aq)/(aq)^2]
+        \\tilde{f}(q) = i [\\cos(q/2)/q - 2\\sin(q/2)/q^2] = dsinc(q/2)/dq
 
     Returned value does not contain the factor of :math:`i`, i.e. this
     function is real-valued.
     """
-    return 2 * a * a * dsinc(a * q / np.pi) / np.pi
+    return 2 * dsinc(q)
 
 
 def apply_window(x, y, window=None):
@@ -122,16 +127,18 @@ def power_spectrum(x, y, q=None, window=None):
         PSD values.
     """
     y = apply_window(x, y, window=window)
+    L = x[-1] - x[0]
     if q is None:
-        L = x[-1] - x[0]
         q = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
     y_q = np.zeros_like(q, dtype=np.complex128)
     for x1, x2, y1, y2 in zip(x[:-1], x[1:], y[:-1], y[1:]):
-        a = x2 - x1
-        if a > 0:
-            slope = (y2 - y1) / a
-            a /= 2
+        dx = x2 - x1
+        if dx > 0:
+            dy = y2 - y1
             x0 = (x1 + x2) / 2
             y0 = (y1 + y2) / 2
-            y_q += (y0 * ft_rectangle(a, q) + 1j * slope * ft_one_sided_triangle(a, q)) * np.exp(-1j * x0 * q) / (2 * a)
-    return q, (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
+            print(dx, x0, y0)
+            y_q += (y0 * dx * ft_rectangle(q * dx) + 1j * dx * dy * ft_one_sided_triangle(q * dx)) * np.exp(-1j * x0 * q)
+            #y_q += y0 * dx * ft_rectangle(q * dx) * np.exp(-1j * x0 * q)
+    #return q, (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
+    return q, (np.abs(y_q)) ** 2 / L
