@@ -800,6 +800,7 @@ def detect_format(fobj):
 
     # Finally, this could be a line scan in text format
     try:
+        fobj.seek(file_pos)
         read_xyz(fobj)
         if close_file:
             fobj.close()
