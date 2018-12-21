@@ -83,7 +83,7 @@ def ft_one_sided_triangle(q):
     Returned value does not contain the factor of :math:`i`, i.e. this
     function is real-valued.
     """
-    return 2 * dsinc(q)
+    return dsinc(q / 2) / 2
 
 
 def apply_window(x, y, window=None):
@@ -137,8 +137,9 @@ def power_spectrum(x, y, q=None, window=None):
             dy = y2 - y1
             x0 = (x1 + x2) / 2
             y0 = (y1 + y2) / 2
-            print(dx, x0, y0)
-            y_q += (y0 * dx * ft_rectangle(q * dx) + 1j * dx * dy * ft_one_sided_triangle(q * dx)) * np.exp(-1j * x0 * q)
-            #y_q += y0 * dx * ft_rectangle(q * dx) * np.exp(-1j * x0 * q)
+            print(dx, dy, x0, y0)
+            y_q += dx * (y0 * ft_rectangle(q * dx) + 1j * dy * ft_one_sided_triangle(q * dx)) * np.exp(-1j * x0 * q)
+        else:
+            raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
     #return q, (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
-    return q, (np.abs(y_q)) ** 2 / L
+    return q, (np.abs(y_q)) ** 2
