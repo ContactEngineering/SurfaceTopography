@@ -140,5 +140,4 @@ def power_spectrum(x, y, q=None, window=None):
             y_q += dx * (y0 * ft_rectangle(q * dx) + 1j * dy * ft_one_sided_triangle(q * dx)) * np.exp(-1j * x0 * q)
         else:
             raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
-    #return q, (x.max() - x.min()) * (np.abs(y_q) / len(x)) ** 2
-    return q, (np.abs(y_q)) ** 2
+    return q, np.abs(y_q) ** 2 / L
