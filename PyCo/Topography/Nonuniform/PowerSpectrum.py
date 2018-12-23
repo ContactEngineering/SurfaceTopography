@@ -53,7 +53,7 @@ def dsinc(x):
 
         # For large values, use the normal expression
         large_values = np.logical_not(small_values)
-        ret[large_values] = (np.cos(x[large_values]) - np.sinc(x[large_values])) / x[large_values]
+        ret[large_values] = (np.cos(x[large_values]) - sinc(x[large_values])) / x[large_values]
         return ret
     else:
         return (np.cos(x) - sinc(x)) / x
