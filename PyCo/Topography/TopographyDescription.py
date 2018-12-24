@@ -39,7 +39,8 @@ import numpy as np
 
 from .common import compute_derivative
 from .Detrending import tilt_from_height, tilt_and_curvature
-from .ScalarParameters import (rms_height, rms_slope, rms_curvature, rms_height_nonuniform, rms_slope_nonuniform,
+from .ScalarParameters import (rms_height, rms_slope, rms_curvature,
+                               rms_height_nonuniform, rms_slope_nonuniform,
                                rms_curvature_nonuniform)
 
 
@@ -55,7 +56,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self,pnp = None):
+    def __init__(self, pnp=None):
         self._info = {}
         self.pnp = np if pnp is None else pnp
 
@@ -74,7 +75,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         state -- result of __getstate__
         """
         self._info = state
-        self.pnp = np # TODO: DISCUSS: in the case of parallelized code the user will need to set the parallelnumpy by himself
+        self.pnp = np  # TODO: DISCUSS: in the case of parallelized code the user will need to set the parallelnumpy by himself
 
     def __add__(self, other):
         return CompoundTopography(self, other)
@@ -155,7 +156,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Return topography data on a homogeneous grid. """
         raise NotImplementedError
 
-    #@abc.abstractmethod - FIXME: make abstract again
+    # @abc.abstractmethod - FIXME: make abstract again
     def points(self):
         """ Return topography data on an inhomogeneous grid as a list of points. """
         raise NotImplementedError
@@ -176,7 +177,8 @@ class Topography(object, metaclass=abc.ABCMeta):
             Scalar containing the RMS height
         """
         if self.is_uniform:
-            return rms_height(self.array(), kind=kind,resolution=self.resolution,pnp = self.pnp)
+            return rms_height(self.array(), kind=kind,
+                              resolution=self.resolution, pnp=self.pnp)
         else:
             return rms_height_nonuniform(*self.points(), kind=kind)
 
@@ -187,7 +189,8 @@ class Topography(object, metaclass=abc.ABCMeta):
         if self.is_uniform:
             return rms_slope(self.array(), size=self.size, dim=self.dim)
         else:
-            return rms_slope_nonuniform(*self.points(), size=self.size, dim=self.dim)
+            return rms_slope_nonuniform(*self.points(), size=self.size,
+                                        dim=self.dim)
 
     def rms_curvature(self):
         """computes the rms curvature fluctuation of the topography"""
@@ -195,7 +198,8 @@ class Topography(object, metaclass=abc.ABCMeta):
         if self.is_uniform:
             return rms_curvature(self.array(), size=self.size, dim=self.dim)
         else:
-            return rms_curvature_nonuniform(*self.points(), size=self.size, dim=self.dim)
+            return rms_curvature_nonuniform(*self.points(), size=self.size,
+                                            dim=self.dim)
 
 
 class SizedTopography(Topography):
@@ -203,7 +207,7 @@ class SizedTopography(Topography):
     Topography that stores its own size.
     """
 
-    def __init__(self, dim=None, size=None, unit=None, pnp = None):
+    def __init__(self, dim=None, size=None, unit=None, pnp=None):
         super().__init__(pnp)
         self._dim = dim
         self._size = size
@@ -247,8 +251,11 @@ class SizedTopography(Topography):
             size = tuple(size)
         if len(size) != self.dim:
             raise self.Error(
-                ("The dimension of this topography is {}, you have specified an "
-                 "incompatible size of dimension {} ({}).").format(self.dim, len(size), size))
+                (
+                    "The dimension of this topography is {}, you have specified an "
+                    "incompatible size of dimension {} ({}).").format(self.dim,
+                                                                      len(size),
+                                                                      size))
         self._size = size
 
     @property
@@ -380,20 +387,22 @@ class UniformTopography(SizedTopography):
 
     name = 'generic_geom'
 
-    def __init__(self, resolution=None, dim=None, size=None, unit=None,subdomain_location = None, subdomain_resolution = None,  pnp = None):
-        super().__init__(dim=dim, size=size, unit=unit,pnp = pnp)
+    def __init__(self, resolution=None, dim=None, size=None, unit=None,
+                 subdomain_location=None, subdomain_resolution=None, pnp=None):
+        super().__init__(dim=dim, size=size, unit=unit, pnp=pnp)
         self._resolution = resolution
         if subdomain_location is None or subdomain_resolution is None:
             if subdomain_resolution is not None and subdomain_resolution != resolution:
-                raise ValueError("subdomain_resolution doesn't batch resolution but no subdomain location given ")
-            if subdomain_location is not None and subdomain_location != (0,0):
-                raise ValueError("subdomain_location != (0,0) but no subdomain resolution provided")
+                raise ValueError(
+                    "subdomain_resolution doesn't match resolution but no subdomain location given ")
+            if subdomain_location is not None and subdomain_location != (0, 0):
+                raise ValueError(
+                    "subdomain_location != (0,0) but no subdomain resolution provided")
             self.subdomain_resolution = resolution
             self.subdomain_location = (0, 0)
         else:
             self.subdomain_location = subdomain_location
             self.subdomain_resolution = subdomain_resolution
-
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -423,7 +432,8 @@ class UniformTopography(SizedTopography):
         return self.resolution != self.subdomain_resolution
 
     def points(self):
-        return tuple(np.meshgrid(*(np.arange(r)*s/r for s, r in zip(self.size, self.resolution)))+[self.array()])
+        return tuple(np.meshgrid(*(np.arange(r) * s / r for s, r in
+                                   zip(self.size, self.resolution))) + [self.array()])
 
     @property
     def pixel_size(self):
@@ -446,7 +456,9 @@ class UniformTopography(SizedTopography):
 
     @property
     def subdomain_slice(self):
-        return tuple([ slice(s,s+n) for s,n in zip(self.subdomain_location,self.subdomain_resolution)])
+        return tuple([slice(s, s + n) for s, n in
+                      zip(self.subdomain_location, self.subdomain_resolution)])
+
 
 class NonuniformTopography(SizedTopography):
     """
@@ -533,19 +545,24 @@ class DetrendedTopography(ChildTopography):
         if self._detrend_mode is None or self._detrend_mode == 'center':
             self._coeffs = [-self.parent_topography.array().mean()]
         elif self._detrend_mode == 'height':
-            self._coeffs = [-s for s in tilt_from_height(self.parent_topography)]
+            self._coeffs = [-s for s in
+                            tilt_from_height(self.parent_topography)]
         elif self._detrend_mode == 'slope':
             try:
                 sx, sy = self.parent_topography.size
             except:
                 sx, sy = self.parent_topography.shape
             nx, ny = self.parent_topography.shape
-            self._coeffs = [-s.mean() for s in compute_derivative(self.parent_topography)]
+            self._coeffs = [-s.mean() for s in
+                            compute_derivative(self.parent_topography)]
             slx, sly = self._coeffs
-            self._coeffs += [-self.parent_topography[...].mean() - slx * sx * (nx - 1) / (2 * nx)
-                             - sly * sy * (ny - 1) / (2 * ny)]
+            self._coeffs += [
+                -self.parent_topography[...].mean() - slx * sx * (nx - 1) / (
+                            2 * nx)
+                - sly * sy * (ny - 1) / (2 * ny)]
         elif self._detrend_mode == 'curvature':
-            self._coeffs = [-s for s in tilt_and_curvature(self.parent_topography)]
+            self._coeffs = [-s for s in
+                            tilt_and_curvature(self.parent_topography)]
         else:
             raise ValueError("Unknown detrend mode '{}'." \
                              .format(self._detrend_mode))
@@ -609,7 +626,8 @@ class DetrendedTopography(ChildTopography):
         elif len(self._coeffs) == 3:
             return '{2} + {0} x + {1} y'.format(*str_coeffs)
         else:
-            return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(*str_coeffs)
+            return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(
+                *str_coeffs)
 
 
 class TranslatedTopography(ChildTopography):
@@ -642,7 +660,8 @@ class TranslatedTopography(ChildTopography):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
-        return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0), offsety, axis=1)
+        return np.roll(np.roll(self.parent_topography.array(), offsetx, axis=0),
+                       offsety, axis=1)
 
 
 class CompoundTopography(SizedTopography):
@@ -679,11 +698,14 @@ class CompoundTopography(SizedTopography):
                 return prop_a
 
         self._dim = combined_val(topography_a.dim, topography_b.dim, 'dim')
-        self._resolution = combined_val(topography_a.resolution, topography_b.resolution, 'resolution')
+        self._resolution = combined_val(topography_a.resolution,
+                                        topography_b.resolution, 'resolution')
         self._size = combined_val(topography_a.size, topography_b.size, 'size')
-        self.subdomain_location = combined_val(topography_a, topography_b, 'subdomain_location')
-        self.subdomain_resolution = combined_val(topography_a, topography_b, 'subdomain_resolution')
-        self.pnp = combined_val(topography_a,topography_b,'pnp')
+        self.subdomain_location = combined_val(topography_a, topography_b,
+                                               'subdomain_location')
+        self.subdomain_resolution = combined_val(topography_a, topography_b,
+                                                 'subdomain_resolution')
+        self.pnp = combined_val(topography_a, topography_b, 'pnp')
 
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
@@ -701,7 +723,8 @@ class UniformNumpyTopography(UniformTopography):
     """
     name = 'uniform_numpy_topography'
 
-    def __init__(self, profile, size=None, unit=None, resolution = None, subdomain_location = None , subdomain_resolution=None,pnp = None):
+    def __init__(self, profile, size=None, unit=None, resolution=None,
+                 subdomain_location=None, subdomain_resolution=None, pnp=None):
         """
         Keyword Arguments:
         profile -- local or global topography profile
@@ -719,37 +742,48 @@ class UniformNumpyTopography(UniformTopography):
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(profile))) > 0:
-            profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)), profile)
+            profile = np.ma.masked_where(np.logical_not(np.isfinite(profile)),
+                                         profile)
         if subdomain_location is not None:
-            if subdomain_resolution is None: # profile is local data
+            if subdomain_resolution is None:  # profile is local data
                 # case 3. : no parallelization
                 if resolution is None:
-                    raise ValueError("Assuming you provided the local data as array, you should provide the global resolution")
+                    raise ValueError(
+                        "Assuming you provided the local data as array, you should provide the global resolution")
 
                 subdomain_resolution = profile.shape
-                super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,
-                                 subdomain_location=subdomain_location, subdomain_resolution=subdomain_resolution,
+                super().__init__(resolution=resolution, dim=len(profile.shape),
+                                 size=size, unit=unit,
+                                 subdomain_location=subdomain_location,
+                                 subdomain_resolution=subdomain_resolution,
                                  pnp=pnp)
                 self.__h = profile
 
-            else: # global data provided
+            else:  # global data provided
                 # case 2. : no parallelization
                 if resolution is None:
                     resolution = profile.shape
                 elif resolution != profile.shape:
-                    raise ValueError("Assuming you provided global data, resolution ({})  mismatch the shape of the data ({})".format(resolution,profile.shape))
+                    raise ValueError(
+                        "Assuming you provided global data, resolution ({})  mismatch the shape of the data ({})".format(
+                            resolution, profile.shape))
 
-                super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,
-                                 subdomain_location=subdomain_location, subdomain_resolution=subdomain_resolution,
+                super().__init__(resolution=resolution, dim=len(profile.shape),
+                                 size=size, unit=unit,
+                                 subdomain_location=subdomain_location,
+                                 subdomain_resolution=subdomain_resolution,
                                  pnp=pnp)
                 self.__h = profile[self.subdomain_slice]
-        else: # case 1. : no parallelization
-            if not ((resolution is None or resolution == profile.shape) and subdomain_location is None and subdomain_resolution is None):
+        else:  # case 1. : no parallelization
+            if not ((
+                            resolution is None or resolution == profile.shape) and subdomain_location is None and subdomain_resolution is None):
                 raise ValueError("invalid combination of arguments")
-            resolution= subdomain_resolution = profile.shape
-            super().__init__(resolution=resolution, dim=len(profile.shape), size=size, unit=unit,subdomain_location=subdomain_location,subdomain_resolution=subdomain_resolution,pnp=pnp)
+            resolution = subdomain_resolution = profile.shape
+            super().__init__(resolution=resolution, dim=len(profile.shape),
+                             size=size, unit=unit,
+                             subdomain_location=subdomain_location,
+                             subdomain_resolution=subdomain_resolution, pnp=pnp)
             self.__h = profile
-
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -796,7 +830,8 @@ class Sphere(UniformNumpyTopography):
     """
     name = 'sphere'
 
-    def __init__(self, radius, resolution, size, centre=None, standoff=0, periodic=False, **kwargs):
+    def __init__(self, radius, resolution, size, centre=None, standoff=0,
+                 periodic=False, **kwargs):
         """
         Simple shere geometry.
         Parameters:
@@ -837,17 +872,20 @@ class Sphere(UniformNumpyTopography):
         if dim == 1:
             r2 = get_r(resolution[0], size[0], centre[0]) ** 2
         elif dim == 2:
-            rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape((-1, 1))
+            rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape(
+                (-1, 1))
             ry2 = (get_r(resolution[1], size[1], centre[1])) ** 2
             r2 = rx2 + ry2
         else:
-            raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
+            raise Exception(
+                "Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(
+                    dim))
         radius2 = radius ** 2  # avoid nans for small radiio
         outside = r2 > radius2
         r2[outside] = radius2
         h = np.sqrt(radius2 - r2) - radius
         h[outside] -= standoff
-        super().__init__(h,**kwargs)
+        super().__init__(h, **kwargs)
         self._size = size
         self._centre = centre
 
@@ -907,7 +945,8 @@ class PlasticTopography(ChildTopography):
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
         if plastic_displ.shape != self.shape:
-            raise ValueError('Resolution of profile and plastic displacement must match.')
+            raise ValueError(
+                'Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):
