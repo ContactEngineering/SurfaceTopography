@@ -7,7 +7,7 @@
 
 @date   06 Sep 2018
 
-@brief  Variable bandwidth analysis
+@brief  Variable bandwidth analysis for uniform topographies
 
 @section LICENCE
 

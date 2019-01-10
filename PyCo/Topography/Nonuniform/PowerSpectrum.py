@@ -110,7 +110,7 @@ def power_spectrum(x, y, q=None, window=None):
         y-coordinates of the points.
     q : array, optional
         Wavevectors at which to compute the PSD. If omitted, wavevectors are
-        equally spaced with a spacing that corresponds to :math:`2\\pi/\lambda`
+        equally spaced with a spacing that corresponds to :math:`2\\pi/\\lambda`
         where :math:`\\lambda` is the shortest distance between two points in
         the `x`-array. (Default: None)
     window : str, optional
