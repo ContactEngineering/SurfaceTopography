@@ -257,11 +257,11 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
         raise Exception(
             "The number of rows (={}) read from the file '{}' does "
             "not match the resolution in the file's metadata (={})."
-                .format(nx, fname, xres))
+                .format(nx, fobj, xres))
     if yres is not None and yres != ny:
         raise Exception("The number of columns (={}) read from the file '{}' "
                         "does not match the resolution in the file's metadata "
-                        "(={}).".format(ny, fname, yres))
+                        "(={}).".format(ny, fobj, yres))
 
     # Handle scale factors
     if xfac is not None and yfac is None:
