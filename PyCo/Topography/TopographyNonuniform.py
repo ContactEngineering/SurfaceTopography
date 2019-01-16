@@ -85,7 +85,3 @@ class NonuniformNumpyTopography(NonuniformTopography):
     def points(self):
         return self.__x, self.__h
 
-    @property
-    def size(self, ):
-        """Returns distance between maximum and minimum x-value."""
-        return self.__x[-1] - self.__x[0]
