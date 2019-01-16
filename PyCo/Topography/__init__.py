@@ -33,8 +33,8 @@ SOFTWARE.
 """
 
 from PyCo.Topography.Uniform.Autocorrelation import autocorrelation_1D, autocorrelation_2D
-from PyCo.Topography.Uniform.Detrending import (tilt_from_height, tilt_from_slope, tilt_and_curvature, shift_and_tilt,
-                                                shift_and_tilt_approx, shift_and_tilt_from_slope)
+from PyCo.Topography.Uniform.Detrending import (tilt_from_height, tilt_and_curvature, shift_and_tilt,
+                                                shift_and_tilt_approx)
 from PyCo.Topography.Uniform.PowerSpectrum import power_spectrum_1D, power_spectrum_2D
 from PyCo.Topography.Uniform.ScalarParameters import rms_height, rms_slope, rms_curvature
 from .TopographyBase import Topography

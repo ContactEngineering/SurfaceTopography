@@ -33,6 +33,7 @@ SOFTWARE.
 """
 
 import os
+import io
 import re
 import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
@@ -75,7 +76,7 @@ def text(func):
             fobj = open(fobj, 'r')
             fobj_text = fobj
             close_file = True
-        elif 'b' in fobj.mode:
+        elif is_binary_stream(fobj):
             fobj_text = TextIOWrapper(fobj)
         else:
             fobj_text = fobj
@@ -86,11 +87,11 @@ def text(func):
             # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
             # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
             # exception. We need to detach the TextIOWrapper before exiting.
-            if 'b' in fobj.mode:
+            if is_binary_stream(fobj):
                 fobj_text.detach()
             raise
 
-        if 'b' in fobj.mode:
+        if is_binary_stream(fobj):
             fobj_text.detach()
             fobj_text = fobj
         if close_file:
@@ -98,6 +99,14 @@ def text(func):
         return retvals
 
     return func_wrapper
+
+def is_binary_stream(fobj):
+    """
+
+    :param fobj:
+    :return:
+    """
+    return isinstance(fobj, io.BytesIO) or (hasattr(fobj, 'mode') and 'b' in fobj.mode)
 
 ###
 
@@ -248,11 +257,11 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
         raise Exception(
             "The number of rows (={}) read from the file '{}' does "
             "not match the resolution in the file's metadata (={})."
-                .format(nx, fname, xres))
+                .format(nx, fobj, xres))
     if yres is not None and yres != ny:
         raise Exception("The number of columns (={}) read from the file '{}' "
                         "does not match the resolution in the file's metadata "
-                        "(={}).".format(ny, fname, yres))
+                        "(={}).".format(ny, fobj, yres))
 
     # Handle scale factors
     if xfac is not None and yfac is None:
@@ -755,7 +764,7 @@ def detect_format(fobj):
     fobj.seek(file_pos)
 
     # Check for magic string
-    if 'b' in fobj.mode:
+    if is_binary_stream(fobj):
         if magic.startswith(b'\*File list'):
             if close_file:
                 fobj.close()
@@ -804,6 +813,7 @@ def detect_format(fobj):
 
     # Finally, this could be a line scan in text format
     try:
+        fobj.seek(file_pos)
         read_xyz(fobj)
         if close_file:
             fobj.close()

@@ -270,7 +270,7 @@ class SizedTopography(Topography):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._dim, self._size, self._unit
+        state = super().__getstate__(), self._size, self._unit
         return state
 
     def __setstate__(self, state):
@@ -278,7 +278,7 @@ class SizedTopography(Topography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._dim, self._size, self._unit = state
+        superstate, self._size, self._unit = state
         super().__setstate__(superstate)
 
     @property
