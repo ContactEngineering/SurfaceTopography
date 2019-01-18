@@ -255,6 +255,29 @@ class Topography(object, metaclass=abc.ABCMeta):
             from .Nonuniform.PowerSpectrum import power_spectrum
             return power_spectrum(*self.points(), window=window)
 
+    def bandwidth(self):
+        """Computes lower and upper bound of bandwidth.
+
+        Returns
+        -------
+        - None if self.size is None
+        - otherwise a 2-tuple (lower_bound, upper_bound)
+          where the elements are floats in units of self.unit.
+        """
+        if self.size is None:
+            return None
+        elif hasattr(self, 'pixel_size'):
+            lower_bound = np.mean(self.pixel_size)
+            upper_bound = np.mean(self.size)
+        elif self.dim == 1:
+            x, h = self.points()
+            lower_bound = np.mean(np.diff(x))
+            upper_bound = self.size
+        else:
+            raise NotImplementedError
+
+        return lower_bound, upper_bound
+
 
 class SizedTopography(Topography):
     """
