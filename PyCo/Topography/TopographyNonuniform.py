@@ -85,3 +85,6 @@ class NonuniformNumpyTopography(NonuniformTopography):
     def points(self):
         return self.__x, self.__h
 
+    @property
+    def resolution(self):
+        return (len(self.__x),) # should be a tuple

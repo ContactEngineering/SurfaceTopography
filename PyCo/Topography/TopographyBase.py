@@ -92,8 +92,23 @@ class Topography(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def resolution(self, ):
+        """Returns the number of data points along each axis.
+
+        Returns
+        -------
+
+        A tuple of positive ints, either with 1 element for 1D
+        (e.g. line scans) and 2 elements for 2D topographies.
+        """
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
     def size(self, ):
-        """ needs to be testable to make sure that geometry and halfspace are
+        """Getting the topography size as tuple.
+
+            needs to be testable to make sure that geometry and halfspace are
             compatible
         """
         raise NotImplementedError
@@ -101,7 +116,14 @@ class Topography(object, metaclass=abc.ABCMeta):
     @size.setter
     @abc.abstractmethod
     def size(self, size):
-        """ set the size of the topography """
+        """Set the size of the topography
+
+        Parameters
+        ----------
+
+         size: tuple of ints
+
+        """
         raise NotImplementedError
 
     @property
@@ -322,7 +344,7 @@ class SizedTopography(Topography):
     def size(self, size):
         """ set the size of the topography """
         if not hasattr(size, "__iter__"):
-            size = (size,)
+            raise ValueError("Please specify the size as tuple with {} elements.".format(self.dim))
         else:
             size = tuple(size)
         if len(size) != self.dim:
