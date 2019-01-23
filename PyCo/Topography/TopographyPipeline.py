@@ -229,15 +229,7 @@ class DetrendedTopography(ChildTopography):
             a0, = self._coeffs
             return self.parent_topography.array() + a0
         elif self.dim == 1:
-            x = np.arange(n) * self.size / self.shape[0]
-            if len(self._coeffs) == 2:
-                a0, a1 = self._coeffs
-                return self.parent_topography.array() - a0 - a1 * x
-            elif len(self._coeffs) == 3:
-                a0, a1, a2 = self._coeffs
-                return self.parent_topography.array() - a0 - a1 * x - a2 * x * x
-            else:
-                raise RuntimeError('Unknown size of coefficients tuple for line scans.')
+            return self.points()[1]
         else:  # self.dim == 2
             x, y = np.meshgrid(*(np.arange(n) * s / n for s, n in zip(self.size, self.shape)), indexing='ij')
             if len(self._coeffs) == 3:
