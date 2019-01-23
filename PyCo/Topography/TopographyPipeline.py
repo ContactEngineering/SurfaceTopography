@@ -243,6 +243,9 @@ class DetrendedTopography(ChildTopography):
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
         else:  # self.dim == 2
             x, y, h = self.parent_topography.points()
+            if len(self._coeffs) == 1:
+                h0, = self._coeffs
+                return x, y, h + h0
             if len(self._coeffs) == 3:
                 m, n, h0 = self._coeffs
                 return x, y, h + h0 + m * x + n * y
