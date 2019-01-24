@@ -36,7 +36,7 @@ SOFTWARE.
 import numpy as np
 
 
-def _derivative(x, h, n=1):
+def derivative(topography, n):
     """
     Compute derivative of nonuniform line-scan. Function assumes nonperiodic topographies.
 
@@ -51,12 +51,10 @@ def _derivative(x, h, n=1):
 
     Parameters
     ----------
-    x : array
-        X-coordinates.
-    h : array
-        Y- or height coordinates.
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
     n : int
-        Order of derivative.
+        Number of times the derivative is taken.
 
     Returns
     -------
@@ -64,6 +62,7 @@ def _derivative(x, h, n=1):
         Array with derivative values. Length of array is reduced by :math:`n` with
         respect to the input array for the :math:`n`th derivative.
     """
+    x, h = topography.x_positions_and_heights_array()
     if n == 1:
         return np.diff(h) / np.diff(x)
     elif n == 2:

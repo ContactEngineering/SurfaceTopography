@@ -34,10 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
-from .common import _get_size
 
-
-def checkerboard_tilt_correction(arr, sd, size=None):
+def checkerboard_tilt_correction(topography, sd, size=None):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -49,8 +47,8 @@ def checkerboard_tilt_correction(arr, sd, size=None):
 
     Parameters
     ----------
-    arr : array, :obj:`Topography`
-        Height information.
+    topography : :obj:`Topography` or obj:`UniformLineScan`
+        Container storing the uniform topography map
     sd : tuple
         Number of subdivision per dimension, i.e. size of the checkerboard.
     size : tuple, optional
@@ -62,9 +60,9 @@ def checkerboard_tilt_correction(arr, sd, size=None):
         Array with height information, tilt-corrected within each
         checkerboard.
     """
-    size = _get_size(arr, size)
-    arr = arr[...]
-    nb_dim = len(arr.shape)
+    arr = topography.heights()
+    size = topography.size
+    nb_dim = topography.dim
 
     # compute unique consecutive index for each subdivided region
     region_coord = [np.arange(arr.shape[i])*sd[i]//arr.shape[i]

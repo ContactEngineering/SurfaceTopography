@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   TopographySpecial.py
+@file   Special.py
 
 @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
@@ -34,78 +34,76 @@ SOFTWARE.
 
 import numpy as np
 
-from .TopographyBase import ChildTopography
-from .TopographyUniform import UniformNumpyTopography
+from .Pipeline import DecoratedUniformTopography
+from .Topography import Topography
+from .LineScan import UniformLineScan
 
 
-# TODO: Turn into generator function
-class Sphere(UniformNumpyTopography):
-    """ Spherical topography. Corresponds to a cylinder in 2D
+def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False):
     """
-    name = 'sphere'
+    Simple shere geometry.
 
-    def __init__(self, radius, resolution, size, centre=None, standoff=0, periodic=False):
-        """
-        Simple shere geometry.
-        Parameters:
-        radius     -- self-explanatory
-        resolution -- self-explanatory
-        size       -- self-explanatory
-        centre     -- specifies the coordinates (in length units, not pixels).
-                      by default, the sphere is centred in the topography
-        standoff   -- when using interaction forces with ranges of the order
-                      the radius, you might want to set the topography outside of
-                      the spere to far away, maybe even pay the price of inf,
-                      if your interaction has no cutoff
-        periodic   -- whether the sphere can wrap around. tricky for large
-                      spheres
-        """
-        # pylint: disable=invalid-name
-        if not hasattr(resolution, "__iter__"):
-            resolution = (resolution,)
-        dim = len(resolution)
-        if not hasattr(size, "__iter__"):
-            size = (size,)
-        if centre is None:
-            centre = np.array(size) * .5
-        if not hasattr(centre, "__iter__"):
-            centre = (centre,)
+    Parameters
+    ----------
+    radius : float
+        self-explanatory
+    resolution : float
+        self-explanatory
+    size : float
+        self-explanatory
+    centre : float
+         specifies the coordinates (in length units, not pixels).
+         by default, the sphere is centred in the topography
+    standoff : float
+         when using interaction forces with ranges of the order
+         the radius, you might want to set the topography outside of
+         the spere to far away, maybe even pay the price of inf,
+         if your interaction has no cutoff
+    periodic : float
+         whether the sphere can wrap around. tricky for large spheres
+    """
+    # pylint: disable=invalid-name
+    if not hasattr(resolution, "__iter__"):
+        resolution = (resolution,)
+    dim = len(resolution)
+    if not hasattr(size, "__iter__"):
+        size = (size,)
+    if centre is None:
+        centre = np.array(size) * .5
+    if not hasattr(centre, "__iter__"):
+        centre = (centre,)
 
-        if not periodic:
-            def get_r(res, size, centre):
-                " computes the non-periodic radii to evaluate"
-                return np.linspace(-centre, size - centre, res, endpoint=False)
-        else:
-            def get_r(res, size, centre):
-                " computes the periodic radii to evaluate"
-                return np.linspace(-centre + size / 2,
-                                   -centre + 3 * size / 2,
-                                   res, endpoint=False) % size - size / 2
+    if not periodic:
+        def get_r(res, size, centre):
+            " computes the non-periodic radii to evaluate"
+            return np.linspace(-centre, size - centre, res, endpoint=False)
+    else:
+        def get_r(res, size, centre):
+            " computes the periodic radii to evaluate"
+            return np.linspace(-centre + size / 2,
+                               -centre + 3 * size / 2,
+                               res, endpoint=False) % size - size / 2
 
-        if dim == 1:
-            r2 = get_r(resolution[0], size[0], centre[0]) ** 2
-        elif dim == 2:
-            rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape((-1, 1))
-            ry2 = (get_r(resolution[1], size[1], centre[1])) ** 2
-            r2 = rx2 + ry2
-        else:
-            raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
-        radius2 = radius ** 2  # avoid nans for small radiio
-        outside = r2 > radius2
-        r2[outside] = radius2
-        h = np.sqrt(radius2 - r2) - radius
-        h[outside] -= standoff
-        super().__init__(h)
-        self._size = size
-        self._centre = centre
-
-    @property
-    def centre(self):
-        "returns the coordinates of the sphere's (or cylinder)'s centre"
-        return self._centre
+    if dim == 1:
+        r2 = get_r(resolution[0], size[0], centre[0]) ** 2
+    elif dim == 2:
+        rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape((-1, 1))
+        ry2 = (get_r(resolution[1], size[1], centre[1])) ** 2
+        r2 = rx2 + ry2
+    else:
+        raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
+    radius2 = radius ** 2  # avoid nans for small radiio
+    outside = r2 > radius2
+    r2[outside] = radius2
+    h = np.sqrt(radius2 - r2) - radius
+    h[outside] -= standoff
+    if dim == 1:
+        return UniformLineScan(h, size)
+    else:
+        return Topography(h, size)
 
 
-class PlasticTopography(ChildTopography):
+class PlasticTopography(DecoratedUniformTopography):
     """ Topography with an additional plastic deformation field.
     """
     name = 'plastic_topography'
@@ -120,7 +118,7 @@ class PlasticTopography(ChildTopography):
         super().__init__(topography)
         self.hardness = hardness
         if plastic_displ is None:
-            plastic_displ = np.zeros(self.shape)
+            plastic_displ = np.zeros(self.resolution)
         self.plastic_displ = plastic_displ
 
     def __getstate__(self):
@@ -154,16 +152,16 @@ class PlasticTopography(ChildTopography):
 
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
-        if plastic_displ.shape != self.shape:
+        if plastic_displ.shape != self.resolution:
             raise ValueError('Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):
         """ Returns the undeformed profile of the topography.
         """
-        return self.parent_topography.array()
+        return self.parent_topography.heights()
 
-    def array(self):
+    def heights(self):
         """ Computes the combined profile.
         """
         return self.undeformed_profile() + self.plastic_displ

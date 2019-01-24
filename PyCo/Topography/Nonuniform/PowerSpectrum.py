@@ -96,7 +96,7 @@ def apply_window(x, y, window=None):
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum(x, y, q=None, window=None):
+def power_spectrum_1D(topography, q=None, window=None):
     """
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -126,6 +126,7 @@ def power_spectrum(x, y, q=None, window=None):
     C : array
         PSD values.
     """
+    x, y = topography.positions_and_heights()
     y = apply_window(x, y, window=window)
     L = x[-1] - x[0]
     if q is None:

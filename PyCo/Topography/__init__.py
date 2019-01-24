@@ -32,16 +32,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from PyCo.Topography.Uniform.Autocorrelation import autocorrelation_1D, autocorrelation_2D
-from PyCo.Topography.Uniform.Detrending import (tilt_from_height, tilt_and_curvature, shift_and_tilt,
-                                                shift_and_tilt_approx)
-from PyCo.Topography.Uniform.PowerSpectrum import power_spectrum_1D, power_spectrum_2D
-from PyCo.Topography.Uniform.ScalarParameters import rms_height, rms_slope, rms_curvature
-from .TopographyBase import Topography
-from .TopographyUniform import UniformNumpyTopography
-from .TopographyNonuniform import NonuniformNumpyTopography
-from .TopographyPipeline import (CompoundTopography, DetrendedTopography, InterpolatedTopography, ScaledTopography,
-                                 TranslatedTopography)
-from .TopographySpecial import PlasticTopography, Sphere
+from .Topography import Topography
+from .LineScan import UniformLineScan, NonuniformLineScan
+from .Special import make_sphere, PlasticTopography
 from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)

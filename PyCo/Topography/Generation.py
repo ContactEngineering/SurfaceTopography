@@ -34,7 +34,7 @@ SOFTWARE.
 
 import numpy as np
 import scipy.stats as stats
-from PyCo.Topography import UniformNumpyTopography
+from PyCo.Topography import Topography
 from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
 
 
@@ -238,7 +238,7 @@ class RandomSurfaceExact(object):
         area = np.prod(self.size)
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
-        return UniformNumpyTopography(profile, self.size)
+        return Topography(profile, self.size)
 
 
 class RandomSurfaceGaussian(RandomSurfaceExact):
@@ -409,4 +409,4 @@ class CapillaryWavesExact(object):
         area = np.prod(self.size)
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
-        return UniformNumpyTopography(profile, self.size)
+        return Topography(profile, self.size)

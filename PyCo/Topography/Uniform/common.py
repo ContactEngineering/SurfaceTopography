@@ -36,38 +36,16 @@ SOFTWARE.
 import numpy as np
 
 
-def _get_size(surface_xy, size=None):
+def derivative(topography, n):
     """
-    Get the physical size of the topography map. Defaults to the shape of
-    the array if no other information is present.
-    """
-    if size is None:
-        if isinstance(surface_xy, np.ndarray):
-            size = surface_xy.shape
-        else:
-            try:
-                size = surface_xy.size
-            except:
-                pass
-    if size is None:
-        size = surface_xy.shape
-    return size
-
-
-def _derivative(profile, size, n, periodic):
-    """
-    Compute derivative of uniform topography.
+    Compute derivative of topography or line scan stored on a uniform grid.
 
     Parameters
     ----------
-    profile : array
-        Array containing height information.
-    size : tuple of floats
-        Size of the topography.
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
     n : int
-        Order of derivative.
-    periodic : bool
-        Determines if topography is periodic.
+        Number of times the derivative is taken.
 
     Returns
     -------
@@ -79,15 +57,16 @@ def _derivative(profile, size, n, periodic):
         then all returning array with have shape one less than the input
         arrays.
     """
-    grid_spacing = np.array(size)/np.array(profile.shape)
-    if periodic:
+    grid_spacing = topography.pixel_size
+    heights = topography.heights()
+    if topography.is_periodic:
         if n != 1:
             raise ValueError('Only first derivatives are presently supported for periodic topographies.')
-        d = np.array([(np.roll(profile, axis=d) - profile) / grid_spacing[d] ** n
-                      for d in range(len(profile.shape))])
+        d = np.array([(np.roll(heights, axis=d) - heights) / grid_spacing[d] ** n
+                      for d in range(len(heights.shape))])
     else:
-        d = np.array([np.diff(profile, n=n, axis=d) / grid_spacing[d] ** n
-                      for d in range(len(profile.shape))])
+        d = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
+                      for d in range(len(heights.shape))])
     if d.shape[0] == 1:
         return d[0]
     else:

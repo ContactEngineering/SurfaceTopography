@@ -36,7 +36,7 @@ import numpy as np
 import scipy
 
 
-def tilt_from_height(arr, full_output=False):
+def tilt_from_height(topography, full_output=False):
     """
     Compute the tilt plane that if subtracted minimizes the rms height of the
     surface. The tilt plane is parameterized as:
@@ -59,7 +59,7 @@ def tilt_from_height(arr, full_output=False):
 
     Parameters
     ----------
-    arr : array, UniformTopography
+    arr : UniformTopography
         Height information.
 
     Returns
@@ -71,9 +71,9 @@ def tilt_from_height(arr, full_output=False):
     h0 : float
         Mean value.
     """
-    arr = arr[...]
+    arr = topography.heights()
     nb_dim = len(arr.shape)
-    x_grids = (np.arange(arr.shape[i]) for i in range(nb_dim))
+    x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
     if nb_dim > 1:
         x_grids = np.meshgrid(*x_grids, indexing='ij')
     if np.ma.getmask(arr) is np.ma.nomask:
@@ -112,7 +112,7 @@ def tilt_and_curvature(arr, full_output=False):
     arr = arr[...]
     nb_dim = len(arr.shape)
     assert nb_dim == 2
-    x_grids = (np.arange(arr.shape[i]) for i in range(nb_dim))
+    x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
     # Linear terms
     x_grids = np.meshgrid(*x_grids, indexing='ij')
     # Quadratic terms
@@ -136,49 +136,17 @@ def tilt_and_curvature(arr, full_output=False):
         return coeffs
 
 
-def shift_and_tilt(arr, full_output=False):
+def shift_and_tilt(topography, full_output=False):
     """
     returns an array of same shape and size as arr, but shifted and tilted so
     that mean(arr) = 0 and mean(arr**2) is minimized
     """
-    coeffs, location_matrix = tilt_from_height(arr, full_output=True)
+    arr = topography.heights()
+    coeffs, location_matrix = tilt_from_height(topography, full_output=True)
     coeffs = np.array(coeffs)
-    offsets = arr[...].reshape((-1,))
+    offsets = arr.reshape((-1,))
     if full_output:
         return ((offsets-location_matrix@coeffs).reshape(arr.shape),
                 coeffs, res[1])
     else:
         return (offsets-location_matrix@coeffs).reshape(arr.shape)
-
-
-def shift_and_tilt_approx(arr, full_output=False):
-    """
-    does the same as shift_and_tilt, but computes an iterative approximation.
-    Use in case of large surfaces.
-    """
-    nb_dim = len(arr.shape)
-    x_grids = (np.arange(arr.shape[i]) for i in range(nb_dim))
-    if nb_dim > 1:
-        x_grids = np.meshgrid(*x_grids, indexing='ij')
-    if nb_dim == 2:
-        sx_ = x_grids[0].sum()
-        sy_ = x_grids[1].sum()
-        s__ = np.prod(arr.shape)
-        sxx = (x_grids[0]**2).sum()
-        sxy = (x_grids[0]*x_grids[1]).sum()
-        syy = (x_grids[1]**2).sum()
-        sh_ = arr.sum()
-        shx = (arr*x_grids[0]).sum()
-        shy = (arr*x_grids[1]).sum()
-        location_matrix = np.array(((sxx, sxy, sx_),
-                                    (sxy, syy, sy_),
-                                    (sx_, sy_, s__)))
-        offsets = np.array(((shx,),
-                            (shy,),
-                            (sh_, )))
-        coeffs = scipy.linalg.solve(location_matrix, offsets)
-        corrective = coeffs[0]*x_grids[0] + coeffs[1]*x_grids[1] + coeffs[2]
-        if full_output:
-            return arr - corrective, coeffs
-        else:
-            return arr - corrective

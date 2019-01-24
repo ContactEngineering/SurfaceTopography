@@ -35,7 +35,7 @@ SOFTWARE.
 import numpy as np
 
 
-def rms_height(x, h):
+def rms_height(topography, kind='Rq'):
     """
     Computes root-mean square height fluctuation of the line scan:
 
@@ -55,17 +55,17 @@ def rms_height(x, h):
 
     Parameters
     ----------
-    x : array_like
-        Array containing positions. This function assumes that this array is
-        sorted in ascending order.
-    h : array_like
-        Array containing heights.
+    topography : NonuniformLineScan
+        Topography object containing height information.
 
     Returns
     -------
     rms_height : float
         Root-mean square height.
     """
+    if kind != 'Rq':
+        raise ValueError("Unsupported rms height kind '{}'.".format(kind))
+    x, h = topography.positions_and_heights()
     dx = np.diff(x)
     L = x[-1] - x[0]
     mean_h = np.trapz(h, x)/L
@@ -74,7 +74,7 @@ def rms_height(x, h):
     return np.sqrt(np.sum((h0[:-1]**2 + h0[1:]**2 + h0[:-1]*h0[1:])*dx)/(3*L))
 
 
-def rms_slope(x, h):
+def rms_slope(topography):
     """
     Computes root-mean square slope fluctuation of the line scan:
 
@@ -90,17 +90,15 @@ def rms_slope(x, h):
 
     Parameters
     ----------
-    x : array_like
-        Array containing positions. This function assumes that this array is
-        sorted in ascending order.
-    h : array_like
-        Array containing heights.
+    topography : NonuniformLineScan
+        Topography object containing height information.
 
     Returns
     -------
     rms_slope : float
         Root-mean square slope.
     """
+    x, h = topography.positions_and_heights()
     dh = np.diff(h)
     dx = np.diff(x)
     L = x[-1] - x[0]

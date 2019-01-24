@@ -34,14 +34,23 @@ SOFTWARE.
 
 import numpy as np
 
-from .common import _derivative, _get_size
 
+def rms_height(topography, kind='Sq'):
+    """
+    Compute the root mean square height amplitude of a topography or
+    line scan stored on a uniform grid.
 
-def rms_height(profile, kind='Sq'):
-    "computes the rms height fluctuation of the surface"
-    if hasattr(profile, "rms_height"):
-        return profile.rms_height(kind=kind)
+    Parameters
+    ----------
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
 
+    Returns
+    -------
+    rms_height : float
+        Root mean square height value.
+    """
+    profile = topography.heights()
     if kind == 'Sq':
         return np.sqrt(((profile-profile.mean())**2).mean())
     elif kind == 'Rq':
@@ -50,27 +59,41 @@ def rms_height(profile, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def rms_slope(profile, size=None, periodic=False):
-    "computes the rms height gradient fluctuation of the surface"
-    if hasattr(profile, "rms_slope"):
-        return profile.rms_slope()
+def rms_slope(topography):
+    """
+    Compute the root mean square amplitude of the height gradient of a
+    topography or line scan stored on a uniform grid.
 
-    size = _get_size(profile, size)
+    Parameters
+    ----------
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
 
-    diff = _derivative(profile, size, 1, periodic)
+    Returns
+    -------
+    rms_slope : float
+        Root mean square slope value.
+    """
+    diff = topography.derivative(1)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
 
-def rms_curvature(profile, size=None, periodic=False):
+def rms_Laplacian(topography):
     """
-    computes the rms Laplacian of the surface
-    the rms mean-curvature would be half of this
+    Compute the root mean square Laplacian of the height gradient of a
+    topography or line scan stored on a uniform grid. The rms curvature
+    is half of the value returned here.
+
+    Parameters
+    ----------
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
+
+    Returns
+    -------
+    rms_laplacian : float
+        Root mean square Laplacian value.
     """
-    if hasattr(profile, "rms_curvature"):
-        return profile.rms_curvature()
-
-    size = _get_size(profile, size)
-
-    curv = _derivative(profile, size, 2, periodic)
+    curv = topography.derivative(2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 
