@@ -37,17 +37,15 @@ import abc
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
-from .Uniform.common import derivative
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
-from .Uniform.PowerSpectrum import power_spectrum_1D, power_spectrum_2D
-from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
-from .Uniform.VariableBandwidth import checkerboard_tilt_correction
 
 
 class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     """
     Line scan that lives on a uniform one-dimensional grid.
     """
+
+    _functions = {}
 
     def __init__(self, heights, size, periodic=False, info={}):
         """
@@ -72,21 +70,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         self._heights = heights
         self._size = size
         self._periodic = periodic
-
-        # Register analysis functions
-        from .Uniform.common import derivative
-        from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
-        from .Uniform.PowerSpectrum import power_spectrum_1D
-        self.register_function('mean', lambda this: this.heights().mean())
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_Laplacian)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-
-        # Register pipeline functions
-        self.register_function('scale', ScaledUniformTopography)
-        self.register_function('detrend', DetrendedUniformTopography)
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic
@@ -175,22 +158,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
         self.padding = padding
 
         # This is populated with functions from the nonuniform topography, but this is a uniform topography
-        self._functions.clear()
-
-        # Register analysis functions
-        from .Uniform.common import derivative
-        from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
-        from .Uniform.PowerSpectrum import power_spectrum_1D
-        self.register_function('mean', lambda this: this.heights().mean())
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_Laplacian)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-
-        # Register pipeline functions
-        self.register_function('scale', ScaledUniformTopography)
-        self.register_function('detrend', DetrendedUniformTopography)
+        self._functions = UniformLineScan._functions
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -265,6 +233,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     map.
     """
 
+    _functions = {}
+
     def __init__(self, heights, size, periodic=False, info={}):
         """
         Parameters
@@ -288,20 +258,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         self._heights = heights
         self._size = size
         self._periodic = periodic
-
-        # Register analysis functions
-        self.register_function('mean', lambda this: this.heights().mean())
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_Laplacian)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-        self.register_function('power_spectrum_2D', power_spectrum_2D)
-        self.register_function('checkerboard_tilt_correction', checkerboard_tilt_correction)
-
-        # Register operations of the processing pipeline
-        self.register_function('scale', ScaledUniformTopography)
-        self.register_function('detrend', DetrendedUniformTopography)
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic
@@ -678,3 +634,18 @@ class CompoundTopography(DecoratedUniformTopography):
         """
         return (self.parent_topography_a.heights() +
                 self.parent_topography_b.heights())
+
+
+### Register analysis functions from this module
+
+Topography.register_function('mean', lambda this: this.heights().mean())
+UniformLineScan.register_function('mean', lambda this: this.heights().mean())
+
+
+### Register pipeline functions from this module
+
+Topography.register_function('scale', ScaledUniformTopography)
+Topography.register_function('detrend', DetrendedUniformTopography)
+
+UniformLineScan.register_function('scale', ScaledUniformTopography)
+UniformLineScan.register_function('detrend', DetrendedUniformTopography)

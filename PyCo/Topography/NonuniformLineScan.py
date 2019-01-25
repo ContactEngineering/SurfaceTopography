@@ -46,26 +46,12 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     Nonuniform topography with point list consisting of static numpy arrays.
     """
 
+    _functions = {}
+
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
         self._x = x
         self._h = y
-
-        # Register analysis functions
-        from .Nonuniform.common import derivative
-        from .Nonuniform.ScalarParameters import rms_height, rms_slope, rms_curvature
-        from .Nonuniform.PowerSpectrum import power_spectrum_1D
-        self.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_curvature)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-
-        # Register pipeline functions
-        self.register_function('scale', ScaledNonuniformTopography)
-        self.register_function('detrend', DetrendedNonuniformTopography)
-        self.register_function('interpolate', UniformlyInterpolatedLineScan)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -278,3 +264,14 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         else:
             raise RuntimeError('Unknown size of coefficients tuple.')
 
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+
+
+### Register pipeline functions from this module
+
+NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
+NonuniformLineScan.register_function('interpolate', UniformlyInterpolatedLineScan)

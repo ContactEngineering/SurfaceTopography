@@ -34,6 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..NonuniformLineScan import NonuniformLineScan
+
 
 def sinc(x):
     """sinc function"""
@@ -142,3 +144,8 @@ def power_spectrum_1D(topography, q=None, window=None):
         else:
             raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
     return q, np.abs(y_q) ** 2 / L
+
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('power_spectrum_1D', power_spectrum_1D)

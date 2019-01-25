@@ -34,3 +34,7 @@ SOFTWARE.
 
 import numpy as np
 
+from ..NonuniformLineScan import NonuniformLineScan
+
+
+### Register analysis functions from this module

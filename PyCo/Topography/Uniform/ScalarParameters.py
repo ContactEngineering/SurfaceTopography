@@ -34,6 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+
 
 def rms_height(topography, kind='Sq'):
     """
@@ -97,3 +99,13 @@ def rms_Laplacian(topography):
     curv = topography.derivative(2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 
+
+### Register analysis functions from this module
+
+Topography.register_function('rms_height', rms_height)
+Topography.register_function('rms_slope', rms_slope)
+Topography.register_function('rms_curvature', rms_Laplacian)
+
+UniformLineScan.register_function('rms_height', rms_height)
+UniformLineScan.register_function('rms_slope', rms_slope)
+UniformLineScan.register_function('rms_curvature', rms_Laplacian)

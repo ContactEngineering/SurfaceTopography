@@ -34,6 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+
 
 def checkerboard_tilt_correction(topography, sd, size=None):
     """
@@ -92,3 +94,8 @@ def checkerboard_tilt_correction(topography, sd, size=None):
         arr[mask] -= location_matrix.dot(res[0])
 
     return arr
+
+
+### Register analysis functions from this module
+
+Topography.register_function('checkerboard_tilt_correction', checkerboard_tilt_correction)

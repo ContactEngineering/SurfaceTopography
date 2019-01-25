@@ -47,12 +47,12 @@ class AbstractHeightContainer(object):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self, info={}):
-        self._functions = {}
-        self._info = info
+    @classmethod
+    def register_function(cls, name, function):
+        cls._functions.update({name: function})
 
-    def register_function(self, name, function):
-        self._functions.update({name: function})
+    def __init__(self, info={}):
+        self._info = info
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)

@@ -37,3 +37,16 @@ from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
 from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)
+
+# These imports are required to register the analysis functions!
+import PyCo.Topography.Uniform.common
+import PyCo.Topography.Uniform.ScalarParameters
+import PyCo.Topography.Uniform.Autocorrelation
+import PyCo.Topography.Uniform.PowerSpectrum
+import PyCo.Topography.Uniform.VariableBandwidth
+
+# These imports are required to register the analysis functions!
+import PyCo.Topography.Nonuniform.common
+import PyCo.Topography.Nonuniform.ScalarParameters
+import PyCo.Topography.Nonuniform.PowerSpectrum
+import PyCo.Topography.Nonuniform.VariableBandwidth

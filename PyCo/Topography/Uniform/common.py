@@ -35,6 +35,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+
 
 def derivative(topography, n):
     """
@@ -71,3 +73,10 @@ def derivative(topography, n):
         return d[0]
     else:
         return d
+
+
+### Register analysis functions from this module
+
+Topography.register_function('derivative', derivative)
+
+UniformLineScan.register_function('derivative', derivative)

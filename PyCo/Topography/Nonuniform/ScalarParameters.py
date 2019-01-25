@@ -34,6 +34,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..NonuniformLineScan import NonuniformLineScan
+
 
 def rms_height(topography, kind='Rq'):
     """
@@ -126,3 +128,10 @@ def rms_curvature(topography):
     L = x[-2] - x[1]
 
     return np.sqrt(np.trapz(d2**2, x[1:-1])/L)
+
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('rms_height', rms_height)
+NonuniformLineScan.register_function('rms_slope', rms_slope)
+NonuniformLineScan.register_function('rms_curvature', rms_curvature)

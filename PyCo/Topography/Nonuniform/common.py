@@ -35,6 +35,8 @@ SOFTWARE.
 
 import numpy as np
 
+from ..NonuniformLineScan import NonuniformLineScan
+
 
 def derivative(topography, n):
     """
@@ -72,3 +74,8 @@ def derivative(topography, n):
         return 2 * (dxm * (h[2:] - h[1:-1]) + dxp * (h[0:-2] - h[1:-1])) / (dxp * dxm * (dxp + dxm))
     else:
         raise RuntimeError('Currently only first and second derivatives are supported for nonuniform topographies.')
+
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('derivative', derivative)
