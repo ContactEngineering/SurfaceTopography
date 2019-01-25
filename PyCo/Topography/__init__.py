@@ -32,8 +32,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .Topography import Topography
-from .LineScan import UniformLineScan, NonuniformLineScan
+from .UniformLineScanAndTopography import Topography, UniformLineScan
+from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
 from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)

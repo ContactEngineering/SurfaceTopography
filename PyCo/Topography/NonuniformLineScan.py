@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   LineScan.py
+@file   NonuniformLineScan.py
 
 @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
@@ -36,8 +36,8 @@ import abc
 
 import numpy as np
 
-from .HeightContainer import (AbstractHeightContainer, DecoratedTopography, UniformTopographyInterface,
-                              NonuniformLineScanInterface)
+from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
+from .UniformLineScanAndTopography import UniformlyInterpolatedLineScan
 from .Nonuniform.Detrending import polyfit
 
 
@@ -60,7 +60,6 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         self.register_function('power_spectrum_1D', power_spectrum_1D)
 
         # Register pipeline functions
-        from .Pipeline import ScaledNonuniformTopography, DetrendedNonuniformTopography
         self.register_function('scale', ScaledNonuniformTopography)
         self.register_function('detrend', DetrendedNonuniformTopography)
         self.register_function('interpolate', UniformlyInterpolatedLineScan)
@@ -131,7 +130,7 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.positions()
 
     def clone(self):
-        return NonuniformLineScan(*self.positions(), self.heights(), info=self.info)
+        return NonuniformLineScan(self.positions(), self.heights(), info=self.info)
 
 
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):

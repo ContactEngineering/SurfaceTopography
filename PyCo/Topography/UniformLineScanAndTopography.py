@@ -36,13 +36,12 @@ import abc
 
 import numpy as np
 
-from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface
+from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
 from .Uniform.common import derivative
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 from .Uniform.PowerSpectrum import power_spectrum_1D, power_spectrum_2D
 from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
 from .Uniform.VariableBandwidth import checkerboard_tilt_correction
-from .Pipeline import ScaledUniformTopography, DetrendedUniformTopography
 
 
 class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
@@ -86,7 +85,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         self.register_function('power_spectrum_1D', power_spectrum_1D)
 
         # Register pipeline functions
-        from .Pipeline import ScaledUniformTopography, DetrendedUniformTopography
         self.register_function('scale', ScaledUniformTopography)
         self.register_function('detrend', DetrendedUniformTopography)
 
@@ -191,7 +189,6 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
         self.register_function('power_spectrum_1D', power_spectrum_1D)
 
         # Register pipeline functions
-        from .Pipeline import ScaledUniformTopography, DetrendedUniformTopography
         self.register_function('scale', ScaledUniformTopography)
         self.register_function('detrend', DetrendedUniformTopography)
 

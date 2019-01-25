@@ -34,9 +34,7 @@ SOFTWARE.
 
 import numpy as np
 
-from .Pipeline import DecoratedUniformTopography
-from .Topography import Topography
-from .LineScan import UniformLineScan
+from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
 def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False):

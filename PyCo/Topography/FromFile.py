@@ -42,8 +42,8 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from .Topography import Topography
-from .LineScan import UniformLineScan, NonuniformLineScan
+from .UniformLineScanAndTopography import Topography
+from .NonuniformLineScan import NonuniformLineScan
 
 ###
 
