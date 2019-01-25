@@ -52,9 +52,11 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         self._h = y
 
         # Register analysis functions
+        from .Nonuniform.common import derivative
         from .Nonuniform.ScalarParameters import rms_height, rms_slope
         from .Nonuniform.PowerSpectrum import power_spectrum_1D
         self.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+        self.register_function('derivative', derivative)
         self.register_function('rms_height', rms_height)
         self.register_function('rms_slope', rms_slope)
         self.register_function('power_spectrum_1D', power_spectrum_1D)

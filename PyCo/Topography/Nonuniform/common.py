@@ -62,7 +62,7 @@ def derivative(topography, n):
         Array with derivative values. Length of array is reduced by :math:`n` with
         respect to the input array for the :math:`n`th derivative.
     """
-    x, h = topography.x_positions_and_heights_array()
+    x, h = topography.positions_and_heights()
     if n == 1:
         return np.diff(h) / np.diff(x)
     elif n == 2:
