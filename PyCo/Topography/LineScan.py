@@ -38,223 +38,7 @@ import numpy as np
 
 from .HeightContainer import (AbstractHeightContainer, DecoratedTopography, UniformTopographyInterface,
                               NonuniformLineScanInterface)
-
-
-class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
-    """
-    Line scan that lives on a uniform one-dimensional grid.
-    """
-
-    def __init__(self, heights, size, periodic=False, info={}):
-        """
-        Parameters
-        ----------
-        profile : array_like
-            Data containing the height information. Needs to be a
-            one-dimensional array.
-        size : tuple of floats
-            Physical size of the topography map
-        periodic : bool
-            Flag setting the periodicity of the surface
-        """
-        if heights.ndim != 1:
-            raise ValueError('Heights array must be one-dimensional.')
-
-        super().__init__(info=info)
-
-        # Automatically turn this into a masked array if there is data missing
-        if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
-        self._heights = heights
-        self._size = size
-        self._periodic = periodic
-
-        # Register analysis functions
-        from .Uniform.common import derivative
-        from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
-        from .Uniform.PowerSpectrum import power_spectrum_1D
-        self.register_function('mean', lambda this: this.heights().mean())
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_Laplacian)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-
-        # Register pipeline functions
-        from .Pipeline import ScaledUniformTopography, DetrendedUniformTopography
-        self.register_function('scale', ScaledUniformTopography)
-        self.register_function('detrend', DetrendedUniformTopography)
-
-    def __getstate__(self):
-        state = super().__getstate__(), self._heights, self._size, self._periodic
-        return state
-
-    def __setstate__(self, state):
-        superstate, self._heights, self._size, self._periodic = state
-        super().__setstate__(superstate)
-
-    # Implement abstract methods of AbstractHeightContainer
-
-    @property
-    def dim(self):
-        return 1
-
-    @property
-    def size(self):
-        return self._size,
-
-    @size.setter
-    def size(self, new_size):
-        self._size = new_size
-
-    @property
-    def is_periodic(self):
-        return self._periodic
-
-    @property
-    def is_uniform(self):
-        return True
-
-    # Implement uniform line scan interface
-
-    @property
-    def resolution(self):
-        return len(self._heights),
-
-    @property
-    def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
-
-    @property
-    def area_per_pt(self):
-        return self.pixel_size
-
-    @property
-    def has_undefined_data(self):
-        return np.ma.getmask(self._heights) is not np.ma.nomask
-
-    def positions(self):
-        r, = self.resolution
-        p, = self.pixel_size
-        return np.arange(r) * p
-
-    def heights(self):
-        return self._heights
-
-    def save(self, fname, compress=True):
-        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
-            the profile; the size is not contained in the file
-        """
-        if compress:
-            if not fname.endswith('.gz'):
-                fname = fname + ".gz"
-        np.savetxt(fname, self.array())
-
-
-class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterface):
-    """
-    Interpolate a topography onto a uniform grid.
-    """
-
-    def __init__(self, topography, nb_points, padding, info={}):
-        """
-        Parameters
-        ----------
-        topography : Topography
-            Topography to interpolate.
-        nb_points : int
-            Number of equidistant grid points.
-        padding : int
-            Number of padding grid points, zeros appended to the data.
-        """
-        super().__init__(topography, info=info)
-        self.nb_points = nb_points
-        self.padding = padding
-
-        # This is populated with functions from the nonuniform topography, but this is a uniform topography
-        self._functions.clear()
-
-        # Register analysis functions
-        from .Uniform.common import derivative
-        from .Uniform.ScalarParameters import rms_height, rms_slope, rms_Laplacian
-        from .Uniform.PowerSpectrum import power_spectrum_1D
-        self.register_function('mean', lambda this: this.heights().mean())
-        self.register_function('derivative', derivative)
-        self.register_function('rms_height', rms_height)
-        self.register_function('rms_slope', rms_slope)
-        self.register_function('rms_curvature', rms_Laplacian)
-        self.register_function('power_spectrum_1D', power_spectrum_1D)
-
-        # Register pipeline functions
-        from .Pipeline import ScaledUniformTopography, DetrendedUniformTopography
-        self.register_function('scale', ScaledUniformTopography)
-        self.register_function('detrend', DetrendedUniformTopography)
-
-    def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
-        """
-        state = super().__getstate__(), self.nb_points, self.padding
-        return state
-
-    def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
-        """
-        superstate, self.nb_points, self.padding = state
-        super().__setstate__(superstate)
-
-    # Implement abstract methods of AbstractHeightContainer
-
-    @property
-    def dim(self):
-        return 1
-
-    @property
-    def size(self):
-        s, = self.parent_topography.size
-        return s * (self.nb_points + self.padding) / self.nb_points,
-
-    @property
-    def is_periodic(self):
-        return self.parent_topography.is_periodic
-
-    @property
-    def is_uniform(self):
-        return True
-
-    # Implement uniform line scan interface
-
-    @property
-    def resolution(self):
-        """Return resolution, i.e. number of pixels, of the topography."""
-        return self.nb_points + self.padding,
-
-    @property
-    def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
-
-    @property
-    def area_per_pt(self):
-        return self.pixel_size
-
-    @property
-    def has_undefined_data(self):
-        return False
-
-    def positions(self):
-        left, right = self.parent_topography.x_range
-        size = right - left
-        return np.linspace(left - size * self.padding / (2 * self.nb_points),
-                           right + size * self.padding / (2 * self.nb_points),
-                           self.nb_points + self.padding)
-
-    def heights(self):
-        """ Computes the rescaled profile.
-        """
-        x = self.positions()
-        return np.interp(x, *self.parent_topography.positions_and_heights())
+from .Nonuniform.Detrending import polyfit
 
 
 class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
@@ -328,3 +112,167 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     def heights(self):
         return self._h
+
+
+class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInterface):
+    @property
+    def is_periodic(self):
+        return self.parent_topography.is_periodic
+
+    @property
+    def size(self):
+        return self.parent_topography.size
+
+    @property
+    def x_range(self):
+        return self.parent_topography.x_range
+
+    def positions(self):
+        return self.parent_topography.positions()
+
+    def clone(self):
+        return NonuniformLineScan(*self.positions(), self.heights(), info=self.info)
+
+
+class ScaledNonuniformTopography(DecoratedNonuniformTopography):
+    """ used when geometries are scaled
+    """
+
+    def __init__(self, topography, coeff, info={}):
+        """
+        Keyword Arguments:
+        topography  -- Topography to scale
+        coeff -- Scaling factor
+        """
+        super().__init__(topography, info=info)
+        self.coeff = float(coeff)
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self.coeff
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self.coeff = state
+        super().__setstate__(superstate)
+
+    def heights(self):
+        """ Computes the rescaled profile.
+        """
+        return self.coeff * self.parent_topography.heights()
+
+
+class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
+    """
+    Remove trends from a topography. This is achieved by fitting polynomials
+    to the topography data to extract trend lines. The resulting topography
+    is then detrended by substracting these trend lines.
+    """
+
+    def __init__(self, topography, detrend_mode='height', info={}):
+        """
+        Parameters
+        ----------
+        topography : Topography
+            Topography to be detrended.
+        detrend_mode : str
+            'center': center the topography, no trend correction.
+            'height': adjust slope such that rms height is minimized.
+            'slope': adjust slope such that rms slope is minimized.
+            'curvature': adjust slope and curvature such that rms height is minimized.
+            (Default: 'height')
+        """
+        super().__init__(topography, info=info)
+        self._detrend_mode = detrend_mode
+        self._detrend()
+
+    def _detrend(self):
+        if self._detrend_mode == 'center':
+            self._coeffs = (self.parent_topography.mean(),)
+        elif self._detrend_mode == 'height':
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 1)
+        elif self._detrend_mode == 'slope':
+            sl = self.parent_topography.derivative().mean()
+            self._coeffs = [self.parent_topography.mean(), sl]
+        elif self._detrend_mode == 'curvature':
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 2)
+        else:
+            raise ValueError("Unsupported detrend mode '{}' for line scans." \
+                             .format(self._detrend_mode))
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self._detrend_mode, self._coeffs
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._detrend_mode, self._coeffs = state
+        super().__setstate__(superstate)
+
+    @property
+    def coeffs(self, ):
+        return self._coeffs
+
+    @property
+    def detrend_mode(self, ):
+        return self._detrend_mode
+
+    @detrend_mode.setter
+    def detrend_mode(self, detrend_mode):
+        self._detrend_mode = detrend_mode
+        self._detrend()
+
+    @property
+    def is_periodic(self):
+        """A detrended surface is never periodic"""
+        return False
+
+    @property
+    def x_range(self):
+        return self.parent_topography.x_range
+
+    def positions(self):
+        return self.parent_topography.positions()
+
+    def heights(self):
+        """ Computes the combined profile.
+        """
+        if len(self._coeffs) == 1:
+            a0, = self._coeffs
+            return self.parent_topography.heights() - a0
+        x = self.positions()
+        if len(self._coeffs) == 2:
+            a0, a1 = self._coeffs
+            return self.parent_topography.heights() - a0 - a1 * x
+        elif len(self._coeffs) == 3:
+            a0, a1, a2 = self._coeffs
+            return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
+        else:
+            raise RuntimeError('Unknown size of coefficients tuple.')
+
+    def stringify_plane(self, fmt=lambda x: str(x)):
+        str_coeffs = [fmt(x) for x in self._coeffs]
+        if len(self._coeffs) == 1:
+            h0, = str_coeffs
+            return h0
+        elif len(self._coeffs) == 2:
+            return '{0} + {1} x'.format(*str_coeffs)
+        elif len(self._coeffs) == 3:
+            return '{0} + {1} x + {2} x^2'.format(*str_coeffs)
+        else:
+            raise RuntimeError('Unknown size of coefficients tuple.')
+
