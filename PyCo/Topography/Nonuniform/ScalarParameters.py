@@ -104,3 +104,25 @@ def rms_slope(topography):
     L = x[-1] - x[0]
 
     return np.sqrt(np.sum(dh**2/dx)/L)
+
+
+def rms_curvature(topography):
+    """
+    Computes root-mean square slope fluctuation of the line scan:
+
+    Parameters
+    ----------
+    topography : NonuniformLineScan
+        Topography object containing height information.
+
+    Returns
+    -------
+    rms_slope : float
+        Root-mean square slope.
+    """
+    x = topography.positions()
+    d2 = topography.derivative(n=2)
+    # The second derivative cannot be evaluated on the two end points
+    L = x[-2] - x[1]
+
+    return np.sqrt(np.trapz(d2**2, x[1:-1])/L)
