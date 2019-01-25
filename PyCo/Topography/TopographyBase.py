@@ -161,7 +161,7 @@ class Topography(object, metaclass=abc.ABCMeta):
         """ Return topography data on an inhomogeneous grid as a list of points. """
         if self.is_uniform:
             return tuple(
-                np.meshgrid(*(np.arange(r) * s / r for s, r in zip(self.size, self.resolution)), indexing='ij') +
+                    np.meshgrid(*(np.arange(r) * s / r for s, r in zip(self.size, self.resolution)), indexing='ij') +
                             [self.array()])
         else:
             raise NotImplementedError
@@ -202,8 +202,8 @@ class Topography(object, metaclass=abc.ABCMeta):
             from .Uniform.common import _derivative
             return _derivative(self.array(), self.size, n, self.is_periodic)
         else:
-            from .Uniform.common import _derivative
-            return _derivative(*self.points, n)
+            from .Nonuniform.common import _derivative
+            return _derivative(*self.points(), n)
 
     def rms_height(self, kind='Sq'):
         """
