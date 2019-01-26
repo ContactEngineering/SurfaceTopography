@@ -38,6 +38,20 @@ import numpy as np
 from ..NonuniformLineScan import NonuniformLineScan
 
 
+def bandwidth(self):
+    """Computes lower and upper bound of bandwidth.
+
+    Returns
+    -------
+    A 2-tuple (lower_bound, upper_bound) where the elements are floats.
+    """
+    x = self.positions()
+    lower_bound = np.mean(np.diff(x))
+    upper_bound, = self.size
+
+    return lower_bound, upper_bound
+
+
 def derivative(topography, n):
     """
     Compute derivative of nonuniform line-scan. Function assumes nonperiodic topographies.
@@ -78,4 +92,5 @@ def derivative(topography, n):
 
 ### Register analysis functions from this module
 
+NonuniformLineScan.register_function('bandwidth', bandwidth)
 NonuniformLineScan.register_function('derivative', derivative)

@@ -38,6 +38,19 @@ import numpy as np
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 
+def bandwidth(self):
+    """Computes lower and upper bound of bandwidth.
+
+    Returns
+    -------
+    A 2-tuple (lower_bound, upper_bound) where the elements are floats.
+    """
+    lower_bound = np.mean(self.pixel_size)
+    upper_bound = np.mean(self.size)
+
+    return lower_bound, upper_bound
+
+
 def derivative(topography, n):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
@@ -77,6 +90,8 @@ def derivative(topography, n):
 
 ### Register analysis functions from this module
 
+Topography.register_function('bandwidth', bandwidth)
 Topography.register_function('derivative', derivative)
 
+UniformLineScan.register_function('bandwidth', bandwidth)
 UniformLineScan.register_function('derivative', derivative)
