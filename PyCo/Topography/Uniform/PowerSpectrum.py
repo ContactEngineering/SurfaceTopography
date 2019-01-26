@@ -35,22 +35,21 @@ SOFTWARE.
 import numpy as np
 from scipy.signal import get_window
 
-from .common import _get_size
 from ..common import radial_average
+
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 
 def power_spectrum_1D(topography,  # pylint: disable=invalid-name
-                      size=None, window=None):
+                      window=None):
     """
-    Compute power spectrum from 1D FFT.
+    Compute power spectrum from 1D FFT(s) of a topography or line scan
+    stored on a uniform grid.
 
     Parameters
     ----------
-    topography : array_like
-        2D-array of surface topography
-    size : (float, float), optional
-        Physical size of the 2D grid. (Default: Size is equal to number of grid
-        points.)
+    topography : Topography or UniformLineScan
+        Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
@@ -62,22 +61,18 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    # pylint: disable=invalid-name
-    if hasattr(topography, "power_spectrum_1D"):
-        return topography.power_spectrum_1D(window=window)
-
-    n = topography.shape
-    s = _get_size(topography, size)
+    n = topography.resolution
+    s = topography.size
 
     try:
         nx, ny = n
         sx, sy = s
-    except:
+    except ValueError:
         nx, = n
         sx, = s
 
     # Construct and apply window
-    if window is not None:
+    if window is not None and window != 'None':
         win = get_window(window, nx)
         # Normalize window
         win *= np.sqrt(nx/(win**2).sum())
@@ -87,7 +82,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     len0 = sx/nx
 
     # Compute FFT and normalize
-    fourier_topography = len0*np.fft.fft(topography, axis=0)
+    fourier_topography = len0*np.fft.fft(topography.heights(), axis=0)
     dq = 2*np.pi/sx
     q = dq*np.arange(nx//2)
 
@@ -100,7 +95,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     C_all[1:nx//2, ...] += C_raw[nx-1:(nx+1)//2:-1, ...]
     C_all /= 2
 
-    if len(topography.shape) == 1:
+    if len(topography.resolution) == 1:
         return q, C_all
     else:
         return q, C_all.mean(axis=1)
@@ -129,21 +124,19 @@ def get_window_2D(window, nx, ny, size=None):
 
 
 def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
-                      size=None, window=None, normalize_window=True,
+                      window=None, normalize_window=True,
                       return_map=False):
     """
-    Compute power spectrum from 2D FFT and radial average.
+    Compute power spectrum from 2D FFT and radial average of a topography
+    stored on a uniform grid.
 
     Parameters
     ----------
-    topography : array_like
-        2D-array of surface topography
+    topography : Topography
+        Container storing the (two-dimensional) topography map.
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller
         than this because bins without data point are discarded.
-    size : (float, float), optional
-        Physical size of the 2D grid. (Default: Size is equal to number of grid
-        points.)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
@@ -159,8 +152,8 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = topography.shape
-    sx, sy = _get_size(topography, size)
+    nx, ny = topography.resolution
+    sx, sy = topography.size
 
     # Construct and apply window
     if window is not None:
@@ -188,3 +181,11 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
         return q_val[n>0], C_val[n>0], C_qk
     else:
         return q_val[n>0], C_val[n>0]
+
+
+### Register analysis functions from this module
+
+Topography.register_function('power_spectrum_1D', power_spectrum_1D)
+Topography.register_function('power_spectrum_2D', power_spectrum_2D)
+
+UniformLineScan.register_function('power_spectrum_1D', power_spectrum_1D)

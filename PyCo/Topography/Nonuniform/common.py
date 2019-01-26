@@ -32,28 +32,65 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import numpy as np
 
-def _derivative(x, h, n=1):
+from ..NonuniformLineScan import NonuniformLineScan
+
+
+def bandwidth(self):
+    """Computes lower and upper bound of bandwidth.
+
+    Returns
+    -------
+    A 2-tuple (lower_bound, upper_bound) where the elements are floats.
     """
-    Compute derivative of nonuniform line-scan. Function assumes nonperiodic
-    topographies.
+    x = self.positions()
+    lower_bound = np.mean(np.diff(x))
+    upper_bound, = self.size
+
+    return lower_bound, upper_bound
+
+
+def derivative(topography, n):
+    """
+    Compute derivative of nonuniform line-scan. Function assumes nonperiodic topographies.
+
+    First derivative: Central differences.
+    Second derivative: Expand :math:`h(x+\\Delta x_+)` and :math:`(x-\\Delta x_-)` up to second order in the grid
+    spacing :math:`\\Delta x_+` and :math:`\\Delta x_+`. Then
+    :math:`\\Delta x_- f(x+\\Delta x_+) + \\Delta x_+ f(x+\\Delta x_-)` yields:
+
+    ..math ::
+
+         \\frac{d^2h}{dx^2} \approx  = 2 \\frac{\\Delta x_-\left[f(x+\\Delta x_+)-f(x)\right] + \\Delta x+-\left[f(x+\\Delta x_-)-f(x)\right]}{\\Delta x_+\\Delta x_-(\\Delta x_++\\Delta x_-)}
 
     Parameters
     ----------
-    x : array
-        X-coordinates.
-    h : array
-        Y- or height coordinates.
+    topography : Topography or UniformLineScan
+        Topography object containing height information.
     n : int
-        Order of derivative.
+        Number of times the derivative is taken.
 
     Returns
     -------
     derivative : array
-        Array with derivative values. Length of array is reduced by one with
-        respect to the input array.
+        Array with derivative values. Length of array is reduced by :math:`n` with
+        respect to the input array for the :math:`n`th derivative.
     """
-    if n != 1:
-        raise RuntimeError('Currently only first derivatives are supported for nonuniform topographies.')
-    return np.diff(h) / np.diff(x)
+    x, h = topography.positions_and_heights()
+    if n == 1:
+        return np.diff(h) / np.diff(x)
+    elif n == 2:
+        dxp = x[2:] - x[1:-1]
+        dxm = x[1:-1] - x[:-2]
+
+        return 2 * (dxm * (h[2:] - h[1:-1]) + dxp * (h[0:-2] - h[1:-1])) / (dxp * dxm * (dxp + dxm))
+    else:
+        raise RuntimeError('Currently only first and second derivatives are supported for nonuniform topographies.')
+
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('bandwidth', bandwidth)
+NonuniformLineScan.register_function('derivative', derivative)
