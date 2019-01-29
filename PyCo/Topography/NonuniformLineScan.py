@@ -108,6 +108,10 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.is_periodic
 
     @property
+    def dim(self):
+        return self.parent_topography.dim
+
+    @property
     def size(self):
         return self.parent_topography.size
 
