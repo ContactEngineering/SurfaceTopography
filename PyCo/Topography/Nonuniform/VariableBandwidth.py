@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 """
-@file   __init__.py
+@file   VariableBandwidth.py
 
 @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
-@date   21 Nov 2018
+@date   09 Jan 2019
 
-@brief  Module containing all functions operating on uniform topographies
+@brief  Variable bandwidth analysis for nonuniform topographies
 
 @section LICENCE
 
-Copyright 2018 Lars Pastewka
+Copyright 2015-2018 Till Junge, Lars Pastewka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,3 +32,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import numpy as np
+
+from ..NonuniformLineScan import NonuniformLineScan
+
+
+### Register analysis functions from this module

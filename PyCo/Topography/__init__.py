@@ -32,16 +32,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from PyCo.Topography.Uniform.Autocorrelation import autocorrelation_1D, autocorrelation_2D
-from PyCo.Topography.Uniform.Detrending import (tilt_from_height, tilt_from_slope, tilt_and_curvature, shift_and_tilt,
-                                                shift_and_tilt_approx, shift_and_tilt_from_slope)
-from PyCo.Topography.Uniform.PowerSpectrum import power_spectrum_1D, power_spectrum_2D
-from PyCo.Topography.Uniform.ScalarParameters import rms_height, rms_slope, rms_curvature
-from .TopographyBase import Topography
-from .TopographyUniform import UniformNumpyTopography
-from .TopographyNonuniform import NonuniformNumpyTopography
-from .TopographyPipeline import (CompoundTopography, DetrendedTopography, InterpolatedTopography, ScaledTopography,
-                                 TranslatedTopography)
-from .TopographySpecial import PlasticTopography, Sphere
+from .UniformLineScanAndTopography import Topography, UniformLineScan
+from .NonuniformLineScan import NonuniformLineScan
+from .Special import make_sphere, PlasticTopography
 from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)
+
+# These imports are required to register the analysis functions!
+import PyCo.Topography.Uniform.common
+import PyCo.Topography.Uniform.ScalarParameters
+import PyCo.Topography.Uniform.Autocorrelation
+import PyCo.Topography.Uniform.PowerSpectrum
+import PyCo.Topography.Uniform.VariableBandwidth
+
+# These imports are required to register the analysis functions!
+import PyCo.Topography.Nonuniform.common
+import PyCo.Topography.Nonuniform.ScalarParameters
+import PyCo.Topography.Nonuniform.PowerSpectrum
+import PyCo.Topography.Nonuniform.VariableBandwidth

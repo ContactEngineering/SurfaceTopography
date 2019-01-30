@@ -42,9 +42,8 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from .TopographyUniform import UniformNumpyTopography
-from .TopographyNonuniform import NonuniformNumpyTopography
-from .TopographyPipeline import ScaledTopography
+from .UniformLineScanAndTopography import Topography
+from .NonuniformLineScan import NonuniformLineScan
 
 ###
 
@@ -150,14 +149,18 @@ def read_matrix(fobj, size=None, factor=None):
     Keyword Arguments:
     fobj -- filename or file object
     """
-    surface = UniformNumpyTopography(np.loadtxt(fobj), size=size)
+    arr = np.loadtxt(fobj)
+    if size is None:
+        surface = Topography(arr, arr.shape)
+    else:
+        surface = Topography(arr, size)
     if factor is not None:
-        surface = ScaledTopography(surface, factor)
+        surface = surface.scale(factor)
     return surface
 
 
 @text
-def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
+def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
@@ -299,11 +302,13 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
             zfac *= height_units[zunit] / height_units[unit]
 
     if xsiz is None or ysiz is None:
-        surface = UniformNumpyTopography(data, unit=unit)
+        if size is None:
+            surface = Topography(data, data.shape, info=dict(unit=unit))
+        else:
+            surface = Topography(data, size, info=dict(unit=unit))
     else:
-        surface = UniformNumpyTopography(data, size=(x_factor * xsiz, x_factor * ysiz),
-                                         unit=unit)
-    surface = ScaledTopography(surface, zfac)
+        surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
+    surface = surface.scale(zfac)
     return surface
 
 
@@ -330,7 +335,7 @@ def read_xyz(fobj, unit=None):
         x, z = data
         x -= np.min(x)
 
-        return NonuniformNumpyTopography(x, z, size=np.max(x), unit=unit)
+        return NonuniformLineScan(x, z, info=dict(unit=unit))
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
@@ -358,7 +363,7 @@ def read_xyz(fobj, unit=None):
         value_present[binx, biny] = True
         assert np.all(value_present) # FIXME: Turn assert into exception
 
-        return UniformNumpyTopography(data, size=(dx * nx, dy * ny), unit=unit)
+        return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
 
@@ -434,7 +439,7 @@ def read_x3p(fobj):
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
 
-    return UniformNumpyTopography(data, size=(xinc * nx, yinc * ny))
+    return Topography(data, (xinc * nx, yinc * ny))
 
 
 def read_mat(fobj, size=None, factor=None, unit=None):
@@ -461,9 +466,12 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         except (AttributeError, ValueError):
             pass
         if is_2darray:
-            surface = UniformNumpyTopography(value, size=size, unit=unit)
+            if size is None:
+                surface = Topography(value, value.shape, info=dict(unit=unit))
+            else:
+                surface = Topography(value, size, info=dict(unit=unit))
             if factor is not None:
-                surface = ScaledTopography(surface, factor)
+                surface = surface.scale(factor)
             surfaces += [surface]
     if len(surfaces) == 1:
         return surfaces[0]
@@ -546,9 +554,8 @@ def read_opd(fobj):
         raise IOError('No data block encountered.')
 
     # Height are in nm, width in mm
-    surface = UniformNumpyTopography(data, size=(nx * pixel_size, ny * pixel_size * aspect),
-                                     unit='mm')
-    surface = ScaledTopography(surface, wavelength / mult * 1e-6)
+    surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
+    surface = surface.scale(wavelength / mult * 1e-6)
     return surface
 
 
@@ -653,9 +660,9 @@ def read_di(fobj):
             else:
                 unit = (xy_unit, height_unit)
 
-            surface = UniformNumpyTopography(unscaleddata.T, size=(sx, sy), unit=unit)
+            surface = Topography(unscaleddata.T, (sx, sy), info=dict(unit=unit))
             surface.info.update(dict(data_source=image_data_key))
-            surface = ScaledTopography(surface, hard_scale * hard_to_soft * soft_scale)
+            surface = surface.scale(hard_scale * hard_to_soft * soft_scale)
             surfaces += [surface]
 
     if len(surfaces) == 1:
@@ -686,13 +693,13 @@ def read_ibw(fobj):
     sfA = wave['wave_header']['sfA']
     nx, ny = data.shape
 
-    surface = UniformNumpyTopography(data, size=(nx * sfA[0], ny * sfA[1]), unit=z_unit)
+    surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
 
 
 @binary
-def read_hgt(fobj):
+def read_hgt(fobj, size=None):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
     (.hgt extension).
@@ -712,13 +719,33 @@ def read_hgt(fobj):
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 
-    return UniformNumpyTopography(data)
+    if size is None:
+        return Topography(data, data.shape)
+    else:
+        return Topography(data, size)
 
 
-def read_h5(fobj):
+def read_h5(fobj, size=None):
+    """
+    HDF5 data format from the Contact Mechanics Challenge.
+
+    Parameters
+    ----------
+    fobj : str or file object
+        File name or stream.
+
+    Returns
+    -------
+    topography : Topography
+        Topography object.
+    """
     import h5py
     h5 = h5py.File(fobj)
-    return UniformNumpyTopography(h5['surface'][...])
+    data = h5['surface'][...]
+    if size is None:
+        return Topography(data, size)
+    else:
+        return Topography(data, data.shape)
 
 
 def detect_format(fobj):
