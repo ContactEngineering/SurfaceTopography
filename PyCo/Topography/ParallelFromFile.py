@@ -37,13 +37,13 @@ class MPITopographyLoader():
         self.size = None  # will stay None if the file doesn't provide the information.
         self.unit = None
 
-        self.mpi_file= MPITools.FileIO.MPIFileViewFactory(fn, comm, format=format)
+        self.mpi_file= MPITools.FileIO.make_mpi_file_view(fn, comm, format=format)
         self.dtype = self.mpi_file.dtype
         self.resolution = self.mpi_file.resolution
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the size
 
-    def getTopography(self, substrate):
+    def topography(self, substrate):
         # TODO: Are sometimes the Units Stored?
         return UniformNumpyTopography(
             profile=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
