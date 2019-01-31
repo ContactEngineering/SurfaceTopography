@@ -369,6 +369,9 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def positions(self):
         return self.parent_topography.positions()
 
+    def positions_and_heights(self):
+        return (*self.positions(), self.heights())
+
     def clone(self):
         if self.dim == 1:
             return UniformLineScan(self.heights(), self.size, periodic=self.periodic, info=self.info)
