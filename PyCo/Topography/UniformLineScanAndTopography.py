@@ -374,9 +374,9 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     def clone(self):
         if self.dim == 1:
-            return UniformLineScan(self.heights(), self.size, periodic=self.periodic, info=self.info)
+            return UniformLineScan(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
         else:
-            return Topography(self.heights(), self.size, periodic=self.periodic, info=self.info)
+            return Topography(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):

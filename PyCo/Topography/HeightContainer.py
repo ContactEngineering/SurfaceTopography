@@ -58,10 +58,10 @@ class AbstractHeightContainer(object):
         self._functions[name](self, *args, **kwargs)
 
     def __getattr__(self, name):
-        try:
+        if name in self._functions:
             return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
-        except KeyError:
-            raise KeyError("Function '{}' has not been registered.".format(name))
+        else:
+            raise AttributeError("Unkown attribute '{}' and no so-called function registered.".format(name))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
