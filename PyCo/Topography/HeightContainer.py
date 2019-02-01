@@ -43,6 +43,8 @@ class AbstractHeightContainer(object):
     can be executed on this specific container.
     """
 
+    _functions = {}
+
     class Error(Exception):
         # pylint: disable=missing-docstring
         pass
