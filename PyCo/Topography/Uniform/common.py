@@ -76,6 +76,7 @@ def derivative(topography, n):
     heights = topography.heights()
     if topography.is_periodic:
         if n != 1:
+            # TODO: Implement arbitrary derivatives
             raise ValueError('Only first derivatives are presently supported for periodic topographies.')
         d = np.array([(np.roll(heights, axis=d) - heights) / grid_spacing[d] ** n
                       for d in range(len(heights.shape))])
