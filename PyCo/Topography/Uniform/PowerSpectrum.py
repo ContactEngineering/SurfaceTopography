@@ -157,7 +157,7 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
     # Construct and apply window
     if window is not None:
-        win = get_window_2D(window, nx, ny, size)
+        win = get_window_2D(window, nx, ny, topography.size)
         # Normalize window
         if normalize_window:
             win *= np.sqrt(nx*ny/(win**2).sum())
