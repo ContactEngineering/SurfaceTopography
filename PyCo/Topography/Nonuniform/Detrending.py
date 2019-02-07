@@ -36,7 +36,7 @@ import numpy as np
 
 
 def polyfit(x, h, deg):
-    """
+    r"""
     Compute the detrending plane that, if subtracted, minimizes the rms height
     of the surface. The detrending plane is parameterized as a polynomial:
 
@@ -50,19 +50,19 @@ def polyfit(x, h, deg):
 
     .. math::
 
-        h_\\text{rms}^2 = \\frac{1}{3L} \\sum_{i=0}^{N-2} \\left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \\right) \\Delta x_i
+        h_\text{rms}^2 = \frac{1}{3L} \sum_{i=0}^{N-2} \left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \right) \Delta x_i
 
     where $N$ is the total number of data points. Hence we need to solve the following minimization problem:
 
     .. math::
 
-        \\min_{\\{a_k\\}} \\left\{ \\frac{1}{3L} \\sum_{i=0}^{N-2} \\left[ (h_i - p(x_i))^2 + (h_{i+1} - p(x_{i+1}))^2 + (h_i - p(x_i))(h_{i+1} - p(x_{i+1})) \\right] \\Delta x_i \\right\}
+        \min_{\{a_k\}} \left\{ \frac{1}{3L} \sum_{i=0}^{N-2} \left[ (h_i - p(x_i))^2 + (h_{i+1} - p(x_{i+1}))^2 + (h_i - p(x_i))(h_{i+1} - p(x_{i+1})) \right] \Delta x_i \right\}
 
     This gives the system of linear equations (one for each :math:`k`)
 
     .. math::
 
-        \\sum_{i=0}^{N-2} \\left( \\left[ 2h_i + h_{i+1} \\right] x_i^k + \\left[ 2h_{i+1} + h_i \\right] x_{i+1}^k \\right) \\Delta x_i = \\sum_{l=0}^n a_l \\sum_{i=0}^{N-2} \\left( 2x_i^{k+l} + 2x_{i+1}^{k+l} + x_i^k x_{i+1}^l + x_{i+1}^k x_i^l \\right) \\Delta x_i
+        \sum_{i=0}^{N-2} \left( \left[ 2h_i + h_{i+1} \right] x_i^k + \left[ 2h_{i+1} + h_i \right] x_{i+1}^k \right) \Delta x_i = \sum_{l=0}^n a_l \sum_{i=0}^{N-2} \left( 2x_i^{k+l} + 2x_{i+1}^{k+l} + x_i^k x_{i+1}^l + x_{i+1}^k x_i^l \right) \Delta x_i
 
     Parameters
     ----------
