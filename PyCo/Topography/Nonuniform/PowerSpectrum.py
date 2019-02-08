@@ -62,25 +62,25 @@ def dsinc(x):
 
 
 def ft_rectangle(q):
-    """
-    Fourier transform of a rectangle, :math:`f(x) = 1` for :math:``|x| < 1/2`,
+    r"""
+    Fourier transform of a rectangle, :math:`f(x) = 1` for :math:`|x| < 1/2`,
 
-    ..math ::
+    .. math ::
 
-        \\tilde{f}(q) = 2\\sin(q/2)/q = \\sinc(q/2)
+        \tilde{f}(q) = 2\sin(q/2)/q = sinc(q/2)
     """
     # np.sinc is sin(pi*x)/(pi*x), sinc is sin(x)/xCo
     return sinc(q / 2)
 
 
 def ft_one_sided_triangle(q):
-    """
+    r"""
     Fourier transform of the one-sided triangle, :math:`f(x) = x` for
     :math:`|x| < 1/2`,
 
-    ..math ::
+    .. math ::
 
-        \\tilde{f}(q) = i [\\cos(q/2)/q - 2\\sin(q/2)/q^2] = dsinc(q/2)/dq
+        \tilde{f}(q) = i [\cos(q/2)/q - 2\sin(q/2)/q^2] = d sinc(q/2)/dq
 
     Returned value does not contain the factor of :math:`i`, i.e. this
     function is real-valued.
@@ -99,7 +99,7 @@ def apply_window(x, y, window=None):
 
 
 def power_spectrum_1D(topography, q=None, window=None):
-    """
+    r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
     straight lines.
@@ -112,8 +112,8 @@ def power_spectrum_1D(topography, q=None, window=None):
         y-coordinates of the points.
     q : array, optional
         Wavevectors at which to compute the PSD. If omitted, wavevectors are
-        equally spaced with a spacing that corresponds to :math:`2\\pi/\\lambda`
-        where :math:`\\lambda` is the shortest distance between two points in
+        equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`
+        where :math:`\lambda` is the shortest distance between two points in
         the `x`-array. (Default: None)
     window : str, optional
         Name of the window function to apply before computing the PSD.
