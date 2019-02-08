@@ -122,7 +122,7 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
     def positions(self):
         return self.parent_topography.positions()
 
-    def clone(self):
+    def squeeze(self):
         return NonuniformLineScan(self.positions(), self.heights(), info=self.info)
 
 

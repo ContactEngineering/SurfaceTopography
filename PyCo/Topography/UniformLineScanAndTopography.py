@@ -372,7 +372,7 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def positions_and_heights(self):
         return (*self.positions(), self.heights())
 
-    def clone(self):
+    def squeeze(self):
         if self.dim == 1:
             return UniformLineScan(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
         else:
