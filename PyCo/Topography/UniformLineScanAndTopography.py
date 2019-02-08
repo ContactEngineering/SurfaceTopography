@@ -249,7 +249,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         periodic : bool
             Flag setting the periodicity of the surface
         """
-        heights = np.asarray(heights)
+        heights = np.asanyarray(heights)
 
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
