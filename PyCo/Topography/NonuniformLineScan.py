@@ -50,8 +50,8 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
-        self._x = x
-        self._h = y
+        self._x = np.asarray(x)
+        self._h = np.asarray(y)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
