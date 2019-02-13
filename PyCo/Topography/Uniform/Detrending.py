@@ -136,7 +136,7 @@ def tilt_and_curvature(arr, full_output=False):
         return coeffs
 
 
-def shift_and_tilt(topography, full_output=False):
+def shift_and_tilt(topography):
     """
     returns an array of same shape and size as arr, but shifted and tilted so
     that mean(arr) = 0 and mean(arr**2) is minimized
@@ -145,8 +145,5 @@ def shift_and_tilt(topography, full_output=False):
     coeffs, location_matrix = tilt_from_height(topography, full_output=True)
     coeffs = np.array(coeffs)
     offsets = arr.reshape((-1,))
-    if full_output:
-        return ((offsets-location_matrix@coeffs).reshape(arr.shape),
-                coeffs, res[1])
-    else:
-        return (offsets-location_matrix@coeffs).reshape(arr.shape)
+
+    return (offsets-location_matrix@coeffs).reshape(arr.shape)

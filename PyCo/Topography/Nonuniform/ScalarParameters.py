@@ -38,12 +38,12 @@ from ..NonuniformLineScan import NonuniformLineScan
 
 
 def rms_height(topography, kind='Rq'):
-    """
+    r"""
     Computes root-mean square height fluctuation of the line scan:
 
     .. math::
 
-        h_\\text{rms} = \\left[\\frac{1}{L} \\int_0^L dx\\, h^2(x)\\right]^{1/2}
+        h_\text{rms} = \left[\frac{1}{L} \int_0^L dx\, h^2(x)\right]^{1/2}
 
     Function approximates topography between data points as piece-wise linear.
     The piece-wise linear section between point :math:`i` and point
@@ -51,7 +51,7 @@ def rms_height(topography, kind='Rq'):
 
     .. math::
 
-        \\int_{0}^{\\Delta x_i} dx\\, \\left( h_i + \\frac{\\Delta h_i}{\\Delta x_i} x \\right)^2 = \\frac{1}{3} \\left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \\right) \\Delta x_i
+        \int_{0}^{\Delta x_i} dx\, \left( h_i + \frac{\Delta h_i}{\Delta x_i} x \right)^2 = \frac{1}{3} \left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \right) \Delta x_i
 
     to the above integral, where :math:`\Delta x_i=x_{i+1}-x_i` and :math:`\Delta h_i=h_{i+1}-h_i`.
 
@@ -77,7 +77,7 @@ def rms_height(topography, kind='Rq'):
 
 
 def rms_slope(topography):
-    """
+    r"""
     Computes root-mean square slope fluctuation of the line scan:
 
     .. math:: h^\prime_\text{rms} = \left[ \frac{1}{L} \int_0^L dx\, \left(\frac{\partial h}{\partial x}\right)^2 \right]^{1/2}
@@ -109,7 +109,7 @@ def rms_slope(topography):
 
 
 def rms_curvature(topography):
-    """
+    r"""
     Computes root-mean square slope fluctuation of the line scan:
 
     Parameters

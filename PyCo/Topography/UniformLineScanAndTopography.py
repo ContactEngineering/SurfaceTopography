@@ -59,6 +59,8 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         periodic : bool
             Flag setting the periodicity of the surface
         """
+        heights = np.asarray(heights)
+
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 
@@ -247,6 +249,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         periodic : bool
             Flag setting the periodicity of the surface
         """
+        heights = np.asanyarray(heights)
+
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
 
@@ -369,11 +373,14 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def positions(self):
         return self.parent_topography.positions()
 
-    def clone(self):
+    def positions_and_heights(self):
+        return (*self.positions(), self.heights())
+
+    def squeeze(self):
         if self.dim == 1:
-            return UniformLineScan(self.heights(), self.size, periodic=self.periodic, info=self.info)
+            return UniformLineScan(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
         else:
-            return Topography(self.heights(), self.size, periodic=self.periodic, info=self.info)
+            return Topography(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):

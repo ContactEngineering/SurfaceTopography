@@ -40,9 +40,9 @@ try:
     from scipy.optimize import minimize
     import time
 
-    from PyCo.System.Systems import SmoothContactSystem
+    from PyCo.System.Systems import SmoothContactSystem, NonSmoothContactSystem
     from PyCo.System.SmoothSystemSpecialisations import FastSmoothContactSystem
-    from PyCo.System import SystemFactory
+    from PyCo.System import make_system
     import PyCo.SolidMechanics as Solid
     import PyCo.ContactMechanics as Contact
     import PyCo.Topography as Topography
@@ -81,9 +81,9 @@ class FastSystemTest(unittest.TestCase):
         print(fun(np.zeros(S.babushka.substrate.computational_resolution)))
 
     def test_SystemFactory(self):
-        S = SystemFactory(self.substrate,
-                          self.interaction,
-                          self.surface)
+        S = make_system(self.substrate,
+                        self.interaction,
+                        self.surface)
         print("Mofo is periodic ?: ", self.substrate.is_periodic())
         print("substrate: ", self.substrate)
         self.assertIsInstance(S, FastSmoothContactSystem)
@@ -98,7 +98,7 @@ class FastSystemTest(unittest.TestCase):
 
     def test_equivalence(self):
         tol = 1e-6
-        # here, i deliberately avoid using the SystemFactory, because I want to
+        # here, i deliberately avoid using the make_system, because I want to
         # explicitly test the dumb (yet safer) way of computing problems with a
         # free, non-periodic  boundary. A user who invokes a system constructor
         # directliy like this is almost certainly mistaken
@@ -150,7 +150,7 @@ class FastSystemTest(unittest.TestCase):
 
     def test_minimize_proxy(self):
         tol = 1e-6
-        # here, i deliberately avoid using the SystemFactory, because I want to
+        # here, i deliberately avoid using the make_system, because I want to
         # explicitly test the dumb (yet safer) way of computing problems with a
         # free, non-periodic  boundary. A user who invokes a system constructor
         # directliy like this is almost certainly mistaken
@@ -162,6 +162,7 @@ class FastSystemTest(unittest.TestCase):
                        self.surface)
             offset = .8 * S.interaction.r_c
             options = dict(ftol = 1e-18, gtol = 1e-10)
+
             result = S.minimize_proxy(offset, options=options)
 
             gap = S.compute_gap(S.disp, offset)
@@ -191,7 +192,7 @@ class FastSystemTest(unittest.TestCase):
 
     def test_babuschka_eval(self):
         tol = 1e-6
-        # here, i deliberately avoid using the SystemFactory, because I want to
+        # here, i deliberately avoid using the make_system, because I want to
         # explicitly test the dumb (yet safer) way of computing problems with a
         # free, non-periodic  boundary. A user who invokes a system constructor
         # directliy like this is almost certainly mistaken
@@ -252,7 +253,7 @@ class FastSystemTest(unittest.TestCase):
             interaction = Contact.LJ93smoothMin(
                 eps[i], sig[i], gam[i])
             surface = Topography.make_sphere(radius[i], res, size[i], standoff=float(sig[i]*1000))
-            systems.append(SystemFactory(substrate, interaction, surface))
+            systems.append(make_system(substrate, interaction, surface))
             offsets.append(.8*systems[i].interaction.r_c)
 
         gaps = list()
@@ -367,3 +368,47 @@ class FastSystemTest(unittest.TestCase):
             X, Y = np.meshgrid((np.arange(0, int(n / 2))) * dx, (np.arange(0, int(n / 2))) * dx)
             fig, ax = plt.subplots()
             plt.colorbar(ax.pcolormesh(X, Y, substrate.interact_forces[-1, int(n / 2):, int(n / 2):]))
+
+
+    def test_FreeBoundaryError(self):
+        """
+        Maybe it makes sense to do this test only at the end of the minimisation (it's not a drama if the deformation isi false during minimization)
+        Returns
+        -------
+
+        """
+
+
+        radius = 100
+        young = 1
+
+        s = 128.
+        n = 64
+        dx = s/n
+        res = (n, n)
+        size = (s, s)
+
+        centre = (0.75*s, 0.5* s)
+
+        topography = Topography.make_sphere(radius, res, size,centre=centre)
+        ext_topography = Topography.make_sphere(radius, (2 * n, 2 * n), (2 * s, 2 * s), centre=centre)
+
+        substrate = Solid.FreeFFTElasticHalfSpace(topography.resolution, young,
+                                                  topography.size)
+
+        for system in [NonSmoothContactSystem(substrate, Contact.HardWall(), topography),
+                       SmoothContactSystem(substrate, Contact.LJ93SimpleSmooth(0.01,0.01,10), topography)]:
+            with self.subTest(system=system):
+                offset = 15
+                with self.assertRaises(Solid.FreeFFTElasticHalfSpace.FreeBoundaryError):
+                    opt = system.minimize_proxy(offset=offset)
+                if False:
+                    import matplotlib.pyplot as plt
+                    X, Y = np.meshgrid((np.arange(0, n)) * dx,
+                                       (np.arange(0, n)) * dx)
+                    fig, ax = plt.subplots()
+                    plt.colorbar(
+                        ax.pcolormesh(X, Y, substrate.force)
+                    )
+                    plt.show(block=True)
+

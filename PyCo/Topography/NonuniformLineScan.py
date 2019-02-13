@@ -50,8 +50,8 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
-        self._x = x
-        self._h = y
+        self._x = np.asarray(x)
+        self._h = np.asarray(y)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -108,6 +108,10 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.is_periodic
 
     @property
+    def dim(self):
+        return self.parent_topography.dim
+
+    @property
     def size(self):
         return self.parent_topography.size
 
@@ -118,7 +122,7 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
     def positions(self):
         return self.parent_topography.positions()
 
-    def clone(self):
+    def squeeze(self):
         return NonuniformLineScan(self.positions(), self.heights(), info=self.info)
 
 

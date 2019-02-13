@@ -165,8 +165,7 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
     """
     Reads a surface profile from an generic asc file and presents it in a
     surface-conformant manner. Applies some heuristic to extract
-    meta-information for different file formats. All units of the returned
-    surface are in meters.
+    meta-information for different file formats.
 
     Keyword Arguments:
     fobj_in -- filename or file object
