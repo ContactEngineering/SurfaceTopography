@@ -71,18 +71,20 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         nx, = n
         sx, = s
 
+    h = topography.heights()
+
     # Construct and apply window
     if window is not None and window != 'None':
         win = get_window(window, nx)
         # Normalize window
         win *= np.sqrt(nx/(win**2).sum())
-        topography = (win * topography.T).T
+        h = (win * h.T).T
 
     # Pixel size
     len0 = sx/nx
 
     # Compute FFT and normalize
-    fourier_topography = len0*np.fft.fft(topography.heights(), axis=0)
+    fourier_topography = len0*np.fft.fft(h, axis=0)
     dq = 2*np.pi/sx
     q = dq*np.arange(nx//2)
 
@@ -95,7 +97,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     C_all[1:nx//2, ...] += C_raw[nx-1:(nx+1)//2:-1, ...]
     C_all /= 2
 
-    if len(topography.resolution) == 1:
+    if topography.dim == 1:
         return q, C_all
     else:
         return q, C_all.mean(axis=1)
