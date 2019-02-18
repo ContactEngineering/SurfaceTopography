@@ -34,14 +34,16 @@ SOFTWARE.
 
 import numpy as np
 
+from ..NonuniformLineScan import NonuniformLineScan
 
-def rms_height(x, h):
-    """
+
+def rms_height(topography, kind='Rq'):
+    r"""
     Computes root-mean square height fluctuation of the line scan:
 
     .. math::
 
-        h_\\text{rms} = \\left[\\frac{1}{L} \\int_0^L dx\\, h^2(x)\\right]^{1/2}
+        h_\text{rms} = \left[\frac{1}{L} \int_0^L dx\, h^2(x)\right]^{1/2}
 
     Function approximates topography between data points as piece-wise linear.
     The piece-wise linear section between point :math:`i` and point
@@ -49,23 +51,23 @@ def rms_height(x, h):
 
     .. math::
 
-        \\int_{0}^{\\Delta x_i} dx\\, \\left( h_i + \\frac{\\Delta h_i}{\\Delta x_i} x \\right)^2 = \\frac{1}{3} \\left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \\right) \\Delta x_i
+        \int_{0}^{\Delta x_i} dx\, \left( h_i + \frac{\Delta h_i}{\Delta x_i} x \right)^2 = \frac{1}{3} \left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \right) \Delta x_i
 
     to the above integral, where :math:`\Delta x_i=x_{i+1}-x_i` and :math:`\Delta h_i=h_{i+1}-h_i`.
 
     Parameters
     ----------
-    x : array_like
-        Array containing positions. This function assumes that this array is
-        sorted in ascending order.
-    h : array_like
-        Array containing heights.
+    topography : NonuniformLineScan
+        Topography object containing height information.
 
     Returns
     -------
     rms_height : float
         Root-mean square height.
     """
+    if kind != 'Rq':
+        raise ValueError("Unsupported rms height kind '{}'.".format(kind))
+    x, h = topography.positions_and_heights()
     dx = np.diff(x)
     L = x[-1] - x[0]
     mean_h = np.trapz(h, x)/L
@@ -74,8 +76,8 @@ def rms_height(x, h):
     return np.sqrt(np.sum((h0[:-1]**2 + h0[1:]**2 + h0[:-1]*h0[1:])*dx)/(3*L))
 
 
-def rms_slope(x, h):
-    """
+def rms_slope(topography):
+    r"""
     Computes root-mean square slope fluctuation of the line scan:
 
     .. math:: h^\prime_\text{rms} = \left[ \frac{1}{L} \int_0^L dx\, \left(\frac{\partial h}{\partial x}\right)^2 \right]^{1/2}
@@ -90,19 +92,46 @@ def rms_slope(x, h):
 
     Parameters
     ----------
-    x : array_like
-        Array containing positions. This function assumes that this array is
-        sorted in ascending order.
-    h : array_like
-        Array containing heights.
+    topography : NonuniformLineScan
+        Topography object containing height information.
 
     Returns
     -------
     rms_slope : float
         Root-mean square slope.
     """
+    x, h = topography.positions_and_heights()
     dh = np.diff(h)
     dx = np.diff(x)
     L = x[-1] - x[0]
 
     return np.sqrt(np.sum(dh**2/dx)/L)
+
+
+def rms_curvature(topography):
+    r"""
+    Computes root-mean square slope fluctuation of the line scan:
+
+    Parameters
+    ----------
+    topography : NonuniformLineScan
+        Topography object containing height information.
+
+    Returns
+    -------
+    rms_slope : float
+        Root-mean square slope.
+    """
+    x = topography.positions()
+    d2 = topography.derivative(n=2)
+    # The second derivative cannot be evaluated on the two end points
+    L = x[-2] - x[1]
+
+    return np.sqrt(np.trapz(d2**2, x[1:-1])/L)
+
+
+### Register analysis functions from this module
+
+NonuniformLineScan.register_function('rms_height', rms_height)
+NonuniformLineScan.register_function('rms_slope', rms_slope)
+NonuniformLineScan.register_function('rms_curvature', rms_curvature)
