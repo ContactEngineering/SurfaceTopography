@@ -33,6 +33,31 @@ import numpy as np
 
 # TODO: langfristig sollten alle ladefunktionen nur einmal implementiert werden, sowohl MPI und seriell-fähig
 
+class ReadFileError(Exception):
+    pass
+
+
+class UnknownFileFormatGiven(ReadFileError):
+    pass
+
+class CannotDetectFileFormat(ReadFileError):
+    """
+    Raised when no reader is able to read the file
+    """
+
+class FileFormatMismatch(ReadFileError):
+    """
+    Raised when the reader cannot interpret the file at all
+    (obvious for txt vs binary, but holds also for a header)
+    """
+    pass
+
+class CorruptFile(ReadFileError):
+    """
+    Raised when the reader identifies the file format as matching, but there is a mistake, for example the number of points doesn't match
+    """
+    pass
+
 # TODO: This piece of code is mpi dependent
 class MPITopographyLoader():
     def __init__(self, fn, comm, format = None):
@@ -135,9 +160,12 @@ class TopographyLoaderNPY:
             self.resolution = self.mpi_file.resolution
         else: # just use the functions from numpy
             self.file=open(fn, "rb")
-            version = read_magic(self.file)
-            _check_version(version)
-            self.resolution, fortran_order, self.dtype = _read_array_header(self.file, version)
+            try:
+                version = read_magic(self.file)
+                _check_version(version)
+                self.resolution, fortran_order, self.dtype = _read_array_header(self.file, version)
+            except ValueError:
+                raise CannotDetectFileFormat()
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the size
 
@@ -174,6 +202,11 @@ class TopographyLoaderNPY:
             return UniformNumpyTopography(profile=array,
                                           size=self.size, unit=self.unit)
 
+readers = {
+        "npy": TopographyLoaderNPY,
+        "h5": TopographyLoaderH5,
+    }
+
 def detect_format(fn, comm=None):
     """
     Detect file format based on its content.
@@ -183,11 +216,6 @@ def detect_format(fn, comm=None):
     comm : mpi communicator, optional
     """
 
-    readers = {
-        "npy": TopographyLoaderNPY,
-        "h5": TopographyLoaderH5,
-    }
-
     for name, reader in readers.items():
         try:
             if comm is not None:
@@ -196,8 +224,38 @@ def detect_format(fn, comm=None):
                 reader(fn)
             return name
         except :
-            pass
-    return None
+            CannotDetectFileFormat()
+
+def read(fn, format=None, comm=None):
+    """
+
+    Parameters
+    ----------
+    fn
+    format
+    comm
+
+    Returns
+    -------
+
+    """
+    if comm is not None:
+        kwargs = {"comm":comm}
+    else: kwargs= {}
+
+    if format is None:
+        for name, reader in readers.items():
+            try:
+                return reader(fn, **kwargs)
+            except:
+                pass
+            raise CannotDetectFileFormat()
+    else:
+        if format not in readers.keys():
+            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fn, readers.keys()))
+        return readers[format](fn, **kwargs)
+
+
 
 
 # TODO: Does this belong here ?
