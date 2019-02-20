@@ -37,7 +37,7 @@ import numpy as np
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 
-def checkerboard_tilt_correction(topography, sd, size=None):
+def checkerboard_detrend(topography, subdivisions):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -51,29 +51,30 @@ def checkerboard_tilt_correction(topography, sd, size=None):
     ----------
     topography : :obj:`Topography` or obj:`UniformLineScan`
         Container storing the uniform topography map
-    sd : tuple
+    subdivisions : tuple
         Number of subdivision per dimension, i.e. size of the checkerboard.
     size : tuple, optional
         Size of the topography specified in `arr`. If `arr` is a
         :obj:`Topography` then size will be obtained automatically.
+
     Returns
     -------
     arr : array
         Array with height information, tilt-corrected within each
         checkerboard.
     """
-    arr = topography.heights()
+    arr = topography.heights().copy()
     size = topography.size
     nb_dim = topography.dim
 
     # compute unique consecutive index for each subdivided region
-    region_coord = [np.arange(arr.shape[i])*sd[i]//arr.shape[i]
+    region_coord = [np.arange(arr.shape[i]) * subdivisions[i] // arr.shape[i]
                     for i in range(nb_dim)]
     if nb_dim > 1:
         region_coord = np.meshgrid(*region_coord, indexing='ij')
     region_index = region_coord[0]
     for i in range(1, nb_dim):
-        region_index = sd[i]*region_index + region_coord[i]
+        region_index = subdivisions[i] * region_index + region_coord[i]
 
     x_grids = (np.arange(arr.shape[i]) for i in range(nb_dim))
     if nb_dim > 1:
@@ -96,6 +97,43 @@ def checkerboard_tilt_correction(topography, sd, size=None):
     return arr
 
 
+def variable_bandwidth(topography, resolution_cutoff=4):
+    """
+    Perform a variable bandwidth analysis by computing the mean
+    root-mean-square height within increasingly finer subdivisions of the
+    surface topography.
+
+    Parameters
+    ----------
+    topography : :obj:`Topography` or obj:`UniformLineScan`
+        Container storing the uniform topography map
+    resolution_cutoff : int
+        Minimum resolution to allow for subdivision. The analysis will
+        automatically analyze subdivision down to this resolution.
+
+    Returns
+    -------
+    magnifications : array
+        Array containing the magnifications.
+    rms_heights : array
+        Array containing the rms height corresponding to the respective
+        magnification.
+    """
+    magnification = 1
+    min_size = np.min(topography.size)
+    subdivisions = np.round(topography.size/min_size).astype(int)
+    resolution = np.array(topography.resolution, dtype=int)
+    magnifications = []
+    rms_heights = []
+    while ((resolution // subdivisions).min() >= resolution_cutoff):
+        magnifications += [magnification]
+        rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
+        magnification *= 2
+        subdivisions *= 2
+    return np.array(magnifications), np.array(rms_heights)
+
+
 ### Register analysis functions from this module
 
-Topography.register_function('checkerboard_tilt_correction', checkerboard_tilt_correction)
+Topography.register_function('checkerboard_detrend', checkerboard_detrend)
+Topography.register_function('variable_bandwidth', variable_bandwidth)
