@@ -549,13 +549,10 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
     topography : UniformTopography or UniformLineScan
         The topography.
     """
-    resolution = np.asarray(resolution)
-    size = np.asarray(size)
-
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * min(resolution / size)
+        q_max = np.pi * np.min(np.asarray(resolution) / np.asarray(size))
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff

@@ -70,7 +70,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
         self._heights = heights
-        self._size = size
+        self._size = np.asarray(size).item()
         self._periodic = periodic
 
     def __getstate__(self):
@@ -374,7 +374,10 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
         return self.parent_topography.positions()
 
     def positions_and_heights(self):
-        return (*self.positions(), self.heights())
+        if self.dim == 1:
+            return self.positions(), self.heights()
+        else:
+            return (*self.positions(), self.heights())
 
     def squeeze(self):
         if self.dim == 1:
@@ -447,13 +450,16 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 self._coeffs = (self.parent_topography.mean(),)
             elif self._detrend_mode == 'height':
                 x, y = self.parent_topography.positions_and_heights()
-                self._coeffs = polyfit(x / self.parent_topography.size, y, 1)
+                a1, a0 = np.polyfit(x / self.parent_topography.size, y, 1)
+                self._coeffs = (a0, a1)
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative().mean()
-                self._coeffs = [self.parent_topography.mean(), sl]
+                sl = self.parent_topography.derivative(1).mean()
+                n, = self.resolution
+                s, = self.size
+                self._coeffs = [self.parent_topography.mean() - sl * s * (n - 1) / (2 * n), sl * s]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
-                self._coeffs = polyfit(x / self.parent_topography.size, y, 2)
+                self._coeffs = np.polyfit(x / self.parent_topography.size, y, 2)
             else:
                 raise ValueError("Unsupported detrend mode '{}' for line scans." \
                                  .format(self._detrend_mode))
@@ -517,7 +523,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             a0, = self._coeffs
             return self.parent_topography.heights() - a0
         elif self.dim == 1:
-            x = np.arange(n) / self.resolution[0]
+            x = np.arange(self.resolution[0]) / self.resolution[0]
             if len(self._coeffs) == 2:
                 a0, a1 = self._coeffs
                 return self.parent_topography.heights() - a0 - a1 * x
