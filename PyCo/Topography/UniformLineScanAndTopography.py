@@ -38,7 +38,7 @@ import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
-
+from .Nonuniform.Detrending import polyfit
 
 class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     """
