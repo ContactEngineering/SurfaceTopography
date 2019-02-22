@@ -200,7 +200,7 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
         h = self.heights()
         try:
             x, y = p
-            return x, y, p
+            return x, y, h
         except ValueError:
             return p, h
 

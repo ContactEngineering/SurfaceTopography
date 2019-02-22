@@ -111,7 +111,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
+        return (self.size[0]/ self.resolution[0],)
 
     @property
     def area_per_pt(self):
@@ -373,9 +373,6 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def positions(self):
         return self.parent_topography.positions()
 
-    def positions_and_heights(self):
-        return (*self.positions(), self.heights())
-
     def squeeze(self):
         if self.dim == 1:
             return UniformLineScan(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
@@ -449,7 +446,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 x, y = self.parent_topography.positions_and_heights()
                 self._coeffs = polyfit(x / self.parent_topography.size, y, 1)
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative().mean()
+                sl = self.parent_topography.derivative(1).mean()
                 self._coeffs = [self.parent_topography.mean(), sl]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
@@ -517,7 +514,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             a0, = self._coeffs
             return self.parent_topography.heights() - a0
         elif self.dim == 1:
-            x = np.arange(n) / self.resolution[0]
+            x = np.arange(self.resolution[0]) / self.resolution[0]
             if len(self._coeffs) == 2:
                 a0, a1 = self._coeffs
                 return self.parent_topography.heights() - a0 - a1 * x
