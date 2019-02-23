@@ -63,7 +63,8 @@ class AbstractHeightContainer(object):
         if name in self._functions:
             return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
         else:
-            raise AttributeError("Unkown attribute '{}' and no so-called function registered.".format(name))
+            raise AttributeError("Unkown attribute '{}' and no analysis function of this name registered (class {})."
+                                 .format(name, self.__class__.__name__))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
