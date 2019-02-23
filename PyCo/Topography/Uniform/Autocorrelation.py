@@ -35,6 +35,7 @@
 import numpy as np
 
 from ..common import radial_average
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 
 def autocorrelation_1D(topography):
@@ -189,3 +190,11 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         return r_val[n > 0], A_val[n > 0], A_xy
     else:
         return r_val[n > 0], A_val[n > 0]
+
+
+### Register analysis functions from this module
+
+Topography.register_function('autocorrelation_1D', autocorrelation_1D)
+Topography.register_function('autocorrelation_2D', autocorrelation_2D)
+
+UniformLineScan.register_function('autocorrelation_1D', autocorrelation_1D)
