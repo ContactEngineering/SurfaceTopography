@@ -451,7 +451,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif self._detrend_mode == 'height':
                 x, y = self.parent_topography.positions_and_heights()
                 a1, a0 = np.polyfit(x / self.parent_topography.size, y, 1)
-                self._coeffs = (a0, a1)
+                self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
                 sl = self.parent_topography.derivative(1).mean()
                 n, = self.resolution
@@ -459,7 +459,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 self._coeffs = [self.parent_topography.mean() - sl * s * (n - 1) / (2 * n), sl * s]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
-                self._coeffs = np.polyfit(x / self.parent_topography.size, y, 2)
+                a2, a1, a0 = np.polyfit(x / self.parent_topography.size, y, 2)
+                self._coeffs = a0, a1, a2
             else:
                 raise ValueError("Unsupported detrend mode '{}' for line scans." \
                                  .format(self._detrend_mode))
