@@ -57,7 +57,7 @@ def rms_height(topography, kind='Rq'):
 
     Parameters
     ----------
-    topography : NonuniformLineScan
+    topography : :obj:`NonuniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -92,7 +92,7 @@ def rms_slope(topography):
 
     Parameters
     ----------
-    topography : NonuniformLineScan
+    topography : :obj:`NonuniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -114,7 +114,7 @@ def rms_curvature(topography):
 
     Parameters
     ----------
-    topography : NonuniformLineScan
+    topography : :obj:`NonuniformLineScan`
         Topography object containing height information.
 
     Returns

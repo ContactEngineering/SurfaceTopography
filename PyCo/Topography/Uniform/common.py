@@ -57,7 +57,7 @@ def derivative(topography, n):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
     n : int
         Number of times the derivative is taken.

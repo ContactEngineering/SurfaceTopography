@@ -49,7 +49,7 @@ def checkerboard_detrend(topography, subdivisions):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or obj:`UniformLineScan`
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     subdivisions : tuple
         Number of subdivision per dimension, i.e. size of the checkerboard.
@@ -131,7 +131,7 @@ def variable_bandwidth(topography, resolution_cutoff=4):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or obj:`UniformLineScan`
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     resolution_cutoff : int
         Minimum resolution to allow for subdivision. The analysis will
