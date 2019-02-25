@@ -53,9 +53,6 @@ def checkerboard_detrend(topography, subdivisions):
         Container storing the uniform topography map
     subdivisions : tuple
         Number of subdivision per dimension, i.e. size of the checkerboard.
-    size : tuple, optional
-        Size of the topography specified in `arr`. If `arr` is a
-        :obj:`Topography` then size will be obtained automatically.
 
     Returns
     -------
