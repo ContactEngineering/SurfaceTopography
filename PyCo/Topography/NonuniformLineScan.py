@@ -37,7 +37,6 @@ import abc
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
-from .UniformLineScanAndTopography import UniformlyInterpolatedLineScan
 from .Nonuniform.Detrending import polyfit
 
 
@@ -93,7 +92,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     @property
     def resolution(self):
-        return len(self._x)
+        return len(self._x),
 
     @property
     def x_range(self):
@@ -114,6 +113,10 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
     @property
     def dim(self):
         return self.parent_topography.dim
+
+    @property
+    def resolution(self):
+        return self.parent_topography.resolution
 
     @property
     def size(self):
@@ -282,4 +285,3 @@ NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(
 
 NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
 NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
-NonuniformLineScan.register_function('interpolate', UniformlyInterpolatedLineScan)

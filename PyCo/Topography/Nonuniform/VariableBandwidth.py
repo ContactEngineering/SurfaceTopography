@@ -63,9 +63,9 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
         List with new, subdivided and detrended line scans.
     """
     if subdivisions == 1:
-        return [line_scan]
+        return [line_scan.detrend()]
 
-    x, z = line_scan.positions_and_heights()
+    x, y = line_scan.positions_and_heights()
 
     subdivided_line_scans = []
     for i in range(subdivisions):
@@ -99,8 +99,9 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
             sub_x = np.append(sub_x, [sub_xright])
             sub_y = np.append(sub_y, [sub_yright])
 
-        subdivided_line_scans += [NonuniformLineScan(x, y, info=line_scan.info).detrend()]
+        subdivided_line_scans += [NonuniformLineScan(sub_x, sub_y, info=line_scan.info).detrend()]
 
+    return subdivided_line_scans
 
 def variable_bandwidth(line_scan, resolution_cutoff=4):
     """
@@ -125,14 +126,14 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
         magnification.
     """
     magnification = 1
-    min_resolution = line_scan.resolution
+    min_resolution, = line_scan.resolution
     magnifications = []
     rms_heights = []
     while min_resolution >= resolution_cutoff:
         subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
-        min_resolution = min([l.resolution for l in subdivided_line_scans])
+        min_resolution = min([l.resolution[0] for l in subdivided_line_scans])
         magnifications += [magnification]
-        rms_heights += [np.mean(l.rms_height() for l in subdivided_line_scans)]
+        rms_heights += [np.mean([l.rms_height() for l in subdivided_line_scans])]
         magnification *= 2
     return np.array(magnifications), np.array(rms_heights)
 
