@@ -92,6 +92,10 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     # Implement uniform line scan interface
 
     @property
+    def resolution(self):
+        return len(self._x)
+
+    @property
     def x_range(self):
         return self._x[0], self._x[-1]
 

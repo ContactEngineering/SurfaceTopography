@@ -216,6 +216,11 @@ class NonuniformLineScanInterface(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def resolution(self):
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
     def x_range(self):
         raise NotImplementedError
 
