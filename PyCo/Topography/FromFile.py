@@ -33,14 +33,17 @@ SOFTWARE.
 """
 
 import os
+import io
 import re
 import xml.etree.ElementTree as ElementTree
+from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
 
 import numpy as np
 
-from .TopographyDescription import NonuniformTopography, UniformNumpyTopography, ScaledTopography
+from .UniformLineScanAndTopography import Topography
+from .NonuniformLineScan import NonuniformLineScan
 
 ###
 
@@ -49,6 +52,62 @@ voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
 
+###
+
+def binary(func):
+    def func_wrapper(fobj, *args, **kwargs):
+        close_file = False
+        if not hasattr(fobj, 'read'):
+            fobj = open(fobj, 'rb')
+            close_file = True
+        retvals = func(fobj, *args, **kwargs)
+        if close_file:
+            fobj.close()
+        return retvals
+
+    return func_wrapper
+
+
+def text(func):
+    def func_wrapper(fobj, *args, **kwargs):
+        close_file = False
+        if not hasattr(fobj, 'read'):
+            fobj = open(fobj, 'r')
+            fobj_text = fobj
+            close_file = True
+        elif is_binary_stream(fobj):
+            fobj_text = TextIOWrapper(fobj)
+        else:
+            fobj_text = fobj
+
+        try:
+            retvals = func(fobj_text, *args, **kwargs)
+        except:
+            # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
+            # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
+            # exception. We need to detach the TextIOWrapper before exiting.
+            if is_binary_stream(fobj):
+                fobj_text.detach()
+            raise
+
+        if is_binary_stream(fobj):
+            fobj_text.detach()
+            fobj_text = fobj
+        if close_file:
+            fobj_text.close()
+        return retvals
+
+    return func_wrapper
+
+def is_binary_stream(fobj):
+    """
+
+    :param fobj:
+    :return:
+    """
+    return isinstance(fobj, io.BytesIO) or (hasattr(fobj, 'mode') and 'b' in fobj.mode)
+
+###
 
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
@@ -80,6 +139,7 @@ def mangle_height_unit(unit):
         return unit
 
 
+@text
 def read_matrix(fobj, size=None, factor=None):
     """
     Reads a surface profile from a text file and presents in in a
@@ -89,45 +149,30 @@ def read_matrix(fobj, size=None, factor=None):
     Keyword Arguments:
     fobj -- filename or file object
     """
-    if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            zfobj = fobj + ".gz"
-            if os.path.isfile(zfobj):
-                fobj = zfobj
-            else:
-                raise FileNotFoundError(
-                    "No such file or directory: '{}(.gz)'".format(
-                        fobj))
-    surface = UniformNumpyTopography(np.loadtxt(fobj), size=size)
+    arr = np.loadtxt(fobj)
+    if size is None:
+        surface = Topography(arr, arr.shape)
+    else:
+        surface = Topography(arr, size)
     if factor is not None:
-        surface = ScaledTopography(surface, factor)
+        surface = surface.scale(factor)
     return surface
 
 
-NumpyTxtSurface = read_matrix  # pylint: disable=invalid-name
-
-
-def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
+@text
+def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
     surface-conformant manner. Applies some heuristic to extract
-    meta-information for different file formats. All units of the returned
-    surface are in meters.
+    meta-information for different file formats.
 
     Keyword Arguments:
-    fobj -- filename or file object
+    fobj_in -- filename or file object
     unit -- name of surface units, one of m, mm, μm/um, nm, A
     x_factor -- multiplication factor for size
     z_factor -- multiplication factor for height
     """
-
-    if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            raise FileNotFoundError(
-                "No such file or directory: '{}(.gz)'".format(fobj))
-        fname = fobj
-        fobj = open(fname)
 
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
@@ -197,15 +242,15 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
                 zunit = mangle_height_unit(match.group('unit'))
 
     data = []
-    with fobj as file_handle:
-        for line in file_handle:
-            line_elements = line.strip().split()
-            if len(line) > 0:
-                try:
-                    dummy = float(line_elements[0])
-                    data += [[float(strval) for strval in line_elements]]
-                except ValueError:
-                    process_comment(line)
+    for line in fobj:
+        line_elements = line.strip().split()
+        if len(line) > 0:
+            try:
+                dummy = float(line_elements[0])
+                data += [[float(strval) for strval in line_elements]]
+            except ValueError:
+                process_comment(line)
+
     data = np.array(data)
     nx, ny = data.shape
     if nx == 2 or ny == 2:
@@ -214,11 +259,11 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
         raise Exception(
             "The number of rows (={}) read from the file '{}' does "
             "not match the resolution in the file's metadata (={})."
-                .format(nx, fname, xres))
+                .format(nx, fobj, xres))
     if yres is not None and yres != ny:
         raise Exception("The number of columns (={}) read from the file '{}' "
                         "does not match the resolution in the file's metadata "
-                        "(={}).".format(ny, fname, yres))
+                        "(={}).".format(ny, fobj, yres))
 
     # Handle scale factors
     if xfac is not None and yfac is None:
@@ -256,40 +301,40 @@ def read_asc(fobj, unit=None, x_factor=1.0, z_factor=1.0):
             zfac *= height_units[zunit] / height_units[unit]
 
     if xsiz is None or ysiz is None:
-        surface = UniformNumpyTopography(data, unit=unit)
+        if size is None:
+            surface = Topography(data, data.shape, info=dict(unit=unit))
+        else:
+            surface = Topography(data, size, info=dict(unit=unit))
     else:
-        surface = UniformNumpyTopography(data, size=(x_factor * xsiz, x_factor * ysiz),
-                                         unit=unit)
-    surface = ScaledTopography(surface, zfac)
+        surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
+    surface = surface.scale(zfac)
     return surface
 
 
-NumpyAscSurface = read_asc  # pylint: disable=invalid-name
-
-
+@text
 def read_xyz(fobj, unit=None):
     """
-    Load xyz-file
-    TODO: LARS_DOC
-    Keyword Arguments:
-    fobj -- filename or file object
+    Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
+
+    Parameters
+    ----------
+    fobj : str or file object
+         File name or stream.
+
+    Returns
+    -------
+    topography : Topography
+        Topography object.
     """
     # pylint: disable=invalid-name
-
-    if not hasattr(fobj, 'read'):
-        if not os.path.isfile(fobj):
-            raise FileNotFoundError(
-                "No such file or directory: '{}(.gz)'".format(fobj))
-        fname = fobj
-        fobj = open(fname)
-
     data = np.loadtxt(fobj, unpack=True)
+
     if len(data) == 2:
         # This is a line scan.
         x, z = data
         x -= np.min(x)
 
-        return NonuniformTopography(x, z, size=np.max(x), unit=unit)
+        return NonuniformLineScan(x, z, info=dict(unit=unit))
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
@@ -317,7 +362,7 @@ def read_xyz(fobj, unit=None):
         value_present[binx, biny] = True
         assert np.all(value_present) # FIXME: Turn assert into exception
 
-        return UniformNumpyTopography(data, size=(dx * nx, dy * ny), unit=unit)
+        return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
 
@@ -393,7 +438,7 @@ def read_x3p(fobj):
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
 
-    return UniformNumpyTopography(data, size=(xinc * nx, yinc * ny))
+    return Topography(data, (xinc * nx, yinc * ny))
 
 
 def read_mat(fobj, size=None, factor=None, unit=None):
@@ -420,9 +465,12 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         except (AttributeError, ValueError):
             pass
         if is_2darray:
-            surface = UniformNumpyTopography(value, size=size, unit=unit)
+            if size is None:
+                surface = Topography(value, value.shape, info=dict(unit=unit))
+            else:
+                surface = Topography(value, size, info=dict(unit=unit))
             if factor is not None:
-                surface = ScaledTopography(surface, factor)
+                surface = surface.scale(factor)
             surfaces += [surface]
     if len(surfaces) == 1:
         return surfaces[0]
@@ -430,6 +478,7 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         return surfaces
 
 
+@binary
 def read_opd(fobj):
     """
     Load Wyko Vision OPD file.
@@ -446,11 +495,6 @@ def read_opd(fobj):
         blkname = fobj.read(16).split(b'\0', 1)[0].decode('latin-1')
         blktype, blklen, blkattr = unpack('<hlH', fobj.read(8))
         return blkname, blktype, blklen, blkattr
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
 
     # Header
     tmp = fobj.read(2)
@@ -505,19 +549,16 @@ def read_opd(fobj):
         else:
             fobj.read(l)
 
-    if close_file:
-        fobj.close()
-
     if data is None:
         raise IOError('No data block encountered.')
 
     # Height are in nm, width in mm
-    surface = UniformNumpyTopography(data, size=(nx * pixel_size, ny * pixel_size * aspect),
-                                     unit='mm')
-    surface = ScaledTopography(surface, wavelength / mult * 1e-6)
+    surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
+    surface = surface.scale(wavelength / mult * 1e-6)
     return surface
 
 
+@binary
 def read_di(fobj):
     """
     Load Digital Instrument's Nanoscope files.
@@ -527,11 +568,6 @@ def read_di(fobj):
     Keyword Arguments:
     fobj -- filename or file object
     """
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
 
     parameters = []
     section_name = None
@@ -623,13 +659,10 @@ def read_di(fobj):
             else:
                 unit = (xy_unit, height_unit)
 
-            surface = UniformNumpyTopography(unscaleddata.T, size=(sx, sy), unit=unit)
+            surface = Topography(unscaleddata.T, (sx, sy), info=dict(unit=unit))
             surface.info.update(dict(data_source=image_data_key))
-            surface = ScaledTopography(surface, hard_scale * hard_to_soft * soft_scale)
+            surface = surface.scale(hard_scale * hard_to_soft * soft_scale)
             surfaces += [surface]
-
-    if close_file:
-        fobj.close()
 
     if len(surfaces) == 1:
         return surfaces[0]
@@ -637,6 +670,7 @@ def read_di(fobj):
         return surfaces
 
 
+@binary
 def read_ibw(fobj):
     """
     Read IGOR Binary Wave files.
@@ -646,15 +680,7 @@ def read_ibw(fobj):
     """
     from igor.binarywave import load
 
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
-
     wave = load(fobj)['wave']
-
-    if close_file:
-        fobj.close()
 
     channel = 0
     data = wave['wData'][:, :, channel].copy()
@@ -666,12 +692,13 @@ def read_ibw(fobj):
     sfA = wave['wave_header']['sfA']
     nx, ny = data.shape
 
-    surface = UniformNumpyTopography(data, size=(nx * sfA[0], ny * sfA[1]), unit=z_unit)
+    surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
 
 
-def read_hgt(fobj):
+@binary
+def read_hgt(fobj, size=None):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
     (.hgt extension).
@@ -679,11 +706,6 @@ def read_hgt(fobj):
     Keyword Arguments:
     fobj -- filename or file object
     """
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        fobj = open(fobj, 'rb')
-        close_file = True
-
     fobj.seek(0, 2)
     fsize = fobj.tell()
     fobj.seek(0)
@@ -696,24 +718,44 @@ def read_hgt(fobj):
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 
-    if close_file:
-        fobj.close()
+    if size is None:
+        return Topography(data, data.shape)
+    else:
+        return Topography(data, size)
 
-    return UniformNumpyTopography(data)
 
+def read_h5(fobj, size=None):
+    """
+    HDF5 data format from the Contact Mechanics Challenge.
 
-def read_h5(fobj):
+    Parameters
+    ----------
+    fobj : str or file object
+        File name or stream.
+
+    Returns
+    -------
+    topography : Topography
+        Topography object.
+    """
     import h5py
     h5 = h5py.File(fobj)
-    return UniformNumpyTopography(h5['surface'][...])
+    data = h5['surface'][...]
+    if size is None:
+        return Topography(data, size)
+    else:
+        return Topography(data, data.shape)
 
 
 def detect_format(fobj):
     """
     Detect file format based on its content.
 
-    Keyword Arguments:
-    fobj -- filename or file object
+    Parameters
+    ----------
+    fobj : string or file object
+        File name or open stream. Note that the stream should be opened as
+        binary, otherwise the binary formats will not be detected.
     """
 
     close_file = False
@@ -725,6 +767,7 @@ def detect_format(fobj):
         except:
             pass
 
+        fname = fobj
         fobj = open(fobj, 'rb')
         close_file = True
 
@@ -734,71 +777,77 @@ def detect_format(fobj):
     fobj.seek(file_pos)
 
     # Check for magic string
-    if magic.startswith(b'\*File list'):
-        if close_file:
-            fobj.close()
-        return 'di'
-    elif magic.startswith(b'\001\000Directory'):
-        if close_file:
-            fobj.close()
-        return 'opd'
-    else:
-        # Try opening at matlab and see if it fails
-        try:
-            from scipy.io import loadmat
-            loadmat(fobj)
+    if is_binary_stream(fobj):
+        if magic.startswith(b'\*File list'):
             if close_file:
                 fobj.close()
-            else:
-                fobj.seek(file_pos)
-            return 'mat'
-        except:
-            pass
+            return 'di'
+        elif magic.startswith(b'\001\000Directory'):
+            if close_file:
+                fobj.close()
+            return 'opd'
+        else:
+            # Try opening at matlab and see if it fails
+            try:
+                from scipy.io import loadmat
+                loadmat(fobj)
+                if close_file:
+                    fobj.close()
+                else:
+                    fobj.seek(file_pos)
+                return 'mat'
+            except:
+                pass
 
-        # Try opening zip and see if it fails
-        try:
-            with ZipFile(fobj, 'r') as zipfile:
-                if 'main.xml' in zipfile.namelist():
-                    if close_file:
-                        fobj.close()
-                    else:
-                        fobj.seek(file_pos)
-                    return 'x3p'
-        except:
-            pass
+            # Try opening zip and see if it fails
+            try:
+                with ZipFile(fobj, 'r') as zipfile:
+                    if 'main.xml' in zipfile.namelist():
+                        if close_file:
+                            fobj.close()
+                        else:
+                            fobj.seek(file_pos)
+                        return 'x3p'
+            except:
+                pass
 
-        # Try opening igor binary wave and see if it fails
+            # Try opening igor binary wave and see if it fails
+            fobj.seek(file_pos)
+            import igor.binarywave as ibw
+            try:
+                ibw.load(fobj)
+                if close_file:
+                    fobj.close()
+                else:
+                    fobj.seek(file_pos)
+                return 'ibw'
+            except:
+                pass
+
+    # Finally, this could be a line scan in text format
+    try:
         fobj.seek(file_pos)
-        import igor.binarywave as ibw
-        try:
-            ibw.load(fobj)
-            if close_file:
-                fobj.close()
-            else:
-                fobj.seek(file_pos)
-            return 'ibw'
-        except:
-            pass
-
-        # Finally, this could be a line scan in text format
-        try:
-            read_xyz(fobj)
-            return 'xyz'
-        except:
-            pass
-
+        read_xyz(fobj)
         if close_file:
             fobj.close()
         else:
             fobj.seek(file_pos)
-        return None
+        return 'xyz'
+    except:
+        pass
+
+    if close_file:
+        fobj.close()
+    else:
+        fobj.seek(file_pos)
+    return None
 
 
 def read(fobj, format=None):
     if format is None:
-        format = 'asc'
-        if not hasattr(fobj, 'read'):
-            format = os.path.splitext(fobj)[-1][1:]
+        format = detect_format(fobj)
+        if format is None:
+            format = 'asc'
 
     readers = {'di': read_di,
                'h5': read_h5,
