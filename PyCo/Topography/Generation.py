@@ -505,6 +505,7 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
 
 def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
+                      amplitude_distribution=lambda n: np.random.normal(size=n),
                       rfn=None, kfn=None, progress_callback=None):
     r"""
     Create a self-affine, randomly rough surface using a Fourier filtering
@@ -533,6 +534,9 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
         cutoff. This multiplies the value at the cutoff, i.e. unit will give a
         PSD that is flat below the cutoff, zero will give a PSD that is vanishes
         below cutoff. (Default: 1.0)
+    amplitude_distribution : function
+        Function that generates the distribution of amplitudes.
+        (Default: np.random.normal)
     rfn : str
         Name of file that stores the real-space array. If specified, real-space
         array will be created as a memory mapped file. This is useful for
@@ -598,7 +602,7 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
         if x == 0:
             q_sq[0] = 1.
         phase = np.exp(2 * np.pi * np.random.rand(kny) * 1j)
-        ran = fac * phase * np.random.normal(size=kny)
+        ran = fac * phase * amplitude_distribution(kny)
         if len(resolution) == 2:
             karr[x, :] = ran * q_sq ** (-(1 + Hurst) / 2)
             karr[x, q_sq > q_max ** 2] = 0.
