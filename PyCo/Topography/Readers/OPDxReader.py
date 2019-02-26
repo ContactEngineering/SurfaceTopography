@@ -2,8 +2,6 @@ import numpy as np
 
 from PyCo.Topography.ParallelFromFile import TopographyLoader
 
-# filePath = "../../../tests/file_format_examples/example5.OPDx"
-
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 # MAGIC = "0x560x430x410x200x440x410x540x410x10x00x00x55"
@@ -218,7 +216,7 @@ def find_2d_data(hash_table, buf):
             row = []
             for point in range(xres):
                 value, pos = read_float(data, pos)
-                row.append(value)
+                row.append(value*q)
             rawdata.append(np.array(row))
 
         rawdata = np.array(rawdata)
