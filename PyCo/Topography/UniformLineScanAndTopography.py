@@ -110,6 +110,10 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         return len(self._heights),
 
     @property
+    def is_MPI(self):
+        return False
+
+    @property
     def pixel_size(self):
         return (self.size[0]/ self.resolution[0],)
 
@@ -250,11 +254,14 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             Physical size of the topography map
         periodic : bool
             Flag setting the periodicity of the surface
-        1.
+
+        Examples for initialisation:
+        ----------------------------
+        1. Serial code
         >>>Topography(heights, size, [periodic, info])
-        2.
+        2. Parallel code, providing local data
         >>>Topography(heights, size, subdomain_location, resolution, pnp, [periodic, info])
-        3.
+        3. Parallel code, providing full data
         >>>Topography(heights, size, subdomain_location, subdomain_resolution, [periodic, info])
         """
         heights = np.asanyarray(heights)
@@ -297,6 +304,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = size
         self._periodic = periodic
+        self.pnp = pnp if pnp is not None else np
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, \
@@ -321,10 +329,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     @property
     def is_uniform(self):
         return True
-
-    @property
-    def is_MPI(self):
-        return self.resolution != self.subdomain_resolution
 
     @property
     def size(self):
@@ -398,6 +402,10 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     @property
     def has_undefined_data(self):
         return self.parent_topography.has_undefined_data
+
+    @property
+    def is_MPI(self):
+        return False
 
     @property
     def is_periodic(self):
