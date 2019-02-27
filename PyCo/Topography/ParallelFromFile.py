@@ -25,7 +25,7 @@ except:
 if _with_mpi:
     import MPITools.FileIO #TODO: MPITools should provide the same interface with and without mpi4py
 
-from PyCo.Topography import UniformNumpyTopography
+from PyCo.Topography import Topography
 
 import abc
 from numpy.lib.format import read_magic, _read_array_header, _check_version
@@ -94,22 +94,21 @@ class MPITopographyLoader():
         Topography
         """
         # TODO: Are sometimes the Units Stored?
-        return UniformNumpyTopography(
-            profile=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
+        return Topography(
+            heights=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
                                        subdomain_resolution=substrate.topography_subdomain_resolution),
             subdomain_location=substrate.topography_subdomain_location,
             resolution=substrate.resolution,
-            pnp=substrate.pnp
-                                    )
+            pnp=substrate.pnp,
+            size=self.size  )
 
 class TopographyLoader(metaclass=abc.ABCMeta):
-    def __init__(self, size=None, unit=None, info=None):
+    def __init__(self, size=None,  info=None):
         """
         reads the metadata out of the file
         """
         self.size = size  # will stay None if the file doesn't provide the information.
-        self.unit = unit
-        self._info = info
+        self.info = info
 
     @abc.abstractmethod
     def topography(self):
@@ -123,8 +122,8 @@ class TopographyLoader(metaclass=abc.ABCMeta):
 
 
 class TopographyLoaderH5(TopographyLoader):
-    def __init__(self, fobj, size=None, unit=None, info=None):
-        super().__init__(size, unit, info)
+    def __init__(self, fobj, size=None, info=None):
+        super().__init__(size, info)
 
         # TODO: extract size etc. from the file ? If size provided as argument,
         #  check if it's the same then provided by the file ?
@@ -132,7 +131,7 @@ class TopographyLoaderH5(TopographyLoader):
         self._h5 = h5py.File(fobj)
 
     def topography(self):
-        return UniformNumpyTopography(self._h5['surface'][...])
+        return Topography(self._h5['surface'][...], size= self.size)
 
 
 class TopographyLoaderNPY:
@@ -149,8 +148,7 @@ class TopographyLoaderNPY:
         comm: MPI communicator
         """
         self.size = None  # will stay None if the file doesn't provide the information.
-        self.unit = None
-        self._info={}
+        self.info={}
 
         if _with_mpi: # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
             if comm is None:
@@ -186,21 +184,21 @@ class TopographyLoaderNPY:
             if ( substrate is None ):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
 
-            return UniformNumpyTopography(
-                profile=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
+            return Topography(
+                heights=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
                                            subdomain_resolution=substrate.topography_subdomain_resolution),
                 subdomain_location=substrate.topography_subdomain_location,
                 resolution=substrate.resolution,
                 pnp=substrate.pnp,
-                size=self.size, unit=self.unit )
+                size=self.size,
+                info =self.info)
 
         else:
             array = np.fromfile(self.file, dtype=self.dtype,
                     count=np.multiply.reduce(self.resolution, dtype=np.int64))
             array.shape = self.resolution
             self.file.close() # TODO: Or make this in the destructor ?
-            return UniformNumpyTopography(profile=array,
-                                          size=self.size, unit=self.unit)
+            return Topography(heights=array, size=self.size)
 
 readers = {
         "npy": TopographyLoaderNPY,
@@ -260,5 +258,5 @@ def read(fn, format=None, comm=None):
 
 # TODO: Does this belong here ?
 def save_npy(fn, topography):
-    MPITools.FileIO.save_npy(fn=fn, data=topography.array(), subdomain_location=topography.subdomain_location,
+    MPITools.FileIO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
                        resolution=topography.subdomain_resolution, comm=topography.comm)
