@@ -37,9 +37,9 @@ import numpy as np
 from ..NonuniformLineScan import NonuniformLineScan
 
 
-def autocorrelation_1D(line_scan, distances=None):
+def _bare_autocorrelation_1D(line_scan, distances=None):
     r"""
-    Compute the one-dimensional height-difference autocorrelation function
+    Compute the one-dimensional height-height autocorrelation function
     (ACF).
 
     This function treats the nonuniform line scan as a piece-wise function of
@@ -75,7 +75,7 @@ def autocorrelation_1D(line_scan, distances=None):
     for k in range(len(distances)):
         d = distances[k]
         for i in range(len(x)-1):
-            for j in range(i, len(x)-1):
+            for j in range(0, len(x)-1):
                 # Determine lower and upper distance between segment i, i+1 and
                 # segment j, j+1
                 x1 = x[i]
@@ -93,13 +93,37 @@ def autocorrelation_1D(line_scan, distances=None):
                 if db > 0:
                     # f1[x_] := (h1 + s1*(x - x1))
                     # f2[x_] := (h2 + s2*(x - x2))
-                    # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db/2, b + db/2}]]
-                    # = f1[b] * f2[b + d] * db + s1 * s2 * db**3 / 12
+                    # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]]
+                    #   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
                     A[k] += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + d - x2)) * db + 2 * (s1 * s2 * db ** 3) / 3.
-    #d = size - np.abs(distances)
-    #d[d == 0] = 1.
-    #A /= d
     return distances, A
+
+def autocorrelation_1D(line_scan, distances=None):
+    r"""
+    Compute the one-dimensional height-difference autocorrelation function
+    (ACF).
+
+    This function treats the nonuniform line scan as a piece-wise function of
+    straight lines between the data points. The ACF is computed exactly for
+    this piece-wise linear interpolation of the data.
+
+    Parameters
+    ----------
+    line_scan : :obj:`NonuniformLineScan`
+        Container storing the nonuniform line scan.
+    r : array_like
+        Array containing distances for which to compute the ACF. If no array
+        is given, the function will automatically construct an array with
+        equally spaced distances. (Default: None)
+
+    Returns
+    -------
+    distances : array
+        Distances. (Units: length)
+    A : array
+        Autocorrelation function. (Units: length**2)
+    """
+    return _bare_autocorrelation_1D(line_scan, distances=distances)
 
 ### Register analysis functions from this module
 
