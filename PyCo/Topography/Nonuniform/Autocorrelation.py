@@ -37,13 +37,18 @@ import numpy as np
 from ..NonuniformLineScan import NonuniformLineScan
 
 
-def autocorrelation_1D(topography, distances=None):
+def autocorrelation_1D(line_scan, distances=None):
     r"""
-    Compute the one-dimensional height-difference autocorrelation function (ACF).
+    Compute the one-dimensional height-difference autocorrelation function
+    (ACF).
+
+    This function treats the nonuniform line scan as a piece-wise function of
+    straight lines between the data points. The ACF is computed exactly for
+    this piece-wise linear interpolation of the data.
 
     Parameters
     ----------
-    topography : :obj:`NonuniformLineScan`
+    line_scan : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     r : array_like
         Array containing distances for which to compute the ACF. If no array
@@ -57,26 +62,43 @@ def autocorrelation_1D(topography, distances=None):
     A : array
         Autocorrelation function. (Units: length**2)
     """
+    size, = line_scan.size
     if distances is None:
         # FIXME!!! We need a better heuristics to decide on the distances
-        r = np.linspace(0, topography.x_range, topography.resolution)
+        res, = line_scan.resolution
+        distances = np.linspace(0, size, res)
     A = np.zeros_like(distances)
 
-    x, y = topograhy.positions_and_heights()
-    s = topography.derivative(1)
+    x, h = line_scan.positions_and_heights()
+    s = line_scan.derivative(1)
+    # FIXME!!! This is slow
     for k in range(len(distances)):
         d = distances[k]
         for i in range(len(x)-1):
-            for j in range(i+1, len(x)-1):
+            for j in range(i, len(x)-1):
                 # Determine lower and upper distance between segment i, i+1 and
                 # segment j, j+1
-                lower_d = max(x[i], x[j]-d)
-                upper_d = min(x[i+1], x[j+1]-d)
-                acf = ((y[j] + s[j] * (upper_d + d - x[j]) - x[i] - s[i] * (upper_d - x[i])) ** 3 - (
-                            y[j] + s[j] * (lower_d + d - x[j]) - x[i] - s[i] * (lower_d - x[i])) ** 3) / (
-                                  6 * (s[j] - s[i]))
-                A[k] += acf
-    A /= topography.x_range - distances
+                x1 = x[i]
+                x2 = x[j]
+                h1 = h[i]
+                h2 = h[j]
+                s1 = s[i]
+                s2 = s[j]
+                #if x1 > x2:
+                #    x1, x2, h1, h2, s1, s2 = x2, x1, h2, h1, s2, s1
+                b1 = max(x1, x2 - d)
+                b2 = min(x[i + 1], x[j + 1] - d)
+                b = (b1 + b2)/2
+                db = (b2 - b1)/2
+                if db > 0:
+                    # f1[x_] := (h1 + s1*(x - x1))
+                    # f2[x_] := (h2 + s2*(x - x2))
+                    # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db/2, b + db/2}]]
+                    # = f1[b] * f2[b + d] * db + s1 * s2 * db**3 / 12
+                    A[k] += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + d - x2)) * db + 2 * (s1 * s2 * db ** 3) / 3.
+    #d = size - np.abs(distances)
+    #d[d == 0] = 1.
+    #A /= d
     return distances, A
 
 ### Register analysis functions from this module

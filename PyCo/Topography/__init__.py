@@ -46,6 +46,7 @@ import PyCo.Topography.Uniform.PowerSpectrum
 import PyCo.Topography.Uniform.ScalarParameters
 import PyCo.Topography.Uniform.VariableBandwidth
 import PyCo.Topography.Nonuniform.common
+import PyCo.Topography.Nonuniform.Autocorrelation
 import PyCo.Topography.Nonuniform.ScalarParameters
 import PyCo.Topography.Nonuniform.PowerSpectrum
 import PyCo.Topography.Nonuniform.VariableBandwidth
