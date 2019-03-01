@@ -37,7 +37,7 @@ import numpy as np
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False):
+def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, subdomain_resolution = None, subdomain_location = None, pnp=None):
     """
     Simple shere geometry.
 
@@ -98,7 +98,8 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     if dim == 1:
         return UniformLineScan(h, size)
     else:
-        return Topography(h, size)
+        return Topography(h, size, subdomain_resolution= subdomain_resolution,
+                          subdomain_location=subdomain_location, pnp=pnp)
 
 
 class PlasticTopography(DecoratedUniformTopography):
