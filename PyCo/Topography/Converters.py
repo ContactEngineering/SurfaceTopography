@@ -80,7 +80,8 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
     @property
     def x_range(self):
         s, = self.parent_topography.size
-        return 0, s
+        p, = self.parent_topography.pixel_size
+        return 0, s - p
 
     def positions(self):
         """
