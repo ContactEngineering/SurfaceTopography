@@ -37,7 +37,7 @@ import numpy as np
 from ..NonuniformLineScan import NonuniformLineScan
 
 
-def rms_height(topography, kind='Rq'):
+def rms_height(topography, kind='Rq', range=None, tol=1e-6):
     r"""
     Computes root-mean square height fluctuation of the line scan:
 
@@ -59,21 +59,52 @@ def rms_height(topography, kind='Rq'):
     ----------
     topography : :obj:`NonuniformLineScan`
         Topography object containing height information.
+    kind : str
+        For compatibility with uniform topographies that have different ways
+        of computing the rms height. Only 'Rq' is supported here.
+        (Default: 'Rq')
+    range : tuple
+        Compute rms height only the subsection of the full topography,
+        with intervals specified in this tuple. (Default: None)
+    tol : float
+        Tolerance for searching for existing data points at domain boundaries.
+        (Default: 1e-6)
 
     Returns
     -------
-    rms_height : float
+    rms_height : float or array
         Root-mean square height.
     """
     if kind != 'Rq':
         raise ValueError("Unsupported rms height kind '{}'.".format(kind))
     x, h = topography.positions_and_heights()
-    dx = np.diff(x)
-    L = x[-1] - x[0]
-    mean_h = np.trapz(h, x)/L
-    h0 = h - mean_h
 
-    return np.sqrt(np.sum((h0[:-1]**2 + h0[1:]**2 + h0[:-1]*h0[1:])*dx)/(3*L))
+    if range is not None:
+        x1, x2 = range
+        i1, i2 = x.searchsorted(x1), x.searchsorted(x2, side='right')
+        _x, _h = x[i1:i2+1], h[i1:i2+1]
+
+        # Put additional data points on the left and right boundaries, if
+        # there is none already in the data set at exactly those points
+        if i1 != 0 and x[i1] - x1 > tol:
+            # Linear interpolation to boundary point
+            h1 = h[i1 - 1] + (x1 - x[i1 - 1]) / (x[i1] - x[i1 - 1]) * (h[i1] - h[i1 - 1])
+            # Add additional point to data
+            _x, _h = np.append([x1], _x), np.append([h1], _h)
+        if i2 != len(x) and x[i2] - x2 > tol:
+            # Linear interpolation to boundary point
+            h2 = h[i2 - 1] + (x2 - x[i2 - 1]) / (x[i2] - x[i2 - 1]) * (h[i2] - h[i2 - 1])
+            # Add additional point to data
+            _x, _h = np.append(_x, [x2]), np.append(_h, [h2])
+        x, h = _x, _h
+
+    dx = np.diff(x)
+    if len(x) <= 1:
+        return 0.0
+    L = x[-1] - x[0]
+    mean_h = np.trapz(h, x) / L
+    h0 = h - mean_h
+    return np.sqrt(np.sum((h0[:-1] ** 2 + h0[1:] ** 2 + h0[:-1] * h0[1:]) * dx) / (3 * L))
 
 
 def rms_slope(topography):
@@ -105,7 +136,7 @@ def rms_slope(topography):
     dx = np.diff(x)
     L = x[-1] - x[0]
 
-    return np.sqrt(np.sum(dh**2/dx)/L)
+    return np.sqrt(np.sum(dh ** 2 / dx) / L)
 
 
 def rms_curvature(topography):
@@ -127,7 +158,7 @@ def rms_curvature(topography):
     # The second derivative cannot be evaluated on the two end points
     L = x[-2] - x[1]
 
-    return np.sqrt(np.trapz(d2**2, x[1:-1])/L)
+    return np.sqrt(np.trapz(d2 ** 2, x[1:-1]) / L)
 
 
 ### Register analysis functions from this module

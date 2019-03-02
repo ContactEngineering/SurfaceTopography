@@ -75,10 +75,10 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
 
         # Search for the data point closes to sub_xleft and sub_xright
         sub_ileft = x.searchsorted(sub_xleft)
-        sub_iright = x.searchsorted(sub_xright)
+        sub_iright = x.searchsorted(sub_xright, side='right')
 
-        sub_x = x[sub_ileft:sub_iright]
-        sub_y = y[sub_ileft:sub_iright]
+        sub_x = x[sub_ileft:sub_iright+1]
+        sub_y = y[sub_ileft:sub_iright+1]
 
         # Put additional data points on the left and right boundaries, if there is none already in the data set at
         # exactly those points
