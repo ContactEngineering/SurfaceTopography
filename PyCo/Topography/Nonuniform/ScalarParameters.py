@@ -82,16 +82,16 @@ def rms_height(topography, kind='Rq', range=None, tol=1e-6):
     if range is not None:
         x1, x2 = range
         i1, i2 = x.searchsorted(x1), x.searchsorted(x2, side='right')
-        _x, _h = x[i1:i2+1], h[i1:i2+1]
+        _x, _h = x[i1:i2], h[i1:i2]
 
         # Put additional data points on the left and right boundaries, if
         # there is none already in the data set at exactly those points
-        if i1 != 0 and x[i1] - x1 > tol:
+        if i1 != 0 and x1 < x[i1] - tol:
             # Linear interpolation to boundary point
             h1 = h[i1 - 1] + (x1 - x[i1 - 1]) / (x[i1] - x[i1 - 1]) * (h[i1] - h[i1 - 1])
             # Add additional point to data
             _x, _h = np.append([x1], _x), np.append([h1], _h)
-        if i2 != len(x) and x[i2] - x2 > tol:
+        if i2 != len(x) and x2 > x[i2-1] + tol:
             # Linear interpolation to boundary point
             h2 = h[i2 - 1] + (x2 - x[i2 - 1]) / (x[i2] - x[i2 - 1]) * (h[i2] - h[i2 - 1])
             # Add additional point to data

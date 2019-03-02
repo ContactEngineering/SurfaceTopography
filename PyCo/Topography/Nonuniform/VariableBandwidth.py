@@ -77,13 +77,13 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
         sub_ileft = x.searchsorted(sub_xleft)
         sub_iright = x.searchsorted(sub_xright, side='right')
 
-        sub_x = x[sub_ileft:sub_iright+1]
-        sub_y = y[sub_ileft:sub_iright+1]
+        sub_x = x[sub_ileft:sub_iright]
+        sub_y = y[sub_ileft:sub_iright]
 
         # Put additional data points on the left and right boundaries, if there is none already in the data set at
         # exactly those points
 
-        if sub_ileft != 0 and x[sub_ileft] - sub_xleft > tol:
+        if sub_ileft != 0 and sub_xleft < x[sub_ileft] - tol:
             # Linear interpolation to boundary point
             sub_yleft = y[sub_ileft - 1] + (sub_xleft - x[sub_ileft - 1]) / (x[sub_ileft] - x[sub_ileft - 1]) * (
                         y[sub_ileft] - y[sub_ileft - 1])
@@ -91,7 +91,7 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
             sub_x = np.append([sub_xleft], sub_x)
             sub_y = np.append([sub_yleft], sub_y)
 
-        if sub_iright != len(x) and x[sub_iright] - sub_xright > tol:
+        if sub_iright != len(x) and sub_xright > x[sub_iright-1] + tol:
             # Linear interpolation to boundary point
             sub_yright = y[sub_iright - 1] + (sub_xright - x[sub_iright - 1]) / (x[sub_iright] - x[sub_iright - 1]) * (
                         y[sub_iright] - y[sub_iright - 1])
