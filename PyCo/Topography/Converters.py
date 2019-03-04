@@ -65,7 +65,9 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
 
     @property
     def size(self):
-        return self.parent_topography.size
+        s, = self.parent_topography.size
+        p, = self.parent_topography.pixel_size
+        return s - p,
 
     @property
     def is_periodic(self):
