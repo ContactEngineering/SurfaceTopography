@@ -67,13 +67,15 @@ def _bare_autocorrelation_1D(line_scan, distances=None):
         # FIXME!!! We need a better heuristics to decide on the distances
         res, = line_scan.resolution
         distances = np.linspace(0, size, res)
+    else:
+        distances = np.asarray(distances, dtype=float)
     A = np.zeros_like(distances)
 
     x, h = line_scan.positions_and_heights()
     s = line_scan.derivative(1)
     # FIXME!!! This is slow
-    for i in range(len(x) - 1):
-        for j in range(0, len(x) - 1):
+    for i in range(len(x)-1):
+        for j in range(len(x)-1):
             # Determine lower and upper distance between segment i, i+1 and
             # segment j, j+1
             x1 = x[i]
@@ -87,13 +89,15 @@ def _bare_autocorrelation_1D(line_scan, distances=None):
             b = (b1 + b2) / 2
             db = (b2 - b1) / 2
             m = db > 0
-            b = b[m]
-            db = db[m]
-            # f1[x_] := (h1 + s1*(x - x1))
-            # f2[x_] := (h2 + s2*(x - x2))
-            # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]]
-            #   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
-            A[m] += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + distances[m] - x2)) * db + 2 * (s1 * s2 * db ** 3) / 3.
+            if m.sum() > 0:
+                b = b[m]
+                db = db[m]
+                # f1[x_] := (h1 + s1*(x - x1))
+                # f2[x_] := (h2 + s2*(x - x2))
+                # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]]
+                #   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
+                A[m] += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + distances[m] - x2)) * db + 2 * (
+                            s1 * s2 * db ** 3) / 3
     return distances, A
 
 def autocorrelation_1D(line_scan, distances=None):
@@ -135,7 +139,7 @@ def autocorrelation_1D(line_scan, distances=None):
     x1, x2 = line_scan.x_range
     rms_heights = np.array([line_scan.rms_height(range=(x1, x1 + d)) for d in distances])
     fac = (x2 - x1) - distances
-    A = (rms_heights + rms_heights[-1] - rms_heights[::-1]) / 2 - A
+    A = (rms_heights ** 2 + rms_heights[-1] ** 2 - rms_heights[::-1] ** 2) / 2 - A
     A[fac == 0] = 0
     fac[fac == 0] = 1
     return distances, A / fac
