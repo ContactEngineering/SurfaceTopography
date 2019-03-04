@@ -193,7 +193,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     def _detrend(self):
         if self._detrend_mode == 'center':
-            self._coeffs = (self.parent_topography.mean(),)
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 0)
         elif self._detrend_mode == 'height':
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 1)
