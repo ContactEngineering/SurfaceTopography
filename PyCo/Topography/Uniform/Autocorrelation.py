@@ -35,6 +35,7 @@
 import numpy as np
 
 from ..common import radial_average
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 
 def autocorrelation_1D(topography):
@@ -59,7 +60,7 @@ def autocorrelation_1D(topography):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
 
     Returns
@@ -76,14 +77,16 @@ def autocorrelation_1D(topography):
         nx, = topography.resolution
         sx, = topography.size
 
-    # Compute FFT and normalize
     if topography.is_periodic:
+        # Compute height-height autocorrelation function from a convolution
+        # using FFT. This is periodic by nature.
         surface_qy = np.fft.fft(topography.heights(), axis=0)
         C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft(C_qy, axis=0).real / nx
 
         # Convert height-height autocorrelation to height-difference
-        # autocorrelation
+        # autocorrelation:
+        #     <(h(x) - h(x+d))^2>/2 = <h^2(x)> - <h(x)h(x+d)>
         A_xy = A_xy[0] - A_xy
 
         A = A_xy[:nx // 2]
@@ -94,12 +97,21 @@ def autocorrelation_1D(topography):
     else:
         p = topography.heights()
 
-        # Compute height-height autocorrelation function
+        # Compute height-height autocorrelation function. We need to zero
+        # pad the FFT for the nonperiodic case in order to separate images.
         surface_qy = np.fft.fft(p, n=2 * nx - 1, axis=0)
         C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft(C_qy, axis=0).real
 
-        # Correction to turn height-height into height-difference autocorrelation
+        # Correction to turn height-height into height-difference
+        # autocorrelation:
+        #     <(h(x) - h(x+d))^2>_d/2 = <h^2(x)>_d - <h(x)h(x+d)>_d
+        # but we need to take care about h_rms^2=<h^2(x)>, which in the
+        # nonperiodic case needs to be computed only over a subsection of
+        # the surface. This is because the average < >_d now depends on d,
+        # which determines the number of data points that are actually
+        # included into the computation of <h(x)h(x+d)>_d. h_rms^2 needs to
+        # be computed over the same data points.
         p_sq = p**2
         A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[::-1])/2
 
@@ -121,7 +133,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
 
     Parameters
     ----------
-    topography : Topography
+    topography : :obj:`Topography`
         Container storing the (two-dimensional) topography map.
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller
@@ -189,3 +201,11 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         return r_val[n > 0], A_val[n > 0], A_xy
     else:
         return r_val[n > 0], A_val[n > 0]
+
+
+### Register analysis functions from this module
+
+Topography.register_function('autocorrelation_1D', autocorrelation_1D)
+Topography.register_function('autocorrelation_2D', autocorrelation_2D)
+
+UniformLineScan.register_function('autocorrelation_1D', autocorrelation_1D)

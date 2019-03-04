@@ -134,7 +134,7 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    topography : Topography
+    topography : :obj:`Topography`
         Container storing the (two-dimensional) topography map.
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller

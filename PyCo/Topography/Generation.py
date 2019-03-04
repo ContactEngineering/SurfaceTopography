@@ -34,8 +34,8 @@ SOFTWARE.
 
 import numpy as np
 import scipy.stats as stats
-from PyCo.Topography import Topography
-from PyCo.Tools.common import compute_wavevectors, ifftn, fftn
+from PyCo.Topography import Topography, UniformLineScan
+from PyCo.Tools.common import compute_wavevectors, ifftn
 
 
 # FIXME: Not sure topography generation should be classes. These should probably
@@ -198,7 +198,7 @@ class RandomSurfaceExact(object):
         # Fix Shannon limit:
         self.coeffs[q_2 > self.q_max**2] = 0
 
-    def get_surface(self, lambda_max=None, lambda_min=None, roll_off=1):
+    def get_topography(self, lambda_max=None, lambda_min=None, roll_off=1):
         """
         Computes and returs a NumpySurface object with the specified
         properties. This follows appendices A and B of Persson et al. (2005)
@@ -387,7 +387,7 @@ class CapillaryWavesExact(object):
         # Fix Shannon limit:
         #self.coeffs[q_2 > self.q_max**2] = 0
 
-    def get_surface(self):
+    def get_topography(self):
         """
         Computes and returs a NumpySurface object with the specified
         properties. This follows appendices A and B of Persson et al. (2005)
@@ -410,3 +410,220 @@ class CapillaryWavesExact(object):
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
         return Topography(profile, self.size)
+
+###
+
+def _irfft2(karr, rarr, progress_callback=None):
+    """
+    Inverse 2d real-to-complex FFT with callback that allows to report status
+    of the computation to user.
+
+    Parameters
+    ----------
+    karr : array_like
+        Fourier-space representation
+    rarr : array_like
+        Real-space representation
+    progress_callback : function(i, n)
+        Function that is called to report progress.
+    """
+    nrows, ncolumns = karr.shape
+    for i in range(ncolumns):
+        if progress_callback is not None:
+            progress_callback(i, ncolumns + nrows - 1)
+        karr[:, i] = np.fft.ifft(karr[:, i])
+    for i in range(nrows):
+        if progress_callback is not None:
+            progress_callback(i + ncolumns, ncolumns + nrows - 1)
+        rarr[i, :] = np.fft.irfft(karr[i, :])
+
+
+def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
+                          rms_slope=None, short_cutoff=None, long_cutoff=None):
+    r"""
+    Compute prefactor :math:`C_0` for the power-spectrum density of an ideal
+    self-affine topography given by
+
+    .. math ::
+
+        C(q) = C_0 q^{-2-2H}
+
+    for two-dimensional topography maps and
+
+    .. math ::
+
+        C(q) = C_0 q^{-1-2H}
+
+    for one-dimensional line scans. Here :math:`H` is the Hurst exponent.
+
+    Parameters
+    ----------
+    resolution : array_like
+        Resolution of the topography map.
+    size : array_like
+        Physical size of the topography map.
+    Hurst : float
+        Hurst exponent.
+    rms_height : float
+        Root mean-squared height.
+    rms_slope : float
+        Root mean-squared slope.
+    short_cutoff : float
+        Short-wavelength cutoff.
+    long_cutoff : float
+        Long-wavelength cutoff.
+
+    Returns
+    -------
+    prefactor : float
+        Prefactor :math:`C_0`
+    """
+    resolution = np.asarray(resolution)
+    size = np.asarray(size)
+
+    if short_cutoff is not None:
+        q_max = 2 * np.pi / short_cutoff
+    else:
+        q_max = np.pi * np.min(resolution / size)
+
+    if long_cutoff is not None:
+        q_min = 2 * np.pi / long_cutoff
+    else:
+        q_min = 2 * np.pi * np.max(1 / size)
+
+    area = np.prod(size)
+    if rms_height is not None:
+        fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
+                                       q_max ** (-2 * Hurst)) * np.sqrt(Hurst * np.pi)
+    elif rms_slope is not None:
+        fac = 2 * rms_slope / np.sqrt(q_max ** (2 - 2 * Hurst) -
+                                      q_min ** (2 - 2 * Hurst)) * np.sqrt((1 - Hurst) * np.pi)
+    else:
+        raise ValueError('Neither rms height nor rms slope is defined!')
+    return fac * np.prod(resolution) / np.sqrt(area)
+
+
+def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
+                      short_cutoff=None, long_cutoff=None, rolloff=1.0,
+                      amplitude_distribution=lambda n: np.random.normal(size=n),
+                      rfn=None, kfn=None, progress_callback=None):
+    r"""
+    Create a self-affine, randomly rough surface using a Fourier filtering
+    algorithm. The algorithm is described in:
+    Ramisetti et al., J. Phys.: Condens. Matter 23, 215004 (2011);
+    Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
+
+    Parameters
+    ----------
+    resolution : array_like
+        Resolution of the topography map.
+    size : array_like
+        Physical size of the topography map.
+    Hurst : float
+        Hurst exponent.
+    rms_height : float
+        Root mean-squared height.
+    rms_slope : float
+        Root mean-squared slope.
+    short_cutoff : float
+        Short-wavelength cutoff.
+    long_cutoff : float
+        Long-wavelength cutoff.
+    rolloff : float
+        Value for the power-spectral density (PSD) below the long-wavelength
+        cutoff. This multiplies the value at the cutoff, i.e. unit will give a
+        PSD that is flat below the cutoff, zero will give a PSD that is vanishes
+        below cutoff. (Default: 1.0)
+    amplitude_distribution : function
+        Function that generates the distribution of amplitudes.
+        (Default: np.random.normal)
+    rfn : str
+        Name of file that stores the real-space array. If specified, real-space
+        array will be created as a memory mapped file. This is useful for
+        creating very large topography maps. (Default: None)
+    kfn : str
+        Name of file that stores the Fourie-space array. If specified, real-space
+        array will be created as a memory mapped file. This is useful for
+        creating very large topography maps. (Default: None)
+    progress_callback : function(i, n)
+        Function that is called to report progress.
+
+    Returns
+    -------
+    topography : UniformTopography or UniformLineScan
+        The topography.
+    """
+    if short_cutoff is not None:
+        q_max = 2 * np.pi / short_cutoff
+    else:
+        q_max = np.pi * np.min(np.asarray(resolution) / np.asarray(size))
+
+    if long_cutoff is not None:
+        q_min = 2 * np.pi / long_cutoff
+    else:
+        q_min = None
+
+    fac = self_affine_prefactor(resolution, size, Hurst, rms_height=rms_height,
+                                rms_slope=rms_slope, short_cutoff=short_cutoff,
+                                long_cutoff=long_cutoff)
+
+    if len(resolution) == 2:
+        nx, ny = resolution
+        sx, sy = size
+        kny = ny // 2 + 1
+        kshape = (nx, kny)
+    else:
+        nx = 1
+        ny, = resolution
+        sx = 1
+        sy, = size
+        kny = ny // 2 + 1
+        kshape = (kny,)
+
+    # Create in-memopry or memory-mapped arrays as storage buffers
+    if rfn is None:
+        rarr = np.empty(resolution, dtype=np.float64)
+    else:
+        rarr = np.memmap(rfn, np.float64, 'w+', shape=resolution)
+    if kfn is None:
+        karr = np.empty(kshape, dtype=np.complex128)
+    else:
+        karr = np.memmap(kfn, np.complex128, 'w+', shape=kshape)
+
+    qy = 2 * np.pi * np.arange(kny) / sy
+    for x in range(nx):
+        if progress_callback is not None:
+            progress_callback(x, nx - 1)
+        if x > nx // 2:
+            qx = 2 * np.pi * (nx - x) / sx
+        else:
+            qx = 2 * np.pi * x / sx
+        q_sq = qx ** 2 + qy ** 2
+        if x == 0:
+            q_sq[0] = 1.
+        phase = np.exp(2 * np.pi * np.random.rand(kny) * 1j)
+        ran = fac * phase * amplitude_distribution(kny)
+        if len(resolution) == 2:
+            karr[x, :] = ran * q_sq ** (-(1 + Hurst) / 2)
+            karr[x, q_sq > q_max ** 2] = 0.
+        else:
+            karr[:] = ran * q_sq ** (-(0.5 + Hurst) / 2)
+            karr[q_sq > q_max ** 2] = 0.
+        if q_min is not None:
+            mask = q_sq < q_min ** 2
+            karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + Hurst))
+    if len(resolution) == 2:
+        # Enforce symmetry
+        if nx % 2 == 0:
+            karr[0, 0] = np.real(karr[0, 0])
+            karr[1:nx // 2, 0] = karr[-1:nx // 2:-1, 0].conj()
+        else:
+            karr[0, 0] = np.real(karr[0, 0])
+            karr[nx // 2, 0] = np.real(karr[nx // 2, 0])
+            karr[1:nx // 2, 0] = karr[-1:nx // 2 + 1:-1, 0].conj()
+        _irfft2(karr, rarr, progress_callback)
+        return Topography(rarr, size, periodic=True)
+    else:
+        karr[0] = np.real(karr[0])
+        rarr[:] = np.fft.irfft(karr)
+        return UniformLineScan(rarr, sy, periodic=True)

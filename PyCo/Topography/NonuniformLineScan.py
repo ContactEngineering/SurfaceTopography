@@ -37,7 +37,6 @@ import abc
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
-from .UniformLineScanAndTopography import UniformlyInterpolatedLineScan
 from .Nonuniform.Detrending import polyfit
 
 
@@ -92,6 +91,10 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     # Implement uniform line scan interface
 
     @property
+    def resolution(self):
+        return len(self._x),
+
+    @property
     def x_range(self):
         return self._x[0], self._x[-1]
 
@@ -110,6 +113,10 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
     @property
     def dim(self):
         return self.parent_topography.dim
+
+    @property
+    def resolution(self):
+        return self.parent_topography.resolution
 
     @property
     def size(self):
@@ -186,7 +193,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     def _detrend(self):
         if self._detrend_mode == 'center':
-            self._coeffs = (self.parent_topography.mean(),)
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 0)
         elif self._detrend_mode == 'height':
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 1)
@@ -278,4 +286,3 @@ NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(
 
 NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
 NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
-NonuniformLineScan.register_function('interpolate', UniformlyInterpolatedLineScan)

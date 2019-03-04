@@ -70,7 +70,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
         self._heights = heights
-        self._size = size
+        self._size = np.asarray(size).item()
         self._periodic = periodic
 
     def __getstate__(self):
@@ -115,7 +115,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def pixel_size(self):
-        return (self.size[0]/ self.resolution[0],)
+        return (self.size[0] / self.resolution[0],)
 
     @property
     def area_per_pt(self):
@@ -141,96 +141,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
             if not fname.endswith('.gz'):
                 fname = fname + ".gz"
         np.savetxt(fname, self.heights())
-
-
-class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterface):
-    """
-    Interpolate a topography onto a uniform grid.
-    """
-
-    def __init__(self, topography, nb_points, padding, info={}):
-        """
-        Parameters
-        ----------
-        topography : Topography
-            Topography to interpolate.
-        nb_points : int
-            Number of equidistant grid points.
-        padding : int
-            Number of padding grid points, zeros appended to the data.
-        """
-        super().__init__(topography, info=info)
-        self.nb_points = nb_points
-        self.padding = padding
-
-        # This is populated with functions from the nonuniform topography, but this is a uniform topography
-        self._functions = UniformLineScan._functions
-
-    def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
-        """
-        state = super().__getstate__(), self.nb_points, self.padding
-        return state
-
-    def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
-        """
-        superstate, self.nb_points, self.padding = state
-        super().__setstate__(superstate)
-
-    # Implement abstract methods of AbstractHeightContainer
-
-    @property
-    def dim(self):
-        return 1
-
-    @property
-    def size(self):
-        s, = self.parent_topography.size
-        return s * (self.nb_points + self.padding) / self.nb_points,
-
-    @property
-    def is_periodic(self):
-        return self.parent_topography.is_periodic
-
-    @property
-    def is_uniform(self):
-        return True
-
-    # Implement uniform line scan interface
-
-    @property
-    def resolution(self):
-        """Return resolution, i.e. number of pixels, of the topography."""
-        return self.nb_points + self.padding,
-
-    @property
-    def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
-
-    @property
-    def area_per_pt(self):
-        return self.pixel_size
-
-    @property
-    def has_undefined_data(self):
-        return False
-
-    def positions(self):
-        left, right = self.parent_topography.x_range
-        size = right - left
-        return np.linspace(left - size * self.padding / (2 * self.nb_points),
-                           right + size * self.padding / (2 * self.nb_points),
-                           self.nb_points + self.padding)
-
-    def heights(self):
-        """ Computes the rescaled profile.
-        """
-        x = self.positions()
-        return np.interp(x, *self.parent_topography.positions_and_heights())
 
 
 class Topography(AbstractHeightContainer, UniformTopographyInterface):
@@ -438,6 +348,12 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def positions(self):
         return self.parent_topography.positions()
 
+    def positions_and_heights(self):
+        if self.dim == 1:
+            return self.positions(), self.heights()
+        else:
+            return (*self.positions(), self.heights())
+
     def squeeze(self):
         if self.dim == 1:
             return UniformLineScan(self.heights(), self.size, periodic=self.is_periodic, info=self.info)
@@ -509,13 +425,17 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 self._coeffs = (self.parent_topography.mean(),)
             elif self._detrend_mode == 'height':
                 x, y = self.parent_topography.positions_and_heights()
-                self._coeffs = polyfit(x / self.parent_topography.size, y, 1)
+                a1, a0 = np.polyfit(x / self.parent_topography.size, y, 1)
+                self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
                 sl = self.parent_topography.derivative(1).mean()
-                self._coeffs = [self.parent_topography.mean(), sl]
+                n, = self.resolution
+                s, = self.size
+                self._coeffs = [self.parent_topography.mean() - sl * s * (n - 1) / (2 * n), sl * s]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
-                self._coeffs = polyfit(x / self.parent_topography.size, y, 2)
+                a2, a1, a0 = np.polyfit(x / self.parent_topography.size, y, 2)
+                self._coeffs = a0, a1, a2
             else:
                 raise ValueError("Unsupported detrend mode '{}' for line scans." \
                                  .format(self._detrend_mode))

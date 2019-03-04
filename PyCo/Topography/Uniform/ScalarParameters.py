@@ -44,7 +44,7 @@ def rms_height(topography, kind='Sq'):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -78,7 +78,7 @@ def rms_slope(topography):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -100,7 +100,7 @@ def rms_Laplacian(topography):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
