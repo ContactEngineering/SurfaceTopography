@@ -102,8 +102,7 @@ def rms_height(topography, kind='Rq', range=None, tol=1e-6):
     if len(x) <= 1:
         return 0.0
     L = x[-1] - x[0]
-    mean_h = np.trapz(h, x) / L
-    h0 = h - mean_h
+    h0 = h - topography.mean()
     return np.sqrt(np.sum((h0[:-1] ** 2 + h0[1:] ** 2 + h0[:-1] * h0[1:]) * dx) / (3 * L))
 
 
