@@ -1,6 +1,8 @@
 import numpy as np
 
 from PyCo.Topography.ParallelFromFile import TopographyLoader
+from PyCo.Topography import Topography
+
 
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
@@ -65,7 +67,19 @@ class TopographyLoaderOPDx(TopographyLoader):
 
     # Gets the actual data and metadata from the positions. Slower, but maybe able to speed this up in the future.
     def topography(self):
-        return find_2d_data(self.hash_table, self.buffer)  # TODO: bring in correct topo format
+        channels = find_2d_data(self.hash_table, self.buffer)
+
+        data, metadata = channels['Raw']
+        unit = metadata.pop('z unit', None)
+        info = {'unit': unit,
+                'metadata': metadata}
+
+        topo = Topography(
+            heights=data,
+            size=data.shape,
+            info=info)
+
+        return topo
 
 
 class DektakItemData:
