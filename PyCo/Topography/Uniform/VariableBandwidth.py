@@ -138,22 +138,29 @@ def variable_bandwidth(topography, resolution_cutoff=4):
     -------
     magnifications : array
         Array containing the magnifications.
+    bandwidths : array
+        Array containing the bandwidths, here the size of the subdivided
+        topography. For 2D topography maps, this is the mean of the two size
+        lenghts of the subdivided section of the topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
     """
     magnification = 1
-    min_size = np.min(topography.size)
+    size = np.array(topography.size)
+    min_size = np.min(size)
     subdivisions = np.round(topography.size/min_size).astype(int)
     resolution = np.array(topography.resolution, dtype=int)
     magnifications = []
+    bandwidths = []
     rms_heights = []
     while ((resolution // subdivisions).min() >= resolution_cutoff):
         magnifications += [magnification]
+        bandwidths += [np.mean(size / subdivisions)]
         rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
 ### Register analysis functions from this module

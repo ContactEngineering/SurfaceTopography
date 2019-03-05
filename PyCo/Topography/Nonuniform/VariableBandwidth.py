@@ -121,6 +121,9 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
     -------
     magnifications : array
         Array containing the magnifications.
+    bandwidths : array
+        Array containing the bandwidths, here the size of the subdivided
+        topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
@@ -128,14 +131,16 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
     magnification = 1
     min_resolution, = line_scan.resolution
     magnifications = []
+    bandwidths = []
     rms_heights = []
     while min_resolution >= resolution_cutoff:
         subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
         min_resolution = min([l.resolution[0] for l in subdivided_line_scans])
         magnifications += [magnification]
+        bandwidths += [subdivided_line_scans[0].size[0]]
         rms_heights += [np.mean([l.rms_height() for l in subdivided_line_scans])]
         magnification *= 2
-    return np.array(magnifications), np.array(rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
 ### Register analysis functions from this module
