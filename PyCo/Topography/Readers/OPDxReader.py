@@ -43,14 +43,14 @@ ANY_2D_DATA = "/2D_Data/"
 
 class TopographyLoaderOPDx(TopographyLoader):
 
-    # Reads in the positions of all the data and metadata, runs quickly.
+    # Reads in the positions of all the data and metadata
     def __init__(self, file_path, size=None, unit=None, info=None):
         super().__init__(size, unit, info)
 
         with open(file_path, "rb") as f:
             # read in file as hexadecimal
-            # buffer = [format(byte, '02x') for byte in f.read()]
             self.buffer = [chr(byte) for byte in f.read()]
+
             # length of file
             size = len(self.buffer)
 
@@ -59,14 +59,13 @@ class TopographyLoaderOPDx(TopographyLoader):
                 raise ValueError('Invalid file format for Dektak OPDx.')
 
             self.hash_table = dict()
-
             pos = MAGIC_SIZE
-
             while pos < size:
                 buf, pos, self.hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=self.hash_table, path="")
 
-    # Gets the actual data and metadata from the positions. Slower, but maybe able to speed this up in the future.
+    # Gets the actual data and metadata from the previously fetched positions
     def topography(self):
+
         channels = find_2d_data(self.hash_table, self.buffer)
 
         data, metadata = channels['Raw']
@@ -123,9 +122,6 @@ class DektakRawPos2D:
 
 
 class DektakQuantUnit:
-    """
-    Quantities have a name, symbol and value.
-    """
     def __init__(self):
         self.name = None
         self.symbol = None
@@ -143,15 +139,17 @@ class DektakMatrix:
 
 
 class DektakBuf:
-    """
-    Stores a position and a length.
-    """
     def __init__(self, position=None, length=None):
         self.position = position
         self.length = length
 
 
 def find_2d_data_matrix(name, item):
+    """ Checks if an item is a matrix and if it is, returns it's channel name.
+    :param name: The name (key) of a found item
+    :param item: The item itself
+    :return: The name of the matrix data channel
+    """
     if item.typeid != DEKTAK_MATRIX:
         return
     if name[:9] != ANY_2D_DATA:
@@ -164,7 +162,24 @@ def find_2d_data_matrix(name, item):
     return name[9:s]
 
 
+def find_1d_data(hash_table, buf):
+    """ THIS HAS NOT BEEN TESTED DUE TO NO FILES WITH 1D DATA AVAILABLE."""
+
+    item = hash_table.pop("/MetaData/MeasurementSettings/SamplesToLog", None)
+
+    if item is None:
+        return None
+    else:
+        raise NotImplementedError
+
+
 def find_2d_data(hash_table, buf):
+    """ Get all the 2d data channels out of the previously filled hash table.
+
+    :param hash_table: The filled hash table
+    :param buf: The raw hex data
+    :return: Dictionary with all names, data and metadata of the different channels
+    """
     output = dict()
     channels = []
 
@@ -191,8 +206,8 @@ def find_2d_data(hash_table, buf):
         xres = item.data.matrix.xres
         yres = item.data.matrix.yres
 
-        meta_data["xres"] = xres
-        meta_data["yres"] = yres
+        meta_data[channel + "::xres"] = xres
+        meta_data[channel + "::yres"] = yres
 
         # TODO: multiply value by interpret(item.data.qun.symbol)
         string = string[:length]
@@ -201,8 +216,8 @@ def find_2d_data(hash_table, buf):
         yreal = item.data.qun.value
         yunit = item.data.qun.symbol
 
-        meta_data["Height value"] = yreal
-        meta_data["Height unit"] = yunit
+        meta_data[channel + "::Height value"] = yreal
+        meta_data[channel + "::Height unit"] = yunit
 
         string = string[:length]
         string += "/Dimension2Extent"
@@ -210,8 +225,8 @@ def find_2d_data(hash_table, buf):
         xreal = item.data.qun.value
         xunit = item.data.qun.symbol
 
-        meta_data["Width value"] = xreal
-        meta_data["Width unit"] = xunit
+        meta_data[channel + "::Width value"] = xreal
+        meta_data[channel + "::Width unit"] = xunit
 
         string = string[:length]
         string += "/DataScale"
@@ -219,26 +234,21 @@ def find_2d_data(hash_table, buf):
         q = item.data.qun.value
         zunit = item.data.qun.symbol
 
-        meta_data["z scale"] = q
-        meta_data["z unit"] = zunit
+        meta_data[channel + "::z scale"] = q
+        meta_data[channel + "::z unit"] = zunit
 
-        # TODO: maybe speed up if possible
-        data = buf[start:end]
-        pos = 0
-        rawdata = []
-        for line in range(yres):
-            row = []
-            for point in range(xres):
-                value, pos = read_float(data, pos)
-                row.append(value*q)
-            rawdata.append(np.array(row))
+        rawdata = build_matrix(xres=xres, yres=yres, data=buf[start:end], q=q)
 
-        rawdata = np.array(rawdata)
         output[channel] = (rawdata, meta_data)
     return output
 
 
 def create_meta(hash_table):
+    """
+    Gets all the metadata out of a hash table.
+    :param hash_table: The hash table
+    :return: Hash table with all metadata names and values
+    """
     container = dict()
     for key in hash_table.keys():
         if not key.startswith('/MetaData/'):
@@ -273,43 +283,17 @@ def create_meta(hash_table):
     return container
 
 
-def load_opdx(file_path):
-    with open(file_path, "rb") as f:
-        # read in file as hexadecimal
-        # buffer = [format(byte, '02x') for byte in f.read()]
-        buffer = [chr(byte) for byte in f.read()]
-        # length of file
-        size = len(buffer)
-
-        # check if correct header
-        if size < MAGIC_SIZE or ''.join(buffer[:MAGIC_SIZE]) != MAGIC:
-            raise ValueError('Invalid file format for Dektak OPDx.')
-
-        hash_table = dict()
-
-        pos = MAGIC_SIZE
-
-        while pos < size:
-            buf, pos, hash_table, path = read_item(buf=buffer, pos=pos, hash_table=hash_table, path="")
-
-        # TODO: find_1d_data
-
-        data_2d = find_2d_data(hash_table, buffer)
-
-        """
-        rawdata, metadata = data_2d["Image"]
-        print(rawdata.shape)
-        for key in metadata.keys():
-            print(key + ": " + str(metadata[key]))
-        """
-        return data_2d
-
-
-def find_1d_data(hash_table, buf):
-    raise NotImplementedError
-
-
 def read_item(buf, pos, hash_table, path, abspos=0):
+    """
+    Reads in the next item out of the buffer and saves it in the hash table. May recursively call itself for containers.
+    :param buf: The raw data buffer
+    :param pos: Current position in the buffer
+    :param hash_table: The output hash table
+    :param path: Current name to save
+    :param abspos: Absolute position in buffer to keep track when calling itself
+    :return:
+    Buffer, new position, hash table with new item in it, new path
+    """
     orig_path_len = len(path)
     item = DektakItem()
     itempos = 0
@@ -365,18 +349,16 @@ def read_item(buf, pos, hash_table, path, abspos=0):
         item.data.qun, itempos = read_quantunit_content(content, itempos, True)
 
     elif item.typeid == DEKTAK_TERMINATOR:
-        # There are usually some 0xff bytes.  Not sure what to think about them.
         pos = len(buf)
 
-    # Container types. Cannot tell any difference between these two.  Raw data purpose
-    # seems to be wrapping actual raw data in something container-like.
+    # Container types.
     elif item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
         content, start, pos = read_structured(buf, pos)  # TODO find out if maybe better place somewhere else
         abspos += start
         while itempos < len(content):
             content, itempos, hash_table, path = read_item(buf=content, pos=itempos, hash_table=hash_table, path=path, abspos= abspos)
 
-    # Types with string type name (i.e.untyped serialised junk we have to know how to read).
+    # Types with string type name
     elif item.typeid == DEKTAK_DOUBLE_ARRAY:
         item.typename, item.data.buf, _, pos = read_named_struct(buf, pos)
 
@@ -426,25 +408,25 @@ def read_item(buf, pos, hash_table, path, abspos=0):
         item.data.matrix.buf.length -= 8
         item.data.matrix.buf.p = pos + abspos
 
-        # TODO Here might be some error if one appears. If not, this is exactly as planned.
         if len(buf) - pos < item.data.matrix.buf.length:
             raise ValueError
         pos += item.data.matrix.buf.length
 
     else:
         raise ValueError
-    hash_table[path] = item  # TODO: Might not be correct like this
+    hash_table[path] = item
     path = path[:orig_path_len]
     return buf, pos, hash_table, path
 
 
-def read_named_struct(buf, pos):
-    typename, pos = read_name(buf, pos)
-    content, start, pos = read_structured(buf, pos)
-    return typename, content, start, pos
-
-
 def read_quantunit_content(buf, pos, is_unit):
+    """
+    Reads in a quantity unit: Value, name and symbol.
+    :param buf: The buffer
+    :param pos: The position in the buffer
+    :param is_unit: Whether or not it is a unit
+    :return: A quantunit item, filled with value, name and symbol
+    """
     quantunit = DektakQuantUnit()
     quantunit.extra = []
 
@@ -463,6 +445,13 @@ def read_quantunit_content(buf, pos, is_unit):
 
 
 def read_dimension2d_content(buf, pos, unit):
+    """
+    Reads in information about a 2d dimension.
+    :param buf: The buffer
+    :param pos: The position in the buffer
+    :param unit: The unit
+    :return: The read unit, divisor and new position in the buffer
+    """
     unit.value, pos = read_double(buf, pos)
     unit.name, pos = read_name(buf, pos)
     unit.symbol, pos = read_name(buf, pos)
@@ -471,10 +460,36 @@ def read_dimension2d_content(buf, pos, unit):
     return unit, divisor, pos
 
 
+def build_matrix(xres, yres, data, q=1):
+    """
+    Reads a float matrix of given dimensions and multiplies with a scale.
+    :param xres: Resolution along x-axis
+    :param yres: Resolution along y-axis
+    :param data: The raw hex data
+    :param q: The scale of the data, a double
+    :return: A numpy array, now doubles aswell
+    """
+    data = ''.join(data)
+
+    # build correct type: 4byte flat, little endian
+    dt = np.dtype('f4')  # double
+    dt = dt.newbyteorder('<')  # little-endian
+
+    data = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)
+    data = data.copy().reshape((yres, xres))
+    data *= q
+    return data
+
+
 def read_name(buf, pos):
     """
-    Returns a name after reading it's size.
+    Reads a name.
+    :param buf: The buffer
+    :param pos: Position in buffer
+    :return:
+    name, new position in buffer
     """
+
     length, pos = read_int32(buf, pos)  # Names always have a size of 4 bytes
     if len(buf) < length or pos > len(buf) - length:
         raise ValueError("Some sizes went wrong.")
@@ -487,6 +502,13 @@ def read_name(buf, pos):
 
 
 def read_structured(buf, pos):
+    """
+    Reads a length and returns a part of the buffer that long.
+    :param buf: The buffer
+    :param pos: Position in buffer
+    :return:
+    The slice of buffer, where it starts and the new position in the buffer
+    """
     length, pos = read_varlen(buf, pos)
     if len(buf) < length or pos > len(buf) - length:
         raise ValueError("Some sizes went wrong.")
@@ -495,7 +517,27 @@ def read_structured(buf, pos):
     return buf[start:start+length], start, pos
 
 
+def read_named_struct(buf, pos):
+    """
+    Same as read_structured but there is a name to it.
+    :param buf: The buffer
+    :param pos: Position in buffer
+    :return:
+    Name of the buffer, that buffer, its start and the new position in the buffer
+    """
+    typename, pos = read_name(buf, pos)
+    content, start, pos = read_structured(buf, pos)
+    return typename, content, start, pos
+
+
 def read_varlen(buf, pos):
+    """
+    Reads a length of variable length itself
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :return:
+    The read length and new position in the buffer
+    """
     lenlen, pos = read_with_check(buf, pos, 1)
     lenlen = np.frombuffer(str.encode(lenlen, "raw_unicode_escape"), "<u1")[0]
     if lenlen == 1:
@@ -511,6 +553,14 @@ def read_varlen(buf, pos):
 
 
 def read_int64(buf, pos, signed=False):
+    """
+    Reads a 64bit int.
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :param signed: Whether of not the int is signed
+    :return:
+    The int and the new position in the buffer
+    """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
     out = ''.join(out)
     dt = "<i8" if signed else "<u8"
@@ -519,6 +569,14 @@ def read_int64(buf, pos, signed=False):
 
 
 def read_int32(buf, pos, signed=False):
+    """
+    Reads a 32bit int.
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :param signed: Whether of not the int is signed
+    :return:
+    The int and the new position in the buffer
+    """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
     out = ''.join(out)
     dt = "<i4" if signed else "<u4"
@@ -527,6 +585,14 @@ def read_int32(buf, pos, signed=False):
 
 
 def read_int16(buf, pos, signed=False):
+    """
+    Reads a 16bit int.
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :param signed: Whether of not the int is signed
+    :return:
+    The int and the new position in the buffer
+    """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=2)
     out = ''.join(out)
     dt = "<i2" if signed else "<u2"
@@ -535,6 +601,13 @@ def read_int16(buf, pos, signed=False):
 
 
 def read_double(buf, pos):
+    """
+    Reads a double (64bit)
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :return:
+    The double and the new position in the buffer
+    """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
     out = ''.join(out)
     dt = np.dtype('d')  # double
@@ -544,6 +617,13 @@ def read_double(buf, pos):
 
 
 def read_float(buf, pos):
+    """
+    Reads a float (32bit)
+    :param buf: The buffer
+    :param pos: Position in the buffer
+    :return:
+    The float and the new position in the buffer
+    """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
     out = ''.join(out)
     dt = np.dtype('f')  # double
@@ -554,10 +634,11 @@ def read_float(buf, pos):
 
 def read_with_check(buf, pos, nbytes):
     """
+    Reads and returns n bytes.
     :param buf: The input buffer
     :param pos: The current position
     :param nbytes: number of bytes to read in
-    :return: (read content, new position)
+    :return: The bytes and the new position in the buffer
     """
 
     if len(buf) < nbytes or len(buf) - nbytes < pos:
