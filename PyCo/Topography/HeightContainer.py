@@ -33,6 +33,7 @@ SOFTWARE.
 """
 
 import abc
+import numpy as np
 
 
 class AbstractHeightContainer(object):
@@ -55,6 +56,7 @@ class AbstractHeightContainer(object):
 
     def __init__(self, info={}):
         self._info = info
+        self.pnp = np
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)
@@ -77,6 +79,8 @@ class AbstractHeightContainer(object):
         state -- result of __getstate__
         """
         self._info = state
+        self.pnp = np # this np is a module and is not picklable.
+        # In parallel code, the user will have to set pnp by himself after loading
 
     @property
     @abc.abstractmethod
@@ -121,6 +125,7 @@ class DecoratedTopography(AbstractHeightContainer):
         super().__init__(info=info)
         assert isinstance(topography, AbstractHeightContainer)
         self.parent_topography = topography
+        self.pnp = self.parent_topography.pnp
         self._functions = self.parent_topography._functions.copy()
 
     def __getattr__(self, name):
@@ -158,6 +163,10 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
         return True
 
     @property
+    def is_MPI(self):
+        return self.resolution != self.subdomain_resolution
+
+    @property
     @abc.abstractmethod
     def resolution(self):
         raise NotImplementedError
@@ -176,6 +185,8 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def has_undefined_data(self):
         return NotImplementedError
+
+
 
     @abc.abstractmethod
     def positions(self):
@@ -200,7 +211,7 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
         h = self.heights()
         try:
             x, y = p
-            return x, y, p
+            return x, y, h
         except ValueError:
             return p, h
 
@@ -238,6 +249,10 @@ class NonuniformLineScanInterface(object, metaclass=abc.ABCMeta):
         data.
         """
         return self.positions(), self.heights()
+
+    @property
+    def is_MPI(self):
+        return False
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]

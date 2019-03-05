@@ -52,11 +52,21 @@ def rms_height(topography, kind='Sq'):
     rms_height : float
         Root mean square height value.
     """
+    n = np.prod(topography.resolution)
+    #if topography.is_MPI:
+    pnp = topography.pnp
     profile = topography.heights()
     if kind == 'Sq':
-        return np.sqrt(((profile-profile.mean())**2).mean())
+        return np.sqrt(
+            pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
     elif kind == 'Rq':
-        return np.sqrt(((profile-profile.mean(axis=0))**2).mean())
+        decomp_axis = [full != loc for full, loc in
+                       zip(np.array(topography.resolution), profile.shape)]
+        temppnp = pnp if decomp_axis[0] == True else np
+        return np.sqrt(temppnp.sum(
+            (profile - temppnp.sum(profile, axis=0)
+                / topography.resolution[0]) ** 2
+                                    ) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
@@ -76,6 +86,8 @@ def rms_slope(topography):
     rms_slope : float
         Root mean square slope value.
     """
+    if topography.is_MPI:
+        raise NotImplementedError("rms_slope not implemented for parallelized topographies")
     diff = topography.derivative(1)
     return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
 
@@ -96,6 +108,9 @@ def rms_Laplacian(topography):
     rms_laplacian : float
         Root mean square Laplacian value.
     """
+    if topography.is_MPI:
+        raise NotImplementedError("rms_Laplacian not implemented for parallelized topographies")
+
     curv = topography.derivative(2)
     return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
 

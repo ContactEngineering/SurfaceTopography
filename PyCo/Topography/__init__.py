@@ -50,3 +50,5 @@ import PyCo.Topography.Nonuniform.common
 import PyCo.Topography.Nonuniform.ScalarParameters
 import PyCo.Topography.Nonuniform.PowerSpectrum
 import PyCo.Topography.Nonuniform.VariableBandwidth
+
+from .ParallelFromFile import MPITopographyLoader
