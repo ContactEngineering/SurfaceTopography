@@ -45,7 +45,7 @@ class TopographyLoaderOPDx(TopographyLoader):
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path, size=None, unit=None, info=None):
-        super().__init__(size, unit, info)
+        super().__init__(size, info)
 
         with open(file_path, "rb") as f:
             # read in file as hexadecimal
