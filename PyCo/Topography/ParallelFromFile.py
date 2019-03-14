@@ -150,14 +150,14 @@ class TopographyLoaderNPY:
         self.size = None  # will stay None if the file doesn't provide the information.
         self.info={}
 
-        if comm is not None: # TODO: when mpi4py stub is written, this code should be always used
+        if _with_mpi: # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
+            if comm is None:
+                raise ValueError("you should provide comm when running with MPI")
             self.mpi_file = MPITools.FileIO.make_mpi_file_view(fn, comm, format=format)
             self.dtype = self.mpi_file.dtype
             self.resolution = self.mpi_file.resolution
-            self.is_mpi = True
         else: # just use the functions from numpy
             self.file=open(fn, "rb")
-            self.is_mpi = False
             try:
                 version = read_magic(self.file)
                 _check_version(version)
@@ -180,7 +180,7 @@ class TopographyLoaderNPY:
         Topography
         """
         # TODO: Are sometimes the Units Stored?
-        if self.is_mpi:
+        if _with_mpi:
             if ( substrate is None ):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
 
