@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017 Lars Pastewka
+# Copyright 2019 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -22,39 +22,18 @@
 # SOFTWARE.
 #
 
-"""
-Helper tools for PyCo
-"""
 
-import math
+import sys
 
-import numpy as np
+file_lines = open(sys.argv[1], 'r').readlines()
+header_lines = sys.stdin.readlines()
 
-###
+while file_lines[0].startswith('#'):
+    file_lines = file_lines[1:]
 
-def radius(N, R, Es, w):
-    """
-    Given normal load, sphere radius and contact modulus compute contact radius
-    and peak pressure.
+file_lines.insert(0, '#\n')
+for header_line in header_lines[::-1]:
+    file_lines.insert(0, '# {}'.format(header_line))
+file_lines.insert(0, '#\n')
 
-    Parameters
-    ----------
-    N : float
-        Normal force.
-    R : float
-        Sphere radius.
-    Es : float
-        Contact modulus: Es = E/(1-nu**2) with Young's modulus E and Poisson
-        number nu.
-    w : float
-        Work of adhesion.
-    """
-    A = N + 3*w*math.pi*R
-    B = np.sqrt(6*w*math.pi*R*N + (3*w*math.pi*R)**2)
-
-    fac = 3.*R/(4.*Es)
-    A *= fac
-    B *= fac
-
-    return (A+B)**(1./3), (A-B)**(1./3)
-
+open(sys.argv[1], 'w').writelines(file_lines)

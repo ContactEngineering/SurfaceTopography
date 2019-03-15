@@ -1,35 +1,30 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2018-2019 Lars Pastewka
+#           2019 Antoine Sanner
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   ScalarParameters.py
-
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
-
-@date   21 Nov 2018
-
-@brief  Functions computing scalar roughness parameters
-
-@section LICENCE
-
-Copyright 2015-2018 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Functions computing scalar roughness parameters
 """
 
 import numpy as np
@@ -37,7 +32,7 @@ import numpy as np
 from ..NonuniformLineScan import NonuniformLineScan
 
 
-def rms_height(topography, kind='Rq', range=None, tol=1e-6):
+def rms_height(topography, kind='Rq', tol=1e-6):
     r"""
     Computes root-mean square height fluctuation of the line scan:
 
@@ -63,9 +58,6 @@ def rms_height(topography, kind='Rq', range=None, tol=1e-6):
         For compatibility with uniform topographies that have different ways
         of computing the rms height. Only 'Rq' is supported here.
         (Default: 'Rq')
-    range : tuple
-        Compute rms height only the subsection of the full topography,
-        with intervals specified in this tuple. (Default: None)
     tol : float
         Tolerance for searching for existing data points at domain boundaries.
         (Default: 1e-6)
@@ -78,26 +70,6 @@ def rms_height(topography, kind='Rq', range=None, tol=1e-6):
     if kind != 'Rq':
         raise ValueError("Unsupported rms height kind '{}'.".format(kind))
     x, h = topography.positions_and_heights()
-
-    if range is not None:
-        x1, x2 = range
-        i1, i2 = x.searchsorted(x1), x.searchsorted(x2, side='right')
-        _x, _h = x[i1:i2], h[i1:i2]
-
-        # Put additional data points on the left and right boundaries, if
-        # there is none already in the data set at exactly those points
-        if i1 != 0 and x1 < x[i1] - tol:
-            # Linear interpolation to boundary point
-            h1 = h[i1 - 1] + (x1 - x[i1 - 1]) / (x[i1] - x[i1 - 1]) * (h[i1] - h[i1 - 1])
-            # Add additional point to data
-            _x, _h = np.append([x1], _x), np.append([h1], _h)
-        if i2 != len(x) and x2 > x[i2-1] + tol:
-            # Linear interpolation to boundary point
-            h2 = h[i2 - 1] + (x2 - x[i2 - 1]) / (x[i2] - x[i2 - 1]) * (h[i2] - h[i2 - 1])
-            # Add additional point to data
-            _x, _h = np.append(_x, [x2]), np.append(_h, [h2])
-        x, h = _x, _h
-
     dx = np.diff(x)
     if len(x) <= 1:
         return 0.0

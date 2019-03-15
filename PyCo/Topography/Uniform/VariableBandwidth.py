@@ -1,35 +1,29 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2018-2019 Lars Pastewka
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   VariableBandwidth.py
-
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
-
-@date   06 Sep 2018
-
-@brief  Variable bandwidth analysis for uniform topographies
-
-@section LICENCE
-
-Copyright 2015-2018 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Variable bandwidth analysis for uniform topographies
 """
 
 import numpy as np
@@ -138,22 +132,29 @@ def variable_bandwidth(topography, resolution_cutoff=4):
     -------
     magnifications : array
         Array containing the magnifications.
+    bandwidths : array
+        Array containing the bandwidths, here the size of the subdivided
+        topography. For 2D topography maps, this is the mean of the two size
+        lenghts of the subdivided section of the topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
     """
     magnification = 1
-    min_size = np.min(topography.size)
+    size = np.array(topography.size)
+    min_size = np.min(size)
     subdivisions = np.round(topography.size/min_size).astype(int)
     resolution = np.array(topography.resolution, dtype=int)
     magnifications = []
+    bandwidths = []
     rms_heights = []
     while ((resolution // subdivisions).min() >= resolution_cutoff):
         magnifications += [magnification]
+        bandwidths += [np.mean(size / subdivisions)]
         rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
 ### Register analysis functions from this module
