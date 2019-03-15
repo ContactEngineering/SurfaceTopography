@@ -19,7 +19,7 @@ TODO: We should implement the interpretation of the headers and the metadata at
 
 try: #TODO: Code should look like the same with and without mpi4py
     from mpi4py import MPI
-    _with_mpi = MPI.COMM_WORLD.Get_size() > 1
+    _with_mpi = True
 except:
     _with_mpi = False
 if _with_mpi:
