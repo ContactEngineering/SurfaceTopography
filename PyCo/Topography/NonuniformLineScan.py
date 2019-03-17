@@ -1,35 +1,30 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2019 Lars Pastewka
+#           2019 Michael Röttger
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   NonuniformLineScan.py
-
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
-
-@date   09 Dec 2018
-
-@brief  Support for nonuniform topogography descriptions
-
-@section LICENCE
-
-Copyright 2015-2017 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Support for nonuniform topogography descriptions
 """
 
 import abc
@@ -37,7 +32,6 @@ import abc
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
-from .UniformLineScanAndTopography import UniformlyInterpolatedLineScan
 from .Nonuniform.Detrending import polyfit
 
 
@@ -92,6 +86,10 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     # Implement uniform line scan interface
 
     @property
+    def resolution(self):
+        return len(self._x),
+
+    @property
     def x_range(self):
         return self._x[0], self._x[-1]
 
@@ -110,6 +108,10 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
     @property
     def dim(self):
         return self.parent_topography.dim
+
+    @property
+    def resolution(self):
+        return self.parent_topography.resolution
 
     @property
     def size(self):
@@ -186,7 +188,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     def _detrend(self):
         if self._detrend_mode == 'center':
-            self._coeffs = (self.parent_topography.mean(),)
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 0)
         elif self._detrend_mode == 'height':
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 1)
@@ -278,4 +281,3 @@ NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(
 
 NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
 NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
-NonuniformLineScan.register_function('interpolate', UniformlyInterpolatedLineScan)

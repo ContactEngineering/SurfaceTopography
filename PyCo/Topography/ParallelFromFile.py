@@ -1,3 +1,27 @@
+#
+# Copyright 2019 k.o.haase@googlemail.com
+#           2018-2019 Antoine Sanner
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 """
 
 In MPI Parallelized programs:
@@ -150,14 +174,14 @@ class TopographyLoaderNPY:
         self.size = None  # will stay None if the file doesn't provide the information.
         self.info={}
 
-        if comm is not None: # TODO: when mpi4py stub is written, this code should be always used
+        if _with_mpi: # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
+            if comm is None:
+                raise ValueError("you should provide comm when running with MPI")
             self.mpi_file = MPITools.FileIO.make_mpi_file_view(fn, comm, format=format)
             self.dtype = self.mpi_file.dtype
             self.resolution = self.mpi_file.resolution
-            self.is_mpi = True
         else: # just use the functions from numpy
             self.file=open(fn, "rb")
-            self.is_mpi = False
             try:
                 version = read_magic(self.file)
                 _check_version(version)
@@ -180,7 +204,7 @@ class TopographyLoaderNPY:
         Topography
         """
         # TODO: Are sometimes the Units Stored?
-        if self.is_mpi:
+        if _with_mpi:
             if ( substrate is None ):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
 

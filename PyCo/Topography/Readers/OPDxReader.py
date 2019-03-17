@@ -1,14 +1,34 @@
+#
+# Copyright 2019 k.o.haase@googlemail.com
+#           2019 Antoine Sanner
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 import numpy as np
 
 from PyCo.Topography.ParallelFromFile import TopographyLoader
 from PyCo.Topography import Topography
 
 
-
 MAGIC = "VCA DATA\x01\x00\x00\x55"
-# MAGIC = "0x560x430x410x200x440x410x540x410x10x00x00x55"
-# MAGIC = "564341204441544101000055"
-# MAGIC = "0x560x430x410x200x440x410x540x410x010x000x000x55"
 MAGIC_SIZE = 12
 
 DEKTAK_MATRIX = 0x00          # Too lazy to assign an actual type id?
@@ -48,6 +68,7 @@ class TopographyLoaderOPDx(TopographyLoader):
         super().__init__(size, info)
 
         with open(file_path, "rb") as f:
+
             # read in file as hexadecimal
             self.buffer = [chr(byte) for byte in f.read()]
 
@@ -65,20 +86,90 @@ class TopographyLoaderOPDx(TopographyLoader):
 
     # Gets the actual data and metadata from the previously fetched positions
     def topography(self):
+        # TODO: Right now returns all values in m
 
         channels = find_2d_data(self.hash_table, self.buffer)
 
-        data, metadata = channels['Raw']
-        unit = metadata.pop('z unit', None)
-        info = {'unit': unit,
-                'metadata': metadata}
+        data, metadata = channels['Raw']  # TODO: Metadata currently not used  ----  TODO: return all channels
 
-        topo = Topography(
-            heights=data,
-            size=data.shape,
-            info=info)
+        # Get size of x and y and multiply with factors to end up with m
+        size_x = metadata.pop('Raw::Width value', None)
+        x_unit = metadata.pop('Raw::Width unit', None)
+        size_x = str_to_factor(x_unit) * size_x
 
-        return topo
+        size_y = metadata.pop('Raw::Height value', None)
+        y_unit = metadata.pop('Raw::Height unit', None)
+        size_y = str_to_factor(y_unit) * size_y
+
+        if x_unit != y_unit:
+            raise ValueError('width and height are not in the same unit.')  # TODO: Accept this?
+
+        size = (size_x, size_y)
+
+        unit = metadata.pop('Raw::z unit', None)
+        data *= str_to_factor(unit)
+
+        info = {'unit': 'm'}  # TODO: Bring to common unit and denote here
+
+        return Topography(heights=data, size=size, info=info)
+
+
+def str_to_factor(unit_str):
+    """
+    Converts a received unit string to a factor.
+    :param unit_str: The input string
+    :return:
+    A factor as a python float
+    """
+
+    # Cut off strange starts. TODO: Check if more different starts that have to be cut
+    if unit_str.startswith("Â"):
+        unit_str = unit_str[1:]
+
+    if unit_str == 'Ym':
+        return 10e24
+    elif unit_str == 'Zm':
+        return 10e21
+    elif unit_str == 'Em':
+        return 10e18
+    elif unit_str == 'Pm':
+        return 10e15
+    elif unit_str == 'Tm':
+        return 10e12
+    elif unit_str == 'Gm':
+        return 10e9
+    elif unit_str == 'Mm':
+        return 10e6
+    elif unit_str == 'km':
+        return 10e3
+    elif unit_str == 'hm':
+        return 10e2
+    elif unit_str == 'dam':
+        return 10e1
+    elif unit_str == 'm':
+        return 10e0
+    elif unit_str == 'dm':
+        return 10e-1
+    elif unit_str == 'cm':
+        return 10e-2
+    elif unit_str == 'mm':
+        return 10e-3
+    elif unit_str == 'µm':
+        return 10e-6
+    elif unit_str == 'nm':
+        return 10e-9
+    elif unit_str == 'pm':
+        return 10e-12
+    elif unit_str == 'fm':
+        return 10e-15
+    elif unit_str == 'am':
+        return 10e-18
+    elif unit_str == 'zm':
+        return 10e-21
+    elif unit_str == 'ym':
+        return 10e-24
+    else:
+        raise ValueError('Unknown unit.')
 
 
 class DektakItemData:
