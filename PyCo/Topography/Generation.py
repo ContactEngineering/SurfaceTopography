@@ -498,7 +498,7 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
     return fac * np.prod(resolution) / np.sqrt(area)
 
 
-def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
+def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(size=n),
                       rfn=None, kfn=None, progress_callback=None):
@@ -514,7 +514,7 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
         Resolution of the topography map.
     size : array_like
         Physical size of the topography map.
-    Hurst : float
+    hurst : float
         Hurst exponent.
     rms_height : float
         Root mean-squared height.
@@ -558,7 +558,7 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
     else:
         q_min = None
 
-    fac = self_affine_prefactor(resolution, size, Hurst, rms_height=rms_height,
+    fac = self_affine_prefactor(resolution, size, hurst, rms_height=rms_height,
                                 rms_slope=rms_slope, short_cutoff=short_cutoff,
                                 long_cutoff=long_cutoff)
 
@@ -599,14 +599,14 @@ def fourier_synthesis(resolution, size, Hurst, rms_height=None, rms_slope=None,
         phase = np.exp(2 * np.pi * np.random.rand(kny) * 1j)
         ran = fac * phase * amplitude_distribution(kny)
         if len(resolution) == 2:
-            karr[x, :] = ran * q_sq ** (-(1 + Hurst) / 2)
+            karr[x, :] = ran * q_sq ** (-(1 + hurst) / 2)
             karr[x, q_sq > q_max ** 2] = 0.
         else:
-            karr[:] = ran * q_sq ** (-(0.5 + Hurst) / 2)
+            karr[:] = ran * q_sq ** (-(0.5 + hurst) / 2)
             karr[q_sq > q_max ** 2] = 0.
         if q_min is not None:
             mask = q_sq < q_min ** 2
-            karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + Hurst))
+            karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
     if len(resolution) == 2:
         # Enforce symmetry
         if nx % 2 == 0:
