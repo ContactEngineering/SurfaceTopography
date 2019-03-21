@@ -30,8 +30,11 @@ defines all surface types used in PyCo
 from .UniformLineScanAndTopography import Topography, UniformLineScan
 from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
-from .FromFile import (read, read_asc, read_di, read_h5, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
+from .IO.FromFile import (read_asc, read_di, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)
+from .IO import read
+
+from PyCo.Topography.IO import NPYReader
 
 # These imports are required to register the analysis functions!
 import PyCo.Topography.Converters
@@ -45,5 +48,3 @@ import PyCo.Topography.Nonuniform.Autocorrelation
 import PyCo.Topography.Nonuniform.ScalarParameters
 import PyCo.Topography.Nonuniform.PowerSpectrum
 import PyCo.Topography.Nonuniform.VariableBandwidth
-
-from .ParallelFromFile import MPITopographyLoader
