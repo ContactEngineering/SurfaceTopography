@@ -1,6 +1,6 @@
 #
-# Copyright 2018-2019 Lars Pastewka
-#           2019 Michael Röttger
+# Copyright 2019 Michael Röttger
+#           2018-2019 Lars Pastewka
 # 
 # ### MIT license
 # 
