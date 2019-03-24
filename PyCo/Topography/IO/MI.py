@@ -1,5 +1,5 @@
 #
-# Copyright 2019 k.o.haase@googlemail.com
+# Copyright 2019 Antoine Sanner
 # 
 # ### MIT license
 # 
