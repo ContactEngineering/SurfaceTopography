@@ -69,7 +69,7 @@ class NPYReader(ReaderBase):
             #    raise ValueError("you should provide comm when running with MPI")
             self._with_mpi = True
             try:
-                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, comm, format=format)
+                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, comm, format="npy")
                 self.dtype = self.mpi_file.dtype
                 self._resolution = self.mpi_file.resolution
             except NuMPI.IO.MPIFileTypeError:
