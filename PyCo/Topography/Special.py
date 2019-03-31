@@ -112,7 +112,7 @@ class PlasticTopography(DecoratedUniformTopography):
         super().__init__(topography)
         self.hardness = hardness
         if plastic_displ is None:
-            plastic_displ = np.zeros(self.resolution)
+            plastic_displ = np.zeros(self.subdomain_resolution)
         self.plastic_displ = plastic_displ
 
     def __getstate__(self):
@@ -146,7 +146,7 @@ class PlasticTopography(DecoratedUniformTopography):
 
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
-        if plastic_displ.shape != self.resolution:
+        if plastic_displ.shape != self.subdomain_resolution:
             raise ValueError('Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 
