@@ -337,6 +337,22 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def resolution(self):
         return self.parent_topography.resolution
 
+
+    @property
+    def subdomain_resolution(self, ):
+        """ needs to be testable to make sure that geometry and halfspace are
+            compatible
+        """
+        return self.parent_topography.subdomain_resolution
+
+    @property
+    def subdomain_location(self):
+        return self.parent_topography.subdomain_location
+
+    @property
+    def subdomain_slice(self):
+        return self.parent_topography.subdomain_slice
+
     @property
     def area_per_pt(self):
         return self.parent_topography.area_per_pt

@@ -1,6 +1,5 @@
 #
-# Copyright 2019 k.o.haase@googlemail.com
-#           2018-2019 Antoine Sanner
+# Copyright 2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -41,7 +40,7 @@ try: #TODO: Code should look like the same with and without mpi4py
 except:
     _with_mpi = False
 if _with_mpi:
-    import MPITools.FileIO #TODO: MPITools should provide the same interface with and without mpi4py
+    import NuMPI.IO #TODO: NuMPI should provide the same interface with and without mpi4py
 
 from PyCo.Topography import Topography
 from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
@@ -70,10 +69,10 @@ class NPYReader(ReaderBase):
             #    raise ValueError("you should provide comm when running with MPI")
             self._with_mpi = True
             try:
-                self.mpi_file = MPITools.FileIO.make_mpi_file_view(fn, comm, format=format)
+                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, comm, format="npy")
                 self.dtype = self.mpi_file.dtype
                 self._resolution = self.mpi_file.resolution
-            except MPITools.FileIO.MPIFileTypeError:
+            except NuMPI.IO.MPIFileTypeError:
                 raise FileFormatMismatch()
         else: # just use the functions from numpy
             self._with_mpi = False
@@ -125,5 +124,5 @@ class NPYReader(ReaderBase):
             return Topography(heights=array, size=size, info=info)
 
 def save_npy(fn, topography):
-    MPITools.FileIO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
+    NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
                        resolution=topography.subdomain_resolution, comm=topography.comm)
