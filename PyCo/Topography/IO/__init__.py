@@ -50,7 +50,7 @@ def detect_format(fn, comm=None):
                 reader(fn)
             return name
         except :
-            CannotDetectFileFormat()
+            raise CannotDetectFileFormat()
 
 readers = {
         "asc": AscReader,
