@@ -32,9 +32,19 @@ import numpy as np
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, subdomain_resolution = None, subdomain_location = None, pnp=None):
-    """
-    Simple shere geometry.
+def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, kind="sphere", subdomain_resolution = None, subdomain_location = None, pnp=None):
+    r"""
+    Simple sphere geometry.
+
+    If kind="sphere" (Default)
+
+    .. math:: h = \left\{ \begin{array}{ll} \sqrt{\text{radius}^2 - r^2} - \text{radius} & \text{  for  } r < \text{radius} \\ - \text{standoff} & \text{else} \end{array} \right.
+
+    If kind="paraboloid" the sphere is approximated by a paraboloid
+
+    .. math:: h = \frac{r^2}{2 \cdot \text{radius}}
+
+    :math:`r^2 = x^2 + y^2`
 
     Parameters
     ----------
@@ -47,11 +57,18 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     centre : float
          specifies the coordinates (in length units, not pixels).
          by default, the sphere is centred in the topography
+
+    kind: {"sphere", "paraboloid"}
+        default is "sphere".
+
     standoff : float
          when using interaction forces with ranges of the order
          the radius, you might want to set the topography outside of
-         the spere to far away, maybe even pay the price of inf,
+         the sphere to far away, maybe even pay the price of inf,
          if your interaction has no cutoff
+
+         If `kind="paraboloid"` the paraboloid approximation is used and the standoff is not applied
+
     periodic : float
          whether the sphere can wrap around. tricky for large spheres
     """
@@ -85,11 +102,19 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
         r2 = rx2 + ry2
     else:
         raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
-    radius2 = radius ** 2  # avoid nans for small radiio
-    outside = r2 > radius2
-    r2[outside] = radius2
-    h = np.sqrt(radius2 - r2) - radius
-    h[outside] -= standoff
+
+    if kind=="sphere":
+        radius2 = radius ** 2  # avoid nans for small radiio
+        outside = r2 > radius2
+        r2[outside] = radius2
+        h = np.sqrt(radius2 - r2) - radius
+        h[outside] -= standoff
+    elif kind=="paraboloid":
+        h = - r2 / (2 * radius)
+    else:
+        raise(ValueError("Wrong value given for parameter kind (). "
+                         "Should be 'sphere' or 'paraboloid'".format(kind)))
+
     if dim == 1:
         return UniformLineScan(h, size)
     else:
