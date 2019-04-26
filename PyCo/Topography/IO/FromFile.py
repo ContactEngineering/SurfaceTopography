@@ -592,7 +592,7 @@ def read_di(fobj):
     section_dict = {}
 
     l = fobj.readline().decode('latin-1').strip()
-    while l and l.lower() != '\*file list end':
+    while l and l.lower() != r'\*file list end':
         if l.startswith('\\*'):
             if section_name is not None:
                 parameters += [(section_name, section_dict)]
@@ -618,7 +618,7 @@ def read_di(fobj):
         if n == 'scanner list' or n == 'ciao scan list':
             scanner.update(p)
         elif n == 'ciao image list':
-            image_data_key = re.match('^S \[(.*?)\] ',
+            image_data_key = re.match(r'^S \[(.*?)\] ',
                                       p['@2:image data']).group(1)
 
             nx = int(p['samps/line'])
@@ -642,8 +642,8 @@ def read_di(fobj):
             unscaleddata = np.frombuffer(rawdata, count=nx * ny,
                                          dtype=dtype).reshape(nx, ny)
 
-            scale_re = re.match('^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
-                                '(.*)', p['@2:z scale'])
+            scale_re = re.match(r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
+                                r'(.*)', p['@2:z scale'])
             quantity = scale_re.group(1).lower()
             hard_scale = float(scale_re.group(4)) / 65536
             hard_unit = scale_re.group(5)
@@ -774,7 +774,7 @@ def detect_format(fobj):
 
     # Check for magic string
     if is_binary_stream(fobj):
-        if magic.startswith(b'\*File list'):
+        if magic.startswith(br'\*File list'):
             if close_file:
                 fobj.close()
             return 'di'

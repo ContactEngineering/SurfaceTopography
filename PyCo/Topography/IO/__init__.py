@@ -33,6 +33,20 @@ from PyCo.Topography.IO.OPDx import OPDxReader
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile
 
+readers = {
+    "asc": AscReader,
+    "npy": NPYReader,
+    "h5": H5Reader,
+    "OPDx": OPDxReader,
+    'di': DiReader,
+    'ibw': IbwReader,
+    'mat': MatReader,
+    'opd': OpdReader,
+    'x3p': X3pReader,
+    'xyz': XyzReader
+}
+
+
 def detect_format(fn, comm=None):
     """
     Detect file format based on its content.
@@ -49,21 +63,10 @@ def detect_format(fn, comm=None):
             else:
                 reader(fn)
             return name
-        except :
-            raise CannotDetectFileFormat()
+        except:
+            pass
+    raise CannotDetectFileFormat()
 
-readers = {
-        "asc": AscReader,
-        "npy": NPYReader,
-        "h5":  H5Reader,
-        "OPDx":OPDxReader,
-        'di':  DiReader,
-        'ibw': IbwReader,
-        'mat': MatReader,
-        'opd': OpdReader,
-        'x3p': X3pReader,
-        'xyz': XyzReader
-    }
 
 def read(fn, format=None, comm=None):
     """
@@ -79,12 +82,13 @@ def read(fn, format=None, comm=None):
 
     """
     if comm is not None:
-        kwargs = {"comm":comm}
-    else: kwargs= {}
+        kwargs = {"comm": comm}
+    else:
+        kwargs = {}
 
     if not os.path.isfile(fn):
         raise FileExistsError("file {} not found".format(fn))
-    
+
     if format is None:
         for name, reader in readers.items():
             try:
