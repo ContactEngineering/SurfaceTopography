@@ -25,9 +25,39 @@ import warnings
 import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
+
     def __init__(self, size=None,  info={}):
         self._size = size
         self._info = info
+
+    @property
+    def channels(self):
+        """
+        List of dictionnaries describing the available channels
+
+        The dictionary at least contains the fields
+        ["name", "height_scale_factor", "unit"]
+
+        Returns
+        -------
+        list of dicts
+
+        """
+        channelinfo={"name": "NoName",
+                     "height_scale_factor": 1.,
+                     "unit": ""}
+        channelinfo.update(self._info)
+        return [channelinfo]
+
+    @property
+    def default_channel(self):
+        """
+        Index of the default_channel
+        Returns
+        -------
+
+        """
+        return 0
 
     @property
     def resolution(self):
@@ -60,7 +90,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return newinfo
 
     @abc.abstractmethod
-    def topography(self):
+    def topography(self, size=None, channel=None):
         """
         returns a `Topography` instance containing the data
 
@@ -89,6 +119,7 @@ class FileFormatMismatch(ReadFileError):
 
 class CorruptFile(ReadFileError):
     """
-    Raised when the reader identifies the file format as matching, but there is a mistake, for example the number of points doesn't match
+    Raised when the reader identifies the file format as matching,
+    but there is a mistake, for example the number of points doesn't match
     """
     pass

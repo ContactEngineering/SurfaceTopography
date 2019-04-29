@@ -69,16 +69,29 @@ def detect_format(fn, comm=None):
 
 
 def read(fn, format=None, comm=None):
-    """
+    r"""
+
+
+
 
     Parameters
     ----------
-    fn
-    format
-    comm
+    fn: str or filelike object
+
+    format: str, optional
+    specify in which format the file should be interpreted
+
+    comm: MPI communicator or MPIStub.comm, optional
+    Only relevant for MPI code. MPI is only supported for `.npy`
 
     Returns
     -------
+    Instance of a `ReaderBase` subclass according to the format
+
+    Example read workflow
+    >>> reader = read("filename")
+    >>> top = reader.topography()
+
 
     """
     if comm is not None:

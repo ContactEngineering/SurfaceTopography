@@ -86,14 +86,23 @@ class NPYReader(ReaderBase):
         super().__init__()
         # TODO: maybe implement extras specific to Topography , like loading the units and the size
 
-    def topography(self, substrate=None, size = None, info={}):
+    def topography(self, substrate=None, size = None, channel=None, info={}):
         """
         Returns the `Topography` object containing the data attributed to the
         processors. `substrate` prescribes the domain decomposition.
+
+
         Parameters
         ----------
         substrate: Free- or PeriodicFFTElasticHalfspace instance
         has attributes topography_subdomain_location, topography_subdomain_resolution and resolution
+        size: (float, float)
+        size of the topography
+        channel: int or None
+        ignored here because only one channel is availble here
+        info: dict
+        updates for the info dictionary
+
         Returns
         -------
         Topography
