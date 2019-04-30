@@ -33,11 +33,10 @@ import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
-
-
+import copy
 import numpy as np
 
-from PyCo.Topography.UniformLineScanAndTopography import Topography
+from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
 from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
 from PyCo.Topography.IO.Reader import ReaderBase
 
@@ -142,18 +141,22 @@ def make_wrapped_reader(reader_func):
         """
         def __init__(self, fn):
             self._topography = reader_func(fn)
+            self._resolution = self._topography.resolution
             super().__init__(size=self._topography.size, info=self._topography.info)
 
-        def topography(self, size=None):
-            if size is not None:
-                self._topography.size = size
-            return self._topography
+        def topography(self, size=None, info = {}):
+            size = self._process_size(size)
+            info = self._process_info(info)
+            if self._topography.is_uniform:
+                if self._topography.dim == 2:
+                    return Topography(self._topography.heights(), size=size, info=info)
+                elif self._topography.dim == 1:
+                    return UniformLineScan(self._topography.heights(), size=size, info=info)
+            else:
+                top = copy.copy(self._topography)
+                top._info = info
 
-        @property
-        def resolution(self):
-            return self._topography.resolution
-
-
+                return NonuniformLineScan(self._topography.positions(), self._topography.heights())
 
     return wrappedReader
 
@@ -494,7 +497,68 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         return surfaces[0]
     else:
         return surfaces
-MatReader = make_wrapped_reader(read_mat)
+
+class MatReader(ReaderBase):
+    def __init__(self, fobj):
+        """
+            Reads a surface profile from a matlab file and presents in in a
+            Topography-conformant manner.
+
+            All two-dimensional arrays present in the matlab data file are returned.
+
+            Parameters
+            ----------
+
+            fobj: filename or file object
+
+        """
+        super().__init__()
+        from scipy.io import loadmat
+        data = loadmat(fobj)
+        surfaces = []
+        self._channels = []
+        self._height_data=[]
+        for key, value in data.items():
+            is_2darray = False
+            try:
+                nx, ny = value.shape
+                is_2darray = True
+            except (AttributeError, ValueError):
+                pass
+            if is_2darray:
+                channelinfo = {"name": key,
+                               "resolution":value.shape,
+                               "height_scale_factor": 1.,
+                               "unit": "",
+                               "size": None}
+
+                self._channels.append(channelinfo)
+                self._height_data.append(value)
+
+    @property
+    def channels(self):
+        return self._channels
+
+    @property
+    def resolution(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+        return self.channels[channel]["resolution"]
+
+    @property
+    def size(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+
+        return self.channels[channel]["size"]
+
+    def topography(self, channel=None, size=None, info={}):
+        if channel is None:
+            channel=self._default_channel
+        info_dict = dict(data_source=self.channels[channel]["name"],
+                         unit=self.channels[channel]["unit"])
+        info_dict.update(info)
+        return Topography(self._height_data[channel], size=self._process_size(size), info=info_dict)
 
 @binary
 def read_opd(fobj):
@@ -623,8 +687,8 @@ class DiReader(ReaderBase):
 
 
         scanner = {}
-
-        for i, (n, p) in enumerate(parameters):
+        i=0
+        for n, p in parameters:
             if n == 'scanner list' or n == 'ciao scan list':
                 scanner.update(p)
             elif n == 'ciao image list':
@@ -704,19 +768,11 @@ class DiReader(ReaderBase):
                 channel_dict["height_scale_factor"] = hard_scale * hard_to_soft * soft_scale
 
                 self._channels.append(channel_dict)
+                i+=1
 
         if close_file:
             fobj.close()
 
-    @property
-    def default_channel(self):
-        """
-        Index of the default_channel
-        Returns
-        -------
-
-        """
-        return self._default_channel
 
     @property
     def channels(self):
@@ -928,6 +984,3 @@ def detect_format(fobj):
     else:
         fobj.seek(file_pos)
     return None
-
-
-

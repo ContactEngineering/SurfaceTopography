@@ -29,6 +29,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
     def __init__(self, size=None,  info={}):
         self._size = size
         self._info = info
+        self._default_channel=0
 
     @property
     def channels(self):
@@ -44,8 +45,11 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
         """
         channelinfo={"name": "NoName",
+                     "resolution":self._resolution,
                      "height_scale_factor": 1.,
-                     "unit": ""}
+                     "unit": "",
+                     "size": None}
+
         channelinfo.update(self._info)
         return [channelinfo]
 
@@ -57,7 +61,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         -------
 
         """
-        return 0
+        return self._default_channel
 
     @property
     def resolution(self):
