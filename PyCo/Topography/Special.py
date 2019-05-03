@@ -32,13 +32,16 @@ import numpy as np
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, kind="sphere", subdomain_resolution = None, subdomain_location = None, pnp=None):
+def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, kind="sphere",
+                subdomain_resolution = None, subdomain_location = None, pnp=None):
     r"""
     Simple sphere geometry.
 
     If kind="sphere" (Default)
 
-    .. math:: h = \left\{ \begin{array}{ll} \sqrt{\text{radius}^2 - r^2} - \text{radius} & \text{  for  } r < \text{radius} \\ - \text{standoff} & \text{else} \end{array} \right.
+    .. math:: h = \left\{ \begin{array}{ll} \sqrt{\text{radius}^2 - r^2} -
+                  \text{radius} & \text{  for  } r < \text{radius} \\ - \text{standoff}
+                   & \text{else} \end{array} \right.
 
     If kind="paraboloid" the sphere is approximated by a paraboloid
 
@@ -67,9 +70,10 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
          the sphere to far away, maybe even pay the price of inf,
          if your interaction has no cutoff
 
-         If `kind="paraboloid"` the paraboloid approximation is used and the standoff is not applied
+         If `kind="paraboloid"` the paraboloid approximation is used
+            and the standoff is not applied
 
-    periodic : float
+    periodic : bool
          whether the sphere can wrap around. tricky for large spheres
     """
     # pylint: disable=invalid-name
@@ -84,24 +88,28 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
         centre = (centre,)
 
     if not periodic:
-        def get_r(res, size, centre):
+        def get_r(res, size, centre, subd_loc, subd_res):
             " computes the non-periodic radii to evaluate"
-            return np.linspace(-centre, size - centre, res, endpoint=False)
+            x = (subd_loc + np.arange(subd_res)) * size / res
+            return x - centre
     else:
-        def get_r(res, size, centre):
+        def get_r(res, size, centre, subd_loc, subd_res):
             " computes the periodic radii to evaluate"
-            return np.linspace(-centre + size / 2,
-                               -centre + 3 * size / 2,
-                               res, endpoint=False) % size - size / 2
+            x = (subd_loc + np.arange(subd_res)) * size / res
+            return (x - centre + size/2 ) % size - size / 2
 
     if dim == 1:
-        r2 = get_r(resolution[0], size[0], centre[0]) ** 2
+        r2 = get_r(resolution[0], size[0], centre[0],
+                   subdomain_location[0], subdomain_resolution[0]) ** 2
     elif dim == 2:
-        rx2 = (get_r(resolution[0], size[0], centre[0]) ** 2).reshape((-1, 1))
-        ry2 = (get_r(resolution[1], size[1], centre[1])) ** 2
+        rx2 = (get_r(resolution[0], size[0], centre[0],
+                     subdomain_location[0], subdomain_resolution[0]) ** 2).reshape((-1, 1))
+        ry2 = (get_r(resolution[1], size[1], centre[1],
+                     subdomain_location[1], subdomain_resolution[1])) ** 2
         r2 = rx2 + ry2
     else:
-        raise Exception("Problem has to be 1- or 2-dimensional. Yours is {}-dimensional".format(dim))
+        raise Exception("Problem has to be 1- or 2-dimensional. "
+                        "Yours is {}-dimensional".format(dim))
 
     if kind=="sphere":
         radius2 = radius ** 2  # avoid nans for small radiio
@@ -118,7 +126,7 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     if dim == 1:
         return UniformLineScan(h, size)
     else:
-        return Topography(h, size, subdomain_resolution= subdomain_resolution,
+        return Topography(h, size, resolution= resolution,
                           subdomain_location=subdomain_location, pnp=pnp)
 
 
