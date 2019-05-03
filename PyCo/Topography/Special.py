@@ -87,6 +87,10 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     if not hasattr(centre, "__iter__"):
         centre = (centre,)
 
+    if subdomain_resolution is None:
+        subdomain_resolution=resolution
+    if subdomain_location is None:
+        subdomain_location=(0,0)
     if not periodic:
         def get_r(res, size, centre, subd_loc, subd_res):
             " computes the non-periodic radii to evaluate"
