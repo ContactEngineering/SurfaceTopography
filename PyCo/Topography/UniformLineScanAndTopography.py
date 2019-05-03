@@ -281,9 +281,10 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     def positions(self):
         # FIXME: Write test for this method
         nx, ny = self.resolution
+        lnx, lny = self.subdomain_resolution
         sx, sy = self.size
-        return np.meshgrid((self.subdomain_location[0] + np.arange(nx)) * sx/nx,
-                           (self.subdomain_location[1] + np.arange(ny)) * sy/ny,
+        return np.meshgrid((self.subdomain_location[0] + np.arange(lnx)) * sx/nx,
+                           (self.subdomain_location[1] + np.arange(lny)) * sy/ny,
                            indexing='ij')
 
     def heights(self):
