@@ -29,8 +29,8 @@ defines all surface types used in PyCo
 
 from .UniformLineScanAndTopography import Topography, UniformLineScan
 from .NonuniformLineScan import NonuniformLineScan
-from .Special import make_sphere, PlasticTopography
-from .IO.FromFile import (read_asc, read_di, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
+from .Special import make_sphere,  PlasticTopography
+from .IO.FromFile import (read_asc,  read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
                        read_xyz)
 from .IO import read
 

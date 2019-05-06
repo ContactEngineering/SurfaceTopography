@@ -22,6 +22,7 @@
 # SOFTWARE.
 #
 
+import traceback
 import os
 from PyCo.Topography.IO.FromFile import DiReader, IbwReader, MatReader, \
     X3pReader, XyzReader, OpdReader, AscReader
@@ -32,6 +33,20 @@ from PyCo.Topography.IO.OPDx import OPDxReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile
+
+readers = {
+    "asc": AscReader,
+    "npy": NPYReader,
+    "h5": H5Reader,
+    "OPDx": OPDxReader,
+    'di': DiReader,
+    'ibw': IbwReader,
+    'mat': MatReader,
+    'opd': OpdReader,
+    'x3p': X3pReader,
+    'xyz': XyzReader
+}
+
 
 def detect_format(fn, comm=None):
     """
@@ -49,48 +64,69 @@ def detect_format(fn, comm=None):
             else:
                 reader(fn)
             return name
-        except :
-            raise CannotDetectFileFormat()
+        except:
+            pass
+    raise CannotDetectFileFormat()
 
-readers = {
-        "asc": AscReader,
-        "npy": NPYReader,
-        "h5":  H5Reader,
-        "OPDx":OPDxReader,
-        'di':  DiReader,
-        'ibw': IbwReader,
-        'mat': MatReader,
-        'opd': OpdReader,
-        'x3p': X3pReader,
-        'xyz': XyzReader
-    }
 
 def read(fn, format=None, comm=None):
-    """
+    r"""
+
+    returns a reader for the file fn
+
 
     Parameters
     ----------
-    fn
-    format
-    comm
+    fn: str or filelike object
+    path of the file or filelike object
+
+    format: str, optional
+    specify in which format the file should be interpreted
+
+    comm: MPI communicator or MPIStub.comm, optional
+    Only relevant for MPI code. MPI is only supported for `format = "npy"`
 
     Returns
     -------
+    Instance of a `ReaderBase` subclass according to the format
+
+    Examples
+    --------
+    simplest read workflow
+    >>> reader = read("filename")
+    >>> top = reader.topography()
+
+    if the file contains several channels you can check their metadata with
+    `reader.channels()` (returns a list of dicts containing attributes `size`,
+    `unit` and
+    `height_scale_factor)
+    >>> top = reader.topography(channel=2)
+
+    You can also prescribe some attributes when creating the topography
+    >>> top = reader.topography(channel=2, size=(10.,10.), info={"unit":"µm"})
 
     """
     if comm is not None:
-        kwargs = {"comm":comm}
-    else: kwargs= {}
+        kwargs = {"comm": comm}
+    else:
+        kwargs = {}
 
-    if not os.path.isfile(fn):
-        raise FileExistsError("file {} not found".format(fn))
-    
+    if not hasattr(fn, 'read'):
+        if not os.path.isfile(fn):
+            raise FileExistsError("file {} not found".format(fn))
+
     if format is None:
+        errors={}
         for name, reader in readers.items():
             try:
                 return reader(fn, **kwargs)
-            except:
-                pass
+            except Exception as err:
+                errors[name] = traceback.format_exc()
+            finally:
+                if hasattr(fn, 'seek'):
+                    # if the reader crashes the cursos in the file-like object
+                    # have to be set back to the top of the file
+                    fn.seek(0)
         raise CannotDetectFileFormat()
     else:
         if format not in readers.keys():

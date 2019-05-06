@@ -33,11 +33,10 @@ import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
-
-
+import copy
 import numpy as np
 
-from PyCo.Topography.UniformLineScanAndTopography import Topography
+from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
 from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
 from PyCo.Topography.IO.Reader import ReaderBase
 
@@ -142,18 +141,22 @@ def make_wrapped_reader(reader_func):
         """
         def __init__(self, fn):
             self._topography = reader_func(fn)
+            self._resolution = self._topography.resolution
             super().__init__(size=self._topography.size, info=self._topography.info)
 
-        def topography(self, size=None):
-            if size is not None:
-                self._topography.size = size
-            return self._topography
+        def topography(self, size=None, info = {}):
+            size = self._process_size(size)
+            info = self._process_info(info)
+            if self._topography.is_uniform:
+                if self._topography.dim == 2:
+                    return Topography(self._topography.heights(), size=size, info=info)
+                elif self._topography.dim == 1:
+                    return UniformLineScan(self._topography.heights(), size=size, info=info)
+            else:
+                top = copy.copy(self._topography)
+                top._info = info
 
-        @property
-        def resolution(self):
-            return self._topography.resolution
-
-
+                return NonuniformLineScan(self._topography.positions(), self._topography.heights())
 
     return wrappedReader
 
@@ -494,7 +497,68 @@ def read_mat(fobj, size=None, factor=None, unit=None):
         return surfaces[0]
     else:
         return surfaces
-MatReader = make_wrapped_reader(read_mat)
+
+class MatReader(ReaderBase):
+    def __init__(self, fobj):
+        """
+            Reads a surface profile from a matlab file and presents in in a
+            Topography-conformant manner.
+
+            All two-dimensional arrays present in the matlab data file are returned.
+
+            Parameters
+            ----------
+
+            fobj: filename or file object
+
+        """
+        super().__init__()
+        from scipy.io import loadmat
+        data = loadmat(fobj)
+        surfaces = []
+        self._channels = []
+        self._height_data=[]
+        for key, value in data.items():
+            is_2darray = False
+            try:
+                nx, ny = value.shape
+                is_2darray = True
+            except (AttributeError, ValueError):
+                pass
+            if is_2darray:
+                channelinfo = {"name": key,
+                               "resolution":value.shape,
+                               "height_scale_factor": 1.,
+                               "unit": "",
+                               "size": None}
+
+                self._channels.append(channelinfo)
+                self._height_data.append(value)
+
+    @property
+    def channels(self):
+        return self._channels
+
+    @property
+    def resolution(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+        return self.channels[channel]["resolution"]
+
+    @property
+    def size(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+
+        return self.channels[channel]["size"]
+
+    def topography(self, channel=None, size=None, info={}):
+        if channel is None:
+            channel=self._default_channel
+        info_dict = dict(data_source=self.channels[channel]["name"],
+                         unit=self.channels[channel]["unit"])
+        info_dict.update(info)
+        return Topography(self._height_data[channel], size=self._process_size(size), info=info_dict)
 
 @binary
 def read_opd(fobj):
@@ -576,117 +640,200 @@ def read_opd(fobj):
     return surface
 OpdReader = make_wrapped_reader(read_opd)
 
-@binary
-def read_di(fobj):
-    """
-    Load Digital Instrument's Nanoscope files.
+class DiReader(ReaderBase):
+    def __init__(self, fobj):
+        """
+        Load Digital Instrument's Nanoscope files.
 
-    FIXME: Descriptive error messages. Probably needs to be made more robust.
+        FIXME: Descriptive error messages. Probably needs to be made more robust.
 
-    Keyword Arguments:
-    fobj -- filename or file object
-    """
+        Keyword Arguments:
+        fobj -- filename or file object
+        """
+        self._fobj = fobj
+        close_file = False
+        if not hasattr(fobj, 'read'):
+            fobj = open(fobj, 'rb')
+            close_file = True
+        parameters = []
+        section_name = None
+        section_dict = {}
 
-    parameters = []
-    section_name = None
-    section_dict = {}
-
-    l = fobj.readline().decode('latin-1').strip()
-    while l and l.lower() != '\*file list end':
-        if l.startswith('\\*'):
-            if section_name is not None:
-                parameters += [(section_name, section_dict)]
-            section_name = l[2:].lower()
-            section_dict = {}
-        elif l.startswith('\\'):
-            s = l[1:].split(': ', 1)
-            try:
-                key, value = s
-            except ValueError:
-                key, = s
-                value = ''
-            section_dict[key.lower()] = value.strip()
-        else:
-            raise IOError("Header line '{}' does not start with a slash."
-                          "".format(l))
         l = fobj.readline().decode('latin-1').strip()
-    parameters += [(section_name, section_dict)]
-
-    surfaces = []
-    scanner = {}
-    for n, p in parameters:
-        if n == 'scanner list' or n == 'ciao scan list':
-            scanner.update(p)
-        elif n == 'ciao image list':
-            image_data_key = re.match('^S \[(.*?)\] ',
-                                      p['@2:image data']).group(1)
-
-            nx = int(p['samps/line'])
-            ny = int(p['number of lines'])
-            s = p['scan size'].split(' ', 2)
-            sx = float(s[0])
-            sy = float(s[1])
-            xy_unit = mangle_height_unit(s[2])
-            offset = int(p['data offset'])
-            length = int(p['data length'])
-            elsize = int(p['bytes/pixel'])
-            if elsize == 2:
-                dtype = np.dtype('<i2')
+        while l and l.lower() != r'\*file list end':
+            if l.startswith('\\*'):
+                if section_name is not None:
+                    parameters += [(section_name, section_dict)]
+                section_name = l[2:].lower()
+                section_dict = {}
+            elif l.startswith('\\'):
+                s = l[1:].split(': ', 1)
+                try:
+                    key, value = s
+                except ValueError:
+                    key, = s
+                    value = ''
+                section_dict[key.lower()] = value.strip()
             else:
-                raise IOError("Don't know how to handle {} bytes per pixel "
-                              "data.".format(elsize))
-            if nx * ny * elsize != length:
-                raise IOError('Data block size differs from extend of surface.')
-            fobj.seek(offset)
-            rawdata = fobj.read(nx * ny * dtype.itemsize)
-            unscaleddata = np.frombuffer(rawdata, count=nx * ny,
-                                         dtype=dtype).reshape(nx, ny)
+                raise IOError("Header line '{}' does not start with a slash."
+                              "".format(l))
+            l = fobj.readline().decode('latin-1').strip()
+        parameters += [(section_name, section_dict)]
 
-            scale_re = re.match('^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
-                                '(.*)', p['@2:z scale'])
-            quantity = scale_re.group(1).lower()
-            hard_scale = float(scale_re.group(4)) / 65536
-            hard_unit = scale_re.group(5)
+        self._info = {}
+        self._channels = []
+        self._offsets = []
+        self._default_channel = 0
 
-            s = scanner['@' + quantity].split()
-            if s[0] != 'V' or len(s) < 2:
-                raise ValueError('Malformed Nanoscope DI file.')
-            soft_scale = float(s[1])
 
-            height_unit = None
-            hard_to_soft = 1.0
-            if len(s) > 2:
-                # Check units
-                height_unit, soft_unit = s[2].split('/')
-                hard_to_soft = get_unit_conversion_factor(hard_unit, soft_unit)
-                if hard_to_soft is None:
-                    raise ValueError("Units for hard (={}) and soft (={}) "
-                                     "scale differ for '{}'. Don't know how "
-                                     "to handle this.".format(hard_unit,
-                                                              soft_unit,
-                                                              image_data_key))
+        scanner = {}
+        i=0
+        for n, p in parameters:
+            if n == 'scanner list' or n == 'ciao scan list':
+                scanner.update(p)
+            elif n == 'ciao image list':
+                image_data_key = re.match(r'^S \[(.*?)\] ',
+                                          p['@2:image data']).group(1)
 
-            if height_unit in height_units:
-                height_unit = mangle_height_unit(height_unit)
-                if xy_unit != height_unit:
-                    fac = get_unit_conversion_factor(xy_unit, height_unit)
-                    sx *= fac
-                    sy *= fac
-                    xy_unit = height_unit
-                unit = height_unit
-            else:
-                unit = (xy_unit, height_unit)
+                nx = int(p['samps/line'])
+                ny = int(p['number of lines'])
 
-            surface = Topography(unscaleddata.T, (sx, sy), info=dict(unit=unit))
-            surface.info.update(dict(data_source=image_data_key))
-            surface = surface.scale(hard_scale * hard_to_soft * soft_scale)
-            surfaces += [surface]
+                s = p['scan size'].split(' ', 2)
+                sx = float(s[0])
+                sy = float(s[1])
 
-    if len(surfaces) == 1:
-        return surfaces[0]
-    else:
-        return surfaces
-DiReader = make_wrapped_reader(read_di)
+
+                xy_unit = mangle_height_unit(s[2])
+                offset = int(p['data offset'])
+                self._offsets.append(offset)
+
+                length = int(p['data length'])
+                elsize = int(p['bytes/pixel'])
+                if elsize != 2:
+                    raise IOError("Don't know how to handle {} bytes per pixel "
+                                  "data.".format(elsize))
+                if nx * ny * elsize != length:
+                    raise IOError('Data block size differs from extend of surface.')
+
+                scale_re = re.match(
+                    r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
+                    r'(.*)', p['@2:z scale'])
+                quantity = scale_re.group(1).lower()
+                hard_scale = float(scale_re.group(4)) / 65536
+                hard_unit = scale_re.group(5)
+
+                s = scanner['@' + quantity].split()
+                if s[0] != 'V' or len(s) < 2:
+                    raise ValueError('Malformed Nanoscope DI file.')
+                soft_scale = float(s[1])
+
+                height_unit = None
+                hard_to_soft = 1.0
+                if len(s) > 2:
+                    # Check units
+                    height_unit, soft_unit = s[2].split('/')
+                    hard_to_soft = get_unit_conversion_factor(hard_unit,
+                                                              soft_unit)
+                    if hard_to_soft is None:
+                        raise ValueError("Units for hard (={}) and soft (={}) "
+                                         "scale differ for '{}'. Don't know how "
+                                         "to handle this.".format(hard_unit,
+                                                                  soft_unit,
+                                                                  image_data_key))
+                if height_unit in height_units:
+                    height_unit = mangle_height_unit(height_unit)
+                    if xy_unit != height_unit:
+                        fac = get_unit_conversion_factor(xy_unit, height_unit)
+                        sx *= fac
+                        sy *= fac
+                        xy_unit = height_unit
+                    unit = height_unit
+
+                    # default channel is 0 or the first channel where height_unit
+                    # is a length
+                    if self._default_channel ==0:
+                        self._default_channel = i
+                else:
+                    unit = (xy_unit, height_unit)
+
+                channel_dict = {}
+                channel_dict["name"] = image_data_key
+                channel_dict["resolution"] = (nx, ny)
+                channel_dict["size"] = (sx, sy)
+                channel_dict["unit"] = unit
+                #channel_dict["height_unit"] = height_unit
+                #channel_dict["soft_unit"] = soft_unit
+                #channel_dict["hard_unit"] = hard_unit
+                #channel_dict["xy_unit"] = xy_unit
+                channel_dict["height_scale_factor"] = hard_scale * hard_to_soft * soft_scale
+
+                self._channels.append(channel_dict)
+                i+=1
+
+        if close_file:
+            fobj.close()
+
+
+    @property
+    def channels(self):
+        return self._channels
+
+    @property
+    def resolution(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+        return self.channels[channel]["resolution"]
+
+    @property
+    def size(self, channel=None):
+        if channel is None:
+            channel = self._default_channel
+
+        return self.channels[channel]["size"]
+
+    def topography(self, size=None, channel=None, info={}):
+        close_file = False
+        if not hasattr(self._fobj, 'read'):
+            fobj = open(self._fobj, 'rb')
+            close_file = True
+        else:
+            fobj = self._fobj
+
+        if channel is None:
+            channel = self._default_channel
+
+        channel_dict = self._channels[channel]
+        if size is None:
+            size = channel_dict["size"]
+        sx, sy = size
+
+        nx, ny = channel_dict["resolution"]
+        #height_unit = channel_dict["height_unit"]
+        #xy_unit = channel_dict["xy_unit"]
+
+        offset = self._offsets[channel]
+        dtype = np.dtype('<i2')
+
+        ###################################
+
+        fobj.seek(offset)
+        rawdata = fobj.read(nx * ny * dtype.itemsize)
+        unscaleddata = np.frombuffer(rawdata, count=nx * ny,
+                                     dtype=dtype).reshape(nx, ny)
+
+        # internal informations from file
+        self._info=dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
+
+        surface = Topography(unscaleddata.T, (sx, sy), info=self._process_info(info))
+        surface = surface.scale(channel_dict["height_scale_factor"])
+
+        if close_file:
+            fobj.close()
+
+        return surface
+
+
+#DiReader = make_wrapped_reader(read_di)
 
 @binary
 def read_ibw(fobj):
@@ -774,7 +921,7 @@ def detect_format(fobj):
 
     # Check for magic string
     if is_binary_stream(fobj):
-        if magic.startswith(b'\*File list'):
+        if magic.startswith(br'\*File list'):
             if close_file:
                 fobj.close()
             return 'di'
@@ -837,28 +984,3 @@ def detect_format(fobj):
     else:
         fobj.seek(file_pos)
     return None
-
-
-def read(fobj, format=None):
-    if format is None:
-        format = detect_format(fobj)
-        if format is None:
-            format = 'asc'
-
-    readers = {"asc":read_asc,
-               'di': read_di,
-               'ibw': read_ibw,
-               'mat': read_mat,
-               'opd': read_opd,
-               'x3p': read_x3p,
-               'xyz': read_xyz}
-
-    format = format.lower()
-    if format not in readers:
-        return read_asc(fobj)
-    else:
-        return readers[format](fobj)
-
-
-
-
