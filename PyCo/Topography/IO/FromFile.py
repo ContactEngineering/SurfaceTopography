@@ -67,11 +67,11 @@ def text(func):
     def func_wrapper(fobj, *args, **kwargs):
         close_file = False
         if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'r')
+            fobj = open(fobj, 'r', encoding='utf-8')
             fobj_text = fobj
             close_file = True
         elif is_binary_stream(fobj):
-            fobj_text = TextIOWrapper(fobj)
+            fobj_text = TextIOWrapper(fobj, encoding='utf-8')
         else:
             fobj_text = fobj
 
