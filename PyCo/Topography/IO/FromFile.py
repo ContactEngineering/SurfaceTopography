@@ -181,7 +181,7 @@ def read_matrix(fobj, size=None, factor=None):
 MatrixReader = make_wrapped_reader(read_matrix)
 
 @text
-def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
+def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
@@ -301,9 +301,8 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
             ysiz = yfac * ny
         else:
             ysiz *= yfac
-    if zfac is None:
-        zfac = 1.0
-    zfac *= z_factor
+    if z_factor is not None:
+        zfac = z_factor if zfac is None else zfac*z_factor
 
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
@@ -319,7 +318,10 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
         if yunit is not None:
             ysiz *= height_units[yunit] / height_units[unit]
         if zunit is not None:
-            zfac *= height_units[zunit] / height_units[unit]
+            if zfac is None:
+                zfac = height_units[zunit] / height_units[unit]
+            else:
+                zfac *= height_units[zunit] / height_units[unit]
 
     if xsiz is None or ysiz is None:
         if size is None:
@@ -328,7 +330,8 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
             surface = Topography(data, size, info=dict(unit=unit))
     else:
         surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
-    surface = surface.scale(zfac)
+    if zfac is not None:
+        surface = surface.scale(zfac)
     return surface
 AscReader = make_wrapped_reader(read_asc)
 
