@@ -83,8 +83,13 @@ def rms_slope(topography):
     """
     if topography.is_MPI:
         raise NotImplementedError("rms_slope not implemented for parallelized topographies")
-    diff = topography.derivative(1)
-    return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
+    if topography.dim == 1:
+        return np.sqrt((topography.derivative(1)**2).mean())
+    elif topography.dim == 2:
+        slx, sly = topography.derivative(1)
+        return np.sqrt((slx**2).mean() + (sly**2).mean())
+    else:
+        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
 
 
 def rms_Laplacian(topography):

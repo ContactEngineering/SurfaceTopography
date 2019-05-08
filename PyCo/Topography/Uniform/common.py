@@ -45,7 +45,7 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def derivative(topography, n):
+def derivative(topography, n, periodic=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
@@ -55,6 +55,8 @@ def derivative(topography, n):
         Topography object containing height information.
     n : int
         Number of times the derivative is taken.
+    periodic : bool
+        Override periodic flag from topography.
 
     Returns
     -------
@@ -68,7 +70,8 @@ def derivative(topography, n):
     """
     grid_spacing = topography.pixel_size
     heights = topography.heights()
-    if topography.is_periodic:
+    is_periodic = topography.is_periodic if periodic is None else periodic
+    if is_periodic:
         if n != 1:
             # TODO: Implement arbitrary derivatives
             raise ValueError('Only first derivatives are presently supported for periodic topographies.')
