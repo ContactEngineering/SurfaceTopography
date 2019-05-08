@@ -28,8 +28,6 @@
 Support for uniform topogography descriptions
 """
 
-import abc
-
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
@@ -441,10 +439,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 a1, a0 = np.polyfit(x / self.parent_topography.size, y, 1)
                 self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative(1).mean()
+                sl = self.parent_topography.derivative(1, periodic=False).mean()
                 n, = self.resolution
                 s, = self.size
-                self._coeffs = [self.parent_topography.mean() - sl * s * (n - 1) / (2 * n), sl * s]
+                grad = sl * s
+                self._coeffs = [self.parent_topography.mean() - grad * (n - 1) / (2 * n), grad]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
                 a2, a1, a0 = np.polyfit(x / self.parent_topography.size, y, 2)
@@ -458,7 +457,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif self._detrend_mode == 'height':
                 self._coeffs = [s for s in tilt_from_height(self.parent_topography)]
             elif self._detrend_mode == 'slope':
-                slx, sly = self.parent_topography.derivative(1)
+                slx, sly = self.parent_topography.derivative(1, periodic=False)
                 slx = slx.mean()
                 sly = sly.mean()
                 nx, ny = self.resolution
