@@ -66,7 +66,7 @@ def detect_format(fobj, comm=None):
                 reader(fobj)
             return name
         except Exception as err:
-            msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
+             msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
         finally:
             if hasattr(fobj, 'seek'):
                 # if the reader crashes the cursor in the file-like object
@@ -128,8 +128,8 @@ def open_topography(fobj, format=None, comm=None):
                 msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
                 if hasattr(fobj, 'seek'):
-                    # if the reader crashes the cursos in the file-like object
-                    # have to be set back to the top of the file
+                    # if the reader crashes the cursor in the file-like object
+                    # has to be set back to the top of the file
                     fobj.seek(0)
         raise CannotDetectFileFormat(msg)
     else:
