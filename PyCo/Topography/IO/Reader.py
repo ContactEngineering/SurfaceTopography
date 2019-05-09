@@ -111,7 +111,7 @@ class UnknownFileFormatGiven(ReadFileError):
 
 class CannotDetectFileFormat(ReadFileError):
     """
-    Raised when no reader is able to read the file
+    Raised when no reader is able to open_topography the file
     """
 
 class FileFormatMismatch(ReadFileError):

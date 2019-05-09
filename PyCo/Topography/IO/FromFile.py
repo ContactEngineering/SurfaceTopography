@@ -134,7 +134,7 @@ def mangle_height_unit(unit):
         return unit
 
 
-def make_wrapped_reader(reader_func):
+def make_wrapped_reader(reader_func, name="wrappedReader"):
     class wrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
@@ -142,6 +142,7 @@ def make_wrapped_reader(reader_func):
         def __init__(self, fn):
             self._topography = reader_func(fn)
             self._resolution = self._topography.resolution
+
             super().__init__(size=self._topography.size, info=self._topography.info)
 
         def topography(self, size=None, info = {}):
@@ -157,7 +158,7 @@ def make_wrapped_reader(reader_func):
                 top._info = info
 
                 return NonuniformLineScan(self._topography.positions(), self._topography.heights())
-
+    wrappedReader.__name__=name
     return wrappedReader
 
 @text
@@ -178,7 +179,7 @@ def read_matrix(fobj, size=None, factor=None):
     if factor is not None:
         surface = surface.scale(factor)
     return surface
-MatrixReader = make_wrapped_reader(read_matrix)
+MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
 
 @text
 def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
@@ -278,11 +279,11 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
         raise Exception("This file has just two rows or two columns and is more likely a line scan than a map.")
     if xres is not None and xres != nx:
         raise Exception(
-            "The number of rows (={}) read from the file '{}' does "
+            "The number of rows (={}) open_topography from the file '{}' does "
             "not match the resolution in the file's metadata (={})."
                 .format(nx, fobj, xres))
     if yres is not None and yres != ny:
-        raise Exception("The number of columns (={}) read from the file '{}' "
+        raise Exception("The number of columns (={}) open_topography from the file '{}' "
                         "does not match the resolution in the file's metadata "
                         "(={}).".format(ny, fobj, yres))
 
@@ -389,7 +390,7 @@ def read_xyz(fobj, unit=None):
         return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
-XyzReader = make_wrapped_reader(read_xyz)
+XyzReader = make_wrapped_reader(read_xyz, name="XyzReader")
 
 def read_x3p(fobj):
     """
@@ -463,7 +464,7 @@ def read_x3p(fobj):
                              dtype=dtype).reshape(nx, ny).T
 
     return Topography(data, (xinc * nx, yinc * ny))
-X3pReader = make_wrapped_reader(read_x3p)
+X3pReader = make_wrapped_reader(read_x3p, name="X3pReader")
 
 def read_mat(fobj, size=None, factor=None, unit=None):
     """
@@ -641,7 +642,7 @@ def read_opd(fobj):
     surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
-OpdReader = make_wrapped_reader(read_opd)
+OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
 
 class DiReader(ReaderBase):
     def __init__(self, fobj):
@@ -863,7 +864,7 @@ def read_ibw(fobj):
     surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
-IbwReader = make_wrapped_reader(read_ibw)
+IbwReader = make_wrapped_reader(read_ibw, name="IbwReader")
 
 @binary
 def read_hgt(fobj, size=None):
@@ -890,7 +891,7 @@ def read_hgt(fobj, size=None):
         return Topography(data, data.shape)
     else:
         return Topography(data, size)
-HgtReader = make_wrapped_reader(read_hgt)
+HgtReader = make_wrapped_reader(read_hgt, name="HgtReader")
 
 
 def detect_format(fobj):

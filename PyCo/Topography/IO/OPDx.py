@@ -68,7 +68,7 @@ class OPDxReader(ReaderBase):
 
         with open(file_path, "rb") as f:
 
-            # read in file as hexadecimal
+            # open_topography in file as hexadecimal
             self.buffer = [chr(byte) for byte in f.read()]
 
             # length of file
@@ -540,7 +540,7 @@ def read_dimension2d_content(buf, pos, unit):
     :param buf: The buffer
     :param pos: The position in the buffer
     :param unit: The unit
-    :return: The read unit, divisor and new position in the buffer
+    :return: The open_topography unit, divisor and new position in the buffer
     """
     unit.value, pos = read_double(buf, pos)
     unit.name, pos = read_name(buf, pos)
@@ -626,7 +626,7 @@ def read_varlen(buf, pos):
     :param buf: The buffer
     :param pos: Position in the buffer
     :return:
-    The read length and new position in the buffer
+    The open_topography length and new position in the buffer
     """
     lenlen, pos = read_with_check(buf, pos, 1)
     lenlen = np.frombuffer(str.encode(lenlen, "raw_unicode_escape"), "<u1")[0]
@@ -727,7 +727,7 @@ def read_with_check(buf, pos, nbytes):
     Reads and returns n bytes.
     :param buf: The input buffer
     :param pos: The current position
-    :param nbytes: number of bytes to read in
+    :param nbytes: number of bytes to open_topography in
     :return: The bytes and the new position in the buffer
     """
 

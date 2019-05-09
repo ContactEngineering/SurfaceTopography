@@ -56,7 +56,7 @@ def detect_format(fn, comm=None):
     fobj : filename or file object
     comm : mpi communicator, optional
     """
-
+    msg=""
     for name, reader in readers.items():
         try:
             if comm is not None:
@@ -64,12 +64,17 @@ def detect_format(fn, comm=None):
             else:
                 reader(fn)
             return name
-        except:
-            pass
-    raise CannotDetectFileFormat()
+        except Exception as err:
+            msg+="tried {}: \n {}\n\n".format(reader.__name__, err)
+        finally:
+            if hasattr(fn, 'seek'):
+                # if the reader crashes the cursos in the file-like object
+                # have to be set back to the top of the file
+                fn.seek(0)
+    raise CannotDetectFileFormat(msg)
 
 
-def read(fn, format=None, comm=None):
+def open_topography(fn, format=None, comm=None):
     r"""
 
     returns a reader for the file fn
@@ -93,7 +98,7 @@ def read(fn, format=None, comm=None):
     Examples
     --------
     simplest read workflow
-    >>> reader = read("filename")
+    >>> reader = open_topography("filename")
     >>> top = reader.topography()
 
     if the file contains several channels you can check their metadata with
@@ -116,18 +121,18 @@ def read(fn, format=None, comm=None):
             raise FileExistsError("file {} not found".format(fn))
 
     if format is None:
-        errors={}
+        msg=""
         for name, reader in readers.items():
             try:
                 return reader(fn, **kwargs)
             except Exception as err:
-                errors[name] = traceback.format_exc()
+                msg+="tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
                 if hasattr(fn, 'seek'):
                     # if the reader crashes the cursos in the file-like object
                     # have to be set back to the top of the file
                     fn.seek(0)
-        raise CannotDetectFileFormat()
+        raise CannotDetectFileFormat(msg)
     else:
         if format not in readers.keys():
             raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fn, readers.keys()))
