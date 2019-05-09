@@ -334,7 +334,7 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
     if zfac is not None:
         surface = surface.scale(zfac)
     return surface
-AscReader = make_wrapped_reader(read_asc)
+AscReader = make_wrapped_reader(read_asc, name="AscReader")
 
 @text
 def read_xyz(fobj, unit=None):
