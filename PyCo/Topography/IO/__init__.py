@@ -137,3 +137,6 @@ def open_topography(fn, format=None, comm=None):
         if format not in readers.keys():
             raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fn, readers.keys()))
         return readers[format](fn, **kwargs)
+
+def read_topography(fn, *args, **kwargs):
+    return open_topography(fn, *args, **kwargs).topography()
