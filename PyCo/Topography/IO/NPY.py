@@ -33,28 +33,28 @@ In MPI Parallelized programs:
 
 """
 
-
-try: #TODO: Code should look like the same with and without mpi4py
+try:  # TODO: Code should look like the same with and without mpi4py
     from mpi4py import MPI
+
     _with_mpi = True
 except:
     _with_mpi = False
 if _with_mpi:
-    import NuMPI.IO #TODO: NuMPI should provide the same interface with and without mpi4py
+    import NuMPI.IO  # TODO: NuMPI should provide the same interface with and without mpi4py
 
 from PyCo.Topography import Topography
 from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
 
-import abc
 from numpy.lib.format import read_magic, _read_array_header, _check_version
 import numpy as np
-import warnings
+
 
 class NPYReader(ReaderBase):
     """
     npy is a fileformat made specially for numpy arrays. They contain no extra
-    metadata so we use straightforwardly the implementation from numpy and MPITools
+    metadata so we use directly the implementation from numpy and MPITools
     """
+
     def __init__(self, fn, comm=None):
         """
 
@@ -64,8 +64,8 @@ class NPYReader(ReaderBase):
         comm: MPI communicator
         """
 
-        if comm is not None: # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
-            #if comm is None:
+        if comm is not None:  # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
+            # if comm is None:
             #    raise ValueError("you should provide comm when running with MPI")
             self._with_mpi = True
             try:
@@ -74,9 +74,9 @@ class NPYReader(ReaderBase):
                 self._resolution = self.mpi_file.resolution
             except NuMPI.IO.MPIFileTypeError:
                 raise FileFormatMismatch()
-        else: # just use the functions from numpy
+        else:  # just use the functions from numpy
             self._with_mpi = False
-            self.file=open(fn, "rb")
+            self.file = open(fn, "rb")
             try:
                 version = read_magic(self.file)
                 _check_version(version)
@@ -86,7 +86,7 @@ class NPYReader(ReaderBase):
         super().__init__()
         # TODO: maybe implement extras specific to Topography , like loading the units and the size
 
-    def topography(self, substrate=None, size = None, channel=None, info={}):
+    def topography(self, substrate=None, size=None, channel=None, info={}):
         """
         Returns the `Topography` object containing the data attributed to the
         processors. `substrate` prescribes the domain decomposition.
@@ -110,7 +110,7 @@ class NPYReader(ReaderBase):
         info = self._process_info(info)
         # TODO: Are sometimes the Units Stored?
         if self._with_mpi:
-            if ( substrate is None ):
+            if (substrate is None):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
             if size is not None:
                 raise ValueError("size is already provided by substrate")
@@ -122,16 +122,17 @@ class NPYReader(ReaderBase):
                 resolution=substrate.resolution,
                 pnp=substrate.pnp,
                 size=substrate.size,
-                info =info)
+                info=info)
 
         else:
             size = self._process_size(size)
             array = np.fromfile(self.file, dtype=self.dtype,
-                    count=np.multiply.reduce(self.resolution, dtype=np.int64))
+                                count=np.multiply.reduce(self.resolution, dtype=np.int64))
             array.shape = self.resolution
-            self.file.close() # TODO: Or make this in the destructor ?
+            self.file.close()  # TODO: Or make this in the destructor ?
             return Topography(heights=array, size=size, info=info)
+
 
 def save_npy(fn, topography):
     NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
-                       resolution=topography.subdomain_resolution, comm=topography.comm)
+                      resolution=topography.subdomain_resolution, comm=topography.comm)
