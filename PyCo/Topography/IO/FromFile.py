@@ -319,13 +319,16 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
             else:
                 zfac *= height_units[zunit] / height_units[unit]
 
-    if xsiz is None or ysiz is None:
-        if size is None:
-            surface = Topography(data, data.shape, info=dict(unit=unit))
-        else:
-            surface = Topography(data, size, info=dict(unit=unit))
+    if xsiz is not None and ysiz is not None and size is None:
+        size = (x_factor * xsiz, x_factor * ysiz)
+    if size is None:
+        size = data.shape
+    if data.shape[1] == 1:
+        if size is not None and len(size) > 1:
+            size = size[0]
+        surface = UniformLineScan(data[:, 0], size, info=dict(unit=unit))
     else:
-        surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
+        surface = Topography(data, size, info=dict(unit=unit))
     if zfac is not None:
         surface = surface.scale(zfac)
     return surface

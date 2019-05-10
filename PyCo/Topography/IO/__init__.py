@@ -39,13 +39,13 @@ readers = {
     'asc': AscReader,
     'di': DiReader,
     'h5': H5Reader,
-    'ibw': IbwReader,
     'mat': MatReader,
     'npy': NPYReader,
     'opd': OpdReader,
     'opdx': OPDxReader,
     'x3p': X3pReader,
     'xyz': XyzReader,
+    'ibw': IbwReader,
 }
 
 
