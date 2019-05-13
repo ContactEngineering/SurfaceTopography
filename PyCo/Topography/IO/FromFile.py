@@ -55,9 +55,11 @@ def binary(func):
         if not hasattr(fobj, 'read'):
             fobj = open(fobj, 'rb')
             close_file = True
-        retvals = func(fobj, *args, **kwargs)
-        if close_file:
-            fobj.close()
+        try:
+            retvals = func(fobj, *args, **kwargs)
+        finally:
+            if close_file:
+                fobj.close()
         return retvals
 
     return func_wrapper
@@ -77,19 +79,12 @@ def text(func):
 
         try:
             retvals = func(fobj_text, *args, **kwargs)
-        except:
-            # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
-            # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
-            # exception. We need to detach the TextIOWrapper before exiting.
+        finally:
             if is_binary_stream(fobj):
                 fobj_text.detach()
-            raise
-
-        if is_binary_stream(fobj):
-            fobj_text.detach()
-            fobj_text = fobj
-        if close_file:
-            fobj_text.close()
+                fobj_text = fobj
+            if close_file:
+                fobj_text.close()
         return retvals
 
     return func_wrapper
@@ -324,13 +319,16 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
             else:
                 zfac *= height_units[zunit] / height_units[unit]
 
-    if xsiz is None or ysiz is None:
-        if size is None:
-            surface = Topography(data, data.shape, info=dict(unit=unit))
-        else:
-            surface = Topography(data, size, info=dict(unit=unit))
+    if xsiz is not None and ysiz is not None and size is None:
+        size = (x_factor * xsiz, x_factor * ysiz)
+    if size is None:
+        size = data.shape
+    if data.shape[1] == 1:
+        if size is not None and len(size) > 1:
+            size = size[0]
+        surface = UniformLineScan(data[:, 0], size, info=dict(unit=unit))
     else:
-        surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
+        surface = Topography(data, size, info=dict(unit=unit))
     if zfac is not None:
         surface = surface.scale(zfac)
     return surface
@@ -643,6 +641,7 @@ def read_opd(fobj):
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
 OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
+
 
 class DiReader(ReaderBase):
     def __init__(self, fobj):

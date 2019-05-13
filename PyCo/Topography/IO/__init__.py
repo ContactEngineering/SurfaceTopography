@@ -22,33 +22,36 @@
 # SOFTWARE.
 #
 
-import traceback
 import os
+# Old-style readers
 from PyCo.Topography.IO.FromFile import DiReader, IbwReader, MatReader, \
     X3pReader, XyzReader, OpdReader, AscReader
 
+# New-style readers
 from PyCo.Topography.IO.NPY import NPYReader
 from PyCo.Topography.IO.H5 import H5Reader
 from PyCo.Topography.IO.OPDx import OPDxReader
+from PyCo.Topography.IO.MI import MIReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile
 
 readers = {
-    "asc": AscReader,
-    "npy": NPYReader,
-    "h5": H5Reader,
-    "OPDx": OPDxReader,
+    'asc': AscReader,
     'di': DiReader,
-    'ibw': IbwReader,
+    'h5': H5Reader,
     'mat': MatReader,
+    'npy': NPYReader,
     'opd': OpdReader,
+    'opdx': OPDxReader,
     'x3p': X3pReader,
-    'xyz': XyzReader
+    'xyz': XyzReader,
+    'ibw': IbwReader,
+    'mi': MIReader
 }
 
 
-def detect_format(fn, comm=None):
+def detect_format(fobj, comm=None):
     """
     Detect file format based on its content.
 
@@ -56,40 +59,39 @@ def detect_format(fn, comm=None):
     fobj : filename or file object
     comm : mpi communicator, optional
     """
-    msg=""
+    msg = ""
     for name, reader in readers.items():
         try:
             if comm is not None:
-                reader(fn, comm)
+                reader(fobj, comm)
             else:
-                reader(fn)
+                reader(fobj)
             return name
         except Exception as err:
-            msg+="tried {}: \n {}\n\n".format(reader.__name__, err)
+             msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
         finally:
-            if hasattr(fn, 'seek'):
-                # if the reader crashes the cursos in the file-like object
-                # have to be set back to the top of the file
-                fn.seek(0)
+            if hasattr(fobj, 'seek'):
+                # if the reader crashes the cursor in the file-like object
+                # has to be set back to the top of the file
+                fobj.seek(0)
     raise CannotDetectFileFormat(msg)
 
 
-def open_topography(fn, format=None, comm=None):
+def open_topography(fobj, format=None, comm=None):
     r"""
-
-    returns a reader for the file fn
+    Returns a reader for the file `fobj``
 
 
     Parameters
     ----------
-    fn: str or filelike object
-    path of the file or filelike object
+    fobj: str or filelike object
+        path of the file or filelike object
 
     format: str, optional
-    specify in which format the file should be interpreted
+        specify in which format the file should be interpreted
 
     comm: MPI communicator or MPIStub.comm, optional
-    Only relevant for MPI code. MPI is only supported for `format = "npy"`
+        Only relevant for MPI code. MPI is only supported for `format = "npy"`
 
     Returns
     -------
@@ -109,34 +111,34 @@ def open_topography(fn, format=None, comm=None):
 
     You can also prescribe some attributes when creating the topography
     >>> top = reader.topography(channel=2, size=(10.,10.), info={"unit":"µm"})
-
     """
     if comm is not None:
         kwargs = {"comm": comm}
     else:
         kwargs = {}
 
-    if not hasattr(fn, 'read'):
-        if not os.path.isfile(fn):
-            raise FileExistsError("file {} not found".format(fn))
+    if not hasattr(fobj, 'read'):
+        if not os.path.isfile(fobj):
+            raise FileExistsError("file {} not found".format(fobj))
 
     if format is None:
-        msg=""
+        msg = ""
         for name, reader in readers.items():
             try:
-                return reader(fn, **kwargs)
+                return reader(fobj, **kwargs)
             except Exception as err:
-                msg+="tried {}: \n {}\n\n".format(reader.__name__, err)
+                msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
-                if hasattr(fn, 'seek'):
-                    # if the reader crashes the cursos in the file-like object
-                    # have to be set back to the top of the file
-                    fn.seek(0)
+                if hasattr(fobj, 'seek'):
+                    # if the reader crashes the cursor in the file-like object
+                    # has to be set back to the top of the file
+                    fobj.seek(0)
         raise CannotDetectFileFormat(msg)
     else:
         if format not in readers.keys():
-            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fn, readers.keys()))
-        return readers[format](fn, **kwargs)
+            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fobj, readers.keys()))
+        return readers[format](fobj, **kwargs)
+
 
 def read_topography(fn, *args, **kwargs):
     return open_topography(fn, *args, **kwargs).topography()

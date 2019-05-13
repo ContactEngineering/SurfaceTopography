@@ -1,5 +1,5 @@
 #
-# Copyright 2019 Antoine Sanner
+# Copyright 2019 Antoine Sanner, Kai Haase
 # 
 # ### MIT license
 # 
@@ -78,97 +78,97 @@ class OPDxReader(ReaderBase):
             if size < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
                 raise ValueError('Invalid file format for Dektak OPDx.')
 
-            self.hash_table = dict()
             pos = MAGIC_SIZE
+            hash_table = dict()
             while pos < size:
-                buf, pos, self.hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=self.hash_table, path="")
+                buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
 
-    # Gets the actual data and metadata from the previously fetched positions
-    def topography(self):
-        # TODO: Right now returns all values in m
+            # Make a list of channels containing metadata about the topographies but not reading them in directly yet
+            self._channels = find_2d_data(hash_table, self.buffer)
 
-        channels = find_2d_data(self.hash_table, self.buffer)
+            # Reformat the metadata dict
+            for channel_name in self._channels.keys():
+                self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name, self._channels[channel_name][-1])
 
-        data, metadata = channels['Raw']  # TODO: Metadata currently not used  ----  TODO: return all channels
+            self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
-        # Get size of x and y and multiply with factors to end up with m
-        size_x = metadata.pop('Raw::Width value', None)
-        x_unit = metadata.pop('Raw::Width unit', None)
-        size_x = str_to_factor(x_unit) * size_x
+    def topography(self, size=None, channel=None):
+        """
+        Generates a topography object from the gathered metadata.
+        :param size: The physical size of the topography. If not given, will fetch from metadata.
+        :param channel: The id of the channel. If not given, will use default channel.
+        :return:
+        Topography object.
+        """
 
-        size_y = metadata.pop('Raw::Height value', None)
-        y_unit = metadata.pop('Raw::Height unit', None)
-        size_y = str_to_factor(y_unit) * size_y
+        if channel is None:
+            channel = self._default_channel
 
-        if x_unit != y_unit:
-            raise ValueError('width and height are not in the same unit.')  # TODO: Accept this?
+        key = list(self._channels.keys())[channel]
+        channel = self._channels[key]
 
-        size = (size_x, size_y)
+        res_x, res_y, start, end, q = channel[:5]
 
-        unit = metadata.pop('Raw::z unit', None)
-        data *= str_to_factor(unit)
+        if size is None:
+            size_x = channel[5]['Width_value']
+            size_y = channel[5]['Height_value']
+            size = (size_x, size_y)
 
-        info = {'unit': 'm'}  # TODO: Bring to common unit and denote here
+        channel[5]['unit'] = channel[5]['z_unit']
 
-        return Topography(heights=data, size=size, info=info)
+        data = build_matrix(res_x, res_y, self.buffer[start:end], q)
+
+        return Topography(heights=data, size=size, info=channel[5])
+
+    def channels(self):
+        return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]
 
 
-def str_to_factor(unit_str):
+def reformat_dict(name, metadata):
     """
-    Converts a received unit string to a factor.
-    :param unit_str: The input string
+    Reformat the metadata dict from c convention to a more readable format and remove artefacts. Also gets and returns
+    the default channel.
+    :param name: The name of the current channel.
+    :param metadata: The metadata dict
     :return:
-    A factor as a python float
+    new dict: The nicer dict
+    primary_channel_name: The name of the primary channel.
     """
+    new_dict = dict()
 
-    # Cut off strange starts. TODO: Check if more different starts that have to be cut
-    if unit_str.startswith("Â"):
-        unit_str = unit_str[1:]
+    primary_channel_name = None
+    for key in metadata.keys():
 
-    if unit_str == 'Ym':
-        return 10e24
-    elif unit_str == 'Zm':
-        return 10e21
-    elif unit_str == 'Em':
-        return 10e18
-    elif unit_str == 'Pm':
-        return 10e15
-    elif unit_str == 'Tm':
-        return 10e12
-    elif unit_str == 'Gm':
-        return 10e9
-    elif unit_str == 'Mm':
-        return 10e6
-    elif unit_str == 'km':
-        return 10e3
-    elif unit_str == 'hm':
-        return 10e2
-    elif unit_str == 'dam':
-        return 10e1
-    elif unit_str == 'm':
-        return 10e0
-    elif unit_str == 'dm':
-        return 10e-1
-    elif unit_str == 'cm':
-        return 10e-2
-    elif unit_str == 'mm':
-        return 10e-3
-    elif unit_str == 'µm':
-        return 10e-6
-    elif unit_str == 'nm':
-        return 10e-9
-    elif unit_str == 'pm':
-        return 10e-12
-    elif unit_str == 'fm':
-        return 10e-15
-    elif unit_str == 'am':
-        return 10e-18
-    elif unit_str == 'zm':
-        return 10e-21
-    elif unit_str == 'ym':
-        return 10e-24
-    else:
-        raise ValueError('Unknown unit.')
+        if key == '::MetaData::PrimaryData2D':
+            primary_channel_name = metadata[key]
+
+        if key.startswith('::MetaData::'):
+            if not key[12:].endswith('::'):  # These are in here for no reason and the value is None
+                new_dict[key[12:].replace('::', '_').replace(' ', '_')] = metadata[key]
+
+        if key.startswith(str(name) + '::'):
+            name_len = 2 + len(name)
+            new_dict[key[name_len:].replace('::', '_').replace(' ', '_')] = metadata[key]
+
+    if '' in new_dict.keys():
+        new_dict.pop('')
+
+    if 'xres' in new_dict.keys():
+        new_dict.pop('xres')
+
+    if 'yres' in new_dict.keys():
+        new_dict.pop('yres')
+
+    # Currect weird type
+    if 'z_unit' in new_dict.keys():
+        unit = new_dict.pop('z_unit')
+        if unit.startswith("Â"):
+            unit = unit[1:]
+        new_dict['z_unit'] = unit
+
+    new_dict['Name'] = name
+
+    return new_dict, primary_channel_name
 
 
 class DektakItemData:
@@ -232,24 +232,6 @@ class DektakBuf:
     def __init__(self, position=None, length=None):
         self.position = position
         self.length = length
-
-
-def find_2d_data_matrix(name, item):
-    """ Checks if an item is a matrix and if it is, returns it's channel name.
-    :param name: The name (key) of a found item
-    :param item: The item itself
-    :return: The name of the matrix data channel
-    """
-    if item.typeid != DEKTAK_MATRIX:
-        return
-    if name[:9] != ANY_2D_DATA:
-        return
-    s = 9 + name[9:].find('/')
-    if s == -1:
-        return
-    if not name[s+1:] == "Matrix":
-        return
-    return name[9:s]
 
 
 def find_1d_data(hash_table, buf):
@@ -327,10 +309,26 @@ def find_2d_data(hash_table, buf):
         meta_data[channel + "::z scale"] = q
         meta_data[channel + "::z unit"] = zunit
 
-        rawdata = build_matrix(xres=xres, yres=yres, data=buf[start:end], q=q)
-
-        output[channel] = (rawdata, meta_data)
+        output[channel] = [xres, yres, start, end, q, meta_data]
     return output
+
+
+def find_2d_data_matrix(name, item):
+    """ Checks if an item is a matrix and if it is, returns it's channel name.
+    :param name: The name (key) of a found item
+    :param item: The item itself
+    :return: The name of the matrix data channel
+    """
+    if item.typeid != DEKTAK_MATRIX:
+        return
+    if name[:9] != ANY_2D_DATA:
+        return
+    s = 9 + name[9:].find('/')
+    if s == -1:
+        return
+    if not name[s+1:] == "Matrix":
+        return
+    return name[9:s]
 
 
 def create_meta(hash_table):
