@@ -642,6 +642,7 @@ def read_opd(fobj):
     return surface
 OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
 
+
 class DiReader(ReaderBase):
     def __init__(self, fobj):
         """

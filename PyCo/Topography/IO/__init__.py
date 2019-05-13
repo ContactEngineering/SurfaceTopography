@@ -31,6 +31,7 @@ from PyCo.Topography.IO.FromFile import DiReader, IbwReader, MatReader, \
 from PyCo.Topography.IO.NPY import NPYReader
 from PyCo.Topography.IO.H5 import H5Reader
 from PyCo.Topography.IO.OPDx import OPDxReader
+from PyCo.Topography.IO.MI import MIReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile
@@ -46,6 +47,7 @@ readers = {
     'x3p': X3pReader,
     'xyz': XyzReader,
     'ibw': IbwReader,
+    'mi': MIReader
 }
 
 
