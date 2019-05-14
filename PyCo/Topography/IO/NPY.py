@@ -52,7 +52,7 @@ import numpy as np
 class NPYReader(ReaderBase):
     """
     npy is a fileformat made specially for numpy arrays. They contain no extra
-    metadata so we use directly the implementation from numpy and MPITools
+    metadata so we use directly the implementation from numpy and NuMPI
     """
 
     def __init__(self, fn, comm=None):
@@ -63,8 +63,8 @@ class NPYReader(ReaderBase):
         fn: filename
         comm: MPI communicator
         """
-
-        if comm is not None:  # TODO: not ok code should look the same for MPI and nonmpi: have to write stub for MPI.File
+        super().__init__()
+        if comm is not None:  # TODO: not ok code should look the same for MPI and non mpi: have to write stub for MPI.File
             # if comm is None:
             #    raise ValueError("you should provide comm when running with MPI")
             self._with_mpi = True
@@ -83,7 +83,7 @@ class NPYReader(ReaderBase):
                 self._resolution, fortran_order, self.dtype = _read_array_header(self.file, version)
             except ValueError:
                 raise FileFormatMismatch()
-        super().__init__()
+
         # TODO: maybe implement extras specific to Topography , like loading the units and the size
 
     def topography(self, substrate=None, size=None, channel=None, info={}):
