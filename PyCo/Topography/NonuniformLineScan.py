@@ -271,6 +271,14 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         else:
             raise RuntimeError('Unknown size of coefficients tuple.')
 
+    @property
+    def curvatures(self):
+        if len(self._coeffs) == 3:
+            return 2 * self._coeffs[2],
+        else:
+            return 0,
+
+
 
 ### Register analysis functions from this module
 
