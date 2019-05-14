@@ -24,9 +24,11 @@
 import warnings
 import abc
 
+
 class ReaderBase(metaclass=abc.ABCMeta):
 
     def __init__(self, size=None,  info={}):
+        self._resolution = None
         self._size = size
         self._info = info
         self._default_channel=0
@@ -111,7 +113,7 @@ class UnknownFileFormatGiven(ReadFileError):
 
 class CannotDetectFileFormat(ReadFileError):
     """
-    Raised when no reader is able to read the file
+    Raised when no reader is able to open_topography the file
     """
 
 class FileFormatMismatch(ReadFileError):

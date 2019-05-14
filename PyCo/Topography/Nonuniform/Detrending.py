@@ -47,7 +47,7 @@ def polyfit(x, h, deg):
 
         h_\text{rms}^2 = \frac{1}{3L} \sum_{i=0}^{N-2} \left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \right) \Delta x_i
 
-    where $N$ is the total number of data points. Hence we need to solve the following minimization problem:
+    where :math:`N` is the total number of data points. Hence we need to solve the following minimization problem:
 
     .. math::
 

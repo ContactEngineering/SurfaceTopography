@@ -103,6 +103,15 @@ def tilt_and_curvature(arr, full_output=False):
        dofs = n_x, n_y, d = X
 
     solution X_s = arg_min ((arr - ň.x + d)^2).sum()
+
+    Returns:
+    ---------
+    coeffs [, location_matrix (if full_output)]
+
+    coeffs ordered as follows
+
+    {5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy
+
     """
     arr = arr[...]
     nb_dim = len(arr.shape)

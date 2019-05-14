@@ -28,13 +28,10 @@
 Support for uniform topogography descriptions
 """
 
-import abc
-
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
-from .Nonuniform.Detrending import polyfit
 
 class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     """
@@ -441,10 +438,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 a1, a0 = np.polyfit(x / self.parent_topography.size, y, 1)
                 self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative(1).mean()
+                sl = self.parent_topography.derivative(1, periodic=False).mean()
                 n, = self.resolution
                 s, = self.size
-                self._coeffs = [self.parent_topography.mean() - sl * s * (n - 1) / (2 * n), sl * s]
+                grad = sl * s
+                self._coeffs = [self.parent_topography.mean() - grad * (n - 1) / (2 * n), grad]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
                 a2, a1, a0 = np.polyfit(x / self.parent_topography.size, y, 2)
@@ -458,7 +456,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif self._detrend_mode == 'height':
                 self._coeffs = [s for s in tilt_from_height(self.parent_topography)]
             elif self._detrend_mode == 'slope':
-                slx, sly = self.parent_topography.derivative(1)
+                slx, sly = self.parent_topography.derivative(1, periodic=False)
                 slx = slx.mean()
                 sly = sly.mean()
                 nx, ny = self.resolution
@@ -536,6 +534,18 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise RuntimeError('Unknown size of coefficients tuple for 2D topographies.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
+        """
+        note: in the expression returned, x is nondimensionalized by the size
+
+        Parameters
+        ----------
+        fmt
+
+        Returns
+        -------
+
+        """
+
         str_coeffs = [fmt(x) for x in self._coeffs]
         if self.dim == 1:
             if len(self._coeffs) == 1:
@@ -557,6 +567,40 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(*str_coeffs)
             else:
                 raise RuntimeError('Unknown size of coefficients tuple.')
+
+    @property
+    def curvatures(self, ):
+        """
+        convenience function that computes the curvatures :math:`\rho = \frac{1}{R}`
+        of the fitted plane
+
+        Returns
+        -------
+        tuple
+
+        dim = 1:
+        :math:`\rho` = 1 / R
+        dim = 2:
+        :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}`
+
+        """
+
+        if self.dim == 1:
+            if len(self._coeffs) == 3:
+                return (2 * self._coeffs[2]) / self.size[0] ** 2,
+            elif len(self._coeffs) in {1, 2}:
+                return 0,
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple.')
+        else:
+            if len(self._coeffs) == 6:
+                sx, sy = self.size
+                return  (2 * self._coeffs[2]) / sx**2, (2 * self._coeffs[3]) / sy**2 , (2 * self._coeffs[4]) / (sx*sy)
+            elif len(self._coeffs) in {1, 3}:
+                return 0, 0, 0
+            else:
+                raise RuntimeError('Unknown size of coefficients tuple.')
+
 
 
 class TranslatedTopography(DecoratedUniformTopography):

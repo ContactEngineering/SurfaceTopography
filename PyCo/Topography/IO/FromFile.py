@@ -55,9 +55,11 @@ def binary(func):
         if not hasattr(fobj, 'read'):
             fobj = open(fobj, 'rb')
             close_file = True
-        retvals = func(fobj, *args, **kwargs)
-        if close_file:
-            fobj.close()
+        try:
+            retvals = func(fobj, *args, **kwargs)
+        finally:
+            if close_file:
+                fobj.close()
         return retvals
 
     return func_wrapper
@@ -67,29 +69,22 @@ def text(func):
     def func_wrapper(fobj, *args, **kwargs):
         close_file = False
         if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'r')
+            fobj = open(fobj, 'r', encoding='utf-8')
             fobj_text = fobj
             close_file = True
         elif is_binary_stream(fobj):
-            fobj_text = TextIOWrapper(fobj)
+            fobj_text = TextIOWrapper(fobj, encoding='utf-8')
         else:
             fobj_text = fobj
 
         try:
             retvals = func(fobj_text, *args, **kwargs)
-        except:
-            # This is iffy. We need to catch exceptions that happen during loadtxt, because if fobj_text is a
-            # TextIOWrapper, it will close the file when it is deleted whenver the function returns through an
-            # exception. We need to detach the TextIOWrapper before exiting.
+        finally:
             if is_binary_stream(fobj):
                 fobj_text.detach()
-            raise
-
-        if is_binary_stream(fobj):
-            fobj_text.detach()
-            fobj_text = fobj
-        if close_file:
-            fobj_text.close()
+                fobj_text = fobj
+            if close_file:
+                fobj_text.close()
         return retvals
 
     return func_wrapper
@@ -134,7 +129,7 @@ def mangle_height_unit(unit):
         return unit
 
 
-def make_wrapped_reader(reader_func):
+def make_wrapped_reader(reader_func, name="wrappedReader"):
     class wrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
@@ -142,6 +137,7 @@ def make_wrapped_reader(reader_func):
         def __init__(self, fn):
             self._topography = reader_func(fn)
             self._resolution = self._topography.resolution
+
             super().__init__(size=self._topography.size, info=self._topography.info)
 
         def topography(self, size=None, info = {}):
@@ -157,7 +153,7 @@ def make_wrapped_reader(reader_func):
                 top._info = info
 
                 return NonuniformLineScan(self._topography.positions(), self._topography.heights())
-
+    wrappedReader.__name__=name
     return wrappedReader
 
 @text
@@ -178,10 +174,10 @@ def read_matrix(fobj, size=None, factor=None):
     if factor is not None:
         surface = surface.scale(factor)
     return surface
-MatrixReader = make_wrapped_reader(read_matrix)
+MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
 
 @text
-def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
+def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=None):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
@@ -278,11 +274,11 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
         raise Exception("This file has just two rows or two columns and is more likely a line scan than a map.")
     if xres is not None and xres != nx:
         raise Exception(
-            "The number of rows (={}) read from the file '{}' does "
+            "The number of rows (={}) open_topography from the file '{}' does "
             "not match the resolution in the file's metadata (={})."
                 .format(nx, fobj, xres))
     if yres is not None and yres != ny:
-        raise Exception("The number of columns (={}) read from the file '{}' "
+        raise Exception("The number of columns (={}) open_topography from the file '{}' "
                         "does not match the resolution in the file's metadata "
                         "(={}).".format(ny, fobj, yres))
 
@@ -301,9 +297,8 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
             ysiz = yfac * ny
         else:
             ysiz *= yfac
-    if zfac is None:
-        zfac = 1.0
-    zfac *= z_factor
+    if z_factor is not None:
+        zfac = z_factor if zfac is None else zfac*z_factor
 
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
@@ -319,18 +314,25 @@ def read_asc(fobj, size=None, unit=None, x_factor=1.0, z_factor=1.0):
         if yunit is not None:
             ysiz *= height_units[yunit] / height_units[unit]
         if zunit is not None:
-            zfac *= height_units[zunit] / height_units[unit]
+            if zfac is None:
+                zfac = height_units[zunit] / height_units[unit]
+            else:
+                zfac *= height_units[zunit] / height_units[unit]
 
-    if xsiz is None or ysiz is None:
-        if size is None:
-            surface = Topography(data, data.shape, info=dict(unit=unit))
-        else:
-            surface = Topography(data, size, info=dict(unit=unit))
+    if xsiz is not None and ysiz is not None and size is None:
+        size = (x_factor * xsiz, x_factor * ysiz)
+    if size is None:
+        size = data.shape
+    if data.shape[1] == 1:
+        if size is not None and len(size) > 1:
+            size = size[0]
+        surface = UniformLineScan(data[:, 0], size, info=dict(unit=unit))
     else:
-        surface = Topography(data, (x_factor * xsiz, x_factor * ysiz), info=dict(unit=unit))
-    surface = surface.scale(zfac)
+        surface = Topography(data, size, info=dict(unit=unit))
+    if zfac is not None:
+        surface = surface.scale(zfac)
     return surface
-AscReader = make_wrapped_reader(read_asc)
+AscReader = make_wrapped_reader(read_asc, name="AscReader")
 
 @text
 def read_xyz(fobj, unit=None):
@@ -386,7 +388,7 @@ def read_xyz(fobj, unit=None):
         return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
-XyzReader = make_wrapped_reader(read_xyz)
+XyzReader = make_wrapped_reader(read_xyz, name="XyzReader")
 
 def read_x3p(fobj):
     """
@@ -460,7 +462,7 @@ def read_x3p(fobj):
                              dtype=dtype).reshape(nx, ny).T
 
     return Topography(data, (xinc * nx, yinc * ny))
-X3pReader = make_wrapped_reader(read_x3p)
+X3pReader = make_wrapped_reader(read_x3p, name="X3pReader")
 
 def read_mat(fobj, size=None, factor=None, unit=None):
     """
@@ -638,7 +640,8 @@ def read_opd(fobj):
     surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
-OpdReader = make_wrapped_reader(read_opd)
+OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
+
 
 class DiReader(ReaderBase):
     def __init__(self, fobj):
@@ -860,7 +863,7 @@ def read_ibw(fobj):
     surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
-IbwReader = make_wrapped_reader(read_ibw)
+IbwReader = make_wrapped_reader(read_ibw, name="IbwReader")
 
 @binary
 def read_hgt(fobj, size=None):
@@ -887,100 +890,4 @@ def read_hgt(fobj, size=None):
         return Topography(data, data.shape)
     else:
         return Topography(data, size)
-HgtReader = make_wrapped_reader(read_hgt)
-
-
-def detect_format(fobj):
-    """
-    Detect file format based on its content.
-
-    Parameters
-    ----------
-    fobj : string or file object
-        File name or open stream. Note that the stream should be opened as
-        binary, otherwise the binary formats will not be detected.
-    """
-
-    close_file = False
-    if not hasattr(fobj, 'read'):
-        try:
-            import h5py
-            h5 = h5py.File(fobj, 'r')
-            return 'h5'
-        except:
-            pass
-
-        fname = fobj
-        fobj = open(fobj, 'rb')
-        close_file = True
-
-    magic_len = 20
-    file_pos = fobj.tell()
-    magic = fobj.read(magic_len)
-    fobj.seek(file_pos)
-
-    # Check for magic string
-    if is_binary_stream(fobj):
-        if magic.startswith(br'\*File list'):
-            if close_file:
-                fobj.close()
-            return 'di'
-        elif magic.startswith(b'\001\000Directory'):
-            if close_file:
-                fobj.close()
-            return 'opd'
-        else:
-            # Try opening at matlab and see if it fails
-            try:
-                from scipy.io import loadmat
-                loadmat(fobj)
-                if close_file:
-                    fobj.close()
-                else:
-                    fobj.seek(file_pos)
-                return 'mat'
-            except:
-                pass
-
-            # Try opening zip and see if it fails
-            try:
-                with ZipFile(fobj, 'r') as zipfile:
-                    if 'main.xml' in zipfile.namelist():
-                        if close_file:
-                            fobj.close()
-                        else:
-                            fobj.seek(file_pos)
-                        return 'x3p'
-            except:
-                pass
-
-            # Try opening igor binary wave and see if it fails
-            fobj.seek(file_pos)
-            import igor.binarywave as ibw
-            try:
-                ibw.load(fobj)
-                if close_file:
-                    fobj.close()
-                else:
-                    fobj.seek(file_pos)
-                return 'ibw'
-            except:
-                pass
-
-    # Finally, this could be a line scan in text format
-    try:
-        fobj.seek(file_pos)
-        read_xyz(fobj)
-        if close_file:
-            fobj.close()
-        else:
-            fobj.seek(file_pos)
-        return 'xyz'
-    except:
-        pass
-
-    if close_file:
-        fobj.close()
-    else:
-        fobj.seek(file_pos)
-    return None
+HgtReader = make_wrapped_reader(read_hgt, name="HgtReader")
