@@ -136,9 +136,10 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
         """
         def __init__(self, fn):
             self._topography = reader_func(fn)
-            self._resolution = self._topography.resolution
 
-            super().__init__(size=self._topography.size, info=self._topography.info)
+            super().__init__(resolution=self._topography.resolution,
+                             size=self._topography.size,
+                             info=self._topography.info)
 
         def topography(self, size=None, info = {}):
             size = self._process_size(size)
