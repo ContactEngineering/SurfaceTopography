@@ -602,6 +602,45 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise RuntimeError('Unknown size of coefficients tuple.')
 
 
+class TransposedUniformTopography(DecoratedUniformTopography):
+    """
+    Tranpose topography.
+    """
+
+    def __init__(self, topography, info={}):
+        """
+        Parameters
+        ----------
+        topography : :obj:`UniformTopography`
+            Topography to transpose
+        info : dict
+            Additional entries for the info dictionary
+        """
+        super().__init__(topography, info=info)
+
+    @property
+    def resolution(self, ):
+        """ Return number of points """
+        if self.dim == 1:
+            return self.parent_topography.resolution
+        else:
+            nx, ny = self.parent_topography.resolution
+            return ny, nx
+
+    @property
+    def size(self, ):
+        """ Return physical size """
+        if self.dim == 1:
+            return self.parent_topography.size
+        else:
+            sx, sy = self.parent_topography.size
+            return sy, sx
+
+    def heights(self):
+        """ Computes the rescaled profile.
+        """
+        return self.parent_topography.heights().T
+
 
 class TranslatedTopography(DecoratedUniformTopography):
     """ used when geometries are translated
@@ -692,6 +731,7 @@ UniformLineScan.register_function('mean', lambda this: this.heights().mean())
 
 Topography.register_function('scale', ScaledUniformTopography)
 Topography.register_function('detrend', DetrendedUniformTopography)
+Topography.register_function('transpose', TransposedUniformTopography)
 
 UniformLineScan.register_function('scale', ScaledUniformTopography)
 UniformLineScan.register_function('detrend', DetrendedUniformTopography)
