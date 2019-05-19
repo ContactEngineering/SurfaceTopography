@@ -125,12 +125,6 @@ class DecoratedTopography(AbstractHeightContainer):
         self.pnp = self.parent_topography.pnp
         self._functions = self.parent_topography._functions.copy()
 
-    def __getattr__(self, name):
-        if name in self._functions:
-            return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
-        else:
-            return self.parent_topography.__getattr__(name)
-
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
