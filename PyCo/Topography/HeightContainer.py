@@ -64,6 +64,9 @@ class AbstractHeightContainer(object):
             raise AttributeError("Unkown attribute '{}' and no analysis function of this name registered (class {})."
                                  .format(name, self.__class__.__name__))
 
+    def __dir__(self):
+        return sorted(super().__dir__() + [*self._functions])
+
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
