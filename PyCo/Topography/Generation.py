@@ -430,7 +430,11 @@ def _irfft2(karr, rarr, progress_callback=None):
     for i in range(nrows):
         if progress_callback is not None:
             progress_callback(i + ncolumns, ncolumns + nrows - 1)
-        rarr[i, :] = np.fft.irfft(karr[i, :])
+        if rarr.shape[1] % 2 == 0:
+            rarr[i, :] = np.fft.irfft(karr[i, :])
+        else:
+            rarr[i, -1] = 0.0
+            rarr[i, :-1] = np.fft.irfft(karr[i, :])
 
 
 def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
