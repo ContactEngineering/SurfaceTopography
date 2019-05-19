@@ -1,5 +1,6 @@
 #
-# Copyright 2019 Michael Röttger
+# Copyright 2019 Antoine Sanner
+#           2019 Michael Röttger
 #           2018-2019 Lars Pastewka
 # 
 # ### MIT license
@@ -28,7 +29,6 @@ Helper functions to compute trends of surfaces
 """
 
 import numpy as np
-import scipy
 
 
 def tilt_from_height(topography, full_output=False):

@@ -38,8 +38,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    _functions = {}
-
     def __init__(self, heights, size, periodic=False, info={}):
         """
         Parameters
@@ -141,8 +139,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     Topography that lives on a uniform two-dimensional grid, i.e. a topography
     map.
     """
-
-    _functions = {}
 
     def __init__(self, heights, size, subdomain_location=None, subdomain_resolution=None,
                  resolution=None, pnp=None,
@@ -727,15 +723,11 @@ class CompoundTopography(DecoratedUniformTopography):
 
 ### Register analysis functions from this module
 
-Topography.register_function('mean', lambda this: this.heights().mean())
-UniformLineScan.register_function('mean', lambda this: this.heights().mean())
+UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
 
 
 ### Register pipeline functions from this module
 
-Topography.register_function('scale', ScaledUniformTopography)
-Topography.register_function('detrend', DetrendedUniformTopography)
-Topography.register_function('transpose', TransposedUniformTopography)
-
-UniformLineScan.register_function('scale', ScaledUniformTopography)
-UniformLineScan.register_function('detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function('scale', ScaledUniformTopography)
+UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)

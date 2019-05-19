@@ -30,7 +30,7 @@ topographies.
 
 import numpy as np
 
-from ..NonuniformLineScan import NonuniformLineScan
+from ..HeightContainer import NonuniformLineScanInterface
 
 
 def bandwidth(self):
@@ -87,5 +87,5 @@ def derivative(topography, n):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('bandwidth', bandwidth)
-NonuniformLineScan.register_function('derivative', derivative)
+NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
+NonuniformLineScanInterface.register_function('derivative', derivative)

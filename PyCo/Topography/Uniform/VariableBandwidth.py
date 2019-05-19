@@ -28,7 +28,7 @@ Variable bandwidth analysis for uniform topographies
 
 import numpy as np
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..HeightContainer import UniformTopographyInterface
 
 
 def checkerboard_detrend(topography, subdivisions):
@@ -159,8 +159,5 @@ def variable_bandwidth(topography, resolution_cutoff=4):
 
 ### Register analysis functions from this module
 
-Topography.register_function('checkerboard_detrend', checkerboard_detrend)
-Topography.register_function('variable_bandwidth', variable_bandwidth)
-
-UniformLineScan.register_function('checkerboard_detrend', checkerboard_detrend)
-UniformLineScan.register_function('variable_bandwidth', variable_bandwidth)
+UniformTopographyInterface.register_function('checkerboard_detrend', checkerboard_detrend)
+UniformTopographyInterface.register_function('variable_bandwidth', variable_bandwidth)

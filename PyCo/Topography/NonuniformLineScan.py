@@ -1,5 +1,6 @@
 #
 # Copyright 2019 Lars Pastewka
+#           2019 Antoine Sanner
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -39,8 +40,6 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     """
     Nonuniform topography with point list consisting of static numpy arrays.
     """
-
-    _functions = {}
 
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
@@ -286,10 +285,10 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
 
 
 ### Register pipeline functions from this module
 
-NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
-NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
+NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)

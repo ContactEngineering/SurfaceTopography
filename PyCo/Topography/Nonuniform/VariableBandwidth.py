@@ -28,6 +28,7 @@ Variable bandwidth analysis for nonuniform topographies
 
 import numpy as np
 
+from ..HeightContainer import NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 
 
@@ -139,5 +140,5 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('checkerboard_detrend', checkerboard_detrend)
-NonuniformLineScan.register_function('variable_bandwidth', variable_bandwidth)
+NonuniformLineScanInterface.register_function('checkerboard_detrend', checkerboard_detrend)
+NonuniformLineScanInterface.register_function('variable_bandwidth', variable_bandwidth)

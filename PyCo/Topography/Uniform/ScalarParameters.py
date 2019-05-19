@@ -29,7 +29,7 @@ Functions computing scalar roughness parameters
 
 import numpy as np
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..HeightContainer import UniformTopographyInterface
 
 
 def rms_height(topography, kind='Sq'):
@@ -117,10 +117,6 @@ def rms_Laplacian(topography):
 
 ### Register analysis functions from this module
 
-Topography.register_function('rms_height', rms_height)
-Topography.register_function('rms_slope', rms_slope)
-Topography.register_function('rms_curvature', rms_Laplacian)
-
-UniformLineScan.register_function('rms_height', rms_height)
-UniformLineScan.register_function('rms_slope', rms_slope)
-UniformLineScan.register_function('rms_curvature', rms_Laplacian)
+UniformTopographyInterface.register_function('rms_height', rms_height)
+UniformTopographyInterface.register_function('rms_slope', rms_slope)
+UniformTopographyInterface.register_function('rms_curvature', rms_Laplacian)

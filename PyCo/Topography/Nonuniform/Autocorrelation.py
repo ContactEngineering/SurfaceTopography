@@ -29,7 +29,7 @@ Height-difference autocorrelation functions for nonuniform line scans
 
 import numpy as np
 
-from ..NonuniformLineScan import NonuniformLineScan
+from ..HeightContainer import NonuniformLineScanInterface
 
 
 def height_height_autocorrelation_1D(line_scan, distances=None):
@@ -160,4 +160,4 @@ def height_difference_autocorrelation_1D(line_scan, distances=None):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('autocorrelation_1D', height_difference_autocorrelation_1D)
+NonuniformLineScanInterface.register_function('autocorrelation_1D', height_difference_autocorrelation_1D)

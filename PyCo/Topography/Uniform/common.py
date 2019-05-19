@@ -29,7 +29,7 @@ topographies.
 
 import numpy as np
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..HeightContainer import UniformTopographyInterface
 
 
 def bandwidth(self):
@@ -88,8 +88,5 @@ def derivative(topography, n, periodic=None):
 
 ### Register analysis functions from this module
 
-Topography.register_function('bandwidth', bandwidth)
-Topography.register_function('derivative', derivative)
-
-UniformLineScan.register_function('bandwidth', bandwidth)
-UniformLineScan.register_function('derivative', derivative)
+UniformTopographyInterface.register_function('bandwidth', bandwidth)
+UniformTopographyInterface.register_function('derivative', derivative)
