@@ -375,20 +375,20 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     """ used when geometries are scaled
     """
 
-    def __init__(self, topography, coeff, info={}):
+    def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
         topography  -- Topography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
-        self.coeff = float(coeff)
+        self._scale_factor = float(scale_factor)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.coeff
+        state = super().__getstate__(), self._scale_factor
         return state
 
     def __setstate__(self, state):
@@ -396,13 +396,17 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.coeff = state
+        superstate, self._scale_factor = state
         super().__setstate__(superstate)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
     def heights(self):
         """ Computes the rescaled profile.
         """
-        return self.coeff * self.parent_topography.heights()
+        return self._scale_factor * self.parent_topography.heights()
 
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
