@@ -30,6 +30,9 @@ Support for uniform topogography descriptions
 
 import numpy as np
 
+from NuMPI import MPI
+from NuMPI.Tools import Reduction
+
 from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 
@@ -207,7 +210,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = size
         self._periodic = periodic
-        self.pnp = pnp if pnp is not None else np
+        self.pnp = pnp if pnp is not None else Reduction()
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, \

@@ -33,21 +33,19 @@ In MPI Parallelized programs:
 
 """
 
-try:  # TODO: Code should look like the same with and without mpi4py
-    from mpi4py import MPI
 
-    _with_mpi = True
-except:
-    _with_mpi = False
-if _with_mpi:
-    import NuMPI.IO  # TODO: NuMPI should provide the same interface with and without mpi4py
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
+
 
 from numpy.lib.format import read_magic, _read_array_header, _check_version
 import numpy as np
 
+from PyCo.Topography import Topography
+from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
+
+from NuMPI import MPI
+import NuMPI
+import NuMPI.IO
 
 class NPYReader(ReaderBase):
     """
@@ -55,7 +53,7 @@ class NPYReader(ReaderBase):
     metadata so we use directly the implementation from numpy and NuMPI
     """
 
-    def __init__(self, fn, comm=None):
+    def __init__(self, fn, comm=None): #
         """
 
         Parameters
@@ -135,4 +133,4 @@ class NPYReader(ReaderBase):
 
 def save_npy(fn, topography):
     NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
-                      resolution=topography.subdomain_resolution, comm=topography.comm)
+                      resolution=topography.subdomain_resolution, comm=topography.pnp.comm)
