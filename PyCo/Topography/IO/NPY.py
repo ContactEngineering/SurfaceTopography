@@ -83,7 +83,7 @@ class NPYReader(ReaderBase):
             except ValueError:
                 raise FileFormatMismatch()
 
-        # TODO: maybe implement extras specific to Topography , like loading the units and the size
+        # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
 
     def topography(self, substrate=None, size=None, channel=None, info={}):
         """
@@ -96,7 +96,7 @@ class NPYReader(ReaderBase):
         substrate: Free- or PeriodicFFTElasticHalfspace instance
         has attributes topography_subdomain_location, topography_subdomain_resolution and resolution
         size: (float, float)
-        size of the topography
+        physical_sizes of the topography
         channel: int or None
         ignored here because only one channel is availble here
         info: dict
@@ -112,7 +112,7 @@ class NPYReader(ReaderBase):
             if (substrate is None):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
             if size is not None:
-                raise ValueError("size is already provided by substrate")
+                raise ValueError("physical_sizes is already provided by substrate")
 
             return Topography(
                 heights=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
@@ -120,7 +120,7 @@ class NPYReader(ReaderBase):
                 subdomain_location=substrate.topography_subdomain_location,
                 resolution=substrate.resolution,
                 pnp=substrate.pnp,
-                size=substrate.size,
+                size=substrate.physical_sizes,
                 info=info)
 
         else:

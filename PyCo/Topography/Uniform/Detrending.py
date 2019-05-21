@@ -142,7 +142,7 @@ def tilt_and_curvature(arr, full_output=False):
 
 def shift_and_tilt(topography):
     """
-    returns an array of same shape and size as arr, but shifted and tilted so
+    returns an array of same shape and physical_sizes as arr, but shifted and tilted so
     that mean(arr) = 0 and mean(arr**2) is minimized
     """
     arr = topography.heights()

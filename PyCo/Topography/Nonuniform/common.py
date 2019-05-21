@@ -42,7 +42,7 @@ def bandwidth(self):
     """
     x = self.positions()
     lower_bound = np.mean(np.diff(x))
-    upper_bound, = self.size
+    upper_bound, = self.physical_sizes
 
     return lower_bound, upper_bound
 

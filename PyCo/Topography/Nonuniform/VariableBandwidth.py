@@ -117,7 +117,7 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
     magnifications : array
         Array containing the magnifications.
     bandwidths : array
-        Array containing the bandwidths, here the size of the subdivided
+        Array containing the bandwidths, here the physical_sizes of the subdivided
         topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
@@ -132,7 +132,7 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
         subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
         min_resolution = min([l.resolution[0] for l in subdivided_line_scans])
         magnifications += [magnification]
-        bandwidths += [subdivided_line_scans[0].size[0]]
+        bandwidths += [subdivided_line_scans[0].physical_sizes[0]]
         rms_heights += [np.mean([l.rms_height() for l in subdivided_line_scans])]
         magnification *= 2
     return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)

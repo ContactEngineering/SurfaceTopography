@@ -98,8 +98,8 @@ class AbstractHeightContainer(object):
 
     @property
     @abc.abstractmethod
-    def size(self, ):
-        """ Return physical size """
+    def physical_sizes(self, ):
+        """ Return physical physical_sizes """
         raise NotImplementedError
 
     @property
@@ -114,7 +114,7 @@ class DecoratedTopography(AbstractHeightContainer):
     data is owned by the parent, but the present class performs
     transformations on that data. This is a simple realization of a
     processing pipeline. Note that child topographies don't store their
-    own size etc. but pass this information through to the parent.
+    own physical_sizes etc. but pass this information through to the parent.
     """
 
     def __init__(self, topography, info={}):

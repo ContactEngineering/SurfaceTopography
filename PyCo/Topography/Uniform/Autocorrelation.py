@@ -67,10 +67,10 @@ def autocorrelation_1D(topography):
     """
     if topography.dim == 2:
         nx, dummy_ny = topography.resolution
-        sx, dummy_sy = topography.size
+        sx, dummy_sy = topography.physical_sizes
     else:
         nx, = topography.resolution
-        sx, = topography.size
+        sx, = topography.physical_sizes
 
     if topography.is_periodic:
         # Compute height-height autocorrelation function from a convolution
@@ -147,9 +147,9 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         (Units: length**2)
     """
     nx, ny = topography.resolution
-    sx, sy = topography.size
+    sx, sy = topography.physical_sizes
 
-    # Pixel size
+    # Pixel physical_sizes
     area0 = (sx / nx) * (sy / ny)
 
     # Compute FFT and normalize

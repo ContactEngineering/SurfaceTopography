@@ -58,8 +58,8 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
         return 1
 
     @property
-    def size(self):
-        s, = self.parent_topography.size
+    def physical_sizes(self):
+        s, = self.parent_topography.physical_sizes
         p, = self.parent_topography.pixel_size
         return s - p,
 
@@ -75,7 +75,7 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
 
     @property
     def x_range(self):
-        s, = self.parent_topography.size
+        s, = self.parent_topography.physical_sizes
         p, = self.parent_topography.pixel_size
         return 0, s - p
 
@@ -139,8 +139,8 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
         return 1
 
     @property
-    def size(self):
-        s, = self.parent_topography.size
+    def physical_sizes(self):
+        s, = self.parent_topography.physical_sizes
         return s * (self.nb_points + self.padding) / self.nb_points,
 
     @property
@@ -160,7 +160,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
 
     @property
     def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
+        return (s / r for s, r in zip(self.physical_sizes, self.resolution))
 
     @property
     def area_per_pt(self):

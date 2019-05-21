@@ -52,7 +52,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
                      "resolution":self._resolution,
                      "height_scale_factor": 1.,
                      "unit": "",
-                     "size": None}
+                     "physical_sizes": None}
 
         channelinfo.update(self._info)
         return [channelinfo]
@@ -72,7 +72,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._resolution
 
     @property
-    def size(self):
+    def physical_sizes(self):
         return self._size
 
     @property
@@ -80,16 +80,16 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._info
 
     def _process_size(self, size):
-        if self.size is None:
+        if self.physical_sizes is None:
             if size is None:
-                raise ValueError("size could not be extracted from file, you should provide it")
+                raise ValueError("physical_sizes could not be extracted from file, you should provide it")
         else:
             if size is None:
-                size = self.size
-            elif [s == ss for s, ss in zip(size, self.size)] != [True, True]: # both sizes are defined
-                warnings.warn("a size different from the specified value"
+                size = self.physical_sizes
+            elif [s == ss for s, ss in zip(size, self.physical_sizes)] != [True, True]: # both sizes are defined
+                warnings.warn("a physical_sizes different from the specified value"
                               "was present in the file ({})."
-                              "we will use the specified value".format(self.size, size))
+                              "we will use the specified value".format(self.physical_sizes, size))
         return size
 
     def _process_info(self, info):

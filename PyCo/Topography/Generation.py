@@ -50,7 +50,7 @@ class RandomSurfaceExact(object):
         resolution -- Tuple containing number of points in spatial directions.
                       The length of the tuple determines the spatial dimension
                       of the problem (for the time being, only 1D or square 2D)
-        size       -- domain size. For multidimensional problems,
+        physical_sizes       -- domain physical_sizes. For multidimensional problems,
                       a tuple can be provided to specify the length per
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
@@ -204,7 +204,7 @@ class RandomSurfaceExact(object):
 
         Keyword Arguments:
         lambda_max -- (default None) specifies a cutoff value for the longest
-                      wavelength. By default, this is the domain size in the
+                      wavelength. By default, this is the domain physical_sizes in the
                       smallest dimension
         lambda_min -- (default None) specifies a cutoff value for the shortest
                       wavelength. by default this is determined by Shannon's
@@ -219,7 +219,7 @@ class RandomSurfaceExact(object):
         q_square = self.q[0].reshape(-1, 1)**2 + self.q[1]**2
         if lambda_max is not None:
             q2_min = (2*np.pi/lambda_max)**2
-            # ampli_max = (self.prefactor*2*np.pi/self.size[0] *
+            # ampli_max = (self.prefactor*2*np.pi/self.physical_sizes[0] *
             #             q2_min**((-1-self.hurst)/2))
             ampli_max = (q2_min)**(-(1+self.hurst)/2)*self.prefactor
             sl = q_square < q2_min
@@ -246,7 +246,7 @@ class RandomSurfaceGaussian(RandomSurfaceExact):
         resolution -- Tuple containing number of points in spatial directions.
                       The length of the tuple determines the spatial dimension
                       of the problem (for the time being, only 1D or square 2D)
-        size       -- domain size. For multidimensional problems,
+        physical_sizes       -- domain physical_sizes. For multidimensional problems,
                       a tuple can be provided to specify the lenths per
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
@@ -289,7 +289,7 @@ class CapillaryWavesExact(object):
         resolution        -- Tuple containing number of points in spatial directions.
                              The length of the tuple determines the spatial dimension
                              of the problem (for the time being, only 1D or square 2D)
-        size              -- domain size. For multidimensional problems,
+        physical_sizes              -- domain physical_sizes. For multidimensional problems,
                              a tuple can be provided to specify the length per
                              dimension. If the tuple has less entries than dimensions,
                              the last value in repeated.
@@ -393,7 +393,7 @@ class CapillaryWavesExact(object):
 
         Keyword Arguments:
         lambda_max -- (default None) specifies a cutoff value for the longest
-                      wavelength. By default, this is the domain size in the
+                      wavelength. By default, this is the domain physical_sizes in the
                       smallest dimension
         lambda_min -- (default None) specifies a cutoff value for the shortest
                       wavelength. by default this is determined by Shannon's
@@ -460,7 +460,7 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
     resolution : array_like
         Resolution of the topography map.
     size : array_like
-        Physical size of the topography map.
+        Physical physical_sizes of the topography map.
     Hurst : float
         Hurst exponent.
     rms_height : float
@@ -517,7 +517,7 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
     resolution : array_like
         Resolution of the topography map.
     size : array_like
-        Physical size of the topography map.
+        Physical physical_sizes of the topography map.
     hurst : float
         Hurst exponent.
     rms_height : float

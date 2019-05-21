@@ -68,7 +68,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         return 1
 
     @property
-    def size(self):
+    def physical_sizes(self):
         """Returns distance between maximum and minimum x-value."""
         return self._x[-1] - self._x[0],
 
@@ -113,8 +113,8 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.resolution
 
     @property
-    def size(self):
-        return self.parent_topography.size
+    def physical_sizes(self):
+        return self.parent_topography.physical_sizes
 
     @property
     def x_range(self):
@@ -260,7 +260,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             a0, a1, a2 = self._coeffs
             return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
         else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -272,7 +272,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         elif len(self._coeffs) == 3:
             return '{0} + {1} x + {2} x^2'.format(*str_coeffs)
         else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
 
     @property
     def curvatures(self):
@@ -285,7 +285,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
 ### Register analysis functions from this module
 
-NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
 
 
 ### Register pipeline functions from this module
