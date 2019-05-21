@@ -41,8 +41,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    _functions = {}
-
     def __init__(self, heights, size, periodic=False, info={}):
         """
         Parameters
@@ -144,8 +142,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     Topography that lives on a uniform two-dimensional grid, i.e. a topography
     map.
     """
-
-    _functions = {}
 
     def __init__(self, heights, size, subdomain_location=None, subdomain_resolution=None,
                  resolution=None, pnp=None,
@@ -378,20 +374,20 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     """ used when geometries are scaled
     """
 
-    def __init__(self, topography, coeff, info={}):
+    def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
         topography  -- Topography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
-        self.coeff = float(coeff)
+        self._scale_factor = float(scale_factor)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.coeff
+        state = super().__getstate__(), self._scale_factor
         return state
 
     def __setstate__(self, state):
@@ -399,13 +395,17 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.coeff = state
+        superstate, self._scale_factor = state
         super().__setstate__(superstate)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
     def heights(self):
         """ Computes the rescaled profile.
         """
-        return self.coeff * self.parent_topography.heights()
+        return self._scale_factor * self.parent_topography.heights()
 
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
@@ -605,6 +605,45 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise RuntimeError('Unknown size of coefficients tuple.')
 
 
+class TransposedUniformTopography(DecoratedUniformTopography):
+    """
+    Tranpose topography.
+    """
+
+    def __init__(self, topography, info={}):
+        """
+        Parameters
+        ----------
+        topography : :obj:`UniformTopography`
+            Topography to transpose
+        info : dict
+            Additional entries for the info dictionary
+        """
+        super().__init__(topography, info=info)
+
+    @property
+    def resolution(self, ):
+        """ Return number of points """
+        if self.dim == 1:
+            return self.parent_topography.resolution
+        else:
+            nx, ny = self.parent_topography.resolution
+            return ny, nx
+
+    @property
+    def size(self, ):
+        """ Return physical size """
+        if self.dim == 1:
+            return self.parent_topography.size
+        else:
+            sx, sy = self.parent_topography.size
+            return sy, sx
+
+    def heights(self):
+        """ Computes the rescaled profile.
+        """
+        return self.parent_topography.heights().T
+
 
 class TranslatedTopography(DecoratedUniformTopography):
     """ used when geometries are translated
@@ -687,14 +726,11 @@ class CompoundTopography(DecoratedUniformTopography):
 
 ### Register analysis functions from this module
 
-Topography.register_function('mean', lambda this: this.heights().mean())
-UniformLineScan.register_function('mean', lambda this: this.heights().mean())
+UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
 
 
 ### Register pipeline functions from this module
 
-Topography.register_function('scale', ScaledUniformTopography)
-Topography.register_function('detrend', DetrendedUniformTopography)
-
-UniformLineScan.register_function('scale', ScaledUniformTopography)
-UniformLineScan.register_function('detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function('scale', ScaledUniformTopography)
+UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)

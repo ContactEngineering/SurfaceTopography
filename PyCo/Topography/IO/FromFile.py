@@ -1,5 +1,7 @@
 #
-# Copyright 2019 Antoine Sanner
+# Copyright 2019 Lars Pastewka
+#           2019 Kai Haase
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -42,7 +44,7 @@ from PyCo.Topography.IO.Reader import ReaderBase
 
 ###
 
-height_units = {'m': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'nm': 1e-9, 'A': 1e-10}
+height_units = {'m': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
 voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
@@ -123,6 +125,8 @@ def mangle_height_unit(unit):
     unit = unit.strip()
     if unit == '':
         return None
+    elif unit == 'A':
+        return 'Å'
     elif unit == 'μm' or unit == 'um' or unit == '~m':
         return 'µm'
     else:
@@ -136,9 +140,10 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
         """
         def __init__(self, fn):
             self._topography = reader_func(fn)
-            self._resolution = self._topography.resolution
 
-            super().__init__(size=self._topography.size, info=self._topography.info)
+            super().__init__(resolution=self._topography.resolution,
+                             size=self._topography.size,
+                             info=self._topography.info)
 
         def topography(self, size=None, info = {}):
             size = self._process_size(size)

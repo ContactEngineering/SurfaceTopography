@@ -1,5 +1,6 @@
 #
 # Copyright 2019 Lars Pastewka
+#           2019 Antoine Sanner
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -39,8 +40,6 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     """
     Nonuniform topography with point list consisting of static numpy arrays.
     """
-
-    _functions = {}
 
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
@@ -132,20 +131,20 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     """ used when geometries are scaled
     """
 
-    def __init__(self, topography, coeff, info={}):
+    def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
         topography  -- Topography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
-        self.coeff = float(coeff)
+        self._scale_factor = float(scale_factor)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.coeff
+        state = super().__getstate__(), self._scale_factor
         return state
 
     def __setstate__(self, state):
@@ -153,13 +152,17 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.coeff = state
+        superstate, self._scale_factor = state
         super().__setstate__(superstate)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
     def heights(self):
         """ Computes the rescaled profile.
         """
-        return self.coeff * self.parent_topography.heights()
+        return self._scale_factor * self.parent_topography.heights()
 
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
@@ -282,10 +285,10 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
 
 
 ### Register pipeline functions from this module
 
-NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
-NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
+NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)

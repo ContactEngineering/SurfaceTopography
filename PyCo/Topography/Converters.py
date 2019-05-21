@@ -186,5 +186,5 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
 
 ### Register pipeline functions from this module
 
-UniformLineScan.register_function('to_nonuniform', WrapAsNonuniformLineScan)
-NonuniformLineScan.register_function('to_uniform', UniformlyInterpolatedLineScan)
+UniformTopographyInterface.register_function('to_nonuniform', WrapAsNonuniformLineScan)
+NonuniformLineScanInterface.register_function('to_uniform', UniformlyInterpolatedLineScan)

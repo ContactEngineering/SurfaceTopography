@@ -29,7 +29,7 @@ Functions computing scalar roughness parameters
 
 import numpy as np
 
-from ..NonuniformLineScan import NonuniformLineScan
+from ..HeightContainer import NonuniformLineScanInterface
 
 
 def rms_height(topography, kind='Rq', tol=1e-6):
@@ -134,6 +134,6 @@ def rms_curvature(topography):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('rms_height', rms_height)
-NonuniformLineScan.register_function('rms_slope', rms_slope)
-NonuniformLineScan.register_function('rms_curvature', rms_curvature)
+NonuniformLineScanInterface.register_function('rms_height', rms_height)
+NonuniformLineScanInterface.register_function('rms_slope', rms_slope)
+NonuniformLineScanInterface.register_function('rms_curvature', rms_curvature)

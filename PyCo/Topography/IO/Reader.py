@@ -1,5 +1,7 @@
 #
-# Copyright 2019 Antoine Sanner
+# Copyright 2019 Lars Pastewka
+#           2019 Kai Haase
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -27,8 +29,8 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, size=None,  info={}):
-        self._resolution = None
+    def __init__(self, resolution=None, size=None, info={}):
+        self._resolution = resolution
         self._size = size
         self._info = info
         self._default_channel=0

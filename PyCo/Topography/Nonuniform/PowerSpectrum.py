@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Antoine Sanner
-#           2018-2019 Lars Pastewka
+# Copyright 2018-2019 Lars Pastewka
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -29,7 +29,7 @@ Power-spectral density for nonuniform topographies.
 
 import numpy as np
 
-from ..NonuniformLineScan import NonuniformLineScan
+from ..HeightContainer import NonuniformLineScanInterface
 
 
 def sinc(x):
@@ -143,4 +143,4 @@ def power_spectrum_1D(topography, q=None, window=None):
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('power_spectrum_1D', power_spectrum_1D)
+NonuniformLineScanInterface.register_function('power_spectrum_1D', power_spectrum_1D)

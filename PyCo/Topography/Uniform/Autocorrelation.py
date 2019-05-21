@@ -30,7 +30,7 @@ Height-difference autocorrelation functions
 import numpy as np
 
 from ..common import radial_average
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..HeightContainer import UniformTopographyInterface
 
 
 def autocorrelation_1D(topography):
@@ -200,7 +200,5 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
 
 ### Register analysis functions from this module
 
-Topography.register_function('autocorrelation_1D', autocorrelation_1D)
-Topography.register_function('autocorrelation_2D', autocorrelation_2D)
-
-UniformLineScan.register_function('autocorrelation_1D', autocorrelation_1D)
+UniformTopographyInterface.register_function('autocorrelation_1D', autocorrelation_1D)
+UniformTopographyInterface.register_function('autocorrelation_2D', autocorrelation_2D)

@@ -33,7 +33,7 @@ from scipy.signal import get_window
 
 from ..common import radial_average
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..HeightContainer import UniformTopographyInterface
 
 
 def power_spectrum_1D(topography,  # pylint: disable=invalid-name
@@ -183,7 +183,5 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
 ### Register analysis functions from this module
 
-Topography.register_function('power_spectrum_1D', power_spectrum_1D)
-Topography.register_function('power_spectrum_2D', power_spectrum_2D)
-
-UniformLineScan.register_function('power_spectrum_1D', power_spectrum_1D)
+UniformTopographyInterface.register_function('power_spectrum_1D', power_spectrum_1D)
+UniformTopographyInterface.register_function('power_spectrum_2D', power_spectrum_2D)
