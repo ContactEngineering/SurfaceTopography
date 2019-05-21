@@ -196,3 +196,7 @@ class PlasticTopography(DecoratedUniformTopography):
         """ Computes the combined profile.
         """
         return self.undeformed_profile() + self.plastic_displ
+
+    @property
+    def plastic_area(self):
+        return np.count_nonzero(self.__h_pl) * self.area_per_pt
