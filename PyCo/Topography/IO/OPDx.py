@@ -96,7 +96,7 @@ class OPDxReader(ReaderBase):
     def topography(self, size=None, channel=None):
         """
         Generates a topography object from the gathered metadata.
-        :param size: The physical size of the topography. If not given, will fetch from metadata.
+        :param size: The physical physical_sizes of the topography. If not given, will fetch from metadata.
         :param channel: The id of the channel. If not given, will use default channel.
         :return:
         Topography object.
@@ -579,7 +579,7 @@ def read_name(buf, pos):
     name, new position in buffer
     """
 
-    length, pos = read_int32(buf, pos)  # Names always have a size of 4 bytes
+    length, pos = read_int32(buf, pos)  # Names always have a physical_sizes of 4 bytes
     if len(buf) < length or pos > len(buf) - length:
         raise ValueError("Some sizes went wrong.")
     position = pos

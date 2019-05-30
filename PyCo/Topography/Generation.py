@@ -36,21 +36,21 @@ from PyCo.Tools.common import compute_wavevectors, ifftn
 # FIXME: Not sure topography generation should be classes. These should probably
 # be turned into individual functions.
 
-# FIXME: In contrast to what is explained in docstrings, this functions don't work for the generation of 1D data or 2D data with nx and ny diferent, tests are only for square resolution
+# FIXME: In contrast to what is explained in docstrings, this functions don't work for the generation of 1D data or 2D data with nx and ny diferent, tests are only for square nb_grid_pts
 class RandomSurfaceExact(object):
     """ Metasurface with exact power spectrum"""
     Error = Exception
 
-    def __init__(self, resolution, size, hurst, rms_height=None,
+    def __init__(self, nb_grid_pts, size, hurst, rms_height=None,
                  rms_slope=None, seed=None, lambda_min=None, lambda_max=None):
         """
         Generates a surface with an exact power spectrum (deterministic
         amplitude)
         Keyword Arguments:
-        resolution -- Tuple containing number of points in spatial directions.
+        nb_grid_pts -- Tuple containing number of points in spatial directions.
                       The length of the tuple determines the spatial dimension
                       of the problem (for the time being, only 1D or square 2D)
-        size       -- domain size. For multidimensional problems,
+        physical_sizes       -- domain physical_sizes. For multidimensional problems,
                       a tuple can be provided to specify the length per
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
@@ -67,17 +67,17 @@ class RandomSurfaceExact(object):
         """
         if seed is not None:
             np.random.seed(hash(seed))
-        if not hasattr(resolution, "__iter__"):
-            resolution = (resolution, )
+        if not hasattr(nb_grid_pts, "__iter__"):
+            nb_grid_pts = (nb_grid_pts, )
         if not hasattr(size, "__iter__"):
             size = (size, )
 
-        self.dim = len(resolution)
+        self.dim = len(nb_grid_pts)
         if self.dim not in (1, 2):
             raise self.Error(
                 ("Dimension of this problem is {}. Only 1 and 2-dimensional "
                  "problems are supported").format(self.dim))
-        self.resolution = resolution
+        self.nb_grid_pts = nb_grid_pts
         tmpsize = list()
         for i in range(self.dim):
             tmpsize.append(size[min(i, len(size)-1)])
@@ -101,13 +101,13 @@ class RandomSurfaceExact(object):
             self.q_min = 2*np.pi*max(1/self.size[0], 1/self.size[1])
 
         max_pixelsize = max(
-            (siz/res for siz, res in zip(self.size, self.resolution)))
+            (siz/res for siz, res in zip(self.size, self.nb_grid_pts)))
         self.q_max = np.pi/max_pixelsize
 
         self.prefactor = self.compute_prefactor()
 
         self.q = compute_wavevectors(  # pylint: disable=invalid-name
-            self.resolution, self.size, self.dim)
+            self.nb_grid_pts, self.size, self.dim)
         self.coeffs = self.generate_phases()
         self.generate_amplitudes()
         self.distribution = self.amplitude_distribution()
@@ -116,8 +116,8 @@ class RandomSurfaceExact(object):
     def get_negative_frequency_iterator(self):
         " frequency complement"
         def iterator():  # pylint: disable=missing-docstring
-            for i in range(self.resolution[0]):
-                for j in range(self.resolution[1]//2+1):
+            for i in range(self.nb_grid_pts[0]):
+                for j in range(self.nb_grid_pts[1]//2+1):
                     yield (i, j), (-i, -j)
         return iterator()
 
@@ -156,8 +156,8 @@ class RandomSurfaceExact(object):
         if self.lambda_min is not None:
             q_max = 2*np.pi/self.lambda_min
         else:
-            q_max = np.pi*min(self.resolution[0]/self.size[0],
-                              self.resolution[1]/self.size[1])
+            q_max = np.pi*min(self.nb_grid_pts[0]/self.size[0],
+                              self.nb_grid_pts[1]/self.size[1])
         area = np.prod(self.size)
         if self.rms_height is not None:
             return 2*self.rms_height/np.sqrt(
@@ -174,13 +174,13 @@ class RandomSurfaceExact(object):
         """
         generates appropriate random phases (φ(-q) = -φ(q))
         """
-        rand_phase = np.random.rand(*self.resolution)*2*np.pi
+        rand_phase = np.random.rand(*self.nb_grid_pts)*2*np.pi
         coeffs = np.exp(1j*rand_phase)
         for pos_it, neg_it in self.get_negative_frequency_iterator():
             if pos_it != (0, 0):
                 coeffs[neg_it] = coeffs[pos_it].conj()
-        if self.resolution[0] % 2 == 0:
-            r_2 = self.resolution[0]//2
+        if self.nb_grid_pts[0] % 2 == 0:
+            r_2 = self.nb_grid_pts[0]//2
             coeffs[r_2, 0] = coeffs[r_2, r_2] = coeffs[0, r_2] = 1
         return coeffs
 
@@ -204,7 +204,7 @@ class RandomSurfaceExact(object):
 
         Keyword Arguments:
         lambda_max -- (default None) specifies a cutoff value for the longest
-                      wavelength. By default, this is the domain size in the
+                      wavelength. By default, this is the domain physical_sizes in the
                       smallest dimension
         lambda_min -- (default None) specifies a cutoff value for the shortest
                       wavelength. by default this is determined by Shannon's
@@ -219,7 +219,7 @@ class RandomSurfaceExact(object):
         q_square = self.q[0].reshape(-1, 1)**2 + self.q[1]**2
         if lambda_max is not None:
             q2_min = (2*np.pi/lambda_max)**2
-            # ampli_max = (self.prefactor*2*np.pi/self.size[0] *
+            # ampli_max = (self.prefactor*2*np.pi/self.physical_sizes[0] *
             #             q2_min**((-1-self.hurst)/2))
             ampli_max = (q2_min)**(-(1+self.hurst)/2)*self.prefactor
             sl = q_square < q2_min
@@ -238,15 +238,15 @@ class RandomSurfaceExact(object):
 
 class RandomSurfaceGaussian(RandomSurfaceExact):
     """ Metasurface with Gaussian height distribution"""
-    def __init__(self, resolution, size, hurst, rms_height=None,
+    def __init__(self, nb_grid_pts, size, hurst, rms_height=None,
                  rms_slope=None, seed=None, lambda_min=None, lambda_max=None):
         """
         Generates a surface with an Gaussian amplitude distribution
         Keyword Arguments:
-        resolution -- Tuple containing number of points in spatial directions.
+        nb_grid_pts -- Tuple containing number of points in spatial directions.
                       The length of the tuple determines the spatial dimension
                       of the problem (for the time being, only 1D or square 2D)
-        size       -- domain size. For multidimensional problems,
+        physical_sizes       -- domain physical_sizes. For multidimensional problems,
                       a tuple can be provided to specify the lenths per
                       dimension. If the tuple has less entries than dimensions,
                       the last value in repeated.
@@ -261,7 +261,7 @@ class RandomSurfaceGaussian(RandomSurfaceExact):
         lambda_max -- (default None) max wavelength to consider when scaling
                       power spectral density
         """
-        super().__init__(resolution, size, hurst, rms_height=rms_height,
+        super().__init__(nb_grid_pts, size, hurst, rms_height=rms_height,
                          rms_slope=rms_slope, seed=seed, lambda_min=lambda_min,
                          lambda_max=lambda_max)
 
@@ -280,16 +280,16 @@ class CapillaryWavesExact(object):
     """Frozen capillary waves"""
     Error = Exception
 
-    def __init__(self, resolution, size, mass_density, surface_tension, 
+    def __init__(self, nb_grid_pts, size, mass_density, surface_tension, 
                  bending_stiffness, seed=None):
         """
         Generates a surface with an exact power spectrum (deterministic
         amplitude)
         Keyword Arguments:
-        resolution        -- Tuple containing number of points in spatial directions.
+        nb_grid_pts        -- Tuple containing number of points in spatial directions.
                              The length of the tuple determines the spatial dimension
                              of the problem (for the time being, only 1D or square 2D)
-        size              -- domain size. For multidimensional problems,
+        physical_sizes              -- domain physical_sizes. For multidimensional problems,
                              a tuple can be provided to specify the length per
                              dimension. If the tuple has less entries than dimensions,
                              the last value in repeated.
@@ -304,17 +304,17 @@ class CapillaryWavesExact(object):
         """
         if seed is not None:
             np.random.seed(hash(seed))
-        if not hasattr(resolution, "__iter__"):
-            resolution = (resolution, )
+        if not hasattr(nb_grid_pts, "__iter__"):
+            nb_grid_pts = (nb_grid_pts, )
         if not hasattr(size, "__iter__"):
             size = (size, )
 
-        self.dim = len(resolution)
+        self.dim = len(nb_grid_pts)
         if self.dim not in (1, 2):
             raise self.Error(
                 ("Dimension of this problem is {}. Only 1 and 2-dimensional "
                  "problems are supported").format(self.dim))
-        self.resolution = resolution
+        self.nb_grid_pts = nb_grid_pts
         tmpsize = list()
         for i in range(self.dim):
             tmpsize.append(size[min(i, len(size)-1)])
@@ -325,10 +325,10 @@ class CapillaryWavesExact(object):
         self.bending_stiffness = bending_stiffness
 
         max_pixelsize = max(
-            (siz/res for siz, res in zip(self.size, self.resolution)))
+            (siz/res for siz, res in zip(self.size, self.nb_grid_pts)))
 
         self.q = compute_wavevectors(  # pylint: disable=invalid-name
-            self.resolution, self.size, self.dim)
+            self.nb_grid_pts, self.size, self.dim)
         self.coeffs = self.generate_phases()
         self.generate_amplitudes()
         self.distribution = self.amplitude_distribution()
@@ -337,8 +337,8 @@ class CapillaryWavesExact(object):
     def get_negative_frequency_iterator(self):
         " frequency complement"
         def iterator():  # pylint: disable=missing-docstring
-            for i in range(self.resolution[0]):
-                for j in range(self.resolution[1]//2+1):
+            for i in range(self.nb_grid_pts[0]):
+                for j in range(self.nb_grid_pts[1]//2+1):
                     yield (i, j), (-i, -j)
         return iterator()
 
@@ -362,13 +362,13 @@ class CapillaryWavesExact(object):
         """
         generates appropriate random phases (φ(-q) = -φ(q))
         """
-        rand_phase = np.random.rand(*self.resolution)*2*np.pi
+        rand_phase = np.random.rand(*self.nb_grid_pts)*2*np.pi
         coeffs = np.exp(1j*rand_phase)
         for pos_it, neg_it in self.get_negative_frequency_iterator():
             if pos_it != (0, 0):
                 coeffs[neg_it] = coeffs[pos_it].conj()
-        if self.resolution[0] % 2 == 0:
-            r_2 = self.resolution[0]//2
+        if self.nb_grid_pts[0] % 2 == 0:
+            r_2 = self.nb_grid_pts[0]//2
             coeffs[r_2, 0] = coeffs[r_2, r_2] = coeffs[0, r_2] = 1
         return coeffs
 
@@ -393,7 +393,7 @@ class CapillaryWavesExact(object):
 
         Keyword Arguments:
         lambda_max -- (default None) specifies a cutoff value for the longest
-                      wavelength. By default, this is the domain size in the
+                      wavelength. By default, this is the domain physical_sizes in the
                       smallest dimension
         lambda_min -- (default None) specifies a cutoff value for the shortest
                       wavelength. by default this is determined by Shannon's
@@ -437,7 +437,7 @@ def _irfft2(karr, rarr, progress_callback=None):
             rarr[i, :-1] = np.fft.irfft(karr[i, :])
 
 
-def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
+def self_affine_prefactor(nb_grid_pts, size, Hurst, rms_height=None,
                           rms_slope=None, short_cutoff=None, long_cutoff=None):
     r"""
     Compute prefactor :math:`C_0` for the power-spectrum density of an ideal
@@ -457,10 +457,10 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
 
     Parameters
     ----------
-    resolution : array_like
+    nb_grid_pts : array_like
         Resolution of the topography map.
     size : array_like
-        Physical size of the topography map.
+        Physical physical_sizes of the topography map.
     Hurst : float
         Hurst exponent.
     rms_height : float
@@ -477,13 +477,13 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
     prefactor : float
         Prefactor :math:`C_0`
     """
-    resolution = np.asarray(resolution)
+    nb_grid_pts = np.asarray(nb_grid_pts)
     size = np.asarray(size)
 
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(resolution / size)
+        q_max = np.pi * np.min(nb_grid_pts / size)
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff
@@ -499,10 +499,10 @@ def self_affine_prefactor(resolution, size, Hurst, rms_height=None,
                                       q_min ** (2 - 2 * Hurst)) * np.sqrt((1 - Hurst) * np.pi)
     else:
         raise ValueError('Neither rms height nor rms slope is defined!')
-    return fac * np.prod(resolution) / np.sqrt(area)
+    return fac * np.prod(nb_grid_pts) / np.sqrt(area)
 
 
-def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
+def fourier_synthesis(nb_grid_pts, size, hurst, rms_height=None, rms_slope=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(size=n),
                       rfn=None, kfn=None, progress_callback=None):
@@ -514,10 +514,10 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
 
     Parameters
     ----------
-    resolution : array_like
+    nb_grid_pts : array_like
         Resolution of the topography map.
     size : array_like
-        Physical size of the topography map.
+        Physical physical_sizes of the topography map.
     hurst : float
         Hurst exponent.
     rms_height : float
@@ -555,25 +555,25 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(np.asarray(resolution) / np.asarray(size))
+        q_max = np.pi * np.min(np.asarray(nb_grid_pts) / np.asarray(size))
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff
     else:
         q_min = None
 
-    fac = self_affine_prefactor(resolution, size, hurst, rms_height=rms_height,
+    fac = self_affine_prefactor(nb_grid_pts, size, hurst, rms_height=rms_height,
                                 rms_slope=rms_slope, short_cutoff=short_cutoff,
                                 long_cutoff=long_cutoff)
 
-    if len(resolution) == 2:
-        nx, ny = resolution
+    if len(nb_grid_pts) == 2:
+        nx, ny = nb_grid_pts
         sx, sy = size
         kny = ny // 2 + 1
         kshape = (nx, kny)
     else:
         nx = 1
-        ny, = resolution
+        ny, = nb_grid_pts
         sx = 1
         sy, = size
         kny = ny // 2 + 1
@@ -581,9 +581,9 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
 
     # Create in-memopry or memory-mapped arrays as storage buffers
     if rfn is None:
-        rarr = np.empty(resolution, dtype=np.float64)
+        rarr = np.empty(nb_grid_pts, dtype=np.float64)
     else:
-        rarr = np.memmap(rfn, np.float64, 'w+', shape=resolution)
+        rarr = np.memmap(rfn, np.float64, 'w+', shape=nb_grid_pts)
     if kfn is None:
         karr = np.empty(kshape, dtype=np.complex128)
     else:
@@ -602,7 +602,7 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
             q_sq[0] = 1.
         phase = np.exp(2 * np.pi * np.random.rand(kny) * 1j)
         ran = fac * phase * amplitude_distribution(kny)
-        if len(resolution) == 2:
+        if len(nb_grid_pts) == 2:
             karr[x, :] = ran * q_sq ** (-(1 + hurst) / 2)
             karr[x, q_sq > q_max ** 2] = 0.
         else:
@@ -611,7 +611,7 @@ def fourier_synthesis(resolution, size, hurst, rms_height=None, rms_slope=None,
         if q_min is not None:
             mask = q_sq < q_min ** 2
             karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
-    if len(resolution) == 2:
+    if len(nb_grid_pts) == 2:
         # Enforce symmetry
         if nx % 2 == 0:
             karr[0, 0] = np.real(karr[0, 0])

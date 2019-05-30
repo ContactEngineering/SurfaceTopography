@@ -106,13 +106,13 @@ def open_topography(fobj, format=None, comm=None):
     >>> top = reader.topography()
 
     if the file contains several channels you can check their metadata with
-    `reader.channels()` (returns a list of dicts containing attributes `size`,
+    `reader.channels()` (returns a list of dicts containing attributes `physical_sizes`,
     `unit` and
     `height_scale_factor)
     >>> top = reader.topography(channel=2)
 
     You can also prescribe some attributes when creating the topography
-    >>> top = reader.topography(channel=2, size=(10.,10.), info={"unit":"µm"})
+    >>> top = reader.topography(channel=2, physical_sizes=(10.,10.), info={"unit":"µm"})
     """
     if comm is not None:
         kwargs = {"comm": comm}

@@ -42,7 +42,7 @@ def radial_average(C_xy, rmax, nbins, size=None, full=True):
     nbins : int
         Number of bins for averaging.
     size : (float, float), optional
-        Physical size of the 2D grid. (Default: Size is equal to number of
+        Physical physical_sizes of the 2D grid. (Default: Size is equal to number of
         grid points.)
     full : bool
         Number of quadrants contained in data. (Default: True)

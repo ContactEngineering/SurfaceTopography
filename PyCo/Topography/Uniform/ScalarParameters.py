@@ -47,7 +47,7 @@ def rms_height(topography, kind='Sq'):
     rms_height : float
         Root mean square height value.
     """
-    n = np.prod(topography.resolution)
+    n = np.prod(topography.nb_grid_pts)
     #if topography.is_MPI:
     pnp = topography.pnp
     profile = topography.heights()
@@ -56,11 +56,11 @@ def rms_height(topography, kind='Sq'):
             pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
     elif kind == 'Rq':
         decomp_axis = [full != loc for full, loc in
-                       zip(np.array(topography.resolution), profile.shape)]
+                       zip(np.array(topography.nb_grid_pts), profile.shape)]
         temppnp = pnp if decomp_axis[0] == True else np
         return np.sqrt(temppnp.sum(
             (profile - temppnp.sum(profile, axis=0)
-                / topography.resolution[0]) ** 2
+             / topography.nb_grid_pts[0]) ** 2
                                     ) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))

@@ -57,10 +57,10 @@ def height_height_autocorrelation_1D(line_scan, distances=None):
     A : array
         Autocorrelation function. (Units: length**2)
     """
-    size, = line_scan.size
+    size, = line_scan.physical_sizes
     if distances is None:
         # FIXME!!! We need a better heuristics to decide on the distances
-        res, = line_scan.resolution
+        res, = line_scan.nb_grid_pts
         distances = np.linspace(0, size, res)
     else:
         distances = np.asarray(distances, dtype=float)
@@ -120,10 +120,10 @@ def height_difference_autocorrelation_1D(line_scan, distances=None):
     A : array
         Autocorrelation function. (Units: length**2)
     """
-    size, = line_scan.size
+    size, = line_scan.physical_sizes
     if distances is None:
         # FIXME!!! We need a better heuristics to decide on the distances
-        res, = line_scan.resolution
+        res, = line_scan.nb_grid_pts
         distances = np.linspace(0, size, res)
     else:
         distances = np.asarray(distances, dtype=float)

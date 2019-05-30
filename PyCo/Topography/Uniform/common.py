@@ -40,7 +40,7 @@ def bandwidth(self):
     A 2-tuple (lower_bound, upper_bound) where the elements are floats.
     """
     lower_bound = np.mean(self.pixel_size)
-    upper_bound = np.mean(self.size)
+    upper_bound = np.mean(self.physical_sizes)
 
     return lower_bound, upper_bound
 

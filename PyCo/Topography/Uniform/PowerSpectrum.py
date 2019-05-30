@@ -57,8 +57,8 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    n = topography.resolution
-    s = topography.size
+    n = topography.nb_grid_pts
+    s = topography.physical_sizes
 
     try:
         nx, ny = n
@@ -76,7 +76,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         win *= np.sqrt(nx/(win**2).sum())
         h = (win * h.T).T
 
-    # Pixel size
+    # Pixel physical_sizes
     len0 = sx/nx
 
     # Compute FFT and normalize
@@ -102,7 +102,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
 def get_window_2D(window, nx, ny, size=None):
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
-            raise TypeError('Window size (= {2}x{3}) must match signal size '
+            raise TypeError('Window physical_sizes (= {2}x{3}) must match signal physical_sizes '
                             '(={0}x{1})'.format(nx, ny, *window.shape))
         return window
 
@@ -150,18 +150,18 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = topography.resolution
-    sx, sy = topography.size
+    nx, ny = topography.nb_grid_pts
+    sx, sy = topography.physical_sizes
 
     # Construct and apply window
     if window is not None:
-        win = get_window_2D(window, nx, ny, topography.size)
+        win = get_window_2D(window, nx, ny, topography.physical_sizes)
         # Normalize window
         if normalize_window:
             win *= np.sqrt(nx*ny/(win**2).sum())
         topography = win * topography[:, :]
 
-    # Pixel size
+    # Pixel physical_sizes
     area0 = (sx/nx)*(sy/ny)
 
     # Compute FFT and normalize

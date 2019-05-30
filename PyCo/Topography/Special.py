@@ -32,8 +32,8 @@ import numpy as np
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=False, kind="sphere",
-                subdomain_resolution = None, subdomain_location = None, pnp=None):
+def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=False, kind="sphere",
+                nb_subdomain_grid_pts = None, subdomain_locations = None, pnp=None):
     r"""
     Simple sphere geometry.
 
@@ -53,7 +53,7 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     ----------
     radius : float
         self-explanatory
-    resolution : float
+    nb_grid_pts : float
         self-explanatory
     size : float
         self-explanatory
@@ -77,9 +77,9 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
          whether the sphere can wrap around. tricky for large spheres
     """
     # pylint: disable=invalid-name
-    if not hasattr(resolution, "__iter__"):
-        resolution = (resolution,)
-    dim = len(resolution)
+    if not hasattr(nb_grid_pts, "__iter__"):
+        nb_grid_pts = (nb_grid_pts,)
+    dim = len(nb_grid_pts)
     if not hasattr(size, "__iter__"):
         size = (size,)
     if centre is None:
@@ -87,10 +87,10 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     if not hasattr(centre, "__iter__"):
         centre = (centre,)
 
-    if subdomain_resolution is None:
-        subdomain_resolution=resolution
-    if subdomain_location is None:
-        subdomain_location=(0,0)
+    if nb_subdomain_grid_pts is None:
+        nb_subdomain_grid_pts=nb_grid_pts
+    if subdomain_locations is None:
+        subdomain_locations=(0,0)
     if not periodic:
         def get_r(res, size, centre, subd_loc, subd_res):
             " computes the non-periodic radii to evaluate"
@@ -103,13 +103,13 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
             return (x - centre + size/2 ) % size - size / 2
 
     if dim == 1:
-        r2 = get_r(resolution[0], size[0], centre[0],
-                   subdomain_location[0], subdomain_resolution[0]) ** 2
+        r2 = get_r(nb_grid_pts[0], size[0], centre[0],
+                   subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2
     elif dim == 2:
-        rx2 = (get_r(resolution[0], size[0], centre[0],
-                     subdomain_location[0], subdomain_resolution[0]) ** 2).reshape((-1, 1))
-        ry2 = (get_r(resolution[1], size[1], centre[1],
-                     subdomain_location[1], subdomain_resolution[1])) ** 2
+        rx2 = (get_r(nb_grid_pts[0], size[0], centre[0],
+                     subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2).reshape((-1, 1))
+        ry2 = (get_r(nb_grid_pts[1], size[1], centre[1],
+                     subdomain_locations[1], nb_subdomain_grid_pts[1])) ** 2
         r2 = rx2 + ry2
     else:
         raise Exception("Problem has to be 1- or 2-dimensional. "
@@ -130,8 +130,8 @@ def make_sphere(radius, resolution, size, centre=None, standoff=0, periodic=Fals
     if dim == 1:
         return UniformLineScan(h, size)
     else:
-        return Topography(h, size, resolution= resolution,
-                          subdomain_location=subdomain_location, pnp=pnp)
+        return Topography(h, size, nb_grid_pts= nb_grid_pts,
+                          subdomain_locations=subdomain_locations, pnp=pnp)
 
 
 class PlasticTopography(DecoratedUniformTopography):
@@ -149,7 +149,7 @@ class PlasticTopography(DecoratedUniformTopography):
         super().__init__(topography)
         self.hardness = hardness
         if plastic_displ is None:
-            plastic_displ = np.zeros(self.subdomain_resolution)
+            plastic_displ = np.zeros(self.nb_subdomain_grid_pts)
         self.plastic_displ = plastic_displ
 
     def __getstate__(self):
@@ -183,7 +183,7 @@ class PlasticTopography(DecoratedUniformTopography):
 
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
-        if plastic_displ.shape != self.subdomain_resolution:
+        if plastic_displ.shape != self.nb_subdomain_grid_pts:
             raise ValueError('Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 

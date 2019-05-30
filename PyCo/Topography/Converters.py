@@ -58,8 +58,8 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
         return 1
 
     @property
-    def size(self):
-        s, = self.parent_topography.size
+    def physical_sizes(self):
+        s, = self.parent_topography.physical_sizes
         p, = self.parent_topography.pixel_size
         return s - p,
 
@@ -70,12 +70,12 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
     # Implement nonuniform line scan interface
 
     @property
-    def resolution(self):
-        return self.parent_topography.resolution
+    def nb_grid_pts(self):
+        return self.parent_topography.nb_grid_pts
 
     @property
     def x_range(self):
-        s, = self.parent_topography.size
+        s, = self.parent_topography.physical_sizes
         p, = self.parent_topography.pixel_size
         return 0, s - p
 
@@ -83,7 +83,7 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
         """
         Returns array containing the lateral positions.
         """
-        r, = self.parent_topography.resolution
+        r, = self.parent_topography.nb_grid_pts
         p, = self.parent_topography.pixel_size
         return np.arange(r) * p
 
@@ -139,8 +139,8 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
         return 1
 
     @property
-    def size(self):
-        s, = self.parent_topography.size
+    def physical_sizes(self):
+        s, = self.parent_topography.physical_sizes
         return s * (self.nb_points + self.padding) / self.nb_points,
 
     @property
@@ -154,13 +154,13 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
     # Implement uniform line scan interface
 
     @property
-    def resolution(self):
-        """Return resolution, i.e. number of pixels, of the topography."""
+    def nb_grid_pts(self):
+        """Return nb_grid_pts, i.e. number of pixels, of the topography."""
         return self.nb_points + self.padding,
 
     @property
     def pixel_size(self):
-        return (s / r for s, r in zip(self.size, self.resolution))
+        return (s / r for s, r in zip(self.physical_sizes, self.nb_grid_pts))
 
     @property
     def area_per_pt(self):

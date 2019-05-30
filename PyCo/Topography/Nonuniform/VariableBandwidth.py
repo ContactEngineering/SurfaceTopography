@@ -98,7 +98,7 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
 
     return subdivided_line_scans
 
-def variable_bandwidth(line_scan, resolution_cutoff=4):
+def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -108,31 +108,31 @@ def variable_bandwidth(line_scan, resolution_cutoff=4):
     ----------
     line_scan : obj:`NonuniformLineScan`
         Container storing the uniform topography map
-    resolution_cutoff : int
+    nb_grid_pts_cutoff : int
         Minimum number of data points to allow for subdivision. The analysis
-        will automatically analyze subdivision down to this resolution.
+        will automatically analyze subdivision down to this nb_grid_pts.
 
     Returns
     -------
     magnifications : array
         Array containing the magnifications.
     bandwidths : array
-        Array containing the bandwidths, here the size of the subdivided
+        Array containing the bandwidths, here the physical_sizes of the subdivided
         topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
     """
     magnification = 1
-    min_resolution, = line_scan.resolution
+    min_nb_grid_pts, = line_scan.nb_grid_pts
     magnifications = []
     bandwidths = []
     rms_heights = []
-    while min_resolution >= resolution_cutoff:
+    while min_nb_grid_pts >= nb_grid_pts_cutoff:
         subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
-        min_resolution = min([l.resolution[0] for l in subdivided_line_scans])
+        min_nb_grid_pts = min([l.nb_grid_pts[0] for l in subdivided_line_scans])
         magnifications += [magnification]
-        bandwidths += [subdivided_line_scans[0].size[0]]
+        bandwidths += [subdivided_line_scans[0].physical_sizes[0]]
         rms_heights += [np.mean([l.rms_height() for l in subdivided_line_scans])]
         magnification *= 2
     return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)

@@ -29,8 +29,8 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, resolution=None, size=None, info={}):
-        self._resolution = resolution
+    def __init__(self, nb_grid_pts=None, size=None, info={}):
+        self._nb_grid_pts = nb_grid_pts
         self._size = size
         self._info = info
         self._default_channel=0
@@ -49,10 +49,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
         """
         channelinfo={"name": "NoName",
-                     "resolution":self._resolution,
+                     "nb_grid_pts":self._nb_grid_pts,
                      "height_scale_factor": 1.,
                      "unit": "",
-                     "size": None}
+                     "physical_sizes": None}
 
         channelinfo.update(self._info)
         return [channelinfo]
@@ -68,11 +68,11 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._default_channel
 
     @property
-    def resolution(self):
-        return self._resolution
+    def nb_grid_pts(self):
+        return self._nb_grid_pts
 
     @property
-    def size(self):
+    def physical_sizes(self):
         return self._size
 
     @property
@@ -80,16 +80,16 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._info
 
     def _process_size(self, size):
-        if self.size is None:
+        if self.physical_sizes is None:
             if size is None:
-                raise ValueError("size could not be extracted from file, you should provide it")
+                raise ValueError("physical_sizes could not be extracted from file, you should provide it")
         else:
             if size is None:
-                size = self.size
-            elif [s == ss for s, ss in zip(size, self.size)] != [True, True]: # both sizes are defined
-                warnings.warn("a size different from the specified value"
+                size = self.physical_sizes
+            elif [s == ss for s, ss in zip(size, self.physical_sizes)] != [True, True]: # both sizes are defined
+                warnings.warn("a physical_sizes different from the specified value"
                               "was present in the file ({})."
-                              "we will use the specified value".format(self.size, size))
+                              "we will use the specified value".format(self.physical_sizes, size))
         return size
 
     def _process_info(self, info):
