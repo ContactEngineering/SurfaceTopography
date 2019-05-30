@@ -29,8 +29,8 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, resolution=None, size=None, info={}):
-        self._resolution = resolution
+    def __init__(self, nb_grid_pts=None, size=None, info={}):
+        self._nb_grid_pts = nb_grid_pts
         self._size = size
         self._info = info
         self._default_channel=0
@@ -49,7 +49,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
         """
         channelinfo={"name": "NoName",
-                     "resolution":self._resolution,
+                     "nb_grid_pts":self._nb_grid_pts,
                      "height_scale_factor": 1.,
                      "unit": "",
                      "physical_sizes": None}
@@ -68,8 +68,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._default_channel
 
     @property
-    def resolution(self):
-        return self._resolution
+    def nb_grid_pts(self):
+        return self._nb_grid_pts
 
     @property
     def physical_sizes(self):

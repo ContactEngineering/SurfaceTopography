@@ -167,11 +167,11 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def is_MPI(self):
-        return self.resolution != self.subdomain_resolution
+        return self.nb_grid_pts != self.nb_subdomain_grid_pts
 
     @property
     @abc.abstractmethod
-    def resolution(self):
+    def nb_grid_pts(self):
         raise NotImplementedError
 
     @property
@@ -229,7 +229,7 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def resolution(self):
+    def nb_grid_pts(self):
         raise NotImplementedError
 
     @property

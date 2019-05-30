@@ -85,7 +85,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     # Implement uniform line scan interface
 
     @property
-    def resolution(self):
+    def nb_grid_pts(self):
         return len(self._x),
 
     @property
@@ -109,8 +109,8 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.dim
 
     @property
-    def resolution(self):
-        return self.parent_topography.resolution
+    def nb_grid_pts(self):
+        return self.parent_topography.nb_grid_pts
 
     @property
     def physical_sizes(self):

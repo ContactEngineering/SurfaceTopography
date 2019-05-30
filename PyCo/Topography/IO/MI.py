@@ -106,7 +106,7 @@ class MIReader(ReaderBase):
 
             self._size = float(self.mifile.meta['xLength']), \
                 float(self.mifile.meta['yLength'])
-            self._resolution = int(self.mifile.meta['xPixels']), \
+            self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
                 int(self.mifile.meta['yPixels'])
 
             self._default_channel = 0  # Maybe search for id 'Topography' in the future
@@ -237,7 +237,7 @@ class Channel:
 
 class MIFile:
     """
-    Class structure for the while file. Has a list of channels, global metadata and a resolution.
+    Class structure for the while file. Has a list of channels, global metadata and a nb_grid_pts.
     """
 
     def __init__(self, res=(0, 0), channels=None, meta=None):

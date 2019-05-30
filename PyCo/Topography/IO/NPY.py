@@ -28,8 +28,8 @@ In MPI Parallelized programs:
 
 - we have to use `MPI.File.Open` instead of `open` to allow several processors to access the same file simultaneously
 - make the file reading in 3 steps:
-    - read the resolution only (Reader.__init__)
-    - make the domain decomposition according to the resolution
+    - read the nb_grid_pts only (Reader.__init__)
+    - make the domain decomposition according to the nb_grid_pts
     - load the relevant subdomain on each processor in Reader.topography()
 
 """
@@ -70,7 +70,7 @@ class NPYReader(ReaderBase):
             try:
                 self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, comm, format="npy")
                 self.dtype = self.mpi_file.dtype
-                self._resolution = self.mpi_file.resolution
+                self._nb_grid_pts = self.mpi_file.nb_grid_pts
             except NuMPI.IO.MPIFileTypeError:
                 raise FileFormatMismatch()
         else:  # just use the functions from numpy
@@ -79,7 +79,7 @@ class NPYReader(ReaderBase):
             try:
                 version = read_magic(self.file)
                 _check_version(version)
-                self._resolution, fortran_order, self.dtype = _read_array_header(self.file, version)
+                self._nb_grid_pts, fortran_order, self.dtype = _read_array_header(self.file, version)
             except ValueError:
                 raise FileFormatMismatch()
 
@@ -94,7 +94,7 @@ class NPYReader(ReaderBase):
         Parameters
         ----------
         substrate: Free- or PeriodicFFTElasticHalfspace instance
-        has attributes topography_subdomain_location, topography_subdomain_resolution and resolution
+        has attributes topography_subdomain_locations, topography_nb_subdomain_grid_pts and nb_grid_pts
         size: (float, float)
         physical_sizes of the topography
         channel: int or None
@@ -115,10 +115,10 @@ class NPYReader(ReaderBase):
                 raise ValueError("physical_sizes is already provided by substrate")
 
             return Topography(
-                heights=self.mpi_file.read(subdomain_location=substrate.topography_subdomain_location,
-                                           subdomain_resolution=substrate.topography_subdomain_resolution),
-                subdomain_location=substrate.topography_subdomain_location,
-                resolution=substrate.resolution,
+                heights=self.mpi_file.read(subdomain_locations=substrate.topography_subdomain_locations,
+                                           nb_subdomain_grid_pts=substrate.topography_nb_subdomain_grid_pts),
+                subdomain_locations=substrate.topography_subdomain_locations,
+                nb_grid_pts=substrate.nb_grid_pts,
                 pnp=substrate.pnp,
                 size=substrate.physical_sizes,
                 info=info)
@@ -126,12 +126,12 @@ class NPYReader(ReaderBase):
         else:
             size = self._process_size(size)
             array = np.fromfile(self.file, dtype=self.dtype,
-                                count=np.multiply.reduce(self.resolution, dtype=np.int64))
-            array.shape = self.resolution
+                                count=np.multiply.reduce(self.nb_grid_pts, dtype=np.int64))
+            array.shape = self.nb_grid_pts
             self.file.close()  # TODO: Or make this in the destructor ?
             return Topography(heights=array, size=size, info=info)
 
 
 def save_npy(fn, topography):
-    NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_location=topography.subdomain_location,
-                      resolution=topography.subdomain_resolution, comm=topography.pnp.comm)
+    NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_locations=topography.subdomain_locations,
+                      nb_grid_pts=topography.nb_subdomain_grid_pts, comm=topography.pnp.comm)

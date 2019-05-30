@@ -114,7 +114,7 @@ def checkerboard_detrend(topography, subdivisions):
     return arr
 
 
-def variable_bandwidth(topography, resolution_cutoff=4):
+def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -124,9 +124,9 @@ def variable_bandwidth(topography, resolution_cutoff=4):
     ----------
     topography : :obj:`Topography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
-    resolution_cutoff : int
-        Minimum resolution to allow for subdivision. The analysis will
-        automatically analyze subdivision down to this resolution.
+    nb_grid_pts_cutoff : int
+        Minimum nb_grid_pts to allow for subdivision. The analysis will
+        automatically analyze subdivision down to this nb_grid_pts.
 
     Returns
     -------
@@ -144,11 +144,11 @@ def variable_bandwidth(topography, resolution_cutoff=4):
     size = np.array(topography.physical_sizes)
     min_size = np.min(size)
     subdivisions = np.round(topography.physical_sizes / min_size).astype(int)
-    resolution = np.array(topography.resolution, dtype=int)
+    nb_grid_pts = np.array(topography.nb_grid_pts, dtype=int)
     magnifications = []
     bandwidths = []
     rms_heights = []
-    while ((resolution // subdivisions).min() >= resolution_cutoff):
+    while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
         bandwidths += [np.mean(size / subdivisions)]
         rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]

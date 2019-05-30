@@ -70,8 +70,8 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
     # Implement nonuniform line scan interface
 
     @property
-    def resolution(self):
-        return self.parent_topography.resolution
+    def nb_grid_pts(self):
+        return self.parent_topography.nb_grid_pts
 
     @property
     def x_range(self):
@@ -83,7 +83,7 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
         """
         Returns array containing the lateral positions.
         """
-        r, = self.parent_topography.resolution
+        r, = self.parent_topography.nb_grid_pts
         p, = self.parent_topography.pixel_size
         return np.arange(r) * p
 
@@ -154,13 +154,13 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
     # Implement uniform line scan interface
 
     @property
-    def resolution(self):
-        """Return resolution, i.e. number of pixels, of the topography."""
+    def nb_grid_pts(self):
+        """Return nb_grid_pts, i.e. number of pixels, of the topography."""
         return self.nb_points + self.padding,
 
     @property
     def pixel_size(self):
-        return (s / r for s, r in zip(self.physical_sizes, self.resolution))
+        return (s / r for s, r in zip(self.physical_sizes, self.nb_grid_pts))
 
     @property
     def area_per_pt(self):

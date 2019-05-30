@@ -57,7 +57,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    n = topography.resolution
+    n = topography.nb_grid_pts
     s = topography.physical_sizes
 
     try:
@@ -150,7 +150,7 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = topography.resolution
+    nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
     # Construct and apply window

@@ -141,7 +141,7 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
         def __init__(self, fn):
             self._topography = reader_func(fn)
 
-            super().__init__(resolution=self._topography.resolution,
+            super().__init__(nb_grid_pts=self._topography.nb_grid_pts,
                              size=self._topography.physical_sizes,
                              info=self._topography.info)
 
@@ -280,11 +280,11 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
     if xres is not None and xres != nx:
         raise Exception(
             "The number of rows (={}) open_topography from the file '{}' does "
-            "not match the resolution in the file's metadata (={})."
+            "not match the nb_grid_pts in the file's metadata (={})."
                 .format(nx, fobj, xres))
     if yres is not None and yres != ny:
         raise Exception("The number of columns (={}) open_topography from the file '{}' "
-                        "does not match the resolution in the file's metadata "
+                        "does not match the nb_grid_pts in the file's metadata "
                         "(={}).".format(ny, fobj, yres))
 
     # Handle scale factors
@@ -534,7 +534,7 @@ class MatReader(ReaderBase):
                 pass
             if is_2darray:
                 channelinfo = {"name": key,
-                               "resolution":value.shape,
+                               "nb_grid_pts":value.shape,
                                "height_scale_factor": 1.,
                                "unit": "",
                                "physical_sizes": None}
@@ -547,10 +547,10 @@ class MatReader(ReaderBase):
         return self._channels
 
     @property
-    def resolution(self, channel=None):
+    def nb_grid_pts(self, channel=None):
         if channel is None:
             channel = self._default_channel
-        return self.channels[channel]["resolution"]
+        return self.channels[channel]["nb_grid_pts"]
 
     @property
     def physical_sizes(self, channel=None):
@@ -766,7 +766,7 @@ class DiReader(ReaderBase):
 
                 channel_dict = {}
                 channel_dict["name"] = image_data_key
-                channel_dict["resolution"] = (nx, ny)
+                channel_dict["nb_grid_pts"] = (nx, ny)
                 channel_dict["physical_sizes"] = (sx, sy)
                 channel_dict["unit"] = unit
                 #channel_dict["height_unit"] = height_unit
@@ -787,10 +787,10 @@ class DiReader(ReaderBase):
         return self._channels
 
     @property
-    def resolution(self, channel=None):
+    def nb_grid_pts(self, channel=None):
         if channel is None:
             channel = self._default_channel
-        return self.channels[channel]["resolution"]
+        return self.channels[channel]["nb_grid_pts"]
 
     @property
     def physical_sizes(self, channel=None):
@@ -815,7 +815,7 @@ class DiReader(ReaderBase):
             size = channel_dict["physical_sizes"]
         sx, sy = size
 
-        nx, ny = channel_dict["resolution"]
+        nx, ny = channel_dict["nb_grid_pts"]
         #height_unit = channel_dict["height_unit"]
         #xy_unit = channel_dict["xy_unit"]
 
