@@ -256,7 +256,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         return self._subdomain_location
 
     @property
-    def subdomain_slice(self):
+    def subdomain_slices(self):
         return tuple([slice(s, s + n) for s, n in
                       zip(self.subdomain_location, self.subdomain_resolution)])
 
@@ -347,8 +347,8 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
         return self.parent_topography.subdomain_location
 
     @property
-    def subdomain_slice(self):
-        return self.parent_topography.subdomain_slice
+    def subdomain_slices(self):
+        return self.parent_topography.subdomain_slices
 
     @property
     def area_per_pt(self):
