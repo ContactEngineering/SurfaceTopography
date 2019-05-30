@@ -55,7 +55,7 @@ def checkerboard_detrend(topography, subdivisions):
         checkerboard.
     """
     arr = topography.heights().copy()
-    size = topography.physical_sizes
+    physical_sizes = topography.physical_sizes
     nb_dim = topography.dim
 
     shape = arr.shape
@@ -141,8 +141,8 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
         magnification.
     """
     magnification = 1
-    size = np.array(topography.physical_sizes)
-    min_size = np.min(size)
+    physical_sizes = np.array(topography.physical_sizes)
+    min_size = np.min(physical_sizes)
     subdivisions = np.round(topography.physical_sizes / min_size).astype(int)
     nb_grid_pts = np.array(topography.nb_grid_pts, dtype=int)
     magnifications = []
@@ -150,7 +150,7 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
     rms_heights = []
     while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
-        bandwidths += [np.mean(size / subdivisions)]
+        bandwidths += [np.mean(physical_sizes / subdivisions)]
         rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
         magnification *= 2
         subdivisions *= 2

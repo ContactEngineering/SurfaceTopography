@@ -99,17 +99,17 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def get_window_2D(window, nx, ny, size=None):
+def get_window_2D(window, nx, ny,physical_sizes=None):
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
             raise TypeError('Window physical_sizes (= {2}x{3}) must match signal physical_sizes '
                             '(={0}x{1})'.format(nx, ny, *window.shape))
         return window
 
-    if size is None:
+    if physical_sizes is None:
         sx, sy = nx, ny
     else:
-        sx, sy = size
+        sx, sy = physical_sizes
     if window == 'hann':
         maxr = min(sx, sy)/2
         r = np.sqrt((sx*(np.arange(nx).reshape(-1,1)-nx//2)/nx)**2 +
@@ -173,7 +173,7 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, 2*np.pi*nx/(2*sx), nbins, size=(2*np.pi*nx/sx, 2*np.pi*ny/sy))
+        C_qk, 2*np.pi*nx/(2*sx), nbins, physical_sizes=(2*np.pi*nx/sx, 2*np.pi*ny/sy))
 
     if return_map:
         return q_val[n>0], C_val[n>0], C_qk

@@ -29,9 +29,9 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, nb_grid_pts=None, size=None, info={}):
+    def __init__(self, nb_grid_pts=None, physical_sizes=None, info={}):
         self._nb_grid_pts = nb_grid_pts
-        self._size = size
+        self._size = physical_sizes
         self._info = info
         self._default_channel=0
 

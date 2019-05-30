@@ -120,7 +120,7 @@ class NPYReader(ReaderBase):
                 subdomain_locations=substrate.topography_subdomain_locations,
                 nb_grid_pts=substrate.nb_grid_pts,
                 pnp=substrate.pnp,
-                size=substrate.physical_sizes,
+                physical_sizes=substrate.physical_sizes,
                 info=info)
 
         else:
@@ -129,7 +129,7 @@ class NPYReader(ReaderBase):
                                 count=np.multiply.reduce(self.nb_grid_pts, dtype=np.int64))
             array.shape = self.nb_grid_pts
             self.file.close()  # TODO: Or make this in the destructor ?
-            return Topography(heights=array, size=size, info=info)
+            return Topography(heights=array, physical_sizes=size, info=info)
 
 
 def save_npy(fn, topography):

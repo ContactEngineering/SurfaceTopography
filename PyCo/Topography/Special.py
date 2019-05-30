@@ -32,7 +32,7 @@ import numpy as np
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=False, kind="sphere",
+def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, periodic=False, kind="sphere",
                 nb_subdomain_grid_pts = None, subdomain_locations = None, pnp=None):
     r"""
     Simple sphere geometry.
@@ -55,7 +55,7 @@ def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=Fal
         self-explanatory
     nb_grid_pts : float
         self-explanatory
-    size : float
+    physical_sizes : float
         self-explanatory
     centre : float
          specifies the coordinates (in length units, not pixels).
@@ -80,10 +80,10 @@ def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=Fal
     if not hasattr(nb_grid_pts, "__iter__"):
         nb_grid_pts = (nb_grid_pts,)
     dim = len(nb_grid_pts)
-    if not hasattr(size, "__iter__"):
-        size = (size,)
+    if not hasattr(physical_sizes, "__iter__"):
+        physical_sizes = (physical_sizes,)
     if centre is None:
-        centre = np.array(size) * .5
+        centre = np.array(physical_sizes) * .5
     if not hasattr(centre, "__iter__"):
         centre = (centre,)
 
@@ -103,12 +103,12 @@ def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=Fal
             return (x - centre + size/2 ) % size - size / 2
 
     if dim == 1:
-        r2 = get_r(nb_grid_pts[0], size[0], centre[0],
+        r2 = get_r(nb_grid_pts[0], physical_sizes[0], centre[0],
                    subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2
     elif dim == 2:
-        rx2 = (get_r(nb_grid_pts[0], size[0], centre[0],
+        rx2 = (get_r(nb_grid_pts[0], physical_sizes[0], centre[0],
                      subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2).reshape((-1, 1))
-        ry2 = (get_r(nb_grid_pts[1], size[1], centre[1],
+        ry2 = (get_r(nb_grid_pts[1], physical_sizes[1], centre[1],
                      subdomain_locations[1], nb_subdomain_grid_pts[1])) ** 2
         r2 = rx2 + ry2
     else:
@@ -128,9 +128,9 @@ def make_sphere(radius, nb_grid_pts, size, centre=None, standoff=0, periodic=Fal
                          "Should be 'sphere' or 'paraboloid'".format(kind)))
 
     if dim == 1:
-        return UniformLineScan(h, size)
+        return UniformLineScan(h, physical_sizes)
     else:
-        return Topography(h, size, nb_grid_pts= nb_grid_pts,
+        return Topography(h, physical_sizes, nb_grid_pts= nb_grid_pts,
                           subdomain_locations=subdomain_locations, pnp=pnp)
 
 

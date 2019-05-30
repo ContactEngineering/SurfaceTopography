@@ -64,8 +64,8 @@ ANY_2D_DATA = "/2D_Data/"
 class OPDxReader(ReaderBase):
 
     # Reads in the positions of all the data and metadata
-    def __init__(self, file_path, size=None, unit=None, info=None):
-        super().__init__(size, info)
+    def __init__(self, file_path, physical_sizes=None, unit=None, info=None):
+        super().__init__(physical_sizes, info)
 
         with open(file_path, "rb") as f:
 
@@ -73,15 +73,15 @@ class OPDxReader(ReaderBase):
             self.buffer = [chr(byte) for byte in f.read()]
 
             # length of file
-            size = len(self.buffer)
+            physical_sizes = len(self.buffer)
 
             # check if correct header
-            if size < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
+            if physical_sizes < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
                 raise ValueError('Invalid file format for Dektak OPDx.')
 
             pos = MAGIC_SIZE
             hash_table = dict()
-            while pos < size:
+            while pos < physical_sizes:
                 buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
 
             # Make a list of channels containing metadata about the topographies but not reading them in directly yet
@@ -119,7 +119,7 @@ class OPDxReader(ReaderBase):
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q)
 
-        return Topography(heights=data, size=size, info=channel[5])
+        return Topography(heights=data, physical_sizes=size, info=channel[5])
 
     def channels(self):
         return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]

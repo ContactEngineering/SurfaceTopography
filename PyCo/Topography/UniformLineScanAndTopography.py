@@ -41,14 +41,14 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    def __init__(self, heights, size, periodic=False, info={}):
+    def __init__(self, heights, physical_sizes, periodic=False, info={}):
         """
         Parameters
         ----------
         profile : array_like
             Data containing the height information. Needs to be a
             one-dimensional array.
-        size : tuple of floats
+        physical_sizes : tuple of floats
             Physical physical_sizes of the topography map
         periodic : bool
             Flag setting the periodicity of the surface
@@ -64,7 +64,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
         self._heights = heights
-        self._size = np.asarray(size).item()
+        self._size = np.asarray(physical_sizes).item()
         self._periodic = periodic
 
     def __getstate__(self):
@@ -143,7 +143,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     map.
     """
 
-    def __init__(self, heights, size, subdomain_locations=None, nb_subdomain_grid_pts=None,
+    def __init__(self, heights, physical_sizes, subdomain_locations=None, nb_subdomain_grid_pts=None,
                  nb_grid_pts=None, pnp=None,
                  periodic=False, info={}):
         """
@@ -204,7 +204,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             self._heights = heights
             self._nb_grid_pts = self.nb_subdomain_grid_pts
 
-        self._size = size
+        self._size = physical_sizes
         self._periodic = periodic
         self.pnp = pnp if pnp is not None else Reduction()
 

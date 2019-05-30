@@ -29,7 +29,7 @@ Bin for small common helper function and classes
 import numpy as np
 
 
-def radial_average(C_xy, rmax, nbins, size=None, full=True):
+def radial_average(C_xy, rmax, nbins, physical_sizes=None, full=True):
     """
     Compute radial average of quantities reported on a 2D grid.
 
@@ -41,8 +41,8 @@ def radial_average(C_xy, rmax, nbins, size=None, full=True):
         Maximum radius.
     nbins : int
         Number of bins for averaging.
-    size : (float, float), optional
-        Physical physical_sizes of the 2D grid. (Default: Size is equal to number of
+    physical_sizes : (float, float), optional
+        Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
     full : bool
         Number of quadrants contained in data. (Default: True)
@@ -74,8 +74,8 @@ def radial_average(C_xy, rmax, nbins, size=None, full=True):
 
     rmin = 0.0
 
-    if size is not None:
-        sx, sy = size
+    if physical_sizes is not None:
+        sx, sy = physical_sizes
         x *= sx
         y *= sy
         rmin = min(sx/nx, sy/ny)

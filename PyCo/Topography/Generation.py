@@ -41,7 +41,7 @@ class RandomSurfaceExact(object):
     """ Metasurface with exact power spectrum"""
     Error = Exception
 
-    def __init__(self, nb_grid_pts, size, hurst, rms_height=None,
+    def __init__(self, nb_grid_pts, physical_sizes, hurst, rms_height=None,
                  rms_slope=None, seed=None, lambda_min=None, lambda_max=None):
         """
         Generates a surface with an exact power spectrum (deterministic
@@ -69,8 +69,8 @@ class RandomSurfaceExact(object):
             np.random.seed(hash(seed))
         if not hasattr(nb_grid_pts, "__iter__"):
             nb_grid_pts = (nb_grid_pts, )
-        if not hasattr(size, "__iter__"):
-            size = (size, )
+        if not hasattr(physical_sizes, "__iter__"):
+            physical_sizes = (physical_sizes,)
 
         self.dim = len(nb_grid_pts)
         if self.dim not in (1, 2):
@@ -80,7 +80,7 @@ class RandomSurfaceExact(object):
         self.nb_grid_pts = nb_grid_pts
         tmpsize = list()
         for i in range(self.dim):
-            tmpsize.append(size[min(i, len(size)-1)])
+            tmpsize.append(physical_sizes[min(i, len(physical_sizes) - 1)])
         self.size = tuple(tmpsize)
 
         self.hurst = hurst
@@ -238,7 +238,7 @@ class RandomSurfaceExact(object):
 
 class RandomSurfaceGaussian(RandomSurfaceExact):
     """ Metasurface with Gaussian height distribution"""
-    def __init__(self, nb_grid_pts, size, hurst, rms_height=None,
+    def __init__(self, nb_grid_pts, physical_sizes, hurst, rms_height=None,
                  rms_slope=None, seed=None, lambda_min=None, lambda_max=None):
         """
         Generates a surface with an Gaussian amplitude distribution
@@ -261,7 +261,7 @@ class RandomSurfaceGaussian(RandomSurfaceExact):
         lambda_max -- (default None) max wavelength to consider when scaling
                       power spectral density
         """
-        super().__init__(nb_grid_pts, size, hurst, rms_height=rms_height,
+        super().__init__(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
                          rms_slope=rms_slope, seed=seed, lambda_min=lambda_min,
                          lambda_max=lambda_max)
 
@@ -280,7 +280,7 @@ class CapillaryWavesExact(object):
     """Frozen capillary waves"""
     Error = Exception
 
-    def __init__(self, nb_grid_pts, size, mass_density, surface_tension, 
+    def __init__(self, nb_grid_pts, physical_sizes, mass_density, surface_tension,
                  bending_stiffness, seed=None):
         """
         Generates a surface with an exact power spectrum (deterministic
@@ -306,8 +306,8 @@ class CapillaryWavesExact(object):
             np.random.seed(hash(seed))
         if not hasattr(nb_grid_pts, "__iter__"):
             nb_grid_pts = (nb_grid_pts, )
-        if not hasattr(size, "__iter__"):
-            size = (size, )
+        if not hasattr(physical_sizes, "__iter__"):
+            physical_sizes = (physical_sizes,)
 
         self.dim = len(nb_grid_pts)
         if self.dim not in (1, 2):
@@ -317,7 +317,7 @@ class CapillaryWavesExact(object):
         self.nb_grid_pts = nb_grid_pts
         tmpsize = list()
         for i in range(self.dim):
-            tmpsize.append(size[min(i, len(size)-1)])
+            tmpsize.append(physical_sizes[min(i, len(physical_sizes) - 1)])
         self.size = tuple(tmpsize)
 
         self.mass_density = mass_density
@@ -437,7 +437,7 @@ def _irfft2(karr, rarr, progress_callback=None):
             rarr[i, :-1] = np.fft.irfft(karr[i, :])
 
 
-def self_affine_prefactor(nb_grid_pts, size, Hurst, rms_height=None,
+def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
                           rms_slope=None, short_cutoff=None, long_cutoff=None):
     r"""
     Compute prefactor :math:`C_0` for the power-spectrum density of an ideal
@@ -459,7 +459,7 @@ def self_affine_prefactor(nb_grid_pts, size, Hurst, rms_height=None,
     ----------
     nb_grid_pts : array_like
         Resolution of the topography map.
-    size : array_like
+    physical_sizes : array_like
         Physical physical_sizes of the topography map.
     Hurst : float
         Hurst exponent.
@@ -478,19 +478,19 @@ def self_affine_prefactor(nb_grid_pts, size, Hurst, rms_height=None,
         Prefactor :math:`C_0`
     """
     nb_grid_pts = np.asarray(nb_grid_pts)
-    size = np.asarray(size)
+    physical_sizes = np.asarray(physical_sizes)
 
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(nb_grid_pts / size)
+        q_max = np.pi * np.min(nb_grid_pts / physical_sizes)
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff
     else:
-        q_min = 2 * np.pi * np.max(1 / size)
+        q_min = 2 * np.pi * np.max(1 / physical_sizes)
 
-    area = np.prod(size)
+    area = np.prod(physical_sizes)
     if rms_height is not None:
         fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
                                        q_max ** (-2 * Hurst)) * np.sqrt(Hurst * np.pi)
@@ -502,7 +502,7 @@ def self_affine_prefactor(nb_grid_pts, size, Hurst, rms_height=None,
     return fac * np.prod(nb_grid_pts) / np.sqrt(area)
 
 
-def fourier_synthesis(nb_grid_pts, size, hurst, rms_height=None, rms_slope=None,
+def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_slope=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(size=n),
                       rfn=None, kfn=None, progress_callback=None):
@@ -516,7 +516,7 @@ def fourier_synthesis(nb_grid_pts, size, hurst, rms_height=None, rms_slope=None,
     ----------
     nb_grid_pts : array_like
         Resolution of the topography map.
-    size : array_like
+    physical_sizes : array_like
         Physical physical_sizes of the topography map.
     hurst : float
         Hurst exponent.
@@ -555,27 +555,27 @@ def fourier_synthesis(nb_grid_pts, size, hurst, rms_height=None, rms_slope=None,
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(np.asarray(nb_grid_pts) / np.asarray(size))
+        q_max = np.pi * np.min(np.asarray(nb_grid_pts) / np.asarray(physical_sizes))
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff
     else:
         q_min = None
 
-    fac = self_affine_prefactor(nb_grid_pts, size, hurst, rms_height=rms_height,
+    fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
                                 rms_slope=rms_slope, short_cutoff=short_cutoff,
                                 long_cutoff=long_cutoff)
 
     if len(nb_grid_pts) == 2:
         nx, ny = nb_grid_pts
-        sx, sy = size
+        sx, sy = physical_sizes
         kny = ny // 2 + 1
         kshape = (nx, kny)
     else:
         nx = 1
         ny, = nb_grid_pts
         sx = 1
-        sy, = size
+        sy, = physical_sizes
         kny = ny // 2 + 1
         kshape = (kny,)
 
@@ -621,7 +621,7 @@ def fourier_synthesis(nb_grid_pts, size, hurst, rms_height=None, rms_slope=None,
             karr[nx // 2, 0] = np.real(karr[nx // 2, 0])
             karr[1:nx // 2, 0] = karr[-1:nx // 2 + 1:-1, 0].conj()
         _irfft2(karr, rarr, progress_callback)
-        return Topography(rarr, size, periodic=True)
+        return Topography(rarr, physical_sizes, periodic=True)
     else:
         karr[0] = np.real(karr[0])
         rarr[:] = np.fft.irfft(karr)

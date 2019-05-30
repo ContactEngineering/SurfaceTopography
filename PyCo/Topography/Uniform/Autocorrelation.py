@@ -167,7 +167,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
 
         # Radial average
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
-            A_xy, (sx + sy) / 4, nbins, size=(sx, sy))
+            A_xy, (sx + sy) / 4, nbins, physical_sizes=(sx, sy))
     else:
         p = topography.heights()
 
@@ -190,7 +190,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
 
         # Radial average
         r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
-            A_xy, (sx + sy) / 2, nbins, size=(sx, sy), full=False)
+            A_xy, (sx + sy) / 2, nbins, physical_sizes=(sx, sy), full=False)
 
     if return_map:
         return r_val[n > 0], A_val[n > 0], A_xy

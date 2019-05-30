@@ -142,7 +142,7 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
             self._topography = reader_func(fn)
 
             super().__init__(nb_grid_pts=self._topography.nb_grid_pts,
-                             size=self._topography.physical_sizes,
+                             physical_sizes=self._topography.physical_sizes,
                              info=self._topography.info)
 
         def topography(self, size=None, info = {}):
@@ -150,9 +150,9 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
             info = self._process_info(info)
             if self._topography.is_uniform:
                 if self._topography.dim == 2:
-                    return Topography(self._topography.heights(), size=size, info=info)
+                    return Topography(self._topography.heights(), physical_sizes=size, info=info)
                 elif self._topography.dim == 1:
-                    return UniformLineScan(self._topography.heights(), size=size, info=info)
+                    return UniformLineScan(self._topography.heights(), physical_sizes=size, info=info)
             else:
                 top = copy.copy(self._topography)
                 top._info = info
@@ -565,7 +565,7 @@ class MatReader(ReaderBase):
         info_dict = dict(data_source=self.channels[channel]["name"],
                          unit=self.channels[channel]["unit"])
         info_dict.update(info)
-        return Topography(self._height_data[channel], size=self._process_size(size), info=info_dict)
+        return Topography(self._height_data[channel], physical_sizes=self._process_size(size), info=info_dict)
 
 @binary
 def read_opd(fobj):

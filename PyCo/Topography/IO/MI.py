@@ -41,8 +41,8 @@ magic_data_ascii = b'data          ASCII'
 class MIReader(ReaderBase):
 
     # Reads in the positions of all the data and metadata
-    def __init__(self, file_path, size=None, info=None):
-        super().__init__(size, info)
+    def __init__(self, file_path, physical_sizes=None, info=None):
+        super().__init__(physical_sizes, info)
 
         self.file_path = file_path
 
@@ -156,7 +156,7 @@ class MIReader(ReaderBase):
                 pass  # TODO
 
             joined_meta = {**self.mifile.meta, **output_channel.meta}
-        return Topography(heights=out, size=self._size, info=joined_meta)
+        return Topography(heights=out, physical_sizes=self._size, info=joined_meta)
 
     def channels(self):
         """ Get a list of available channels. """
