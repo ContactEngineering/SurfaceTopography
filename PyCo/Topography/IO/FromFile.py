@@ -145,8 +145,8 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
                              physical_sizes=self._topography.physical_sizes,
                              info=self._topography.info)
 
-        def topography(self, size=None, info = {}):
-            size = self._process_size(size)
+        def topography(self, physical_sizes=None, info = {}):
+            size = self._process_size(physical_sizes)
             info = self._process_info(info)
             if self._topography.is_uniform:
                 if self._topography.dim == 2:
