@@ -559,13 +559,13 @@ class MatReader(ReaderBase):
 
         return self.channels[channel]["physical_sizes"]
 
-    def topography(self, channel=None, size=None, info={}):
+    def topography(self, channel=None, physical_sizes=None, info={}):
         if channel is None:
             channel=self._default_channel
         info_dict = dict(data_source=self.channels[channel]["name"],
                          unit=self.channels[channel]["unit"])
         info_dict.update(info)
-        return Topography(self._height_data[channel], physical_sizes=self._process_size(size), info=info_dict)
+        return Topography(self._height_data[channel], physical_sizes=self._process_size(physical_sizes), info=info_dict)
 
 @binary
 def read_opd(fobj):
@@ -799,7 +799,7 @@ class DiReader(ReaderBase):
 
         return self.channels[channel]["physical_sizes"]
 
-    def topography(self, size=None, channel=None, info={}):
+    def topography(self, physical_sizes=None, channel=None, info={}):
         close_file = False
         if not hasattr(self._fobj, 'read'):
             fobj = open(self._fobj, 'rb')
@@ -811,9 +811,9 @@ class DiReader(ReaderBase):
             channel = self._default_channel
 
         channel_dict = self._channels[channel]
-        if size is None:
-            size = channel_dict["physical_sizes"]
-        sx, sy = size
+        if physical_sizes is None:
+            physical_sizes = channel_dict["physical_sizes"]
+        sx, sy = physical_sizes
 
         nx, ny = channel_dict["nb_grid_pts"]
         #height_unit = channel_dict["height_unit"]
