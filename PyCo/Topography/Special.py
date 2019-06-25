@@ -173,7 +173,7 @@ class PlasticTopography(DecoratedUniformTopography):
 
     @hardness.setter
     def hardness(self, hardness):
-        if hardness <= 0:
+        if hardness < 0:
             raise ValueError('Hardness must be positive.')
         self._hardness = hardness
 
