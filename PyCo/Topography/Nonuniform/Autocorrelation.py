@@ -124,8 +124,13 @@ def height_difference_autocorrelation_1D(line_scan, distances=None):
     """
     s, = line_scan.physical_sizes
     x, h = line_scan.positions_and_heights()
-    return _PyCo.nonuniform_autocorrelation_1D(x, h, s, distances)
-
+    if distances is None:
+        min_dist = np.min(np.diff(x))
+        if min_dist <= 0:
+            raise RuntimeError('Positions not sorted')
+        return line_scan.to_uniform(10*int(s/min_dist), 0).autocorrelation_1D()
+    else:
+        return _PyCo.nonuniform_autocorrelation_1D(x, h, s, distances)
 
 ### Register analysis functions from this module
 
