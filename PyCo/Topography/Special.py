@@ -29,11 +29,13 @@ Special topographies
 
 import numpy as np
 
+from NuMPI import MPI
+
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
 def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, periodic=False, kind="sphere",
-                nb_subdomain_grid_pts = None, subdomain_locations = None, pnp=None):
+                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_SELF):
     r"""
     Simple sphere geometry.
 
@@ -60,10 +62,8 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, pe
     centre : float
          specifies the coordinates (in length units, not pixels).
          by default, the sphere is centred in the topography
-
-    kind: {"sphere", "paraboloid"}
-        default is "sphere".
-
+    kind: str
+        Options are "sphere" or "paraboloid". Default is "sphere".
     standoff : float
          when using interaction forces with ranges of the order
          the radius, you might want to set the topography outside of
@@ -72,9 +72,10 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, pe
 
          If `kind="paraboloid"` the paraboloid approximation is used
             and the standoff is not applied
-
     periodic : bool
          whether the sphere can wrap around. tricky for large spheres
+    communicator : mpi4py communicator NuMPI stub communicator
+         MPI communicator object.
     """
     # pylint: disable=invalid-name
     if not hasattr(nb_grid_pts, "__iter__"):
@@ -130,8 +131,8 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, pe
     if dim == 1:
         return UniformLineScan(h, physical_sizes)
     else:
-        return Topography(h, physical_sizes, nb_grid_pts= nb_grid_pts,
-                          subdomain_locations=subdomain_locations, pnp=pnp)
+        return Topography(h, physical_sizes, nb_grid_pts= nb_grid_pts, subdomain_locations=subdomain_locations,
+                          communicator=communicator)
 
 
 class PlasticTopography(DecoratedUniformTopography):

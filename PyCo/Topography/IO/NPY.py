@@ -54,21 +54,21 @@ class NPYReader(ReaderBase):
     metadata so we use directly the implementation from numpy and NuMPI
     """
 
-    def __init__(self, fn, comm=None): #
+    def __init__(self, fn, communicator=None): #
         """
 
         Parameters
         ----------
-        fn: filename
-        comm: MPI communicator
+        fn: str
+            filename
+        communicator: mpi4py communicator NuMPI stub communicator
+            The MPI communicator
         """
         super().__init__()
-        if comm is not None:  # TODO: not ok code should look the same for MPI and non mpi: have to write stub for MPI.File
-            # if comm is None:
-            #    raise ValueError("you should provide comm when running with MPI")
+        if communicator is not None:  # TODO: not ok code should look the same for MPI and non mpi: have to write stub for MPI.File
             self._with_mpi = True
             try:
-                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, comm, format="npy")
+                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator, format="npy")
                 self.dtype = self.mpi_file.dtype
                 self._nb_grid_pts = self.mpi_file.nb_grid_pts
             except NuMPI.IO.MPIFileTypeError:
@@ -134,4 +134,4 @@ class NPYReader(ReaderBase):
 
 def save_npy(fn, topography):
     NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_locations=topography.subdomain_locations,
-                      nb_grid_pts=topography.nb_subdomain_grid_pts, comm=topography.pnp.comm)
+                      nb_grid_pts=topography.nb_subdomain_grid_pts, comm=topography.communicator)

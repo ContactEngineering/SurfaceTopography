@@ -81,7 +81,7 @@ def rms_slope(topography):
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_MPI:
+    if topography.is_domain_decomposed:
         raise NotImplementedError("rms_slope not implemented for parallelized topographies")
     if topography.dim == 1:
         return np.sqrt((topography.derivative(1)**2).mean())
@@ -108,7 +108,7 @@ def rms_Laplacian(topography):
     rms_laplacian : float
         Root mean square Laplacian value.
     """
-    if topography.is_MPI:
+    if topography.is_domain_decomposed:
         raise NotImplementedError("rms_Laplacian not implemented for parallelized topographies")
 
     curv = topography.derivative(2)
