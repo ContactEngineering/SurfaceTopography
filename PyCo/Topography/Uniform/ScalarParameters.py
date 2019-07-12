@@ -30,7 +30,7 @@ Functions computing scalar roughness parameters
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
-
+from NuMPI.Tools import Reduction
 
 def rms_height(topography, kind='Sq'):
     """
@@ -49,7 +49,7 @@ def rms_height(topography, kind='Sq'):
     """
     n = np.prod(topography.nb_grid_pts)
     #if topography.is_MPI:
-    pnp = topography.pnp
+    pnp = Reduction(topography._communicator)
     profile = topography.heights()
     if kind == 'Sq':
         return np.sqrt(

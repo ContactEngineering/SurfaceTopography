@@ -52,9 +52,9 @@ class AbstractHeightContainer(object):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self, info={}):
+    def __init__(self, info={}, communicator=MPI.COMM_WORLD):
         self._info = info
-        self.pnp = np
+        self._communicator=communicator
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)
@@ -82,8 +82,7 @@ class AbstractHeightContainer(object):
         state -- result of __getstate__
         """
         self._info = state
-        self.pnp = np  # this np is a module and is not picklable.
-        # In parallel code, the user will have to set pnp by himself after loading
+        self._communicator=MPI.COMM_WORLD
 
     @property
     @abc.abstractmethod
@@ -108,6 +107,10 @@ class AbstractHeightContainer(object):
         """ Return info dictionary """
         return self._info
 
+    @property
+    def communicator(self):
+        return self._communicator
+
 
 class DecoratedTopography(AbstractHeightContainer):
     """
@@ -128,7 +131,7 @@ class DecoratedTopography(AbstractHeightContainer):
         super().__init__(info=info)
         assert isinstance(topography, AbstractHeightContainer)
         self.parent_topography = topography
-        self.pnp = self.parent_topography.pnp
+        self._communicator = self.parent_topography.communicator
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for

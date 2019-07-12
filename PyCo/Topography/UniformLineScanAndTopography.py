@@ -184,7 +184,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
 
-        super().__init__(info=info)
+        super().__init__(info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
@@ -219,7 +219,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = physical_sizes
         self._periodic = periodic
-        self._communicator = communicator
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, \
@@ -272,10 +271,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     def subdomain_slices(self):
         return tuple([slice(s, s + n) for s, n in
                       zip(self.subdomain_locations, self.nb_subdomain_grid_pts)])
-
-    @property
-    def communicator(self):
-        return self._communicator
 
     # Implement topography interface
 

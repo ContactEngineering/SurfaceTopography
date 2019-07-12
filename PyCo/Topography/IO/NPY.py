@@ -54,38 +54,28 @@ class NPYReader(ReaderBase):
     metadata so we use directly the implementation from numpy and NuMPI
     """
 
-    def __init__(self, fn, communicator=None): #
+    def __init__(self, fn, communicator=MPI.COMM_WORLD):
         """
 
         Parameters
         ----------
-        fn: str
-            filename
-        communicator: mpi4py communicator NuMPI stub communicator
-            The MPI communicator
+        fn: filename
+        comm: MPI communicator
         """
         super().__init__()
-        if communicator is not None:  # TODO: not ok code should look the same for MPI and non mpi: have to write stub for MPI.File
-            self._with_mpi = True
-            try:
-                self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator, format="npy")
-                self.dtype = self.mpi_file.dtype
-                self._nb_grid_pts = self.mpi_file.nb_grid_pts
-            except NuMPI.IO.MPIFileTypeError:
-                raise FileFormatMismatch()
-        else:  # just use the functions from numpy
-            self._with_mpi = False
-            self.file = open(fn, "rb")
-            try:
-                version = read_magic(self.file)
-                _check_version(version)
-                self._nb_grid_pts, fortran_order, self.dtype = _read_array_header(self.file, version)
-            except ValueError:
-                raise FileFormatMismatch()
+
+        # if comm is None:
+        #    raise ValueError("you should provide comm when running with MPI")
+        try:
+            self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator, format="npy")
+            self.dtype = self.mpi_file.dtype
+            self._nb_grid_pts = self.mpi_file.nb_grid_pts
+        except NuMPI.IO.MPIFileTypeError:
+            raise FileFormatMismatch()
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
 
-    def topography(self, substrate=None, size=None, channel=None, info={}):
+    def topography(self, substrate=None, physical_sizes=None, channel=None, info={}):
         """
         Returns the `Topography` object containing the data attributed to the
         processors. `substrate` prescribes the domain decomposition.
@@ -107,30 +97,29 @@ class NPYReader(ReaderBase):
         Topography
         """
         info = self._process_info(info)
-        # TODO: Are sometimes the Units Stored?
-        if self._with_mpi:
+
+        # TODO: Are sometimes the units Stored?
+        if self.mpi_file.comm.size > 1:
             if (substrate is None):
                 raise ValueError("you should provide substrate to specify the domain decomposition")
-            if size is not None:
-                raise ValueError("physical_sizes is already provided by substrate")
-
-            return Topography(
-                heights=self.mpi_file.read(subdomain_locations=substrate.topography_subdomain_locations,
-                                           nb_subdomain_grid_pts=substrate.topography_nb_subdomain_grid_pts),
-                subdomain_locations=substrate.topography_subdomain_locations,
-                nb_grid_pts=substrate.nb_grid_pts,
-                pnp=substrate.pnp,
-                physical_sizes=substrate.physical_sizes,
-                info=info)
-
+            subdomain_locations=substrate.topography_subdomain_locations
+            nb_subdomain_grid_pts = substrate.topography_nb_subdomain_grid_pts
         else:
-            size = self._process_size(size)
-            array = np.fromfile(self.file, dtype=self.dtype,
-                                count=np.multiply.reduce(self.nb_grid_pts, dtype=np.int64))
-            array.shape = self.nb_grid_pts
-            self.file.close()  # TODO: Or make this in the destructor ?
-            return Topography(heights=array, physical_sizes=size, info=info)
+            subdomain_locations=(0,0)
+            nb_subdomain_grid_pts=self.nb_grid_pts
+        if substrate is not None and hasattr(substrate, "physical_sizes"):
+            if physical_sizes is not None:
+                raise ValueError("physical_sizes is already provided by substrate")
+            physical_sizes=substrate.physical_sizes
 
+        return Topography(
+            heights=self.mpi_file.read(subdomain_locations=subdomain_locations,
+                                       nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+            subdomain_locations=subdomain_locations,
+            nb_grid_pts=self.nb_grid_pts,
+            communicator=self.mpi_file.comm,
+            physical_sizes=physical_sizes,
+            info=info)
 
 def save_npy(fn, topography):
     NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_locations=topography.subdomain_locations,
