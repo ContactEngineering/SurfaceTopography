@@ -144,25 +144,38 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     """
 
     def __init__(self, heights, physical_sizes, subdomain_locations=None, nb_subdomain_grid_pts=None,
-                 nb_grid_pts=None, pnp=None,
-                 periodic=False, info={}):
+                 nb_grid_pts=None, comm=MPI.COMM_WORLD, periodic=False, info={}):
         """
         Parameters
         ----------
         heights : array_like
             Data containing the height information. Needs to be a
             two-dimensional array.
-        size : tuple of floats
+        physical_sizes : tuple of floats
             Physical physical_sizes of the topography map
         periodic : bool
             Flag setting the periodicity of the surface
+        subdomain_locations : tuple of ints
+            Origin (location) of the subdomain handles by the present MPI process
+        nb_subdomain_grid_pts : tuple of ints
+            Number of grid points within the subdomain handled by the present MPI process
+        nb_grid_pts : tuple of ints
+            Number of grid points for the full topography. This is only required if only the local portion of the
+            topography is passed to the constructor.
+        comm : mpi4py communicator or NuMPI stub communicator
+            The MPI communicator object.
+        periodic : bool
+            The topography is periodic. (Default: False)
+        info : dict
+            The info dictionary containing auxiliary data. This data is never used by PyCo but can be used by
+            third-party codes.
 
         Examples for initialisation:
         ----------------------------
         1. Serial code
         >>>Topography(heights, physical_sizes, [periodic, info])
         2. Parallel code, providing local data
-        >>>Topography(heights, physical_sizes, subdomain_locations, nb_grid_pts, pnp, [periodic, info])
+        >>>Topography(heights, physical_sizes, subdomain_locations, nb_grid_pts, comm, [periodic, info])
         3. Parallel code, providing full data
         >>>Topography(heights, physical_sizes, subdomain_locations, nb_subdomain_grid_pts, [periodic, info])
         """
@@ -206,7 +219,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = physical_sizes
         self._periodic = periodic
-        self.pnp = pnp if pnp is not None else Reduction()
+        self._comm = comm
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, \
