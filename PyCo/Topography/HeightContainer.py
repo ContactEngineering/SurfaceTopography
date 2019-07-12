@@ -31,6 +31,7 @@ Base class for geometric topogography descriptions
 import abc
 import numpy as np
 
+from NuMPI import MPI
 
 class AbstractHeightContainer(object):
     """
@@ -166,8 +167,12 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
         return True
 
     @property
-    def is_MPI(self):
+    def is_domain_decomposed(self):
         return self.nb_grid_pts != self.nb_subdomain_grid_pts
+
+    @property
+    def communicator(self):
+        return MPI.COMM_SELF
 
     @property
     @abc.abstractmethod

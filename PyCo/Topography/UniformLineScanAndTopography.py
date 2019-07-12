@@ -104,7 +104,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         return len(self._heights),
 
     @property
-    def is_MPI(self):
+    def is_domain_decomposed(self):
         return False
 
     @property
@@ -144,7 +144,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     """
 
     def __init__(self, heights, physical_sizes, subdomain_locations=None, nb_subdomain_grid_pts=None,
-                 nb_grid_pts=None, comm=MPI.COMM_WORLD, periodic=False, info={}):
+                 nb_grid_pts=None, communicator=MPI.COMM_WORLD, periodic=False, info={}):
         """
         Parameters
         ----------
@@ -162,7 +162,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         nb_grid_pts : tuple of ints
             Number of grid points for the full topography. This is only required if only the local portion of the
             topography is passed to the constructor.
-        comm : mpi4py communicator or NuMPI stub communicator
+        communicator : mpi4py communicator or NuMPI stub communicator
             The MPI communicator object.
         periodic : bool
             The topography is periodic. (Default: False)
@@ -219,7 +219,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = physical_sizes
         self._periodic = periodic
-        self._comm = comm
+        self._communicator = communicator
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, \
@@ -273,6 +273,10 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         return tuple([slice(s, s + n) for s, n in
                       zip(self.subdomain_locations, self.nb_subdomain_grid_pts)])
 
+    @property
+    def communicator(self):
+        return self._communicator
+
     # Implement topography interface
 
     @property
@@ -320,7 +324,7 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
         return self.parent_topography.has_undefined_data
 
     @property
-    def is_MPI(self):
+    def is_domain_decomposed(self):
         return False
 
     @property
