@@ -121,7 +121,7 @@ def open_topography(fobj, format=None, comm=None):
     else:
         kwargs = {}
 
-    if not hasattr(fobj, 'read'):
+    if not hasattr(fobj, 'read'): #fobj is a path
         if not os.path.isfile(fobj):
             raise FileExistsError("file {} not found".format(fobj))
 
