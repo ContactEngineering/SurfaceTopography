@@ -131,7 +131,8 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, pe
     if dim == 1:
         return UniformLineScan(h, physical_sizes)
     else:
-        return Topography(h, physical_sizes, nb_grid_pts= nb_grid_pts, subdomain_locations=subdomain_locations,
+        return Topography(h, physical_sizes, decomposition='subdomain',
+                          nb_grid_pts=nb_grid_pts, subdomain_locations=subdomain_locations,
                           communicator=communicator)
 
 

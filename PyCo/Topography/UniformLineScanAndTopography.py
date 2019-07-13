@@ -204,14 +204,15 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization
-            if nb_grid_pts is not None and nb_grid_pts != heights.shape:
-                raise ValueError('This is a serial run but `nb_grid_pts` does not equal the shape of the '
-                                 '`heights` array.')
-            if subdomain_locations is not None and subdomain_locations != (0, 0):
-                raise ValueError('This is a serial run but `subdomain_locations` is not the origin.')
-            if nb_subdomain_grid_pts is not None and nb_subdomain_grid_pts != heights.shape:
-                raise ValueError('This is a serial run but `nb_subdomain_grid_pts` does not equal the shape of the '
-                                 '`heights` array.')
+            if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
+                raise ValueError('This is a serial run but `nb_grid_pts` (= {}) does not equal the shape of the '
+                                 '`heights` (= {}) array.'.format(nb_grid_pts, heights.shape))
+            if subdomain_locations is not None and tuple(subdomain_locations) != (0, 0):
+                raise ValueError('This is a serial run but `subdomain_locations` (= {}) is not the origin.'
+                                 .format(subdomain_locations))
+            if nb_subdomain_grid_pts is not None and tuple(nb_subdomain_grid_pts) != heights.shape:
+                raise ValueError('This is a serial run but `nb_subdomain_grid_pts` (= {}) does not equal the shape '
+                                 'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
             self._heights = np.asarray(heights)
@@ -222,17 +223,19 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
                                  "`nb_grid_pts` since it cannot be inferred.")
             if subdomain_locations is None:
                 raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
-            if nb_subdomain_grid_pts is not None and nb_subdomain_grid_pts != heights.shape:
+            if nb_subdomain_grid_pts is not None and tuple(nb_subdomain_grid_pts) != heights.shape:
                 raise ValueError("This is a parallel run with 'subdomain' decomposition but `nb_subdomain_grid_pts` "
-                                 "does not equal the shape of the `heights` array.")
+                                 "(= {}) does not equal the shape of the `heights` (= {}) array."
+                                 .format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
             self._heights = np.asarray(heights)
         elif decomposition == 'domain':
             #Case 3: parallelized but global data provided
-            if nb_grid_pts is not None and nb_grid_pts != heights.shape:
+            if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
                 raise ValueError("This is a parallel run with 'domain' decomposition but `nb_grid_pts` "
-                                 "does not equal the shape of the `heights` array.")
+                                 "(= {}) does not equal the shape of the `heights` (= {}) array."
+                                 .format(nb_grid_pts, heights.shape))
             if subdomain_locations is None:
                 raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
             if nb_subdomain_grid_pts is None:
