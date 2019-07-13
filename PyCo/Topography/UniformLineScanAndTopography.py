@@ -143,8 +143,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     map.
     """
 
-    def __init__(self, heights, physical_sizes, subdomain_locations=None, nb_subdomain_grid_pts=None,
-                 nb_grid_pts=None, communicator=MPI.COMM_WORLD, periodic=False, info={}):
+    def __init__(self, heights, physical_sizes, periodic=False, decomposition='subdomain',
+                 nb_grid_pts=None, subdomain_locations=None, nb_subdomain_grid_pts=None,
+                 communicator=MPI.COMM_SELF, info={}):
         """
         Parameters
         ----------
@@ -154,33 +155,44 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         physical_sizes : tuple of floats
             Physical physical_sizes of the topography map
         periodic : bool
-            Flag setting the periodicity of the surface
-        subdomain_locations : tuple of ints
-            Origin (location) of the subdomain handles by the present MPI process
-        nb_subdomain_grid_pts : tuple of ints
-            Number of grid points within the subdomain handled by the present MPI process
+            The topography is periodic. (Default: False)
+        decomposition : str
+            Specification of the data decomposition of the heights array. If
+            set to 'subdomain', the heights array contains only the part of
+            the full topography local to the present MPI process. If set to
+            'domain', the heights array contains the global array.
+            Default: 'subdomain'
         nb_grid_pts : tuple of ints
-            Number of grid points for the full topography. This is only required if only the local portion of the
-            topography is passed to the constructor.
+            Number of grid points for the full topography. This is only
+            required if decomposition is set to 'subdomain'.
+        subdomain_locations : tuple of ints
+            Origin (location) of the subdomain handled by the present MPI
+            process.
+        nb_subdomain_grid_pts : tuple of ints
+            Number of grid points within the subdomain handled by the present
+            MPI process. This is only required if decomposition is set to
+            'domain'.
         communicator : mpi4py communicator or NuMPI stub communicator
             The MPI communicator object.
-        periodic : bool
-            The topography is periodic. (Default: False)
         info : dict
-            The info dictionary containing auxiliary data. This data is never used by PyCo but can be used by
-            third-party codes.
+            The info dictionary containing auxiliary data. This data is never
+            used by PyCo but can be used by third-party codes.
 
         Examples for initialisation:
         ----------------------------
         1. Serial code
         >>>Topography(heights, physical_sizes, [periodic, info])
         2. Parallel code, providing local data
-        >>>Topography(heights, physical_sizes, subdomain_locations, nb_grid_pts, comm, [periodic, info])
+        >>>Topography(heights, physical_sizes, [periodic],
+                      decomposition='subdomain',
+                      subdomain_locations, nb_grid_pts, comm,
+                      [info])
         3. Parallel code, providing full data
-        >>>Topography(heights, physical_sizes, subdomain_locations, nb_subdomain_grid_pts, [periodic, info])
+        >>>Topography(heights, physical_sizes, [periodic],
+                      decomposition='domain',
+                      subdomain_locations, nb_subdomain_grid_pts, comm,
+                      [info])
         """
-        heights = np.asanyarray(heights)
-
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
 
@@ -190,32 +202,48 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
 
-        if (subdomain_locations is not None):
-            self._subdomain_locations = subdomain_locations
-            if nb_grid_pts is not None:
-                # Case 2.: parallelized and local data provided
-                self._nb_grid_pts = nb_grid_pts
-                self._heights = heights
-
-            elif nb_subdomain_grid_pts is not None:
-                #Case 3: parallelized but global data provided
-                self._nb_grid_pts = heights.shape
-                self._heights=heights[tuple([slice(s, s + n) for s, n in
-                      zip(subdomain_locations, nb_subdomain_grid_pts)])]
-            else:
-                raise ValueError("You provided subdomain_locations, "
-                                 "but not nb_grid_pts or nb_subdomain_grid_pts")
-        elif nb_grid_pts is not None:
-            raise ValueError("you provided nb_grid_pts,"
-                             "but not subdomain_locations")
-        elif nb_subdomain_grid_pts is not None:
-            raise ValueError("you provided nb_subdomain_grid_pts," 
-                             "but not subdomain_locations")
-        else:
+        if communicator.Get_size() == 1:
             # case 1. : no parallelization
+            if nb_grid_pts is not None and nb_grid_pts != heights.shape:
+                raise ValueError('This is a serial run but `nb_grid_pts` does not equal the shape of the '
+                                 '`heights` array.')
+            if subdomain_locations is not None and subdomain_locations != (0, 0):
+                raise ValueError('This is a serial run but `subdomain_locations` is not the origin.')
+            if nb_subdomain_grid_pts is not None and nb_subdomain_grid_pts != heights.shape:
+                raise ValueError('This is a serial run but `nb_subdomain_grid_pts` does not equal the shape of the '
+                                 '`heights` array.')
+            self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
-            self._heights = heights
-            self._nb_grid_pts = self.nb_subdomain_grid_pts
+            self._heights = np.asarray(heights)
+        elif decomposition == 'subdomain':
+            # Case 2.: parallelized and local data provided
+            if nb_grid_pts is None:
+                raise ValueError("This is a parallel run with 'subdomain' decomposition; please specify "
+                                 "`nb_grid_pts` since it cannot be inferred.")
+            if subdomain_locations is None:
+                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
+            if nb_subdomain_grid_pts is not None and nb_subdomain_grid_pts != heights.shape:
+                raise ValueError("This is a parallel run with 'subdomain' decomposition but `nb_subdomain_grid_pts` "
+                                 "does not equal the shape of the `heights` array.")
+            self._nb_grid_pts = nb_grid_pts
+            self._subdomain_locations = subdomain_locations
+            self._heights = np.asarray(heights)
+        elif decomposition == 'domain':
+            #Case 3: parallelized but global data provided
+            if nb_grid_pts is not None and nb_grid_pts != heights.shape:
+                raise ValueError("This is a parallel run with 'domain' decomposition but `nb_grid_pts` "
+                                 "does not equal the shape of the `heights` array.")
+            if subdomain_locations is None:
+                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
+            if nb_subdomain_grid_pts is None:
+                raise ValueError("This is a parallel run with 'domain' decomposition; please specify "
+                                 "`nb_subdomain_grid_pts` since it cannot be inferred.")
+            self._nb_grid_pts = heights.shape
+            self._subdomain_locations = subdomain_locations
+            self._heights = np.asarray(
+                heights[tuple(slice(s, s + n) for s, n in zip(subdomain_locations, nb_subdomain_grid_pts))])
+        else:
+            raise ValueError("`decomposition` can be either 'domain' or 'subdomain'.")
 
         self._size = physical_sizes
         self._periodic = periodic
@@ -257,7 +285,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         return self._nb_grid_pts
 
     @property
-    def nb_subdomain_grid_pts(self, ):
+    def nb_subdomain_grid_pts(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
@@ -269,8 +297,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def subdomain_slices(self):
-        return tuple([slice(s, s + n) for s, n in
-                      zip(self.subdomain_locations, self.nb_subdomain_grid_pts)])
+        return tuple(slice(s, s + n) for s, n in zip(self.subdomain_locations, self.nb_subdomain_grid_pts))
 
     # Implement topography interface
 

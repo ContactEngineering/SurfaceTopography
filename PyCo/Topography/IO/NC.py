@@ -24,6 +24,8 @@
 
 import numpy as np
 
+from NuMPI import MPI
+
 from .. import Topography
 from ..HeightContainer import UniformTopographyInterface
 
@@ -31,17 +33,42 @@ from .Reader import ReaderBase
 
 
 class NCReader(ReaderBase):
-    def __init__(self, fobj):
+    def __init__(self, fobj, communicator=MPI.COMM_SELF):
         from netCDF4 import Dataset
-        self._nc = Dataset(fobj, 'r')
+        if communicator.Get_size() > 1:
+            self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
+        else:
+            self._nc = Dataset(fobj, 'r')
+        self._communicator = communicator
         self._x_var = self._nc.variables['x']
         self._y_var = self._nc.variables['y']
         self._heights_var = self._nc.variables['heights']
-        self.physical_sizes = (self._x_var.length, self._y_var.length)
+        info = {}
+        try:
+            info['unit'] = self._x_var.length_unit
+        except AttributeError:
+            pass
+        super().__init__((len(self._x_var), len(self._y_var)),
+                         (self._x_var.length, self._y_var.length),
+                         info=info)
 
-    def topography(self, size=None, info={}):
-        size = self._process_size(size)
-        return Topography(self._heights_var[...], size, info=self._process_info(info))
+    def topography(self, physical_sizes=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None, info={}):
+        physical_sizes = self._process_size(physical_sizes)
+        info = self._process_info(info)
+        if subdomain_locations is None and nb_subdomain_grid_pts is None:
+            return Topography(self._heights_var, physical_sizes, info=info)
+        else:
+            return Topography(self._heights_var, physical_sizes,
+                              decomposition='domain',
+                              subdomain_locations=subdomain_locations,
+                              nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                              communicator=self.communicator,
+                              info=info)
+
+    @property
+    def communicator(self):
+        return self._communicator
 
 
 def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
@@ -58,21 +85,30 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
         NetCDF file format. Default is 'NETCDF3_64BIT_DATA'.
     """
     from netCDF4 import Dataset
-    nc = Dataset(filename, 'w', format=format)
+    comm = topography.communicator
+    nc = Dataset(filename, 'w', format=format, parallel=topography.is_domain_decomposed, comm=comm)
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
+
     nc.createDimension('x', nx)
     nc.createDimension('y', ny)
+
     x_var = nc.createVariable('x', 'f8', ('x',))
-    x_var.length = sx
-    x_var.length_unit = topography.info['unit']
-    x_var[...] = (np.arange(nx) + 0.5) * sx / nx
     y_var = nc.createVariable('y', 'f8', ('y',))
-    y_var.length = sy
-    y_var.length_unit = topography.info['unit']
-    y_var[...] = (np.arange(ny) + 0.5) * sy / ny
     heights_var = nc.createVariable('heights', 'f8', ('x', 'y',))
-    heights_var[...] = topography.heights()
+
+    x_var.length = sx
+    if 'unit' in topography.info:
+        x_var.length_unit = topography.info['unit']
+    x_var[...] = (np.arange(nx) + 0.5) * sx / nx
+    y_var.length = sy
+    if 'unit' in topography.info:
+        y_var.length_unit = topography.info['unit']
+    y_var[...] = (np.arange(ny) + 0.5) * sy / ny
+
+    heights_var.set_collective(True)
+    heights_var[topography.subdomain_slices] = topography.heights()
+
     nc.close()
 
 

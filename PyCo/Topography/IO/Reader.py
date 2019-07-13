@@ -86,7 +86,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         else:
             if size is None:
                 size = self.physical_sizes
-            elif [s == ss for s, ss in zip(size, self.physical_sizes)] != [True, True]: # both sizes are defined
+            elif size[0] != self.physical_size[0] or size[1] != self.physical_size[1]:
                 warnings.warn("A physical size different from the value specified when calling the reader "
                               "was present in the file. We will ignore the value given in the file."
                               "Specified values: {}; Values from file: {}".format(self.physical_sizes, size))
