@@ -45,21 +45,27 @@ class NCReader(ReaderBase):
         self._heights_var = self._nc.variables['heights']
         info = {}
         try:
+            periodic = self._x_var.periodic != 0
+        except AttributeError:
+            periodic = False
+        try:
             info['unit'] = self._x_var.length_unit
         except AttributeError:
             pass
         super().__init__((len(self._x_var), len(self._y_var)),
                          (self._x_var.length, self._y_var.length),
-                         info=info)
+                         periodic=periodic, info=info)
 
     def topography(self, physical_sizes=None, subdomain_locations=None,
                    nb_subdomain_grid_pts=None, info={}):
         physical_sizes = self._process_size(physical_sizes)
         info = self._process_info(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
-            return Topography(self._heights_var, physical_sizes, info=info)
+            return Topography(self._heights_var, physical_sizes,
+                              periodic=self.is_periodic, info=info)
         else:
             return Topography(self._heights_var, physical_sizes,
+                              periodic=self.is_periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,
@@ -98,10 +104,12 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
     heights_var = nc.createVariable('heights', 'f8', ('x', 'y',))
 
     x_var.length = sx
+    x_var.periodic = 1 if topography.is_periodic else 0
     if 'unit' in topography.info:
         x_var.length_unit = topography.info['unit']
     x_var[...] = (np.arange(nx) + 0.5) * sx / nx
     y_var.length = sy
+    y_var.periodic = 1 if topography.is_periodic else 0
     if 'unit' in topography.info:
         y_var.length_unit = topography.info['unit']
     y_var[...] = (np.arange(ny) + 0.5) * sy / ny

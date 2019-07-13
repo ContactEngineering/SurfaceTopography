@@ -29,11 +29,12 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, nb_grid_pts=None, physical_sizes=None, info={}):
+    def __init__(self, nb_grid_pts=None, physical_sizes=None, periodic=False, info={}):
         self._nb_grid_pts = nb_grid_pts
         self._size = physical_sizes
+        self._periodic = periodic
         self._info = info
-        self._default_channel=0
+        self._default_channel = 0
 
     @property
     def channels(self):
@@ -48,11 +49,11 @@ class ReaderBase(metaclass=abc.ABCMeta):
         list of dicts
 
         """
-        channelinfo={"name": "NoName",
-                     "nb_grid_pts":self._nb_grid_pts,
-                     "height_scale_factor": 1.,
-                     "unit": "",
-                     "physical_sizes": None}
+        channelinfo = {"name": "NoName",
+                       "nb_grid_pts": self._nb_grid_pts,
+                       "height_scale_factor": 1.,
+                       "unit": "",
+                       "physical_sizes": None}
 
         channelinfo.update(self._info)
         return [channelinfo]
@@ -74,6 +75,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @property
     def physical_sizes(self):
         return self._size
+
+    @property
+    def is_periodic(self):
+        return self._periodic
 
     @property
     def info(self):

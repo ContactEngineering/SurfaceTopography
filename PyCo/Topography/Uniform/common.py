@@ -111,6 +111,7 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
         Topography object that now holds only data local the MPI process.
     """
     return topography.__class__(topography.heights(), topography.physical_sizes,
+                                periodic=topography.is_periodic,
                                 decomposition='domain',
                                 subdomain_locations=subdomain_locations,
                                 nb_subdomain_grid_pts=nb_subdomain_grid_pts,
