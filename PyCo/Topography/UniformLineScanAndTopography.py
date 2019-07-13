@@ -143,7 +143,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
     map.
     """
 
-    def __init__(self, heights, physical_sizes, periodic=False, decomposition='subdomain',
+    def __init__(self, heights, physical_sizes, periodic=False, decomposition='serial',
                  nb_grid_pts=None, subdomain_locations=None, nb_subdomain_grid_pts=None,
                  communicator=MPI.COMM_SELF, info={}):
         """
@@ -161,7 +161,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             set to 'subdomain', the heights array contains only the part of
             the full topography local to the present MPI process. If set to
             'domain', the heights array contains the global array.
-            Default: 'subdomain'
+            Default: 'serial', which fails for parallel runs.
         nb_grid_pts : tuple of ints
             Number of grid points for the full topography. This is only
             required if decomposition is set to 'subdomain'.
@@ -245,6 +245,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             self._subdomain_locations = subdomain_locations
             self._heights = np.asarray(
                 heights[tuple(slice(s, s + n) for s, n in zip(subdomain_locations, nb_subdomain_grid_pts))])
+        elif decomposition == 'serial':
+            raise ValueError("`decomposition` is 'serial' but this is a parallel run.")
         else:
             raise ValueError("`decomposition` can be either 'domain' or 'subdomain'.")
 
