@@ -215,7 +215,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
                                  'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
-            self._heights = np.asarray(heights)
+            self._heights = np.asanyarray(heights)
         elif decomposition == 'subdomain':
             # Case 2.: parallelized and local data provided
             if nb_grid_pts is None:
@@ -229,7 +229,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
                                  .format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
-            self._heights = np.asarray(heights)
+            self._heights = np.asanyarray(heights)
         elif decomposition == 'domain':
             #Case 3: parallelized but global data provided
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
@@ -243,7 +243,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
                                  "`nb_subdomain_grid_pts` since it cannot be inferred.")
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = subdomain_locations
-            self._heights = np.asarray(
+            self._heights = np.asanyarray(
                 heights[tuple(slice(s, s + n) for s, n in zip(subdomain_locations, nb_subdomain_grid_pts))])
         elif decomposition == 'serial':
             raise ValueError("`decomposition` is 'serial' but this is a parallel run.")
