@@ -97,7 +97,7 @@ def height_height_autocorrelation_1D(line_scan, distances=None):
                             s1 * s2 * db ** 3) / 3
     return distances, A
 
-def height_difference_autocorrelation_1D(line_scan, distances=None):
+def height_difference_autocorrelation_1D(line_scan, algorithm='fft', distances=None, ninterpolate=5):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -110,10 +110,21 @@ def height_difference_autocorrelation_1D(line_scan, distances=None):
     ----------
     line_scan : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
-    r : array_like
+    algorithms : str
+        Algorithm to compute autocorrelation.
+        * 'fft': Interpolates the nonuniform line scan on a grid and then uses
+        the FFT to compute the autocorrelation. Scales O(N log N)
+        * 'brute-force': Brute-force computation using between line segements.
+        Scale O(N^2 M) where M is the number of distance point.
+        (Default: 'fft')
+    distances : array_like
         Array containing distances for which to compute the ACF. If no array
         is given, the function will automatically construct an array with
-        equally spaced distances. (Default: None)
+        equally spaced distances. Can be used only if 'brute-force'
+        algorithm is used. (Default: None)
+    ninterpolate : int
+        Number of grid points to put between closest points on surface. Only
+        used for 'fft' algorithm. (Default: 5)
 
     Returns
     -------
@@ -124,13 +135,17 @@ def height_difference_autocorrelation_1D(line_scan, distances=None):
     """
     s, = line_scan.physical_sizes
     x, h = line_scan.positions_and_heights()
-    if distances is None:
+    if algorithm == 'fft':
+        if distances is not None:
+            raise ValueError("`distances` can only be used with 'brute-force' algorithm.")
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
-            raise RuntimeError('Positions not sorted')
-        return line_scan.to_uniform(10*int(s/min_dist), 0).autocorrelation_1D()
-    else:
+            raise RuntimeError('Positions not sorted.')
+        return line_scan.to_uniform(ninterpolate*int(s/min_dist), 0).autocorrelation_1D()
+    elif algorithm == 'brute-force':
         return _PyCo.nonuniform_autocorrelation_1D(x, h, s, distances)
+    else:
+        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 
 ### Register analysis functions from this module
 
