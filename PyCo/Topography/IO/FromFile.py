@@ -340,7 +340,7 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
 AscReader = make_wrapped_reader(read_asc, name="AscReader")
 
 @text
-def read_xyz(fobj, unit=None):
+def read_xyz(fobj, unit=None, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -348,6 +348,10 @@ def read_xyz(fobj, unit=None):
     ----------
     fobj : str or file object
          File name or stream.
+    unit : str
+         Physical unit.
+    tol : float
+         Tolerance for detecting uniform grids
 
     Returns
     -------
@@ -362,7 +366,11 @@ def read_xyz(fobj, unit=None):
         x, z = data
         x -= np.min(x)
 
-        return NonuniformLineScan(x, z, info=dict(unit=unit))
+        d_uniform = (x[-1] - x[0])/(len(x) - 1)
+        if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
+            return UniformLineScan(z, d_uniform*len(x), info=dict(unit=unit))
+        else:
+            return NonuniformLineScan(x, z, info=dict(unit=unit))
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
