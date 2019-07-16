@@ -75,7 +75,7 @@ def derivative(topography, n, periodic=None):
         if n != 1:
             # TODO: Implement arbitrary derivatives
             raise ValueError('Only first derivatives are presently supported for periodic topographies.')
-        d = np.array([(np.roll(heights, 1, axis=d) - heights) / grid_spacing[d] ** n
+        d = np.array([(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d] ** n
                       for d in range(len(heights.shape))])
     else:
         d = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
@@ -86,7 +86,40 @@ def derivative(topography, n, periodic=None):
         return d
 
 
+def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, communicator):
+    """
+    Turn a topography that is defined over the whole domain into one that is
+    decomposed for each individual MPI process.
+
+    Parameters
+    ----------
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
+        Topography object containing height information.
+    subdomain_locations : tuple of ints
+        Origin (location) of the subdomain handled by the present MPI
+        process.
+    nb_subdomain_grid_pts : tuple of ints
+        Number of grid points within the subdomain handled by the present
+        MPI process. This is only required if decomposition is set to
+        'domain'.
+    communicator : mpi4py communicator or NuMPI stub communicator
+        Communicator object.
+
+    Returns
+    -------
+    decomposed_topography : array
+        Topography object that now holds only data local the MPI process.
+    """
+    return topography.__class__(topography.heights(), topography.physical_sizes,
+                                periodic=topography.is_periodic,
+                                decomposition='domain',
+                                subdomain_locations=subdomain_locations,
+                                nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                                communicator=communicator)
+
+
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
+UniformTopographyInterface.register_function('domain_decompose', domain_decompose)

@@ -29,11 +29,12 @@ import abc
 
 class ReaderBase(metaclass=abc.ABCMeta):
 
-    def __init__(self, nb_grid_pts=None, physical_sizes=None, info={}):
+    def __init__(self, nb_grid_pts=None, physical_sizes=None, periodic=False, info={}):
         self._nb_grid_pts = nb_grid_pts
         self._size = physical_sizes
+        self._periodic = periodic
         self._info = info
-        self._default_channel=0
+        self._default_channel = 0
 
     @property
     def channels(self):
@@ -48,11 +49,11 @@ class ReaderBase(metaclass=abc.ABCMeta):
         list of dicts
 
         """
-        channelinfo={"name": "NoName",
-                     "nb_grid_pts":self._nb_grid_pts,
-                     "height_scale_factor": 1.,
-                     "unit": "",
-                     "physical_sizes": None}
+        channelinfo = {"name": "NoName",
+                       "nb_grid_pts": self._nb_grid_pts,
+                       "height_scale_factor": 1.,
+                       "unit": "",
+                       "physical_sizes": None}
 
         channelinfo.update(self._info)
         return [channelinfo]
@@ -76,6 +77,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self._size
 
     @property
+    def is_periodic(self):
+        return self._periodic
+
+    @property
     def info(self):
         return self._info
 
@@ -86,10 +91,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
         else:
             if size is None:
                 size = self.physical_sizes
-            elif [s == ss for s, ss in zip(size, self.physical_sizes)] != [True, True]: # both sizes are defined
-                warnings.warn("a physical_sizes different from the specified value"
-                              "was present in the file ({})."
-                              "we will use the specified value".format(self.physical_sizes, size))
+            elif tuple(size) != tuple(self.physical_sizes):
+                warnings.warn("A physical size different from the value specified when calling the reader "
+                              "was present in the file. We will ignore the value given in the file."
+                              "Specified values: {}; Values from file: {}".format(self.physical_sizes, size))
         return size
 
     def _process_info(self, info):
