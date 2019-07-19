@@ -103,7 +103,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return newinfo
 
     @abc.abstractmethod
-    def topography(self, size=None, channel=None):
+    def topography(self, physical_sizes=None, channel=None):
         """
         returns a `Topography` instance containing the data
 

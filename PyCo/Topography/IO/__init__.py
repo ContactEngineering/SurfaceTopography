@@ -25,11 +25,12 @@
 #
 
 import os
+
 # Old-style readers
-from PyCo.Topography.IO.FromFile import DiReader, IbwReader, MatReader, \
-    X3pReader, XyzReader, OpdReader, AscReader
+from PyCo.Topography.IO.FromFile import IbwReader, MatReader, X3pReader, XyzReader, OpdReader, AscReader
 
 # New-style readers
+from PyCo.Topography.IO.DI import DiReader
 from PyCo.Topography.IO.H5 import H5Reader
 from PyCo.Topography.IO.MI import MIReader
 from PyCo.Topography.IO.NC import NCReader
@@ -72,7 +73,7 @@ def detect_format(fobj, comm=None):
                 reader(fobj)
             return name
         except Exception as err:
-             msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
+            msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
         finally:
             if hasattr(fobj, 'seek'):
                 # if the reader crashes the cursor in the file-like object
@@ -121,7 +122,7 @@ def open_topography(fobj, format=None, comm=None):
     else:
         kwargs = {}
 
-    if not hasattr(fobj, 'read'): #fobj is a path
+    if not hasattr(fobj, 'read'):  # fobj is a path
         if not os.path.isfile(fobj):
             raise FileExistsError("file {} not found".format(fobj))
 

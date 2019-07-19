@@ -93,10 +93,10 @@ class OPDxReader(ReaderBase):
 
             self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
-    def topography(self, size=None, channel=None):
+    def topography(self, physical_sizes=None, channel=None):
         """
         Generates a topography object from the gathered metadata.
-        :param size: The physical physical_sizes of the topography. If not given, will fetch from metadata.
+        :param physical_sizes: The physical physical_sizes of the topography. If not given, will fetch from metadata.
         :param channel: The id of the channel. If not given, will use default channel.
         :return:
         Topography object.
@@ -110,16 +110,16 @@ class OPDxReader(ReaderBase):
 
         res_x, res_y, start, end, q = channel[:5]
 
-        if size is None:
+        if physical_sizes is None:
             size_x = channel[5]['Width_value']
             size_y = channel[5]['Height_value']
-            size = (size_x, size_y)
+            physical_sizes = (size_x, size_y)
 
         channel[5]['unit'] = channel[5]['z_unit']
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q)
 
-        return Topography(heights=data, physical_sizes=size, info=channel[5])
+        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5])
 
     def channels(self):
         return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]

@@ -111,7 +111,7 @@ class MIReader(ReaderBase):
 
             self._default_channel = 0  # Maybe search for id 'Topography' in the future
 
-    def topography(self, size=None, channel=None):
+    def topography(self, physical_sizes=None, channel=None):
         if channel is None:
             channel = self._default_channel
 

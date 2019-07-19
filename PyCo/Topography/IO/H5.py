@@ -34,6 +34,6 @@ class H5Reader(ReaderBase):
 
         super().__init__()
 
-    def topography(self, size=None, info={}):
-        size = self._process_size(size)
+    def topography(self, physical_sizes=None, info={}):
+        size = self._process_size(physical_sizes)
         return Topography(self._h5['surface'][...], size, info=self._process_info(info))
