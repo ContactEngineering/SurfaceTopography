@@ -400,7 +400,7 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
-XyzReader = make_wrapped_reader(read_xyz, name="XyzReader")
+XYZReader = make_wrapped_reader(read_xyz, name="XyzReader")
 
 def read_x3p(fobj):
     """
@@ -474,7 +474,7 @@ def read_x3p(fobj):
                              dtype=dtype).reshape(nx, ny).T
 
     return Topography(data, (xinc * nx, yinc * ny))
-X3pReader = make_wrapped_reader(read_x3p, name="X3pReader")
+X3PReader = make_wrapped_reader(read_x3p, name="X3pReader")
 
 @binary
 def read_mat(fobj, physical_sizes=None, factor=None, unit=None):
@@ -664,7 +664,7 @@ def read_opd(fobj):
     surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
-OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
+OPDReader = make_wrapped_reader(read_opd, name="OpdReader")
 
 @binary
 def read_ibw(fobj):
@@ -691,7 +691,7 @@ def read_ibw(fobj):
     surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
-IbwReader = make_wrapped_reader(read_ibw, name="IbwReader")
+IBWReader = make_wrapped_reader(read_ibw, name="IbwReader")
 
 @binary
 def read_hgt(fobj, size=None):
@@ -709,8 +709,7 @@ def read_hgt(fobj, size=None):
     dim = int(np.sqrt(fsize / 2))
     if dim * dim * 2 != fsize:
         raise RuntimeError('File physical_sizes of {0} bytes does not match file physical_sizes '
-                           'for a map of dimension {1}x{1}.'.format(fsize,
-                                                                    dim))
+                           'for a map of dimension {1}x{1}.'.format(fsize, dim))
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 
@@ -718,4 +717,4 @@ def read_hgt(fobj, size=None):
         return Topography(data, data.shape)
     else:
         return Topography(data, size)
-HgtReader = make_wrapped_reader(read_hgt, name="HgtReader")
+HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")

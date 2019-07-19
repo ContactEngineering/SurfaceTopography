@@ -34,7 +34,7 @@ from .Reader import ReaderBase
 
 ###
 
-class DiReader(ReaderBase):
+class DIReader(ReaderBase):
     def __init__(self, fobj):
         """
         Load Digital Instrument's Nanoscope files.

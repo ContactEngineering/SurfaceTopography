@@ -27,10 +27,10 @@
 import os
 
 # Old-style readers
-from PyCo.Topography.IO.FromFile import IbwReader, MatReader, X3pReader, XyzReader, OpdReader, AscReader
+from PyCo.Topography.IO.FromFile import IBWReader, MatReader, X3PReader, XYZReader, OPDReader, AscReader
 
 # New-style readers
-from PyCo.Topography.IO.DI import DiReader
+from PyCo.Topography.IO.DI import DIReader
 from PyCo.Topography.IO.H5 import H5Reader
 from PyCo.Topography.IO.MI import MIReader
 from PyCo.Topography.IO.NC import NCReader
@@ -42,16 +42,16 @@ from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
 
 readers = {
     'asc': AscReader,
-    'di': DiReader,
+    'di': DIReader,
     'h5': H5Reader,
     'mat': MatReader,
     'nc': NCReader,
     'npy': NPYReader,
-    'opd': OpdReader,
+    'opd': OPDReader,
     'opdx': OPDxReader,
-    'x3p': X3pReader,
-    'xyz': XyzReader,
-    'ibw': IbwReader,
+    'x3p': X3PReader,
+    'xyz': XYZReader,
+    'ibw': IBWReader,
     'mi': MIReader
 }
 
