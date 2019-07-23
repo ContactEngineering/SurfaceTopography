@@ -75,7 +75,9 @@ class NPYReader(ReaderBase):
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
 
-    def topography(self, substrate=None, physical_sizes=None, channel=None, info={}):
+    def topography(self, physical_sizes=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None, channel=None,
+                   info={}):
         """
         Returns the `Topography` object containing the data attributed to the
         processors. `substrate` prescribes the domain decomposition.
