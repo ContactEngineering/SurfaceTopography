@@ -75,7 +75,9 @@ class NPYReader(ReaderBase):
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
 
-    def topography(self, substrate=None, physical_sizes=None, channel=None, info={}):
+    def topography(self, physical_sizes=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None, channel=None,
+                   info={}):
         """
         Returns the `Topography` object containing the data attributed to the
         processors. `substrate` prescribes the domain decomposition.
@@ -96,25 +98,22 @@ class NPYReader(ReaderBase):
         -------
         Topography
         """
+        physical_sizes = self._process_size(physical_sizes)
         info = self._process_info(info)
-
-        # TODO: Are sometimes the units Stored?
-        if self.mpi_file.comm.size > 1:
-            if (substrate is None):
-                raise ValueError("you should provide substrate to specify the domain decomposition")
-            subdomain_locations=substrate.topography_subdomain_locations
-            nb_subdomain_grid_pts = substrate.topography_nb_subdomain_grid_pts
-        else:
-            subdomain_locations=(0,0)
-            nb_subdomain_grid_pts=self.nb_grid_pts
-        if substrate is not None and hasattr(substrate, "physical_sizes"):
-            if physical_sizes is not None:
-                raise ValueError("physical_sizes is already provided by substrate")
-            physical_sizes=substrate.physical_sizes
+        if subdomain_locations is None and nb_subdomain_grid_pts is None:
+            if self.mpi_file.comm.size > 1:
+                raise ValueError("This is a parallel run, you should provide "
+                                 "subdomain location and number of grid points")
+            return Topography(self.mpi_file.read(
+                subdomain_locations=subdomain_locations,
+                nb_subdomain_grid_pts=nb_subdomain_grid_pts), physical_sizes,
+                              periodic=self.is_periodic, info=info)
 
         return Topography(
-            heights=self.mpi_file.read(subdomain_locations=subdomain_locations,
-                                       nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+            heights=self.mpi_file.read(
+            subdomain_locations=subdomain_locations,
+            nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+            decomposition="subdomain",
             subdomain_locations=subdomain_locations,
             nb_grid_pts=self.nb_grid_pts,
             communicator=self.mpi_file.comm,
