@@ -55,6 +55,10 @@ def rms_height(topography, kind='Sq'):
         return np.sqrt(
             pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
     elif kind == 'Rq':
+        # Problem: when one of the processors holds the full data he isn't able
+        # to detect if any axis is MPI_Parallelized
+        # this problem is solved automatically if we do not support one axis
+        # to be zero
         decomp_axis = [full != loc for full, loc in
                        zip(np.array(topography.nb_grid_pts), profile.shape)]
         temppnp = pnp if decomp_axis[0] == True else np
