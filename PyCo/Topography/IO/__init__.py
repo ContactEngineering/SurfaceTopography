@@ -38,7 +38,7 @@ from PyCo.Topography.IO.NPY import NPYReader
 from PyCo.Topography.IO.OPDx import OPDxReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
-    FileFormatMismatch, CorruptFile
+    FileFormatMismatch, CorruptFile, ReaderBase
 
 readers = {
     'asc': AscReader,
@@ -82,7 +82,7 @@ def detect_format(fobj, comm=None):
     raise CannotDetectFileFormat(msg)
 
 
-def open_topography(fobj, format=None, comm=None):
+def open_topography(fobj, format=None, communicator=None):
     r"""
     Returns a reader for the file `fobj``
 
@@ -95,8 +95,6 @@ def open_topography(fobj, format=None, comm=None):
     format: str, optional
         specify in which format the file should be interpreted
 
-    comm: MPI communicator or MPIStub.comm, optional
-        Only relevant for MPI code. MPI is only supported for `format = "npy"`
 
     Returns
     -------
@@ -117,8 +115,8 @@ def open_topography(fobj, format=None, comm=None):
     You can also prescribe some attributes when creating the topography
     >>> top = reader.topography(channel=2, physical_sizes=(10.,10.), info={"unit":"µm"})
     """
-    if comm is not None:
-        kwargs = {"comm": comm}
+    if communicator is not None:
+        kwargs = {"communicator": communicator}
     else:
         kwargs = {}
 
@@ -146,4 +144,4 @@ def open_topography(fobj, format=None, comm=None):
 
 
 def read_topography(fn, *args, **kwargs):
-    return open_topography(fn, *args, **kwargs).topography()
+    return open_topography(fn).topography()
