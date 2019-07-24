@@ -199,8 +199,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         super().__init__(info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
-        if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if not isinstance(heights, np.ma.core.MaskedArray):
+            if np.sum(np.logical_not(np.isfinite(heights))) > 0:
+                heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization
@@ -316,7 +317,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return np.ma.getmask(self._heights) is not np.ma.nomask
+        return np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0
 
     def positions(self):
         # FIXME: Write test for this method

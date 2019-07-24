@@ -36,6 +36,7 @@ from struct import unpack
 from zipfile import ZipFile
 import copy
 import numpy as np
+import numpy.ma as ma
 
 from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
 from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
@@ -130,6 +131,23 @@ def mangle_height_unit(unit):
         return 'µm'
     else:
         return unit
+
+
+def mask_undefined(data, maxval=1e32):
+    """
+    If data contains undefined points, then return a masked array with all
+    undefined points masked.
+
+    The following heuristics is applied to identify undefined points:
+    - Remove points that are +/-inf or nan
+    - Remove points that are >+maxval or <-maxval
+    """
+    # First, we mask all points that are infinite or nan
+    mask = np.logical_and(np.isfinite(data), np.abs(data) < maxval)
+    if mask.sum() < len(mask):
+        return ma.masked_array(data, mask=np.logical_not(mask))
+    else:
+        return data
 
 
 def make_wrapped_reader(reader_func, name="wrappedReader"):
@@ -644,8 +662,7 @@ def read_opd(fobj):
                 raise IOError("Don't know how to handle element physical_sizes {}."
                               .format(elsize))
             rawdata = fobj.read(nx * ny * dtype.itemsize)
-            data = np.frombuffer(rawdata, count=nx * ny,
-                                 dtype=dtype).reshape(nx, ny)
+            data = np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
         elif n == 'Wavelength':
             wavelength, = unpack('<f', fobj.read(4))
         elif n == 'Mult':
@@ -660,11 +677,14 @@ def read_opd(fobj):
     if data is None:
         raise IOError('No data block encountered.')
 
+    data = mask_undefined(data)
+    data.shape = (nx, ny)
+
     # Height are in nm, width in mm
     surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
-OPDReader = make_wrapped_reader(read_opd, name="OpdReader")
+OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
 
 @binary
 def read_ibw(fobj):
