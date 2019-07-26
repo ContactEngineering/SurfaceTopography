@@ -1,40 +1,37 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2019 Antoine Sanner
+#           2019 Lars Pastewka
+#           2019 Michael Röttger
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   HeightContainer.py
-
-@author Till Junge <till.junge@kit.edu>
-
-@date   26 Jan 2015
-
-@brief  Base class for geometric topogography descriptions
-
-@section LICENCE
-
-Copyright 2015-2017 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Base class for geometric topogography descriptions
 """
 
 import abc
 import numpy as np
 
+from NuMPI import MPI
 
 class AbstractHeightContainer(object):
     """
@@ -42,21 +39,22 @@ class AbstractHeightContainer(object):
 
     The member dictionary `_functions` contains a list of functions that
     can be executed on this specific container.
-    """
 
-    _functions = {}
+    The dictionary itself is owned by the interface,
+    `UniformTopographyInterface` and `NonuniformLineScanInterface`. This is
+    because the functions are determined by the type of topography that is
+    represented, not by the pipeline hierarchy. For example, convertes that
+    convert uniform to nonuniform and vice versa need to have the respective
+    interface of the format they are converting to.
+    """
 
     class Error(Exception):
         # pylint: disable=missing-docstring
         pass
 
-    @classmethod
-    def register_function(cls, name, function):
-        cls._functions.update({name: function})
-
-    def __init__(self, info={}):
+    def __init__(self, info={}, communicator=MPI.COMM_WORLD):
         self._info = info
-        self.pnp = np
+        self._communicator=communicator
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)
@@ -65,7 +63,12 @@ class AbstractHeightContainer(object):
         if name in self._functions:
             return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
         else:
-            raise AttributeError("Unkown attribute '{}' and no so-called function registered.".format(name))
+            raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered "
+                                 "(class {}). Available functions: {}"
+                                 .format(name, self.__class__.__name__, ', '.join(self._functions.keys())))
+
+    def __dir__(self):
+        return sorted(super().__dir__() + [*self._functions])
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -79,8 +82,7 @@ class AbstractHeightContainer(object):
         state -- result of __getstate__
         """
         self._info = state
-        self.pnp = np # this np is a module and is not picklable.
-        # In parallel code, the user will have to set pnp by himself after loading
+        self._communicator=MPI.COMM_WORLD
 
     @property
     @abc.abstractmethod
@@ -96,14 +98,18 @@ class AbstractHeightContainer(object):
 
     @property
     @abc.abstractmethod
-    def size(self, ):
-        """ Return physical size """
+    def physical_sizes(self, ):
+        """ Return physical physical_sizes """
         raise NotImplementedError
 
     @property
     def info(self, ):
         """ Return info dictionary """
         return self._info
+
+    @property
+    def communicator(self):
+        return self._communicator
 
 
 class DecoratedTopography(AbstractHeightContainer):
@@ -112,7 +118,7 @@ class DecoratedTopography(AbstractHeightContainer):
     data is owned by the parent, but the present class performs
     transformations on that data. This is a simple realization of a
     processing pipeline. Note that child topographies don't store their
-    own size etc. but pass this information through to the parent.
+    own physical_sizes etc. but pass this information through to the parent.
     """
 
     def __init__(self, topography, info={}):
@@ -125,14 +131,7 @@ class DecoratedTopography(AbstractHeightContainer):
         super().__init__(info=info)
         assert isinstance(topography, AbstractHeightContainer)
         self.parent_topography = topography
-        self.pnp = self.parent_topography.pnp
-        self._functions = self.parent_topography._functions.copy()
-
-    def __getattr__(self, name):
-        if name in self._functions:
-            return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
-        else:
-            return self.parent_topography.__getattr__(name)
+        self._communicator = self.parent_topography.communicator
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -157,18 +156,30 @@ class DecoratedTopography(AbstractHeightContainer):
         return info
 
 
-class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
+class TopographyInterface(object):
+    @classmethod
+    def register_function(cls, name, function):
+        cls._functions.update({name: function})
+
+
+class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
+    _functions = {}
+
     @property
     def is_uniform(self):
         return True
 
     @property
-    def is_MPI(self):
-        return self.resolution != self.subdomain_resolution
+    def is_domain_decomposed(self):
+        return self.nb_grid_pts != self.nb_subdomain_grid_pts
+
+    @property
+    def communicator(self):
+        return MPI.COMM_SELF
 
     @property
     @abc.abstractmethod
-    def resolution(self):
+    def nb_grid_pts(self):
         raise NotImplementedError
 
     @property
@@ -185,8 +196,6 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def has_undefined_data(self):
         return NotImplementedError
-
-
 
     @abc.abstractmethod
     def positions(self):
@@ -219,10 +228,17 @@ class UniformTopographyInterface(object, metaclass=abc.ABCMeta):
         return self.heights()[i]
 
 
-class NonuniformLineScanInterface(object, metaclass=abc.ABCMeta):
+class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
+    _functions = {}
+
     @property
     def is_uniform(self):
         return False
+
+    @property
+    @abc.abstractmethod
+    def nb_grid_pts(self):
+        raise NotImplementedError
 
     @property
     @abc.abstractmethod

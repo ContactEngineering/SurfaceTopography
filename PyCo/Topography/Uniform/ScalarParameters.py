@@ -1,41 +1,36 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2019 Antoine Sanner
+#           2018-2019 Lars Pastewka
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   ScalarParameters.py
-
-@author Till Junge <till.junge@kit.edu>
-
-@date   11 Feb 2015
-
-@brief  Functions computing scalar roughness parameters
-
-@section LICENCE
-
-Copyright 2015-2018 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Functions computing scalar roughness parameters
 """
 
 import numpy as np
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
-
+from ..HeightContainer import UniformTopographyInterface
+from NuMPI.Tools import Reduction
 
 def rms_height(topography, kind='Sq'):
     """
@@ -44,7 +39,7 @@ def rms_height(topography, kind='Sq'):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -52,20 +47,24 @@ def rms_height(topography, kind='Sq'):
     rms_height : float
         Root mean square height value.
     """
-    n = np.prod(topography.resolution)
+    n = np.prod(topography.nb_grid_pts)
     #if topography.is_MPI:
-    pnp = topography.pnp
+    pnp = Reduction(topography._communicator)
     profile = topography.heights()
     if kind == 'Sq':
         return np.sqrt(
             pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
     elif kind == 'Rq':
+        # Problem: when one of the processors holds the full data he isn't able
+        # to detect if any axis is MPI_Parallelized
+        # this problem is solved automatically if we do not support one axis
+        # to be zero
         decomp_axis = [full != loc for full, loc in
-                       zip(np.array(topography.resolution), profile.shape)]
+                       zip(np.array(topography.nb_grid_pts), profile.shape)]
         temppnp = pnp if decomp_axis[0] == True else np
         return np.sqrt(temppnp.sum(
             (profile - temppnp.sum(profile, axis=0)
-                / topography.resolution[0]) ** 2
+             / topography.nb_grid_pts[0]) ** 2
                                     ) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
@@ -78,7 +77,7 @@ def rms_slope(topography):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -86,10 +85,15 @@ def rms_slope(topography):
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_MPI:
+    if topography.is_domain_decomposed:
         raise NotImplementedError("rms_slope not implemented for parallelized topographies")
-    diff = topography.derivative(1)
-    return np.sqrt((diff[0]**2).mean()+(diff[1]**2).mean())
+    if topography.dim == 1:
+        return np.sqrt((topography.derivative(1)**2).mean())
+    elif topography.dim == 2:
+        slx, sly = topography.derivative(1)
+        return np.sqrt((slx**2).mean() + (sly**2).mean())
+    else:
+        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
 
 
 def rms_Laplacian(topography):
@@ -100,7 +104,7 @@ def rms_Laplacian(topography):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
         Topography object containing height information.
 
     Returns
@@ -108,7 +112,7 @@ def rms_Laplacian(topography):
     rms_laplacian : float
         Root mean square Laplacian value.
     """
-    if topography.is_MPI:
+    if topography.is_domain_decomposed:
         raise NotImplementedError("rms_Laplacian not implemented for parallelized topographies")
 
     curv = topography.derivative(2)
@@ -117,10 +121,6 @@ def rms_Laplacian(topography):
 
 ### Register analysis functions from this module
 
-Topography.register_function('rms_height', rms_height)
-Topography.register_function('rms_slope', rms_slope)
-Topography.register_function('rms_curvature', rms_Laplacian)
-
-UniformLineScan.register_function('rms_height', rms_height)
-UniformLineScan.register_function('rms_slope', rms_slope)
-UniformLineScan.register_function('rms_curvature', rms_Laplacian)
+UniformTopographyInterface.register_function('rms_height', rms_height)
+UniformTopographyInterface.register_function('rms_slope', rms_slope)
+UniformTopographyInterface.register_function('rms_curvature', rms_Laplacian)

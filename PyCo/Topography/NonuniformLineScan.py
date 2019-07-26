@@ -1,35 +1,31 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2019 Antoine Sanner
+#           2019 Lars Pastewka
+#           2019 Michael Röttger
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   NonuniformLineScan.py
-
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
-
-@date   09 Dec 2018
-
-@brief  Support for nonuniform topogography descriptions
-
-@section LICENCE
-
-Copyright 2015-2017 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Support for nonuniform topogography descriptions
 """
 
 import abc
@@ -37,7 +33,6 @@ import abc
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
-from .UniformLineScanAndTopography import UniformlyInterpolatedLineScan
 from .Nonuniform.Detrending import polyfit
 
 
@@ -45,8 +40,6 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     """
     Nonuniform topography with point list consisting of static numpy arrays.
     """
-
-    _functions = {}
 
     def __init__(self, x, y, info={}):
         super().__init__(info=info)
@@ -75,7 +68,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         return 1
 
     @property
-    def size(self):
+    def physical_sizes(self):
         """Returns distance between maximum and minimum x-value."""
         return self._x[-1] - self._x[0],
 
@@ -90,6 +83,10 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         return False
 
     # Implement uniform line scan interface
+
+    @property
+    def nb_grid_pts(self):
+        return len(self._x),
 
     @property
     def x_range(self):
@@ -112,8 +109,12 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.dim
 
     @property
-    def size(self):
-        return self.parent_topography.size
+    def nb_grid_pts(self):
+        return self.parent_topography.nb_grid_pts
+
+    @property
+    def physical_sizes(self):
+        return self.parent_topography.physical_sizes
 
     @property
     def x_range(self):
@@ -130,20 +131,20 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     """ used when geometries are scaled
     """
 
-    def __init__(self, topography, coeff, info={}):
+    def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
         topography  -- Topography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
-        self.coeff = float(coeff)
+        self._scale_factor = float(scale_factor)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.coeff
+        state = super().__getstate__(), self._scale_factor
         return state
 
     def __setstate__(self, state):
@@ -151,13 +152,17 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.coeff = state
+        superstate, self._scale_factor = state
         super().__setstate__(superstate)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
     def heights(self):
         """ Computes the rescaled profile.
         """
-        return self.coeff * self.parent_topography.heights()
+        return self._scale_factor * self.parent_topography.heights()
 
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
@@ -186,7 +191,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     def _detrend(self):
         if self._detrend_mode == 'center':
-            self._coeffs = (self.parent_topography.mean(),)
+            x, y = self.parent_topography.positions_and_heights()
+            self._coeffs = polyfit(x, y, 0)
         elif self._detrend_mode == 'height':
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 1)
@@ -254,7 +260,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             a0, a1, a2 = self._coeffs
             return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
         else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -266,16 +272,25 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         elif len(self._coeffs) == 3:
             return '{0} + {1} x + {2} x^2'.format(*str_coeffs)
         else:
-            raise RuntimeError('Unknown size of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+
+    @property
+    def curvatures(self):
+        if len(self._coeffs) == 3:
+            return 2 * self._coeffs[2],
+        else:
+            return 0,
+
 
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.size[0])
+NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
+NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
+NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
 
 
 ### Register pipeline functions from this module
 
-NonuniformLineScan.register_function('scale', ScaledNonuniformTopography)
-NonuniformLineScan.register_function('detrend', DetrendedNonuniformTopography)
-NonuniformLineScan.register_function('interpolate', UniformlyInterpolatedLineScan)
+NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)

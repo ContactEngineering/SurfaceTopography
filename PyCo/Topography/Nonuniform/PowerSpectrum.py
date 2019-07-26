@@ -1,40 +1,35 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+#
+# Copyright 2018-2019 Lars Pastewka
+#           2019 Antoine Sanner
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """
-@file   PowerSpectrum.py
-
-@author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
-
-@date   17 Dec 2018
-
-@brief  Power-spectral density for nonuniform topographies.
-
-@section LICENCE
-
-Copyright 2015-2018 Till Junge, Lars Pastewka
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Power-spectral density for nonuniform topographies.
 """
 
 import numpy as np
 
-from ..NonuniformLineScan import NonuniformLineScan
+from ..HeightContainer import NonuniformLineScanInterface
 
 
 def sinc(x):
@@ -98,7 +93,7 @@ def apply_window(x, y, window=None):
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum_1D(topography, q=None, window=None):
+def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate=5, window=None):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -106,15 +101,23 @@ def power_spectrum_1D(topography, q=None, window=None):
 
     Parameters
     ----------
-    x : array
-        x-coordinates of the points.
-    y : array
-        y-coordinates of the points.
-    q : array, optional
+    line_scan : :obj:`NonuniformLineScan`
+        Container storing the nonuniform line scan.
+    algorithms : str
+        Algorithm to compute autocorrelation.
+        * 'fft': Interpolates the nonuniform line scan on a grid and then uses
+        the FFT to compute the autocorrelation. Scales O(N log N)
+        * 'brute-force': Brute-force computation using between line segements.
+        Scale O(N^2 M) where M is the number of distance point.
+        (Default: 'fft')
+    wavevectors : array, optional
         Wavevectors at which to compute the PSD. If omitted, wavevectors are
         equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`
         where :math:`\lambda` is the shortest distance between two points in
         the `x`-array. (Default: None)
+    ninterpolate : int
+        Number of grid points to put between closest points on surface. Only
+        used for 'fft' algorithm. (Default: 5)
     window : str, optional
         Name of the window function to apply before computing the PSD.
         Presently only supports Hann window ('hann') or no window (None or
@@ -128,24 +131,36 @@ def power_spectrum_1D(topography, q=None, window=None):
     C : array
         PSD values.
     """
-    x, y = topography.positions_and_heights()
-    y = apply_window(x, y, window=window)
-    L = x[-1] - x[0]
-    if q is None:
-        q = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
-    y_q = np.zeros_like(q, dtype=np.complex128)
-    for x1, x2, y1, y2 in zip(x[:-1], x[1:], y[:-1], y[1:]):
-        dx = x2 - x1
-        if dx > 0:
-            dy = y2 - y1
-            x0 = (x1 + x2) / 2
-            y0 = (y1 + y2) / 2
-            y_q += dx * (y0 * ft_rectangle(q * dx) + 1j * dy * ft_one_sided_triangle(q * dx)) * np.exp(-1j * x0 * q)
-        else:
-            raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
-    return q, np.abs(y_q) ** 2 / L
+    s, = line_scan.physical_sizes
+    x, y = line_scan.positions_and_heights()
+    if algorithm == 'fft':
+        if wavevectors is not None:
+            raise ValueError("`wavevectors` can only be used with 'brute-force' algorithm.")
+        min_dist = np.min(np.diff(x))
+        if min_dist <= 0:
+            raise RuntimeError('Positions not sorted.')
+        return line_scan.to_uniform(ninterpolate * int(s / min_dist), 0).power_spectrum_1D(window=window)
+    elif algorithm == 'brute-force':
+        y = apply_window(x, y, window=window)
+        L = x[-1] - x[0]
+        if wavevectors is None:
+            wavevectors = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
+        y_q = np.zeros_like(wavevectors, dtype=np.complex128)
+        for x1, x2, y1, y2 in zip(x[:-1], x[1:], y[:-1], y[1:]):
+            dx = x2 - x1
+            if dx > 0:
+                dy = y2 - y1
+                x0 = (x1 + x2) / 2
+                y0 = (y1 + y2) / 2
+                y_q += dx * (y0 * ft_rectangle(wavevectors * dx) + 1j * dy * \
+                             ft_one_sided_triangle(wavevectors * dx)) * np.exp(-1j * x0 * wavevectors)
+            else:
+                raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
+        return wavevectors, np.abs(y_q) ** 2 / L
+    else:
+        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 
 
 ### Register analysis functions from this module
 
-NonuniformLineScan.register_function('power_spectrum_1D', power_spectrum_1D)
+NonuniformLineScanInterface.register_function('power_spectrum_1D', power_spectrum_1D)
