@@ -34,7 +34,7 @@ from NuMPI import MPI
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
-def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, periodic=False, kind="sphere",
+def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, offset=0, periodic=False, kind="sphere",
                 nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_SELF):
     r"""
     Simple sphere geometry.
@@ -129,9 +129,9 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, pe
                          "Should be 'sphere' or 'paraboloid'".format(kind)))
 
     if dim == 1:
-        return UniformLineScan(h, physical_sizes)
+        return UniformLineScan(h + offset, physical_sizes)
     else:
-        return Topography(h, physical_sizes, decomposition='subdomain',
+        return Topography(h + offset, physical_sizes, decomposition='subdomain',
                           nb_grid_pts=nb_grid_pts, subdomain_locations=subdomain_locations,
                           communicator=communicator)
 
