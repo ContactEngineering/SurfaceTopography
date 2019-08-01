@@ -106,6 +106,8 @@ def get_unit_conversion_factor(unit1_str, unit2_str):
     Compute factor for conversion from unit1 to unit2. Return None if units are
     incompatible.
     """
+    if unit1_str == unit2_str:
+        return 1
     unit1_kind = None
     unit2_kind = None
     unit_scales = None
