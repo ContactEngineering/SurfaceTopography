@@ -35,7 +35,7 @@ from .Reader import ReaderBase
 class NCReader(ReaderBase):
     def __init__(self, fobj, communicator=None):
         from netCDF4 import Dataset
-        if communicator.Get_size() > 1:
+        if communicator is not None and communicator.Get_size() > 1:
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
         else:
             self._nc = Dataset(fobj, 'r')
