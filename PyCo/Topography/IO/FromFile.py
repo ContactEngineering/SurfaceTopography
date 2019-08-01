@@ -49,6 +49,7 @@ voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
 
+
 ###
 
 def binary(func):
@@ -91,6 +92,7 @@ def text(func):
 
     return func_wrapper
 
+
 def is_binary_stream(fobj):
     """
 
@@ -98,6 +100,7 @@ def is_binary_stream(fobj):
     :return:
     """
     return isinstance(fobj, io.BytesIO) or (hasattr(fobj, 'mode') and 'b' in fobj.mode)
+
 
 ###
 
@@ -157,6 +160,7 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
         """
         emulates the new implementation of the readers
         """
+
         def __init__(self, fn):
             self._topography = reader_func(fn)
 
@@ -164,7 +168,7 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
                              physical_sizes=self._topography.physical_sizes,
                              info=self._topography.info)
 
-        def topography(self, physical_sizes=None, channel=None, info = {}):
+        def topography(self, physical_sizes=None, channel=None, info={}):
             if channel is not None and channel != "Default":
                 raise RuntimeError("Wrapped reader only supports 'Default' channel.")
             size = self._process_size(physical_sizes)
@@ -179,8 +183,10 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
                 top._info = info
 
                 return NonuniformLineScan(self._topography.positions(), self._topography.heights())
-    WrappedReader.__name__=name
+
+    WrappedReader.__name__ = name
     return WrappedReader
+
 
 @text
 def read_matrix(fobj, physical_sizes=None, factor=None):
@@ -200,7 +206,10 @@ def read_matrix(fobj, physical_sizes=None, factor=None):
     if factor is not None:
         surface = surface.scale(factor)
     return surface
+
+
 MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
+
 
 @text
 def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
@@ -324,7 +333,7 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
         else:
             ysiz *= yfac
     if z_factor is not None:
-        zfac = z_factor if zfac is None else zfac*z_factor
+        zfac = z_factor if zfac is None else zfac * z_factor
 
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
@@ -358,7 +367,10 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
     if zfac is not None:
         surface = surface.scale(zfac)
     return surface
+
+
 AscReader = make_wrapped_reader(read_asc, name="AscReader")
+
 
 @text
 def read_xyz(fobj, unit=None, tol=1e-6):
@@ -387,9 +399,9 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         x, z = data
         x -= np.min(x)
 
-        d_uniform = (x[-1] - x[0])/(len(x) - 1)
+        d_uniform = (x[-1] - x[0]) / (len(x) - 1)
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
-            return UniformLineScan(z, d_uniform*len(x), info=dict(unit=unit))
+            return UniformLineScan(z, d_uniform * len(x), info=dict(unit=unit))
         else:
             return NonuniformLineScan(x, z, info=dict(unit=unit))
     elif len(data) == 3:
@@ -401,14 +413,14 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         binx = np.array(x / dx + 0.5, dtype=int)
         n = np.bincount(binx)
         ny = n[0]
-        assert np.all(n == ny) # FIXME: Turn assert into exception
+        assert np.all(n == ny)  # FIXME: Turn assert into exception
 
         # Sort y-values into bins.
         dy = y[binx == 0][1] - y[binx == 0][0]
         biny = np.array(y / dy + 0.5, dtype=int)
         n = np.bincount(biny)
         nx = n[0]
-        assert np.all(n == nx) # FIXME: Turn assert into exception
+        assert np.all(n == nx)  # FIXME: Turn assert into exception
 
         # Sort data into bins.
         data = np.zeros((nx, ny))
@@ -417,12 +429,15 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         # Sanity check. Should be covered by above asserts.
         value_present = np.zeros((nx, ny), dtype=bool)
         value_present[binx, biny] = True
-        assert np.all(value_present) # FIXME: Turn assert into exception
+        assert np.all(value_present)  # FIXME: Turn assert into exception
 
         return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
     else:
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
+
+
 XYZReader = make_wrapped_reader(read_xyz, name="XyzReader")
+
 
 def read_x3p(fobj):
     """
@@ -496,7 +511,10 @@ def read_x3p(fobj):
                              dtype=dtype).reshape(nx, ny).T
 
     return Topography(data, (xinc * nx, yinc * ny))
+
+
 X3PReader = make_wrapped_reader(read_x3p, name="X3pReader")
+
 
 @binary
 def read_mat(fobj, physical_sizes=None, factor=None, unit=None):
@@ -535,6 +553,7 @@ def read_mat(fobj, physical_sizes=None, factor=None, unit=None):
     else:
         return surfaces
 
+
 class MatReader(ReaderBase):
     def __init__(self, fobj):
         """
@@ -560,7 +579,7 @@ class MatReader(ReaderBase):
             data = loadmat(fobj)
             surfaces = []
             self._channels = []
-            self._height_data=[]
+            self._height_data = []
             for key, value in data.items():
                 is_2darray = False
                 try:
@@ -570,7 +589,7 @@ class MatReader(ReaderBase):
                     pass
                 if is_2darray:
                     channelinfo = {"name": key,
-                                   "nb_grid_pts":value.shape,
+                                   "nb_grid_pts": value.shape,
                                    "height_scale_factor": 1.,
                                    "unit": "",
                                    "physical_sizes": None}
@@ -600,13 +619,14 @@ class MatReader(ReaderBase):
 
     def topography(self, channel=None, physical_sizes=None, info={}):
         if channel is None:
-            channel=self._default_channel
+            channel = self._default_channel
         info_dict = dict(data_source=self.channels[channel]["name"],
                          unit=self.channels[channel]["unit"])
         info_dict.update(info)
         return Topography(self._height_data[channel],
                           physical_sizes=self._process_size(physical_sizes),
                           info=info_dict)
+
 
 @binary
 def read_opd(fobj):
@@ -688,7 +708,10 @@ def read_opd(fobj):
     surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
     surface = surface.scale(wavelength / mult * 1e-6)
     return surface
+
+
 OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
+
 
 @binary
 def read_ibw(fobj):
@@ -715,7 +738,10 @@ def read_ibw(fobj):
     surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
 
     return surface
+
+
 IBWReader = make_wrapped_reader(read_ibw, name="IbwReader")
+
 
 @binary
 def read_hgt(fobj, size=None):
@@ -741,4 +767,6 @@ def read_hgt(fobj, size=None):
         return Topography(data, data.shape)
     else:
         return Topography(data, size)
+
+
 HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")
