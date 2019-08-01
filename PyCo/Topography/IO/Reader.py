@@ -49,7 +49,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         list of dicts
 
         """
-        channelinfo = {"name": "NoName",
+        channelinfo = {"name": "Default",
                        "nb_grid_pts": self._nb_grid_pts,
                        "height_scale_factor": 1.,
                        "unit": "",
