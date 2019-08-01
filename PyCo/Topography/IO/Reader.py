@@ -112,16 +112,20 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
+
 class ReadFileError(Exception):
     pass
 
+
 class UnknownFileFormatGiven(ReadFileError):
     pass
+
 
 class CannotDetectFileFormat(ReadFileError):
     """
     Raised when no reader is able to open_topography the file
     """
+
 
 class FileFormatMismatch(ReadFileError):
     """
@@ -129,6 +133,7 @@ class FileFormatMismatch(ReadFileError):
     (obvious for txt vs binary, but holds also for a header)
     """
     pass
+
 
 class CorruptFile(ReadFileError):
     """
