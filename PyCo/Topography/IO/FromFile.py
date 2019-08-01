@@ -152,8 +152,8 @@ def mask_undefined(data, maxval=1e32):
         return data
 
 
-def make_wrapped_reader(reader_func, name="wrappedReader"):
-    class wrappedReader(ReaderBase):
+def make_wrapped_reader(reader_func, name="WrappedReader"):
+    class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
         """
@@ -164,7 +164,9 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
                              physical_sizes=self._topography.physical_sizes,
                              info=self._topography.info)
 
-        def topography(self, physical_sizes=None, info = {}):
+        def topography(self, physical_sizes=None, channel=None, info = {}):
+            if channel is not None and channel != "Default":
+                raise RuntimeError("Wrapped reader only supports 'Default' channel.")
             size = self._process_size(physical_sizes)
             info = self._process_info(info)
             if self._topography.is_uniform:
@@ -177,8 +179,8 @@ def make_wrapped_reader(reader_func, name="wrappedReader"):
                 top._info = info
 
                 return NonuniformLineScan(self._topography.positions(), self._topography.heights())
-    wrappedReader.__name__=name
-    return wrappedReader
+    WrappedReader.__name__=name
+    return WrappedReader
 
 @text
 def read_matrix(fobj, physical_sizes=None, factor=None):
