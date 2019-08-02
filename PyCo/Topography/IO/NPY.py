@@ -22,8 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-"""
 
+"""
 In MPI Parallelized programs:
 
 - we have to use `MPI.File.Open` instead of `open` to allow several processors to access the same file simultaneously
@@ -31,15 +31,7 @@ In MPI Parallelized programs:
     - read the nb_grid_pts only (Reader.__init__)
     - make the domain decomposition according to the nb_grid_pts
     - load the relevant subdomain on each processor in Reader.topography()
-
 """
-
-
-
-
-
-from numpy.lib.format import read_magic, _read_array_header, _check_version
-import numpy as np
 
 from PyCo.Topography import Topography
 from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
@@ -48,19 +40,26 @@ from NuMPI import MPI
 import NuMPI
 import NuMPI.IO
 
+
 class NPYReader(ReaderBase):
     """
-    npy is a fileformat made specially for numpy arrays. They contain no extra
-    metadata so we use directly the implementation from numpy and NuMPI
+    NPY is a file format made specially for numpy arrays. They contain no extra
+    metadata so we use directly the implementation from numpy and NuMPI.
+
+    For a description of the file format, see here:
+    https://docs.scipy.org/doc/numpy/reference/generated/numpy.lib.format.html
     """
 
     def __init__(self, fn, communicator=MPI.COMM_WORLD):
         """
+        Open file in the NPY format.
 
         Parameters
         ----------
-        fn: filename
-        comm: MPI communicator
+        fn: str
+            Name of the file
+        communicator: mpi4py MPI communicator or NuMPI stub communicator
+            MPI communicator object for parallel loads.
         """
         super().__init__()
 
@@ -75,50 +74,41 @@ class NPYReader(ReaderBase):
 
         # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
 
-    def topography(self, physical_sizes=None, subdomain_locations=None,
-                   nb_subdomain_grid_pts=None, channel=None,
-                   info={}):
-        """
-        Returns the `Topography` object containing the data attributed to the
-        processors. `substrate` prescribes the domain decomposition.
+    @property
+    def channels(self):
+        return [dict(name='Default',
+                     dim=len(self._nb_grid_pts),
+                     nb_grid_pts=self._nb_grid_pts)]
 
-
-        Parameters
-        ----------
-        substrate: Free- or PeriodicFFTElasticHalfspace instance
-        has attributes topography_subdomain_locations, topography_nb_subdomain_grid_pts and nb_grid_pts
-        size: (float, float)
-        physical_sizes of the topography
-        channel: int or None
-        ignored here because only one channel is availble here
-        info: dict
-        updates for the info dictionary
-
-        Returns
-        -------
-        Topography
-        """
-        physical_sizes = self._process_size(physical_sizes)
-        info = self._process_info(info)
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+        physical_sizes = self._physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:
                 raise ValueError("This is a parallel run, you should provide "
                                  "subdomain location and number of grid points")
-            return Topography(self.mpi_file.read(
-                subdomain_locations=subdomain_locations,
-                nb_subdomain_grid_pts=nb_subdomain_grid_pts), physical_sizes,
-                              periodic=self.is_periodic, info=info)
+            return Topography(
+                self.mpi_file.read(
+                    subdomain_locations=subdomain_locations,
+                    nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+                physical_sizes,
+                info=info
+            )
 
         return Topography(
             heights=self.mpi_file.read(
-            subdomain_locations=subdomain_locations,
-            nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+                subdomain_locations=subdomain_locations,
+                nb_subdomain_grid_pts=nb_subdomain_grid_pts),
             decomposition="subdomain",
             subdomain_locations=subdomain_locations,
             nb_grid_pts=self.nb_grid_pts,
             communicator=self.mpi_file.comm,
             physical_sizes=physical_sizes,
             info=info)
+
+    channels.__doc__ = ReaderBase.channels.__doc__
+    topography.__doc__ = ReaderBase.topography.__doc__
+
 
 def save_npy(fn, topography):
     NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_locations=topography.subdomain_locations,

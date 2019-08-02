@@ -27,11 +27,12 @@
 import os
 
 # Old-style readers
-from PyCo.Topography.IO.FromFile import IBWReader, MatReader, X3PReader, XYZReader, OPDReader, AscReader
+from PyCo.Topography.IO.FromFile import IBWReader, X3PReader, XYZReader, OPDReader, AscReader
 
 # New-style readers
 from PyCo.Topography.IO.DI import DIReader
 from PyCo.Topography.IO.H5 import H5Reader
+from PyCo.Topography.IO.Matlab import MatReader
 from PyCo.Topography.IO.MI import MIReader
 from PyCo.Topography.IO.NC import NCReader
 from PyCo.Topography.IO.NPY import NPYReader
@@ -84,36 +85,63 @@ def detect_format(fobj, comm=None):
 
 def open_topography(fobj, format=None, communicator=None):
     r"""
-    Returns a reader for the file `fobj``
-
+    Returns a reader object for the file `fobj`. The reader interface mirrors
+    the topography interface and can be used to extract meta data (number of
+    grid points, physical sizes, etc.) without reading the full topography in
+    memory.
 
     Parameters
     ----------
-    fobj: str or filelike object
+    fobj : str or filelike object
         path of the file or filelike object
-
-    format: str, optional
+    format : str, optional
         specify in which format the file should be interpreted
-
+    communicator : mpi4py or NuMPI communicator object
+        MPI communicator handling inter-process communication
 
     Returns
     -------
-    Instance of a `ReaderBase` subclass according to the format
+    Instance of a `ReaderBase` subclass according to the format.
 
     Examples
     --------
-    simplest read workflow
+    Simplest read workflow:
+
     >>> reader = open_topography("filename")
     >>> top = reader.topography()
 
-    if the file contains several channels you can check their metadata with
-    `reader.channels()` (returns a list of dicts containing attributes `physical_sizes`,
-    `unit` and
-    `height_scale_factor)
-    >>> top = reader.topography(channel=2)
+    The first topography in file is returned, independently of whether
+    the file has multiple channels or not.
 
-    You can also prescribe some attributes when creating the topography
-    >>> top = reader.topography(channel=2, physical_sizes=(10.,10.), info={"unit":"µm"})
+    You can always check the channels and their metadata with
+    `reader.channels()`. This returns a list of dicts containing attributes `name`,
+    `physical_sizes`, `nb_grid_pts`, ``unit` and `height_scale_factor:
+
+    >>> reader.channels
+    [{'name': 'ZSensor',
+      'nb_grid_pts': (256, 256),
+      'physical_sizes': (9999.999999999998, 9999.999999999998),
+      'unit': 'nm',
+      'height_scale_factor': 0.29638271279074097},
+     {'name': 'AmplitudeError',
+      'nb_grid_pts': (256, 256),
+      'physical_sizes': (10.0, 10.0),
+      'unit': ('µm', None),
+      'height_scale_factor': 0.04577566528320313}]
+
+    Here the channel 'ZSensor' offers a topography with sizes of
+    10000 nm in each dimension.
+
+    You can choose it by giving the index 0 to channel
+    (you would use `channel=1` for the second):
+
+    >>> top = reader.topography(channel=0)
+
+    The returned topography has the physical sizes found in the file.
+
+    You can also prescribe some attributes when reading the topography:
+
+    >>> top = reader.topography(channel=0, physical_sizes=(10.,10.), info={"unit":"µm"})
     """
     if communicator is not None:
         kwargs = {"communicator": communicator}
@@ -144,4 +172,23 @@ def open_topography(fobj, format=None, communicator=None):
 
 
 def read_topography(fn, *args, **kwargs):
+    r"""
+    Returns a reader object for the file `fobj`. The reader interface mirrors
+    the topography interface and can be used to extract meta data (number of
+    grid points, physical sizes, etc.) without reading the full topography in
+    memory.
+
+    Parameters
+    ----------
+    fobj : str or filelike object
+        path of the file or filelike object
+    format : str, optional
+        specify in which format the file should be interpreted
+    communicator : mpi4py or NuMPI communicator object
+        MPI communicator handling inter-process communication
+
+    Returns
+    -------
+    Instance of a `ReaderBase` subclass according to the format.
+    """
     return open_topography(fn).topography()
