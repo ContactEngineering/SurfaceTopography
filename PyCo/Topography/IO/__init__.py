@@ -27,11 +27,12 @@
 import os
 
 # Old-style readers
-from PyCo.Topography.IO.FromFile import IBWReader, MatReader, X3PReader, XYZReader, OPDReader, AscReader
+from PyCo.Topography.IO.FromFile import IBWReader, X3PReader, XYZReader, OPDReader, AscReader
 
 # New-style readers
 from PyCo.Topography.IO.DI import DIReader
 from PyCo.Topography.IO.H5 import H5Reader
+from PyCo.Topography.IO.Matlab import MatReader
 from PyCo.Topography.IO.MI import MIReader
 from PyCo.Topography.IO.NC import NCReader
 from PyCo.Topography.IO.NPY import NPYReader

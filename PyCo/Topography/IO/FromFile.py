@@ -164,25 +164,35 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
         def __init__(self, fn):
             self._topography = reader_func(fn)
 
-            super().__init__(nb_grid_pts=self._topography.nb_grid_pts,
-                             physical_sizes=self._topography.physical_sizes,
-                             info=self._topography.info)
+        @property
+        def channels(self):
+            return [dict(name="Default",
+                         nb_grid_pts=self._topography.nb_grid_pts,
+                         physical_sizes=self._topography.physical_sizes)]
 
-        def topography(self, physical_sizes=None, channel=None, info={}):
-            if channel is not None and channel != "Default":
-                raise RuntimeError("Wrapped reader only supports 'Default' channel.")
-            size = self._process_size(physical_sizes)
-            info = self._process_info(info)
+        def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                       subdomain_locations=None, nb_subdomain_grid_pts=None):
+            if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+                raise RuntimeError('This reader does not support MPI parallelization.')
+            if height_scale_factor is not None:
+                raise RuntimeError('This reader does not support specification of the height scale factor.')
+
+            if channel is None:
+                channel = 0
+            if channel != 0:
+                raise RuntimeError('Reader supports only a single channel 0.')
+
+            physical_sizes = self._physical_sizes(physical_sizes, self._topography.physical_sizes)
             if self._topography.is_uniform:
                 if self._topography.dim == 2:
-                    return Topography(self._topography.heights(), physical_sizes=size, info=info)
+                    return Topography(self._topography.heights(), physical_sizes=physical_sizes, info=info)
                 elif self._topography.dim == 1:
-                    return UniformLineScan(self._topography.heights(), physical_sizes=size, info=info)
+                    return UniformLineScan(self._topography.heights(), physical_sizes=physical_sizes, info=info)
             else:
-                top = copy.copy(self._topography)
-                top._info = info
-
                 return NonuniformLineScan(self._topography.positions(), self._topography.heights())
+
+        channels.__doc__ = ReaderBase.channels.__doc__
+        topography.__doc__ = ReaderBase.topography.__doc__
 
     WrappedReader.__name__ = name
     return WrappedReader
@@ -436,7 +446,7 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
 
 
-XYZReader = make_wrapped_reader(read_xyz, name="XyzReader")
+XYZReader = make_wrapped_reader(read_xyz, name="XYZReader")
 
 
 def read_x3p(fobj):
@@ -513,7 +523,7 @@ def read_x3p(fobj):
     return Topography(data, (xinc * nx, yinc * ny))
 
 
-X3PReader = make_wrapped_reader(read_x3p, name="X3pReader")
+X3PReader = make_wrapped_reader(read_x3p, name="X3PReader")
 
 
 @binary
@@ -552,80 +562,6 @@ def read_mat(fobj, physical_sizes=None, factor=None, unit=None):
         return surfaces[0]
     else:
         return surfaces
-
-
-class MatReader(ReaderBase):
-    def __init__(self, fobj):
-        """
-            Reads a surface profile from a matlab file and presents in in a
-            Topography-conformant manner.
-
-            All two-dimensional arrays present in the matlab data file are returned.
-
-            Parameters
-            ----------
-
-            fobj: filename or file object
-
-        """
-        super().__init__()
-        from scipy.io import loadmat
-
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-        try:
-            data = loadmat(fobj)
-            surfaces = []
-            self._channels = []
-            self._height_data = []
-            for key, value in data.items():
-                is_2darray = False
-                try:
-                    nx, ny = value.shape
-                    is_2darray = True
-                except (AttributeError, ValueError):
-                    pass
-                if is_2darray:
-                    channelinfo = {"name": key,
-                                   "nb_grid_pts": value.shape,
-                                   "height_scale_factor": 1.,
-                                   "unit": "",
-                                   "physical_sizes": None}
-
-                    self._channels.append(channelinfo)
-                    self._height_data.append(value)
-        finally:
-            if close_file:
-                fobj.close()
-
-    @property
-    def channels(self):
-        return self._channels
-
-    @property
-    def nb_grid_pts(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-        return self.channels[channel]["nb_grid_pts"]
-
-    @property
-    def physical_sizes(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-
-        return self.channels[channel]["physical_sizes"]
-
-    def topography(self, channel=None, physical_sizes=None, info={}):
-        if channel is None:
-            channel = self._default_channel
-        info_dict = dict(data_source=self.channels[channel]["name"],
-                         unit=self.channels[channel]["unit"])
-        info_dict.update(info)
-        return Topography(self._height_data[channel],
-                          physical_sizes=self._process_size(physical_sizes),
-                          info=info_dict)
 
 
 @binary
@@ -740,7 +676,7 @@ def read_ibw(fobj):
     return surface
 
 
-IBWReader = make_wrapped_reader(read_ibw, name="IbwReader")
+IBWReader = make_wrapped_reader(read_ibw, name="IBWReader")
 
 
 @binary
