@@ -32,8 +32,6 @@ class H5Reader(ReaderBase):
         import h5py
         self._h5 = h5py.File(fobj)
 
-        super().__init__()
-
     @property
     def channels(self):
         return [dict(name='Default',
@@ -48,7 +46,7 @@ class H5Reader(ReaderBase):
         if channel != 0:
             raise RuntimeError('HDF5 reader only supports a single channel')
         size = self._physical_sizes(physical_sizes)
-        t = Topography(self._h5['surface'][...], size, info=self._process_info(info))
+        t = Topography(self._h5['surface'][...], size, info=info)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
         return t

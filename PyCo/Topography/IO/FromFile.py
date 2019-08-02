@@ -183,6 +183,7 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
                 raise RuntimeError('Reader supports only a single channel 0.')
 
             physical_sizes = self._physical_sizes(physical_sizes, self._topography.physical_sizes)
+            info = {**info, **self._topography.info}
             if self._topography.is_uniform:
                 if self._topography.dim == 2:
                     return Topography(self._topography.heights(), physical_sizes=physical_sizes, info=info)
