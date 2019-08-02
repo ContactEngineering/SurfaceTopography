@@ -31,8 +31,6 @@ from .UniformLineScanAndTopography import Topography, UniformLineScan
 from .HeightContainer import UniformTopographyInterface
 from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
-from .IO.FromFile import (read_asc, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
-                          read_xyz)
 from .IO import open_topography, read_topography
 
 from PyCo.Topography.IO import NPYReader

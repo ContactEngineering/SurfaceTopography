@@ -77,6 +77,7 @@ class NPYReader(ReaderBase):
     @property
     def channels(self):
         return [dict(name='Default',
+                     dim=len(self._nb_grid_pts),
                      nb_grid_pts=self._nb_grid_pts)]
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},

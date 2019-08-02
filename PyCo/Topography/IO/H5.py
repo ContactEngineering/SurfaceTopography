@@ -35,6 +35,7 @@ class H5Reader(ReaderBase):
     @property
     def channels(self):
         return [dict(name='Default',
+                     dim=len(self._h5['surface'].shape),
                      nb_grid_pts=self._h5['surface'].shape)]
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},

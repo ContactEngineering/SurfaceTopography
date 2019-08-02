@@ -47,7 +47,6 @@ class MatReader(ReaderBase):
             close_file = True
         try:
             data = loadmat(fobj)
-            surfaces = []
             self._channels = []
             self._height_data = []
             for key, value in data.items():
@@ -59,6 +58,7 @@ class MatReader(ReaderBase):
                     pass
                 if is_2darray:
                     channelinfo = {"name": key,
+                                   "dim": len(value.shape),
                                    "nb_grid_pts": value.shape}
 
                     self._channels.append(channelinfo)

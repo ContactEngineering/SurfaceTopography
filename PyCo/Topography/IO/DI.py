@@ -151,6 +151,7 @@ class DIReader(ReaderBase):
 
                     channel_dict = {}
                     channel_dict["name"] = image_data_key
+                    channel_dict["dim"] = 2
                     channel_dict["nb_grid_pts"] = (nx, ny)
                     channel_dict["physical_sizes"] = (sx, sy)
                     channel_dict["unit"] = unit

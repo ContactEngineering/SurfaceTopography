@@ -41,6 +41,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
             Name of the channel. If no name is found in the file,
             "Default" is used. Can be used in a UI for identifying a channel.
 
+        dim : int
+            1 for line scans and 2 for topography maps.
+
         nb_grid_pts : tuple of ints
             Number of grid points in each direction, either 1 or 2 elements
             depending on the dimension of the topography.

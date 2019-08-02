@@ -100,8 +100,8 @@ class MIReader(ReaderBase):
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
-            self._size = float(self.mifile.meta['xLength']), \
-                         float(self.mifile.meta['yLength'])
+            self._physical_sizes = float(self.mifile.meta['xLength']), \
+                                   float(self.mifile.meta['yLength'])
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
                                 int(self.mifile.meta['yPixels'])
 
@@ -153,14 +153,16 @@ class MIReader(ReaderBase):
                 pass  # TODO
 
             joined_meta = {**self.mifile.meta, **output_channel.meta}
-        t = Topography(heights=out, physical_sizes=self._physical_sizes(physical_sizes, self._size), info=joined_meta)
+        t = Topography(heights=out, physical_sizes=self._physical_sizes(physical_sizes, self._physical_sizes),
+                       info=joined_meta)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
         return t
 
     @property
     def channels(self):
-        return [{**channel.meta, **dict(nb_grid_pts=self._nb_grid_pts, physical_sizes=self._size)}
+        return [{**channel.meta, **dict(dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+                                                physical_sizes=self._physical_sizes)}
                 for channel in self.mifile.channels]
 
     @property
