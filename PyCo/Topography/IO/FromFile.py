@@ -358,6 +358,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                 zfac = height_units[zunit] / height_units[unit]
             else:
                 zfac *= height_units[zunit] / height_units[unit]
+        info = info.copy()
+        info['unit'] = unit
 
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
@@ -371,7 +373,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
         surface = Topography(data, physical_sizes, info=info)
     if height_scale_factor is not None:
         zfac = height_scale_factor
-    if zfac is not None:
+    if zfac is not None and zfac != 1:
         surface = surface.scale(zfac)
     return surface
 
@@ -528,7 +530,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}):
         rawdata = x3p.open(binfn).read(nx * ny * dtype.itemsize)
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
-    if physical_sizes is not None:
+    if physical_sizes is None:
         physical_sizes = (xinc * nx, yinc * ny)
     t = Topography(data, physical_sizes, info=info)
     if height_scale_factor is not None:
@@ -594,7 +596,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}):
             elif elsize == 4:
                 dtype = np.dtype('f4')
             else:
-                raise IOError("Don't know how to handle element physical_sizes {}."
+                raise IOError("Don't know how to handle element of size {}."
                               .format(elsize))
             rawdata = fobj.read(nx * ny * dtype.itemsize)
             data = np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
@@ -616,7 +618,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}):
     data.shape = (nx, ny)
 
     # Height are in nm, width in mm
-    if physical_sizes is not None:
+    if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
     surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')})
     if height_scale_factor is None:
