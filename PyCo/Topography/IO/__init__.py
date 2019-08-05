@@ -186,9 +186,27 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
         specify in which format the file should be interpreted
     communicator : mpi4py or NuMPI communicator object
         MPI communicator handling inter-process communication
+    channel : int
+        Number of the channel to load. See also `channels` method.
+    physical_sizes : tuple of floats
+        Physical size of the topography. It is necessary to specify this
+        if no physical size is found in the data file. If there is a
+        physical size, then this parameter will override the physical
+        size found in the data file.
+    height_scale_factor : float
+        Override height scale factor found in the data file.
+    info : dict
+        This dictionary will be appended to the info dictionary returned
+        by the reader.
+    subdomain_locations : tuple of ints
+        Origin (location) of the subdomain handled by the present MPI process.
+    nb_subdomain_grid_pts : tuple of ints
+        Number of grid points within the subdomain handled by the present
+        MPI process.
 
     Returns
     -------
-    Instance of a `ReaderBase` subclass according to the format.
+    topography : subclass of :obj:`HeightContainer`
+        The object containing the actual topography data.
     """
     return open_topography(fn, format=format, communicator=communicator).topography(**kwargs)
