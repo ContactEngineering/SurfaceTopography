@@ -171,7 +171,7 @@ def open_topography(fobj, format=None, communicator=None):
         return readers[format](fobj, **kwargs)
 
 
-def read_topography(fn, *args, **kwargs):
+def read_topography(fn, format=None, communicator=None, **kwargs):
     r"""
     Returns a reader object for the file `fobj`. The reader interface mirrors
     the topography interface and can be used to extract meta data (number of
@@ -191,4 +191,4 @@ def read_topography(fn, *args, **kwargs):
     -------
     Instance of a `ReaderBase` subclass according to the format.
     """
-    return open_topography(fn).topography()
+    return open_topography(fn, format=format, communicator=communicator).topography(**kwargs)
