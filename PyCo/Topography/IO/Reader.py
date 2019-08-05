@@ -78,7 +78,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return 0
 
     @classmethod
-    def _physical_sizes(self, physical_sizes_from_arg, physical_sizes=None):
+    def _check_physical_sizes(self, physical_sizes_from_arg, physical_sizes=None):
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
                 raise ValueError("physical_sizes could not be extracted from file, you should provide it")

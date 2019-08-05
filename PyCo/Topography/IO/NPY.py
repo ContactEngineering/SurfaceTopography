@@ -82,7 +82,7 @@ class NPYReader(ReaderBase):
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
-        physical_sizes = self._physical_sizes(physical_sizes)
+        physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:
                 raise ValueError("This is a parallel run, you should provide "

@@ -153,7 +153,7 @@ class MIReader(ReaderBase):
                 pass  # TODO
 
             joined_meta = {**self.mifile.meta, **output_channel.meta}
-        t = Topography(heights=out, physical_sizes=self._physical_sizes(physical_sizes, self._physical_sizes),
+        t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
                        info=joined_meta)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)

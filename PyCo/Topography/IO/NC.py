@@ -63,7 +63,7 @@ class NCReader(ReaderBase):
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
-        physical_sizes = self._physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
+        physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:

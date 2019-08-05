@@ -79,7 +79,7 @@ class MatReader(ReaderBase):
         if channel is None:
             channel = self.default_channel
         return Topography(self._height_data[channel],
-                          physical_sizes=self._physical_sizes(physical_sizes),
+                          physical_sizes=self._check_physical_sizes(physical_sizes),
                           info=dict(data_source=self.channels[channel]["name"]))
 
     channels.__doc__ = ReaderBase.channels.__doc__

@@ -186,7 +186,7 @@ class DIReader(ReaderBase):
             channel = self.default_channel
 
         channel_dict = self._channels[channel]
-        sx, sy = self._physical_sizes(physical_sizes, channel_dict["physical_sizes"])
+        sx, sy = self._check_physical_sizes(physical_sizes, channel_dict["physical_sizes"])
 
         nx, ny = channel_dict["nb_grid_pts"]
 
