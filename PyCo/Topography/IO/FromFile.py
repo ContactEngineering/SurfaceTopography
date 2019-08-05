@@ -363,8 +363,6 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
 
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
-    if physical_sizes is None:
-        physical_sizes = data.shape
     if data.shape[1] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
