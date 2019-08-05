@@ -61,7 +61,8 @@ def detect_format(fobj, comm=None):
     """
     Detect file format based on its content.
 
-    Keyword Arguments:
+    Arguments
+    ---------
     fobj : filename or file object
     comm : mpi communicator, optional
     """
