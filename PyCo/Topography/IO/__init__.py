@@ -45,7 +45,6 @@ readers = {
     'asc': AscReader,
     'di': DIReader,
     'mat': MatReader,
-    'npy': NPYReader,
     'opd': OPDReader,
     'opdx': OPDxReader,
     'x3p': X3PReader,
@@ -54,6 +53,7 @@ readers = {
     'mi': MIReader,
     'nc': NCReader, # NCReader must come before H5Reader, because NC4 *is* HDF5
     'h5': H5Reader,
+    'npy': NPYReader,
 }
 
 
