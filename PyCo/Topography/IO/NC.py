@@ -60,6 +60,7 @@ class NCReader(ReaderBase):
     def close(self):
         if self._nc is not None:
             self._nc.close()
+            self._nc = None
 
     @property
     def channels(self):

@@ -44,16 +44,16 @@ from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
 readers = {
     'asc': AscReader,
     'di': DIReader,
-    'h5': H5Reader,
     'mat': MatReader,
-    'nc': NCReader,
     'npy': NPYReader,
     'opd': OPDReader,
     'opdx': OPDxReader,
     'x3p': X3PReader,
     'xyz': XYZReader,
     'ibw': IBWReader,
-    'mi': MIReader
+    'mi': MIReader,
+    'nc': NCReader, # NCReader must come before H5Reader, because NC4 *is* HDF5
+    'h5': H5Reader,
 }
 
 
