@@ -29,8 +29,13 @@ from PyCo.Topography.IO.Reader import ReaderBase
 
 class H5Reader(ReaderBase):
     def __init__(self, fobj):
+        self._h5 = None
         import h5py
         self._h5 = h5py.File(fobj)
+
+    def close(self):
+        if self._h5 is not None:
+            self._h5.close()
 
     @property
     def channels(self):

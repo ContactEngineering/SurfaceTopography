@@ -210,4 +210,6 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
     topography : subclass of :obj:`HeightContainer`
         The object containing the actual topography data.
     """
-    return open_topography(fn, format=format, communicator=communicator).topography(**kwargs)
+    with open_topography(fn, format=format, communicator=communicator) as reader:
+        t = reader.topography(**kwargs)
+    return t
