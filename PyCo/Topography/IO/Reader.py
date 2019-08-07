@@ -96,7 +96,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
                 physical_sizes_from_arg = physical_sizes
             elif tuple(physical_sizes_from_arg) != tuple(physical_sizes):
                 warnings.warn("A physical size different from the value specified when calling the reader "
-                              "was present in the file. We will ignore the value given in the file."
+                              "was present in the file. We will ignore the value given in the file. "
                               "Specified values: {}; Values from file: {}".format(physical_sizes,
                                                                                   physical_sizes_from_arg))
         return physical_sizes_from_arg
