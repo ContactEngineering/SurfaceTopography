@@ -34,6 +34,7 @@ from .Reader import ReaderBase
 
 class NCReader(ReaderBase):
     def __init__(self, fobj, communicator=None):
+        self._nc = None
         from netCDF4 import Dataset
         if communicator is not None and communicator.Get_size() > 1:
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
@@ -52,6 +53,13 @@ class NCReader(ReaderBase):
             self._info['unit'] = self._x_var.length_unit
         except AttributeError:
             pass
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self._nc is not None:
+            self._nc.close()
 
     @property
     def channels(self):
@@ -100,33 +108,31 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
         NetCDF file format. Default is 'NETCDF3_64BIT_DATA'.
     """
     from netCDF4 import Dataset
-    comm = topography.communicator
-    nc = Dataset(filename, 'w', format=format, parallel=topography.is_domain_decomposed, comm=comm)
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
+    with Dataset(filename, 'w', format=format, parallel=topography.is_domain_decomposed,
+                 comm=topography.communicator) as nc:
+        nx, ny = topography.nb_grid_pts
+        sx, sy = topography.physical_sizes
 
-    nc.createDimension('x', nx)
-    nc.createDimension('y', ny)
+        nc.createDimension('x', nx)
+        nc.createDimension('y', ny)
 
-    x_var = nc.createVariable('x', 'f8', ('x',))
-    y_var = nc.createVariable('y', 'f8', ('y',))
-    heights_var = nc.createVariable('heights', 'f8', ('x', 'y',))
+        x_var = nc.createVariable('x', 'f8', ('x',))
+        y_var = nc.createVariable('y', 'f8', ('y',))
+        heights_var = nc.createVariable('heights', 'f8', ('x', 'y',))
 
-    x_var.length = sx
-    x_var.periodic = 1 if topography.is_periodic else 0
-    if 'unit' in topography.info:
-        x_var.length_unit = topography.info['unit']
-    x_var[...] = (np.arange(nx) + 0.5) * sx / nx
-    y_var.length = sy
-    y_var.periodic = 1 if topography.is_periodic else 0
-    if 'unit' in topography.info:
-        y_var.length_unit = topography.info['unit']
-    y_var[...] = (np.arange(ny) + 0.5) * sy / ny
+        x_var.length = sx
+        x_var.periodic = 1 if topography.is_periodic else 0
+        if 'unit' in topography.info:
+            x_var.length_unit = topography.info['unit']
+        x_var[...] = (np.arange(nx) + 0.5) * sx / nx
+        y_var.length = sy
+        y_var.periodic = 1 if topography.is_periodic else 0
+        if 'unit' in topography.info:
+            y_var.length_unit = topography.info['unit']
+        y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
-    heights_var.set_collective(True)
-    heights_var[topography.subdomain_slices] = topography.heights()
-
-    nc.close()
+        heights_var.set_collective(True)
+        heights_var[topography.subdomain_slices] = topography.heights()
 
 
 ### Register analysis functions from this module
