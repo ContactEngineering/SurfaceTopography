@@ -126,6 +126,9 @@ class AbstractHeightContainer(object):
         """Return the MPI communicator object."""
         return self._communicator
 
+    def pipeline(self):
+        return [self]
+
 
 class DecoratedTopography(AbstractHeightContainer):
     """
@@ -169,6 +172,9 @@ class DecoratedTopography(AbstractHeightContainer):
         info = self.parent_topography.info.copy()
         info.update(self._info)
         return info
+
+    def pipeline(self):
+        return self.parent_topography.pipeline() + [self]
 
 
 class TopographyInterface(object):
