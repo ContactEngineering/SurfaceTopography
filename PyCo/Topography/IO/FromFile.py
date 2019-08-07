@@ -161,9 +161,12 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
         emulates the new implementation of the readers
         """
 
-        def __init__(self, fn):
-            self._fn = fn
-            self._topography = reader_func(fn)
+        def __init__(self, fobj):
+            self._fobj = fobj
+            self._file_position = 0
+            if hasattr(fobj, 'tell'):
+                self._file_position = fobj.tell()
+            self._topography = reader_func(fobj)
 
         @property
         def channels(self):
@@ -182,7 +185,11 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
             if channel != 0:
                 raise RuntimeError('Reader supports only a single channel 0.')
 
-            return reader_func(self._fn, physical_sizes=physical_sizes, height_scale_factor=height_scale_factor,
+            # Rewind to position where the data is. Otherwise this method
+            # cannot be called twice.
+            if hasattr(self._fobj, 'seek'):
+                self._fobj.seek(self._file_position)
+            return reader_func(self._fobj, physical_sizes=physical_sizes, height_scale_factor=height_scale_factor,
                                info=info)
 
         channels.__doc__ = ReaderBase.channels.__doc__
@@ -448,7 +455,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1
             physical_sizes = (dx * nx, dy * ny)
         t = Topography(data, physical_sizes, info=info)
     else:
-        raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
+        raise Exception('Expected two or three columns for topography that is a list of positions and heights.')
 
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
