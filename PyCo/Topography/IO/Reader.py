@@ -29,6 +29,15 @@ import warnings
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        pass
+
     @property
     @abc.abstractmethod
     def channels(self):
