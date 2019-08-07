@@ -106,9 +106,11 @@ def write_nc(topography, filename, format='NETCDF4'):
     filename : str
         Name of the NetCDF file
     format : str
-        NetCDF file format. Default is 'NETCDF3_64BIT_DATA'.
+        NetCDF file format. Default is 'NETCDF4'.
     """
     from netCDF4 import Dataset
+    if not topography.is_domain_decomposed and topography.communicator.rank > 1:
+        return
     with Dataset(filename, 'w', format=format, parallel=topography.is_domain_decomposed,
                  comm=topography.communicator) as nc:
         nx, ny = topography.nb_grid_pts
@@ -132,7 +134,8 @@ def write_nc(topography, filename, format='NETCDF4'):
             y_var.length_unit = topography.info['unit']
         y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
-        heights_var.set_collective(True)
+        if topography.is_domain_decomposed:
+            heights_var.set_collective(True)
         heights_var[topography.subdomain_slices] = topography.heights()
 
 
