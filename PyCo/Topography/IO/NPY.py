@@ -26,7 +26,8 @@
 """
 In MPI Parallelized programs:
 
-- we have to use `MPI.File.Open` instead of `open` to allow several processors to access the same file simultaneously
+- we have to use `MPI.File.Open` instead of `open` to allow several processors
+  to access the same file simultaneously
 - make the file reading in 3 steps:
     - read the nb_grid_pts only (Reader.__init__)
     - make the domain decomposition according to the nb_grid_pts
