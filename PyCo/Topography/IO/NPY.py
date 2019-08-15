@@ -101,7 +101,7 @@ class NPYReader(ReaderBase):
                 nb_subdomain_grid_pts=nb_subdomain_grid_pts),
             decomposition="subdomain",
             subdomain_locations=subdomain_locations,
-            nb_grid_pts=self.nb_grid_pts,
+            nb_grid_pts=self._nb_grid_pts,
             communicator=self.mpi_file.comm,
             physical_sizes=physical_sizes,
             info=info)
