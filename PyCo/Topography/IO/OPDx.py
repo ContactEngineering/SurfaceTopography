@@ -28,30 +28,29 @@ import numpy as np
 from PyCo.Topography.IO.Reader import ReaderBase
 from PyCo.Topography import Topography
 
-
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
 
-DEKTAK_MATRIX = 0x00          # Too lazy to assign an actual type id?
-DEKTAK_BOOLEAN = 0x01         # Takes value 0 and 1
+DEKTAK_MATRIX = 0x00  # Too lazy to assign an actual type id?
+DEKTAK_BOOLEAN = 0x01  # Takes value 0 and 1
 DEKTAK_SINT32 = 0x06
 DEKTAK_UINT32 = 0x07
 DEKTAK_SINT64 = 0x0a
 DEKTAK_UINT64 = 0x0b
-DEKTAK_FLOAT = 0x0c           # Single precision float
-DEKTAK_DOUBLE = 0x0d          # Double precision float
-DEKTAK_TYPE_ID = 0x0e         # Compound type holding some kind of type id
-DEKTAK_STRING = 0x12          # Free-form string value
-DEKTAK_QUANTITY = 0x13        # Value with units (compound type)
-DEKTAK_TIME_STAMP = 0x15      # Datetime (string/9-byte binary)
-DEKTAK_UNITS = 0x18           # Units (compound type)
-DEKTAK_DOUBLE_ARRAY = 0x40    # Raw data array, in XML Base64-encoded
-DEKTAK_STRING_LIST = 0x42     # List of Str
-DEKTAK_RAW_DATA = 0x46        # Parent/wrapper tag of raw data
-DEKTAK_RAW_DATA_2D = 0x47     # Parent/wrapper tag of raw data
-DEKTAK_POS_RAW_DATA = 0x7c    # Base64-encoded positions, not sure how it differs from 64
-DEKTAK_CONTAINER = 0x7d       # General nested data structure
-DEKTAK_TERMINATOR = 0x7f      # Always the last item. Usually a couple of 0xff bytes inside.
+DEKTAK_FLOAT = 0x0c  # Single precision float
+DEKTAK_DOUBLE = 0x0d  # Double precision float
+DEKTAK_TYPE_ID = 0x0e  # Compound type holding some kind of type id
+DEKTAK_STRING = 0x12  # Free-form string value
+DEKTAK_QUANTITY = 0x13  # Value with units (compound type)
+DEKTAK_TIME_STAMP = 0x15  # Datetime (string/9-byte binary)
+DEKTAK_UNITS = 0x18  # Units (compound type)
+DEKTAK_DOUBLE_ARRAY = 0x40  # Raw data array, in XML Base64-encoded
+DEKTAK_STRING_LIST = 0x42  # List of Str
+DEKTAK_RAW_DATA = 0x46  # Parent/wrapper tag of raw data
+DEKTAK_RAW_DATA_2D = 0x47  # Parent/wrapper tag of raw data
+DEKTAK_POS_RAW_DATA = 0x7c  # Base64-encoded positions, not sure how it differs from 64
+DEKTAK_CONTAINER = 0x7d  # General nested data structure
+DEKTAK_TERMINATOR = 0x7f  # Always the last item. Usually a couple of 0xff bytes inside.
 
 TIMESTAMP_SIZE = 9
 UNIT_EXTRA = 12
@@ -66,8 +65,6 @@ class OPDxReader(ReaderBase):
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path, physical_sizes=None, unit=None, info=None):
-        super().__init__(physical_sizes, info)
-
         with open(file_path, "rb") as f:
 
             # open_topography in file as hexadecimal
@@ -90,18 +87,15 @@ class OPDxReader(ReaderBase):
 
             # Reformat the metadata dict
             for channel_name in self._channels.keys():
-                self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name, self._channels[channel_name][-1])
+                self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name,
+                                                                                       self._channels[channel_name][-1])
 
             self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
-    def topography(self, physical_sizes=None, channel=None):
-        """
-        Generates a topography object from the gathered metadata.
-        :param physical_sizes: The physical physical_sizes of the topography. If not given, will fetch from metadata.
-        :param channel: The id of the channel. If not given, will use default channel.
-        :return:
-        Topography object.
-        """
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
 
         if channel is None:
             channel = self._default_channel
@@ -111,10 +105,7 @@ class OPDxReader(ReaderBase):
 
         res_x, res_y, start, end, q = channel[:5]
 
-        if physical_sizes is None:
-            size_x = channel[5]['Width_value']
-            size_y = channel[5]['Height_value']
-            physical_sizes = (size_x, size_y)
+        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Width_value'], channel[5]['Height_value']))
 
         channel[5]['unit'] = channel[5]['z_unit']
 
@@ -122,8 +113,12 @@ class OPDxReader(ReaderBase):
 
         return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5])
 
+    @property
     def channels(self):
         return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]
+
+    channels.__doc__ = ReaderBase.channels.__doc__
+    topography.__doc__ = ReaderBase.topography.__doc__
 
 
 def reformat_dict(name, metadata):
@@ -328,7 +323,7 @@ def find_2d_data_matrix(name, item):
     s = 9 + name[9:].find('/')
     if s == -1:
         return
-    if not name[s+1:] == "Matrix":
+    if not name[s + 1:] == "Matrix":
         return
     return name[9:s]
 
@@ -446,7 +441,8 @@ def read_item(buf, pos, hash_table, path, abspos=0):
         content, start, pos = read_structured(buf, pos)  # TODO find out if maybe better place somewhere else
         abspos += start
         while itempos < len(content):
-            content, itempos, hash_table, path = read_item(buf=content, pos=itempos, hash_table=hash_table, path=path, abspos= abspos)
+            content, itempos, hash_table, path = read_item(buf=content, pos=itempos, hash_table=hash_table, path=path,
+                                                           abspos=abspos)
 
     # Types with string type name
     elif item.typeid == DEKTAK_DOUBLE_ARRAY:
@@ -585,7 +581,7 @@ def read_name(buf, pos):
         raise ValueError("Some sizes went wrong.")
     position = pos
 
-    name = buf[position:position+length]
+    name = buf[position:position + length]
     name = "".join(s for s in name)
     pos += length
     return name, pos
@@ -604,7 +600,7 @@ def read_structured(buf, pos):
         raise ValueError("Some sizes went wrong.")
     start = pos
     pos += length
-    return buf[start:start+length], start, pos
+    return buf[start:start + length], start, pos
 
 
 def read_named_struct(buf, pos):
@@ -734,7 +730,7 @@ def read_with_check(buf, pos, nbytes):
     if len(buf) < nbytes or len(buf) - nbytes < pos:
         raise ValueError("Some sizes went wrong.")
 
-    out = buf[pos:pos+nbytes]
+    out = buf[pos:pos + nbytes]
     pos += int(nbytes)
 
     out = out[0] if nbytes == 1 else out

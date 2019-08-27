@@ -31,6 +31,7 @@ from PyCo.Topography import Topography
 from .FromFile import get_unit_conversion_factor, height_units, mangle_height_unit
 from .Reader import ReaderBase
 
+
 ###
 
 class DIReader(ReaderBase):
@@ -38,10 +39,10 @@ class DIReader(ReaderBase):
         """
         Load Digital Instrument's Nanoscope files.
 
-        FIXME: Descriptive error messages. Probably needs to be made more robust.
-
-        Keyword Arguments:
-        fobj -- filename or file object
+        Arguments
+        ---------
+        fobj : filename or file object
+             File or data stream to open.
         """
         self._fobj = fobj
         close_file = False
@@ -79,9 +80,8 @@ class DIReader(ReaderBase):
             self._offsets = []
             self._default_channel = 0
 
-
             scanner = {}
-            i=0
+            i = 0
             for n, p in parameters:
                 if n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
@@ -95,7 +95,6 @@ class DIReader(ReaderBase):
                     s = p['scan size'].split(' ', 2)
                     sx = float(s[0])
                     sy = float(s[1])
-
 
                     xy_unit = mangle_height_unit(s[2])
                     offset = int(p['data offset'])
@@ -145,47 +144,37 @@ class DIReader(ReaderBase):
 
                         # default channel is 0 or the first channel where height_unit
                         # is a length
-                        if self._default_channel ==0:
+                        if self._default_channel == 0:
                             self._default_channel = i
                     else:
                         unit = (xy_unit, height_unit)
 
                     channel_dict = {}
                     channel_dict["name"] = image_data_key
+                    channel_dict["dim"] = 2
                     channel_dict["nb_grid_pts"] = (nx, ny)
                     channel_dict["physical_sizes"] = (sx, sy)
                     channel_dict["unit"] = unit
-                    #channel_dict["height_unit"] = height_unit
-                    #channel_dict["soft_unit"] = soft_unit
-                    #channel_dict["hard_unit"] = hard_unit
-                    #channel_dict["xy_unit"] = xy_unit
+                    # channel_dict["height_unit"] = height_unit
+                    # channel_dict["soft_unit"] = soft_unit
+                    # channel_dict["hard_unit"] = hard_unit
+                    # channel_dict["xy_unit"] = xy_unit
                     channel_dict["height_scale_factor"] = hard_scale * hard_to_soft * soft_scale
 
                     self._channels.append(channel_dict)
-                    i+=1
+                    i += 1
         finally:
             if close_file:
                 fobj.close()
-
 
     @property
     def channels(self):
         return self._channels
 
-    @property
-    def nb_grid_pts(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-        return self.channels[channel]["nb_grid_pts"]
-
-    @property
-    def physical_sizes(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-
-        return self.channels[channel]["physical_sizes"]
-
-    def topography(self, physical_sizes=None, channel=None, info={}):
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
         close_file = False
         if not hasattr(self._fobj, 'read'):
             fobj = open(self._fobj, 'rb')
@@ -194,16 +183,12 @@ class DIReader(ReaderBase):
             fobj = self._fobj
 
         if channel is None:
-            channel = self._default_channel
+            channel = self.default_channel
 
         channel_dict = self._channels[channel]
-        if physical_sizes is None:
-            physical_sizes = channel_dict["physical_sizes"]
-        sx, sy = physical_sizes
+        sx, sy = self._check_physical_sizes(physical_sizes, channel_dict["physical_sizes"])
 
         nx, ny = channel_dict["nb_grid_pts"]
-        #height_unit = channel_dict["height_unit"]
-        #xy_unit = channel_dict["xy_unit"]
 
         offset = self._offsets[channel]
         dtype = np.dtype('<i2')
@@ -216,12 +201,18 @@ class DIReader(ReaderBase):
                                      dtype=dtype).reshape(nx, ny)
 
         # internal informations from file
-        self._info=dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
+        _info = dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
+        _info.update(info)
 
-        surface = Topography(unscaleddata.T, (sx, sy), info=self._process_info(info))
-        surface = surface.scale(channel_dict["height_scale_factor"])
+        surface = Topography(unscaleddata.T, (sx, sy), info=_info)
+        if height_scale_factor is None:
+            height_scale_factor = channel_dict["height_scale_factor"]
+        surface = surface.scale(height_scale_factor)
 
         if close_file:
             fobj.close()
 
         return surface
+
+    channels.__doc__ = ReaderBase.channels.__doc__
+    topography.__doc__ = ReaderBase.topography.__doc__
