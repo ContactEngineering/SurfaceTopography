@@ -1,6 +1,7 @@
 #
-# Copyright 2019 Kai Haase
+# Copyright 2019 Lars Pastewka
 #           2019 Antoine Sanner
+#           2019 Kai Haase
 # 
 # ### MIT license
 # 
@@ -28,7 +29,6 @@ import numpy as np
 from PyCo.Topography.IO.Reader import ReaderBase, CorruptFile
 from PyCo.Topography import Topography
 
-
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
 
@@ -41,9 +41,7 @@ magic_data_ascii = b'data          ASCII'
 class MIReader(ReaderBase):
 
     # Reads in the positions of all the data and metadata
-    def __init__(self, file_path, physical_sizes=None, info=None):
-        super().__init__(physical_sizes, info)
-
+    def __init__(self, file_path):
         self.file_path = file_path
 
         # Start of the data in the file
@@ -52,8 +50,6 @@ class MIReader(ReaderBase):
         self.is_image = None
         # Format of the saved data
         self.data_type = None
-        # The default channel
-        self._default_channel = None
 
         self.mifile = None
 
@@ -104,16 +100,17 @@ class MIReader(ReaderBase):
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
-            self._size = float(self.mifile.meta['xLength']), \
-                float(self.mifile.meta['yLength'])
+            self._physical_sizes = float(self.mifile.meta['xLength']), \
+                                   float(self.mifile.meta['yLength'])
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
-                int(self.mifile.meta['yPixels'])
+                                int(self.mifile.meta['yPixels'])
 
-            self._default_channel = 0  # Maybe search for id 'Topography' in the future
-
-    def topography(self, size=None, channel=None):
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
         if channel is None:
-            channel = self._default_channel
+            channel = self.default_channel
 
         with open(self.file_path, "rb") as f:
             lines = f.readlines()
@@ -156,15 +153,25 @@ class MIReader(ReaderBase):
                 pass  # TODO
 
             joined_meta = {**self.mifile.meta, **output_channel.meta}
-        return Topography(heights=out, physical_sizes=self._size, info=joined_meta)
+        t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
+                       info=joined_meta)
+        if height_scale_factor is not None:
+            t.scale(height_scale_factor)
+        return t
 
+    @property
     def channels(self):
-        """ Get a list of available channels. """
-        return [channel.meta for channel in self.mifile.channels]
+        return [{**channel.meta, **dict(dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+                                                physical_sizes=self._physical_sizes)}
+                for channel in self.mifile.channels]
 
+    @property
     def info(self):
         """ Return all the available metadata as a dict. """
         return self.mifile.meta
+
+    channels.__doc__ = ReaderBase.channels.__doc__
+    topography.__doc__ = ReaderBase.topography.__doc__
 
 
 def read_header_image(header):

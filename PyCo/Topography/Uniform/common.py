@@ -1,5 +1,6 @@
 #
 # Copyright 2018-2019 Lars Pastewka
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -68,6 +69,9 @@ def derivative(topography, n, periodic=None):
         then all returning array with have shape one less than the input
         arrays.
     """
+    if topography.physical_sizes is None:
+        raise ValueError('Topography does not have physical size information, but this is required to be able to '
+                         'compute a derivative.')
     grid_spacing = topography.pixel_size
     heights = topography.heights()
     is_periodic = topography.is_periodic if periodic is None else periodic

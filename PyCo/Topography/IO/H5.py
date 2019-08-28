@@ -29,11 +29,33 @@ from PyCo.Topography.IO.Reader import ReaderBase
 
 class H5Reader(ReaderBase):
     def __init__(self, fobj):
+        self._h5 = None
         import h5py
         self._h5 = h5py.File(fobj)
 
-        super().__init__()
+    def close(self):
+        if self._h5 is not None:
+            self._h5.close()
 
-    def topography(self, size=None, info={}):
-        size = self._process_size(size)
-        return Topography(self._h5['surface'][...], size, info=self._process_info(info))
+    @property
+    def channels(self):
+        return [dict(name='Default',
+                     dim=len(self._h5['surface'].shape),
+                     nb_grid_pts=self._h5['surface'].shape)]
+
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
+        if channel is None:
+            channel = 0
+        if channel != 0:
+            raise RuntimeError('HDF5 reader only supports a single channel')
+        size = self._check_physical_sizes(physical_sizes)
+        t = Topography(self._h5['surface'][...], size, info=info)
+        if height_scale_factor is not None:
+            t = t.scale(height_scale_factor)
+        return t
+
+    channels.__doc__ = ReaderBase.channels.__doc__
+    topography.__doc__ = ReaderBase.topography.__doc__

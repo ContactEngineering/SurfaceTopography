@@ -1,7 +1,7 @@
 #
 # Copyright 2019 Lars Pastewka
-#           2019 Kai Haase
 #           2019 Antoine Sanner
+#           2019 Kai Haase
 # 
 # ### MIT license
 # 
@@ -28,7 +28,6 @@
 Topography profile from file input
 """
 
-import os
 import io
 import re
 import xml.etree.ElementTree as ElementTree
@@ -37,6 +36,7 @@ from struct import unpack
 from zipfile import ZipFile
 import copy
 import numpy as np
+import numpy.ma as ma
 
 from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
 from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
@@ -48,6 +48,7 @@ height_units = {'m': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
 voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
+
 
 ###
 
@@ -91,6 +92,7 @@ def text(func):
 
     return func_wrapper
 
+
 def is_binary_stream(fobj):
     """
 
@@ -99,6 +101,7 @@ def is_binary_stream(fobj):
     """
     return isinstance(fobj, io.BytesIO) or (hasattr(fobj, 'mode') and 'b' in fobj.mode)
 
+
 ###
 
 def get_unit_conversion_factor(unit1_str, unit2_str):
@@ -106,6 +109,8 @@ def get_unit_conversion_factor(unit1_str, unit2_str):
     Compute factor for conversion from unit1 to unit2. Return None if units are
     incompatible.
     """
+    if unit1_str == unit2_str:
+        return 1
     unit1_kind = None
     unit2_kind = None
     unit_scales = None
@@ -133,33 +138,66 @@ def mangle_height_unit(unit):
         return unit
 
 
-def make_wrapped_reader(reader_func, name="wrappedReader"):
-    class wrappedReader(ReaderBase):
+def mask_undefined(data, maxval=1e32):
+    """
+    If data contains undefined points, then return a masked array with all
+    undefined points masked.
+
+    The following heuristics is applied to identify undefined points:
+    - Remove points that are +/-inf or nan
+    - Remove points that are >+maxval or <-maxval
+    """
+    # First, we mask all points that are infinite or nan
+    mask = np.logical_and(np.isfinite(data), np.abs(data) < maxval)
+    if mask.sum() < len(mask):
+        return ma.masked_array(data, mask=np.logical_not(mask))
+    else:
+        return data
+
+
+def make_wrapped_reader(reader_func, name="WrappedReader"):
+    class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
         """
-        def __init__(self, fn):
-            self._topography = reader_func(fn)
 
-            super().__init__(nb_grid_pts=self._topography.nb_grid_pts,
-                             physical_sizes=self._topography.physical_sizes,
-                             info=self._topography.info)
+        def __init__(self, fobj):
+            self._fobj = fobj
+            self._file_position = 0
+            if hasattr(fobj, 'tell'):
+                self._file_position = fobj.tell()
+            self._topography = reader_func(fobj)
 
-        def topography(self, physical_sizes=None, info = {}):
-            size = self._process_size(physical_sizes)
-            info = self._process_info(info)
-            if self._topography.is_uniform:
-                if self._topography.dim == 2:
-                    return Topography(self._topography.heights(), physical_sizes=size, info=info)
-                elif self._topography.dim == 1:
-                    return UniformLineScan(self._topography.heights(), physical_sizes=size, info=info)
-            else:
-                top = copy.copy(self._topography)
-                top._info = info
+        @property
+        def channels(self):
+            return [dict(name="Default",
+                         dim=self._topography.dim,
+                         nb_grid_pts=self._topography.nb_grid_pts,
+                         physical_sizes=self._topography.physical_sizes)]
 
-                return NonuniformLineScan(self._topography.positions(), self._topography.heights())
-    wrappedReader.__name__=name
-    return wrappedReader
+        def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                       subdomain_locations=None, nb_subdomain_grid_pts=None):
+            if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+                raise RuntimeError('This reader does not support MPI parallelization.')
+
+            if channel is None:
+                channel = 0
+            if channel != 0:
+                raise RuntimeError('Reader supports only a single channel 0.')
+
+            # Rewind to position where the data is. Otherwise this method
+            # cannot be called twice.
+            if hasattr(self._fobj, 'seek'):
+                self._fobj.seek(self._file_position)
+            return reader_func(self._fobj, physical_sizes=physical_sizes, height_scale_factor=height_scale_factor,
+                               info=info)
+
+        channels.__doc__ = ReaderBase.channels.__doc__
+        topography.__doc__ = ReaderBase.topography.__doc__
+
+    WrappedReader.__name__ = name
+    return WrappedReader
+
 
 @text
 def read_matrix(fobj, physical_sizes=None, factor=None):
@@ -179,10 +217,13 @@ def read_matrix(fobj, physical_sizes=None, factor=None):
     if factor is not None:
         surface = surface.scale(factor)
     return surface
+
+
 MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
 
+
 @text
-def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
+def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, z_factor=None, info={}):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
@@ -195,6 +236,7 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
     x_factor -- multiplication factor for physical_sizes
     z_factor -- multiplication factor for height
     """
+    unit = info['unit'] if 'unit' in info else None
 
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
@@ -303,7 +345,7 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
         else:
             ysiz *= yfac
     if z_factor is not None:
-        zfac = z_factor if zfac is None else zfac*z_factor
+        zfac = z_factor if zfac is None else zfac * z_factor
 
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
@@ -323,24 +365,29 @@ def read_asc(fobj, physical_sizes=None, unit=None, x_factor=1.0, z_factor=None):
                 zfac = height_units[zunit] / height_units[unit]
             else:
                 zfac *= height_units[zunit] / height_units[unit]
+        info = info.copy()
+        info['unit'] = unit
 
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
-    if physical_sizes is None:
-        physical_sizes = data.shape
     if data.shape[1] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[:, 0], physical_sizes, info=dict(unit=unit))
+        surface = UniformLineScan(data[:, 0], physical_sizes, info=info)
     else:
-        surface = Topography(data, physical_sizes, info=dict(unit=unit))
-    if zfac is not None:
+        surface = Topography(data, physical_sizes, info=info)
+    if height_scale_factor is not None:
+        zfac = height_scale_factor
+    if zfac is not None and zfac != 1:
         surface = surface.scale(zfac)
     return surface
+
+
 AscReader = make_wrapped_reader(read_asc, name="AscReader")
 
+
 @text
-def read_xyz(fobj, unit=None, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -366,11 +413,17 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         x, z = data
         x -= np.min(x)
 
-        d_uniform = (x[-1] - x[0])/(len(x) - 1)
+        d_uniform = (x[-1] - x[0]) / (len(x) - 1)
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
-            return UniformLineScan(z, d_uniform*len(x), info=dict(unit=unit))
+            if physical_sizes is None:
+                physical_sizes = d_uniform * len(x)
+            t = UniformLineScan(z, physical_sizes, info=info)
         else:
-            return NonuniformLineScan(x, z, info=dict(unit=unit))
+            if physical_sizes is not None:
+                raise ValueError('XYZ reader found nonuniform data. Manually setting the physical size is not '
+                                 'possible for this type of data.')
+
+            t = NonuniformLineScan(x, z, info=info)
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
@@ -380,14 +433,14 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         binx = np.array(x / dx + 0.5, dtype=int)
         n = np.bincount(binx)
         ny = n[0]
-        assert np.all(n == ny) # FIXME: Turn assert into exception
+        assert np.all(n == ny)  # FIXME: Turn assert into exception
 
         # Sort y-values into bins.
         dy = y[binx == 0][1] - y[binx == 0][0]
         biny = np.array(y / dy + 0.5, dtype=int)
         n = np.bincount(biny)
         nx = n[0]
-        assert np.all(n == nx) # FIXME: Turn assert into exception
+        assert np.all(n == nx)  # FIXME: Turn assert into exception
 
         # Sort data into bins.
         data = np.zeros((nx, ny))
@@ -396,14 +449,23 @@ def read_xyz(fobj, unit=None, tol=1e-6):
         # Sanity check. Should be covered by above asserts.
         value_present = np.zeros((nx, ny), dtype=bool)
         value_present[binx, biny] = True
-        assert np.all(value_present) # FIXME: Turn assert into exception
+        assert np.all(value_present)  # FIXME: Turn assert into exception
 
-        return Topography(data, (dx * nx, dy * ny), info=dict(unit=unit))
+        if physical_sizes is None:
+            physical_sizes = (dx * nx, dy * ny)
+        t = Topography(data, physical_sizes, info=info)
     else:
-        raise Exception('Expected two or three columns for topgraphy that is a list of positions and heights.')
-XyzReader = make_wrapped_reader(read_xyz, name="XyzReader")
+        raise Exception('Expected two or three columns for topography that is a list of positions and heights.')
 
-def read_x3p(fobj):
+    if height_scale_factor is not None:
+        t = t.scale(height_scale_factor)
+    return t
+
+
+XYZReader = make_wrapped_reader(read_xyz, name="XYZReader")
+
+
+def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}):
     """
     Load x3p-file.
     See: http://opengps.eu
@@ -473,122 +535,19 @@ def read_x3p(fobj):
         rawdata = x3p.open(binfn).read(nx * ny * dtype.itemsize)
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
+    if physical_sizes is None:
+        physical_sizes = (xinc * nx, yinc * ny)
+    t = Topography(data, physical_sizes, info=info)
+    if height_scale_factor is not None:
+        t = t.scale(height_scale_factor)
+    return t
 
-    return Topography(data, (xinc * nx, yinc * ny))
-X3pReader = make_wrapped_reader(read_x3p, name="X3pReader")
 
-@binary
-def read_mat(fobj, physical_sizes=None, factor=None, unit=None):
-    """
-    Reads a surface profile from a matlab file and presents in in a
-    Topography-conformant manner.
+X3PReader = make_wrapped_reader(read_x3p, name="X3PReader")
 
-    All two-dimensional arrays present in the matlab data file are returned.
-
-    Keyword Arguments:
-    fobj -- filename or file object
-    physical_sizes -- physical_sizes of the surface
-    factor -- scaling factor for height
-    unit -- physical_sizes and height unit
-    """
-    from scipy.io import loadmat
-    data = loadmat(fobj)
-    surfaces = []
-    for key, value in data.items():
-        is_2darray = False
-        try:
-            nx, ny = value.shape
-            is_2darray = True
-        except (AttributeError, ValueError):
-            pass
-        if is_2darray:
-            if physical_sizes is None:
-                surface = Topography(value, value.shape, info=dict(unit=unit))
-            else:
-                surface = Topography(value, physical_sizes, info=dict(unit=unit))
-            if factor is not None:
-                surface = surface.scale(factor)
-            surfaces += [surface]
-    if len(surfaces) == 1:
-        return surfaces[0]
-    else:
-        return surfaces
-
-class MatReader(ReaderBase):
-    def __init__(self, fobj):
-        """
-            Reads a surface profile from a matlab file and presents in in a
-            Topography-conformant manner.
-
-            All two-dimensional arrays present in the matlab data file are returned.
-
-            Parameters
-            ----------
-
-            fobj: filename or file object
-
-        """
-        super().__init__()
-        from scipy.io import loadmat
-
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-        try:
-            data = loadmat(fobj)
-            surfaces = []
-            self._channels = []
-            self._height_data=[]
-            for key, value in data.items():
-                is_2darray = False
-                try:
-                    nx, ny = value.shape
-                    is_2darray = True
-                except (AttributeError, ValueError):
-                    pass
-                if is_2darray:
-                    channelinfo = {"name": key,
-                                   "nb_grid_pts":value.shape,
-                                   "height_scale_factor": 1.,
-                                   "unit": "",
-                                   "physical_sizes": None}
-
-                    self._channels.append(channelinfo)
-                    self._height_data.append(value)
-        finally:
-            if close_file:
-                fobj.close()
-
-    @property
-    def channels(self):
-        return self._channels
-
-    @property
-    def nb_grid_pts(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-        return self.channels[channel]["nb_grid_pts"]
-
-    @property
-    def physical_sizes(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-
-        return self.channels[channel]["physical_sizes"]
-
-    def topography(self, channel=None, physical_sizes=None, info={}):
-        if channel is None:
-            channel=self._default_channel
-        info_dict = dict(data_source=self.channels[channel]["name"],
-                         unit=self.channels[channel]["unit"])
-        info_dict.update(info)
-        return Topography(self._height_data[channel],
-                          physical_sizes=self._process_size(physical_sizes),
-                          info=info_dict)
 
 @binary
-def read_opd(fobj):
+def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}):
     """
     Load Wyko Vision OPD file.
 
@@ -642,11 +601,10 @@ def read_opd(fobj):
             elif elsize == 4:
                 dtype = np.dtype('f4')
             else:
-                raise IOError("Don't know how to handle element physical_sizes {}."
+                raise IOError("Don't know how to handle element of size {}."
                               .format(elsize))
             rawdata = fobj.read(nx * ny * dtype.itemsize)
-            data = np.frombuffer(rawdata, count=nx * ny,
-                                 dtype=dtype).reshape(nx, ny)
+            data = np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
         elif n == 'Wavelength':
             wavelength, = unpack('<f', fobj.read(4))
         elif n == 'Mult':
@@ -661,211 +619,25 @@ def read_opd(fobj):
     if data is None:
         raise IOError('No data block encountered.')
 
+    data = mask_undefined(data)
+    data.shape = (nx, ny)
+
     # Height are in nm, width in mm
-    surface = Topography(data, (nx * pixel_size, ny * pixel_size * aspect), info=dict(unit='mm'))
-    surface = surface.scale(wavelength / mult * 1e-6)
+    if physical_sizes is None:
+        physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
+    surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')})
+    if height_scale_factor is None:
+        surface = surface.scale(wavelength / mult * 1e-6)
+    else:
+        surface = surface.scale(height_scale_factor)
     return surface
-OpdReader = make_wrapped_reader(read_opd, name="OpdReader")
 
 
-class DiReader(ReaderBase):
-    def __init__(self, fobj):
-        """
-        Load Digital Instrument's Nanoscope files.
+OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
 
-        FIXME: Descriptive error messages. Probably needs to be made more robust.
-
-        Keyword Arguments:
-        fobj -- filename or file object
-        """
-        self._fobj = fobj
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-        try:
-            parameters = []
-            section_name = None
-            section_dict = {}
-
-            l = fobj.readline().decode('latin-1').strip()
-            while l and l.lower() != r'\*file list end':
-                if l.startswith('\\*'):
-                    if section_name is not None:
-                        parameters += [(section_name, section_dict)]
-                    section_name = l[2:].lower()
-                    section_dict = {}
-                elif l.startswith('\\'):
-                    s = l[1:].split(': ', 1)
-                    try:
-                        key, value = s
-                    except ValueError:
-                        key, = s
-                        value = ''
-                    section_dict[key.lower()] = value.strip()
-                else:
-                    raise IOError("Header line '{}' does not start with a slash."
-                                  "".format(l))
-                l = fobj.readline().decode('latin-1').strip()
-            parameters += [(section_name, section_dict)]
-
-            self._info = {}
-            self._channels = []
-            self._offsets = []
-            self._default_channel = 0
-
-
-            scanner = {}
-            i=0
-            for n, p in parameters:
-                if n == 'scanner list' or n == 'ciao scan list':
-                    scanner.update(p)
-                elif n == 'ciao image list':
-                    image_data_key = re.match(r'^S \[(.*?)\] ',
-                                              p['@2:image data']).group(1)
-
-                    nx = int(p['samps/line'])
-                    ny = int(p['number of lines'])
-
-                    s = p['scan size'].split(' ', 2)
-                    sx = float(s[0])
-                    sy = float(s[1])
-
-
-                    xy_unit = mangle_height_unit(s[2])
-                    offset = int(p['data offset'])
-                    self._offsets.append(offset)
-
-                    length = int(p['data length'])
-                    elsize = int(p['bytes/pixel'])
-                    if elsize != 2:
-                        raise IOError("Don't know how to handle {} bytes per pixel "
-                                      "data.".format(elsize))
-                    if nx * ny * elsize != length:
-                        raise IOError('Data block physical_sizes differs from extend of surface.')
-
-                    scale_re = re.match(
-                        r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
-                        r'(.*)', p['@2:z scale'])
-                    quantity = scale_re.group(1).lower()
-                    hard_scale = float(scale_re.group(4)) / 65536
-                    hard_unit = scale_re.group(5)
-
-                    s = scanner['@' + quantity].split()
-                    if s[0] != 'V' or len(s) < 2:
-                        raise ValueError('Malformed Nanoscope DI file.')
-                    soft_scale = float(s[1])
-
-                    height_unit = None
-                    hard_to_soft = 1.0
-                    if len(s) > 2:
-                        # Check units
-                        height_unit, soft_unit = s[2].split('/')
-                        hard_to_soft = get_unit_conversion_factor(hard_unit,
-                                                                  soft_unit)
-                        if hard_to_soft is None:
-                            raise ValueError("Units for hard (={}) and soft (={}) "
-                                             "scale differ for '{}'. Don't know how "
-                                             "to handle this.".format(hard_unit,
-                                                                      soft_unit,
-                                                                      image_data_key))
-                    if height_unit in height_units:
-                        height_unit = mangle_height_unit(height_unit)
-                        if xy_unit != height_unit:
-                            fac = get_unit_conversion_factor(xy_unit, height_unit)
-                            sx *= fac
-                            sy *= fac
-                            xy_unit = height_unit
-                        unit = height_unit
-
-                        # default channel is 0 or the first channel where height_unit
-                        # is a length
-                        if self._default_channel ==0:
-                            self._default_channel = i
-                    else:
-                        unit = (xy_unit, height_unit)
-
-                    channel_dict = {}
-                    channel_dict["name"] = image_data_key
-                    channel_dict["nb_grid_pts"] = (nx, ny)
-                    channel_dict["physical_sizes"] = (sx, sy)
-                    channel_dict["unit"] = unit
-                    #channel_dict["height_unit"] = height_unit
-                    #channel_dict["soft_unit"] = soft_unit
-                    #channel_dict["hard_unit"] = hard_unit
-                    #channel_dict["xy_unit"] = xy_unit
-                    channel_dict["height_scale_factor"] = hard_scale * hard_to_soft * soft_scale
-
-                    self._channels.append(channel_dict)
-                    i+=1
-        finally:
-            if close_file:
-                fobj.close()
-
-
-    @property
-    def channels(self):
-        return self._channels
-
-    @property
-    def nb_grid_pts(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-        return self.channels[channel]["nb_grid_pts"]
-
-    @property
-    def physical_sizes(self, channel=None):
-        if channel is None:
-            channel = self._default_channel
-
-        return self.channels[channel]["physical_sizes"]
-
-    def topography(self, physical_sizes=None, channel=None, info={}):
-        close_file = False
-        if not hasattr(self._fobj, 'read'):
-            fobj = open(self._fobj, 'rb')
-            close_file = True
-        else:
-            fobj = self._fobj
-
-        if channel is None:
-            channel = self._default_channel
-
-        channel_dict = self._channels[channel]
-        if physical_sizes is None:
-            physical_sizes = channel_dict["physical_sizes"]
-        sx, sy = physical_sizes
-
-        nx, ny = channel_dict["nb_grid_pts"]
-        #height_unit = channel_dict["height_unit"]
-        #xy_unit = channel_dict["xy_unit"]
-
-        offset = self._offsets[channel]
-        dtype = np.dtype('<i2')
-
-        ###################################
-
-        fobj.seek(offset)
-        rawdata = fobj.read(nx * ny * dtype.itemsize)
-        unscaleddata = np.frombuffer(rawdata, count=nx * ny,
-                                     dtype=dtype).reshape(nx, ny)
-
-        # internal informations from file
-        self._info=dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
-
-        surface = Topography(unscaleddata.T, (sx, sy), info=self._process_info(info))
-        surface = surface.scale(channel_dict["height_scale_factor"])
-
-        if close_file:
-            fobj.close()
-
-        return surface
-
-
-#DiReader = make_wrapped_reader(read_di)
 
 @binary
-def read_ibw(fobj):
+def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}):
     """
     Read IGOR Binary Wave files.
 
@@ -886,10 +658,18 @@ def read_ibw(fobj):
     sfA = wave['wave_header']['sfA']
     nx, ny = data.shape
 
-    surface = Topography(data, (nx * sfA[0], ny * sfA[1]), info=dict(unit=z_unit))
+    if physical_sizes is None:
+        physical_sizes = (nx * sfA[0], ny * sfA[1])
+    surface = Topography(data, physical_sizes, info={**info, **dict(unit=z_unit)})
+
+    if height_scale_factor is not None:
+        surface = surface.scale(height_scale_factor)
 
     return surface
-IbwReader = make_wrapped_reader(read_ibw, name="IbwReader")
+
+
+IBWReader = make_wrapped_reader(read_ibw, name="IBWReader")
+
 
 @binary
 def read_hgt(fobj, size=None):
@@ -907,8 +687,7 @@ def read_hgt(fobj, size=None):
     dim = int(np.sqrt(fsize / 2))
     if dim * dim * 2 != fsize:
         raise RuntimeError('File physical_sizes of {0} bytes does not match file physical_sizes '
-                           'for a map of dimension {1}x{1}.'.format(fsize,
-                                                                    dim))
+                           'for a map of dimension {1}x{1}.'.format(fsize, dim))
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 
@@ -916,4 +695,6 @@ def read_hgt(fobj, size=None):
         return Topography(data, data.shape)
     else:
         return Topography(data, size)
-HgtReader = make_wrapped_reader(read_hgt, name="HgtReader")
+
+
+HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")

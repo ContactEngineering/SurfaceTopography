@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019 Antoine Sanner
+#           2019 Lars Pastewka
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -286,6 +286,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 ### Register analysis functions from this module
 
 NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
+NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
+NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
 
 
 ### Register pipeline functions from this module

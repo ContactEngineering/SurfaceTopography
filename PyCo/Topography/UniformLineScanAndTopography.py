@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019 Antoine Sanner
+#           2019 Lars Pastewka
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -199,8 +199,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         super().__init__(info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
-        if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if not isinstance(heights, np.ma.core.MaskedArray):
+            if np.sum(np.logical_not(np.isfinite(heights))) > 0:
+                heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization
@@ -316,7 +317,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return np.ma.getmask(self._heights) is not np.ma.nomask
+        return np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0
 
     def positions(self):
         # FIXME: Write test for this method
@@ -771,6 +772,8 @@ class CompoundTopography(DecoratedUniformTopography):
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
+UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
+UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
 
 
 ### Register pipeline functions from this module

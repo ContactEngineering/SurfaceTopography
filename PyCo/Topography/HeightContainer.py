@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019 Antoine Sanner
+#           2019 Lars Pastewka
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -33,6 +33,7 @@ import numpy as np
 
 from NuMPI import MPI
 
+
 class AbstractHeightContainer(object):
     """
     Base class for all containers storing height information.
@@ -54,7 +55,7 @@ class AbstractHeightContainer(object):
 
     def __init__(self, info={}, communicator=MPI.COMM_WORLD):
         self._info = info
-        self._communicator=communicator
+        self._communicator = communicator
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)
@@ -71,45 +72,62 @@ class AbstractHeightContainer(object):
         return sorted(super().__dir__() + [*self._functions])
 
     def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
+        """
+        Upon pickling, it is called and the returned object is pickled as the
+        contents for the instance.
         """
         return self._info
 
     def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
-        Keyword Arguments:
-        state -- result of __getstate__
+        """
+        Upon unpickling, it is called with the unpickled state.
+        The argument `state` is the result of `__getstate__`.
         """
         self._info = state
-        self._communicator=MPI.COMM_WORLD
+        self._communicator = MPI.COMM_WORLD
 
     @property
     @abc.abstractmethod
     def is_periodic(self):
-        """ Returns whether the surface is periodic. """
+        """Return whether the topography is periodically repeated at the boundaries."""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def dim(self):
-        """ Returns 1 for line scans and 2 for topography maps. """
+        """Returns 1 for line scans and 2 for topography maps."""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def physical_sizes(self, ):
-        """ Return physical physical_sizes """
+        """Return the physical sizes of the topography."""
         raise NotImplementedError
 
     @property
     def info(self, ):
-        """ Return info dictionary """
+        """
+        Return the info dictionary. The info dictionary contains auxiliary data
+        found in the topography data file but not directly used by PyCo.
+
+        The dictionary can contain any type of information. There are a few
+        standardized keys, listed in the following.
+
+        Standardized keys:
+        unit : str
+            Unit of the topography. The unit information applies to the lateral
+            units (the physical size) as well as to heights units. Examples:
+            'µm', 'nm'.
+        """
         return self._info
 
     @property
     def communicator(self):
+        """Return the MPI communicator object."""
         return self._communicator
+
+    def pipeline(self):
+        return [self]
 
 
 class DecoratedTopography(AbstractHeightContainer):
@@ -154,6 +172,9 @@ class DecoratedTopography(AbstractHeightContainer):
         info = self.parent_topography.info.copy()
         info.update(self._info)
         return info
+
+    def pipeline(self):
+        return self.parent_topography.pipeline() + [self]
 
 
 class TopographyInterface(object):

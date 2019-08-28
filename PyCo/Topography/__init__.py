@@ -1,6 +1,6 @@
 #
-# Copyright 2018-2019 Antoine Sanner
-#           2018-2019 Lars Pastewka
+# Copyright 2018-2019 Lars Pastewka
+#           2018-2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -28,10 +28,9 @@ defines all surface types used in PyCo
 """
 
 from .UniformLineScanAndTopography import Topography, UniformLineScan
+from .HeightContainer import UniformTopographyInterface
 from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
-from .IO.FromFile import (read_asc, read_hgt, read_ibw, read_mat, read_matrix, read_opd, read_x3p,
-                          read_xyz)
 from .IO import open_topography, read_topography
 
 from PyCo.Topography.IO import NPYReader
