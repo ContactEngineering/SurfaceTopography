@@ -96,7 +96,7 @@ def rms_slope(topography):
         raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
 
 
-def rms_Laplacian(topography):
+def rms_laplacian(topography):
     """
     Compute the root mean square Laplacian of the height gradient of a
     topography or line scan stored on a uniform grid. The rms curvature
@@ -114,13 +114,49 @@ def rms_Laplacian(topography):
     """
     if topography.is_domain_decomposed:
         raise NotImplementedError("rms_Laplacian not implemented for parallelized topographies")
+    if topography.dim == 1:
+        curv = topography.derivative(2)
+        return np.sqrt((curv[1:-1]**2).mean())
+    elif topography.dim == 2:
+        curv = topography.derivative(2)
+        return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
+    else:
+        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
 
-    curv = topography.derivative(2)
-    return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
+def rms_curvature(topography):
+    """
+    Compute the root mean square curvature of the height gradient of a
+    topography or line scan stored on a uniform grid.
+
+    For 2D Data the rms Laplacian is twice of the value returned here.
+
+    For 1D Data they are identical
+
+    Parameters
+    ----------
+    topography : :obj:`Topography` or :obj:`UniformLineScan`
+        Topography object containing height information.
+
+    Returns
+    -------
+    rms_curvature : float
+        Root mean square curvature value.
+    """
+    if topography.is_domain_decomposed:
+        raise NotImplementedError("rms_curvature not implemented for parallelized topographies")
+    if topography.dim == 1:
+        fac = 1.
+    elif topography.dim == 2:
+        fac = 1./2
+    else:
+        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
+    return fac * rms_laplacian(topography)
+
 
 
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('rms_height', rms_height)
 UniformTopographyInterface.register_function('rms_slope', rms_slope)
-UniformTopographyInterface.register_function('rms_curvature', rms_Laplacian)
+UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)
+UniformTopographyInterface.register_function('rms_curvature', rms_curvature)
