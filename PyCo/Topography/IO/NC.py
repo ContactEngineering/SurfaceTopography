@@ -64,11 +64,13 @@ class NCReader(ReaderBase):
 
     @property
     def channels(self):
-        return [dict(name='Default',
+        d = dict(name='Default',
                      dim=2,
                      nb_grid_pts=(len(self._x_var), len(self._y_var)),
                      physical_sizes=(self._x_var.length, self._y_var.length),
-                     is_periodic=self._periodic).update(self._info)]
+                     is_periodic=self._periodic)
+        d.update(self._info)
+        return [d]
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
