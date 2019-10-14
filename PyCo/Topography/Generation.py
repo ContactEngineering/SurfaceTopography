@@ -433,8 +433,7 @@ def _irfft2(karr, rarr, progress_callback=None):
         if rarr.shape[1] % 2 == 0:
             rarr[i, :] = np.fft.irfft(karr[i, :])
         else:
-            rarr[i, -1] = 0.0
-            rarr[i, :-1] = np.fft.irfft(karr[i, :])
+            rarr[i, :] = np.fft.irfft(karr[i, :], n=rarr.shape[1])
 
 
 def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
