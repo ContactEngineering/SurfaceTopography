@@ -740,7 +740,7 @@ class CompoundTopography(DecoratedUniformTopography):
             """
             topographies can have a fixed or dynamic, adaptive nb_grid_pts (or other
             attributes). This function assures that -- if this function is
-            called for two topographies with fixed nb_grid_ptss -- the nb_grid_ptss
+            called for two topographies with fixed nb_grid_ptss -- the nb_grid_pts
             are identical
             Parameters:
             prop_a   -- field of one topography
