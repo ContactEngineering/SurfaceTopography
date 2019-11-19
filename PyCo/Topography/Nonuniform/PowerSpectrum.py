@@ -131,6 +131,10 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate
     C : array
         PSD values.
     """
+    if not line_scan.is_periodic and window is None:
+        window = "hann"
+
+
     s, = line_scan.physical_sizes
     x, y = line_scan.positions_and_heights()
     if algorithm == 'fft':

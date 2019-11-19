@@ -73,7 +73,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         window = "hann"
 
     # Construct and apply window
-    if window is not None:
+    if window is not None and window != 'None':
         win = get_window(window, nx)
         # Normalize window
         win *= np.sqrt(nx/(win**2).sum())
