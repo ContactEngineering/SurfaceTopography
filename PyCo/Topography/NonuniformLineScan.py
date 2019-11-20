@@ -43,7 +43,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     def __init__(self, x, y, info={}, periodic=False):
         super().__init__(info=info)
-        self._periodic=periodic
+        self._periodic = periodic
         self._x = np.asarray(x)
         self._h = np.asarray(y)
 

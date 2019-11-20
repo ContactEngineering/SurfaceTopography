@@ -122,7 +122,7 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate
         Name of the window function to apply before computing the PSD.
         Presently only supports Hann window ('hann') or no window (None or
         'None').
-        (Default: None)
+        Default: no window for periodic Topographies, "hann" window for nonperiodic Topographies
 
     Returns
     -------
