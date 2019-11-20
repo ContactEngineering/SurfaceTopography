@@ -71,7 +71,8 @@ class MatReader(ReaderBase):
     def channels(self):
         return self._channels
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
@@ -80,7 +81,8 @@ class MatReader(ReaderBase):
             channel = self.default_channel
         return Topography(self._height_data[channel],
                           physical_sizes=self._check_physical_sizes(physical_sizes),
-                          info=dict(data_source=self.channels[channel]["name"]))
+                          info=dict(data_source=self.channels[channel]["name"]),
+                          periodic=periodic)
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__

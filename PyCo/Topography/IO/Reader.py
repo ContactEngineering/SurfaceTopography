@@ -102,7 +102,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return physical_sizes_from_arg
 
     @abc.abstractmethod
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={},
+                   periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
@@ -123,6 +125,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
+        periodic: bool
+            Wether the Topography should be interpreted as one period of a
+            periodic surface. This will affect the PSD and autocorrelation
+            calculations (windowing)
         subdomain_locations : tuple of ints
             Origin (location) of the subdomain handled by the present MPI
             process.

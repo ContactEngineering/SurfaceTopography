@@ -72,17 +72,19 @@ class NCReader(ReaderBase):
         d.update(self._info)
         return [d]
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={},
+                   periodic=None,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic, info=info)
+                              periodic=self._periodic if periodic is None else periodic, info=info)
         else:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic,
+                              periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,

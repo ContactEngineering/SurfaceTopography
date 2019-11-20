@@ -48,7 +48,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
-        (Default: None)
+        Default: no window for periodic Topographies, "hann" window for nonperiodic Topographies
 
     Returns
     -------
@@ -68,6 +68,9 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         sx, = s
 
     h = topography.heights()
+
+    if not topography.is_periodic and window is None:
+        window = "hann"
 
     # Construct and apply window
     if window is not None and window != 'None':
@@ -99,7 +102,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def get_window_2D(window, nx, ny,physical_sizes=None):
+def get_window_2D(window, nx, ny, physical_sizes=None):
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
             raise TypeError('Window physical_sizes (= {2}x{3}) must match signal physical_sizes '
@@ -152,6 +155,9 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     """
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
+
+    if not topography.is_periodic and window is None:
+        window = "hann"
 
     # Construct and apply window
     if window is not None:
