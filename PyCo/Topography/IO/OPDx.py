@@ -92,7 +92,8 @@ class OPDxReader(ReaderBase):
 
             self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
@@ -111,7 +112,7 @@ class OPDxReader(ReaderBase):
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q)
 
-        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5])
+        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5], periodic=periodic)
 
     @property
     def channels(self):

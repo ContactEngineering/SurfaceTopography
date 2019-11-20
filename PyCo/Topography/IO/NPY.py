@@ -81,7 +81,9 @@ class NPYReader(ReaderBase):
                      dim=len(self._nb_grid_pts),
                      nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={},
+                   periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
@@ -105,6 +107,7 @@ class NPYReader(ReaderBase):
             nb_grid_pts=self._nb_grid_pts,
             communicator=self.mpi_file.comm,
             physical_sizes=physical_sizes,
+            periodic=periodic,
             info=info)
 
     channels.__doc__ = ReaderBase.channels.__doc__

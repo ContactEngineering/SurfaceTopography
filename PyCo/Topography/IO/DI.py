@@ -171,7 +171,8 @@ class DIReader(ReaderBase):
     def channels(self):
         return self._channels
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
@@ -204,7 +205,7 @@ class DIReader(ReaderBase):
         _info = dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
         _info.update(info)
 
-        surface = Topography(unscaleddata.T, (sx, sy), info=_info)
+        surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel_dict["height_scale_factor"]
         surface = surface.scale(height_scale_factor)
