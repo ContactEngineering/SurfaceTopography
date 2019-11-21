@@ -199,6 +199,10 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
     info : dict
         This dictionary will be appended to the info dictionary returned
         by the reader.
+    periodic: bool
+        Wether the Topography should be interpreted as one period of a
+        periodic surface. This will affect the PSD and autocorrelation
+        calculations (windowing)
     subdomain_locations : tuple of ints
         Origin (location) of the subdomain handled by the present MPI process.
     nb_subdomain_grid_pts : tuple of ints
