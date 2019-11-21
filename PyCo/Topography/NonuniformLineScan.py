@@ -236,8 +236,14 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
     @property
     def is_periodic(self):
-        """A detrended surface is never periodic"""
-        return False
+        """
+        Topography stays periodic only after detrend mode "center".
+        Otherwise the detrended Topography is non-periodic.
+        """
+        if self.detrend_mode == "center":
+            return self.parent_topography.is_periodic
+        else:
+            return False
 
     @property
     def x_range(self):

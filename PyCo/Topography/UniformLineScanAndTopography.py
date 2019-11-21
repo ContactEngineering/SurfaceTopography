@@ -462,6 +462,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     def __init__(self, topography, detrend_mode='height', info={}):
         """
+
+        Note on periodicity:
+        Detrended Topographies with mode other than "center" will have
+        is_periodic property set to False.
+
         Parameters
         ----------
         topography : Topography
@@ -548,8 +553,14 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     @property
     def is_periodic(self):
-        """A detrended surface is never periodic"""
-        return False
+        """
+        Topography stays periodic only after detrend mode "center".
+        Otherwise the detrended Topography is non-periodic.
+        """
+        if self.detrend_mode == "center":
+            return self.parent_topography.is_periodic
+        else:
+            return False
 
     def heights(self):
         """ Computes the combined profile.
