@@ -464,8 +464,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         """
 
         Note on periodicity:
-        detrended Topographies with mode other than "center" will have
-        is_periodic property set to False
+        Detrended Topographies with mode other than "center" will have
+        is_periodic property set to False.
 
         Parameters
         ----------
@@ -554,8 +554,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     @property
     def is_periodic(self):
         """
-        Topography stays periodic only after dentrend mode "center".
-        Otherwise the detrended Topography is non-periodic
+        Topography stays periodic only after detrend mode "center".
+        Otherwise the detrended Topography is non-periodic.
         """
         if self.detrend_mode == "center":
             return self.parent_topography.is_periodic
