@@ -110,6 +110,7 @@ class OPDxReader(ReaderBase):
                 f.close()
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
