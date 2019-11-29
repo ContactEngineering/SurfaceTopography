@@ -104,6 +104,7 @@ class OPDxReader(ReaderBase):
 
             self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
+
         finally:
             if not already_open:
                 f.close()
@@ -127,7 +128,7 @@ class OPDxReader(ReaderBase):
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q)
 
-        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5])
+        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5], periodic=periodic)
 
     @property
     def channels(self):

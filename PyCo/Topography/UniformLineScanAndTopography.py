@@ -462,6 +462,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     def __init__(self, topography, detrend_mode='height', info={}):
         """
+
+        Note on periodicity:
+        Detrended Topographies with mode other than "center" will have
+        is_periodic property set to False.
+
         Parameters
         ----------
         topography : Topography
@@ -548,8 +553,14 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     @property
     def is_periodic(self):
-        """A detrended surface is never periodic"""
-        return False
+        """
+        Topography stays periodic only after detrend mode "center".
+        Otherwise the detrended Topography is non-periodic.
+        """
+        if self.detrend_mode == "center":
+            return self.parent_topography.is_periodic
+        else:
+            return False
 
     def heights(self):
         """ Computes the combined profile.
@@ -740,7 +751,7 @@ class CompoundTopography(DecoratedUniformTopography):
             """
             topographies can have a fixed or dynamic, adaptive nb_grid_pts (or other
             attributes). This function assures that -- if this function is
-            called for two topographies with fixed nb_grid_ptss -- the nb_grid_ptss
+            called for two topographies with fixed nb_grid_ptss -- the nb_grid_pts
             are identical
             Parameters:
             prop_a   -- field of one topography
@@ -769,12 +780,41 @@ class CompoundTopography(DecoratedUniformTopography):
                 self.parent_topography_b.heights())
 
 
+def interpolate_fourier(topography, nb_grid_pts):
+    """
+    Interpolates the
+
+    Parameters
+    ----------
+    topography
+    nb_grid_pts
+
+    Returns
+    -------
+
+    """
+    bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1]//2 + 1),
+                          dtype=complex)
+    smallspectrum = np.fft.rfft2(topography.heights())
+    snx, sny = smallspectrum.shape
+
+    i =  snx//2 if snx %2 == 0 else (snx -1) //2 +1
+    bigspectrum[:i, :sny] = smallspectrum[:i, :sny]
+    bigspectrum[-(snx-i):, :sny] = smallspectrum[-(snx-i):, :sny]
+
+    return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
+                      * np.prod(nb_grid_pts) / np.prod(topography.nb_grid_pts), # normalization
+                      physical_sizes=topography.physical_sizes)
+
+
+
+
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
 UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
 UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
-
+UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)
 
 ### Register pipeline functions from this module
 

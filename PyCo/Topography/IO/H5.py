@@ -43,7 +43,8 @@ class H5Reader(ReaderBase):
                      dim=len(self._h5['surface'].shape),
                      nb_grid_pts=self._h5['surface'].shape)]
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
@@ -52,7 +53,7 @@ class H5Reader(ReaderBase):
         if channel != 0:
             raise RuntimeError('HDF5 reader only supports a single channel')
         size = self._check_physical_sizes(physical_sizes)
-        t = Topography(self._h5['surface'][...], size, info=info)
+        t = Topography(self._h5['surface'][...], size, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
         return t

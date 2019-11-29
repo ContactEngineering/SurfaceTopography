@@ -175,7 +175,8 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
                          nb_grid_pts=self._topography.nb_grid_pts,
                          physical_sizes=self._topography.physical_sizes)]
 
-        def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+        def topography(self, channel=None, physical_sizes=None,
+                       height_scale_factor=None, info={}, periodic=False,
                        subdomain_locations=None, nb_subdomain_grid_pts=None):
             if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
                 raise RuntimeError('This reader does not support MPI parallelization.')
@@ -189,8 +190,9 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
             # cannot be called twice.
             if hasattr(self._fobj, 'seek'):
                 self._fobj.seek(self._file_position)
-            return reader_func(self._fobj, physical_sizes=physical_sizes, height_scale_factor=height_scale_factor,
-                               info=info)
+            return reader_func(self._fobj, physical_sizes=physical_sizes,
+                               height_scale_factor=height_scale_factor,
+                               info=info, periodic=periodic)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__
@@ -200,7 +202,7 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
 
 
 @text
-def read_matrix(fobj, physical_sizes=None, factor=None):
+def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
     """
     Reads a surface profile from a text file and presents in in a
     Topography-conformant manner. No additional parsing of meta-information is
@@ -211,9 +213,9 @@ def read_matrix(fobj, physical_sizes=None, factor=None):
     """
     arr = np.loadtxt(fobj)
     if physical_sizes is None:
-        surface = Topography(arr, arr.shape)
+        surface = Topography(arr, arr.shape, periodic=periodic)
     else:
-        surface = Topography(arr, physical_sizes)
+        surface = Topography(arr, physical_sizes, periodic=periodic)
     if factor is not None:
         surface = surface.scale(factor)
     return surface
@@ -223,7 +225,7 @@ MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
 
 
 @text
-def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, z_factor=None, info={}):
+def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, z_factor=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile from an generic asc file and presents it in a
@@ -373,9 +375,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     if data.shape[1] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[:, 0], physical_sizes, info=info)
+        surface = UniformLineScan(data[:, 0], physical_sizes, info=info, periodic=periodic)
     else:
-        surface = Topography(data, physical_sizes, info=info)
+        surface = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
@@ -387,7 +389,8 @@ AscReader = make_wrapped_reader(read_asc, name="AscReader")
 
 
 @text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
+             periodic=False,  tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -417,13 +420,13 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
-            t = UniformLineScan(z, physical_sizes, info=info)
+            t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
         else:
             if physical_sizes is not None:
                 raise ValueError('XYZ reader found nonuniform data. Manually setting the physical size is not '
                                  'possible for this type of data.')
 
-            t = NonuniformLineScan(x, z, info=info)
+            t = NonuniformLineScan(x, z, info=info, periodic=periodic)
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
@@ -453,7 +456,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1
 
         if physical_sizes is None:
             physical_sizes = (dx * nx, dy * ny)
-        t = Topography(data, physical_sizes, info=info)
+        t = Topography(data, physical_sizes, info=info, periodic=periodic)
     else:
         raise Exception('Expected two or three columns for topography that is a list of positions and heights.')
 
@@ -465,7 +468,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={}, tol=1
 XYZReader = make_wrapped_reader(read_xyz, name="XYZReader")
 
 
-def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}):
+def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
     """
     Load x3p-file.
     See: http://opengps.eu
@@ -537,7 +540,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}):
                              dtype=dtype).reshape(nx, ny).T
     if physical_sizes is None:
         physical_sizes = (xinc * nx, yinc * ny)
-    t = Topography(data, physical_sizes, info=info)
+    t = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
@@ -547,7 +550,7 @@ X3PReader = make_wrapped_reader(read_x3p, name="X3PReader")
 
 
 @binary
-def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}):
+def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
     """
     Load Wyko Vision OPD file.
 
@@ -625,7 +628,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}):
     # Height are in nm, width in mm
     if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
-    surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')})
+    surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')}, periodic=periodic)
     if height_scale_factor is None:
         surface = surface.scale(wavelength / mult * 1e-6)
     else:
@@ -637,7 +640,7 @@ OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
 
 
 @binary
-def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}):
+def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
     """
     Read IGOR Binary Wave files.
 
@@ -660,7 +663,7 @@ def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}):
 
     if physical_sizes is None:
         physical_sizes = (nx * sfA[0], ny * sfA[1])
-    surface = Topography(data, physical_sizes, info={**info, **dict(unit=z_unit)})
+    surface = Topography(data, physical_sizes, info={**info, **dict(unit=z_unit)}, periodic=periodic)
 
     if height_scale_factor is not None:
         surface = surface.scale(height_scale_factor)
@@ -672,7 +675,7 @@ IBWReader = make_wrapped_reader(read_ibw, name="IBWReader")
 
 
 @binary
-def read_hgt(fobj, size=None):
+def read_hgt(fobj, physical_sizes=None, periodic=False):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
     (.hgt extension).
@@ -691,10 +694,10 @@ def read_hgt(fobj, size=None):
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 
-    if size is None:
-        return Topography(data, data.shape)
+    if physical_sizes is None:
+        return Topography(data, physical_sizes=data.shape, periodic=periodic)
     else:
-        return Topography(data, size)
+        return Topography(data, physical_sizes=physical_sizes, periodic=periodic)
 
 
 HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")

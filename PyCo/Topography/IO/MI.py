@@ -105,7 +105,8 @@ class MIReader(ReaderBase):
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
                                 int(self.mifile.meta['yPixels'])
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel=None, physical_sizes=None,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
@@ -154,7 +155,7 @@ class MIReader(ReaderBase):
 
             joined_meta = {**self.mifile.meta, **output_channel.meta}
         t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
-                       info=joined_meta)
+                       info=joined_meta, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
         return t
