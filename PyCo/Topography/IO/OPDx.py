@@ -74,34 +74,39 @@ class OPDxReader(ReaderBase):
             already_open = True
             f = file_path
 
-        # open_topography in file as hexadecimal
-        if not already_open:
-            self.buffer = [chr(byte) for byte in f.read()]
-        else:
-            # if the input is a filestream, it failed to open as a binary an the buffer has to be read directly
-            self.buffer = [chr(byte) for byte in f.buffer.read()]
-            
-        # length of file
-        physical_sizes = len(self.buffer)
+        try:
+            # open_topography in file as hexadecimal
+            if not already_open:
+                self.buffer = [chr(byte) for byte in f.read()]
+            else:
+                # if the input is a filestream, it failed to open as a binary an the buffer has to be read directly
+                self.buffer = [chr(byte) for byte in f.buffer.read()]
+                
+            # length of file
+            physical_sizes = len(self.buffer)
 
-        # check if correct header
-        if physical_sizes < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
-            raise ValueError('Invalid file format for Dektak OPDx.')
+            # check if correct header
+            if physical_sizes < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
+                raise ValueError('Invalid file format for Dektak OPDx.')
 
-        pos = MAGIC_SIZE
-        hash_table = dict()
-        while pos < physical_sizes:
-            buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
+            pos = MAGIC_SIZE
+            hash_table = dict()
+            while pos < physical_sizes:
+                buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
 
-        # Make a list of channels containing metadata about the topographies but not reading them in directly yet
-        self._channels = find_2d_data(hash_table, self.buffer)
+            # Make a list of channels containing metadata about the topographies but not reading them in directly yet
+            self._channels = find_2d_data(hash_table, self.buffer)
 
-        # Reformat the metadata dict
-        for channel_name in self._channels.keys():
-            self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name,
-                                                                                   self._channels[channel_name][-1])
+            # Reformat the metadata dict
+            for channel_name in self._channels.keys():
+                self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name,
+                                                                                       self._channels[channel_name][-1])
 
-        self._default_channel = list(self._channels.keys()).index(default_channel_name)
+            self._default_channel = list(self._channels.keys()).index(default_channel_name)
+
+        finally:
+            if not already_open:
+                f.close()
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
