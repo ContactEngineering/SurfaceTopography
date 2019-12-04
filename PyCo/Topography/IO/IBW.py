@@ -70,8 +70,9 @@ class IBWReader(ReaderBase):
     @property
     def channels(self):
         return [dict(name=self._channels[i],
-                     dim=2,
-                     unit=self.data['wave_header']['dataUnits'][i].decode()) for i in range(len(self._channels))]
+                     dim=2) for i in range(len(self._channels))]
+
+      #                unit=self.data['wave_header']['dataUnits'][i].decode()) for i in range(len(self._channels))]
 
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
