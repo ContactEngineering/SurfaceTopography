@@ -65,11 +65,23 @@ class OPDxReader(ReaderBase):
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path, physical_sizes=None, unit=None, info=None):
-        with open(file_path, "rb") as f:
 
+        # depending from where this function is called, file_path might already be a filestream
+        already_open = False
+        if not hasattr(file_path, 'read'):
+            f = open(file_path, "rb")
+        else:
+            already_open = True
+            f = file_path
+
+        try:
             # open_topography in file as hexadecimal
-            self.buffer = [chr(byte) for byte in f.read()]
-
+            if not already_open:
+                self.buffer = [chr(byte) for byte in f.read()]
+            else:
+                # if the input is a filestream, it failed to open as a binary an the buffer has to be read directly
+                self.buffer = [chr(byte) for byte in f.buffer.read()]
+                
             # length of file
             physical_sizes = len(self.buffer)
 
@@ -92,8 +104,13 @@ class OPDxReader(ReaderBase):
 
             self._default_channel = list(self._channels.keys()).index(default_channel_name)
 
-    def topography(self, channel=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+
+        finally:
+            if not already_open:
+                f.close()
+
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
