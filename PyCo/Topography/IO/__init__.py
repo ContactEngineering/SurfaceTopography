@@ -27,7 +27,7 @@
 import os
 
 # Old-style readers
-from PyCo.Topography.IO.FromFile import IBWReader, X3PReader, XYZReader, OPDReader, AscReader
+from PyCo.Topography.IO.FromFile import X3PReader, XYZReader, OPDReader, AscReader
 
 # New-style readers
 from PyCo.Topography.IO.DI import DIReader
@@ -37,6 +37,8 @@ from PyCo.Topography.IO.MI import MIReader
 from PyCo.Topography.IO.NC import NCReader
 from PyCo.Topography.IO.NPY import NPYReader
 from PyCo.Topography.IO.OPDx import OPDxReader
+from PyCo.Topography.IO.IBW import IBWReader
+
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile, ReaderBase

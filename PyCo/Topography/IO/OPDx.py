@@ -72,15 +72,16 @@ class OPDxReader(ReaderBase):
             f = open(file_path, "rb")
         else:
             already_open = True
-            f = file_path
+            if str(type(file_path)) == "<class '_io.TextIOWrapper'>":
+                # file was opened without the 'b' option, so read its buffer to get the binary data
+                f = file_path.buffer  
+            else:
+                f = file_path
 
         try:
             # open_topography in file as hexadecimal
-            if not already_open:
-                self.buffer = [chr(byte) for byte in f.read()]
-            else:
-                # if the input is a filestream, it failed to open as a binary an the buffer has to be read directly
-                self.buffer = [chr(byte) for byte in f.buffer.read()]
+            self.buffer = [chr(byte) for byte in f.read()]
+
                 
             # length of file
             physical_sizes = len(self.buffer)
