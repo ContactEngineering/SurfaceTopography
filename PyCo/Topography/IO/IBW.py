@@ -87,8 +87,8 @@ class IBWReader(ReaderBase):
 
         height_data = height_data[:, :, channel].copy()
 
-        z_unit = self.data['wave_header']['dataUnits'][0].decode('latin-1')
-        xy_unit = self.data['wave_header']['dimUnits'][0][0].decode('latin-1')
+        z_unit = self.data['wave_header']['dataUnits'][channel].decode('latin-1')
+        xy_unit = self.data['wave_header']['dimUnits'][channel][channel].decode('latin-1')
 
         assert z_unit == xy_unit
 
