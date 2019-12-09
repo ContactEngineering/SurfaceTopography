@@ -23,7 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
+from io import TextIOBase
 import numpy as np
 
 from PyCo.Topography.IO.Reader import ReaderBase, CorruptFile
@@ -42,7 +42,7 @@ class IBWReader(ReaderBase):
             f = open(file_path, "rb")
         else:
             already_open = True
-            if str(type(file_path)) == "<class '_io.TextIOWrapper'>":
+            if isinstance(file_path, TextIOBase):
                 # file was opened without the 'b' option, so read its buffer to get the binary data
                 f = file_path.buffer  
             else:
