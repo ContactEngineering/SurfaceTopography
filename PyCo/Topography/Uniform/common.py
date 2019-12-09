@@ -73,15 +73,18 @@ def derivative(topography, n, periodic=None):
         raise ValueError('Topography does not have physical size information, but this is required to be able to '
                          'compute a derivative.')
     grid_spacing = topography.pixel_size
-    der = topography.heights() # Initially heights, will be replaced with derivative
+    heights = topography.heights()
     is_periodic = topography.is_periodic if periodic is None else periodic
     if is_periodic:
-        for i in range(n):
-            der = np.array([(np.roll(der, -1, axis=d) - der) / grid_spacing[d]
-                            for d in range(len(der.shape))])
+        der = np.array([(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d]
+                        for d in range(len(heights.shape))])
+        # Apply derivative into each direction multiple times
+        for i in range(n-1):
+            der = np.array([(np.roll(der[d], -1, axis=d) - der[d]) / grid_spacing[d]
+                            for d in range(len(heights.shape))])
     else:
-        der = np.array([np.diff(der, n=n, axis=d) / grid_spacing[d] ** n
-                        for d in range(len(der.shape))])
+        der = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
+                        for d in range(len(heights.shape))])
     if der.shape[0] == 1:
         return der[0]
     else:
