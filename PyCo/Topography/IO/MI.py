@@ -115,7 +115,7 @@ class MIReader(ReaderBase):
         with open(self.file_path, "rb") as f:
             lines = f.readlines()
 
-            output_channel = self.mifile.channels[channel]
+            output_channel = self.mifile.channels[channel_index]
 
             buffer = b''.join(lines[self.data_start:])
             buffer = [chr(_) for _ in buffer]
@@ -133,8 +133,8 @@ class MIReader(ReaderBase):
                 else:  # text or ascii
                     type_range = 32768
 
-                start = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * channel
-                end = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * (channel + 1)
+                start = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * channel_index
+                end = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * (channel_index + 1)
 
                 data = ''.join(buffer[start:end])
                 out = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)

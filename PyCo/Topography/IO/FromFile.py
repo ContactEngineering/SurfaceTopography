@@ -38,9 +38,9 @@ import copy
 import numpy as np
 import numpy.ma as ma
 
-from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
-from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
-from PyCo.Topography.IO.Reader import ReaderBase
+from .Reader import ReaderBase, ChannelInfo
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..NonuniformLineScan import NonuniformLineScan
 
 ###
 
