@@ -156,7 +156,7 @@ class CannotDetectFileFormat(ReadFileError):
     """
     Raised when no reader is able to open_topography the file
     """
-
+    pass
 
 class FileFormatMismatch(ReadFileError):
     """
