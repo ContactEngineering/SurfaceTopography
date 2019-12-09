@@ -29,7 +29,13 @@ import warnings
 
 
 class ChannelInfo:
-    def __init__(self, reader, index, name, dim, nb_grid_pts, physical_sizes, periodic, info):
+    """
+    Information on topography channels contained within a file. The interface
+    is identical to :obj:`HeightContainer` and subclasses.
+    """
+
+    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None, periodic=None,
+                 info={}):
         self._reader = reader
         self._index = index
         self._name = name
@@ -198,7 +204,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @property
     def default_channel(self):
         """Return the index of the default channel."""
-        return 0
+        return self.channels[0]
 
     @classmethod
     def _check_physical_sizes(self, physical_sizes_from_arg, physical_sizes=None):

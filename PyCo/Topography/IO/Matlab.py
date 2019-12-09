@@ -23,8 +23,8 @@
 # SOFTWARE.
 #
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase
+from .. import Topography
+from .Reader import ReaderBase, ChannelInfo
 
 
 class MatReader(ReaderBase):
@@ -57,9 +57,11 @@ class MatReader(ReaderBase):
                 except (AttributeError, ValueError):
                     pass
                 if is_2darray:
-                    channelinfo = {"name": key,
-                                   "dim": len(value.shape),
-                                   "nb_grid_pts": value.shape}
+                    channelinfo = ChannelInfo(self,
+                                              len(self._channels),
+                                              name=key,
+                                              dim=len(value.shape),
+                                              nb_grid_pts=value.shape)
 
                     self._channels.append(channelinfo)
                     self._height_data.append(value)
@@ -71,17 +73,15 @@ class MatReader(ReaderBase):
     def channels(self):
         return self._channels
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=0, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
 
-        if channel is None:
-            channel = self.default_channel
-        return Topography(self._height_data[channel],
+        return Topography(self._height_data[channel_index],
                           physical_sizes=self._check_physical_sizes(physical_sizes),
-                          info=dict(data_source=self.channels[channel]["name"]),
+                          info=dict(data_source=self.channels[channel_index].name),
                           periodic=periodic)
 
     channels.__doc__ = ReaderBase.channels.__doc__

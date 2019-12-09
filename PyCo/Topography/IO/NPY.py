@@ -34,8 +34,8 @@ In MPI Parallelized programs:
     - load the relevant subdomain on each processor in Reader.topography()
 """
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
+from .. import Topography
+from .Reader import ReaderBase, FileFormatMismatch, ChannelInfo
 
 from NuMPI import MPI
 import NuMPI
@@ -77,11 +77,12 @@ class NPYReader(ReaderBase):
 
     @property
     def channels(self):
-        return [dict(name='Default',
-                     dim=len(self._nb_grid_pts),
-                     nb_grid_pts=self._nb_grid_pts)]
+        return [ChannelInfo(self, 0,
+                            name='Default',
+                            dim=len(self._nb_grid_pts),
+                            nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=0, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):

@@ -29,7 +29,7 @@ from NuMPI import MPI
 from .. import Topography
 from ..HeightContainer import UniformTopographyInterface
 
-from .Reader import ReaderBase
+from .Reader import ReaderBase, ChannelInfo
 
 
 class NCReader(ReaderBase):
@@ -64,15 +64,15 @@ class NCReader(ReaderBase):
 
     @property
     def channels(self):
-        d = dict(name='Default',
-                     dim=2,
-                     nb_grid_pts=(len(self._x_var), len(self._y_var)),
-                     physical_sizes=(self._x_var.length, self._y_var.length),
-                     is_periodic=self._periodic)
-        d.update(self._info)
-        return [d]
+        return [ChannelInfo(self, 0,
+                            name='Default',
+                            dim=2,
+                            nb_grid_pts=(len(self._x_var), len(self._y_var)),
+                            physical_sizes=(self._x_var.length, self._y_var.length),
+                            is_periodic=self._periodic,
+                            info=self._info)]
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=0, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=None,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):

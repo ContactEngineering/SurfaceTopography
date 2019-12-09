@@ -23,15 +23,15 @@
 # SOFTWARE.
 #
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase
+from .. import Topography
+from .Reader import ReaderBase, ChannelInfo
 
 
 class H5Reader(ReaderBase):
     def __init__(self, fobj):
         self._h5 = None
         import h5py
-        self._h5 = h5py.File(fobj)
+        self._h5 = h5py.File(fobj, 'r')
 
     def close(self):
         if self._h5 is not None:
@@ -39,9 +39,11 @@ class H5Reader(ReaderBase):
 
     @property
     def channels(self):
-        return [dict(name='Default',
-                     dim=len(self._h5['surface'].shape),
-                     nb_grid_pts=self._h5['surface'].shape)]
+        return [ChannelInfo(self,
+                            0, # channel index
+                            name='Default',
+                            dim=len(self._h5['surface'].shape),
+                            nb_grid_pts=self._h5['surface'].shape)]
 
     def topography(self, channel=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,

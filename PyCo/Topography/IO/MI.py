@@ -26,8 +26,8 @@
 
 import numpy as np
 
-from PyCo.Topography.IO.Reader import ReaderBase, CorruptFile
-from PyCo.Topography import Topography
+from .. import Topography
+from .Reader import ReaderBase, CorruptFile, ChannelInfo
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
@@ -105,13 +105,11 @@ class MIReader(ReaderBase):
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
                                 int(self.mifile.meta['yPixels'])
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=0, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
-        if channel is None:
-            channel = self.default_channel
 
         with open(self.file_path, "rb") as f:
             lines = f.readlines()
@@ -162,9 +160,9 @@ class MIReader(ReaderBase):
 
     @property
     def channels(self):
-        return [{**channel.meta, **dict(dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
-                                                physical_sizes=self._physical_sizes)}
-                for channel in self.mifile.channels]
+        return [ChannelInfo(self, i, dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+                            physical_sizes=self._physical_sizes, info=channel.meta)
+                for i, channel in enumerate(self.mifile.channels)]
 
     @property
     def info(self):
