@@ -35,6 +35,8 @@ from .Reader import ReaderBase, ChannelInfo
 ###
 
 class DIReader(ReaderBase):
+    _format = 'di'
+
     def __init__(self, fobj):
         """
         Load Digital Instrument's Nanoscope files.

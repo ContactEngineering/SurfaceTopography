@@ -33,6 +33,8 @@ from .Reader import ReaderBase, ChannelInfo
 
 
 class NCReader(ReaderBase):
+    _format = 'nc'
+
     def __init__(self, fobj, communicator=None):
         self._nc = None
         from netCDF4 import Dataset

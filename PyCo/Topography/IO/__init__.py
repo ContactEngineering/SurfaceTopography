@@ -41,21 +41,24 @@ from .OPDx import OPDxReader
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile, ReaderBase
 
-readers = {
-    'asc': AscReader,
-    'di': DIReader,
-    'mat': MatReader,
-    'opd': OPDReader,
-    'opdx': OPDxReader,
-    'x3p': X3PReader,
-    'xyz': XYZReader,
-    'ibw': IBWReader,
-    'mi': MIReader,
-    'nc': NCReader, # NCReader must come before H5Reader, because NC4 *is* HDF5
-    'h5': H5Reader,
-    'npy': NPYReader,
-}
+readers = [
+    AscReader,
+    DIReader,
+    MatReader,
+    OPDReader,
+    OPDxReader,
+    X3PReader,
+    XYZReader,
+    IBWReader,
+    MIReader,
+    NCReader, # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
+    H5Reader,
+    NPYReader,
+]
 
+lookup_reader_by_format = {}
+for reader in readers:
+    lookup_reader_by_format[reader.format()] = reader
 
 def detect_format(fobj, comm=None):
     """
@@ -67,13 +70,13 @@ def detect_format(fobj, comm=None):
     comm : mpi communicator, optional
     """
     msg = ""
-    for name, reader in readers.items():
+    for reader in readers:
         try:
             if comm is not None:
                 reader(fobj, comm)
             else:
                 reader(fobj)
-            return name
+            return reader.format()
         except Exception as err:
             msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
         finally:
@@ -155,7 +158,7 @@ def open_topography(fobj, format=None, communicator=None):
 
     if format is None:
         msg = ""
-        for name, reader in readers.items():
+        for reader in readers:
             try:
                 return reader(fobj, **kwargs)
             except Exception as err:
@@ -167,9 +170,10 @@ def open_topography(fobj, format=None, communicator=None):
                     fobj.seek(0)
         raise CannotDetectFileFormat(msg)
     else:
-        if format not in readers.keys():
-            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fobj, readers.keys()))
-        return readers[format](fobj, **kwargs)
+        if format not in lookup_reader_by_format.keys():
+            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fobj,
+                                                                                       lookup_reader_by_format.keys()))
+        return lookup_reader_by_format[format](fobj, **kwargs)
 
 
 def read_topography(fn, format=None, communicator=None, **kwargs):

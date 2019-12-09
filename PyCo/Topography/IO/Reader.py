@@ -183,6 +183,12 @@ class ReaderBase(metaclass=abc.ABCMeta):
     without reading the full file.
     """
 
+    _format = 'undefined'
+
+    @classmethod
+    def format(cls):
+        return cls._format
+    
     def __enter__(self):
         return self
 

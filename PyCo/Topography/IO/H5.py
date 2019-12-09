@@ -28,6 +28,8 @@ from .Reader import ReaderBase, ChannelInfo
 
 
 class H5Reader(ReaderBase):
+    _format = 'h5'
+
     def __init__(self, fobj):
         self._h5 = None
         import h5py

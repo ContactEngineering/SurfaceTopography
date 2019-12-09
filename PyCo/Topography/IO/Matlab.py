@@ -28,6 +28,8 @@ from .Reader import ReaderBase, ChannelInfo
 
 
 class MatReader(ReaderBase):
+    _format = 'mat'
+
     def __init__(self, fobj):
         """
         Reads a surface profile from a Matlab file and presents in in a Topography-conformant manner.

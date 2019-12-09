@@ -62,6 +62,7 @@ ANY_2D_DATA = "/2D_Data/"
 
 
 class OPDxReader(ReaderBase):
+    _format = 'opdx'
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path, physical_sizes=None, unit=None, info=None):

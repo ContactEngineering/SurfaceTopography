@@ -51,6 +51,8 @@ class NPYReader(ReaderBase):
     https://docs.scipy.org/doc/numpy/reference/generated/numpy.lib.format.html
     """
 
+    _format = 'npy'
+
     def __init__(self, fn, communicator=MPI.COMM_WORLD):
         """
         Open file in the NPY format.

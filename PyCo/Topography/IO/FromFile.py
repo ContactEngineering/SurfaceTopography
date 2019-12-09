@@ -155,11 +155,13 @@ def mask_undefined(data, maxval=1e32):
         return data
 
 
-def make_wrapped_reader(reader_func, name="WrappedReader"):
+def make_wrapped_reader(reader_func, name='WrappedReader', format='unknown'):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
         """
+
+        _format = format
 
         def __init__(self, fobj):
             self._fobj = fobj
@@ -220,7 +222,7 @@ def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
     return surface
 
 
-MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
+MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader", format='matrix')
 
 
 @text
@@ -384,7 +386,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, name="AscReader")
+AscReader = make_wrapped_reader(read_asc, name="AscReader", format='asc')
 
 
 @text
@@ -464,7 +466,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     return t
 
 
-XYZReader = make_wrapped_reader(read_xyz, name="XYZReader")
+XYZReader = make_wrapped_reader(read_xyz, name="XYZReader", format='xyz')
 
 
 def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
@@ -545,7 +547,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return t
 
 
-X3PReader = make_wrapped_reader(read_x3p, name="X3PReader")
+X3PReader = make_wrapped_reader(read_x3p, name="X3PReader", format='x3p')
 
 
 @binary
@@ -635,7 +637,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return surface
 
 
-OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
+OPDReader = make_wrapped_reader(read_opd, name="OPDReader", format='opd')
 
 
 @binary
@@ -670,7 +672,7 @@ def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return surface
 
 
-IBWReader = make_wrapped_reader(read_ibw, name="IBWReader")
+IBWReader = make_wrapped_reader(read_ibw, name="IBWReader", format='ibw')
 
 
 @binary
@@ -699,4 +701,4 @@ def read_hgt(fobj, physical_sizes=None, periodic=False):
         return Topography(data, physical_sizes=physical_sizes, periodic=periodic)
 
 
-HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")
+HGTReader = make_wrapped_reader(read_hgt, name="HgtReader", format='hgt')
