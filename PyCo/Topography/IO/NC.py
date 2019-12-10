@@ -71,7 +71,7 @@ class NCReader(ReaderBase):
                             dim=2,
                             nb_grid_pts=(len(self._x_var), len(self._y_var)),
                             physical_sizes=(self._x_var.length, self._y_var.length),
-                            is_periodic=self._periodic,
+                            periodic=self._periodic,
                             info=self._info)]
 
     def topography(self, channel_index=0, physical_sizes=None,
