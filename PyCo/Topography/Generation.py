@@ -611,14 +611,15 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_s
             mask = q_sq < q_min ** 2
             karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
     if len(nb_grid_pts) == 2:
-        # Enforce symmetry
-        if nx % 2 == 0:
-            karr[0, 0] = np.real(karr[0, 0])
-            karr[1:nx // 2, 0] = karr[-1:nx // 2:-1, 0].conj()
-        else:
-            karr[0, 0] = np.real(karr[0, 0])
-            karr[nx // 2, 0] = np.real(karr[nx // 2, 0])
-            karr[1:nx // 2, 0] = karr[-1:nx // 2 + 1:-1, 0].conj()
+        for iy in [0,-1] if ny%2==0 else [0]:
+            # Enforce symmetry
+            if nx % 2 == 0:
+                karr[0, iy] = np.real(karr[0, iy])
+                karr[nx // 2, iy] = np.real(karr[nx // 2, iy])
+                karr[1:nx // 2, iy] = karr[-1:nx // 2:-1, iy].conj()
+            else:
+                karr[0, iy] = np.real(karr[0, iy])
+                karr[1:nx // 2+1, iy] = karr[-1:nx // 2:-1, iy].conj()
         _irfft2(karr, rarr, progress_callback)
         return Topography(rarr, physical_sizes, periodic=True)
     else:
