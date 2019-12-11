@@ -42,8 +42,8 @@ class ChannelInfo:
         self._index = index
         self._name = name
         self._dim = dim
-        self._nb_grid_pts = nb_grid_pts
-        self._physical_sizes = physical_sizes
+        self._nb_grid_pts = None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
+        self._physical_sizes = None if physical_sizes is None else tuple(np.ravel(physical_sizes))
         self._periodic = periodic
         self._info = info
 
@@ -147,12 +147,18 @@ class ChannelInfo:
 
     @property
     def pixel_size(self):
-        return tuple(np.array(self._physical_sizes) /
-            np.array(self._nb_grid_pts))
+        if self._physical_sizes is None or self._nb_grid_pts is None:
+            return None
+        else:
+            return tuple(np.array(self._physical_sizes) /
+                np.array(self._nb_grid_pts))
 
     @property
     def area_per_pt(self):
-        return np.prod(self.pixel_size)
+        if self.pixel_size is None:
+            return None
+        else:
+            return np.prod(self.pixel_size)
 
     @property
     def info(self):
