@@ -24,9 +24,8 @@
 # SOFTWARE.
 #
 from io import TextIOBase
-import numpy as np
 
-from PyCo.Topography.IO.Reader import ReaderBase, CorruptFile
+from PyCo.Topography.IO.Reader import ReaderBase
 from PyCo.Topography import Topography
 from igor.binarywave import load as loadibw
 
@@ -64,16 +63,65 @@ class IBWReader(ReaderBase):
         self.data = file['wave']
 
         # the first two labels are of x and y axis. we cannot read those
-        self._channels = [channel.decode() for channel in self.data['labels'][2][1:]]
+        self._channel_names = [channel.decode() for channel in self.data['labels'][2][1:]]
         self._default_channel = 0
+
+        #
+        # Read physical sizes from file, since all data
+        # has already been loaded, we can calculate it here
+        #
+        height_data = self.data['wData']
+
+        # TODO is it always like this?
+        assert len(height_data.shape) == 3, \
+            "We expect all channels being coded in to one wave and all are 2D. "+\
+            "This is not true somehow, cannot proceed."
+        nx, ny, num_channels = height_data.shape
+
+        assert num_channels == len(self._channel_names), \
+            f"Number of channels ({num_channels}) in data is different "+\
+            f"from number of channel labels ({len(self._channel_names)})"
+
+        #
+        # Decode units
+        #
+        def decode_unit_entry(u):
+            return u.tobytes().partition(b'\0')[0].decode('latin-1')
+
+        data_unit = decode_unit_entry(self.data['wave_header']['dataUnits'])
+        x_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][0])
+        y_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][1])
+
+        # the following is not necessary, we could handle different units by rescaling,
+        # however I'll leave it like this for now, print some message
+        # so we know what to do if a file occurs which does not fulfill this assumption
+        assert data_unit == x_unit == y_unit, \
+            "So far, data units and dimension units must be all the same. "+\
+            f"data unit: '{data_unit}', x unit: '{x_unit}', y unit: '{y_unit}'"
+
+        self._data_unit = data_unit
+        #
+        # Decode sizes
+        #
+        sfA = self.data['wave_header']['sfA']
+        self._physical_sizes = (nx * sfA[0], ny * sfA[1])
+        # Comment in C header file on these fields: Index value for element e of dimension d = sfA[d]*e + sfB[d].
+        # sfB is left out here, because we are interested in the width and height, not the absolute offsets.
+
+        #
+        # Build channel information
+        #
+        self._channels = [
+            dict(name=cn, dim=2, physical_sizes=self._physical_sizes)
+            for cn in self._channel_names]
+
+        #
+        #
+        # Shall we use the channel names in order to assign a unit as Gwyddion does?
 
     @property
     def channels(self):
-        return [dict(name=self._channels[i],
-                     dim=2) for i in range(len(self._channels))]
-
-      #                unit=self.data['wave_header']['dataUnits'][i].decode()) for i in range(len(self._channels))]
-
+        return self._channels
 
     def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -88,20 +136,16 @@ class IBWReader(ReaderBase):
 
         height_data = height_data[:, :, channel].copy()
 
-        z_unit = self.data['wave_header']['dataUnits'][channel].decode('latin-1')
-        xy_unit = self.data['wave_header']['dimUnits'][channel][channel].decode('latin-1')
-
-        assert z_unit == xy_unit
-
-        sfA = self.data['wave_header']['sfA']
-        nx, ny = height_data.shape
-
         if physical_sizes is None:
-            physical_sizes = (nx * sfA[0], ny * sfA[1])
-        
-        surface = Topography(height_data, physical_sizes, info={**info, **dict(unit=z_unit)}, periodic=periodic)
+            physical_sizes = self._physical_sizes
+
+        topo = Topography(height_data, physical_sizes,
+                          info=info,
+                          periodic=periodic)
+        # we could pass the data units here, but they dont seem to be always correct for all channels?!
 
         if height_scale_factor is not None:
-           surface = surface.scale(height_scale_factor)
+           topo = topo.scale(height_scale_factor)
 
-        return surface  
+        return topo
+
