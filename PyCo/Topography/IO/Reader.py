@@ -175,12 +175,7 @@ class ChannelInfo:
             can be voltages or some other quantity actually acquired in the
             measurement technique) to heights with the given 'unit'.
         """
-        return self._info
-
-    @property
-    def height_scale_factor(self):
-        return self._height_scale_factor
-    
+        return self._info    
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
