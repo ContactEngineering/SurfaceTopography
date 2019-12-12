@@ -76,18 +76,19 @@ def derivative(topography, n, periodic=None):
     heights = topography.heights()
     is_periodic = topography.is_periodic if periodic is None else periodic
     if is_periodic:
-        if n != 1:
-            # TODO: Implement arbitrary derivatives
-            raise ValueError('Only first derivatives are presently supported for periodic topographies.')
-        d = np.array([(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d] ** n
-                      for d in range(len(heights.shape))])
+        der = np.array([(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d]
+                        for d in range(len(heights.shape))])
+        # Apply derivative into each direction multiple times
+        for i in range(n-1):
+            der = np.array([(np.roll(der[d], -1, axis=d) - der[d]) / grid_spacing[d]
+                            for d in range(len(heights.shape))])
     else:
-        d = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
-                      for d in range(len(heights.shape))])
-    if d.shape[0] == 1:
-        return d[0]
+        der = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
+                        for d in range(len(heights.shape))])
+    if der.shape[0] == 1:
+        return der[0]
     else:
-        return d
+        return der
 
 
 def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, communicator):
