@@ -133,7 +133,23 @@ class OPDxReader(ReaderBase):
 
     @property
     def channels(self):
-        return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]
+        result = []
+
+        for channel_name in self._channels.keys():
+            # add manufacturer specific keys # TODO should they be in the info dict?
+            channel_info = self._channels[channel_name][-1]
+
+            #
+            # add mandatory keys
+            #
+            channel_info['name'] = channel_info['Name']
+            channel_info['physical_sizes'] = (channel_info['Height_value'], channel_info['Width_value'])
+            channel_info['nb_grid_pts'] = (channel_info['ImageHeight'], channel_info['ImageWidth'])
+            channel_info['dim'] = 2
+
+            result.append(channel_info)
+
+        return result
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
