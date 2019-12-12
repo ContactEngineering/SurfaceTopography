@@ -25,6 +25,7 @@
 #
 from io import TextIOBase
 import numpy as np
+from io import TextIOBase
 
 from PyCo.Topography.IO.Reader import ReaderBase
 from PyCo.Topography import Topography
@@ -75,14 +76,14 @@ class OPDxReader(ReaderBase):
             already_open = True
             if isinstance(file_path, TextIOBase):
                 # file was opened without the 'b' option, so read its buffer to get the binary data
-                f = file_path.buffer  
+                f = file_path.buffer
             else:
                 f = file_path
 
         try:
-            # open_topography in file as hexadecimal
-            self.buffer = [chr(byte) for byte in f.read()]
 
+            # read topography in file as hexadecimal
+            self.buffer = [chr(byte) for byte in f.read()]
                 
             # length of file
             physical_sizes = len(self.buffer)
