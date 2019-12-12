@@ -146,7 +146,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
 
     @property
     def is_periodic(self):
-        return self.parent_topography.is_periodic
+        return False
 
     @property
     def is_uniform(self):
