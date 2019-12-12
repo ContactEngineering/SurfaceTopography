@@ -147,6 +147,20 @@ class ChannelInfo:
 
     @property
     def pixel_size(self):
+        """
+        The pixel size is returned as the phyiscal size divided by the number
+        of grid points. If the physical size can be determined from the file,
+        a tuple is returned. The tuple has 1 or 2 elements (size_x, size_y),
+        depending on the dimension of the topography.
+
+        If the physical size can not be determined from the file, then
+        None is returned.
+
+        Note that the physical sizes obtained from the file can be overwritten
+        by passing a `physical_sizes` argument to the `topography` method that
+        returns the topography object. Overriding the physical size will also
+        affect the pixel size.
+        """
         if self._physical_sizes is None or self._nb_grid_pts is None:
             return None
         else:
@@ -155,6 +169,11 @@ class ChannelInfo:
 
     @property
     def area_per_pt(self):
+        """
+        The area per point is returned as the product over the pixel size
+        tuple. If `pixel_size` returns None, than also `area_per_pt` returns
+        None.s
+        """
         if self.pixel_size is None:
             return None
         else:
