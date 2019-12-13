@@ -23,6 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+from io import TextIOBase
 import numpy as np
 from io import TextIOBase
 
@@ -80,6 +81,8 @@ class OPDxReader(ReaderBase):
                 f = file_path
 
         try:
+
+            # read topography in file as hexadecimal
             self.buffer = [chr(byte) for byte in f.read()]
                 
             # length of file

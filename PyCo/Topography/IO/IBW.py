@@ -1,0 +1,151 @@
+#
+# Copyright 2019 Lars Pastewka
+#           2019 Antoine Sanner
+#           2019 Kai Haase
+# 
+# ### MIT license
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+from io import TextIOBase
+
+from PyCo.Topography.IO.Reader import ReaderBase
+from PyCo.Topography import Topography
+from igor.binarywave import load as loadibw
+
+
+class IBWReader(ReaderBase):
+
+    # Reads in the positions of all the data and metadata
+    def __init__(self, file_path):
+
+        # depending from where this function is called, file_path might already be a filestream
+        already_open = False
+        if not hasattr(file_path, 'read'):
+            f = open(file_path, "rb")
+        else:
+            already_open = True
+            if isinstance(file_path, TextIOBase):
+                # file was opened without the 'b' option, so read its buffer to get the binary data
+                f = file_path.buffer  
+            else:
+                f = file_path
+
+        # This catches and closes on its own
+        try:
+            file = loadibw(f)
+        except Exception:
+            if not f.closed:
+                if not already_open:
+                   f.close()
+            raise RuntimeError('Invalid file format.')
+
+
+        if file['version'] != 5:
+            raise RuntimeError('Only IBW version 5 supported!')
+
+        self.data = file['wave']
+
+        # the first two labels are of x and y axis. we cannot read those
+        self._channel_names = [channel.decode() for channel in self.data['labels'][2][1:]]
+        self._default_channel = 0
+
+        #
+        # Read physical sizes from file, since all data
+        # has already been loaded, we can calculate it here
+        #
+        height_data = self.data['wData']
+
+        # TODO is it always like this?
+        assert len(height_data.shape) == 3, \
+            "We expect all channels being coded in to one wave and all are 2D. "+\
+            "This is not true somehow, cannot proceed."
+        nx, ny, num_channels = height_data.shape
+
+        assert num_channels == len(self._channel_names), \
+            f"Number of channels ({num_channels}) in data is different "+\
+            f"from number of channel labels ({len(self._channel_names)})"
+
+        #
+        # Decode units
+        #
+        def decode_unit_entry(u):
+            return u.tobytes().partition(b'\0')[0].decode('latin-1')
+
+        data_unit = decode_unit_entry(self.data['wave_header']['dataUnits'])
+        x_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][0])
+        y_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][1])
+
+        # the following is not necessary, we could handle different units by rescaling,
+        # however I'll leave it like this for now, print some message
+        # so we know what to do if a file occurs which does not fulfill this assumption
+        assert data_unit == x_unit == y_unit, \
+            "So far, data units and dimension units must be all the same. "+\
+            f"data unit: '{data_unit}', x unit: '{x_unit}', y unit: '{y_unit}'"
+
+        self._data_unit = data_unit
+        #
+        # Decode sizes
+        #
+        sfA = self.data['wave_header']['sfA']
+        self._physical_sizes = (nx * sfA[0], ny * sfA[1])
+        # Comment in C header file on these fields: Index value for element e of dimension d = sfA[d]*e + sfB[d].
+        # sfB is left out here, because we are interested in the width and height, not the absolute offsets.
+
+        #
+        # Build channel information
+        #
+        self._channels = [
+            dict(name=cn, dim=2, physical_sizes=self._physical_sizes)
+            for cn in self._channel_names]
+
+        #
+        #
+        # Shall we use the channel names in order to assign a unit as Gwyddion does?
+
+    @property
+    def channels(self):
+        return self._channels
+
+    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
+
+        height_data = self.data['wData']
+
+        if channel is None:
+            channel = self._default_channel
+
+        height_data = height_data[:, :, channel].copy()
+
+        if physical_sizes is None:
+            physical_sizes = self._physical_sizes
+
+        topo = Topography(height_data, physical_sizes,
+                          info=info,
+                          periodic=periodic)
+        # we could pass the data units here, but they dont seem to be always correct for all channels?!
+
+        if height_scale_factor is not None:
+           topo = topo.scale(height_scale_factor)
+
+        return topo
+
