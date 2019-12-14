@@ -25,12 +25,14 @@
 #
 from io import TextIOBase
 
-from PyCo.Topography.IO.Reader import ReaderBase
-from PyCo.Topography import Topography
 from igor.binarywave import load as loadibw
+
+from .. import Topography
+from .Reader import ReaderBase, ChannelInfo
 
 
 class IBWReader(ReaderBase):
+    _format = 'ibw'
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -111,9 +113,9 @@ class IBWReader(ReaderBase):
         #
         # Build channel information
         #
-        self._channels = [
-            dict(name=cn, dim=2, physical_sizes=self._physical_sizes)
-            for cn in self._channel_names]
+        self._channels = [ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny),
+                                      physical_sizes=self._physical_sizes)
+                          for i, cn in enumerate(self._channel_names)]
 
         #
         #
@@ -123,18 +125,14 @@ class IBWReader(ReaderBase):
     def channels(self):
         return self._channels
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel_index=0, physical_sizes=None, height_scale_factor=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
 
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
 
         height_data = self.data['wData']
-
-        if channel is None:
-            channel = self._default_channel
-
-        height_data = height_data[:, :, channel].copy()
+        height_data = height_data[:, :, channel_index].copy()
 
         if physical_sizes is None:
             physical_sizes = self._physical_sizes

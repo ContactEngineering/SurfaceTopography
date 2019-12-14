@@ -85,7 +85,7 @@ class ChannelInfo:
             The object containing the actual topography data.
         """
         return self._reader.topography(
-            channel=self._index,
+            channel_index=self._index,
             physical_sizes=physical_sizes,
             height_scale_factor=height_scale_factor,
             info=info,
@@ -207,6 +207,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
     _format = 'undefined'
 
+    _default_channel_index = 0
+
     @classmethod
     def format(cls):
         return cls._format
@@ -231,8 +233,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
     @property
     def default_channel(self):
-        """Return the index of the default channel."""
-        return self.channels[0]
+        """Return the default channel. This is often the first channel with height information."""
+        return self.channels[self._default_channel_index]
 
     @classmethod
     def _check_physical_sizes(self, physical_sizes_from_arg, physical_sizes=None):
