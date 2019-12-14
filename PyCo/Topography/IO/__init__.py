@@ -32,6 +32,7 @@ from .FromFile import IBWReader, X3PReader, XYZReader, OPDReader, AscReader
 # New-style readers
 from .DI import DIReader
 from .H5 import H5Reader
+from .IBW import IBWReader
 from .Matlab import MatReader
 from .MI import MIReader
 from .NC import NCReader

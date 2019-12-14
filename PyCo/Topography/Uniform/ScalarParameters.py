@@ -119,7 +119,10 @@ def rms_laplacian(topography):
         return np.sqrt((curv[1:-1]**2).mean())
     elif topography.dim == 2:
         curv = topography.derivative(2)
-        return np.sqrt(((curv[0][:, 1:-1]+curv[1][1:-1, :])**2).mean())
+        if topography.is_periodic:
+            return np.sqrt(((curv[0]+curv[1])**2).mean())
+        else:
+            return np.sqrt(((curv[0][:, 1:-1] + curv[1][1:-1, :]) ** 2).mean())
     else:
         raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
 
