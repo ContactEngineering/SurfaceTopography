@@ -40,6 +40,7 @@ magic_data_ascii = b'data          ASCII'
 
 class MIReader(ReaderBase):
     _format = 'mi'
+    _name = 'Molecular imaging data file'
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

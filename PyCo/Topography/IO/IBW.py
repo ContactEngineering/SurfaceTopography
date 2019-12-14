@@ -33,6 +33,7 @@ from .Reader import ReaderBase, ChannelInfo
 
 class IBWReader(ReaderBase):
     _format = 'ibw'
+    _name = 'Igor binary wave'
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

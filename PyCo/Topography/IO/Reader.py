@@ -205,14 +205,40 @@ class ReaderBase(metaclass=abc.ABCMeta):
     without reading the full file.
     """
 
-    _format = 'undefined'
+    _format = None
+    _name = None
+    _description = None
 
     _default_channel_index = 0
 
     @classmethod
     def format(cls):
+        """
+        String identifier for this file format. Identifier must be unique and
+        is typically equal to the file extension of this format.
+        """
+        if cls._format is None:
+            raise RuntimeError('Reader does not provide a format string')
         return cls._format
     
+    @classmethod
+    def name(cls):
+        """
+        Short name of this file format.
+        """
+        if cls._name is None:
+            raise RuntimeError('Reader does not provide a name')
+        return cls._name
+
+    @classmethod
+    def description(cls):
+        """
+        Long description of this file format. Should be formatted as markdown.
+        """
+        if cls._description is None:
+            raise RuntimeError('Reader does not provide a description string')
+        return cls._description
+
     def __enter__(self):
         return self
 

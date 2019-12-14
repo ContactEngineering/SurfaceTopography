@@ -29,6 +29,12 @@ from .Reader import ReaderBase, ChannelInfo
 
 class MatReader(ReaderBase):
     _format = 'mat'
+    _name = 'MATLAB'
+    _description = '''
+Imports topography data stored in MATLAB workspace files. The reader
+automatically extracts all 2D arrays stored in the file and iterprets those
+as height information.
+    '''
 
     def __init__(self, fobj):
         """

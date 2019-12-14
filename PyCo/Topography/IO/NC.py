@@ -34,6 +34,7 @@ from .Reader import ReaderBase, ChannelInfo
 
 class NCReader(ReaderBase):
     _format = 'nc'
+    _name = 'NetCDF'
 
     def __init__(self, fobj, communicator=None):
         self._nc = None

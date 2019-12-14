@@ -29,6 +29,10 @@ from .Reader import ReaderBase, ChannelInfo
 
 class H5Reader(ReaderBase):
     _format = 'h5'
+    _name = 'Hierarchical data format'
+    _description = '''
+Import filter for HDF5 files provided within the contact mechanics challenge.
+    '''
 
     def __init__(self, fobj):
         self._h5 = None

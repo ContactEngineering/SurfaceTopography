@@ -27,7 +27,7 @@
 import os
 
 # Old-style readers
-from .FromFile import IBWReader, X3PReader, XYZReader, OPDReader, AscReader
+from .FromFile import X3PReader, XYZReader, OPDReader, AscReader
 
 # New-style readers
 from .DI import DIReader

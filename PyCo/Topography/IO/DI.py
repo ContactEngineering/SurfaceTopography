@@ -36,6 +36,7 @@ from .Reader import ReaderBase, ChannelInfo
 
 class DIReader(ReaderBase):
     _format = 'di'
+    _name = 'Veeco (Digital Instruments) Nanoscope'
 
     def __init__(self, fobj):
         """
