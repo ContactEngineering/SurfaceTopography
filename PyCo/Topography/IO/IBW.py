@@ -117,7 +117,7 @@ class IBWReader(ReaderBase):
         # Build channel information
         #
         self._channels = [
-            dict(name=cn, dim=2, physical_sizes=self._physical_sizes)
+            dict(name=cn, dim=2, physical_sizes=self._physical_sizes, nb_grid_pts=(nx,ny))
             for cn in self._channel_names]
 
         #
