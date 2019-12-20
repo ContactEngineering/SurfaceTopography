@@ -78,9 +78,14 @@ class IBWReader(ReaderBase):
             "This is not true somehow, cannot proceed."
         nx, ny, num_channels = height_data.shape
 
-        assert num_channels == len(self._channel_names), \
-            f"Number of channels ({num_channels}) in data is different "+\
-            f"from number of channel labels ({len(self._channel_names)})"
+        # ensure that there are not too many channel names
+        self._channel_names = self._channel_names[:num_channels]
+
+        # add channel names for all channels without name
+        no_name_idx = 1
+        while len(self._channel_names) < num_channels:
+            self._channel_names.append("no name ({})".format(no_name_idx))
+            no_name_idx += 1
 
         #
         # Decode units
