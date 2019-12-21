@@ -23,7 +23,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+from io import TextIOBase
 import numpy as np
+from io import TextIOBase
 
 from PyCo.Topography.IO.Reader import ReaderBase
 from PyCo.Topography import Topography
@@ -72,15 +74,16 @@ class OPDxReader(ReaderBase):
             f = open(file_path, "rb")
         else:
             already_open = True
-            f = file_path
+            if isinstance(file_path, TextIOBase):
+                # file was opened without the 'b' option, so read its buffer to get the binary data
+                f = file_path.buffer
+            else:
+                f = file_path
 
         try:
-            # open_topography in file as hexadecimal
-            if not already_open:
-                self.buffer = [chr(byte) for byte in f.read()]
-            else:
-                # if the input is a filestream, it failed to open as a binary an the buffer has to be read directly
-                self.buffer = [chr(byte) for byte in f.buffer.read()]
+
+            # read topography in file as hexadecimal
+            self.buffer = [chr(byte) for byte in f.read()]
                 
             # length of file
             physical_sizes = len(self.buffer)
@@ -133,7 +136,23 @@ class OPDxReader(ReaderBase):
 
     @property
     def channels(self):
-        return [self._channels[channel_name][-1] for channel_name in self._channels.keys()]
+        result = []
+
+        for channel_name in self._channels.keys():
+            # add manufacturer specific keys # TODO should they be in the info dict?
+            channel_info = self._channels[channel_name][-1]
+
+            #
+            # add mandatory keys
+            #
+            channel_info['name'] = channel_info['Name']
+            channel_info['physical_sizes'] = (channel_info['Height_value'], channel_info['Width_value'])
+            channel_info['nb_grid_pts'] = (channel_info['ImageHeight'], channel_info['ImageWidth'])
+            channel_info['dim'] = 2
+
+            result.append(channel_info)
+
+        return result
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
