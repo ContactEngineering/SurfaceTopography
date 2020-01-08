@@ -68,7 +68,7 @@ class RandomSurfaceExact(object):
         if seed is not None:
             np.random.seed(hash(seed))
         if not hasattr(nb_grid_pts, "__iter__"):
-            nb_grid_pts = (nb_grid_pts, )
+            nb_grid_pts = (nb_grid_pts,)
         if not hasattr(physical_sizes, "__iter__"):
             physical_sizes = (physical_sizes,)
 
@@ -96,13 +96,13 @@ class RandomSurfaceExact(object):
         self.lambda_min = lambda_min
         self.lambda_max = lambda_max
         if lambda_max is not None:
-            self.q_min = 2*np.pi/lambda_max
+            self.q_min = 2 * np.pi / lambda_max
         else:
-            self.q_min = 2*np.pi*max(1/self.size[0], 1/self.size[1])
+            self.q_min = 2 * np.pi * max(1 / self.size[0], 1 / self.size[1])
 
         max_pixelsize = max(
-            (siz/res for siz, res in zip(self.size, self.nb_grid_pts)))
-        self.q_max = np.pi/max_pixelsize
+            (siz / res for siz, res in zip(self.size, self.nb_grid_pts)))
+        self.q_max = np.pi / max_pixelsize
 
         self.prefactor = self.compute_prefactor()
 
@@ -115,10 +115,12 @@ class RandomSurfaceExact(object):
 
     def get_negative_frequency_iterator(self):
         " frequency complement"
+
         def iterator():  # pylint: disable=missing-docstring
             for i in range(self.nb_grid_pts[0]):
-                for j in range(self.nb_grid_pts[1]//2+1):
+                for j in range(self.nb_grid_pts[1] // 2 + 1):
                     yield (i, j), (-i, -j)
+
         return iterator()
 
     def amplitude_distribution(self):  # pylint: disable=no-self-use
@@ -132,12 +134,12 @@ class RandomSurfaceExact(object):
     @property
     def C0(self):
         " prefactor of psd"
-        return (self.compute_prefactor()/np.sqrt(np.prod(self.size)))**2
+        return (self.compute_prefactor() / np.sqrt(np.prod(self.size))) ** 2
 
     @property
     def abs_q(self):
         " radial distances in q-space"
-        q_norm = np.sqrt((self.q[0]**2).reshape((-1, 1))+self.q[1]**2)
+        q_norm = np.sqrt((self.q[0] ** 2).reshape((-1, 1)) + self.q[1] ** 2)
         order = np.argsort(q_norm, axis=None)
         # The first entry (for |q| = 0) is rejected, since it's 0 by construct
         return q_norm.flatten()[order][1:]
@@ -145,7 +147,7 @@ class RandomSurfaceExact(object):
     @property
     def lambdas(self):
         " radial wavelengths in grid"
-        return 2*np.pi/self.abs_q
+        return 2 * np.pi / self.abs_q
 
     def compute_prefactor(self):
         """
@@ -154,19 +156,19 @@ class RandomSurfaceExact(object):
         domain. This is described for the square of the factor on p R7
         """
         if self.lambda_min is not None:
-            q_max = 2*np.pi/self.lambda_min
+            q_max = 2 * np.pi / self.lambda_min
         else:
-            q_max = np.pi*min(self.nb_grid_pts[0]/self.size[0],
-                              self.nb_grid_pts[1]/self.size[1])
+            q_max = np.pi * min(self.nb_grid_pts[0] / self.size[0],
+                                self.nb_grid_pts[1] / self.size[1])
         area = np.prod(self.size)
         if self.rms_height is not None:
-            return 2*self.rms_height/np.sqrt(
-                self.q_min**(-2*self.hurst)-q_max**(-2*self.hurst)) * \
-                np.sqrt(self.hurst*np.pi*area)
+            return 2 * self.rms_height / np.sqrt(
+                self.q_min ** (-2 * self.hurst) - q_max ** (-2 * self.hurst)) * \
+                   np.sqrt(self.hurst * np.pi * area)
         elif self.rms_slope is not None:
-            return 2*self.rms_slope/np.sqrt(
-                q_max**(2-2*self.hurst)-self.q_min**(2-2*self.hurst)) * \
-                np.sqrt((1-self.hurst)*np.pi*area)
+            return 2 * self.rms_slope / np.sqrt(
+                q_max ** (2 - 2 * self.hurst) - self.q_min ** (2 - 2 * self.hurst)) * \
+                   np.sqrt((1 - self.hurst) * np.pi * area)
         else:
             self.Error('Neither rms height nor rms slope is defined!')
 
@@ -174,24 +176,24 @@ class RandomSurfaceExact(object):
         """
         generates appropriate random phases (φ(-q) = -φ(q))
         """
-        rand_phase = np.random.rand(*self.nb_grid_pts)*2*np.pi
-        coeffs = np.exp(1j*rand_phase)
+        rand_phase = np.random.rand(*self.nb_grid_pts) * 2 * np.pi
+        coeffs = np.exp(1j * rand_phase)
         for pos_it, neg_it in self.get_negative_frequency_iterator():
             if pos_it != (0, 0):
                 coeffs[neg_it] = coeffs[pos_it].conj()
         if self.nb_grid_pts[0] % 2 == 0:
-            r_2 = self.nb_grid_pts[0]//2
+            r_2 = self.nb_grid_pts[0] // 2
             coeffs[r_2, 0] = coeffs[r_2, r_2] = coeffs[0, r_2] = 1
         return coeffs
 
     def generate_amplitudes(self):
         "compute an amplitude distribution"
-        q_2 = self.q[0].reshape(-1, 1)**2 + self.q[1]**2
+        q_2 = self.q[0].reshape(-1, 1) ** 2 + self.q[1] ** 2
         q_2[0, 0] = 1  # to avoid div by zeros, needs to be fixed after
-        self.coeffs *= (q_2)**(-(1+self.hurst)/2)*self.prefactor
+        self.coeffs *= (q_2) ** (-(1 + self.hurst) / 2) * self.prefactor
         self.coeffs[0, 0] = 0  # et voilà
         # Fix Shannon limit:
-        self.coeffs[q_2 > self.q_max**2] = 0
+        self.coeffs[q_2 > self.q_max ** 2] = 0
 
     def get_topography(self, lambda_max=None, lambda_min=None, roll_off=1):
         """
@@ -216,18 +218,18 @@ class RandomSurfaceExact(object):
             lambda_min = self.lambda_min
 
         active_coeffs = self.coeffs.copy()
-        q_square = self.q[0].reshape(-1, 1)**2 + self.q[1]**2
+        q_square = self.q[0].reshape(-1, 1) ** 2 + self.q[1] ** 2
         if lambda_max is not None:
-            q2_min = (2*np.pi/lambda_max)**2
+            q2_min = (2 * np.pi / lambda_max) ** 2
             # ampli_max = (self.prefactor*2*np.pi/self.physical_sizes[0] *
             #             q2_min**((-1-self.hurst)/2))
-            ampli_max = (q2_min)**(-(1+self.hurst)/2)*self.prefactor
+            ampli_max = (q2_min) ** (-(1 + self.hurst) / 2) * self.prefactor
             sl = q_square < q2_min
             ampli = abs(active_coeffs[sl])
             ampli[0] = 1
-            active_coeffs[sl] *= roll_off*ampli_max/ampli
+            active_coeffs[sl] *= roll_off * ampli_max / ampli
         if lambda_min is not None:
-            q2_max = (2*np.pi/lambda_min)**2
+            q2_max = (2 * np.pi / lambda_min) ** 2
             active_coeffs[q_square > q2_max] = 0
         active_coeffs *= self.distribution
         area = np.prod(self.size)
@@ -238,6 +240,7 @@ class RandomSurfaceExact(object):
 
 class RandomSurfaceGaussian(RandomSurfaceExact):
     """ Metasurface with Gaussian height distribution"""
+
     def __init__(self, nb_grid_pts, physical_sizes, hurst, rms_height=None,
                  rms_slope=None, seed=None, lambda_min=None, lambda_max=None):
         """
@@ -305,7 +308,7 @@ class CapillaryWavesExact(object):
         if seed is not None:
             np.random.seed(hash(seed))
         if not hasattr(nb_grid_pts, "__iter__"):
-            nb_grid_pts = (nb_grid_pts, )
+            nb_grid_pts = (nb_grid_pts,)
         if not hasattr(physical_sizes, "__iter__"):
             physical_sizes = (physical_sizes,)
 
@@ -325,7 +328,7 @@ class CapillaryWavesExact(object):
         self.bending_stiffness = bending_stiffness
 
         max_pixelsize = max(
-            (siz/res for siz, res in zip(self.size, self.nb_grid_pts)))
+            (siz / res for siz, res in zip(self.size, self.nb_grid_pts)))
 
         self.q = compute_wavevectors(  # pylint: disable=invalid-name
             self.nb_grid_pts, self.size, self.dim)
@@ -336,10 +339,12 @@ class CapillaryWavesExact(object):
 
     def get_negative_frequency_iterator(self):
         " frequency complement"
+
         def iterator():  # pylint: disable=missing-docstring
             for i in range(self.nb_grid_pts[0]):
-                for j in range(self.nb_grid_pts[1]//2+1):
+                for j in range(self.nb_grid_pts[1] // 2 + 1):
                     yield (i, j), (-i, -j)
+
         return iterator()
 
     def amplitude_distribution(self):  # pylint: disable=no-self-use
@@ -353,7 +358,7 @@ class CapillaryWavesExact(object):
     @property
     def abs_q(self):
         " radial distances in q-space"
-        q_norm = np.sqrt((self.q[0]**2).reshape((-1, 1))+self.q[1]**2)
+        q_norm = np.sqrt((self.q[0] ** 2).reshape((-1, 1)) + self.q[1] ** 2)
         order = np.argsort(q_norm, axis=None)
         # The first entry (for |q| = 0) is rejected, since it's 0 by construct
         return q_norm.flatten()[order][1:]
@@ -362,25 +367,25 @@ class CapillaryWavesExact(object):
         """
         generates appropriate random phases (φ(-q) = -φ(q))
         """
-        rand_phase = np.random.rand(*self.nb_grid_pts)*2*np.pi
-        coeffs = np.exp(1j*rand_phase)
+        rand_phase = np.random.rand(*self.nb_grid_pts) * 2 * np.pi
+        coeffs = np.exp(1j * rand_phase)
         for pos_it, neg_it in self.get_negative_frequency_iterator():
             if pos_it != (0, 0):
                 coeffs[neg_it] = coeffs[pos_it].conj()
         if self.nb_grid_pts[0] % 2 == 0:
-            r_2 = self.nb_grid_pts[0]//2
+            r_2 = self.nb_grid_pts[0] // 2
             coeffs[r_2, 0] = coeffs[r_2, r_2] = coeffs[0, r_2] = 1
         return coeffs
 
     def generate_amplitudes(self):
         "compute an amplitude distribution"
-        q_2 = self.q[0].reshape(-1, 1)**2 + self.q[1]**2
+        q_2 = self.q[0].reshape(-1, 1) ** 2 + self.q[1] ** 2
         q_2[0, 0] = 1  # to avoid div by zeros, needs to be fixed after
-        self.coeffs *= 1/(self.mass_density+self.surface_tension*q_2+
-                          self.bending_stiffness*q_2*q_2)
+        self.coeffs *= 1 / (self.mass_density + self.surface_tension * q_2 +
+                            self.bending_stiffness * q_2 * q_2)
         self.coeffs[0, 0] = 0  # et voilà
         # Fix Shannon limit:
-        #self.coeffs[q_2 > self.q_max**2] = 0
+        # self.coeffs[q_2 > self.q_max**2] = 0
 
     def get_topography(self):
         """
@@ -405,6 +410,7 @@ class CapillaryWavesExact(object):
         profile = ifftn(active_coeffs, area).real
         self.active_coeffs = active_coeffs
         return Topography(profile, self.size)
+
 
 ###
 
@@ -611,14 +617,15 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_s
             mask = q_sq < q_min ** 2
             karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
     if len(nb_grid_pts) == 2:
-        # Enforce symmetry
-        if nx % 2 == 0:
-            karr[0, 0] = np.real(karr[0, 0])
-            karr[1:nx // 2, 0] = karr[-1:nx // 2:-1, 0].conj()
-        else:
-            karr[0, 0] = np.real(karr[0, 0])
-            karr[nx // 2, 0] = np.real(karr[nx // 2, 0])
-            karr[1:nx // 2, 0] = karr[-1:nx // 2 + 1:-1, 0].conj()
+        for iy in [0, -1] if ny % 2 == 0 else [0]:
+            # Enforce symmetry
+            if nx % 2 == 0:
+                karr[0, iy] = np.real(karr[0, iy])
+                karr[nx // 2, iy] = np.real(karr[nx // 2, iy])
+                karr[1:nx // 2, iy] = karr[-1:nx // 2:-1, iy].conj()
+            else:
+                karr[0, iy] = np.real(karr[0, iy])
+                karr[1:nx // 2 + 1, iy] = karr[-1:nx // 2:-1, iy].conj()
         _irfft2(karr, rarr, progress_callback)
         return Topography(rarr, physical_sizes, periodic=True)
     else:
