@@ -179,9 +179,12 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
                                 nb_grid_pts=self._topography.nb_grid_pts,
                                 physical_sizes=self._topography.physical_sizes)]
 
-        def topography(self, channel_index=0, physical_sizes=None,
+        def topography(self, channel_index=None, physical_sizes=None,
                        height_scale_factor=None, info={}, periodic=False,
                        subdomain_locations=None, nb_subdomain_grid_pts=None):
+            if channel_index is None:
+                channel_index = self._default_channel_index
+
             if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
                 raise RuntimeError('This reader does not support MPI parallelization.')
 

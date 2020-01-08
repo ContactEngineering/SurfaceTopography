@@ -278,7 +278,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return physical_sizes_from_arg
 
     @abc.abstractmethod
-    def topography(self, channel_index=0, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -291,6 +291,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         ---------
         channel_index : int
             Index of the channel to load. See also `channels` method.
+            (Default: None, which load the default channel)
         physical_sizes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a

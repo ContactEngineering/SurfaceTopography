@@ -89,10 +89,13 @@ specified [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel_index=0, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:

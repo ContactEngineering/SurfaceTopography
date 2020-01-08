@@ -75,10 +75,13 @@ class NCReader(ReaderBase):
                             periodic=self._periodic,
                             info=self._info)]
 
-    def topography(self, channel_index=0, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=None,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
         _info = self._info.copy()
         _info.update(info)
