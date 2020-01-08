@@ -23,15 +23,21 @@
 # SOFTWARE.
 #
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase
+from .. import Topography
+from .Reader import ReaderBase, ChannelInfo
 
 
 class H5Reader(ReaderBase):
+    _format = 'h5'
+    _name = 'Hierarchical data format'
+    _description = '''
+Import filter for HDF5 files provided within the contact mechanics challenge.
+    '''
+
     def __init__(self, fobj):
         self._h5 = None
         import h5py
-        self._h5 = h5py.File(fobj)
+        self._h5 = h5py.File(fobj, 'r')
 
     def close(self):
         if self._h5 is not None:
@@ -39,18 +45,20 @@ class H5Reader(ReaderBase):
 
     @property
     def channels(self):
-        return [dict(name='Default',
-                     dim=len(self._h5['surface'].shape),
-                     nb_grid_pts=self._h5['surface'].shape)]
+        return [ChannelInfo(self,
+                            0, # channel index
+                            name='Default',
+                            dim=len(self._h5['surface'].shape),
+                            nb_grid_pts=self._h5['surface'].shape)]
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
-        if channel is None:
-            channel = 0
-        if channel != 0:
+        if channel_index is None:
+            channel_index = self._default_channel_index
+        if channel_index != 0:
             raise RuntimeError('HDF5 reader only supports a single channel')
         size = self._check_physical_sizes(physical_sizes)
         t = Topography(self._h5['surface'][...], size, info=info, periodic=periodic)
