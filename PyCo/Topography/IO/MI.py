@@ -26,8 +26,8 @@
 
 import numpy as np
 
-from PyCo.Topography.IO.Reader import ReaderBase, CorruptFile
-from PyCo.Topography import Topography
+from .. import Topography
+from .Reader import ReaderBase, CorruptFile, ChannelInfo
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
@@ -39,6 +39,8 @@ magic_data_ascii = b'data          ASCII'
 
 
 class MIReader(ReaderBase):
+    _format = 'mi'
+    _name = 'Molecular imaging data file'
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -105,18 +107,19 @@ class MIReader(ReaderBase):
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
                                 int(self.mifile.meta['yPixels'])
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
-        if channel is None:
-            channel = self.default_channel
 
         with open(self.file_path, "rb") as f:
             lines = f.readlines()
 
-            output_channel = self.mifile.channels[channel]
+            output_channel = self.mifile.channels[channel_index]
 
             buffer = b''.join(lines[self.data_start:])
             buffer = [chr(_) for _ in buffer]
@@ -134,8 +137,8 @@ class MIReader(ReaderBase):
                 else:  # text or ascii
                     type_range = 32768
 
-                start = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * channel
-                end = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * (channel + 1)
+                start = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * channel_index
+                end = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * (channel_index + 1)
 
                 data = ''.join(buffer[start:end])
                 out = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)
@@ -162,9 +165,9 @@ class MIReader(ReaderBase):
 
     @property
     def channels(self):
-        return [{**channel.meta, **dict(dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
-                                                physical_sizes=self._physical_sizes)}
-                for channel in self.mifile.channels]
+        return [ChannelInfo(self, i, dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+                            physical_sizes=self._physical_sizes, info=channel.meta)
+                for i, channel in enumerate(self.mifile.channels)]
 
     @property
     def info(self):

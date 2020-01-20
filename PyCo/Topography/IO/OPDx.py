@@ -27,8 +27,9 @@ from io import TextIOBase
 import numpy as np
 from io import TextIOBase
 
-from PyCo.Topography.IO.Reader import ReaderBase
-from PyCo.Topography import Topography
+from .. import Topography
+from .Reader import ReaderBase, ChannelInfo
+
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
@@ -64,9 +65,11 @@ ANY_2D_DATA = "/2D_Data/"
 
 
 class OPDxReader(ReaderBase):
+    _format = 'opdx'
+    _name = 'Dektak OPDx'
 
     # Reads in the positions of all the data and metadata
-    def __init__(self, file_path, physical_sizes=None, unit=None, info=None):
+    def __init__(self, file_path):
 
         # depending from where this function is called, file_path might already be a filestream
         already_open = False
@@ -105,23 +108,22 @@ class OPDxReader(ReaderBase):
                 self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name,
                                                                                        self._channels[channel_name][-1])
 
-            self._default_channel = list(self._channels.keys()).index(default_channel_name)
+            self._default_channel_index = list(self._channels.keys()).index(default_channel_name)
 
 
         finally:
             if not already_open:
                 f.close()
 
-    def topography(self, channel=None, physical_sizes=None, height_scale_factor=None, info={},
-                   periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
 
-        if channel is None:
-            channel = self._default_channel
-
-        key = list(self._channels.keys())[channel]
+        key = list(self._channels.keys())[channel_index]
         channel = self._channels[key]
 
         res_x, res_y, start, end, q = channel[:5]
@@ -141,16 +143,11 @@ class OPDxReader(ReaderBase):
         for channel_name in self._channels.keys():
             # add manufacturer specific keys # TODO should they be in the info dict?
             channel_info = self._channels[channel_name][-1]
-
-            #
-            # add mandatory keys
-            #
-            channel_info['name'] = channel_info['Name']
-            channel_info['physical_sizes'] = (channel_info['Height_value'], channel_info['Width_value'])
-            channel_info['nb_grid_pts'] = (channel_info['ImageHeight'], channel_info['ImageWidth'])
-            channel_info['dim'] = 2
-
-            result.append(channel_info)
+            channel_info['unit'] = channel_info['z_unit']
+            result.append(ChannelInfo(self, len(result), name=channel_info['Name'], dim=2,
+                                      nb_grid_pts=(channel_info['ImageHeight'], channel_info['ImageWidth']),
+                                      physical_sizes=(channel_info['Height_value'], channel_info['Width_value']),
+                                      info=channel_info))
 
         return result
 
