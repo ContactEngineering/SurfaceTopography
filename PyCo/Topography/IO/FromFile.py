@@ -395,7 +395,7 @@ AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', 
 
 @text
 def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
-             periodic=False,  tol=1e-6):
+             periodic=False, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -670,4 +670,5 @@ def read_hgt(fobj, physical_sizes=None, periodic=False):
         return Topography(data, physical_sizes=physical_sizes, periodic=periodic)
 
 
-HGTReader = make_wrapped_reader(read_hgt, class_name="HgtReader", format='hgt', name='NASA shuttle radar topography mission')
+HGTReader = make_wrapped_reader(read_hgt, class_name="HGTReader", format='hgt',
+                                name='NASA shuttle radar topography mission')
