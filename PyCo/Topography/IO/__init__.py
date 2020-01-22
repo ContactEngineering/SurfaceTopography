@@ -27,7 +27,7 @@
 import os
 
 # Old-style readers
-from .FromFile import X3PReader, XYZReader, OPDReader, AscReader
+from .FromFile import AscReader, HGTReader, OPDReader, X3PReader, XYZReader
 
 # New-style readers
 from .DI import DIReader
@@ -55,6 +55,7 @@ readers = [
     NCReader, # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
+    HGTReader,
 ]
 
 lookup_reader_by_format = {}
