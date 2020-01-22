@@ -507,7 +507,8 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     return fac * np.prod(nb_grid_pts) / np.sqrt(area)
 
 
-def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_slope=None,
+def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
+                      rms_height=None, rms_slope=None, c0=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(size=n),
                       rfn=None, kfn=None, progress_callback=None):
@@ -529,6 +530,9 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_s
         Root mean-squared height.
     rms_slope : float
         Root mean-squared slope.
+    c0: float
+        self affine prefactor :math:`C_0`:
+        :math:`C(q) = C_0 q^{-2-2H}`
     short_cutoff : float
         Short-wavelength cutoff.
     long_cutoff : float
@@ -567,9 +571,15 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_s
     else:
         q_min = None
 
-    fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
-                                rms_slope=rms_slope, short_cutoff=short_cutoff,
-                                long_cutoff=long_cutoff)
+    if c0 is None:
+        fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
+                                    rms_slope=rms_slope, short_cutoff=short_cutoff,
+                                    long_cutoff=long_cutoff)
+    else:
+        fac = c0 * np.prod(nb_grid_pts) / np.sqrt(np.prod(physical_sizes))
+        #          ^                       ^ C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2
+        #          |                         and h(x,y) = sum(1/A fh(q) e^(iqx)))
+        #          compensate for the np.fft normalisation
 
     if len(nb_grid_pts) == 2:
         nx, ny = nb_grid_pts
@@ -584,7 +594,7 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst, rms_height=None, rms_s
         kny = ny // 2 + 1
         kshape = (kny,)
 
-    # Create in-memopry or memory-mapped arrays as storage buffers
+    # Create in-memory or memory-mapped arrays as storage buffers
     if rfn is None:
         rarr = np.empty(nb_grid_pts, dtype=np.float64)
     else:
