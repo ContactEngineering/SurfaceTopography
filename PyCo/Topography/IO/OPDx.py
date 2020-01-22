@@ -25,7 +25,6 @@
 #
 from io import TextIOBase
 import numpy as np
-from io import TextIOBase
 
 from .. import Topography
 from .Reader import ReaderBase, ChannelInfo
@@ -127,8 +126,8 @@ class OPDxReader(ReaderBase):
         channel = self._channels[key]
 
         res_x, res_y, start, end, q = channel[:5]
-
-        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Width_value'], channel[5]['Height_value']))
+        
+        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Height_value'], channel[5]['Width_value']))
 
         channel[5]['unit'] = channel[5]['z_unit']
 
