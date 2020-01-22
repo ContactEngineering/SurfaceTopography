@@ -121,6 +121,8 @@ class AbstractHeightContainer(object):
             Unit of the topography. The unit information applies to the lateral
             units (the physical size) as well as to heights units. Examples:
             'µm', 'nm'.
+        datetime : :obj:`datetime`
+            Date and time of the measurement.
         """
         return self._info
 
