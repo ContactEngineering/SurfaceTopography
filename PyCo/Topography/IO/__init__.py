@@ -27,7 +27,7 @@
 import os
 
 # Old-style readers
-from .FromFile import X3PReader, XYZReader, OPDReader, AscReader
+from .FromFile import AscReader, HGTReader, OPDReader, X3PReader, XYZReader
 
 # New-style readers
 from .DI import DIReader
@@ -55,6 +55,7 @@ readers = [
     NCReader, # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
+    HGTReader,
 ]
 
 lookup_reader_by_format = {}
@@ -106,7 +107,7 @@ def open_topography(fobj, format=None, communicator=None):
 
     Returns
     -------
-    Instance of a `ReaderBase` subclass according to the format.
+    Instance of a :obj:`ReaderBase` subclass according to the format.
 
     Examples
     --------
@@ -179,10 +180,10 @@ def open_topography(fobj, format=None, communicator=None):
 
 def read_topography(fn, format=None, communicator=None, **kwargs):
     r"""
-    Returns a reader object for the file `fobj`. The reader interface mirrors
-    the topography interface and can be used to extract meta data (number of
-    grid points, physical sizes, etc.) without reading the full topography in
-    memory.
+    Returns a topography object representing the topograpgy in the file `fobj`.
+    If there are multiple data channels within this file, the default channel
+    is returned. The default channel depends on the file format; see
+    documentation of the respective reader on this.
 
     Parameters
     ----------
