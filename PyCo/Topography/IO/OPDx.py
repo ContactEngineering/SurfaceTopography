@@ -127,11 +127,11 @@ class OPDxReader(ReaderBase):
 
         res_x, res_y, start, end, q = channel[:5]
         
-        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Height_value'], channel[5]['Width_value']))
+        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Width_value'], channel[5]['Height_value']))
 
         channel[5]['unit'] = channel[5]['z_unit']
 
-        data = build_matrix(res_x, res_y, self.buffer[start:end], q)
+        data = build_matrix(res_x, res_y, self.buffer[start:end], q).T
 
         return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5], periodic=periodic)
 
