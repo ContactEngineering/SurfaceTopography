@@ -250,9 +250,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     checks = list()
     # Resolution keywords
     checks.append((re.compile(r"\b(?:x-pixels|h)\b\s*=\s*([0-9]+)"), int,
-                   "xres"))
-    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
                    "yres"))
+    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
+                   "xres"))
 
     # Size keywords
     checks.append((re.compile(r"\b(?:x-length|Width)\b\s*(?:=|\:)\s*(?P<value>" +
@@ -322,7 +322,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             except ValueError:
                 process_comment(line)
 
-    data = np.array(data)
+    data = np.array(data).T
     nx, ny = data.shape
     if nx == 2 or ny == 2:
         raise Exception("This file has just two rows or two columns and is more likely a line scan than a map.")
@@ -377,12 +377,12 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
 
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
-    if data.shape[1] == 1:
+    if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[:, 0], physical_sizes, info=info, periodic=periodic)
+        surface = UniformLineScan(data[0, :], physical_sizes, info=info, periodic=periodic)
     else:
-        surface = Topography(data.T, physical_sizes, info=info, periodic=periodic)
+        surface = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
