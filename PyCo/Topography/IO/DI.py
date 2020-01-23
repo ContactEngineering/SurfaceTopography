@@ -161,7 +161,8 @@ class DIReader(ReaderBase):
                     else:
                         unit = (xy_unit, height_unit)
 
-                    info.update(dict(unit=unit, height_scale_factor=hard_scale * hard_to_soft * soft_scale))
+                    channel_info = info.copy()
+                    channel_info.update(dict(unit=unit, height_scale_factor=hard_scale * hard_to_soft * soft_scale))
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
@@ -169,7 +170,7 @@ class DIReader(ReaderBase):
                                           nb_grid_pts=(nx, ny),
                                           physical_sizes=(sx, sy),
                                           periodic=False,
-                                          info=info)
+                                          info=channel_info)
                     self._channels.append(channel)
         finally:
             if close_file:
