@@ -62,7 +62,10 @@ class AbstractHeightContainer(object):
 
     def __getattr__(self, name):
         if name in self._functions:
-            return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
+            def func(*args, **kwargs):
+                return self._functions[name](self, *args, **kwargs)
+            func.__doc__ = self._functions[name].__doc__
+            return func
         else:
             raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered "
                                  "(class {}). Available functions: {}"

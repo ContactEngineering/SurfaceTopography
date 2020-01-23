@@ -22,6 +22,11 @@
 # SOFTWARE.
 #
 
+#
+# The DI file format is described in detail here:
+# http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
+#
+
 import re
 
 import numpy as np
@@ -62,9 +67,15 @@ class DIReader(ReaderBase):
                 if l.startswith('\\*'):
                     if section_name is not None:
                         parameters += [(section_name, section_dict)]
-                    section_name = l[2:].lower()
+                    new_section_name = l[2:].lower()
+                    if section_name is None:
+                        if new_section_name != 'file list':
+                             raise IOError("Header must start with the 'File list' section.")
+                    section_name = new_section_name
                     section_dict = {}
                 elif l.startswith('\\'):
+                    if section_name is None:
+                        raise IOError('Encountered key before section header.')
                     s = l[1:].split(': ', 1)
                     try:
                         key, value = s
@@ -73,9 +84,10 @@ class DIReader(ReaderBase):
                         value = ''
                     section_dict[key.lower()] = value.strip()
                 else:
-                    raise IOError("Header line '{}' does not start with a slash."
-                                  "".format(l))
+                    raise IOError("Header line '{}' does not start with a slash.".format(l))
                 l = fobj.readline().decode('latin-1').strip()
+            if section_name is None:
+                raise IOError('No sections found in header.')
             parameters += [(section_name, section_dict)]
 
             self._info = {}

@@ -395,7 +395,7 @@ AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', 
 
 @text
 def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
-             periodic=False,  tol=1e-6):
+             periodic=False, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -645,7 +645,7 @@ OPDReader = make_wrapped_reader(read_opd, class_name="OPDReader", format='opd', 
 
 
 @binary
-def read_hgt(fobj, physical_sizes=None, periodic=False):
+def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
     (.hgt extension).
@@ -665,9 +665,13 @@ def read_hgt(fobj, physical_sizes=None, periodic=False):
                        count=dim * dim).reshape((dim, dim))
 
     if physical_sizes is None:
-        return Topography(data, physical_sizes=data.shape, periodic=periodic)
+        topography = Topography(data, physical_sizes=data.shape, info=info, periodic=periodic)
     else:
-        return Topography(data, physical_sizes=physical_sizes, periodic=periodic)
+        topography = Topography(data, physical_sizes=physical_sizes, info=info, periodic=periodic)
+    if height_scale_factor is not None:
+        topography = topography.scale(height_scale_factor)
+    return topography
 
 
-HGTReader = make_wrapped_reader(read_hgt, class_name="HgtReader", format='hgt', name='NASA shuttle radar topography mission')
+HGTReader = make_wrapped_reader(read_hgt, class_name="HGTReader", format='hgt',
+                                name='NASA shuttle radar topography mission')
