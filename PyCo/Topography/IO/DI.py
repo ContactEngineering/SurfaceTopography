@@ -99,7 +99,7 @@ class DIReader(ReaderBase):
             for n, p in parameters:
                 if n == 'file list':
                     if 'date' in p:
-                        info['datetime'] = datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y')
+                        info['acquisition_time'] = datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y')
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'ciao image list':
