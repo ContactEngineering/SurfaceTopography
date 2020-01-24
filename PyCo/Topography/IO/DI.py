@@ -213,8 +213,8 @@ class DIReader(ReaderBase):
         # internal informations from file
         _info = dict(unit=channel.info["unit"], data_source=channel.name)
         _info.update(info)
-        if 'datetime' in channel.info:
-            _info['datetime'] = channel.info['datetime']
+        if 'acquisition_time' in channel.info:
+            _info['acquisition_time'] = channel.info['acquisition_time']
 
         surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
