@@ -578,10 +578,11 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                                     rms_slope=rms_slope, short_cutoff=short_cutoff,
                                     long_cutoff=long_cutoff)
     else:
-        fac = c0 * np.prod(nb_grid_pts) / np.sqrt(np.prod(physical_sizes))
-        #          ^                       ^ C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2
-        #          |                         and h(x,y) = sum(1/A fh(q) e^(iqx)))
-        #          compensate for the np.fft normalisation
+        # prefactor for the fourier heights
+        fac = np.sqrt(c0) * np.prod(nb_grid_pts) / np.sqrt(np.prod(physical_sizes))
+        #                   ^                       ^ C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2
+        #                   |                         and h(x,y) = sum(1/A fh(q) e^(iqx)))
+        #                   compensate for the np.fft normalisation
 
     if len(nb_grid_pts) == 2:
         nx, ny = nb_grid_pts
