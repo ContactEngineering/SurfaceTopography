@@ -506,6 +506,12 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
                                       q_min ** (2 - 2 * Hurst)) * np.sqrt((1 - Hurst) * np.pi)
     else:
         raise ValueError('Neither rms height nor rms slope is defined!')
+
+    # I think there is a factor of 2 difference in the expression of the rms_slope
+    # TODO: this has to be verified and better tested
+    if len(nb_grid_pts) == 1:
+        fac /= np.sqrt(2)
+
     return fac * np.prod(nb_grid_pts) / np.sqrt(area)
 
 
