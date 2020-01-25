@@ -496,7 +496,9 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
         q_min = 2 * np.pi * np.max(1 / physical_sizes)
 
     area = np.prod(physical_sizes)
+
     if rms_height is not None:
+        # Assuming no rolloff region
         fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
                                        q_max ** (-2 * Hurst)) * np.sqrt(Hurst * np.pi)
     elif rms_slope is not None:
@@ -625,7 +627,10 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
             karr[q_sq > q_max ** 2] = 0.
         if q_min is not None:
             mask = q_sq < q_min ** 2
-            karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
+            if len(nb_grid_pts) == 2:
+                karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
+            else:
+                karr[mask] = rolloff * ran[mask] * q_min ** (-(0.5 + hurst))
     if len(nb_grid_pts) == 2:
         for iy in [0, -1] if ny % 2 == 0 else [0]:
             # Enforce symmetry
