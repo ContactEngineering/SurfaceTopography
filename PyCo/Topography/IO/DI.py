@@ -28,6 +28,7 @@
 #
 
 import re
+from datetime import datetime
 
 import numpy as np
 
@@ -90,13 +91,16 @@ class DIReader(ReaderBase):
                 raise IOError('No sections found in header.')
             parameters += [(section_name, section_dict)]
 
-            self._info = {}
             self._channels = []
             self._offsets = []
 
             scanner = {}
+            info = {}
             for n, p in parameters:
-                if n == 'scanner list' or n == 'ciao scan list':
+                if n == 'file list':
+                    if 'date' in p:
+                        info['acquisition_time'] = datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y')
+                elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'ciao image list':
                     image_data_key = re.match(r'^S \[(.*?)\] ',
@@ -157,6 +161,8 @@ class DIReader(ReaderBase):
                     else:
                         unit = (xy_unit, height_unit)
 
+                    channel_info = info.copy()
+                    channel_info.update(dict(unit=unit, height_scale_factor=hard_scale * hard_to_soft * soft_scale))
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
@@ -164,8 +170,7 @@ class DIReader(ReaderBase):
                                           nb_grid_pts=(nx, ny),
                                           physical_sizes=(sx, sy),
                                           periodic=False,
-                                          info=dict(unit=unit,
-                                                    height_scale_factor=hard_scale * hard_to_soft * soft_scale))
+                                          info=channel_info)
                     self._channels.append(channel)
         finally:
             if close_file:
@@ -208,6 +213,8 @@ class DIReader(ReaderBase):
         # internal informations from file
         _info = dict(unit=channel.info["unit"], data_source=channel.name)
         _info.update(info)
+        if 'acquisition_time' in channel.info:
+            _info['acquisition_time'] = channel.info['acquisition_time']
 
         surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
