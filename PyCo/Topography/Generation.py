@@ -460,18 +460,34 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
 
     for one-dimensional line scans. Here :math:`H` is the Hurst exponent.
 
+    Note:
+    In the 2D case:
+
+    .. math ::
+
+        h^2_{rms} = \frac{1}{2 \pi} \int_{0}^{\infty} q C^{iso}(q) dq
+
+    whereas in the 1D case:
+
+    .. math ::
+
+        h^2_{rms} = \frac{1}{\pi} \int_{0}^{\infty} C^{1D}(q) dq
+
+    See Equations (1) and (4) in [1].
+
+
     Parameters
     ----------
     nb_grid_pts : array_like
-        Resolution of the topography map.
+        Resolution of the topography map or the line scan.
     physical_sizes : array_like
-        Physical physical_sizes of the topography map.
+        Physical physical_sizes of the topography map or the line scan.
     Hurst : float
         Hurst exponent.
     rms_height : float
         Root mean-squared height.
     rms_slope : float
-        Root mean-squared slope.
+        Root mean-squared slope of the topography map or the line scan.
     short_cutoff : float
         Short-wavelength cutoff.
     long_cutoff : float
@@ -480,7 +496,12 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     Returns
     -------
     prefactor : float
-        Prefactor :math:`C_0`
+        Prefactor :math:`\sqrt{C_0}`
+
+    References
+    -----------
+    [1]: Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
+
     """
     nb_grid_pts = np.asarray(nb_grid_pts)
     physical_sizes = np.asarray(physical_sizes)
@@ -507,8 +528,6 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     else:
         raise ValueError('Neither rms height nor rms slope is defined!')
 
-    # I think there is a factor of 2 difference in the expression of the rms_slope
-    # TODO: this has to be verified and better tested
     if len(nb_grid_pts) == 1:
         fac /= np.sqrt(2)
 
