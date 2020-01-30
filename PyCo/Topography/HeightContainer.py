@@ -33,6 +33,15 @@ import numpy as np
 
 from NuMPI import MPI
 
+# Standardized entries for the info dictionary
+
+# Length unit of the measurement. The unit applies to both lateral and heights.
+# Data type: str
+INFO_UNIT = 'unit'
+# Data and time of the data acquisition.
+# Data type: datetime.datetime
+INFO_ACQUISITION_TIME = 'acquisition_time'
+
 
 class AbstractHeightContainer(object):
     """
@@ -62,7 +71,11 @@ class AbstractHeightContainer(object):
 
     def __getattr__(self, name):
         if name in self._functions:
-            return lambda *args, **kwargs: self._functions[name](self, *args, **kwargs)
+            def func(*args, **kwargs):
+                return self._functions[name](self, *args, **kwargs)
+
+            func.__doc__ = self._functions[name].__doc__
+            return func
         else:
             raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered "
                                  "(class {}). Available functions: {}"
@@ -118,6 +131,8 @@ class AbstractHeightContainer(object):
             Unit of the topography. The unit information applies to the lateral
             units (the physical size) as well as to heights units. Examples:
             'µm', 'nm'.
+        datetime : :obj:`datetime`
+            Date and time of the measurement.
         """
         return self._info
 
