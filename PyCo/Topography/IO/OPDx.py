@@ -28,7 +28,7 @@ import numpy as np
 
 from .. import Topography
 from .Reader import ReaderBase, ChannelInfo
-
+from .FromFile import get_unit_conversion_factor, mangle_height_unit
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
@@ -109,6 +109,10 @@ class OPDxReader(ReaderBase):
 
             self._default_channel_index = list(self._channels.keys()).index(default_channel_name)
 
+            #
+            #
+            #
+
 
         finally:
             if not already_open:
@@ -125,15 +129,36 @@ class OPDxReader(ReaderBase):
         key = list(self._channels.keys())[channel_index]
         channel = self._channels[key]
 
-        res_x, res_y, start, end, q = channel[:5]
-        
-        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Width_value'], channel[5]['Height_value']))
+        res_x, res_y, start, end, q, metadata = channel
 
-        channel[5]['unit'] = channel[5]['z_unit']
+        #
+        # find out physical sizes in a  common unit
+        # without touching the meta data, scale heights accordingly
+        #
+        unit_x = mangle_height_unit(metadata['Width_unit'])
+        size_x = metadata['Width_value']
 
+        unit_y = mangle_height_unit(metadata['Height_unit'])
+        size_y = metadata['Height_value']
+
+        unit_z = mangle_height_unit(metadata['z_unit'])
         data = build_matrix(res_x, res_y, self.buffer[start:end], q).T
 
-        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5], periodic=periodic)
+        unit_factor_y = get_unit_conversion_factor(unit_y, unit_x)  # we want value in unit_x units
+        if unit_factor_y is None:
+            raise ValueError(f'Units for size in x ("{unit_x}") and y ("{unit_y}") direction are incompatible.')
+        size_y *= unit_factor_y
+
+        unit_factor_z = get_unit_conversion_factor(unit_z, unit_x)  # we want value in unit_x units
+        if unit_factor_z is None:
+            raise ValueError(f'Units for width ("{unit_x}") and data units ("{unit_z}") are incompatible.')
+        data *= unit_factor_z
+
+        physical_sizes = self._check_physical_sizes(physical_sizes, (size_x, size_y))
+
+        metadata['unit'] = unit_x  # we have converted everything to this unit
+
+        return Topography(heights=data, physical_sizes=physical_sizes, info=metadata, periodic=periodic)
 
     @property
     def channels(self):
@@ -189,12 +214,13 @@ def reformat_dict(name, metadata):
     if 'yres' in new_dict.keys():
         new_dict.pop('yres')
 
-    # Currect weird type
-    if 'z_unit' in new_dict.keys():
-        unit = new_dict.pop('z_unit')
-        if unit.startswith("Â"):
-            unit = unit[1:]
-        new_dict['z_unit'] = unit
+    # Correct weird characters in units
+    for unit_key in ['z_unit', 'Height_unit', 'Width_unit']:
+        if unit_key in new_dict.keys():
+            unit = new_dict.pop(unit_key)
+            if unit.startswith("Â"):
+                unit = unit[1:]
+            new_dict[unit_key] = unit
 
     new_dict['Name'] = name
 
