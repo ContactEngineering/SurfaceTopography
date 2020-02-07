@@ -34,8 +34,8 @@ In MPI Parallelized programs:
     - load the relevant subdomain on each processor in Reader.topography()
 """
 
-from PyCo.Topography import Topography
-from PyCo.Topography.IO.Reader import ReaderBase, FileFormatMismatch
+from .. import Topography
+from .Reader import ReaderBase, FileFormatMismatch, ChannelInfo
 
 from NuMPI import MPI
 import NuMPI
@@ -50,6 +50,13 @@ class NPYReader(ReaderBase):
     For a description of the file format, see here:
     https://docs.scipy.org/doc/numpy/reference/generated/numpy.lib.format.html
     """
+
+    _format = 'npy'
+    _name = 'Numpy arrays'
+    _description = '''
+Load topography information stored as a numpy array. The numpy array format is
+specified [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).
+    '''
 
     def __init__(self, fn, communicator=MPI.COMM_WORLD):
         """
@@ -77,14 +84,18 @@ class NPYReader(ReaderBase):
 
     @property
     def channels(self):
-        return [dict(name='Default',
-                     dim=len(self._nb_grid_pts),
-                     nb_grid_pts=self._nb_grid_pts)]
+        return [ChannelInfo(self, 0,
+                            name='Default',
+                            dim=len(self._nb_grid_pts),
+                            nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:

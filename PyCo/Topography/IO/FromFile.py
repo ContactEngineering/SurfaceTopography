@@ -38,9 +38,9 @@ import copy
 import numpy as np
 import numpy.ma as ma
 
-from PyCo.Topography.UniformLineScanAndTopography import Topography, UniformLineScan
-from PyCo.Topography.NonuniformLineScan import NonuniformLineScan
-from PyCo.Topography.IO.Reader import ReaderBase
+from .Reader import ReaderBase, ChannelInfo
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..NonuniformLineScan import NonuniformLineScan
 
 ###
 
@@ -155,11 +155,14 @@ def mask_undefined(data, maxval=1e32):
         return data
 
 
-def make_wrapped_reader(reader_func, name="WrappedReader"):
+def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, name=None):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
         """
+
+        _format = format
+        _name = name
 
         def __init__(self, fobj):
             self._fobj = fobj
@@ -170,20 +173,22 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
 
         @property
         def channels(self):
-            return [dict(name="Default",
-                         dim=self._topography.dim,
-                         nb_grid_pts=self._topography.nb_grid_pts,
-                         physical_sizes=self._topography.physical_sizes)]
+            return [ChannelInfo(self, 0,
+                                name="Default",
+                                dim=self._topography.dim,
+                                nb_grid_pts=self._topography.nb_grid_pts,
+                                physical_sizes=self._topography.physical_sizes)]
 
-        def topography(self, channel=None, physical_sizes=None,
+        def topography(self, channel_index=None, physical_sizes=None,
                        height_scale_factor=None, info={}, periodic=False,
                        subdomain_locations=None, nb_subdomain_grid_pts=None):
+            if channel_index is None:
+                channel_index = self._default_channel_index
+
             if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
                 raise RuntimeError('This reader does not support MPI parallelization.')
 
-            if channel is None:
-                channel = 0
-            if channel != 0:
+            if channel_index != 0:
                 raise RuntimeError('Reader supports only a single channel 0.')
 
             # Rewind to position where the data is. Otherwise this method
@@ -197,7 +202,7 @@ def make_wrapped_reader(reader_func, name="WrappedReader"):
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__
 
-    WrappedReader.__name__ = name
+    WrappedReader.__name__ = class_name
     return WrappedReader
 
 
@@ -221,7 +226,7 @@ def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
     return surface
 
 
-MatrixReader = make_wrapped_reader(read_matrix, name="MatrixReader")
+MatrixReader = make_wrapped_reader(read_matrix, class_name="MatrixReader", format='matrix', name='Plain text (matrix)')
 
 
 @text
@@ -245,9 +250,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     checks = list()
     # Resolution keywords
     checks.append((re.compile(r"\b(?:x-pixels|h)\b\s*=\s*([0-9]+)"), int,
-                   "xres"))
-    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
                    "yres"))
+    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
+                   "xres"))
 
     # Size keywords
     checks.append((re.compile(r"\b(?:x-length|Width)\b\s*(?:=|\:)\s*(?P<value>" +
@@ -317,7 +322,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             except ValueError:
                 process_comment(line)
 
-    data = np.array(data)
+    data = np.array(data).T
     nx, ny = data.shape
     if nx == 2 or ny == 2:
         raise Exception("This file has just two rows or two columns and is more likely a line scan than a map.")
@@ -372,10 +377,10 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
 
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
-    if data.shape[1] == 1:
+    if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[:, 0], physical_sizes, info=info, periodic=periodic)
+        surface = UniformLineScan(data[0, :], physical_sizes, info=info, periodic=periodic)
     else:
         surface = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
@@ -385,12 +390,12 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, name="AscReader")
+AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', name='Plain text (with headers)')
 
 
 @text
 def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
-             periodic=False,  tol=1e-6):
+             periodic=False, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of (x,y)-positions.
 
@@ -465,7 +470,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     return t
 
 
-XYZReader = make_wrapped_reader(read_xyz, name="XYZReader")
+XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)')
 
 
 def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
@@ -546,7 +551,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return t
 
 
-X3PReader = make_wrapped_reader(read_x3p, name="X3PReader")
+X3PReader = make_wrapped_reader(read_x3p, class_name="X3PReader", format='x3p', name='XML 3D surface profile')
 
 
 @binary
@@ -636,46 +641,11 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return surface
 
 
-OPDReader = make_wrapped_reader(read_opd, name="OPDReader")
+OPDReader = make_wrapped_reader(read_opd, class_name="OPDReader", format='opd', name='Wyko OPD')
 
 
 @binary
-def read_ibw(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
-    """
-    Read IGOR Binary Wave files.
-
-    Keyword Arguments:
-    fobj -- filename or file object
-    """
-    from igor.binarywave import load
-
-    wave = load(fobj)['wave']
-
-    channel = 0
-    data = wave['wData'][:, :, channel].copy()
-    # This is just a wild guess...
-    z_unit = wave['wave_header']['dataUnits'][channel].decode('latin-1')
-    xy_unit = wave['wave_header']['dimUnits'][channel, channel].decode('latin-1')
-    assert z_unit == xy_unit
-
-    sfA = wave['wave_header']['sfA']
-    nx, ny = data.shape
-
-    if physical_sizes is None:
-        physical_sizes = (nx * sfA[0], ny * sfA[1])
-    surface = Topography(data, physical_sizes, info={**info, **dict(unit=z_unit)}, periodic=periodic)
-
-    if height_scale_factor is not None:
-        surface = surface.scale(height_scale_factor)
-
-    return surface
-
-
-IBWReader = make_wrapped_reader(read_ibw, name="IBWReader")
-
-
-@binary
-def read_hgt(fobj, physical_sizes=None, periodic=False):
+def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
     """
     Read Shuttle Radar Topography Mission (SRTM) topography data
     (.hgt extension).
@@ -695,9 +665,13 @@ def read_hgt(fobj, physical_sizes=None, periodic=False):
                        count=dim * dim).reshape((dim, dim))
 
     if physical_sizes is None:
-        return Topography(data, physical_sizes=data.shape, periodic=periodic)
+        topography = Topography(data, physical_sizes=data.shape, info=info, periodic=periodic)
     else:
-        return Topography(data, physical_sizes=physical_sizes, periodic=periodic)
+        topography = Topography(data, physical_sizes=physical_sizes, info=info, periodic=periodic)
+    if height_scale_factor is not None:
+        topography = topography.scale(height_scale_factor)
+    return topography
 
 
-HGTReader = make_wrapped_reader(read_hgt, name="HgtReader")
+HGTReader = make_wrapped_reader(read_hgt, class_name="HGTReader", format='hgt',
+                                name='NASA shuttle radar topography mission')

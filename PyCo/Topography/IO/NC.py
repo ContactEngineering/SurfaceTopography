@@ -29,10 +29,13 @@ from NuMPI import MPI
 from .. import Topography
 from ..HeightContainer import UniformTopographyInterface
 
-from .Reader import ReaderBase
+from .Reader import ReaderBase, ChannelInfo
 
 
 class NCReader(ReaderBase):
+    _format = 'nc'
+    _name = 'NetCDF'
+
     def __init__(self, fobj, communicator=None):
         self._nc = None
         from netCDF4 import Dataset
@@ -64,18 +67,21 @@ class NCReader(ReaderBase):
 
     @property
     def channels(self):
-        d = dict(name='Default',
-                     dim=2,
-                     nb_grid_pts=(len(self._x_var), len(self._y_var)),
-                     physical_sizes=(self._x_var.length, self._y_var.length),
-                     is_periodic=self._periodic)
-        d.update(self._info)
-        return [d]
+        return [ChannelInfo(self, 0,
+                            name='Default',
+                            dim=2,
+                            nb_grid_pts=(len(self._x_var), len(self._y_var)),
+                            physical_sizes=(self._x_var.length, self._y_var.length),
+                            periodic=self._periodic,
+                            info=self._info)]
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},
                    periodic=None,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
         _info = self._info.copy()
         _info.update(info)

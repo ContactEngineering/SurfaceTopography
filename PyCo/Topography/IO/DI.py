@@ -22,19 +22,28 @@
 # SOFTWARE.
 #
 
+#
+# The DI file format is described in detail here:
+# http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
+#
+
 import re
+from datetime import datetime
 
 import numpy as np
 
 from PyCo.Topography import Topography
 
 from .FromFile import get_unit_conversion_factor, height_units, mangle_height_unit
-from .Reader import ReaderBase
+from .Reader import ReaderBase, ChannelInfo
 
 
 ###
 
 class DIReader(ReaderBase):
+    _format = 'di'
+    _name = 'Veeco (Digital Instruments) Nanoscope'
+
     def __init__(self, fobj):
         """
         Load Digital Instrument's Nanoscope files.
@@ -59,9 +68,15 @@ class DIReader(ReaderBase):
                 if l.startswith('\\*'):
                     if section_name is not None:
                         parameters += [(section_name, section_dict)]
-                    section_name = l[2:].lower()
+                    new_section_name = l[2:].lower()
+                    if section_name is None:
+                        if new_section_name != 'file list':
+                             raise IOError("Header must start with the 'File list' section.")
+                    section_name = new_section_name
                     section_dict = {}
                 elif l.startswith('\\'):
+                    if section_name is None:
+                        raise IOError('Encountered key before section header.')
                     s = l[1:].split(': ', 1)
                     try:
                         key, value = s
@@ -70,20 +85,22 @@ class DIReader(ReaderBase):
                         value = ''
                     section_dict[key.lower()] = value.strip()
                 else:
-                    raise IOError("Header line '{}' does not start with a slash."
-                                  "".format(l))
+                    raise IOError("Header line '{}' does not start with a slash.".format(l))
                 l = fobj.readline().decode('latin-1').strip()
+            if section_name is None:
+                raise IOError('No sections found in header.')
             parameters += [(section_name, section_dict)]
 
-            self._info = {}
             self._channels = []
             self._offsets = []
-            self._default_channel = 0
 
             scanner = {}
-            i = 0
+            info = {}
             for n, p in parameters:
-                if n == 'scanner list' or n == 'ciao scan list':
+                if n == 'file list':
+                    if 'date' in p:
+                        info['acquisition_time'] = datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y')
+                elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'ciao image list':
                     image_data_key = re.match(r'^S \[(.*?)\] ',
@@ -141,28 +158,20 @@ class DIReader(ReaderBase):
                             sy *= fac
                             xy_unit = height_unit
                         unit = height_unit
-
-                        # default channel is 0 or the first channel where height_unit
-                        # is a length
-                        if self._default_channel == 0:
-                            self._default_channel = i
                     else:
                         unit = (xy_unit, height_unit)
 
-                    channel_dict = {}
-                    channel_dict["name"] = image_data_key
-                    channel_dict["dim"] = 2
-                    channel_dict["nb_grid_pts"] = (nx, ny)
-                    channel_dict["physical_sizes"] = (sx, sy)
-                    channel_dict["unit"] = unit
-                    # channel_dict["height_unit"] = height_unit
-                    # channel_dict["soft_unit"] = soft_unit
-                    # channel_dict["hard_unit"] = hard_unit
-                    # channel_dict["xy_unit"] = xy_unit
-                    channel_dict["height_scale_factor"] = hard_scale * hard_to_soft * soft_scale
-
-                    self._channels.append(channel_dict)
-                    i += 1
+                    channel_info = info.copy()
+                    channel_info.update(dict(unit=unit, height_scale_factor=hard_scale * hard_to_soft * soft_scale))
+                    channel = ChannelInfo(self,
+                                          len(self._channels),
+                                          name=image_data_key,
+                                          dim=2,
+                                          nb_grid_pts=(nx, ny),
+                                          physical_sizes=(sx, sy),
+                                          periodic=False,
+                                          info=channel_info)
+                    self._channels.append(channel)
         finally:
             if close_file:
                 fobj.close()
@@ -171,9 +180,12 @@ class DIReader(ReaderBase):
     def channels(self):
         return self._channels
 
-    def topography(self, channel=None, physical_sizes=None,
+    def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
         close_file = False
@@ -183,15 +195,12 @@ class DIReader(ReaderBase):
         else:
             fobj = self._fobj
 
-        if channel is None:
-            channel = self.default_channel
+        channel = self._channels[channel_index]
+        sx, sy = self._check_physical_sizes(physical_sizes, channel.physical_sizes)
 
-        channel_dict = self._channels[channel]
-        sx, sy = self._check_physical_sizes(physical_sizes, channel_dict["physical_sizes"])
+        nx, ny = channel.nb_grid_pts
 
-        nx, ny = channel_dict["nb_grid_pts"]
-
-        offset = self._offsets[channel]
+        offset = self._offsets[channel_index]
         dtype = np.dtype('<i2')
 
         ###################################
@@ -202,12 +211,14 @@ class DIReader(ReaderBase):
                                      dtype=dtype).reshape(nx, ny)
 
         # internal informations from file
-        _info = dict(unit=channel_dict["unit"], data_source=channel_dict["name"])
+        _info = dict(unit=channel.info["unit"], data_source=channel.name)
         _info.update(info)
+        if 'acquisition_time' in channel.info:
+            _info['acquisition_time'] = channel.info['acquisition_time']
 
         surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
-            height_scale_factor = channel_dict["height_scale_factor"]
+            height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)
 
         if close_file:

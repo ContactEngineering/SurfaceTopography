@@ -700,6 +700,10 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         """
         return self.parent_topography.heights().T
 
+    def positions(self):
+        X, Y = self.parent_topography.positions()
+        return Y.T, X.T
+
 
 class TranslatedTopography(DecoratedUniformTopography):
     """ used when geometries are translated
