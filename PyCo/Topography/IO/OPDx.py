@@ -144,8 +144,8 @@ class OPDxReader(ReaderBase):
             channel_info = self._channels[channel_name][-1]
             channel_info['unit'] = channel_info['z_unit']
             result.append(ChannelInfo(self, len(result), name=channel_info['Name'], dim=2,
-                                      nb_grid_pts=(channel_info['ImageHeight'], channel_info['ImageWidth']),
-                                      physical_sizes=(channel_info['Height_value'], channel_info['Width_value']),
+                                      nb_grid_pts=(channel_info['ImageWidth'], channel_info['ImageHeight']),
+                                      physical_sizes=(channel_info['Width_value'], channel_info['Height_value']),
                                       info=channel_info))
 
         return result
