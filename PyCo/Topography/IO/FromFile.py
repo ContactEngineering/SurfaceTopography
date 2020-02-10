@@ -176,6 +176,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
             return [ChannelInfo(self, 0,
                                 name="Default",
                                 dim=self._topography.dim,
+                                info=self._topography.info,
                                 nb_grid_pts=self._topography.nb_grid_pts,
                                 physical_sizes=self._topography.physical_sizes)]
 
