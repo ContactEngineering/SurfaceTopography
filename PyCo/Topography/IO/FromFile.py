@@ -256,9 +256,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                    "xres"))
 
     # Size keywords
-    checks.append((re.compile(r"\b(?:x-length|Width)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "xsiz"))
-    checks.append((re.compile(r"\b(?:y-length|Height)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "ysiz"))
 
     # Unit keywords
