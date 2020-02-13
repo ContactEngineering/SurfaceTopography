@@ -282,7 +282,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
         "Find and interpret known comments in the header of the asc file"
         nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
         nonlocal zfac
-        for reg, fun, key in checks:
+        for reg, fun, key in checks:  # TODO Is 'fun' needed here? No used so far..
             match = reg.search(line)
             if match is None:
                 continue
