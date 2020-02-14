@@ -49,6 +49,7 @@ voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
 
+CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 ###
 
@@ -170,11 +171,16 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
             if hasattr(fobj, 'tell'):
                 self._file_position = fobj.tell()
             self._topography = reader_func(fobj)
+            if CHANNEL_NAME_INFO_KEY in self._topography.info:
+                self._channel_name = self._topography.info[CHANNEL_NAME_INFO_KEY]
+                del self._topography.info[CHANNEL_NAME_INFO_KEY]
+            else:
+                self._channel_name = "Default"
 
         @property
         def channels(self):
             return [ChannelInfo(self, 0,
-                                name="Default",
+                                name=self._channel_name,
                                 dim=self._topography.dim,
                                 info=self._topography.info,
                                 nb_grid_pts=self._topography.nb_grid_pts,
@@ -234,9 +240,14 @@ MatrixReader = make_wrapped_reader(read_matrix, class_name="MatrixReader", forma
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, z_factor=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
-    Reads a surface profile from an generic asc file and presents it in a
+    Reads a surface profile (topography) from an generic asc file and presents it in a
     surface-conformant manner. Applies some heuristic to extract
     meta-information for different file formats.
+
+    The info dict of the topography returned is a copy from the given info dict and
+    may have some extra keys added:
+    - "unit": a common unit for the data, for dimensions and heights
+    - "channel_name": the name of the channel (if unknown "Default" is used")
 
     Keyword Arguments:
     fobj_in -- filename or file object
@@ -256,9 +267,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                    "xres"))
 
     # Size keywords
-    checks.append((re.compile(r"\b(?:x-length|Width)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "xsiz"))
-    checks.append((re.compile(r"\b(?:y-length|Height)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "ysiz"))
 
     # Unit keywords
@@ -274,15 +285,19 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
         (r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<unit>.*)\))\s*=\s*(?P<value>" +
          _float_regex + ")")),
                    float, "zfac"))
+    # Channel name keywords
+    checks.append((re.compile(r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)"), str, "channel_name"))
 
     xres = yres = xsiz = ysiz = xunit = yunit = zunit = xfac = yfac = None
     zfac = None
+    channel_name = "Default"
 
     def process_comment(line):
         "Find and interpret known comments in the header of the asc file"
         nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
         nonlocal zfac
-        for reg, fun, key in checks:
+        nonlocal channel_name
+        for reg, fun, key in checks:  # TODO Is 'fun' needed here? No used so far..
             match = reg.search(line)
             if match is None:
                 continue
@@ -312,6 +327,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             elif key == 'zfac':
                 zfac = float(match.group('value'))
                 zunit = mangle_height_unit(match.group('unit'))
+            elif key == 'channel_name':
+                channel_name = match.group(1).strip()
 
     data = []
     for line in fobj:
@@ -355,6 +372,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     if z_factor is not None:
         zfac = z_factor if zfac is None else zfac * z_factor
 
+    info = info.copy()
+
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
         xunit = zunit
@@ -373,9 +392,13 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                 zfac = height_units[zunit] / height_units[unit]
             else:
                 zfac *= height_units[zunit] / height_units[unit]
-        info = info.copy()
         info['unit'] = unit
 
+    # handle channel name
+    # we use the info dict here to transfer the channel name
+    info[CHANNEL_NAME_INFO_KEY] = channel_name
+
+    # calculate physical sizes and generate topography
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
     if data.shape[0] == 1:
