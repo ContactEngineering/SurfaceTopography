@@ -216,7 +216,7 @@ class DIReader(ReaderBase):
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
 
-        surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
+        surface = Topography(np.rot90(unscaleddata, axes=(1,0)), (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)
