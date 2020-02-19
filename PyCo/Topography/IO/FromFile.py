@@ -406,7 +406,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             physical_sizes = physical_sizes[0]
         surface = UniformLineScan(data[0, :], physical_sizes, info=info, periodic=periodic)
     else:
-        surface = Topography(data, physical_sizes, info=info, periodic=periodic)
+        surface = Topography(np.fliplr(data), physical_sizes, info=info, periodic=periodic)
+        # fliplr() in order to match Gwyddion output when plotted with "pcolormesh(t.heights().T)"
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
