@@ -210,7 +210,7 @@ class DIReader(ReaderBase):
         unscaleddata = np.frombuffer(rawdata, count=nx * ny,
                                      dtype=dtype).reshape(nx, ny)
 
-        # internal informations from file
+        # internal information from file
         _info = dict(unit=channel.info["unit"], data_source=channel.name)
         _info.update(info)
         if 'acquisition_time' in channel.info:
