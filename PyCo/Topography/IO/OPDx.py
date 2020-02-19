@@ -174,7 +174,7 @@ class OPDxReader(ReaderBase):
         channel_info = self._channels[channel_index]
         res_x, res_y, start, end, q = self._channels_xres_yres_start_stop_q[channel_index]
 
-        data = build_matrix(res_x, res_y, self.buffer[start:end], q).T
+        data = np.rot90(build_matrix(res_x, res_y, self.buffer[start:end], q), axes=(1,0))
 
         unit_z = channel_info.info['z_unit']
 
