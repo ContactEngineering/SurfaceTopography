@@ -38,9 +38,34 @@ class ChannelInfo:
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None, periodic=None,
                  info={}):
+        """
+        Initialize the channel. Use as many information from the file as possible
+        by passing it in the keyword arguments.
+
+        Arguments
+        ---------
+        reader: ReaderBase
+            Reader instance this channel is coming from.
+        index: int
+            Index of channel in the file, where zero is the first channel.
+        name: str
+            Name of the channel. If no name is given, "Default" will be used.
+        dim: int
+            Number of dimensions.
+        nb_grid_pts: tuple of ints
+            Number grid points in each dimension.
+        physical_sizes: tuple of floats
+            Physical dimensions.
+        periodic: bool
+            Wether the Topography should be interpreted as one period of a
+            periodic surface. This will affect the PSD and autocorrelation
+            calculations (windowing).
+        info: dict
+            Meta data found in the file.
+        """
         self._reader = reader
         self._index = index
-        self._name = name
+        self._name = "Default" if name is None else str(name)
         self._dim = dim
         self._nb_grid_pts = None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None if physical_sizes is None else tuple(np.ravel(physical_sizes))
