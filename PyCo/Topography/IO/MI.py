@@ -176,8 +176,10 @@ class MIReader(ReaderBase):
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
-
-        t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
+        # Initialize heights with rotation of array in order to match Gwdyydion
+        # when plotted with pcolormesh(t.heights().T)
+        t = Topography(heights=np.rot90(out, axes=(1,0)),
+                       physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
                        info=joined_meta, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
