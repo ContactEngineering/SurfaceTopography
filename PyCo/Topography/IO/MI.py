@@ -176,7 +176,7 @@ class MIReader(ReaderBase):
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
-        # Initialize heights with rotation of array in order to match Gwdyydion
+        # Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T)
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
