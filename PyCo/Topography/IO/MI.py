@@ -177,7 +177,9 @@ class MIReader(ReaderBase):
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
         # Initialize heights with transposed array in order to match Gwdyydion
-        # when plotted with pcolormesh(t.heights().T)
+        # when plotted with pcolormesh(t.heights().T), except that the y axis is flipped
+        # because the origin is in lower left with pcolormesh; imshow(t.heights().T) shows
+        # the image like gwyddion
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
                        info=joined_meta, periodic=periodic)
