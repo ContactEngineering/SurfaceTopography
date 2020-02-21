@@ -569,8 +569,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
                              dtype=dtype).reshape(nx, ny).T
     if physical_sizes is None:
         physical_sizes = (xinc * nx, yinc * ny)
-    t = Topography(np.fliplr(data), physical_sizes, info=info, periodic=periodic)
-    # fliplr in order to match orientation in Gwyddion when plotted with plotcolormesh(t.heights().T)
+    t = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
