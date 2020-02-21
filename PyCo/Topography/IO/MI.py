@@ -28,6 +28,7 @@ import numpy as np
 
 from .. import Topography
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
+from .FromFile import mangle_height_unit
 from io import TextIOBase
 
 
@@ -112,7 +113,7 @@ class MIReader(ReaderBase):
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = buf.meta.pop('bufferUnit')
+                buf.meta['unit'] = mangle_height_unit(buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
