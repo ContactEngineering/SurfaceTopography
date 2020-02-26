@@ -28,6 +28,7 @@ import numpy as np
 
 from .. import Topography
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
+from .FromFile import mangle_height_unit
 from io import TextIOBase
 
 
@@ -112,7 +113,7 @@ class MIReader(ReaderBase):
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = buf.meta.pop('bufferUnit')
+                buf.meta['unit'] = mangle_height_unit(buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
@@ -176,8 +177,12 @@ class MIReader(ReaderBase):
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
-
-        t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
+        # Initialize heights with transposed array in order to match Gwdyydion
+        # when plotted with pcolormesh(t.heights().T), except that the y axis is flipped
+        # because the origin is in lower left with pcolormesh; imshow(t.heights().T) shows
+        # the image like gwyddion
+        t = Topography(heights=out.T,
+                       physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
                        info=joined_meta, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
@@ -185,7 +190,7 @@ class MIReader(ReaderBase):
 
     @property
     def channels(self):
-        return [ChannelInfo(self, i, dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+        return [ChannelInfo(self, i, name=channel.meta['name'], dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes, info=channel.meta)
                 for i, channel in enumerate(self.mifile.channels)]
 

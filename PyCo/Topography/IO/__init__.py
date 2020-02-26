@@ -148,6 +148,16 @@ def open_topography(fobj, format=None, communicator=None):
     You can also prescribe some attributes when reading the topography:
 
     >>> top = reader.topography(channel=0, physical_sizes=(10.,10.), info={"unit":"µm"})
+
+    In order to plot the topography with matplotlib, you can use
+
+    >>> plt.pcolormesh(*top.positions_and_heights())
+
+    with origin in the lower left and correct tick labels at x and y axes, or
+
+    >>> plt.imshow(top.heights().T)
+
+    with origin in the upper left (inverted y axis).
     """
     if communicator is not None:
         kwargs = {"communicator": communicator}
