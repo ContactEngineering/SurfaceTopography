@@ -406,8 +406,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             physical_sizes = physical_sizes[0]
         surface = UniformLineScan(data[0, :], physical_sizes, info=info, periodic=periodic)
     else:
-        surface = Topography(np.fliplr(data), physical_sizes, info=info, periodic=periodic)
-        # fliplr() in order to match Gwyddion output when plotted with "pcolormesh(t.heights().T)"
+        surface = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
@@ -570,8 +569,7 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
                              dtype=dtype).reshape(nx, ny).T
     if physical_sizes is None:
         physical_sizes = (xinc * nx, yinc * ny)
-    t = Topography(np.fliplr(data), physical_sizes, info=info, periodic=periodic)
-    # fliplr in order to match orientation in Gwyddion when plotted with plotcolormesh(t.heights().T)
+    t = Topography(data, physical_sizes, info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
@@ -659,7 +657,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     # Height are in nm, width in mm
     if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
-    surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')}, periodic=periodic)
+    surface = Topography(np.fliplr(data), physical_sizes, info={**info, **dict(unit='mm')}, periodic=periodic)
     if height_scale_factor is None:
         surface = surface.scale(wavelength / mult * 1e-6)
     else:

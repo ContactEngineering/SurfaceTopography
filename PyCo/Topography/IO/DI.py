@@ -216,7 +216,11 @@ class DIReader(ReaderBase):
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
 
-        surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
+        # the orientation of the heights is modified in order to match
+        # the image of gwyddion when plotted with imshow(t.heights().T)
+        # or pcolormesh(t.heights().T) for origin in lower left and
+        # with inverted y axis (cartesian coordinate system)
+        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)

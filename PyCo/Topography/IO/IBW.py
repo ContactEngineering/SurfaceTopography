@@ -23,6 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+import numpy as np
 from io import TextIOBase
 
 from igor.binarywave import load as loadibw
@@ -140,7 +141,8 @@ class IBWReader(ReaderBase):
             raise RuntimeError('This reader does not support MPI parallelization.')
 
         height_data = self.data['wData']
-        height_data = height_data[:, :, channel_index].copy()
+        height_data = np.fliplr(height_data[:, :, channel_index].copy())
+
 
         if physical_sizes is None:
             physical_sizes = self._physical_sizes
