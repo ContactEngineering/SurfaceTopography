@@ -30,6 +30,7 @@ Special topographies
 import numpy as np
 
 from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
@@ -201,4 +202,5 @@ class PlasticTopography(DecoratedUniformTopography):
 
     @property
     def plastic_area(self):
-        return np.count_nonzero(self.__h_pl) * self.area_per_pt
+        pnp = Reduction(self._communicator)
+        return pnp.sum(np.count_nonzero(self.__h_pl)) * self.area_per_pt
