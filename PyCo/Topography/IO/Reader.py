@@ -71,7 +71,7 @@ class ChannelInfo:
         self._nb_grid_pts = None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None if physical_sizes is None else tuple(np.ravel(physical_sizes))
         self._periodic = periodic
-        self._info = info
+        self._info = info.copy()
 
     def topography(self, physical_sizes=None,
                    height_scale_factor=None, info={},
