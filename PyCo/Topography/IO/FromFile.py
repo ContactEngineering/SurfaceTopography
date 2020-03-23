@@ -204,7 +204,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
                 self._fobj.seek(self._file_position)
             return reader_func(self._fobj, physical_sizes=physical_sizes,
                                height_scale_factor=height_scale_factor,
-                               info=info, periodic=periodic)
+                               info=info.copy(), periodic=periodic)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__

@@ -63,7 +63,7 @@ class AbstractHeightContainer(object):
         pass
 
     def __init__(self, info={}, communicator=MPI.COMM_WORLD):
-        self._info = info
+        self._info = info.copy()
         self._communicator = communicator
 
     def apply(self, name, *args, **kwargs):
