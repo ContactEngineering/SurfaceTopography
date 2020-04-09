@@ -211,7 +211,7 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def communicator(self):
-        return MPI.COMM_SELF
+        return MPI.COMM_WORLD
 
     @property
     @abc.abstractmethod

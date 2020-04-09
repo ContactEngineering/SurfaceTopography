@@ -145,7 +145,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     def __init__(self, heights, physical_sizes, periodic=False, decomposition='serial',
                  nb_grid_pts=None, subdomain_locations=None, nb_subdomain_grid_pts=None,
-                 communicator=MPI.COMM_SELF, info={}):
+                 communicator=MPI.COMM_WORLD, info={}):
         """
         Parameters
         ----------
