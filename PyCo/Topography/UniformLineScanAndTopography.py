@@ -344,6 +344,10 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
                 fname = fname + ".gz"
         np.savetxt(fname, self.heights())
 
+    @property
+    def communicator(self):
+        return self._communicator
+
 
 
 class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface):
