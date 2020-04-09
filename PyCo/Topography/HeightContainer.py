@@ -211,7 +211,10 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def communicator(self):
-        return MPI.COMM_WORLD
+        # default value is COMM_SELF because sometimes NON-MPI readers that
+        # do not set the communicator value are used in MPI Programs.
+        # See discussion in issue #166
+        return MPI.COMM_SELF
 
     @property
     @abc.abstractmethod

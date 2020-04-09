@@ -145,7 +145,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     def __init__(self, heights, physical_sizes, periodic=False, decomposition='serial',
                  nb_grid_pts=None, subdomain_locations=None, nb_subdomain_grid_pts=None,
-                 communicator=MPI.COMM_WORLD, info={}):
+                 communicator=MPI.COMM_SELF, info={}):
         """
         Parameters
         ----------
@@ -174,6 +174,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             'domain'.
         communicator : mpi4py communicator or NuMPI stub communicator
             The MPI communicator object.
+            default value is COMM_SELF because sometimes NON-MPI readers that
+            do not set the communicator value are used in MPI Programs.
+            See discussion in issue #166
         info : dict
             The info dictionary containing auxiliary data. This data is never
             used by PyCo but can be used by third-party codes.
