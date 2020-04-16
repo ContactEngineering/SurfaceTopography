@@ -36,7 +36,7 @@ from .UniformLineScanAndTopography import Topography, UniformLineScan, Decorated
 
 
 def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, offset=0, periodic=False, kind="sphere",
-                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_SELF):
+                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_WORLD):
     r"""
     Simple sphere geometry.
 
