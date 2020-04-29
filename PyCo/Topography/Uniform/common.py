@@ -101,6 +101,8 @@ def fourier_derivative(topography):
     dx = np.fft.ifft2(spectrum * (1j * qx))
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
+    # TODO: for small number of points this is not always fullfilled, why ?
+    # I think it is a problem with the niquist frequency
     assert (abs(dx.imag) < 1e-9).all()
     assert (abs(dy.imag) < 1e-9).all()
 

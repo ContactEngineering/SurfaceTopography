@@ -38,6 +38,7 @@ from PyCo.Topography.IO import NPYReader
 # These imports are required to register the analysis functions!
 import PyCo.Topography.Converters
 import PyCo.Topography.Uniform.common
+import PyCo.Topography.Uniform.Interpolation
 import PyCo.Topography.Uniform.Autocorrelation
 import PyCo.Topography.Uniform.PowerSpectrum
 import PyCo.Topography.Uniform.ScalarParameters
