@@ -90,21 +90,41 @@ def derivative(topography, n, periodic=None):
     else:
         return der
 
-def fourier_derivative(topography):
+
+def fourier_derivative(topography, imtol=1e-13):
+    """
+
+    For even number of points, the interpretation of the components at the niquist
+    frequency is ambiguous (we are free to choose amplitude or phase)
+    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf), we assume it is cosinusoidal.
+
+    Parameters
+    ----------
+    topography
+    imtol: float
+        tolerance for the discarded imaginary part
+
+    Returns
+    -------
+
+    """
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
-    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1,1)
-    qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1,-1)
+    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1, 1)
+    qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1, -1)
+
+    if nx % 2 == 0:
+        qx[int(nx / 2), 0] = 0
+    if ny % 2 == 0:
+        qy[0, int(ny / 2)] = 0
 
     spectrum = np.fft.fft2(topography.heights())
     dx = np.fft.ifft2(spectrum * (1j * qx))
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
-    # TODO: for small number of points this is not always fullfilled, why ?
-    # I think it is a problem with the niquist frequency
-    assert (abs(dx.imag) < 1e-9).all()
-    assert (abs(dy.imag) < 1e-9).all()
+    assert (abs(dx.imag) < imtol).all()
+    assert (abs(dy.imag) < imtol).all()
 
     dx = dx.real
     dy = dy.real
