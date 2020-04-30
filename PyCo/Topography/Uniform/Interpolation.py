@@ -30,7 +30,8 @@ def bicubic_interpolator(topography):
         y:  array
             coordinate where to interpolate the topography
         derivative: int 0, 1 or 2, optional
-            if > 0 returns also derivatives
+            if > 0 returns also derivatives. Note that the 2nd order derivatives
+            are not continuous and hence not really usefull
 
         Returns
         -------
@@ -38,7 +39,7 @@ def bicubic_interpolator(topography):
 
         """
         if derivative == 0:
-            interp_field, = interp(x / dx, y / dy, derivative=derivative)
+            interp_field = interp(x / dx, y / dy, derivative=derivative)
             return interp_field
         elif derivative == 1:
             interp_field, interp_derx, interp_dery = \
@@ -88,6 +89,21 @@ def interpolate_fourier(topography, nb_grid_pts):
                            dtype=complex)
     smallspectrum = np.fft.rfft2(topography.heights())
     snx, sny = smallspectrum.shape
+    nx, ny = topography.nb_grid_pts
+
+    # the entries at the nyquist frequency are the superposition of the positive
+    # and negative frequency. When we increase the fourier domain, we will split
+    # that again between positive and negative, therefore we divide the value by
+    # two and copy it to the corresponding negative vector
+    if ny%2==0:
+        # the nyquist frequency also contains the symmetric and will be
+        # twice too big when the symmetric will be included
+        smallspectrum[:, -1] =  smallspectrum[:, -1] /2
+
+    if nx%2==0:
+        # the nyquist frequency also contains the symmetric and will be
+        # twice too big when the symmetric will be included
+        smallspectrum[int(nx/2), :] =  smallspectrum[int(nx/2), :] /2
 
     i = snx // 2 if snx % 2 == 0 else (snx - 1) // 2 + 1
     bigspectrum[:i, :sny] = smallspectrum[:i, :sny]

@@ -91,7 +91,7 @@ def derivative(topography, n, periodic=None):
         return der
 
 
-def fourier_derivative(topography, imtol=1e-13):
+def fourier_derivative(topography, imtol=1e-12):
     """
 
     For even number of points, the interpretation of the components at the niquist
@@ -123,8 +123,8 @@ def fourier_derivative(topography, imtol=1e-13):
     dx = np.fft.ifft2(spectrum * (1j * qx))
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
-    assert (abs(dx.imag) < imtol).all()
-    assert (abs(dy.imag) < imtol).all()
+    assert (abs(dx.imag) < imtol).all(), np.max(abs(dx.imag))
+    assert (abs(dy.imag) < imtol).all(), np.max(abs(dy.imag) )
 
     dx = dx.real
     dy = dy.real
