@@ -28,8 +28,6 @@
 Support for nonuniform topogography descriptions
 """
 
-import abc
-
 import numpy as np
 
 from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
