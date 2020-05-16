@@ -31,9 +31,9 @@ class MatReader(ReaderBase):
     _format = 'mat'
     _name = 'MATLAB'
     _description = '''
-Imports topography data stored in MATLAB workspace files. The reader
-automatically extracts all 2D arrays stored in the file and iterprets those
-as height information.
+Imports topography data stored in MATLAB workspace files. The reader automatically extracts all 2D arrays
+stored in the file and interprets those as height information. Matlab files do not store units or
+physical sizes. These need to be manually provided by the user.
     '''
 
     def __init__(self, fobj):

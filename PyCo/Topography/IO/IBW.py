@@ -35,6 +35,12 @@ from .Reader import ReaderBase, ChannelInfo
 class IBWReader(ReaderBase):
     _format = 'ibw'
     _name = 'Igor binary wave'
+    _description = '''
+Igor binary wave is a container format of the
+[Igor Pro](https://www.wavemetrics.com/products/igorpro/programming) language. This format is used by
+AFMs from Asylum Research (now Oxford Instruments) to store topography information. This format contains
+information on the physical size of the topography map as well as its units.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

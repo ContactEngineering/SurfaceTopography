@@ -35,7 +35,6 @@ import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
-import copy
 import numpy as np
 import numpy.ma as ma
 
@@ -157,7 +156,7 @@ def mask_undefined(data, maxval=1e32):
         return data
 
 
-def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, name=None):
+def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, name=None, description=None):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
@@ -165,6 +164,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
 
         _format = format
         _name = name
+        _description = description
 
         def __init__(self, fobj):
             self._fobj = fobj
@@ -699,4 +699,8 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
 
 
 HGTReader = make_wrapped_reader(read_hgt, class_name="HGTReader", format='hgt',
-                                name='NASA shuttle radar topography mission')
+                                name='NASA shuttle radar topography mission',
+                                description='''
+Data format of the NASA shuttle radar topography mission that recorded the earths topography. More
+information can be found [here](https://www2.jpl.nasa.gov/srtm/).
+                                ''')

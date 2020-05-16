@@ -26,8 +26,6 @@
 
 import numpy as np
 
-from NuMPI import MPI
-
 from .. import Topography
 from ..HeightContainer import UniformTopographyInterface
 
@@ -36,7 +34,36 @@ from .Reader import ReaderBase, ChannelInfo
 
 class NCReader(ReaderBase):
     _format = 'nc'
-    _name = 'NetCDF'
+    _name = 'Network Common Data Format (NetCDF)'
+
+    _description = '''
+This reader reads topography data contained in a
+[NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The reader looks for a variable named
+`heights` containing a two-dimensional array that is interpreted as height information. The respective
+dimensions are named `x` and `y`. The reader additionally expects two variables `x` and `y` that contain
+the x- and y-coordinates of the first and second index of the height arrays. The attribute `length` of
+`x` and `y` must contain the physical size in the respective direction. The attribute `length_unit` of
+these variables describes the physical unit. The additional attribute `periodic` indicates whether the
+direction contains periodic data.
+
+An example file layout (output of `ncdump -h`) containing a topography map with 128 x 128 pixels looks
+like this:
+```
+netcdf test_nc_file {
+dimensions:
+	x = 128 ;
+	y = 128 ;
+variables:
+	double x(x) ;
+		x:length = 3LL ;
+		x:periodic = 1LL ;
+	double y(y) ;
+		y:length = 3LL ;
+		y:periodic = 1LL ;
+	double heights(x, y) ;
+}
+```
+'''
 
     def __init__(self, fobj, communicator=None):
         self._nc = None
