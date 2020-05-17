@@ -608,7 +608,12 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return t
 
 
-X3PReader = make_wrapped_reader(read_x3p, class_name="X3PReader", format='x3p', name='XML 3D surface profile')
+X3PReader = make_wrapped_reader(read_x3p, class_name="X3PReader", format='x3p', name='XML 3D surface profile (X3P)',
+                                description='''
+X3P is a container format conforming to the ISO 5436-2 (Geometrical Product Specifications — Surface texture) standard.
+The format is defined in ISO 25178 and is a standardized format for the exchange of surface topography data. The full
+specification of the format can be found [here](http://www.opengps.eu/).
+''')
 
 
 @binary
