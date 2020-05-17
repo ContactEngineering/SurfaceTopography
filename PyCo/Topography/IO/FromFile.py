@@ -419,21 +419,22 @@ AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', 
                                 description='''
 Topography data stored in plain text (ASCII) format needs to be stored in a matrix format. Each row contains the height
 information for subsequent points in x-direction separated by a whitespace. The next row belong to the following
-y-coordinate.
+y-coordinate. Note that if the file has three or less columns, it will be interpreted as a topography stored in a
+coordinate format. The smallest topography that this can be provided in this format is therefore 4 x 1.
 
 The reader supports parsing file headers for additional metadata. This allows to specify the physical size of the
 topography and the unit. In particular, it supports reading ASCII files exported from SPIP and Gwyddion.
 
 When writing your own ASCII files, we recommend to prepent the header with a '#'. The following file is an example that
-contains 3 x 3 data points:
+contains 4 x 3 data points:
 ```
 # Channel: Main
 # Width: 10 µm
 # Height: 10 µm
 # Value units: m
-1.0 2.0 3.0
-4.0 5.0 6.0
-7.0 8.0 9.0
+ 1.0  2.0  3.0  4.0
+ 5.0  6.0  7.0  8.0
+ 9.0 10.0 11.0 12.0
 ```
 ''')
 
@@ -515,7 +516,18 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     return t
 
 
-XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)')
+XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)'
+                                description='''
+Topography information can be provided as coordinate data. This is a text file that contains either two columns (for
+line scans) or three columns (for two-dimensional topographies) of data. The parser does not support reading header
+information. Units can therefore not be provided directly within this file format.
+
+Line scans can be provided on a non-uniform grid. The x-coordinates do not need to be equally spaced and the surface
+specified in this format can be reentrant. The code interprets such topographies as piecewise linear between the points
+that are specified in the file.
+
+Two-dimensional topography maps need to reside on a regular grid. The x- and y-coordinates need to be equally spaced.
+''')
 
 
 def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
