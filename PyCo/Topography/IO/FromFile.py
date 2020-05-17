@@ -516,7 +516,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     return t
 
 
-XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)'
+XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)',
                                 description='''
 Topography information can be provided as coordinate data. This is a text file that contains either two columns (for
 line scans) or three columns (for two-dimensional topographies) of data. The parser does not support reading header
