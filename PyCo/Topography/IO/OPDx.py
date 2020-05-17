@@ -136,7 +136,8 @@ class OPDxReader(ReaderBase):
 
                 unit_factor_y = get_unit_conversion_factor(unit_y, unit_x)  # we want value in unit_x units
                 if unit_factor_y is None:
-                    raise ValueError(f'Units for size in x ("{unit_x}") and y ("{unit_y}") direction are incompatible.')
+                    raise ValueError('Units for size in x ("{}") and y ("{}") direction are incompatible.' \
+                                     .format(unit_x, unit_y))
                 size_y *= unit_factor_y
 
                 if unit_z is None:
@@ -149,7 +150,8 @@ class OPDxReader(ReaderBase):
                 else:
                     unit_factor_z = get_unit_conversion_factor(unit_z, unit_x)  # we want value in unit_x units
                     if unit_factor_z is None:
-                        raise ValueError(f'Units for width ("{unit_x}") and data units ("{unit_z}") are incompatible.')
+                        raise ValueError('Units for width ("{}") and data units ("{}") are incompatible.' \
+                                         .format(unit_x, unit_y))
 
                     metadata['unit'] = unit_x  # we have converted everything to this unit
 
@@ -190,8 +192,8 @@ class OPDxReader(ReaderBase):
                 # such that also the height are represented in common units.
                 unit_factor_z = get_unit_conversion_factor(unit_z, common_unit)
                 if unit_factor_z is None:
-                    raise ValueError(f'Common unit ("{common_unit}") derived from lateral units and '+
-                                     f'data units ("{unit_z}") are incompatible.')
+                    raise ValueError('Common unit ("{}") derived from lateral units and '+
+                                     'data units ("{}") are incompatible.'.format(common_unit, unit_z))
                 data *= unit_factor_z
 
         physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
