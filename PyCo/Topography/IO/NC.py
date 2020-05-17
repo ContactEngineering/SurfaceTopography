@@ -120,7 +120,7 @@ variables:
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic if periodic is None else periodic, info=info)
+                              periodic=self._periodic if periodic is None else periodic, info=_info)
         else:
             return Topography(self._heights_var, physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
