@@ -112,7 +112,7 @@ information on the physical size of the topography map as well as its units.
         # so we know what to do if a file occurs which does not fulfill this assumption
         assert data_unit == x_unit == y_unit, \
             "So far, data units and dimension units must be all the same. "+\
-            f"data unit: '{data_unit}', x unit: '{x_unit}', y unit: '{y_unit}'"
+            "data unit: '{}', x unit: '{}', y unit: '{}'".format(data_unit, x_unit, y_unit)
 
         self._data_unit = data_unit
         #
