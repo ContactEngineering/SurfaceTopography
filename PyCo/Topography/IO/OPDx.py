@@ -69,6 +69,9 @@ ANY_2D_DATA = "/2D_Data/"
 class OPDxReader(ReaderBase):
     _format = 'opdx'
     _name = 'Dektak OPDx'
+    _description = '''
+File format of the Bruker Dektak XT* series stylus profilometer.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
