@@ -160,7 +160,8 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
                                 decomposition='domain',
                                 subdomain_locations=subdomain_locations,
                                 nb_subdomain_grid_pts=nb_subdomain_grid_pts,
-                                communicator=communicator)
+                                communicator=communicator,
+                                info=topography.info)
 
 
 ### Register analysis functions from this module
