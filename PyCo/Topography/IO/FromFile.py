@@ -420,7 +420,7 @@ AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', 
 Topography data stored in plain text (ASCII) format needs to be stored in a matrix format. Each row contains the height
 information for subsequent points in x-direction separated by a whitespace. The next row belong to the following
 y-coordinate. Note that if the file has three or less columns, it will be interpreted as a topography stored in a
-coordinate format. The smallest topography that this can be provided in this format is therefore 4 x 1.
+coordinate format (the three columns contain the x, y and z coordinates of the same points). The smallest topography that can be provided in this format is therefore 4 x 1.
 
 The reader supports parsing file headers for additional metadata. This allows to specify the physical size of the
 topography and the unit. In particular, it supports reading ASCII files exported from SPIP and Gwyddion.
