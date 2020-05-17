@@ -40,11 +40,13 @@ class NCReader(ReaderBase):
 This reader reads topography data contained in a
 [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The reader looks for a variable named
 `heights` containing a two-dimensional array that is interpreted as height information. The respective
-dimensions are named `x` and `y`. The reader additionally expects two variables `x` and `y` that contain
-the x- and y-coordinates of the first and second index of the height arrays. The attribute `length` of
-`x` and `y` must contain the physical size in the respective direction. The attribute `length_unit` of
-these variables describes the physical unit. The additional attribute `periodic` indicates whether the
-direction contains periodic data.
+dimensions are named `x` and `y`.
+
+The reader additionally looks for two (optional) variables `x` and `y` that contain the x- and y-coordinates o
+the first and second index of the height arrays. The attribute `length` of x` and `y` must contain the physical
+size in the respective direction. The optional attribute `length_unit` of these variables describes the physical unit.
+The optional additional attribute `periodic` indicates whether the direction contains periodic data. If `periodic` is
+missing, the reader interprets the data as non-periodic.
 
 An example file layout (output of `ncdump -h`) containing a topography map with 128 x 128 pixels looks
 like this:
