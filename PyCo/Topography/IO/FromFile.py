@@ -415,7 +415,27 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', name='Plain text (with headers)')
+AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', name='Plain text (with headers)',
+                                description='''
+Topography data stored in plain text (ASCII) format needs to be stored in a matrix format. Each row contains the height
+information for subsequent points in x-direction separated by a whitespace. The next row belong to the following
+y-coordinate.
+
+The reader supports parsing file headers for additional metadata. This allows to specify the physical size of the
+topography and the unit. In particular, it supports reading ASCII files exported from SPIP and Gwyddion.
+
+When writing your own ASCII files, we recommend to prepent the header with a '#'. The following file is an example that
+contains 3 x 3 data points:
+```
+# Channel: Main
+# Width: 10 µm
+# Height: 10 µm
+# Value units: m
+1.0 2.0 3.0
+4.0 5.0 6.0
+7.0 8.0 9.0
+```
+''')
 
 
 @text
