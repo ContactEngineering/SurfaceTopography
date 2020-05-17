@@ -59,9 +59,11 @@ variables:
 	double x(x) ;
 		x:length = 3LL ;
 		x:periodic = 1LL ;
+        x:length_unit = "μm" ;
 	double y(y) ;
 		y:length = 3LL ;
 		y:periodic = 1LL ;
+        y:length_unit = "μm" ;
 	double heights(x, y) ;
 }
 ```
