@@ -66,6 +66,28 @@ variables:
         y:length_unit = "μm" ;
 	double heights(x, y) ;
 }
+
+The following code snippets reads the file and displays the topography data as a two-dimensional color map in Python:
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+
+with Dataset('parallel_save_test.nc') as nc:
+    heights = np.array(nc.variables['heights'])
+    length_x = nc.variables['x'].length
+    length_y = nc.variables['y'].length
+    unit = nc.variables['x'].length_unit
+
+plt.figure()
+plt.subplot(aspect=1)
+
+nx, ny = heights.shape
+x = (np.arange(nx)+0.5)*length_x/nx
+y = (np.arange(ny)+0.5)*length_y/ny
+plt.pcolormesh(x, y, heights)
+
+plt.show()
 ```
 '''
 
