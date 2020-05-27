@@ -115,8 +115,6 @@ def isotropic_filter(topography, filter_function=lambda q: np.exp(-q)):
     topography: Topography object
     filter_function: function of the absolute value of the wavevector |q|
 
-    This filter can be used to shift the electric Potential field above the halfspace
-
     Returns
     -------
     Topography with the modified heights
