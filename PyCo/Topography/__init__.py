@@ -39,6 +39,7 @@ from PyCo.Topography.IO import NPYReader
 import PyCo.Topography.Converters
 import PyCo.Topography.Uniform.common
 import PyCo.Topography.Uniform.Interpolation
+import PyCo.Topography.Uniform.Filtering
 import PyCo.Topography.Uniform.Autocorrelation
 import PyCo.Topography.Uniform.PowerSpectrum
 import PyCo.Topography.Uniform.ScalarParameters
