@@ -33,9 +33,6 @@ from PyCo.Topography import Topography, UniformLineScan
 from PyCo.Tools.common import compute_wavevectors, ifftn
 
 
-# FIXME: Not sure topography generation should be classes. These should probably
-# be turned into individual functions.
-
 class CapillaryWavesExact(object):
     """Frozen capillary waves"""
     Error = Exception
