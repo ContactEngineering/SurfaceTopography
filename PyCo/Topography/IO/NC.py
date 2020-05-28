@@ -66,6 +66,28 @@ variables:
         y:length_unit = "μm" ;
 	double heights(x, y) ;
 }
+
+The following code snippets reads the file and displays the topography data as a two-dimensional color map in Python:
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+
+with Dataset('parallel_save_test.nc') as nc:
+    heights = np.array(nc.variables['heights'])
+    length_x = nc.variables['x'].length
+    length_y = nc.variables['y'].length
+    unit = nc.variables['x'].length_unit
+
+plt.figure()
+plt.subplot(aspect=1)
+
+nx, ny = heights.shape
+x = (np.arange(nx)+0.5)*length_x/nx
+y = (np.arange(ny)+0.5)*length_y/ny
+plt.pcolormesh(x, y, heights)
+
+plt.show()
 ```
 '''
 
@@ -77,18 +99,27 @@ variables:
         else:
             self._nc = Dataset(fobj, 'r')
         self._communicator = communicator
-        self._x_var = self._nc.variables['x']
-        self._y_var = self._nc.variables['y']
+        self._x_dim = self._nc.dimensions['x']
+        self._y_dim = self._nc.dimensions['y']
+        self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
+        self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
+
+        # The following information may be missing from the NetCDF file
+        self._physical_sizes = None
+        self._periodic = False
         self._info = {}
-        try:
-            self._periodic = self._x_var.periodic != 0
-        except AttributeError:
-            self._periodic = False
-        try:
-            self._info['unit'] = self._x_var.length_unit
-        except AttributeError:
-            pass
+        if self._x_var is not None:
+            if self._y_var is not None:
+                self._physical_sizes = (self._x_var.length, self._y_var.length)
+            try:
+                self._periodic = self._x_var.periodic != 0
+            except AttributeError:
+                pass
+            try:
+                self._info['unit'] = self._x_var.length_unit
+            except AttributeError:
+                pass
 
     def __del__(self):
         self.close()
@@ -103,8 +134,8 @@ variables:
         return [ChannelInfo(self, 0,
                             name='Default',
                             dim=2,
-                            nb_grid_pts=(len(self._x_var), len(self._y_var)),
-                            physical_sizes=(self._x_var.length, self._y_var.length),
+                            nb_grid_pts=(len(self._x_dim), len(self._y_dim)),
+                            physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
                             info=self._info)]
 
@@ -115,7 +146,7 @@ variables:
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
+        physical_sizes = self._check_physical_sizes(physical_sizes, self._physical_sizes)
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
