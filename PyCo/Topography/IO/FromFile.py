@@ -1,6 +1,7 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2020 Antoine Sanner
+#           2020 Michael Röttger
+#           2019-2020 Lars Pastewka
 #           2019 Kai Haase
 # 
 # ### MIT license
@@ -34,7 +35,6 @@ import xml.etree.ElementTree as ElementTree
 from io import TextIOWrapper
 from struct import unpack
 from zipfile import ZipFile
-import copy
 import numpy as np
 import numpy.ma as ma
 
@@ -49,6 +49,7 @@ voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(height=height_units, voltage=voltage_units)
 
+CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 ###
 
@@ -155,7 +156,7 @@ def mask_undefined(data, maxval=1e32):
         return data
 
 
-def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, name=None):
+def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, name=None, description=None):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
@@ -163,6 +164,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
 
         _format = format
         _name = name
+        _description = description
 
         def __init__(self, fobj):
             self._fobj = fobj
@@ -170,12 +172,18 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
             if hasattr(fobj, 'tell'):
                 self._file_position = fobj.tell()
             self._topography = reader_func(fobj)
+            if CHANNEL_NAME_INFO_KEY in self._topography.info:
+                self._channel_name = self._topography.info[CHANNEL_NAME_INFO_KEY]
+                del self._topography.info[CHANNEL_NAME_INFO_KEY]
+            else:
+                self._channel_name = "Default"
 
         @property
         def channels(self):
             return [ChannelInfo(self, 0,
-                                name="Default",
+                                name=self._channel_name,
                                 dim=self._topography.dim,
+                                info=self._topography.info,
                                 nb_grid_pts=self._topography.nb_grid_pts,
                                 physical_sizes=self._topography.physical_sizes)]
 
@@ -197,7 +205,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, na
                 self._fobj.seek(self._file_position)
             return reader_func(self._fobj, physical_sizes=physical_sizes,
                                height_scale_factor=height_scale_factor,
-                               info=info, periodic=periodic)
+                               info=info.copy(), periodic=periodic)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__
@@ -233,9 +241,14 @@ MatrixReader = make_wrapped_reader(read_matrix, class_name="MatrixReader", forma
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, z_factor=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
-    Reads a surface profile from an generic asc file and presents it in a
+    Reads a surface profile (topography) from an generic asc file and presents it in a
     surface-conformant manner. Applies some heuristic to extract
     meta-information for different file formats.
+
+    The info dict of the topography returned is a copy from the given info dict and
+    may have some extra keys added:
+    - "unit": a common unit for the data, for dimensions and heights
+    - "channel_name": the name of the channel (if unknown "Default" is used")
 
     Keyword Arguments:
     fobj_in -- filename or file object
@@ -255,9 +268,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                    "xres"))
 
     # Size keywords
-    checks.append((re.compile(r"\b(?:x-length|Width)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "xsiz"))
-    checks.append((re.compile(r"\b(?:y-length|Height)\b\s*(?:=|\:)\s*(?P<value>" +
+    checks.append((re.compile(r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>" +
                               _float_regex + ")(?P<unit>.*)"), float, "ysiz"))
 
     # Unit keywords
@@ -273,15 +286,19 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
         (r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<unit>.*)\))\s*=\s*(?P<value>" +
          _float_regex + ")")),
                    float, "zfac"))
+    # Channel name keywords
+    checks.append((re.compile(r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)"), str, "channel_name"))
 
     xres = yres = xsiz = ysiz = xunit = yunit = zunit = xfac = yfac = None
     zfac = None
+    channel_name = "Default"
 
     def process_comment(line):
         "Find and interpret known comments in the header of the asc file"
         nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
         nonlocal zfac
-        for reg, fun, key in checks:
+        nonlocal channel_name
+        for reg, fun, key in checks:  # TODO Is 'fun' needed here? No used so far..
             match = reg.search(line)
             if match is None:
                 continue
@@ -311,6 +328,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
             elif key == 'zfac':
                 zfac = float(match.group('value'))
                 zunit = mangle_height_unit(match.group('unit'))
+            elif key == 'channel_name':
+                channel_name = match.group(1).strip()
 
     data = []
     for line in fobj:
@@ -354,6 +373,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     if z_factor is not None:
         zfac = z_factor if zfac is None else zfac * z_factor
 
+    info = info.copy()
+
     # Handle units -> convert to target unit
     if xunit is None and zunit is not None:
         xunit = zunit
@@ -372,9 +393,13 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
                 zfac = height_units[zunit] / height_units[unit]
             else:
                 zfac *= height_units[zunit] / height_units[unit]
-        info = info.copy()
         info['unit'] = unit
 
+    # handle channel name
+    # we use the info dict here to transfer the channel name
+    info[CHANNEL_NAME_INFO_KEY] = channel_name
+
+    # calculate physical sizes and generate topography
     if xsiz is not None and ysiz is not None and physical_sizes is None:
         physical_sizes = (x_factor * xsiz, x_factor * ysiz)
     if data.shape[0] == 1:
@@ -390,7 +415,28 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0, 
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', name='Plain text (with headers)')
+AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', name='Plain text (with headers)',
+                                description='''
+Topography data stored in plain text (ASCII) format needs to be stored in a matrix format. Each row contains the height
+information for subsequent points in x-direction separated by a whitespace. The next row belong to the following
+y-coordinate. Note that if the file has three or less columns, it will be interpreted as a topography stored in a
+coordinate format (the three columns contain the x, y and z coordinates of the same points). The smallest topography that can be provided in this format is therefore 4 x 1.
+
+The reader supports parsing file headers for additional metadata. This allows to specify the physical size of the
+topography and the unit. In particular, it supports reading ASCII files exported from SPIP and Gwyddion.
+
+When writing your own ASCII files, we recommend to prepent the header with a '#'. The following file is an example that
+contains 4 x 3 data points:
+```
+# Channel: Main
+# Width: 10 µm
+# Height: 10 µm
+# Value units: m
+ 1.0  2.0  3.0  4.0
+ 5.0  6.0  7.0  8.0
+ 9.0 10.0 11.0 12.0
+```
+''')
 
 
 @text
@@ -470,7 +516,18 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     return t
 
 
-XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)')
+XYZReader = make_wrapped_reader(read_xyz, class_name="XYZReader", format='xyz', name='Plain text (x,y,z coordinates)',
+                                description='''
+Topography information can be provided as coordinate data. This is a text file that contains either two columns (for
+line scans) or three columns (for two-dimensional topographies) of data. The parser does not support reading header
+information. Units can therefore not be provided directly within this file format.
+
+Line scans can be provided on a non-uniform grid. The x-coordinates do not need to be equally spaced and the surface
+specified in this format can be reentrant. The code interprets such topographies as piecewise linear between the points
+that are specified in the file.
+
+Two-dimensional topography maps need to reside on a regular grid. The x- and y-coordinates need to be equally spaced.
+''')
 
 
 def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, periodic=False):
@@ -551,7 +608,12 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return t
 
 
-X3PReader = make_wrapped_reader(read_x3p, class_name="X3PReader", format='x3p', name='XML 3D surface profile')
+X3PReader = make_wrapped_reader(read_x3p, class_name="X3PReader", format='x3p', name='XML 3D surface profile (X3P)',
+                                description='''
+X3P is a container format conforming to the ISO 5436-2 (Geometrical Product Specifications — Surface texture) standard.
+The format is defined in ISO 25178 and is a standardized format for the exchange of surface topography data. The full
+specification of the format can be found [here](http://www.opengps.eu/).
+''')
 
 
 @binary
@@ -633,7 +695,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     # Height are in nm, width in mm
     if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
-    surface = Topography(data, physical_sizes, info={**info, **dict(unit='mm')}, periodic=periodic)
+    surface = Topography(np.fliplr(data), physical_sizes, info={**info, **dict(unit='mm')}, periodic=periodic)
     if height_scale_factor is None:
         surface = surface.scale(wavelength / mult * 1e-6)
     else:
@@ -641,7 +703,9 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
     return surface
 
 
-OPDReader = make_wrapped_reader(read_opd, class_name="OPDReader", format='opd', name='Wyko OPD')
+OPDReader = make_wrapped_reader(read_opd, class_name="OPDReader", format='opd', name='Wyko OPD', description='''
+Files generated by the Vision software of the Bruker Wyko white-light interferometer. 
+''')
 
 
 @binary
@@ -674,4 +738,8 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={}, perio
 
 
 HGTReader = make_wrapped_reader(read_hgt, class_name="HGTReader", format='hgt',
-                                name='NASA shuttle radar topography mission')
+                                name='NASA shuttle radar topography mission',
+                                description='''
+Data format of the NASA shuttle radar topography mission that recorded the earths topography. More
+information can be found [here](https://www2.jpl.nasa.gov/srtm/).
+                                ''')

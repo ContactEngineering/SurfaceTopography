@@ -1,5 +1,5 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2019-2020 Lars Pastewka
 #           2019 Antoine Sanner
 # 
 # ### MIT license
@@ -29,9 +29,14 @@ from .Reader import ReaderBase, ChannelInfo
 
 class H5Reader(ReaderBase):
     _format = 'h5'
-    _name = 'Hierarchical data format'
+    _name = 'Hierarchical data format (HDF5)'
     _description = '''
-Import filter for HDF5 files provided within the contact mechanics challenge.
+Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided within the contact mechanics
+challenge. The reader looks for a two-dimensional array named `surface`. HDF5 files do not store units
+or physical sizes. These need to be manually provided by the user.
+
+The original contact mechanics challenge data can be downloaded
+[here](https://www.lmp.uni-saarland.de/index.php/research-topics/contact-mechanics-challenge-announcement/).
     '''
 
     def __init__(self, fobj):

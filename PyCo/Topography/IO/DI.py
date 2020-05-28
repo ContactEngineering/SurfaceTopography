@@ -1,5 +1,7 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2020 Michael Röttger
+#           2019-2020 Lars Pastewka
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -43,6 +45,11 @@ from .Reader import ReaderBase, ChannelInfo
 class DIReader(ReaderBase):
     _format = 'di'
     _name = 'Veeco (Digital Instruments) Nanoscope'
+    _description = '''
+Digitial Instruments Nanoscope files typically have a three-digit number as the file extension (.001, .002, .003, ...).
+This format contains information on the physical size of the topography map as well as its units. The reader supports
+V4.3 and later version of the format.
+'''
 
     def __init__(self, fobj):
         """
@@ -210,13 +217,17 @@ class DIReader(ReaderBase):
         unscaleddata = np.frombuffer(rawdata, count=nx * ny,
                                      dtype=dtype).reshape(nx, ny)
 
-        # internal informations from file
+        # internal information from file
         _info = dict(unit=channel.info["unit"], data_source=channel.name)
         _info.update(info)
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
 
-        surface = Topography(unscaleddata.T, (sx, sy), info=_info, periodic=periodic)
+        # the orientation of the heights is modified in order to match
+        # the image of gwyddion when plotted with imshow(t.heights().T)
+        # or pcolormesh(t.heights().T) for origin in lower left and
+        # with inverted y axis (cartesian coordinate system)
+        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), info=_info, periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)

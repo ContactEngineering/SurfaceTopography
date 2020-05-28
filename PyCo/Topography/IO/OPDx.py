@@ -1,7 +1,10 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
-#           2019 Kai Haase
+# Copyright 2019-2020 Michael Röttger
+#           2019-2020 Antoine Sanner
+#           2019-2020 Kai Haase
+#           2019-2020 Lars Pastewka
+#           2019 roettger@tf.uni-freiburg.de
+#           2019 40853209+AntoineSIMTEK@users.noreply.github.com
 # 
 # ### MIT license
 # 
@@ -28,7 +31,7 @@ import numpy as np
 
 from .. import Topography
 from .Reader import ReaderBase, ChannelInfo
-
+from .FromFile import get_unit_conversion_factor, mangle_height_unit
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
@@ -66,6 +69,9 @@ ANY_2D_DATA = "/2D_Data/"
 class OPDxReader(ReaderBase):
     _format = 'opdx'
     _name = 'Dektak OPDx'
+    _description = '''
+File format of the Bruker Dektak XT* series stylus profilometer.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -100,15 +106,66 @@ class OPDxReader(ReaderBase):
                 buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
 
             # Make a list of channels containing metadata about the topographies but not reading them in directly yet
-            self._channels = find_2d_data(hash_table, self.buffer)
+            all_channels_data = find_2d_data(hash_table, self.buffer)
 
-            # Reformat the metadata dict
-            for channel_name in self._channels.keys():
-                self._channels[channel_name][-1], default_channel_name = reformat_dict(channel_name,
-                                                                                       self._channels[channel_name][-1])
+            # Reformat the resulting dicts
+            for channel_name in all_channels_data.keys():
+                all_channels_data[channel_name][-1], default_channel_name = reformat_dict(
+                    channel_name, all_channels_data[channel_name][-1])
 
-            self._default_channel_index = list(self._channels.keys()).index(default_channel_name)
+            self._default_channel_index = list(all_channels_data.keys()).index(default_channel_name)
 
+            #
+            # Build channel info objects and additional metadata for extracting data
+            #
+            self._channels = []
+            self._channels_xres_yres_start_stop_q = []
+            for channel_index, channel_name in enumerate(all_channels_data):
+
+                channel_data = all_channels_data[channel_name]
+                *xres_yres_start_stop_q, metadata = channel_data
+
+                #
+                # find out physical sizes in a  common unit
+                # without touching the meta data, scale heights accordingly
+                #
+                unit_x = mangle_height_unit(metadata['Width_unit'])
+                size_x = metadata['Width_value']
+
+                unit_y = mangle_height_unit(metadata['Height_unit'])
+                size_y = metadata['Height_value']
+
+                unit_z = mangle_height_unit(metadata['z_unit'])
+
+                unit_factor_y = get_unit_conversion_factor(unit_y, unit_x)  # we want value in unit_x units
+                if unit_factor_y is None:
+                    raise ValueError('Units for size in x ("{}") and y ("{}") direction are incompatible.' \
+                                     .format(unit_x, unit_y))
+                size_y *= unit_factor_y
+
+                if unit_z is None:
+                    # No unit given for heights. Since we can only return one common unit,
+                    # no unit should be returned
+                    try:
+                        del metadata['unit']
+                    except:
+                        pass
+                else:
+                    unit_factor_z = get_unit_conversion_factor(unit_z, unit_x)  # we want value in unit_x units
+                    if unit_factor_z is None:
+                        raise ValueError('Units for width ("{}") and data units ("{}") are incompatible.' \
+                                         .format(unit_x, unit_y))
+
+                    metadata['unit'] = unit_x  # we have converted everything to this unit
+
+                ch_info = ChannelInfo(self, channel_index,
+                                      name=metadata['Name'], dim=2,
+                                      nb_grid_pts=(metadata['ImageWidth'], metadata['ImageHeight']),
+                                      physical_sizes=(size_x, size_y),
+                                      info=metadata)
+
+                self._channels.append(ch_info)
+                self._channels_xres_yres_start_stop_q.append(xres_yres_start_stop_q)  # needed for building heights
 
         finally:
             if not already_open:
@@ -122,33 +179,37 @@ class OPDxReader(ReaderBase):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError('This reader does not support MPI parallelization.')
 
-        key = list(self._channels.keys())[channel_index]
-        channel = self._channels[key]
-
-        res_x, res_y, start, end, q = channel[:5]
-        
-        physical_sizes = self._check_physical_sizes(physical_sizes, (channel[5]['Width_value'], channel[5]['Height_value']))
-
-        channel[5]['unit'] = channel[5]['z_unit']
+        channel_info = self._channels[channel_index]
+        res_x, res_y, start, end, q = self._channels_xres_yres_start_stop_q[channel_index]
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q).T
 
-        return Topography(heights=data, physical_sizes=physical_sizes, info=channel[5], periodic=periodic)
+        unit_z = channel_info.info['z_unit']
+
+        if 'unit' in channel_info.info:
+            common_unit = channel_info.info['unit']
+
+            if (common_unit is not None) and (unit_z != common_unit):
+                # There is a common unit, but the z-unit in the file differs
+                # from that common unit. So we need to scale the data accordingly,
+                # such that also the height are represented in common units.
+                unit_factor_z = get_unit_conversion_factor(unit_z, common_unit)
+                if unit_factor_z is None:
+                    raise ValueError('Common unit ("{}") derived from lateral units and '+
+                                     'data units ("{}") are incompatible.'.format(common_unit, unit_z))
+                data *= unit_factor_z
+
+        physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
+
+        info = info.copy()
+        info.update(channel_info.info)
+
+        return Topography(heights=data, physical_sizes=physical_sizes, info=info, periodic=periodic)
+
 
     @property
     def channels(self):
-        result = []
-
-        for channel_name in self._channels.keys():
-            # add manufacturer specific keys # TODO should they be in the info dict?
-            channel_info = self._channels[channel_name][-1]
-            channel_info['unit'] = channel_info['z_unit']
-            result.append(ChannelInfo(self, len(result), name=channel_info['Name'], dim=2,
-                                      nb_grid_pts=(channel_info['ImageHeight'], channel_info['ImageWidth']),
-                                      physical_sizes=(channel_info['Height_value'], channel_info['Width_value']),
-                                      info=channel_info))
-
-        return result
+        return self._channels
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
@@ -189,12 +250,13 @@ def reformat_dict(name, metadata):
     if 'yres' in new_dict.keys():
         new_dict.pop('yres')
 
-    # Currect weird type
-    if 'z_unit' in new_dict.keys():
-        unit = new_dict.pop('z_unit')
-        if unit.startswith("Â"):
-            unit = unit[1:]
-        new_dict['z_unit'] = unit
+    # Correct weird characters in units
+    for unit_key in ['z_unit', 'Height_unit', 'Width_unit']:
+        if unit_key in new_dict.keys():
+            unit = new_dict.pop(unit_key)
+            if unit.startswith("Â"):
+                unit = unit[1:]
+            new_dict[unit_key] = unit
 
     new_dict['Name'] = name
 

@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Antoine Sanner
-#           2019 Lars Pastewka
+# Copyright 2019-2020 Antoine Sanner
+#           2019-2020 Lars Pastewka
 #           2019 Michael Röttger
 # 
 # ### MIT license
@@ -63,7 +63,7 @@ class AbstractHeightContainer(object):
         pass
 
     def __init__(self, info={}, communicator=MPI.COMM_WORLD):
-        self._info = info
+        self._info = info.copy()
         self._communicator = communicator
 
     def apply(self, name, *args, **kwargs):
@@ -211,6 +211,9 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def communicator(self):
+        # default value is COMM_SELF because sometimes NON-MPI readers that
+        # do not set the communicator value are used in MPI Programs.
+        # See discussion in issue #166
         return MPI.COMM_SELF
 
     @property

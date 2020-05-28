@@ -1,6 +1,6 @@
 #
-# Copyright 2018-2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2020 Antoine Sanner
+#           2018-2019 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -31,7 +31,7 @@ topographies.
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
-
+from ..UniformLineScanAndTopography import Topography
 
 def bandwidth(self):
     """Computes lower and upper bound of bandwidth.
@@ -91,6 +91,46 @@ def derivative(topography, n, periodic=None):
         return der
 
 
+def fourier_derivative(topography, imtol=1e-12):
+    """
+
+    For even number of points, the interpretation of the components at the niquist
+    frequency is ambiguous (we are free to choose amplitude or phase)
+    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf), we assume it is cosinusoidal.
+
+    Parameters
+    ----------
+    topography
+    imtol: float
+        tolerance for the discarded imaginary part
+
+    Returns
+    -------
+
+    """
+    nx, ny = topography.nb_grid_pts
+    sx, sy = topography.physical_sizes
+
+    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1, 1)
+    qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1, -1)
+
+    if nx % 2 == 0:
+        qx[int(nx / 2), 0] = 0
+    if ny % 2 == 0:
+        qy[0, int(ny / 2)] = 0
+
+    spectrum = np.fft.fft2(topography.heights())
+    dx = np.fft.ifft2(spectrum * (1j * qx))
+    dy = np.fft.ifft2(spectrum * (1j * qy))
+
+    assert (abs(dx.imag) < imtol).all(), np.max(abs(dx.imag))
+    assert (abs(dy.imag) < imtol).all(), np.max(abs(dy.imag) )
+
+    dx = dx.real
+    dy = dy.real
+
+    return dx, dy
+
 def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, communicator):
     """
     Turn a topography that is defined over the whole domain into one that is
@@ -120,11 +160,14 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
                                 decomposition='domain',
                                 subdomain_locations=subdomain_locations,
                                 nb_subdomain_grid_pts=nb_subdomain_grid_pts,
-                                communicator=communicator)
+                                communicator=communicator,
+                                info=topography.info)
 
 
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
+Topography.register_function('fourier_derivative', fourier_derivative)
 UniformTopographyInterface.register_function('domain_decompose', domain_decompose)
+

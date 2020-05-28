@@ -1,7 +1,8 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2020 Michael Röttger
+#           2019-2020 Kai Haase
+#           2019-2020 Lars Pastewka
 #           2019 Antoine Sanner
-#           2019 Kai Haase
 # 
 # ### MIT license
 # 
@@ -28,6 +29,7 @@ import numpy as np
 
 from .. import Topography
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
+from .FromFile import mangle_height_unit
 from io import TextIOBase
 
 
@@ -43,6 +45,10 @@ magic_data_ascii = b'data          ASCII'
 class MIReader(ReaderBase):
     _format = 'mi'
     _name = 'Molecular imaging data file'
+    _description = '''
+This reader opens Agilent Technologies (Molecular Imaging) AFM files saved in the MI format. This format contains
+information on the physical size of the topography map as well as its units.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -112,7 +118,7 @@ class MIReader(ReaderBase):
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = buf.meta.pop('bufferUnit')
+                buf.meta['unit'] = mangle_height_unit(buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
@@ -176,8 +182,12 @@ class MIReader(ReaderBase):
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
-
-        t = Topography(heights=out, physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
+        # Initialize heights with transposed array in order to match Gwdyydion
+        # when plotted with pcolormesh(t.heights().T), except that the y axis is flipped
+        # because the origin is in lower left with pcolormesh; imshow(t.heights().T) shows
+        # the image like gwyddion
+        t = Topography(heights=out.T,
+                       physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
                        info=joined_meta, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
@@ -185,7 +195,7 @@ class MIReader(ReaderBase):
 
     @property
     def channels(self):
-        return [ChannelInfo(self, i, dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
+        return [ChannelInfo(self, i, name=channel.meta['name'], dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes, info=channel.meta)
                 for i, channel in enumerate(self.mifile.channels)]
 

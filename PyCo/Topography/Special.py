@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2020 Antoine Sanner
+#           2019 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -30,12 +30,13 @@ Special topographies
 import numpy as np
 
 from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
 from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
 
 
 def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, offset=0, periodic=False, kind="sphere",
-                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_SELF):
+                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_WORLD):
     r"""
     Simple sphere geometry.
 
@@ -201,4 +202,5 @@ class PlasticTopography(DecoratedUniformTopography):
 
     @property
     def plastic_area(self):
-        return np.count_nonzero(self.__h_pl) * self.area_per_pt
+        pnp = Reduction(self._communicator)
+        return pnp.sum(np.count_nonzero(self.__h_pl)) * self.area_per_pt

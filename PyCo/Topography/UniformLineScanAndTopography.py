@@ -1,7 +1,7 @@
 #
-# Copyright 2019 Antoine Sanner
-#           2019 Lars Pastewka
+# Copyright 2019-2020 Antoine Sanner
 #           2019 Michael Röttger
+#           2019 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -174,6 +174,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             'domain'.
         communicator : mpi4py communicator or NuMPI stub communicator
             The MPI communicator object.
+            default value is COMM_SELF because sometimes NON-MPI readers that
+            do not set the communicator value are used in MPI Programs.
+            See discussion in issue #166
         info : dict
             The info dictionary containing auxiliary data. This data is never
             used by PyCo but can be used by third-party codes.
@@ -343,6 +346,10 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
             if not fname.endswith('.gz'):
                 fname = fname + ".gz"
         np.savetxt(fname, self.heights())
+
+    @property
+    def communicator(self):
+        return self._communicator
 
 
 
@@ -783,42 +790,11 @@ class CompoundTopography(DecoratedUniformTopography):
         return (self.parent_topography_a.heights() +
                 self.parent_topography_b.heights())
 
-
-def interpolate_fourier(topography, nb_grid_pts):
-    """
-    Interpolates the
-
-    Parameters
-    ----------
-    topography
-    nb_grid_pts
-
-    Returns
-    -------
-
-    """
-    bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1]//2 + 1),
-                          dtype=complex)
-    smallspectrum = np.fft.rfft2(topography.heights())
-    snx, sny = smallspectrum.shape
-
-    i =  snx//2 if snx %2 == 0 else (snx -1) //2 +1
-    bigspectrum[:i, :sny] = smallspectrum[:i, :sny]
-    bigspectrum[-(snx-i):, :sny] = smallspectrum[-(snx-i):, :sny]
-
-    return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
-                      * np.prod(nb_grid_pts) / np.prod(topography.nb_grid_pts), # normalization
-                      physical_sizes=topography.physical_sizes)
-
-
-
-
 ### Register analysis functions from this module
 
 UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
 UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
 UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
-UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)
 
 ### Register pipeline functions from this module
 

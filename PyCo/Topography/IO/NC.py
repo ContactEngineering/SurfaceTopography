@@ -1,5 +1,7 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2019-2020 Lars Pastewka
+#           2019 roettger@tf.uni-freiburg.de
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -24,8 +26,6 @@
 
 import numpy as np
 
-from NuMPI import MPI
-
 from .. import Topography
 from ..HeightContainer import UniformTopographyInterface
 
@@ -34,7 +34,62 @@ from .Reader import ReaderBase, ChannelInfo
 
 class NCReader(ReaderBase):
     _format = 'nc'
-    _name = 'NetCDF'
+    _name = 'Network Common Data Format (NetCDF)'
+
+    _description = '''
+This reader reads topography data contained in a
+[NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The reader looks for a variable named
+`heights` containing a two-dimensional array that is interpreted as height information. The respective
+dimensions are named `x` and `y`.
+
+The reader additionally looks for two (optional) variables `x` and `y` that contain the x- and y-coordinates o
+the first and second index of the height arrays. The attribute `length` of x` and `y` must contain the physical
+size in the respective direction. The optional attribute `length_unit` of these variables describes the physical unit.
+The optional additional attribute `periodic` indicates whether the direction contains periodic data. If `periodic` is
+missing, the reader interprets the data as non-periodic.
+
+An example file layout (output of `ncdump -h`) containing a topography map with 128 x 128 pixels looks
+like this:
+```
+netcdf test_nc_file {
+dimensions:
+	x = 128 ;
+	y = 128 ;
+variables:
+	double x(x) ;
+		x:length = 3LL ;
+		x:periodic = 1LL ;
+        x:length_unit = "μm" ;
+	double y(y) ;
+		y:length = 3LL ;
+		y:periodic = 1LL ;
+        y:length_unit = "μm" ;
+	double heights(x, y) ;
+}
+
+The following code snippets reads the file and displays the topography data as a two-dimensional color map in Python:
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from netCDF4 import Dataset
+
+with Dataset('parallel_save_test.nc') as nc:
+    heights = np.array(nc.variables['heights'])
+    length_x = nc.variables['x'].length
+    length_y = nc.variables['y'].length
+    unit = nc.variables['x'].length_unit
+
+plt.figure()
+plt.subplot(aspect=1)
+
+nx, ny = heights.shape
+x = (np.arange(nx)+0.5)*length_x/nx
+y = (np.arange(ny)+0.5)*length_y/ny
+plt.pcolormesh(x, y, heights)
+
+plt.show()
+```
+'''
 
     def __init__(self, fobj, communicator=None):
         self._nc = None
@@ -44,18 +99,27 @@ class NCReader(ReaderBase):
         else:
             self._nc = Dataset(fobj, 'r')
         self._communicator = communicator
-        self._x_var = self._nc.variables['x']
-        self._y_var = self._nc.variables['y']
+        self._x_dim = self._nc.dimensions['x']
+        self._y_dim = self._nc.dimensions['y']
+        self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
+        self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
+
+        # The following information may be missing from the NetCDF file
+        self._physical_sizes = None
+        self._periodic = False
         self._info = {}
-        try:
-            self._periodic = self._x_var.periodic != 0
-        except AttributeError:
-            self._periodic = False
-        try:
-            self._info['unit'] = self._x_var.length_unit
-        except AttributeError:
-            pass
+        if self._x_var is not None:
+            if self._y_var is not None:
+                self._physical_sizes = (self._x_var.length, self._y_var.length)
+            try:
+                self._periodic = self._x_var.periodic != 0
+            except AttributeError:
+                pass
+            try:
+                self._info['unit'] = self._x_var.length_unit
+            except AttributeError:
+                pass
 
     def __del__(self):
         self.close()
@@ -70,8 +134,8 @@ class NCReader(ReaderBase):
         return [ChannelInfo(self, 0,
                             name='Default',
                             dim=2,
-                            nb_grid_pts=(len(self._x_var), len(self._y_var)),
-                            physical_sizes=(self._x_var.length, self._y_var.length),
+                            nb_grid_pts=(len(self._x_dim), len(self._y_dim)),
+                            physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
                             info=self._info)]
 
@@ -82,12 +146,12 @@ class NCReader(ReaderBase):
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        physical_sizes = self._check_physical_sizes(physical_sizes, (self._x_var.length, self._y_var.length))
+        physical_sizes = self._check_physical_sizes(physical_sizes, self._physical_sizes)
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic if periodic is None else periodic, info=info)
+                              periodic=self._periodic if periodic is None else periodic, info=_info)
         else:
             return Topography(self._heights_var, physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
