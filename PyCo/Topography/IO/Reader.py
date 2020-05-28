@@ -1,6 +1,7 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2020 Antoine Sanner
+#           2019-2020 Michael Röttger
+#           2019-2020 Lars Pastewka
 #           2019 Kai Haase
 # 
 # ### MIT license
@@ -66,7 +67,7 @@ class ChannelInfo:
         """
         self._reader = reader
         self._index = int(index)
-        self._name = f"channel {self._index}" if name is None else str(name)
+        self._name = "channel {}".format(self._index) if name is None else str(name)
         self._dim = dim
         self._nb_grid_pts = None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None if physical_sizes is None else tuple(np.ravel(physical_sizes))

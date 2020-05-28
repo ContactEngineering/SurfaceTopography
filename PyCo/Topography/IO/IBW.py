@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2020 Michael Röttger
+#           2019-2020 Lars Pastewka
 #           2019 Kai Haase
 # 
 # ### MIT license
@@ -35,6 +35,12 @@ from .Reader import ReaderBase, ChannelInfo
 class IBWReader(ReaderBase):
     _format = 'ibw'
     _name = 'Igor binary wave'
+    _description = '''
+Igor binary wave is a container format of the
+[Igor Pro](https://www.wavemetrics.com/products/igorpro/programming) language. This format is used by
+AFMs from Asylum Research (now Oxford Instruments) to store topography information. This format contains
+information on the physical size of the topography map as well as its units.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -106,7 +112,7 @@ class IBWReader(ReaderBase):
         # so we know what to do if a file occurs which does not fulfill this assumption
         assert data_unit == x_unit == y_unit, \
             "So far, data units and dimension units must be all the same. "+\
-            f"data unit: '{data_unit}', x unit: '{x_unit}', y unit: '{y_unit}'"
+            "data unit: '{}', x unit: '{}', y unit: '{}'".format(data_unit, x_unit, y_unit)
 
         self._data_unit = data_unit
         #

@@ -1,5 +1,7 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2020 Michael Röttger
+#           2019-2020 Lars Pastewka
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -43,6 +45,11 @@ from .Reader import ReaderBase, ChannelInfo
 class DIReader(ReaderBase):
     _format = 'di'
     _name = 'Veeco (Digital Instruments) Nanoscope'
+    _description = '''
+Digitial Instruments Nanoscope files typically have a three-digit number as the file extension (.001, .002, .003, ...).
+This format contains information on the physical size of the topography map as well as its units. The reader supports
+V4.3 and later version of the format.
+'''
 
     def __init__(self, fobj):
         """

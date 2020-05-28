@@ -1,7 +1,8 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2020 Michael Röttger
+#           2019-2020 Kai Haase
+#           2019-2020 Lars Pastewka
 #           2019 Antoine Sanner
-#           2019 Kai Haase
 # 
 # ### MIT license
 # 
@@ -44,6 +45,10 @@ magic_data_ascii = b'data          ASCII'
 class MIReader(ReaderBase):
     _format = 'mi'
     _name = 'Molecular imaging data file'
+    _description = '''
+This reader opens Agilent Technologies (Molecular Imaging) AFM files saved in the MI format. This format contains
+information on the physical size of the topography map as well as its units.
+'''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

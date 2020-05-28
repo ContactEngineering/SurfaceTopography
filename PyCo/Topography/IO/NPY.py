@@ -1,6 +1,6 @@
 #
-# Copyright 2019 Antoine Sanner
-#           2019 Lars Pastewka
+# Copyright 2019-2020 Lars Pastewka
+#           2019 Antoine Sanner
 # 
 # ### MIT license
 # 
@@ -52,10 +52,12 @@ class NPYReader(ReaderBase):
     """
 
     _format = 'npy'
-    _name = 'Numpy arrays'
+    _name = 'Numpy arrays (NPY)'
     _description = '''
 Load topography information stored as a numpy array. The numpy array format is
-specified [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).
+specified [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html). The reader
+expects a two-dimensional array and interprets it as a map of heights. Numpy arrays do not store units
+or physical sizes. These need to be manually provided by the user.
     '''
 
     def __init__(self, fn, communicator=MPI.COMM_WORLD):

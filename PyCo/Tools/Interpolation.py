@@ -1,5 +1,5 @@
 #
-# Copyright 2019 Lars Pastewka
+# Copyright 2020 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -22,31 +22,8 @@
 # SOFTWARE.
 #
 
-import numpy as np
+"""
+Interpolation module
+"""
 
-from PyCo.SolidMechanics.GreensFunctions import AnisotropicGreensFunction
-
-import matplotlib.pyplot as plt
-
-
-def test_find_qz_isotropic(tol=1e-5):
-    """Test that for an isotropic solid qx^2 + qy^2 = (iqz)^2"""
-    C11 = 1
-    C44 = 0.3
-    gf = AnisotropicGreensFunction(C11, C11 - 2 * C44, C44)
-    assert (abs(gf.find_eigenvalues(1, 1) - np.sqrt(2)) < tol).all()
-    assert (abs(gf.find_eigenvalues(1, 0.3) - np.sqrt(1 + 0.3 ** 2)) < tol).all()
-
-
-def test_test():
-    C11 = 1
-    C44 = 0.3
-    C12 = C11 - 2 * C44 + 0.1 #0.3
-    gf = AnisotropicGreensFunction(C11, C12, C44)
-    x = np.linspace(-2.2, 2.2, 101)
-    print(gf.bulkop(1, 1, 0))
-    Q = gf.find_eigenvalues(1, 0.5)
-    #plt.plot(x, [np.linalg.det(gf.bulkop([1, 1, 1j * y])) for y in x], 'r-', lw=4)
-    #plt.plot(x, [np.linalg.det(gf.bulkop([-1, -1, 1j * y])) for y in x], 'k-')
-    #plt.show()
-    gf.find_eigenvectors(1, 0.5, -1j*Q)
+from _PyCo import Bicubic
