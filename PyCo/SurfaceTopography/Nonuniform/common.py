@@ -62,8 +62,8 @@ def derivative(topography, n):
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
-        Topography object containing height information.
+    topography : SurfaceTopography or UniformLineScan
+        SurfaceTopography object containing height information.
     n : int
         Number of times the derivative is taken.
 

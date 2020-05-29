@@ -45,7 +45,7 @@ class WrapAsNonuniformLineScan(DecoratedTopography, NonuniformLineScanInterface)
         Parameters
         ----------
         topography : :obj:`NonuniformLineScan`
-            Topography to wrap.
+            SurfaceTopography to wrap.
         """
         super().__init__(topography, info=info)
 
@@ -104,8 +104,8 @@ class UniformlyInterpolatedLineScan(DecoratedTopography, UniformTopographyInterf
         """
         Parameters
         ----------
-        topography : :obj:`Topography` or :obj:`UniformLineScan`
-            Topography to interpolate.
+        topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+            SurfaceTopography to interpolate.
         nb_points : int
             Number of equidistant grid points.
         padding : int

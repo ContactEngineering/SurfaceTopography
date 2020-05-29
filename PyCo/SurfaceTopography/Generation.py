@@ -29,7 +29,7 @@ Helper functions for the generation of random fractal surfaces
 
 import numpy as np
 import scipy.stats as stats
-from PyCo.Topography import Topography, UniformLineScan
+from PyCo.SurfaceTopography import Topography, UniformLineScan
 from PyCo.Tools.common import compute_wavevectors, ifftn
 
 
@@ -51,7 +51,7 @@ class CapillaryWavesExact(object):
                              dimension. If the tuple has less entries than dimensions,
                              the last value in repeated.
         mass_density      -- Mass density
-        surface_tension   -- Topography tension
+        surface_tension   -- SurfaceTopography tension
         bending_stiffness -- Bending stiffness
         rms_height        -- root mean square height of surface
         rms_slope         -- root mean square slope of surface

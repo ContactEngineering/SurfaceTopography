@@ -139,7 +139,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
 class Topography(AbstractHeightContainer, UniformTopographyInterface):
     """
-    Topography that lives on a uniform two-dimensional grid, i.e. a topography
+    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a topography
     map.
     """
 
@@ -184,14 +184,14 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         Examples for initialisation:
         ----------------------------
         1. Serial code
-        >>>Topography(heights, physical_sizes, [periodic, info])
+        >>>SurfaceTopography(heights, physical_sizes, [periodic, info])
         2. Parallel code, providing local data
-        >>>Topography(heights, physical_sizes, [periodic],
+        >>>SurfaceTopography(heights, physical_sizes, [periodic],
                       decomposition='subdomain',
                       subdomain_locations, nb_grid_pts, comm,
                       [info])
         3. Parallel code, providing full data
-        >>>Topography(heights, physical_sizes, [periodic],
+        >>>SurfaceTopography(heights, physical_sizes, [periodic],
                       decomposition='domain',
                       subdomain_locations, nb_subdomain_grid_pts, comm,
                       [info])
@@ -429,7 +429,7 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
-        topography  -- Topography to scale
+        topography  -- SurfaceTopography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
@@ -477,7 +477,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         Parameters
         ----------
         topography : Topography
-            Topography to be detrended.
+            SurfaceTopography to be detrended.
         detrend_mode : str
             'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
@@ -561,8 +561,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     @property
     def is_periodic(self):
         """
-        Topography stays periodic only after detrend mode "center".
-        Otherwise the detrended Topography is non-periodic.
+        SurfaceTopography stays periodic only after detrend mode "center".
+        Otherwise the detrended SurfaceTopography is non-periodic.
         """
         if self.detrend_mode == "center":
             return self.parent_topography.is_periodic
@@ -678,7 +678,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         Parameters
         ----------
         topography : :obj:`UniformTopography`
-            Topography to transpose
+            SurfaceTopography to transpose
         info : dict
             Additional entries for the info dictionary
         """
@@ -720,7 +720,7 @@ class TranslatedTopography(DecoratedUniformTopography):
     def __init__(self, topography, offset=(0, 0), info={}):
         """
         Keyword Arguments:
-        topography  -- Topography to translate
+        topography  -- SurfaceTopography to translate
         offset -- Translation offset in number of grid points
         """
         super().__init__(topography, info=info)

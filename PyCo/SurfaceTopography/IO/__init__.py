@@ -217,7 +217,7 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
         This dictionary will be appended to the info dictionary returned
         by the reader.
     periodic: bool
-        Wether the Topography should be interpreted as one period of a
+        Wether the SurfaceTopography should be interpreted as one period of a
         periodic surface. This will affect the PSD and autocorrelation
         calculations (windowing)
     subdomain_locations : tuple of ints

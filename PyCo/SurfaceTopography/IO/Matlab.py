@@ -38,7 +38,7 @@ physical sizes. These need to be manually provided by the user.
 
     def __init__(self, fobj):
         """
-        Reads a surface profile from a Matlab file and presents in in a Topography-conformant manner.
+        Reads a surface profile from a Matlab file and presents in in a SurfaceTopography-conformant manner.
 
         All two-dimensional arrays present in the matlab data file are returned.
 

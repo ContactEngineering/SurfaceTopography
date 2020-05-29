@@ -105,7 +105,7 @@ def interpolate_fourier(topography, nb_grid_pts):
 
     Returns
     -------
-    Topography with interolated values
+    SurfaceTopography with interolated values
 
     """
     bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1] // 2 + 1),

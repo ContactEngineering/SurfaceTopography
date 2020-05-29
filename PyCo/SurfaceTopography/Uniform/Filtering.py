@@ -1,4 +1,4 @@
-from PyCo.Topography import Topography
+from PyCo.SurfaceTopography import Topography
 import numpy as np
 
 
@@ -17,7 +17,7 @@ def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
 
     Returns
     -------
-    Topography with filtered heights
+    SurfaceTopography with filtered heights
     """
 
     if not topography.is_periodic:
@@ -73,7 +73,7 @@ def lowcut(topography, q_l=None, lam_l=None, kind="circular step"):
 
     Returns
     -------
-    Topography with filtered heights
+    SurfaceTopography with filtered heights
     """
 
     if not topography.is_periodic:
@@ -120,12 +120,12 @@ def isotropic_filter(topography, filter_function=lambda q: np.exp(-q)):
 
     Parameters
     ----------
-    topography: Topography object
+    topography: SurfaceTopography object
     filter_function: function of the absolute value of the wavevector |q|
 
     Returns
     -------
-    Topography with the modified heights
+    SurfaceTopography with the modified heights
     """
 
     if not topography.is_periodic:

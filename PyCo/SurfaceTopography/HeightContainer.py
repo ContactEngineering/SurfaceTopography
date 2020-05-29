@@ -158,7 +158,7 @@ class DecoratedTopography(AbstractHeightContainer):
         """
         Arguments
         ---------
-        topography : Topography
+        topography : SurfaceTopography
             The parent topography.
         """
         super().__init__(info=info)

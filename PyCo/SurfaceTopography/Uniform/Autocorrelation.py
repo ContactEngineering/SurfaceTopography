@@ -56,7 +56,7 @@ def autocorrelation_1D(topography):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
 
     Returns
@@ -129,7 +129,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
 
     Parameters
     ----------
-    topography : :obj:`Topography`
+    topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller

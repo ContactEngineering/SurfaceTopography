@@ -59,7 +59,7 @@ class ChannelInfo:
         physical_sizes: tuple of floats
             Physical dimensions.
         periodic: bool
-            Wether the Topography should be interpreted as one period of a
+            Wether the SurfaceTopography should be interpreted as one period of a
             periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
         info: dict
@@ -96,7 +96,7 @@ class ChannelInfo:
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the Topography should be interpreted as one period of a
+            Wether the SurfaceTopography should be interpreted as one period of a
             periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
@@ -330,7 +330,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the Topography should be interpreted as one period of a
+            Wether the SurfaceTopography should be interpreted as one period of a
             periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints

@@ -30,6 +30,8 @@ topographies.
 
 import numpy as np
 
+from muFFT import Stencils2D
+
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 
@@ -46,22 +48,22 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def derivative(topography, n, periodic=None):
+def derivative(topography, operator=Stencils2D.upwind, periodic=False):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
-    n : int
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
+    operator : muFFT.Derivative object or tuple of muFFT.Derivative objects
         Number of times the derivative is taken.
     periodic : bool
         Override periodic flag from topography.
 
     Returns
     -------
-    derivative : array
+    derivative : array or tuple of arrays
         Array with derivative values. If dimension of the topography is
         unity (line scan), then an array of the same shape as the
         topography is returned. Otherwise, the first array index contains
@@ -70,7 +72,7 @@ def derivative(topography, n, periodic=None):
         arrays.
     """
     if topography.physical_sizes is None:
-        raise ValueError('Topography does not have physical size information, but this is required to be able to '
+        raise ValueError('SurfaceTopography does not have physical size information, but this is required to be able to '
                          'compute a derivative.')
     grid_spacing = topography.pixel_size
     heights = topography.heights()
@@ -138,8 +140,8 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
     subdomain_locations : tuple of ints
         Origin (location) of the subdomain handled by the present MPI
         process.
@@ -153,7 +155,7 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
     Returns
     -------
     decomposed_topography : array
-        Topography object that now holds only data local the MPI process.
+        SurfaceTopography object that now holds only data local the MPI process.
     """
     return topography.__class__(topography.heights(), topography.physical_sizes,
                                 periodic=topography.is_periodic,

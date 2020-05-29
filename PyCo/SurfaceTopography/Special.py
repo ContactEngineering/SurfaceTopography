@@ -138,7 +138,7 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, of
 
 
 class PlasticTopography(DecoratedUniformTopography):
-    """ Topography with an additional plastic deformation field.
+    """ SurfaceTopography with an additional plastic deformation field.
     """
     name = 'plastic_topography'
 

@@ -40,8 +40,8 @@ def rms_height(topography, kind='Sq'):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
 
     Returns
     -------
@@ -78,8 +78,8 @@ def rms_slope(topography):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
 
     Returns
     -------
@@ -105,8 +105,8 @@ def rms_laplacian(topography):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
 
     Returns
     -------
@@ -138,8 +138,8 @@ def rms_curvature(topography):
 
     Parameters
     ----------
-    topography : :obj:`Topography` or :obj:`UniformLineScan`
-        Topography object containing height information.
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
 
     Returns
     -------

@@ -82,7 +82,7 @@ or physical sizes. These need to be manually provided by the user.
         except NuMPI.IO.MPIFileTypeError:
             raise FileFormatMismatch()
 
-        # TODO: maybe implement extras specific to Topography , like loading the units and the physical_sizes
+        # TODO: maybe implement extras specific to SurfaceTopography , like loading the units and the physical_sizes
 
     @property
     def channels(self):

@@ -175,7 +175,7 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
 
     Parameters
     ----------
-    topography : :obj:`Topography`
+    topography : :obj:`SurfaceTopography`
         The topography to write to disk.
     filename : str
         Name of the NetCDF file

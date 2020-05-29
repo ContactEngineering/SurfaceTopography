@@ -132,7 +132,7 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     def __init__(self, topography, scale_factor, info={}):
         """
         Keyword Arguments:
-        topography  -- Topography to scale
+        topography  -- SurfaceTopography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
@@ -174,8 +174,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         """
         Parameters
         ----------
-        topography : Topography
-            Topography to be detrended.
+        topography : SurfaceTopography
+            SurfaceTopography to be detrended.
         detrend_mode : str
             'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
@@ -235,8 +235,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     @property
     def is_periodic(self):
         """
-        Topography stays periodic only after detrend mode "center".
-        Otherwise the detrended Topography is non-periodic.
+        SurfaceTopography stays periodic only after detrend mode "center".
+        Otherwise the detrended SurfaceTopography is non-periodic.
         """
         if self.detrend_mode == "center":
             return self.parent_topography.is_periodic

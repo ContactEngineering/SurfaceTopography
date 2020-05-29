@@ -33,19 +33,19 @@ from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
 from .IO import open_topography, read_topography
 
-from PyCo.Topography.IO import NPYReader
+from PyCo.SurfaceTopography.IO import NPYReader
 
 # These imports are required to register the analysis functions!
-import PyCo.Topography.Converters
-import PyCo.Topography.Uniform.common
-import PyCo.Topography.Uniform.Interpolation
-import PyCo.Topography.Uniform.Filtering
-import PyCo.Topography.Uniform.Autocorrelation
-import PyCo.Topography.Uniform.PowerSpectrum
-import PyCo.Topography.Uniform.ScalarParameters
-import PyCo.Topography.Uniform.VariableBandwidth
-import PyCo.Topography.Nonuniform.common
-import PyCo.Topography.Nonuniform.Autocorrelation
-import PyCo.Topography.Nonuniform.ScalarParameters
-import PyCo.Topography.Nonuniform.PowerSpectrum
-import PyCo.Topography.Nonuniform.VariableBandwidth
+import PyCo.SurfaceTopography.Converters
+import PyCo.SurfaceTopography.Uniform.common
+import PyCo.SurfaceTopography.Uniform.Interpolation
+import PyCo.SurfaceTopography.Uniform.Filtering
+import PyCo.SurfaceTopography.Uniform.Autocorrelation
+import PyCo.SurfaceTopography.Uniform.PowerSpectrum
+import PyCo.SurfaceTopography.Uniform.ScalarParameters
+import PyCo.SurfaceTopography.Uniform.VariableBandwidth
+import PyCo.SurfaceTopography.Nonuniform.common
+import PyCo.SurfaceTopography.Nonuniform.Autocorrelation
+import PyCo.SurfaceTopography.Nonuniform.ScalarParameters
+import PyCo.SurfaceTopography.Nonuniform.PowerSpectrum
+import PyCo.SurfaceTopography.Nonuniform.VariableBandwidth

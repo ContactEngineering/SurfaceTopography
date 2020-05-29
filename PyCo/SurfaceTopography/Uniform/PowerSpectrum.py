@@ -44,7 +44,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    topography : SurfaceTopography or UniformLineScan
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
@@ -133,7 +133,7 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
     Parameters
     ----------
-    topography : :obj:`Topography`
+    topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
     nbins : int
         Number of bins for radial average. Note: Returned array can be smaller
