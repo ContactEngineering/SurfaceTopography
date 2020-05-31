@@ -48,7 +48,7 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def derivative(topography, operator=Stencils2D.upwind, periodic=False):
+def derivative(topography, n, periodic=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
