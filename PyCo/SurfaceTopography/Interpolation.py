@@ -1,5 +1,5 @@
 #
-# Copyright 2018 Antoine Sanner
+# Copyright 2020 Lars Pastewka
 # 
 # ### MIT license
 # 
@@ -21,34 +21,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 """
-Import testing
+Interpolation module
 """
 
-try:
-    import unittest
-    import importlib
-    import numpy as np
-except ImportError as err:
-    import sys
-    print(err)
-    sys.exit(-1)
-
-class ImportabilityChecks(unittest.TestCase):
-
-    def import_module(self, module):
-        return_code = -1
-        try:
-            importlib.import_module(module)
-            return_code = 0
-        except ImportError: pass
-        return return_code
-
-    def test_Surface(self):
-        self.assertEqual(self.import_module("PyCo.SurfaceTopography"), 0)
-
-    def test_PyCo_C_extension(self):
-        self.assertEqual(self.import_module("_PyCo"), 0)
-
-if __name__ == '__main__':
-    unittest.main()
+from _PyCo import Bicubic

@@ -26,7 +26,7 @@ import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
 from ..HeightContainer import UniformTopographyInterface
-from PyCo.ContactMechanics.Tools.Interpolation import Bicubic
+from PyCo.SurfaceTopography.Interpolation import Bicubic
 
 def bicubic_interpolator(topography):
     r"""
