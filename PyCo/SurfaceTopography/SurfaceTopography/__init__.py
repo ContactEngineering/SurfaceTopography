@@ -49,3 +49,10 @@ import PyCo.SurfaceTopography.Nonuniform.Autocorrelation
 import PyCo.SurfaceTopography.Nonuniform.ScalarParameters
 import PyCo.SurfaceTopography.Nonuniform.PowerSpectrum
 import PyCo.SurfaceTopography.Nonuniform.VariableBandwidth
+
+try:
+    from importlib.metadata import version
+    __version__ = version(__name__)
+except ImportError:
+    from pkg_resources import get_distribution
+    __version__ = get_distribution(__name__).version
