@@ -26,4 +26,4 @@
 Interpolation module
 """
 
-from _PyCo import Bicubic
+from _SurfaceTopography import Bicubic

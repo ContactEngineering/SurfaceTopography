@@ -29,7 +29,6 @@ import os
 from runtests.mpi.tester import WorldTooSmall, create_comm
 
 from NuMPI import MPI
-from muFFT import FFT
 
 def MyMPITestFixture(commsize, scope='function'):
     """ Create a test fixture for MPI Communicators of various commsizes """

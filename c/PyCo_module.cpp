@@ -1,5 +1,5 @@
 /*
-@file   _PyCo.cpp
+@file   _SurfaceTopography.cpp
 
 @author Lars Pastewka <lars.pastewka@imtek.uni-freiburg.de>
 
@@ -68,12 +68,12 @@ static PyMethodDef PyCo_methods[] = {
         PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
     ob = PyModule_Create(&moduledef);
 
-MOD_INIT(_PyCo)  {
+MOD_INIT(_SurfaceTopography)  {
   PyObject *m;
 
   import_array();
 
-  MOD_DEF(m, "_PyCo", PyCo_methods,
+  MOD_DEF(m, "_SurfaceTopography", PyCo_methods,
           "C support functions for PyCo.");
 
   if (PyType_Ready(&bicubic_type) < 0)

@@ -26,17 +26,18 @@
 import os
 
 import numpy as np
+import pytest
 
 from netCDF4 import Dataset
 from NuMPI import MPI
 
 # TODO(pastewka): test_save_and_load should become independent of ContactMechanics
 # from PyCo.ContactMechanics import PeriodicFFTElasticHalfSpace
-from PyCo.SurfaceTopography.IO import read_topography
-from PyCo.SurfaceTopography.IO.NC import NCReader
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.IO import read_topography
+from SurfaceTopography.IO.NC import NCReader
+from SurfaceTopography.Generation import fourier_synthesis
 
-@pytest.skip
+@pytest.mark.skip(reason='depends on FFTElasticHalfSpace')
 def test_save_and_load(comm):
     nb_grid_pts = (128, 128)
     size = (3, 3)

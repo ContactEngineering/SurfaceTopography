@@ -30,7 +30,7 @@ Height-difference autocorrelation functions for nonuniform line scans
 
 import numpy as np
 
-import _PyCo
+import _SurfaceTopography
 
 from ..HeightContainer import NonuniformLineScanInterface
 
@@ -144,7 +144,7 @@ def height_difference_autocorrelation_1D(line_scan, algorithm='fft', distances=N
             raise RuntimeError('Positions not sorted.')
         return line_scan.to_uniform(ninterpolate*int(s/min_dist), 0).autocorrelation_1D()
     elif algorithm == 'brute-force':
-        return _PyCo.nonuniform_autocorrelation_1D(x, h, s, distances)
+        return _SurfaceTopography.nonuniform_autocorrelation_1D(x, h, s, distances)
     else:
         raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 

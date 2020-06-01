@@ -33,22 +33,22 @@ from .NonuniformLineScan import NonuniformLineScan
 from .Special import make_sphere, PlasticTopography
 from .IO import open_topography, read_topography
 
-from PyCo.SurfaceTopography.IO import NPYReader
+from SurfaceTopography.IO import NPYReader
 
 # These imports are required to register the analysis functions!
-import PyCo.SurfaceTopography.Converters
-import PyCo.SurfaceTopography.Uniform.common
-import PyCo.SurfaceTopography.Uniform.Interpolation
-import PyCo.SurfaceTopography.Uniform.Filtering
-import PyCo.SurfaceTopography.Uniform.Autocorrelation
-import PyCo.SurfaceTopography.Uniform.PowerSpectrum
-import PyCo.SurfaceTopography.Uniform.ScalarParameters
-import PyCo.SurfaceTopography.Uniform.VariableBandwidth
-import PyCo.SurfaceTopography.Nonuniform.common
-import PyCo.SurfaceTopography.Nonuniform.Autocorrelation
-import PyCo.SurfaceTopography.Nonuniform.ScalarParameters
-import PyCo.SurfaceTopography.Nonuniform.PowerSpectrum
-import PyCo.SurfaceTopography.Nonuniform.VariableBandwidth
+import SurfaceTopography.Converters
+import SurfaceTopography.Uniform.common
+import SurfaceTopography.Uniform.Interpolation
+import SurfaceTopography.Uniform.Filtering
+import SurfaceTopography.Uniform.Autocorrelation
+import SurfaceTopography.Uniform.PowerSpectrum
+import SurfaceTopography.Uniform.ScalarParameters
+import SurfaceTopography.Uniform.VariableBandwidth
+import SurfaceTopography.Nonuniform.common
+import SurfaceTopography.Nonuniform.Autocorrelation
+import SurfaceTopography.Nonuniform.ScalarParameters
+import SurfaceTopography.Nonuniform.PowerSpectrum
+import SurfaceTopography.Nonuniform.VariableBandwidth
 
 try:
     from importlib.metadata import version

@@ -24,6 +24,7 @@
 #
 
 import pickle
+import unittest
 
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -31,11 +32,9 @@ from numpy.testing import assert_array_equal
 from muFFT import FFT
 from NuMPI.Tools import Reduction
 
-from PyCo.SurfaceTopography import Topography
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
-from PyCo.SurfaceTopography.UniformLineScanAndTopography import DetrendedUniformTopography
-
-from SurfaceTopography.tests.PyCoTest import PyCoTestCase
+from SurfaceTopography import Topography
+from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.UniformLineScanAndTopography import DetrendedUniformTopography
 
 
 def test_positions(comm):
@@ -61,7 +60,7 @@ def test_positions(comm):
     assert abs(Reduction(comm).max(y) - sy * (1 - 1. / ny)) < 1e-8
 
 
-class TopographyTest(PyCoTestCase):
+class TopographyTest(unittest.TestCase):
 
     def test_positions_and_heights(self):
         X = np.arange(3).reshape(1, 3)
@@ -98,7 +97,7 @@ class TopographyTest(PyCoTestCase):
         #
         dt = t.detrend(detrend_mode='slope')
 
-        self.assertArrayAlmostEqual(dt.heights(), [
+        np.testing.assert_allclose(dt.heights(), [
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -119,7 +118,7 @@ class TopographyTest(PyCoTestCase):
             (0, 2, 4),
             (0, 2, 4),
         ])
-        self.assertArrayAlmostEqual(h2, [
+        np.testing.assert_allclose(h2, [
             (0, 0, 0),
             (0, 0, 0),
             (0, 0, 0),
@@ -132,7 +131,7 @@ class TopographyTest(PyCoTestCase):
         surface = Topography(h, (1.2, 3.2)).scale(2.0)
         surface2 = surface.squeeze()
         self.assertTrue(isinstance(surface2, Topography))
-        self.assertArrayAlmostEqual(surface.heights(), surface2.heights())
+        np.testing.assert_allclose(surface.heights(), surface2.heights())
 
     def test_attribute_error(self):
         X = np.arange(3).reshape(1, 3)
@@ -249,6 +248,6 @@ def test_uniform_detrended_periodicity():
 
 
 def test_passing_of_docstring():
-    from PyCo.SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_1D
+    from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_1D
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]), physical_sizes=(4., 3.), periodic=True)
     assert topography.power_spectrum_1D.__doc__ == power_spectrum_1D.__doc__

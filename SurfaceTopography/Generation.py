@@ -28,8 +28,8 @@ Helper functions for the generation of random fractal surfaces
 """
 
 import numpy as np
-from PyCo.SurfaceTopography import Topography, UniformLineScan
-from ContactMechanics.Tools.common import compute_wavevectors, ifftn
+from . import Topography, UniformLineScan
+from .Tools.common import compute_wavevectors, ifftn
 
 
 class CapillaryWavesExact(object):

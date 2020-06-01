@@ -45,10 +45,10 @@ class ImportabilityChecks(unittest.TestCase):
         return return_code
 
     def test_Surface(self):
-        self.assertEqual(self.import_module("PyCo.SurfaceTopography"), 0)
+        self.assertEqual(self.import_module("SurfaceTopography"), 0)
 
-    def test_PyCo_C_extension(self):
-        self.assertEqual(self.import_module("_PyCo"), 0)
+    def test_SurfaceTopography_C_extension(self):
+        self.assertEqual(self.import_module("_SurfaceTopography"), 0)
 
 if __name__ == '__main__':
     unittest.main()

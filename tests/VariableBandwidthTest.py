@@ -28,35 +28,36 @@ Test tools for variable bandwidth analysis.
 import unittest
 
 import numpy as np
-
-from PyCo.SurfaceTopography import Topography, UniformLineScan
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.tests.PyCoTest import PyCoTestCase
 import pytest
+
 from NuMPI import MPI
+
+from SurfaceTopography import Topography, UniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
+
 pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
         reason="tests only serial funcionalities, please execute with pytest")
 ###
 
-class TestVariableBandwidth(PyCoTestCase):
+class TestVariableBandwidth(unittest.TestCase):
 
     def test_checkerboard_detrend_1d(self):
         arr = np.zeros([4])
         arr[:2] = 1.0
         outarr = UniformLineScan(arr, arr.shape).checkerboard_detrend((2, ))
-        self.assertArrayAlmostEqual(outarr, np.zeros([4]))
+        np.testing.assert_allclose(outarr, np.zeros([4]))
 
     def test_checkerboard_detrend_2d(self):
         arr = np.zeros([4, 4])
         arr[:2, :2] = 1.0
         outarr = Topography(arr, arr.shape).checkerboard_detrend((2, 2))
-        self.assertArrayAlmostEqual(outarr, np.zeros([4, 4]))
+        np.testing.assert_allclose(outarr, np.zeros([4, 4]))
 
         arr = np.zeros([4, 4])
         arr[:2, :2] = 1.0
         arr[:2, 1] = 2.0
         outarr = Topography(arr, arr.shape).checkerboard_detrend((2, 2))
-        self.assertArrayAlmostEqual(outarr, np.zeros([4, 4]))
+        np.testing.assert_allclose(outarr, np.zeros([4, 4]))
 
     def test_checkerboard_detrend_with_no_subdivisions(self):
         r = 32
@@ -66,7 +67,7 @@ class TestVariableBandwidth(PyCoTestCase):
         # This should be the same as a detrend with detrend_mode='height'
         ut1 = t.checkerboard_detrend((1, 1))
         ut2 = t.detrend().heights()
-        self.assertArrayAlmostEqual(ut1, ut2)
+        np.testing.assert_allclose(ut1, ut2)
 
     def test_self_affine_topography_1d(self):
         r = 16384
@@ -77,7 +78,7 @@ class TestVariableBandwidth(PyCoTestCase):
             for t in [t0, t0.to_nonuniform()]:
                 mag, bwidth, rms = t.variable_bandwidth(nb_grid_pts_cutoff=r//32)
                 self.assertAlmostEqual(rms[0], t.detrend().rms_height())
-                self.assertArrayAlmostEqual(bwidth, t.physical_sizes[0] / mag)
+                np.testing.assert_allclose(bwidth, t.physical_sizes[0] / mag)
                 # Since this is a self-affine surface, rms(mag) ~ mag^-H
                 b, a = np.polyfit(np.log(mag[1:]), np.log(rms[1:]), 1)
                 # The error is huge...

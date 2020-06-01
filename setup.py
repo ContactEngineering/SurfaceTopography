@@ -92,17 +92,11 @@ if np is not None:
 extra_compile_args = ["-std=c++11"]
 print(extra_objects)
 
-scripts = [
-   'commandline/ContactMechanics/hard_wall.py',
-   'commandline/Adhesion/soft_wall.py',
-   'commandline/ContactMechanics/plotacf.py',
-   'commandline/ContactMechanics/plotpsd.py',
-   'commandline/ContactMechanics/plotmap.py'
-   ]
+scripts = []
 
 extensions = [
     Extension(
-        name='_PyCo',
+        name='_SurfaceTopography',
         sources=['c/autocorrelation.cpp',
                  'c/bicubic.cpp',
                  'c/patchfinder.cpp',
@@ -116,7 +110,7 @@ extensions = [
 ]
 
 setup(
-    name="PyCo",
+    name="SurfaceTopography",
     cmdclass={'build_ext': CustomBuildExtCommand},
     scripts=scripts,
     packages=find_packages(),
@@ -126,7 +120,7 @@ setup(
     # metadata for upload to PyPI
     author="Lars Pastewka",
     author_email="lars.pastewka@imtek.uni-freiburg.de",
-    description="Efficient contact mechanics with Python",
+    description="Read and analyze surface topographies",
     license="MIT",
     test_suite='tests',
     # dependencies

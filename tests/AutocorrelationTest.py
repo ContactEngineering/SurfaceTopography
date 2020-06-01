@@ -31,9 +31,9 @@ import os
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
-from PyCo.SurfaceTopography import read_topography, Topography, UniformLineScan, NonuniformLineScan
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
-from PyCo.SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation_1D
+from SurfaceTopography import read_topography, Topography, UniformLineScan, NonuniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation_1D
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
@@ -235,7 +235,7 @@ def test_self_affine_uniform_autocorrelation():
 
 
 def test_c_vs_py_reference():
-    from _PyCo import nonuniform_autocorrelation_1D
+    from _SurfaceTopography import nonuniform_autocorrelation_1D
     r = 16
     s = 1
     H = 0.8

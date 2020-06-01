@@ -34,7 +34,7 @@ import os.path
 import matplotlib.pyplot as plt
 
 import PyCo.Tools as Tools
-import PyCo.SurfaceTopography as Surf
+import SurfaceTopography as Surf
 
 counter = 0
 def process(surf_name, surface):

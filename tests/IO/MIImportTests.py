@@ -27,7 +27,7 @@
 import unittest
 import os
 
-from PyCo.SurfaceTopography.IO.MI import MIReader
+from SurfaceTopography.IO.MI import MIReader
 import pytest
 from NuMPI import MPI
 

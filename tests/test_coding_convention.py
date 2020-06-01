@@ -35,10 +35,10 @@ import PyCo
 class SystemTest(unittest.TestCase):
     def setUp(self):
         self.modules = list([PyCo,
-                             PyCo.SurfaceTopography,
-                             PyCo.SurfaceTopography.IO,
-                             PyCo.SurfaceTopography.Nonuniform,
-                             PyCo.SurfaceTopography.Uniform])
+                             SurfaceTopography,
+                             SurfaceTopography.IO,
+                             SurfaceTopography.Nonuniform,
+                             SurfaceTopography.Uniform])
 
     @unittest.skip
     def test_pylint_bitchiness(self):

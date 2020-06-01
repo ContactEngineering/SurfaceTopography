@@ -42,15 +42,15 @@ from NuMPI import MPI
 pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size() > 1,
                                 reason="tests only serial functionalities, please execute with pytest")
 
-from PyCo.SurfaceTopography import open_topography, read_topography
+from SurfaceTopography import open_topography, read_topography
 
-from PyCo.SurfaceTopography.IO.FromFile import read_xyz
+from SurfaceTopography.IO.FromFile import read_xyz
 
-from PyCo.SurfaceTopography.IO.FromFile import is_binary_stream
-from PyCo.SurfaceTopography.IO import detect_format
+from SurfaceTopography.IO.FromFile import is_binary_stream
+from SurfaceTopography.IO import detect_format
 
-import PyCo.SurfaceTopography.IO
-from PyCo.SurfaceTopography.IO import readers
+import SurfaceTopography.IO
+from SurfaceTopography.IO import readers
 
 ###
 
@@ -277,20 +277,20 @@ class IOTest(unittest.TestCase):
 class UnknownFileFormatGivenTest(unittest.TestCase):
 
     def test_read(self):
-        with self.assertRaises(PyCo.SurfaceTopography.IO.UnknownFileFormatGiven):
-            PyCo.SurfaceTopography.IO.open_topography(os.path.join(DATADIR, "surface.2048x2048.h5"),
+        with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
+            SurfaceTopography.IO.open_topography(os.path.join(DATADIR, "surface.2048x2048.h5"),
                                                       format='Nonexistentfileformat')
 
     def test_detect_format(self):
-        with self.assertRaises(PyCo.SurfaceTopography.IO.UnknownFileFormatGiven):
-            PyCo.SurfaceTopography.IO.open_topography(
+        with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
+            SurfaceTopography.IO.open_topography(
                 os.path.join(DATADIR, "surface.2048x2048.h5"),
                 format='Nonexistentfileformat')
 
 
 def test_file_format_mismatch():
-    with pytest.raises(PyCo.SurfaceTopography.IO.FileFormatMismatch):
-        PyCo.SurfaceTopography.IO.open_topography(
+    with pytest.raises(SurfaceTopography.IO.FileFormatMismatch):
+        SurfaceTopography.IO.open_topography(
             os.path.join(DATADIR, 'surface.2048x2048.h5'), format="npy")
 
 

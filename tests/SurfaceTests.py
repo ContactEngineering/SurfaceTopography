@@ -44,24 +44,22 @@ from tempfile import TemporaryDirectory as tmp_dir
 import os
 import pickle
 
-from PyCo.SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan, make_sphere, open_topography,
+from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan, make_sphere, open_topography,
                                     read_topography)
 
-from PyCo.SurfaceTopography.IO.FromFile import  read_asc, read_hgt, read_opd, read_x3p, read_xyz, AscReader
+from SurfaceTopography.IO.FromFile import  read_asc, read_hgt, read_opd, read_x3p, read_xyz, AscReader
 
-from PyCo.SurfaceTopography.IO.FromFile import get_unit_conversion_factor
-from PyCo.SurfaceTopography.IO import detect_format
+from SurfaceTopography.IO.FromFile import get_unit_conversion_factor
+from SurfaceTopography.IO import detect_format
 
-import PyCo.SurfaceTopography.IO
-from PyCo.SurfaceTopography.IO import NPYReader, H5Reader, IBWReader
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
-
-from SurfaceTopography.tests.PyCoTest import PyCoTestCase
+import SurfaceTopography.IO
+from SurfaceTopography.IO import NPYReader, H5Reader, IBWReader
+from SurfaceTopography.Generation import fourier_synthesis
 
 DATADIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
 
-class UniformLineScanTest(PyCoTestCase):
+class UniformLineScanTest(unittest.TestCase):
 
     def test_properties(self):
 
@@ -77,7 +75,7 @@ class UniformLineScanTest(PyCoTestCase):
         surface = UniformLineScan(h, 4 * np.pi).scale(2.0)
         surface2 = surface.squeeze()
         self.assertTrue(isinstance(surface2, UniformLineScan))
-        self.assertArrayAlmostEqual(surface.heights(), surface2.heights())
+        np.testing.assert_allclose(surface.heights(), surface2.heights())
 
     def test_positions_and_heights(self):
 
@@ -88,10 +86,10 @@ class UniformLineScanTest(PyCoTestCase):
         assert_array_equal(t.heights(), h)
 
         expected_x = np.array((0., 0.8, 1.6, 2.4, 3.2))
-        self.assertArrayAlmostEqual(t.positions(), expected_x)
+        np.testing.assert_allclose(t.positions(), expected_x)
 
         x2, h2 = t.positions_and_heights()
-        self.assertArrayAlmostEqual(x2, expected_x)
+        np.testing.assert_allclose(x2, expected_x)
         assert_array_equal(h2, h)
 
     def test_attribute_error(self):
@@ -209,7 +207,7 @@ class UniformLineScanTest(PyCoTestCase):
         t.power_spectrum_1D(window='hann')
         # TODO add check for values
 
-class NonuniformLineScanTest(PyCoTestCase):
+class NonuniformLineScanTest(unittest.TestCase):
 
     def test_properties(self):
 
@@ -224,8 +222,8 @@ class NonuniformLineScanTest(PyCoTestCase):
         surface = NonuniformLineScan(x, h).scale(2.0)
         surface2 = surface.squeeze()
         self.assertTrue(isinstance(surface2, NonuniformLineScan))
-        self.assertArrayAlmostEqual(surface.positions(), surface2.positions())
-        self.assertArrayAlmostEqual(surface.heights(), surface2.heights())
+        np.testing.assert_allclose(surface.positions(), surface2.positions())
+        np.testing.assert_allclose(surface.heights(), surface2.heights())
 
     def test_positions_and_heights(self):
 
@@ -430,7 +428,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         topography_file = open_topography(os.path.join(DATADIR, 'example6.txt'))
         surf = topography_file.topography()
         self.assertTrue(isinstance(surf, UniformLineScan))
-        self.assertTrue(np.allclose(surf.heights(), [1,2,3,4,5,6,7,8,9]))
+        np.testing.assert_allclose(surf.heights(), [1,2,3,4,5,6,7,8,9])
 
     def test_simple_nonuniform_line_scan(self):
         surf = read_xyz(os.path.join(DATADIR,  'line_scan_1_minimal_spaces.asc'))
@@ -763,7 +761,7 @@ class matSurfaceTest(unittest.TestCase):
         pass
 
     def test_read(self):
-        from PyCo.SurfaceTopography.IO import MatReader
+        from SurfaceTopography.IO import MatReader
         surface = MatReader(os.path.join(DATADIR,  'example1.mat')).topography(physical_sizes=[1.,1.])
         nx, ny = surface.nb_grid_pts
         self.assertEqual(nx, 2048)
@@ -960,7 +958,7 @@ class h5SurfaceTest(unittest.TestCase):
 
     def test_detect_format(self):
 
-        self.assertEqual(PyCo.SurfaceTopography.IO.detect_format( # TODO: this will be the standart detect format method in the future
+        self.assertEqual(SurfaceTopography.IO.detect_format( # TODO: this will be the standart detect format method in the future
             os.path.join(DATADIR,  'surface.2048x2048.h5')), 'h5')
 
     def test_read(self):
@@ -1012,7 +1010,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(sy, sx2)
         self.assertTrue((surf.heights() == surf2.heights().T).all())
 
-class ScalarParametersTest(PyCoTestCase):
+class ScalarParametersTest(unittest.TestCase):
     @unittest.skip
     def test_rms_slope_1d(self):
         r = 4096
@@ -1033,7 +1031,7 @@ class ScalarParametersTest(PyCoTestCase):
                 self.assertAlmostEqual(t.rms_slope(), 0.1, places=2)
 
 
-class ConvertersTest(PyCoTestCase):
+class ConvertersTest(unittest.TestCase):
     def test_wrapped_x_range(self):
         t = fourier_synthesis((128, ), (1, ), 0.8, rms_slope=0.1).to_nonuniform()
         x = t.positions()
@@ -1082,7 +1080,7 @@ class ConvertersTest(PyCoTestCase):
         self.assertIn('to_uniform', dir(t3))
 
 
-class DerivativeTest(PyCoTestCase):
+class DerivativeTest(unittest.TestCase):
     def test_uniform_vs_nonuniform(self):
         t1 = fourier_synthesis([12], [6], 0.8, rms_slope=0.1)
         t2 = t1.to_nonuniform()
@@ -1090,7 +1088,7 @@ class DerivativeTest(PyCoTestCase):
         d1 = t1.derivative(1)
         d2 = t2.derivative(1)
 
-        self.assertArrayAlmostEqual(d1[:-1], d2)
+        np.testing.assert_allclose(d1[:-1], d2)
 
     def test_analytic(self):
         nb_pts = 1488
@@ -1105,17 +1103,17 @@ class DerivativeTest(PyCoTestCase):
         d2 = t2.derivative(1)
         d3 = t3.derivative(1)
 
-        self.assertArrayAlmostEqual(d1, np.cos(x[:-1]+(x[1]-x[0])/2), tol=1e-5)
-        self.assertArrayAlmostEqual(d2, np.cos(x+(x[1]-x[0])/2), tol=1e-5)
-        self.assertArrayAlmostEqual(d3, np.cos(x[:-1]+(x[1]-x[0])/2), tol=1e-5)
+        np.testing.assert_allclose(d1, np.cos(x[:-1]+(x[1]-x[0])/2), atol=1e-5)
+        np.testing.assert_allclose(d2, np.cos(x+(x[1]-x[0])/2), atol=1e-5)
+        np.testing.assert_allclose(d3, np.cos(x[:-1]+(x[1]-x[0])/2), atol=1e-5)
 
         d1 = t1.derivative(2)
         d2 = t2.derivative(2)
         d3 = t3.derivative(2)
 
-        self.assertArrayAlmostEqual(d1, -np.sin(x[:-2]+(x[1]-x[0])), tol=1e-5)
-        self.assertArrayAlmostEqual(d2, -np.sin(x+(x[1]-x[0])), tol=1e-5)
-        self.assertArrayAlmostEqual(d3, -np.sin(x[:-2]+(x[1]-x[0])), tol=1e-5)
+        np.testing.assert_allclose(d1, -np.sin(x[:-2]+(x[1]-x[0])), atol=1e-5)
+        np.testing.assert_allclose(d2, -np.sin(x+(x[1]-x[0])), atol=1e-5)
+        np.testing.assert_allclose(d3, -np.sin(x[:-2]+(x[1]-x[0])), atol=1e-5)
 
 @pytest.mark.parametrize("ny", [7,6])
 @pytest.mark.parametrize("nx", [5,4])
@@ -1196,7 +1194,7 @@ def test_fourier_interpolate_transpose_symmetry(nx, ny, fine_nx, fine_ny):
 
     np.testing.assert_allclose(interp.heights(), interp_t.heights())
 
-class PickeTest(PyCoTestCase):
+class PickeTest(unittest.TestCase):
     def test_detrended(self):
         t1 = read_topography(os.path.join(DATADIR, 'di1.di'))
 

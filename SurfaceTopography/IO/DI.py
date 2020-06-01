@@ -34,7 +34,7 @@ from datetime import datetime
 
 import numpy as np
 
-from PyCo.SurfaceTopography import Topography
+from SurfaceTopography import Topography
 
 from .FromFile import get_unit_conversion_factor, height_units, mangle_height_unit
 from .Reader import ReaderBase, ChannelInfo

@@ -1,4 +1,4 @@
-from PyCo.SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Generation import fourier_synthesis
 import numpy as np
 
 def test_lowcut():

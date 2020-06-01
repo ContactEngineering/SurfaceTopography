@@ -27,9 +27,9 @@ importlib.reload(PyCo)
 
 import numpy as np
 import matplotlib.pyplot as plt 
-#from PyCo.SurfaceTopography import read_topography
-from PyCo.SurfaceTopography import open_topography
-#from PyCo.SurfaceTopography import SurfaceTopography
+#from SurfaceTopography import read_topography
+from SurfaceTopography import open_topography
+#from SurfaceTopography import SurfaceTopography
 
 #plt.ion()                                                                                                                                                                                                  
 #fn='../data/issues/230/di1.txt'                                                                                                                                                                            

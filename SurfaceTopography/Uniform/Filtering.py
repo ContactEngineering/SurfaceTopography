@@ -1,4 +1,4 @@
-from PyCo.SurfaceTopography import Topography
+from SurfaceTopography import Topography
 import numpy as np
 
 
@@ -7,7 +7,7 @@ def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
 
     Parameters
     ----------
-    topography: PyCo.SurfaceTopography
+    topography: SurfaceTopography
     q_s: float
     highest wavevector
     lam_s: float
@@ -63,7 +63,7 @@ def lowcut(topography, q_l=None, lam_l=None, kind="circular step"):
 
     Parameters
     ----------
-    topography: PyCo.SurfaceTopography
+    topography: SurfaceTopography
     q_s: float
     highest wavevector
     lam_s: float
