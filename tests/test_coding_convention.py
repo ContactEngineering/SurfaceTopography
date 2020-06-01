@@ -30,12 +30,11 @@ import unittest
 from pylint import epylint
 import pep8
 
-import PyCo
+import SurfaceTopography
 
 class SystemTest(unittest.TestCase):
     def setUp(self):
-        self.modules = list([PyCo,
-                             SurfaceTopography,
+        self.modules = list([SurfaceTopography,
                              SurfaceTopography.IO,
                              SurfaceTopography.Nonuniform,
                              SurfaceTopography.Uniform])
