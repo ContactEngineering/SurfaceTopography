@@ -24,6 +24,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
+from collections import OrderedDict
 from io import TextIOBase
 import numpy as np
 
@@ -99,7 +101,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                 raise ValueError('Invalid file format for Dektak OPDx.')
 
             pos = MAGIC_SIZE
-            hash_table = dict()
+            hash_table = OrderedDict()
             while pos < physical_sizes:
                 buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
 
@@ -223,7 +225,7 @@ def reformat_dict(name, metadata):
     new dict: The nicer dict
     primary_channel_name: The name of the primary channel.
     """
-    new_dict = dict()
+    new_dict = OrderedDict()
 
     primary_channel_name = None
     for key in metadata.keys():
@@ -342,7 +344,7 @@ def find_2d_data(hash_table, buf):
     :param buf: The raw hex data
     :return: Dictionary with all names, data and metadata of the different channels
     """
-    output = dict()
+    output = OrderedDict()
     channels = []
 
     # Get a list of all channels containing 2d data matrices
@@ -427,7 +429,7 @@ def create_meta(hash_table):
     :param hash_table: The hash table
     :return: Hash table with all metadata names and values
     """
-    container = dict()
+    container = OrderedDict()
     for key in hash_table.keys():
         if not key.startswith('/MetaData/'):
             continue
