@@ -100,7 +100,7 @@ extensions = [
         sources=['c/autocorrelation.cpp',
                  'c/bicubic.cpp',
                  'c/patchfinder.cpp',
-                 'c/PyCo_module.cpp'],
+                 'c/module.cpp'],
         extra_compile_args=extra_compile_args,
         library_dirs=lib_dirs,
         libraries=libs,
