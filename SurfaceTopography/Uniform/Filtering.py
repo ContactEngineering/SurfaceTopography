@@ -22,9 +22,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 from SurfaceTopography import Topography
 import numpy as np
-
 
 def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
     """
