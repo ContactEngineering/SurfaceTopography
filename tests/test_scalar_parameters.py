@@ -32,42 +32,56 @@ import numpy as np
 from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 
 from NuMPI import MPI
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-        reason="tests only serial funcionalities, please execute with pytest")
 
-class SinewaveTestUniform(unittest.TestCase):
-    def setUp(self):
-        n = 256
-        X, Y = np.mgrid[slice(0,n),slice(0,n)]
+from muFFT import FFT
 
-        self.hm = 0.1
-        self.L = float(n)
-        self.sinsurf = np.sin(2 * np.pi / self.L * X) * np.sin(2 * np.pi / self.L * Y) * self.hm
-        self.size= (self.L,self.L)
+@pytest.fixture
+def sinewave2D(comm):
+    n = 256
+    X, Y = np.mgrid[slice(0,n),slice(0,n)]
 
-        self.surf = Topography(self.sinsurf, physical_sizes=self.size)
+    fftengine = FFT((n, n), fft="mpi", communicator=comm)
 
-        self.precision = 5
+    hm = 0.1
+    L = float(n)
+    sinsurf = np.sin(2 * np.pi / L * X) * np.sin(2 * np.pi / L * Y) * hm
+    size= (L, L)
 
-    def test_rms_curvature(self):
-        numerical = self.surf.rms_curvature()
-        analytical = np.sqrt(4 * (16*np.pi**4 / self.L**4) *self.hm**2 /4 /4 )
-        #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4
-        #print(numerical-analytical)
-        self.assertAlmostEqual(numerical,analytical,self.precision)
+    top = Topography(sinsurf, decomposition='domain',
+                     nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
+                     subdomain_locations=fftengine.subdomain_locations,
+                     physical_sizes=size, communicator=comm)
 
-    def test_rms_slope(self):
-        numerical = self.surf.rms_slope()
-        analytical = np.sqrt(2*np.pi ** 2 * self.hm**2 / self.L**2)
-        # print(numerical-analytical)
-        self.assertAlmostEqual(numerical, analytical, self.precision)
+    return (L, hm, top)
 
-    def test_rms_height(self):
-        numerical = self.surf.rms_height()
-        analytical = np.sqrt(self.hm**2 / 4)
+@pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
+def test_rms_curvature(sinewave2D):
+    L, hm, top = sinewave2D
+    numerical = top.rms_curvature()
+    analytical = np.sqrt(4 * (16*np.pi**4 / L**4) *hm**2 /4 /4 )
+    #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4
+    #print(numerical-analytical)
+    np.testing.assert_almost_equal(numerical, analytical, 5)
 
-        self.assertEqual(numerical,analytical)
+@pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
+def test_rms_slope(sinewave2D):
+    L, hm, top = sinewave2D
+    numerical = top.rms_slope()
+    analytical = np.sqrt(2*np.pi ** 2 * hm**2 / L**2)
+    # print(numerical-analytical)
+    np.testing.assert_almost_equal(numerical, analytical, 5)
 
+def test_rms_height(comm, sinewave2D):
+    L, hm, top = sinewave2D
+    numerical = top.rms_height()
+    analytical = np.sqrt(hm**2 / 4)
+
+    assert numerical == analytical
+
+@pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize("periodic", [False, True])
 def test_rms_curvature_sinewave_2D(periodic):
     precision = 5
@@ -86,7 +100,8 @@ def test_rms_curvature_sinewave_2D(periodic):
 
     np.testing.assert_almost_equal(surf.rms_curvature(), analytical_lapl / 2  , precision)
 
-
+@pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
 def test_rms_curvature_paraboloid_uniform_1D():
     n = 16
     x = np.arange(n)
@@ -98,6 +113,8 @@ def test_rms_curvature_paraboloid_uniform_1D():
     # central finite differences are second order and so exact for the parabola
     assert abs((surf.rms_curvature() - curvature) / curvature) < 1e-15
 
+@pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
 def test_rms_curvature_paraboloid_uniform_2D():
     n = 16
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
@@ -107,7 +124,8 @@ def test_rms_curvature_paraboloid_uniform_2D():
     # central finite differences are second order and so exact for the paraboloid
     assert abs((surf.rms_curvature() - curvature) / curvature)  < 1e-15
 
-
+@unittest.skipIf(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
 class SinewaveTestNonuniform(unittest.TestCase):
     def setUp(self):
         n = 256
