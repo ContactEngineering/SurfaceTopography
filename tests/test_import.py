@@ -2,7 +2,6 @@
 # Copyright 2018, 2020 Lars Pastewka
 #           2018, 2020 Antoine Sanner
 #           2015-2016 Till Junge
-#           2015 junge@cmsjunge
 #
 # ### MIT license
 #

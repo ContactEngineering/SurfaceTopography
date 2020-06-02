@@ -3,7 +3,6 @@
 #           2018, 2020 Antoine Sanner
 #           2018, 2020 Michael Röttger
 #           2015-2016 Till Junge
-#           2015 junge@cmsjunge
 #
 # ### MIT license
 #
