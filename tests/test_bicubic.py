@@ -28,6 +28,10 @@ Tests for the bicubic interpolation module
 """
 
 import pytest
+from NuMPI import MPI
+
+pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
+        reason="tests only serial functionalities, please execute with pytest")
 
 import numpy as np
 
