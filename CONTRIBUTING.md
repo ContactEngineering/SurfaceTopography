@@ -1,5 +1,5 @@
-Contributing to ContactMechanics
-================================
+Contributing to SurfaceTopography
+=================================
 
 Code style
 ----------
