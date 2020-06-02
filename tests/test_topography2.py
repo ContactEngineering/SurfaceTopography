@@ -11,8 +11,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -34,7 +34,8 @@ from NuMPI.Tools import Reduction
 
 from SurfaceTopography import Topography
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UniformLineScanAndTopography import DetrendedUniformTopography
+from SurfaceTopography.UniformLineScanAndTopography import \
+    DetrendedUniformTopography
 
 
 def test_positions(comm):
@@ -55,7 +56,8 @@ def test_positions(comm):
     assert y.shape == fftengine.nb_subdomain_grid_pts
 
     assert Reduction(comm).min(x) == 0
-    assert abs(Reduction(comm).max(x) - sx * (1 - 1. / nx)) < 1e-8 * sx / nx, "{}".format(x)
+    assert abs(Reduction(comm).max(x) - sx * (
+                1 - 1. / nx)) < 1e-8 * sx / nx, "{}".format(x)
     assert Reduction(comm).min(y) == 0
     assert abs(Reduction(comm).max(y) - sy * (1 - 1. / ny)) < 1e-8
 
@@ -198,7 +200,7 @@ class TopographyTest(unittest.TestCase):
 
         # the following commands should be possible without errors
         st = t.scale(1)
-        dt = st.detrend(detrend_mode='center')
+        st.detrend(detrend_mode='center')
 
     def test_power_spectrum_1D(self):
         X = np.arange(3).reshape(1, 3)
@@ -213,7 +215,8 @@ class TopographyTest(unittest.TestCase):
 
 
 def test_translate(comm_self):
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]), physical_sizes=(4., 3.))
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.))
     print(topography.heights().shape)
 
     assert (topography.translate(offset=(1, 0)).heights()
@@ -241,7 +244,8 @@ def test_pipeline():
 
 
 def test_uniform_detrended_periodicity():
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]), physical_sizes=(4., 3.), periodic=True)
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.), periodic=True)
     assert topography.detrend("center").is_periodic
     assert not topography.detrend("height").is_periodic
     assert not topography.detrend("curvature").is_periodic
@@ -249,5 +253,6 @@ def test_uniform_detrended_periodicity():
 
 def test_passing_of_docstring():
     from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_1D
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]), physical_sizes=(4., 3.), periodic=True)
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.), periodic=True)
     assert topography.power_spectrum_1D.__doc__ == power_spectrum_1D.__doc__
