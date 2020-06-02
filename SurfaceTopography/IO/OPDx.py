@@ -53,9 +53,11 @@ DEKTAK_DOUBLE_ARRAY = 0x40  # Raw data array, in XML Base64-encoded
 DEKTAK_STRING_LIST = 0x42  # List of Str
 DEKTAK_RAW_DATA = 0x46  # Parent/wrapper tag of raw data
 DEKTAK_RAW_DATA_2D = 0x47  # Parent/wrapper tag of raw data
-DEKTAK_POS_RAW_DATA = 0x7c  # Base64-encoded positions, not sure how it differs from 64
+# Base64-encoded positions, not sure how it differs from 64
+DEKTAK_POS_RAW_DATA = 0x7c
 DEKTAK_CONTAINER = 0x7d  # General nested data structure
-DEKTAK_TERMINATOR = 0x7f  # Always the last item. Usually a couple of 0xff bytes inside.
+# Always the last item. Usually a couple of 0xff bytes inside.
+DEKTAK_TERMINATOR = 0x7f
 
 TIMESTAMP_SIZE = 9
 UNIT_EXTRA = 12
@@ -76,14 +78,16 @@ File format of the Bruker Dektak XT* series stylus profilometer.
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
 
-        # depending from where this function is called, file_path might already be a filestream
+        # depending from where this function is called, file_path might already
+        # be a filestream
         already_open = False
         if not hasattr(file_path, 'read'):
             f = open(file_path, "rb")
         else:
             already_open = True
             if isinstance(file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to get the binary data
+                # file was opened without the 'b' option, so read its buffer
+                # to get the binary data
                 f = file_path.buffer
             else:
                 f = file_path
@@ -92,31 +96,39 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
             # read topography in file as hexadecimal
             self.buffer = [chr(byte) for byte in f.read()]
-                
+
             # length of file
             physical_sizes = len(self.buffer)
 
             # check if correct header
-            if physical_sizes < MAGIC_SIZE or ''.join(self.buffer[:MAGIC_SIZE]) != MAGIC:
+            if physical_sizes < MAGIC_SIZE or ''.join(
+                    self.buffer[:MAGIC_SIZE]) != MAGIC:
                 raise ValueError('Invalid file format for Dektak OPDx.')
 
             pos = MAGIC_SIZE
             hash_table = OrderedDict()
             while pos < physical_sizes:
-                buf, pos, hash_table, path = read_item(buf=self.buffer, pos=pos, hash_table=hash_table, path="")
+                buf, pos, hash_table, path = read_item(buf=self.buffer,
+                                                       pos=pos,
+                                                       hash_table=hash_table,
+                                                       path="")
 
-            # Make a list of channels containing metadata about the topographies but not reading them in directly yet
+            # Make a list of channels containing metadata about the
+            # topographies but not reading them in directly yet
             all_channels_data = find_2d_data(hash_table, self.buffer)
 
             # Reformat the resulting dicts
             for channel_name in all_channels_data.keys():
-                all_channels_data[channel_name][-1], default_channel_name = reformat_dict(
+                all_channels_data[channel_name][
+                    -1], default_channel_name = reformat_dict(
                     channel_name, all_channels_data[channel_name][-1])
 
-            self._default_channel_index = list(all_channels_data.keys()).index(default_channel_name)
+            self._default_channel_index = list(all_channels_data.keys()).index(
+                default_channel_name)
 
             #
-            # Build channel info objects and additional metadata for extracting data
+            # Build channel info objects and additional metadata for extracting
+            # data
             #
             self._channels = []
             self._channels_xres_yres_start_stop_q = []
@@ -137,50 +149,64 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
                 unit_z = mangle_height_unit(metadata['z_unit'])
 
-                unit_factor_y = get_unit_conversion_factor(unit_y, unit_x)  # we want value in unit_x units
+                # we want value in unit_x units
+                unit_factor_y = get_unit_conversion_factor(unit_y,
+                                                           unit_x)
                 if unit_factor_y is None:
-                    raise ValueError('Units for size in x ("{}") and y ("{}") direction are incompatible.' \
-                                     .format(unit_x, unit_y))
+                    raise ValueError(
+                        'Units for size in x ("{}") and y ("{}") direction '
+                        'are incompatible.'.format(unit_x, unit_y))
                 size_y *= unit_factor_y
 
                 if unit_z is None:
-                    # No unit given for heights. Since we can only return one common unit,
-                    # no unit should be returned
+                    # No unit given for heights. Since we can only return one
+                    # common unit, no unit should be returned
                     try:
                         del metadata['unit']
-                    except:
+                    except IndexError:
                         pass
                 else:
-                    unit_factor_z = get_unit_conversion_factor(unit_z, unit_x)  # we want value in unit_x units
+                    # we want value in unit_x units
+                    unit_factor_z = get_unit_conversion_factor(unit_z,
+                                                               unit_x)
                     if unit_factor_z is None:
-                        raise ValueError('Units for width ("{}") and data units ("{}") are incompatible.' \
-                                         .format(unit_x, unit_y))
+                        raise ValueError(
+                            'Units for width ("{}") and data units ("{}") '
+                            'are incompatible.'.format(unit_x, unit_y))
 
-                    metadata['unit'] = unit_x  # we have converted everything to this unit
+                    # we have converted everything to this unit
+                    metadata['unit'] = unit_x
 
                 ch_info = ChannelInfo(self, channel_index,
                                       name=metadata['Name'], dim=2,
-                                      nb_grid_pts=(metadata['ImageWidth'], metadata['ImageHeight']),
+                                      nb_grid_pts=(metadata['ImageWidth'],
+                                                   metadata['ImageHeight']),
                                       physical_sizes=(size_x, size_y),
                                       info=metadata)
 
                 self._channels.append(ch_info)
-                self._channels_xres_yres_start_stop_q.append(xres_yres_start_stop_q)  # needed for building heights
+                self._channels_xres_yres_start_stop_q.append(
+                    xres_yres_start_stop_q)  # needed for building heights
 
         finally:
             if not already_open:
                 f.close()
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None,
+                   height_scale_factor=None, info={},
+                   periodic=False, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI '
+                               'parallelization.')
 
         channel_info = self._channels[channel_index]
-        res_x, res_y, start, end, q = self._channels_xres_yres_start_stop_q[channel_index]
+        res_x, res_y, start, end, q = self._channels_xres_yres_start_stop_q[
+            channel_index]
 
         data = build_matrix(res_x, res_y, self.buffer[start:end], q).T
 
@@ -191,21 +217,25 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
             if (common_unit is not None) and (unit_z != common_unit):
                 # There is a common unit, but the z-unit in the file differs
-                # from that common unit. So we need to scale the data accordingly,
-                # such that also the height are represented in common units.
+                # from that common unit. So we need to scale the data
+                # accordingly, such that also the height are represented in
+                # common units.
                 unit_factor_z = get_unit_conversion_factor(unit_z, common_unit)
                 if unit_factor_z is None:
-                    raise ValueError('Common unit ("{}") derived from lateral units and '+
-                                     'data units ("{}") are incompatible.'.format(common_unit, unit_z))
+                    raise ValueError(
+                        'Common unit ("{}") derived from lateral units '
+                        'and data units ("{}") are incompatible.'.format(
+                            common_unit, unit_z))
                 data *= unit_factor_z
 
-        physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
+        physical_sizes = self._check_physical_sizes(
+            physical_sizes, channel_info.physical_sizes)
 
         info = info.copy()
         info.update(channel_info.info)
 
-        return Topography(heights=data, physical_sizes=physical_sizes, info=info, periodic=periodic)
-
+        return Topography(heights=data, physical_sizes=physical_sizes,
+                          info=info, periodic=periodic)
 
     @property
     def channels(self):
@@ -217,8 +247,8 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
 def reformat_dict(name, metadata):
     """
-    Reformat the metadata dict from c convention to a more readable format and remove artefacts. Also gets and returns
-    the default channel.
+    Reformat the metadata dict from c convention to a more readable format and
+    remove artefacts. Also gets and returns the default channel.
     :param name: The name of the current channel.
     :param metadata: The metadata dict
     :return:
@@ -234,12 +264,15 @@ def reformat_dict(name, metadata):
             primary_channel_name = metadata[key]
 
         if key.startswith('::MetaData::'):
-            if not key[12:].endswith('::'):  # These are in here for no reason and the value is None
-                new_dict[key[12:].replace('::', '_').replace(' ', '_')] = metadata[key]
+            # These are in here for no reason and the value is None
+            if not key[12:].endswith('::'):
+                new_dict[key[12:].replace('::', '_').replace(' ', '_')] = \
+                    metadata[key]
 
         if key.startswith(str(name) + '::'):
             name_len = 2 + len(name)
-            new_dict[key[name_len:].replace('::', '_').replace(' ', '_')] = metadata[key]
+            new_dict[key[name_len:].replace('::', '_').replace(' ', '_')] = \
+                metadata[key]
 
     if '' in new_dict.keys():
         new_dict.pop('')
@@ -342,7 +375,8 @@ def find_2d_data(hash_table, buf):
 
     :param hash_table: The filled hash table
     :param buf: The raw hex data
-    :return: Dictionary with all names, data and metadata of the different channels
+    :return: Dictionary with all names, data and metadata of the different
+    channels
     """
     output = OrderedDict()
     channels = []
@@ -465,12 +499,14 @@ def create_meta(hash_table):
 
 def read_item(buf, pos, hash_table, path, abspos=0):
     """
-    Reads in the next item out of the buffer and saves it in the hash table. May recursively call itself for containers.
+    Reads in the next item out of the buffer and saves it in the hash table.
+    May recursively call itself for containers.
     :param buf: The raw data buffer
     :param pos: Current position in the buffer
     :param hash_table: The output hash table
     :param path: Current name to save
-    :param abspos: Absolute position in buffer to keep track when calling itself
+    :param abspos: Absolute position in buffer to keep track when calling
+    itself
     :return:
     Buffer, new position, hash table with new item in it, new path
     """
@@ -522,7 +558,8 @@ def read_item(buf, pos, hash_table, path, abspos=0):
 
     elif item.typeid == DEKTAK_QUANTITY:
         content, _, pos = read_structured(buf, pos)
-        item.data.qun, itempos = read_quantunit_content(content, itempos, False)
+        item.data.qun, itempos = read_quantunit_content(content, itempos,
+                                                        False)
 
     elif item.typeid == DEKTAK_UNITS:
         content, _, pos = read_structured(buf, pos)
@@ -532,12 +569,16 @@ def read_item(buf, pos, hash_table, path, abspos=0):
         pos = len(buf)
 
     # Container types.
-    elif item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
-        content, start, pos = read_structured(buf, pos)  # TODO find out if maybe better place somewhere else
+    elif item.typeid == DEKTAK_CONTAINER or \
+            item.typeid == DEKTAK_RAW_DATA or \
+            item.typeid == DEKTAK_RAW_DATA_2D:
+        # TODO find out if maybe better place somewhere else
+        content, start, pos = read_structured(buf, pos)
         abspos += start
         while itempos < len(content):
-            content, itempos, hash_table, path = read_item(buf=content, pos=itempos, hash_table=hash_table, path=path,
-                                                           abspos=abspos)
+            content, itempos, hash_table, path = read_item(
+                buf=content, pos=itempos, hash_table=hash_table,
+                path=path, abspos=abspos)
 
     # Types with string type name
     elif item.typeid == DEKTAK_DOUBLE_ARRAY:
@@ -558,15 +599,18 @@ def read_item(buf, pos, hash_table, path, abspos=0):
             item.typename, content, _, pos = read_named_struct(buf, pos)
 
             item.data.rawpos2d.unitx, item.data.rawpos2d.divisorx, itempos = \
-                read_dimension2d_content(content, itempos, item.data.rawpos2d.unitx)
+                read_dimension2d_content(content, itempos,
+                                         item.data.rawpos2d.unitx)
             item.data.rawpos2d.unity, item.data.rawpos2d.divisory, itempos = \
-                read_dimension2d_content(content, itempos, item.data.rawpos2d.unity)
+                read_dimension2d_content(content, itempos,
+                                         item.data.rawpos2d.unity)
 
         elif path.startswith('/1_Data'):
             item.typename, content, _, pos = read_named_struct(buf, pos)
             content.position += buf.position
 
-            item.data.rawpos1d.unit, itempos = read_quantunit_content(content, itempos, True)
+            item.data.rawpos1d.unit, itempos = read_quantunit_content(
+                content, itempos, True)
             item.data.rawpos1d.count, itempos = read_int64(content, itempos)
 
             item.data.rawpos1d.buf = content
@@ -574,7 +618,8 @@ def read_item(buf, pos, hash_table, path, abspos=0):
             item.data.rawpos1d.buf.length -= itempos
 
         else:
-            raise ValueError  # TODO check if should assume 1D here like gwyddion
+            # TODO check if should assume 1D here like gwyddion
+            raise ValueError
 
     elif item.typeid == DEKTAK_MATRIX:
         item.typename, pos = read_name(buf, pos)
@@ -671,7 +716,8 @@ def read_name(buf, pos):
     name, new position in buffer
     """
 
-    length, pos = read_int32(buf, pos)  # Names always have a physical_sizes of 4 bytes
+    # Names always have a physical_sizes of 4 bytes
+    length, pos = read_int32(buf, pos)
     if len(buf) < length or pos > len(buf) - length:
         raise ValueError("Some sizes went wrong.")
     position = pos
@@ -704,7 +750,8 @@ def read_named_struct(buf, pos):
     :param buf: The buffer
     :param pos: Position in buffer
     :return:
-    Name of the buffer, that buffer, its start and the new position in the buffer
+    Name of the buffer, that buffer, its start and the new position in the
+    buffer
     """
     typename, pos = read_name(buf, pos)
     content, start, pos = read_structured(buf, pos)
@@ -723,7 +770,8 @@ def read_varlen(buf, pos):
     lenlen = np.frombuffer(str.encode(lenlen, "raw_unicode_escape"), "<u1")[0]
     if lenlen == 1:
         length, pos = read_with_check(buf, pos, 1)
-        length = np.frombuffer(str.encode(length, "raw_unicode_escape"), "<u1")[0]
+        length = \
+            np.frombuffer(str.encode(length, "raw_unicode_escape"), "<u1")[0]
     elif lenlen == 2:
         length, pos = read_int16(buf, pos)
     elif lenlen == 4:
@@ -745,7 +793,8 @@ def read_int64(buf, pos, signed=False):
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
     out = ''.join(out)
     dt = "<i8" if signed else "<u8"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
+    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
+        0]  # interpret hexadecimal -> int (little-endian)
     return out, pos
 
 
@@ -761,7 +810,8 @@ def read_int32(buf, pos, signed=False):
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
     out = ''.join(out)
     dt = "<i4" if signed else "<u4"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
+    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
+        0]  # interpret hexadecimal -> int (little-endian)
     return out, pos
 
 
@@ -777,7 +827,8 @@ def read_int16(buf, pos, signed=False):
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=2)
     out = ''.join(out)
     dt = "<i2" if signed else "<u2"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
+    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
+        0]  # interpret hexadecimal -> int (little-endian)
     return out, pos
 
 
@@ -793,7 +844,8 @@ def read_double(buf, pos):
     out = ''.join(out)
     dt = np.dtype('d')  # double
     dt = dt.newbyteorder('<')  # little-endian
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
+    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
+        0]  # interpret hexadecimal -> int (little-endian)
     return out, pos
 
 
@@ -809,7 +861,8 @@ def read_float(buf, pos):
     out = ''.join(out)
     dt = np.dtype('f')  # double
     dt = dt.newbyteorder('<')  # little-endian
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
+    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
+        0]  # interpret hexadecimal -> int (little-endian)
     return out, pos
 
 

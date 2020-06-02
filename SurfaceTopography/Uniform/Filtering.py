@@ -26,6 +26,7 @@
 from SurfaceTopography import Topography
 import numpy as np
 
+
 def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
     """
 
@@ -47,7 +48,8 @@ def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
     if not topography.is_periodic:
         raise ValueError("only implemented for periodic topographies")
 
-    # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts, topography.physical_sizes)]
+    # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,
+    # topography.physical_sizes)]
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
@@ -75,7 +77,8 @@ def highcut(topography, q_s=None, lam_s=None, kind="circular step"):
     if kind == "circular step":
         filt *= (q2 <= q_s ** 2)
     elif kind == "square step":
-        filt *= (np.abs(qx.reshape(-1, 1)) <= q_s) * (np.abs(qy.reshape(1, -1)) <= q_s)
+        filt *= (np.abs(qx.reshape(-1, 1)) <= q_s) * (
+                    np.abs(qy.reshape(1, -1)) <= q_s)
 
     h_qs = np.fft.irfftn(np.fft.rfftn(topography.heights()) * filt)
 
@@ -103,7 +106,8 @@ def lowcut(topography, q_l=None, lam_l=None, kind="circular step"):
     if not topography.is_periodic:
         raise ValueError("only implemented for periodic topographies")
 
-    # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts, topography.physical_sizes)]
+    # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,
+    # topography.physical_sizes)]
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
@@ -131,7 +135,8 @@ def lowcut(topography, q_l=None, lam_l=None, kind="circular step"):
     if kind == "circular step":
         filt *= (q2 >= q_l ** 2)
     elif kind == "square step":
-        filt *= (np.abs(qx.reshape(-1, 1)) >= q_l) * (np.abs(qy.reshape(1, -1)) >= q_l)
+        filt *= (np.abs(qx.reshape(-1, 1)) >= q_l) * (
+                    np.abs(qy.reshape(1, -1)) >= q_l)
 
     h_qs = np.fft.irfftn(np.fft.rfftn(topography.heights()) * filt)
 
@@ -166,9 +171,11 @@ def isotropic_filter(topography, filter_function=lambda q: np.exp(-q)):
     h_q_filtered = np.fft.ifft2(h_q * filter_function(q))
 
     # Max_imaginary = np.max(np.imag(shifted_pot))
-    # assert Max_imaginary < 1e-14 *np.max(np.real(shifted_pot)) , f"{Max_imaginary}"
+    # assert Max_imaginary < 1e-14 *np.max(np.real(shifted_pot)) ,
+    # f"{Max_imaginary}"
 
-    return Topography(np.real(h_q_filtered), physical_sizes=topography.physical_sizes)
+    return Topography(np.real(h_q_filtered),
+                      physical_sizes=topography.physical_sizes)
 
 
 Topography.register_function("isotropic_filter", isotropic_filter)

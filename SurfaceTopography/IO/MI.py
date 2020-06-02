@@ -32,7 +32,6 @@ from .Reader import ReaderBase, CorruptFile, ChannelInfo
 from .FromFile import mangle_height_unit
 from io import TextIOBase
 
-
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
 
@@ -46,8 +45,9 @@ class MIReader(ReaderBase):
     _format = 'mi'
     _name = 'Molecular imaging data file'
     _description = '''
-This reader opens Agilent Technologies (Molecular Imaging) AFM files saved in the MI format. This format contains
-information on the physical size of the topography map as well as its units.
+This reader opens Agilent Technologies (Molecular Imaging) AFM files saved
+in the MI format. This format contains information on the physical size of the
+topography map as well as its units.
 '''
 
     # Reads in the positions of all the data and metadata
@@ -74,7 +74,8 @@ information on the physical size of the topography map as well as its units.
         else:
             already_open = True
             if isinstance(self.file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to get the binary data
+                # file was opened without the 'b' option, so read its buffer
+                # to get the binary data
                 f = self.file_path.buffer
             else:
                 f = self.file_path
@@ -118,19 +119,19 @@ information on the physical size of the topography map as well as its units.
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = mangle_height_unit(buf.meta.pop('bufferUnit'))
+                buf.meta['unit'] = mangle_height_unit(
+                    buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
             self._physical_sizes = float(self.mifile.meta['xLength']), \
-                                   float(self.mifile.meta['yLength'])
+                float(self.mifile.meta['yLength'])
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
-                                int(self.mifile.meta['yPixels'])
+                int(self.mifile.meta['yPixels'])
 
         finally:
             if not already_open:
                 f.close()
-
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
@@ -138,10 +139,10 @@ information on the physical size of the topography map as well as its units.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
-
-      
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
 
         output_channel = self.mifile.channels[channel_index]
 
@@ -161,8 +162,10 @@ information on the physical size of the topography map as well as its units.
             else:  # text or ascii
                 type_range = 32768
 
-            start = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * channel_index
-            end = int(self.mifile.xres) * int(self.mifile.yres) * encode_length * (channel_index + 1)
+            start = int(self.mifile.xres) * int(
+                self.mifile.yres) * encode_length * channel_index
+            end = int(self.mifile.xres) * int(
+                self.mifile.yres) * encode_length * (channel_index + 1)
 
             data = ''.join(buffer[start:end])
             out = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)
@@ -183,11 +186,12 @@ information on the physical size of the topography map as well as its units.
         joined_meta = {**self.mifile.meta, **output_channel.meta}
 
         # Initialize heights with transposed array in order to match Gwdyydion
-        # when plotted with pcolormesh(t.heights().T), except that the y axis is flipped
-        # because the origin is in lower left with pcolormesh; imshow(t.heights().T) shows
-        # the image like gwyddion
+        # when plotted with pcolormesh(t.heights().T), except that the y axis
+        # is flipped because the origin is in lower left with pcolormesh;
+        # imshow(t.heights().T) shows the image like gwyddion
         t = Topography(heights=out.T,
-                       physical_sizes=self._check_physical_sizes(physical_sizes, self._physical_sizes),
+                       physical_sizes=self._check_physical_sizes(
+                           physical_sizes, self._physical_sizes),
                        info=joined_meta, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
@@ -195,8 +199,11 @@ information on the physical size of the topography map as well as its units.
 
     @property
     def channels(self):
-        return [ChannelInfo(self, i, name=channel.meta['name'], dim=len(self._nb_grid_pts), nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes, info=channel.meta)
+        return [ChannelInfo(self, i, name=channel.meta['name'],
+                            dim=len(self._nb_grid_pts),
+                            nb_grid_pts=self._nb_grid_pts,
+                            physical_sizes=self._physical_sizes,
+                            info=channel.meta)
                 for i, channel in enumerate(self.mifile.channels)]
 
     @property
@@ -210,21 +217,25 @@ information on the physical size of the topography map as well as its units.
 
 def read_header_image(header):
     """
-    Reads in global metadata and information about about included channels asw ell as their metadata.
+    Reads in global metadata and information about about included channels as
+    well as their metadata.
     :param header: The header as a line of text.
     :return:
-    MIFile item containing the metadata, with the channels as a list of 'buffers'.
+    MIFile item containing the metadata, with the channels as a list of
+    'buffers'.
     """
     # This object will store the file-wide metadata
     mifile = MIFile()
 
-    # False while reading global metadata, gets true if we start to read in the channel info
+    # False while reading global metadata, gets true if we start to read in the
+    # channel info
     reading_buffers = False
 
     for line in header:
         line = line.decode("utf-8")
 
-        # As soon as we see a line starting with 'bufferLabel', we know we are now reading in channels
+        # As soon as we see a line starting with 'bufferLabel', we know we are
+        # now reading in channels
         if line.startswith('bufferLabel'):
             # Create a new channel with the id as name
             channel = Channel(name=str.strip(line[14:]))
@@ -235,7 +246,8 @@ def read_header_image(header):
             continue
 
         # For all key value pairs in the file:
-        # Append to global metadata oder channel metadata, depending on our state
+        # Append to global metadata oder channel metadata, depending on our
+        # state
         key = str.strip(line[:14])
         value = str.strip(line[14:])
 
@@ -265,7 +277,8 @@ def read_header_spect(header):
 class Channel:
     """
     Class structure for a channel contained in the file.
-    Has a name and metadata (height data is not needed since it is returned directly).
+    Has a name and metadata (height data is not needed since it is returned
+    directly).
     """
 
     def __init__(self, name=None, meta=None):
@@ -278,7 +291,8 @@ class Channel:
 
 class MIFile:
     """
-    Class structure for the while file. Has a list of channels, global metadata and a nb_grid_pts.
+    Class structure for the while file. Has a list of channels, global metadata
+    and a nb_grid_pts.
     """
 
     def __init__(self, res=(0, 0), channels=None, meta=None):

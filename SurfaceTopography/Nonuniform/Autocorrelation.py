@@ -27,7 +27,6 @@
 Height-difference autocorrelation functions for nonuniform line scans
 """
 
-
 import numpy as np
 
 import _SurfaceTopography
@@ -72,8 +71,8 @@ def height_height_autocorrelation_1D(line_scan, distances=None):
     x, h = line_scan.positions_and_heights()
     s = line_scan.derivative(1)
     # FIXME!!! This is slow
-    for i in range(len(x)-1):
-        for j in range(len(x)-1):
+    for i in range(len(x) - 1):
+        for j in range(len(x) - 1):
             # Determine lower and upper distance between segment i, i+1 and
             # segment j, j+1
             x1 = x[i]
@@ -92,13 +91,17 @@ def height_height_autocorrelation_1D(line_scan, distances=None):
                 db = db[m]
                 # f1[x_] := (h1 + s1*(x - x1))
                 # f2[x_] := (h2 + s2*(x - x2))
-                # FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]]
+                # FullSimplify[Integrate[f1[x]*f2[x + d],
+                # {x, b - db, b + db}]]
                 #   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
-                A[m] += 2 * (h1 + s1 * (b - x1)) * (h2 + s2 * (b + distances[m] - x2)) * db + 2 * (
-                            s1 * s2 * db ** 3) / 3
+                A[m] += 2 * (h1 + s1 * (b - x1)) * (
+                            h2 + s2 * (b + distances[m] - x2)) * db + 2 * (
+                                s1 * s2 * db ** 3) / 3
     return distances, A
 
-def height_difference_autocorrelation_1D(line_scan, algorithm='fft', distances=None, ninterpolate=5):
+
+def height_difference_autocorrelation_1D(line_scan, algorithm='fft',
+                                         distances=None, ninterpolate=5):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -138,16 +141,21 @@ def height_difference_autocorrelation_1D(line_scan, algorithm='fft', distances=N
     x, h = line_scan.positions_and_heights()
     if algorithm == 'fft':
         if distances is not None:
-            raise ValueError("`distances` can only be used with 'brute-force' algorithm.")
+            raise ValueError(
+                "`distances` can only be used with 'brute-force' algorithm.")
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
-        return line_scan.to_uniform(ninterpolate*int(s/min_dist), 0).autocorrelation_1D()
+        return line_scan.to_uniform(ninterpolate * int(s / min_dist),
+                                    0).autocorrelation_1D()
     elif algorithm == 'brute-force':
-        return _SurfaceTopography.nonuniform_autocorrelation_1D(x, h, s, distances)
+        return _SurfaceTopography.nonuniform_autocorrelation_1D(x, h, s,
+                                                                distances)
     else:
-        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
+        raise ValueError("Unknown algorithm '{}' specified."
+                         .format(algorithm))
 
-### Register analysis functions from this module
 
-NonuniformLineScanInterface.register_function('autocorrelation_1D', height_difference_autocorrelation_1D)
+# Register analysis functions from this module
+NonuniformLineScanInterface.register_function(
+    'autocorrelation_1D', height_difference_autocorrelation_1D)

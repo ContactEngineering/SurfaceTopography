@@ -26,4 +26,3 @@
 """
 Helper tools for SurfaceTopography
 """
-

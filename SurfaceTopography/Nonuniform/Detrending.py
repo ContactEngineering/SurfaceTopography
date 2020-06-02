@@ -73,11 +73,15 @@ def polyfit(x, h, deg):
     -------
     a : array
         Array with coefficients :math:`a_k`.
-    """
+    """  # noqa: E501
     dx = np.diff(x)
-    k = np.arange(deg+1).reshape(-1, 1)
-    b = np.sum(((2*h[:-1] + h[1:])*x[:-1]**k + (2*h[1:] + h[:-1])*x[1:]**k)*dx, axis=1)
-    l = k.reshape(1, -1, 1)
+    k = np.arange(deg + 1).reshape(-1, 1)
+    b = np.sum(((2 * h[:-1] + h[1:]) * x[:-1] ** k +
+                (2 * h[1:] + h[:-1]) * x[1:] ** k) * dx,
+               axis=1)
+    L = k.reshape(1, -1, 1)
     k = k.reshape(-1, 1, 1)
-    A = np.sum((2*x[:-1]**(k+l) + 2*x[1:]**(k+l) + x[:-1]**k*x[1:]**l + x[1:]**k*x[:-1]**l)*dx, axis=2)
+    A = np.sum((2 * x[:-1] ** (k + L) + 2 * x[1:] ** (k + L) +
+                x[:-1] ** k * x[1:] ** L + x[1:] ** k * x[:-1] ** L) * dx,
+               axis=2)
     return np.linalg.solve(A, b)

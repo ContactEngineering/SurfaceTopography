@@ -26,4 +26,3 @@
 """
 Module containing all functions operating on nonuniform topographies
 """
-

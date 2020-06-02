@@ -30,10 +30,9 @@ topographies.
 
 import numpy as np
 
-from muFFT import Stencils2D
-
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
+
 
 def bandwidth(self):
     """Computes lower and upper bound of bandwidth.
@@ -72,18 +71,21 @@ def derivative(topography, n, periodic=None):
         arrays.
     """
     if topography.physical_sizes is None:
-        raise ValueError('SurfaceTopography does not have physical size information, but this is required to be able to '
-                         'compute a derivative.')
+        raise ValueError(
+            'SurfaceTopography does not have physical size information, but '
+            'this is required to be able to compute a derivative.')
     grid_spacing = topography.pixel_size
     heights = topography.heights()
     is_periodic = topography.is_periodic if periodic is None else periodic
     if is_periodic:
-        der = np.array([(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d]
-                        for d in range(len(heights.shape))])
+        der = np.array(
+            [(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d]
+             for d in range(len(heights.shape))])
         # Apply derivative into each direction multiple times
-        for i in range(n-1):
-            der = np.array([(np.roll(der[d], -1, axis=d) - der[d]) / grid_spacing[d]
-                            for d in range(len(heights.shape))])
+        for i in range(n - 1):
+            der = np.array(
+                [(np.roll(der[d], -1, axis=d) - der[d]) / grid_spacing[d]
+                 for d in range(len(heights.shape))])
     else:
         der = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
                         for d in range(len(heights.shape))])
@@ -95,10 +97,10 @@ def derivative(topography, n, periodic=None):
 
 def fourier_derivative(topography, imtol=1e-12):
     """
-
-    For even number of points, the interpretation of the components at the niquist
-    frequency is ambiguous (we are free to choose amplitude or phase)
-    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf), we assume it is cosinusoidal.
+    For even number of points, the interpretation of the components at the
+    Nyquist frequency is ambiguous (we are free to choose amplitude or phase)
+    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf), we assume it is
+    cosinusoidal.
 
     Parameters
     ----------
@@ -126,14 +128,16 @@ def fourier_derivative(topography, imtol=1e-12):
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
     assert (abs(dx.imag) < imtol).all(), np.max(abs(dx.imag))
-    assert (abs(dy.imag) < imtol).all(), np.max(abs(dy.imag) )
+    assert (abs(dy.imag) < imtol).all(), np.max(abs(dy.imag))
 
     dx = dx.real
     dy = dy.real
 
     return dx, dy
 
-def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, communicator):
+
+def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
+                     communicator):
     """
     Turn a topography that is defined over the whole domain into one that is
     decomposed for each individual MPI process.
@@ -155,9 +159,11 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
     Returns
     -------
     decomposed_topography : array
-        SurfaceTopography object that now holds only data local the MPI process.
+        SurfaceTopography object that now holds only data local the MPI
+        process.
     """
-    return topography.__class__(topography.heights(), topography.physical_sizes,
+    return topography.__class__(topography.heights(),
+                                topography.physical_sizes,
                                 periodic=topography.is_periodic,
                                 decomposition='domain',
                                 subdomain_locations=subdomain_locations,
@@ -166,10 +172,9 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts, com
                                 info=topography.info)
 
 
-### Register analysis functions from this module
-
+# Register analysis functions from this module
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
 Topography.register_function('fourier_derivative', fourier_derivative)
-UniformTopographyInterface.register_function('domain_decompose', domain_decompose)
-
+UniformTopographyInterface.register_function('domain_decompose',
+                                             domain_decompose)

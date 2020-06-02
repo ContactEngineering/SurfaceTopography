@@ -31,16 +31,19 @@ class MatReader(ReaderBase):
     _format = 'mat'
     _name = 'MATLAB'
     _description = '''
-Imports topography data stored in MATLAB workspace files. The reader automatically extracts all 2D arrays
-stored in the file and interprets those as height information. Matlab files do not store units or
-physical sizes. These need to be manually provided by the user.
+Imports topography data stored in MATLAB workspace files. The reader
+automatically extracts all 2D arrays stored in the file and interprets those
+as height information. Matlab files do not store units or physical sizes.
+These need to be manually provided by the user.
     '''
 
     def __init__(self, fobj):
         """
-        Reads a surface profile from a Matlab file and presents in in a SurfaceTopography-conformant manner.
+        Reads a surface profile from a Matlab file and presents in in a
+        SurfaceTopography-conformant manner.
 
-        All two-dimensional arrays present in the matlab data file are returned.
+        All two-dimensional arrays present in the matlab data file are
+        returned.
 
         Parameters
         ----------
@@ -87,12 +90,16 @@ physical sizes. These need to be manually provided by the user.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
 
         return Topography(self._height_data[channel_index],
-                          physical_sizes=self._check_physical_sizes(physical_sizes),
-                          info=dict(data_source=self.channels[channel_index].name),
+                          physical_sizes=self._check_physical_sizes(
+                              physical_sizes),
+                          info=dict(
+                              data_source=self.channels[channel_index].name),
                           periodic=periodic)
 
     channels.__doc__ = ReaderBase.channels.__doc__

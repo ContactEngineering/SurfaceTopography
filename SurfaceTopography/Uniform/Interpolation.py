@@ -29,13 +29,15 @@ from ..HeightContainer import UniformTopographyInterface
 from ..Interpolation import Bicubic
 from ..UniformLineScanAndTopography import Topography
 
+
 def bicubic_interpolator(topography):
     r"""
     Returns a bicubic interpolation function based on the topography's heights
     and slopes (fourier_derivative)
     """
     if not topography.is_periodic:
-        raise ValueError("Bicubic interpolation only implemented for periodic surfaces")
+        raise ValueError(
+            "Bicubic interpolation only implemented for periodic surfaces")
 
     dx, dy = topography.pixel_size
     derx, dery = topography.fourier_derivative()
@@ -54,12 +56,13 @@ def bicubic_interpolator(topography):
         y:  array
             coordinate where to interpolate the topography
         derivative: int 0, 1 or 2, optional
-            if > 0 returns also derivatives. Note that the 2nd order derivatives
-            are not continuous and hence not really usefull
+            if > 0 returns also derivatives. Note that the 2nd order
+            derivatives are not continuous and hence not really usefull
 
         Returns
         -------
-        array of interpolated values or tuple with arrays of values and derivatives
+        array of interpolated values or tuple with arrays of values and
+        derivatives
 
         """
         if derivative == 0:
@@ -74,7 +77,7 @@ def bicubic_interpolator(topography):
             return interp_field, interp_derx, interp_dery
         elif derivative == 2:
             interp_field, interp_derx, interp_dery, \
-            interp_derxx, interp_deryy, interp_derxy = \
+                interp_derxx, interp_deryy, interp_derxy = \
                 interp(x / dx, y / dy, derivative=derivative)
 
             interp_derx = interp_derx / dx
@@ -85,19 +88,21 @@ def bicubic_interpolator(topography):
             interp_derxy = interp_derxx / dx / dy
 
             return interp_field, interp_derx, interp_dery, \
-                   interp_derxx, interp_deryy, interp_derxy
+                interp_derxx, interp_deryy, interp_derxy
 
     return wrapped_bicubic
 
+
 def interpolate_fourier(topography, nb_grid_pts):
     r"""
-    Interpolates the heights of `topography` on a finer grid given by `nb_grid_pts`
-    by padding the fourier spectrum with zeros.
+    Interpolates the heights of `topography` on a finer grid given by
+    `nb_grid_pts` by padding the fourier spectrum with zeros.
 
     Only 2D implemented.
 
-    Note: at the nyquist frequenca we use the "minimal-oscillation" interpolation,
-    i.e. we assume a cosinus wave (https://math.mit.edu/~stevenj/fft-deriv.pdf).
+    Note: at the nyquist frequenca we use the "minimal-oscillation"
+    interpolation, i.e. we assume a cosinus wave
+    (https://math.mit.edu/~stevenj/fft-deriv.pdf).
 
     Parameters
     ----------
@@ -115,37 +120,40 @@ def interpolate_fourier(topography, nb_grid_pts):
     snx, sny = smallspectrum.shape
     nx, ny = topography.nb_grid_pts
 
-    # the entries at the nyquist frequency are the superposition of the positive
-    # and negative frequency. When we increase the fourier domain, we will split
-    # that again between positive and negative, therefore we divide the value by
-    # two and copy it to the corresponding negative vector
-    if ny%2==0:
+    # the entries at the nyquist frequency are the superposition of the
+    # positive and negative frequency. When we increase the fourier domain, we
+    # will split that again between positive and negative, therefore we divide
+    # the value by two and copy it to the corresponding negative vector
+    if ny % 2 == 0:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
-        smallspectrum[:, -1] =  smallspectrum[:, -1] /2
+        smallspectrum[:, -1] = smallspectrum[:, -1] / 2
 
-    if nx%2==0:
+    if nx % 2 == 0:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
-        smallspectrum[int(nx/2), :] =  smallspectrum[int(nx/2), :] /2
+        smallspectrum[int(nx / 2), :] = smallspectrum[int(nx / 2), :] / 2
 
     i = snx // 2 if snx % 2 == 0 else (snx - 1) // 2 + 1
     bigspectrum[:i, :sny] = smallspectrum[:i, :sny]
     bigspectrum[-(snx - i):, :sny] = smallspectrum[-(snx - i):, :sny]
 
-    # in the y direction, the entries at the nyquist frequency are automatically
-    # symmetrised by the rfft, corresponding to a cosinusoidal wave, i.e. the
-    # "minimal-oscillation" trigonometric interpolation
+    # in the y direction, the entries at the nyquist frequency are
+    # automatically symmetrised by the rfft, corresponding to a cosinusoidal
+    # wave, i.e. the "minimal-oscillation" trigonometric interpolation
     # (https://math.mit.edu/~stevenj/fft-deriv.pdf).
     # To ensure the same behaviour in the x direction
     # (see test_fourier_interpolate_transpose_symmetry`)`
     # we have to mirror the entries at the niquist frequency by hand
-    if snx%2 == 0:
+    if snx % 2 == 0:
         bigspectrum[i, :sny] = smallspectrum[i, :sny]
 
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
-                      * np.prod(nb_grid_pts) / np.prod(topography.nb_grid_pts),  # normalization
+                      * np.prod(nb_grid_pts) / np.prod(topography.nb_grid_pts),
+                      # normalization
                       physical_sizes=topography.physical_sizes)
 
+
 Topography.register_function("interpolate_bicubic", bicubic_interpolator)
-UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)
+UniformTopographyInterface.register_function('interpolate_fourier',
+                                             interpolate_fourier)

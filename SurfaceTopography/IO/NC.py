@@ -37,36 +37,40 @@ class NCReader(ReaderBase):
 
     _description = '''
 This reader reads topography data contained in a
-[NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The reader looks for a variable named
-`heights` containing a two-dimensional array that is interpreted as height information. The respective
-dimensions are named `x` and `y`.
+[NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The
+reader looks for a variable named `heights` containing a two-dimensional
+array that is interpreted as height information. The respective dimensions are
+named `x` and `y`.
 
-The reader additionally looks for two (optional) variables `x` and `y` that contain the x- and y-coordinates o
-the first and second index of the height arrays. The attribute `length` of x` and `y` must contain the physical
-size in the respective direction. The optional attribute `length_unit` of these variables describes the physical unit.
-The optional additional attribute `periodic` indicates whether the direction contains periodic data. If `periodic` is
-missing, the reader interprets the data as non-periodic.
+The reader additionally looks for two (optional) variables `x` and `y` that
+contain the x- and y-coordinates of the first and second index of the height
+arrays. The attribute `length` of x` and `y` must contain the physical size
+in the respective direction. The optional attribute `length_unit` of these
+variables describes the physical unit. The optional additional attribute
+`periodic` indicates whether the direction contains periodic data. If
+`periodic` is missing, the reader interprets the data as non-periodic.
 
-An example file layout (output of `ncdump -h`) containing a topography map with 128 x 128 pixels looks
-like this:
+An example file layout (output of `ncdump -h`) containing a topography map
+with 128 x 128 pixels looks like this:
 ```
 netcdf test_nc_file {
 dimensions:
-	x = 128 ;
-	y = 128 ;
+    x = 128 ;
+    y = 128 ;
 variables:
-	double x(x) ;
-		x:length = 3LL ;
-		x:periodic = 1LL ;
+    double x(x) ;
+        x:length = 3LL ;
+        x:periodic = 1LL ;
         x:length_unit = "μm" ;
-	double y(y) ;
-		y:length = 3LL ;
-		y:periodic = 1LL ;
+    double y(y) ;
+        y:length = 3LL ;
+        y:periodic = 1LL ;
         y:length_unit = "μm" ;
-	double heights(x, y) ;
+    double heights(x, y) ;
 }
 
-The following code snippets reads the file and displays the topography data as a two-dimensional color map in Python:
+The following code snippets reads the file and displays the topography data as
+a two-dimensional color map in Python:
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -100,8 +104,10 @@ plt.show()
         self._communicator = communicator
         self._x_dim = self._nc.dimensions['x']
         self._y_dim = self._nc.dimensions['y']
-        self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
-        self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
+        self._x_var = self._nc.variables[
+            'x'] if 'x' in self._nc.variables else None
+        self._y_var = self._nc.variables[
+            'y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
 
         # The following information may be missing from the NetCDF file
@@ -145,15 +151,19 @@ plt.show()
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        physical_sizes = self._check_physical_sizes(physical_sizes, self._physical_sizes)
+        physical_sizes = self._check_physical_sizes(physical_sizes,
+                                                    self._physical_sizes)
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic if periodic is None else periodic, info=_info)
+                              periodic=self._periodic
+                              if periodic is None else periodic,
+                              info=_info)
         else:
             return Topography(self._heights_var, physical_sizes,
-                              periodic=self._periodic if periodic is None else periodic,
+                              periodic=self._periodic
+                              if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,
@@ -182,9 +192,11 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
         NetCDF file format. Default is 'NETCDF4'.
     """
     from netCDF4 import Dataset
-    if not topography.is_domain_decomposed and topography.communicator.rank > 1:
+    if not topography.is_domain_decomposed and \
+            topography.communicator.rank > 1:
         return
-    with Dataset(filename, 'w', format=format, parallel=topography.is_domain_decomposed,
+    with Dataset(filename, 'w', format=format,
+                 parallel=topography.is_domain_decomposed,
                  comm=topography.communicator) as nc:
         nx, ny = topography.nb_grid_pts
         sx, sy = topography.physical_sizes
@@ -212,6 +224,5 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_DATA'):
         heights_var[topography.subdomain_slices] = topography.heights()
 
 
-### Register analysis functions from this module
-
+# Register analysis functions from this module
 UniformTopographyInterface.register_function('to_netcdf', write_nc)

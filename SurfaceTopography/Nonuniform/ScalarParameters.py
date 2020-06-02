@@ -67,7 +67,7 @@ def rms_height(topography, kind='Rq', tol=1e-6):
     -------
     rms_height : float or array
         Root-mean square height.
-    """
+    """  # noqa: E501
     if kind != 'Rq':
         raise ValueError("Unsupported rms height kind '{}'.".format(kind))
     x, h = topography.positions_and_heights()
@@ -76,7 +76,8 @@ def rms_height(topography, kind='Rq', tol=1e-6):
         return 0.0
     L = x[-1] - x[0]
     h0 = h - topography.mean()
-    return np.sqrt(np.sum((h0[:-1] ** 2 + h0[1:] ** 2 + h0[:-1] * h0[1:]) * dx) / (3 * L))
+    return np.sqrt(
+        np.sum((h0[:-1] ** 2 + h0[1:] ** 2 + h0[:-1] * h0[1:]) * dx) / (3 * L))
 
 
 def rms_slope(topography):
@@ -102,7 +103,7 @@ def rms_slope(topography):
     -------
     rms_slope : float
         Root-mean square slope.
-    """
+    """  # noqa: E501
     x, h = topography.positions_and_heights()
     dh = np.diff(h)
     dx = np.diff(x)
@@ -133,8 +134,7 @@ def rms_curvature(topography):
     return np.sqrt(np.trapz(d2 ** 2, x[1:-1]) / L)
 
 
-### Register analysis functions from this module
-
+# Register analysis functions from this module
 NonuniformLineScanInterface.register_function('rms_height', rms_height)
 NonuniformLineScanInterface.register_function('rms_slope', rms_slope)
 NonuniformLineScanInterface.register_function('rms_curvature', rms_curvature)

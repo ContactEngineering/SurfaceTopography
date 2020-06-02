@@ -55,9 +55,11 @@ class NPYReader(ReaderBase):
     _name = 'Numpy arrays (NPY)'
     _description = '''
 Load topography information stored as a numpy array. The numpy array format is
-specified [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html). The reader
-expects a two-dimensional array and interprets it as a map of heights. Numpy arrays do not store units
-or physical sizes. These need to be manually provided by the user.
+specified
+[here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).
+The reader expects a two-dimensional array and interprets it as a map of
+heights. Numpy arrays do not store units or physical sizes. These need to be
+manually provided by the user.
     '''
 
     def __init__(self, fn, communicator=MPI.COMM_WORLD):
@@ -76,13 +78,15 @@ or physical sizes. These need to be manually provided by the user.
         # if comm is None:
         #    raise ValueError("you should provide comm when running with MPI")
         try:
-            self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator, format="npy")
+            self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator,
+                                                        format="npy")
             self.dtype = self.mpi_file.dtype
             self._nb_grid_pts = self.mpi_file.nb_grid_pts
         except NuMPI.IO.MPIFileTypeError:
             raise FileFormatMismatch()
 
-        # TODO: maybe implement extras specific to SurfaceTopography , like loading the units and the physical_sizes
+        # TODO: maybe implement extras specific to SurfaceTopography, like
+        #  loading the units and the physical_sizes
 
     @property
     def channels(self):
@@ -102,7 +106,8 @@ or physical sizes. These need to be manually provided by the user.
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:
                 raise ValueError("This is a parallel run, you should provide "
-                                 "subdomain location and number of grid points")
+                                 "subdomain location and number of grid "
+                                 "points")
             return Topography(
                 self.mpi_file.read(
                     subdomain_locations=subdomain_locations,
@@ -128,5 +133,7 @@ or physical sizes. These need to be manually provided by the user.
 
 
 def save_npy(fn, topography):
-    NuMPI.IO.save_npy(fn=fn, data=topography.heights(), subdomain_locations=topography.subdomain_locations,
-                      nb_grid_pts=topography.nb_subdomain_grid_pts, comm=topography.communicator)
+    NuMPI.IO.save_npy(fn=fn, data=topography.heights(),
+                      subdomain_locations=topography.subdomain_locations,
+                      nb_grid_pts=topography.nb_subdomain_grid_pts,
+                      comm=topography.communicator)

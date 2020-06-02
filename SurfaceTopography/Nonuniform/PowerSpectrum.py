@@ -34,7 +34,7 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 def sinc(x):
     """sinc function"""
-    return np.sinc(x/np.pi)
+    return np.sinc(x / np.pi)
 
 
 def dsinc(x):
@@ -45,12 +45,14 @@ def dsinc(x):
     if small_values.sum() > 0:
         ret = np.zeros_like(x)
 
-        # For small values, use the Taylor series expansion (accurate to O(x^^))
+        # For small values, use the Taylor series expansion
+        # (accurate to O(x^^))
         ret[small_values] = -x[small_values] / 3 + x[small_values] ** 3 / 30
 
         # For large values, use the normal expression
         large_values = np.logical_not(small_values)
-        ret[large_values] = (np.cos(x[large_values]) - sinc(x[large_values])) / x[large_values]
+        ret[large_values] = (np.cos(x[large_values]) -
+                             sinc(x[large_values])) / x[large_values]
         return ret
     else:
         return (np.cos(x) - sinc(x)) / x
@@ -85,15 +87,16 @@ def ft_one_sided_triangle(q):
 
 def apply_window(x, y, window=None):
     if window == 'hann':
-        l = x.max() - x.min()
-        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / l)) * y
+        length = x.max() - x.min()
+        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / length)) * y
     elif window is None or window == 'None':
         return y
     else:
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate=5, window=None):
+def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
+                      ninterpolate=5, window=None):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -122,7 +125,8 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate
         Name of the window function to apply before computing the PSD.
         Presently only supports Hann window ('hann') or no window (None or
         'None').
-        Default: no window for periodic Topographies, "hann" window for nonperiodic Topographies
+        Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies
 
     Returns
     -------
@@ -134,16 +138,17 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate
     if not line_scan.is_periodic and window is None:
         window = "hann"
 
-
     s, = line_scan.physical_sizes
     x, y = line_scan.positions_and_heights()
     if algorithm == 'fft':
         if wavevectors is not None:
-            raise ValueError("`wavevectors` can only be used with 'brute-force' algorithm.")
+            raise ValueError("`wavevectors` can only be used with "
+                             "'brute-force' algorithm.")
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
-        return line_scan.to_uniform(ninterpolate * int(s / min_dist), 0).power_spectrum_1D(window=window)
+        return line_scan.to_uniform(ninterpolate * int(s / min_dist),
+                                    0).power_spectrum_1D(window=window)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
@@ -156,15 +161,18 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None, ninterpolate
                 dy = y2 - y1
                 x0 = (x1 + x2) / 2
                 y0 = (y1 + y2) / 2
-                y_q += dx * (y0 * ft_rectangle(wavevectors * dx) + 1j * dy * \
-                             ft_one_sided_triangle(wavevectors * dx)) * np.exp(-1j * x0 * wavevectors)
+                y_q += dx * (y0 * ft_rectangle(wavevectors * dx) + 1j * dy *
+                             ft_one_sided_triangle(wavevectors * dx)) * np.exp(
+                    -1j * x0 * wavevectors)
             else:
-                raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
+                raise ValueError('Nonuniform data points must be sorted in '
+                                 'order of ascending x-values.')
         return wavevectors, np.abs(y_q) ** 2 / L
     else:
-        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
+        raise ValueError("Unknown algorithm '{}' specified."
+                         .format(algorithm))
 
 
-### Register analysis functions from this module
-
-NonuniformLineScanInterface.register_function('power_spectrum_1D', power_spectrum_1D)
+# Register analysis functions from this module
+NonuniformLineScanInterface.register_function('power_spectrum_1D',
+                                              power_spectrum_1D)

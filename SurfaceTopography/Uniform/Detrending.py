@@ -41,7 +41,8 @@ def tilt_from_height(topography, full_output=False):
 
         p(x, y) = h_0 + m x + n y
 
-    The values of :math:`m`, :math:`n` and :math:`h0` are return by this function.
+    The values of :math:`m`, :math:`n` and :math:`h0` are return by this
+    function.
 
     idea as follows
 
@@ -81,7 +82,7 @@ def tilt_from_height(topography, full_output=False):
     # linear regression model
     location_matrix = np.hstack(columns)
     offsets = np.ma.compressed(arr)
-    #res = scipy.optimize.nnls(location_matrix, offsets)
+    # res = scipy.optimize.nnls(location_matrix, offsets)
     res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
     coeffs = np.array(res[0])
     if full_output:
@@ -122,7 +123,7 @@ def tilt_and_curvature(arr, full_output=False):
     x_grids = np.meshgrid(*x_grids, indexing='ij')
     # Quadratic terms
     x, y = x_grids
-    x_grids += [x*x, y*y, x*y]
+    x_grids += [x * x, y * y, x * y]
     if np.ma.getmask(arr) is np.ma.nomask:
         columns = [x.reshape((-1, 1)) for x in x_grids]
     else:
@@ -132,7 +133,7 @@ def tilt_and_curvature(arr, full_output=False):
     # linear regression model
     location_matrix = np.hstack(columns)
     offsets = np.ma.compressed(arr)
-    #res = scipy.optimize.nnls(location_matrix, offsets)
+    # res = scipy.optimize.nnls(location_matrix, offsets)
     res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
     coeffs = np.array(res[0])
     if full_output:
@@ -143,12 +144,12 @@ def tilt_and_curvature(arr, full_output=False):
 
 def shift_and_tilt(topography):
     """
-    returns an array of same shape and physical_sizes as arr, but shifted and tilted so
-    that mean(arr) = 0 and mean(arr**2) is minimized
+    returns an array of same shape and physical_sizes as arr, but shifted and
+    tilted so that mean(arr) = 0 and mean(arr**2) is minimized
     """
     arr = topography.heights()
     coeffs, location_matrix = tilt_from_height(topography, full_output=True)
     coeffs = np.array(coeffs)
     offsets = arr.reshape((-1,))
 
-    return (offsets-location_matrix@coeffs).reshape(arr.shape)
+    return (offsets - location_matrix @ coeffs).reshape(arr.shape)

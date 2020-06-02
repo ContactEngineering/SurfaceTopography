@@ -51,7 +51,8 @@ def bandwidth(self):
 
 def derivative(topography, n):
     r"""
-    Compute derivative of nonuniform line-scan. Function assumes nonperiodic topographies.
+    Compute derivative of nonuniform line-scan. Function assumes nonperiodic
+    topographies.
 
     First derivative: Central differences.
     Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`(x-\Delta x_-)` up to second order in the grid
@@ -74,7 +75,7 @@ def derivative(topography, n):
     derivative : array
         Array with derivative values. Length of array is reduced by :math:`n` with
         respect to the input array for the :math:`n`th derivative.
-    """
+    """  # noqa: E501
     x, h = topography.positions_and_heights()
     if n == 1:
         return np.diff(h) / np.diff(x)
@@ -82,12 +83,13 @@ def derivative(topography, n):
         dxp = x[2:] - x[1:-1]
         dxm = x[1:-1] - x[:-2]
 
-        return 2 * (dxm * (h[2:] - h[1:-1]) + dxp * (h[0:-2] - h[1:-1])) / (dxp * dxm * (dxp + dxm))
+        return 2 * (dxm * (h[2:] - h[1:-1]) + dxp * (h[0:-2] - h[1:-1])) / (
+                    dxp * dxm * (dxp + dxm))
     else:
-        raise RuntimeError('Currently only first and second derivatives are supported for nonuniform topographies.')
+        raise RuntimeError('Currently only first and second derivatives are '
+                           'supported for nonuniform topographies.')
 
 
-### Register analysis functions from this module
-
+# Register analysis functions from this module
 NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
 NonuniformLineScanInterface.register_function('derivative', derivative)

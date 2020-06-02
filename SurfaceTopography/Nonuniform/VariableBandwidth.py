@@ -67,8 +67,8 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
     subdivided_line_scans = []
     for i in range(subdivisions):
         # Subdivide interval
-        sub_xleft = x[0] + i*(x[-1] - x[0])/subdivisions
-        sub_xright = x[0] + (i+1)*(x[-1] - x[0])/subdivisions
+        sub_xleft = x[0] + i * (x[-1] - x[0]) / subdivisions
+        sub_xright = x[0] + (i + 1) * (x[-1] - x[0]) / subdivisions
 
         # Search for the data point closes to sub_xleft and sub_xright
         sub_ileft = x.searchsorted(sub_xleft)
@@ -77,28 +77,33 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
         sub_x = x[sub_ileft:sub_iright]
         sub_y = y[sub_ileft:sub_iright]
 
-        # Put additional data points on the left and right boundaries, if there is none already in the data set at
-        # exactly those points
+        # Put additional data points on the left and right boundaries, if there
+        # is none already in the data set at exactly those points
 
         if sub_ileft != 0 and sub_xleft < x[sub_ileft] - tol:
             # Linear interpolation to boundary point
-            sub_yleft = y[sub_ileft - 1] + (sub_xleft - x[sub_ileft - 1]) / (x[sub_ileft] - x[sub_ileft - 1]) * (
-                        y[sub_ileft] - y[sub_ileft - 1])
+            sub_yleft = y[sub_ileft - 1] + (sub_xleft - x[sub_ileft - 1]) / (
+                        x[sub_ileft] - x[sub_ileft - 1]) * (
+                                y[sub_ileft] - y[sub_ileft - 1])
             # Add additional point to data
             sub_x = np.append([sub_xleft], sub_x)
             sub_y = np.append([sub_yleft], sub_y)
 
-        if sub_iright != len(x) and sub_xright > x[sub_iright-1] + tol:
+        if sub_iright != len(x) and sub_xright > x[sub_iright - 1] + tol:
             # Linear interpolation to boundary point
-            sub_yright = y[sub_iright - 1] + (sub_xright - x[sub_iright - 1]) / (x[sub_iright] - x[sub_iright - 1]) * (
-                        y[sub_iright] - y[sub_iright - 1])
+            sub_yright = y[sub_iright - 1] + (
+                        sub_xright - x[sub_iright - 1]) / (
+                                     x[sub_iright] - x[sub_iright - 1]) * (
+                                 y[sub_iright] - y[sub_iright - 1])
             # Add additional point to data
             sub_x = np.append(sub_x, [sub_xright])
             sub_y = np.append(sub_y, [sub_yright])
 
-        subdivided_line_scans += [NonuniformLineScan(sub_x, sub_y, info=line_scan.info).detrend()]
+        subdivided_line_scans += [
+            NonuniformLineScan(sub_x, sub_y, info=line_scan.info).detrend()]
 
     return subdivided_line_scans
+
 
 def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
     """
@@ -119,8 +124,8 @@ def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
     magnifications : array
         Array containing the magnifications.
     bandwidths : array
-        Array containing the bandwidths, here the physical_sizes of the subdivided
-        topography.
+        Array containing the bandwidths, here the physical_sizes of the
+        subdivided topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
@@ -132,15 +137,19 @@ def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
     rms_heights = []
     while min_nb_grid_pts >= nb_grid_pts_cutoff:
         subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
-        min_nb_grid_pts = min([l.nb_grid_pts[0] for l in subdivided_line_scans])
+        min_nb_grid_pts = min(
+            [line.nb_grid_pts[0] for line in subdivided_line_scans])
         magnifications += [magnification]
         bandwidths += [subdivided_line_scans[0].physical_sizes[0]]
-        rms_heights += [np.mean([l.rms_height() for l in subdivided_line_scans])]
+        rms_heights += [
+            np.mean([line.rms_height() for line in subdivided_line_scans])]
         magnification *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(
+        rms_heights)
 
 
-### Register analysis functions from this module
-
-NonuniformLineScanInterface.register_function('checkerboard_detrend', checkerboard_detrend)
-NonuniformLineScanInterface.register_function('variable_bandwidth', variable_bandwidth)
+# Register analysis functions from this module
+NonuniformLineScanInterface.register_function('checkerboard_detrend',
+                                              checkerboard_detrend)
+NonuniformLineScanInterface.register_function('variable_bandwidth',
+                                              variable_bandwidth)

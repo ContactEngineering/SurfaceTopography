@@ -48,7 +48,8 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
-        Default: no window for periodic Topographies, "hann" window for nonperiodic Topographies
+        Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies
 
     Returns
     -------
@@ -76,24 +77,24 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     if window is not None and window != 'None':
         win = get_window(window, nx)
         # Normalize window
-        win *= np.sqrt(nx/(win**2).sum())
+        win *= np.sqrt(nx / (win ** 2).sum())
         h = (win * h.T).T
 
     # Pixel physical_sizes
-    len0 = sx/nx
+    len0 = sx / nx
 
     # Compute FFT and normalize
-    fourier_topography = len0*np.fft.fft(h, axis=0)
-    dq = 2*np.pi/sx
-    q = dq*np.arange(nx//2)
+    fourier_topography = len0 * np.fft.fft(h, axis=0)
+    dq = 2 * np.pi / sx
+    q = dq * np.arange(nx // 2)
 
     # This is the raw power spectral density
-    C_raw = (np.abs(fourier_topography)**2)/sx
+    C_raw = (np.abs(fourier_topography) ** 2) / sx
 
-    # Fold +q and -q branches. Note: Entry q=0 appears just once, hence exclude
-    # from average!
-    C_all = C_raw[:nx//2, ...]
-    C_all[1:nx//2, ...] += C_raw[nx-1:(nx+1)//2:-1, ...]
+    # Fold +q and -q branches. Note: Entry q=0 appears just once, hence
+    # exclude from average!
+    C_all = C_raw[:nx // 2, ...]
+    C_all[1:nx // 2, ...] += C_raw[nx - 1:(nx + 1) // 2:-1, ...]
     C_all /= 2
 
     if topography.dim == 1:
@@ -105,8 +106,9 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
 def get_window_2D(window, nx, ny, physical_sizes=None):
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
-            raise TypeError('Window physical_sizes (= {2}x{3}) must match signal physical_sizes '
-                            '(={0}x{1})'.format(nx, ny, *window.shape))
+            raise TypeError(
+                'Window physical_sizes (= {2}x{3}) must match signal '
+                'physical_sizes (={0}x{1})'.format(nx, ny, *window.shape))
         return window
 
     if physical_sizes is None:
@@ -114,11 +116,11 @@ def get_window_2D(window, nx, ny, physical_sizes=None):
     else:
         sx, sy = physical_sizes
     if window == 'hann':
-        maxr = min(sx, sy)/2
-        r = np.sqrt((sx*(np.arange(nx).reshape(-1,1)-nx//2)/nx)**2 +
-                    (sy*(np.arange(ny).reshape(1,-1)-ny//2)/ny)**2)
-        win = 0.5+0.5*np.cos(np.pi*r/maxr)
-        win[r>maxr] = 0.0
+        maxr = min(sx, sy) / 2
+        r = np.sqrt((sx * (np.arange(nx).reshape(-1, 1) - nx // 2) / nx) ** 2 +
+                    (sy * (np.arange(ny).reshape(1, -1) - ny // 2) / ny) ** 2)
+        win = 0.5 + 0.5 * np.cos(np.pi * r / maxr)
+        win[r > maxr] = 0.0
         return win
     else:
         raise ValueError("Unknown window type '{}'".format(window))
@@ -164,30 +166,32 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
         win = get_window_2D(window, nx, ny, topography.physical_sizes)
         # Normalize window
         if normalize_window:
-            win *= np.sqrt(nx*ny/(win**2).sum())
+            win *= np.sqrt(nx * ny / (win ** 2).sum())
         topography = win * topography[:, :]
 
     # Pixel physical_sizes
-    area0 = (sx/nx)*(sy/ny)
+    area0 = (sx / nx) * (sy / ny)
 
     # Compute FFT and normalize
-    surface_qk = area0*np.fft.fft2(topography[:, :])
-    C_qk = abs(surface_qk)**2/(sx*sy)  # pylint: disable=invalid-name
+    surface_qk = area0 * np.fft.fft2(topography[:, :])
+    C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     if nbins is None:
         return C_qk
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, 2*np.pi*nx/(2*sx), nbins, physical_sizes=(2*np.pi*nx/sx, 2*np.pi*ny/sy))
+        C_qk, 2 * np.pi * nx / (2 * sx), nbins,
+        physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
     if return_map:
-        return q_val[n>0], C_val[n>0], C_qk
+        return q_val[n > 0], C_val[n > 0], C_qk
     else:
-        return q_val[n>0], C_val[n>0]
+        return q_val[n > 0], C_val[n > 0]
 
 
-### Register analysis functions from this module
-
-UniformTopographyInterface.register_function('power_spectrum_1D', power_spectrum_1D)
-UniformTopographyInterface.register_function('power_spectrum_2D', power_spectrum_2D)
+# Register analysis functions from this module
+UniformTopographyInterface.register_function('power_spectrum_1D',
+                                             power_spectrum_1D)
+UniformTopographyInterface.register_function('power_spectrum_2D',
+                                             power_spectrum_2D)

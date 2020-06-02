@@ -47,7 +47,8 @@ def checkerboard_detrend(topography, subdivisions):
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     subdivisions : tuple
-        Number of subdivision per dimension, i.e. physical_sizes of the checkerboard.
+        Number of subdivision per dimension, i.e. physical_sizes of the
+        checkerboard.
 
     Returns
     -------
@@ -56,13 +57,13 @@ def checkerboard_detrend(topography, subdivisions):
         checkerboard.
     """
     arr = topography.heights().copy()
-    physical_sizes = topography.physical_sizes
     nb_dim = topography.dim
 
     shape = arr.shape
 
     # compute unique consecutive index for each subdivided region
-    region_coord = [np.arange(shape[i]) * subdivisions[i] // shape[i] for i in range(nb_dim)]
+    region_coord = [np.arange(shape[i]) * subdivisions[i] // shape[i] for i in
+                    range(nb_dim)]
     if nb_dim > 1:
         region_coord = np.meshgrid(*region_coord, indexing='ij')
     region_index = region_coord[0]
@@ -75,22 +76,23 @@ def checkerboard_detrend(topography, subdivisions):
     elif nb_dim == 2:
         x, y = np.meshgrid(*(np.arange(n) for n in shape), indexing='ij')
     else:
-        raise ValueError('Cannot handle {}-dimensional topographies.'.format(nb_dim))
+        raise ValueError(
+            'Cannot handle {}-dimensional topographies.'.format(nb_dim))
 
-    region_index.shape = (-1, )
-    x.shape = (-1, )
-    arr.shape = (-1, )
+    region_index.shape = (-1,)
+    x.shape = (-1,)
+    arr.shape = (-1,)
     sum_1 = np.bincount(region_index)
     sum_x = np.bincount(region_index, x)
-    sum_xx = np.bincount(region_index, x*x)
+    sum_xx = np.bincount(region_index, x * x)
     sum_h = np.bincount(region_index, arr)
-    sum_xh = np.bincount(region_index, x*arr)
+    sum_xh = np.bincount(region_index, x * arr)
     if nb_dim == 2:
         y.shape = (-1,)
         sum_y = np.bincount(region_index, y)
         sum_yy = np.bincount(region_index, y * y)
         sum_xy = np.bincount(region_index, x * y)
-        sum_yh = np.bincount(region_index, y*arr)
+        sum_yh = np.bincount(region_index, y * arr)
 
     if nb_dim == 1:
         # Calculated detrended plane. Detrended plane is given by h0 + mx*x.
@@ -99,16 +101,17 @@ def checkerboard_detrend(topography, subdivisions):
         b = np.array([sum_h, sum_xh])
         h0, mx = np.linalg.solve(A.T, b.T).T
 
-        arr -= h0[region_index] + mx[region_index]*x
+        arr -= h0[region_index] + mx[region_index] * x
     else:
-        # Calculated detrended plane. Detrended plane is given by h0 + mx*x + my*y.
+        # Calculated detrended plane. Detrended plane is given by
+        # h0 + mx*x + my*y.
         A = np.array([[sum_1, sum_x, sum_y],
                       [sum_x, sum_xx, sum_xy],
                       [sum_y, sum_xy, sum_yy]])
         b = np.array([sum_h, sum_xh, sum_yh])
         h0, mx, my = np.linalg.solve(A.T, b.T).T
 
-        arr -= h0[region_index] + mx[region_index]*x + my[region_index]*y
+        arr -= h0[region_index] + mx[region_index] * x + my[region_index] * y
 
     arr.shape = shape
 
@@ -134,9 +137,9 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
     magnifications : array
         Array containing the magnifications.
     bandwidths : array
-        Array containing the bandwidths, here the physical_sizes of the subdivided
-        topography. For 2D topography maps, this is the mean of the two physical_sizes
-        lenghts of the subdivided section of the topography.
+        Array containing the bandwidths, here the physical sizes of the
+        subdivided topography. For 2D topography maps, this is the mean of the
+        two physical sizes of the subdivided section of the topography.
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
@@ -155,10 +158,12 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
         rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(
+        rms_heights)
 
 
-### Register analysis functions from this module
-
-UniformTopographyInterface.register_function('checkerboard_detrend', checkerboard_detrend)
-UniformTopographyInterface.register_function('variable_bandwidth', variable_bandwidth)
+# Register analysis functions from this module
+UniformTopographyInterface.register_function('checkerboard_detrend',
+                                             checkerboard_detrend)
+UniformTopographyInterface.register_function('variable_bandwidth',
+                                             variable_bandwidth)

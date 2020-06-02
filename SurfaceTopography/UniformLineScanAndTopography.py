@@ -31,10 +31,11 @@ Support for uniform topogography descriptions
 import numpy as np
 
 from NuMPI import MPI
-from NuMPI.Tools import Reduction
 
-from .HeightContainer import AbstractHeightContainer, UniformTopographyInterface, DecoratedTopography
+from .HeightContainer import AbstractHeightContainer, \
+    UniformTopographyInterface, DecoratedTopography
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
+
 
 class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
     """
@@ -62,13 +63,15 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)),
+                                         heights)
         self._heights = heights
         self._size = np.asarray(physical_sizes).item()
         self._periodic = periodic
 
     def __getstate__(self):
-        state = super().__getstate__(), self._heights, self._size, self._periodic
+        state = super().__getstate__(), self._heights, self._size, \
+                self._periodic
         return state
 
     def __setstate__(self, state):
@@ -128,8 +131,9 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         return self._heights
 
     def save(self, fname, compress=True):
-        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
-            the profile; the physical_sizes is not contained in the file
+        """
+        saves the topography as a NumpyTxtTopography. Warning: This only saves
+        the profile; the physical_sizes is not contained in the file
         """
         if compress:
             if not fname.endswith('.gz'):
@@ -139,12 +143,14 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
 class Topography(AbstractHeightContainer, UniformTopographyInterface):
     """
-    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a topography
-    map.
+    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a
+    topography map.
     """
 
-    def __init__(self, heights, physical_sizes, periodic=False, decomposition='serial',
-                 nb_grid_pts=None, subdomain_locations=None, nb_subdomain_grid_pts=None,
+    def __init__(self, heights, physical_sizes, periodic=False,
+                 decomposition='serial',
+                 nb_grid_pts=None, subdomain_locations=None,
+                 nb_subdomain_grid_pts=None,
                  communicator=MPI.COMM_SELF, info={}):
         """
         Parameters
@@ -204,67 +210,91 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         # Automatically turn this into a masked array if there is data missing
         if not isinstance(heights, np.ma.core.MaskedArray):
             if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-                heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+                heights = np.ma.masked_where(
+                    np.logical_not(np.isfinite(heights)), heights)
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
-                raise ValueError('This is a serial run but `nb_grid_pts` (= {}) does not equal the shape of the '
-                                 '`heights` (= {}) array.'.format(nb_grid_pts, heights.shape))
-            if subdomain_locations is not None and tuple(subdomain_locations) != (0, 0):
-                raise ValueError('This is a serial run but `subdomain_locations` (= {}) is not the origin.'
-                                 .format(subdomain_locations))
-            if nb_subdomain_grid_pts is not None and tuple(nb_subdomain_grid_pts) != heights.shape:
-                raise ValueError('This is a serial run but `nb_subdomain_grid_pts` (= {}) does not equal the shape '
-                                 'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
+                raise ValueError(
+                    'This is a serial run but `nb_grid_pts` (= {}) does not '
+                    'equal the shape of the `heights` (= {}) array.'
+                    .format(nb_grid_pts, heights.shape))
+            if subdomain_locations is not None and tuple(
+                    subdomain_locations) != (0, 0):
+                raise ValueError(
+                    'This is a serial run but `subdomain_locations` (= {}) '
+                    'is not the origin.'.format(subdomain_locations))
+            if nb_subdomain_grid_pts is not None and tuple(
+                    nb_subdomain_grid_pts) != heights.shape:
+                raise ValueError(
+                    'This is a serial run but `nb_subdomain_grid_pts` '
+                    '(= {}) does not equal the shape '
+                    'of the `heights` (= {}) array.'
+                    .format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
             self._heights = np.asanyarray(heights)
         elif decomposition == 'subdomain':
             # Case 2.: parallelized and local data provided
             if nb_grid_pts is None:
-                raise ValueError("This is a parallel run with 'subdomain' decomposition; please specify "
-                                 "`nb_grid_pts` since it cannot be inferred.")
+                raise ValueError(
+                    "This is a parallel run with 'subdomain' decomposition; '"
+                    "'please specify `nb_grid_pts` since it cannot be "
+                    "inferred.")
             if subdomain_locations is None:
-                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
-            if nb_subdomain_grid_pts is not None and tuple(nb_subdomain_grid_pts) != heights.shape:
-                raise ValueError("This is a parallel run with 'subdomain' decomposition but `nb_subdomain_grid_pts` "
-                                 "(= {}) does not equal the shape of the `heights` (= {}) array."
-                                 .format(nb_subdomain_grid_pts, heights.shape))
+                raise ValueError('This is a parallel run; please specify '
+                                 '`subdomain_locations`.')
+            if nb_subdomain_grid_pts is not None and tuple(
+                    nb_subdomain_grid_pts) != heights.shape:
+                raise ValueError(
+                    "This is a parallel run with 'subdomain' decomposition "
+                    "but `nb_subdomain_grid_pts` (= {}) does not equal the "
+                    "shape of the `heights` (= {}) array."
+                    .format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(heights)
         elif decomposition == 'domain':
-            #Case 3: parallelized but global data provided
+            # Case 3: parallelized but global data provided
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
-                raise ValueError("This is a parallel run with 'domain' decomposition but `nb_grid_pts` "
-                                 "(= {}) does not equal the shape of the `heights` (= {}) array."
-                                 .format(nb_grid_pts, heights.shape))
+                raise ValueError(
+                    "This is a parallel run with 'domain' decomposition but "
+                    "`nb_grid_pts` (= {}) does not equal the shape of the "
+                    "`heights` (= {}) array."
+                    .format(nb_grid_pts, heights.shape))
             if subdomain_locations is None:
-                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
+                raise ValueError('This is a parallel run; please specify '
+                                 '`subdomain_locations`.')
             if nb_subdomain_grid_pts is None:
-                raise ValueError("This is a parallel run with 'domain' decomposition; please specify "
-                                 "`nb_subdomain_grid_pts` since it cannot be inferred.")
+                raise ValueError(
+                    "This is a parallel run with 'domain' decomposition; "
+                    "please specify `nb_subdomain_grid_pts` since it cannot "
+                    "be inferred.")
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(
-                heights[tuple(slice(s, s + n) for s, n in zip(subdomain_locations, nb_subdomain_grid_pts))])
+                heights[tuple(slice(s, s + n) for s, n in
+                              zip(subdomain_locations,
+                                  nb_subdomain_grid_pts))])
         elif decomposition == 'serial':
-            raise ValueError("`decomposition` is 'serial' but this is a parallel run.")
+            raise ValueError(
+                "`decomposition` is 'serial' but this is a parallel run.")
         else:
-            raise ValueError("`decomposition` can be either 'domain' or 'subdomain'.")
+            raise ValueError(
+                "`decomposition` can be either 'domain' or 'subdomain'.")
 
         self._size = physical_sizes
         self._periodic = periodic
 
     def __getstate__(self):
-        state = super().__getstate__(), self._heights, self._size, self._periodic, \
-                self._subdomain_locations, self._nb_grid_pts
+        state = super().__getstate__(), self._heights, self._size, \
+                self._periodic, self._subdomain_locations, self._nb_grid_pts
         return state
 
     def __setstate__(self, state):
         superstate, self._heights, self._size, self._periodic, \
-                self._subdomain_locations, self._nb_grid_pts = state
+            self._subdomain_locations, self._nb_grid_pts = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -306,7 +336,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def subdomain_slices(self):
-        return tuple(slice(s, s + n) for s, n in zip(self.subdomain_locations, self.nb_subdomain_grid_pts))
+        return tuple(slice(s, s + n) for s, n in
+                     zip(self.subdomain_locations, self.nb_subdomain_grid_pts))
 
     # Implement topography interface
 
@@ -320,16 +351,19 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0
+        return np.ma.getmask(
+            self._heights) is not np.ma.nomask and np.ma.getmask(
+            self._heights).sum() > 0
 
     def positions(self):
         # FIXME: Write test for this method
         nx, ny = self.nb_grid_pts
         lnx, lny = self.nb_subdomain_grid_pts
         sx, sy = self.physical_sizes
-        return np.meshgrid((self.subdomain_locations[0] + np.arange(lnx)) * sx/nx,
-                           (self.subdomain_locations[1] + np.arange(lny)) * sy/ny,
-                           indexing='ij')
+        return np.meshgrid(
+            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
+            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
+            indexing='ij')
 
     def heights(self):
         return self._heights
@@ -339,8 +373,9 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         return x, y, self.heights()
 
     def save(self, fname, compress=True):
-        """ saves the topography as a NumpyTxtTopography. Warning: This only saves
-            the heights; the physical_sizes is not contained in the file
+        """
+        saves the topography as a NumpyTxtTopography. Warning: This only saves
+        the heights; the physical_sizes is not contained in the file
         """
         if compress:
             if not fname.endswith('.gz'):
@@ -352,8 +387,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         return self._communicator
 
 
-
-class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface):
+class DecoratedUniformTopography(DecoratedTopography,
+                                 UniformTopographyInterface):
     @property
     def has_undefined_data(self):
         return self.parent_topography.has_undefined_data
@@ -386,7 +421,6 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
     def nb_grid_pts(self):
         return self.parent_topography.nb_grid_pts
 
-
     @property
     def nb_subdomain_grid_pts(self, ):
         """ needs to be testable to make sure that geometry and halfspace are
@@ -417,9 +451,11 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     def squeeze(self):
         if self.dim == 1:
-            return UniformLineScan(self.heights(), self.physical_sizes, periodic=self.is_periodic, info=self.info)
+            return UniformLineScan(self.heights(), self.physical_sizes,
+                                   periodic=self.is_periodic, info=self.info)
         else:
-            return Topography(self.heights(), self.physical_sizes, periodic=self.is_periodic, info=self.info)
+            return Topography(self.heights(), self.physical_sizes,
+                              periodic=self.is_periodic, info=self.info)
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):
@@ -482,7 +518,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
             'slope': adjust slope such that rms slope is minimized.
-            'curvature': adjust slope and curvature such that rms height is minimized.
+            'curvature': adjust slope and curvature such that rms height is
+            minimized.
             (Default: 'height')
         """
         super().__init__(topography, info=info)
@@ -495,26 +532,33 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 self._coeffs = (self.parent_topography.mean(),)
             elif self._detrend_mode == 'height':
                 x, y = self.parent_topography.positions_and_heights()
-                a1, a0 = np.polyfit(x / self.parent_topography.physical_sizes, y, 1)
+                a1, a0 = np.polyfit(x / self.parent_topography.physical_sizes,
+                                    y, 1)
                 self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative(1, periodic=False).mean()
+                sl = self.parent_topography.derivative(1,
+                                                       periodic=False).mean()
                 n, = self.nb_grid_pts
                 s, = self.physical_sizes
                 grad = sl * s
-                self._coeffs = [self.parent_topography.mean() - grad * (n - 1) / (2 * n), grad]
+                self._coeffs = [
+                    self.parent_topography.mean() - grad * (n - 1) / (2 * n),
+                    grad]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
-                a2, a1, a0 = np.polyfit(x / self.parent_topography.physical_sizes, y, 2)
+                a2, a1, a0 = np.polyfit(
+                    x / self.parent_topography.physical_sizes, y, 2)
                 self._coeffs = a0, a1, a2
             else:
-                raise ValueError("Unsupported detrend mode '{}' for line scans." \
-                                 .format(self._detrend_mode))
+                raise ValueError(
+                    "Unsupported detrend mode '{}' for line scans."
+                    .format(self._detrend_mode))
         else:  # self.dim == 2
             if self._detrend_mode is None or self._detrend_mode == 'center':
                 self._coeffs = [self.parent_topography.mean()]
             elif self._detrend_mode == 'height':
-                self._coeffs = [s for s in tilt_from_height(self.parent_topography)]
+                self._coeffs = [s for s in
+                                tilt_from_height(self.parent_topography)]
             elif self._detrend_mode == 'slope':
                 slx, sly = self.parent_topography.derivative(1, periodic=False)
                 slx = slx.mean()
@@ -522,13 +566,17 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 nx, ny = self.nb_grid_pts
                 sx, sy = self.physical_sizes
                 self._coeffs = [slx * sx, sly * sy,
-                                self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (
-                                            2 * ny)]
+                                self.parent_topography.mean() - slx * sx * (
+                                            nx - 1) / (2 * nx) - sly * sy * (
+                                            ny - 1) / (
+                                        2 * ny)]
             elif self._detrend_mode == 'curvature':
-                self._coeffs = [s for s in tilt_and_curvature(self.parent_topography)]
+                self._coeffs = [s for s in
+                                tilt_and_curvature(self.parent_topography)]
             else:
-                raise ValueError("Unsupported detrend mode '{}' for 2D topographies." \
-                                 .format(self._detrend_mode))
+                raise ValueError(
+                    "Unsupported detrend mode '{}' for 2D topographies."
+                    .format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -582,34 +630,33 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 return self.parent_topography.heights() - a0 - a1 * x
             elif len(self._coeffs) == 3:
                 a0, a1, a2 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
+                return self.parent_topography.heights() - a0 - a1 * x - \
+                    a2 * x * x
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple for line scans.')
+                raise RuntimeError(
+                    'Unknown physical_sizes of coefficients tuple for line '
+                    'scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts), indexing='ij')
+            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
+                               indexing='ij')
             if len(self._coeffs) == 3:
                 a1x, a1y, a0 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1x * x - a1y * y
+                return self.parent_topography.heights() - a0 - a1x * x - \
+                    a1y * y
             elif len(self._coeffs) == 6:
                 m, n, mm, nn, mn, h0 = self._coeffs
                 xx = x * x
                 yy = y * y
                 xy = x * y
-                return self.parent_topography.heights() - h0 - m * x - n * y - mm * xx - nn * yy - mn * xy
+                return self.parent_topography.heights() - h0 - m * x - \
+                    n * y - mm * xx - nn * yy - mn * xy
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple for 2D topographies.')
+                raise RuntimeError('Unknown physical_sizes of coefficients '
+                                   'tuple for 2D topographies.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         """
-        note: in the expression returned, x is nondimensionalized by the physical_sizes
-
-        Parameters
-        ----------
-        fmt
-
-        Returns
-        -------
-
+        Return a string giving the expression for the detrending plane.
         """
 
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -622,7 +669,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif len(self._coeffs) == 3:
                 return '{0} + {1} x + {2} x^2'.format(*str_coeffs)
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError(
+                    'Unknown physical_sizes of coefficients tuple.')
         else:
             if len(self._coeffs) == 1:
                 h0, = str_coeffs
@@ -630,15 +678,17 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif len(self._coeffs) == 3:
                 return '{2} + {0} x + {1} y'.format(*str_coeffs)
             elif len(self._coeffs) == 6:
-                return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy'.format(*str_coeffs)
+                return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy' \
+                    .format(*str_coeffs)
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError(
+                    'Unknown physical_sizes of coefficients tuple.')
 
     @property
     def curvatures(self, ):
         """
-        convenience function that computes the curvatures :math:`\rho = \frac{1}{R}`
-        of the fitted plane
+        convenience function that computes the curvatures
+        :math:`\rho = \frac{1}{R}` of the fitted plane
 
         Returns
         -------
@@ -657,15 +707,19 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif len(self._coeffs) in {1, 2}:
                 return 0,
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError(
+                    'Unknown physical_sizes of coefficients tuple.')
         else:
             if len(self._coeffs) == 6:
                 sx, sy = self.physical_sizes
-                return  (2 * self._coeffs[2]) / sx**2, (2 * self._coeffs[3]) / sy**2 , (2 * self._coeffs[4]) / (sx*sy)
+                return (2 * self._coeffs[2]) / sx ** 2, (
+                            2 * self._coeffs[3]) / sy ** 2, (
+                                   2 * self._coeffs[4]) / (sx * sy)
             elif len(self._coeffs) in {1, 3}:
                 return 0, 0, 0
             else:
-                raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError(
+                    'Unknown physical_sizes of coefficients tuple.')
 
 
 class TransposedUniformTopography(DecoratedUniformTopography):
@@ -742,7 +796,9 @@ class TranslatedTopography(DecoratedUniformTopography):
         """ Computes the translated profile.
         """
         offsetx, offsety = self.offset
-        return np.roll(np.roll(self.parent_topography.heights(), offsetx, axis=0), offsety, axis=1)
+        return np.roll(
+            np.roll(self.parent_topography.heights(), offsetx, axis=0),
+            offsety, axis=1)
 
 
 class CompoundTopography(DecoratedUniformTopography):
@@ -760,10 +816,10 @@ class CompoundTopography(DecoratedUniformTopography):
 
         def combined_val(prop_a, prop_b, propname):
             """
-            topographies can have a fixed or dynamic, adaptive nb_grid_pts (or other
-            attributes). This function assures that -- if this function is
-            called for two topographies with fixed nb_grid_ptss -- the nb_grid_pts
-            are identical
+            topographies can have a fixed or dynamic, adaptive nb_grid_pts (or
+            other attributes). This function assures that -- if this function
+            is called for two topographies with fixed nb_grid_ptss --
+            the nb_grid_pts are identical
             Parameters:
             prop_a   -- field of one topography
             prop_b   -- field of other topography
@@ -779,8 +835,12 @@ class CompoundTopography(DecoratedUniformTopography):
                 return prop_a
 
         self._dim = combined_val(topography_a.dim, topography_b.dim, 'dim')
-        self._nb_grid_pts = combined_val(topography_a.nb_grid_pts, topography_b.nb_grid_pts, 'nb_grid_pts')
-        self._size = combined_val(topography_a.physical_sizes, topography_b.physical_sizes, 'physical_sizes')
+        self._nb_grid_pts = combined_val(topography_a.nb_grid_pts,
+                                         topography_b.nb_grid_pts,
+                                         'nb_grid_pts')
+        self._size = combined_val(topography_a.physical_sizes,
+                                  topography_b.physical_sizes,
+                                  'physical_sizes')
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
@@ -790,15 +850,21 @@ class CompoundTopography(DecoratedUniformTopography):
         return (self.parent_topography_a.heights() +
                 self.parent_topography_b.heights())
 
-### Register analysis functions from this module
 
-UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
-UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
-UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
+# Register analysis functions from this module
+UniformTopographyInterface.register_function(
+    'mean', lambda this: this.heights().mean())
+UniformTopographyInterface.register_function(
+    'min', lambda this: this.heights().min())
+UniformTopographyInterface.register_function(
+    'max', lambda this: this.heights().max())
 
-### Register pipeline functions from this module
-
-UniformTopographyInterface.register_function('scale', ScaledUniformTopography)
-UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
-UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)
-UniformTopographyInterface.register_function('translate', TranslatedTopography)
+# Register pipeline functions from this module
+UniformTopographyInterface.register_function(
+    'scale', ScaledUniformTopography)
+UniformTopographyInterface.register_function(
+    'detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function(
+    'transpose', TransposedUniformTopography)
+UniformTopographyInterface.register_function(
+    'translate', TranslatedTopography)

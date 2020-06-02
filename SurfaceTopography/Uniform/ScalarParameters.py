@@ -34,6 +34,7 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 from NuMPI.Tools import Reduction
 
+
 def rms_height(topography, kind='Sq'):
     """
     Compute the root mean square height amplitude of a topography or
@@ -50,7 +51,7 @@ def rms_height(topography, kind='Sq'):
         Root mean square height value.
     """
     n = np.prod(topography.nb_grid_pts)
-    #if topography.is_MPI:
+    # if topography.is_MPI:
     pnp = Reduction(topography._communicator)
     profile = topography.heights()
     if kind == 'Sq':
@@ -63,11 +64,11 @@ def rms_height(topography, kind='Sq'):
         # to be zero
         decomp_axis = [full != loc for full, loc in
                        zip(np.array(topography.nb_grid_pts), profile.shape)]
-        temppnp = pnp if decomp_axis[0] == True else np
+        temppnp = pnp if decomp_axis[0] else np
         return np.sqrt(temppnp.sum(
             (profile - temppnp.sum(profile, axis=0)
              / topography.nb_grid_pts[0]) ** 2
-                                    ) / n)
+        ) / n)
     else:
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
@@ -88,14 +89,16 @@ def rms_slope(topography):
         Root mean square slope value.
     """
     if topography.is_domain_decomposed:
-        raise NotImplementedError("rms_slope not implemented for parallelized topographies")
+        raise NotImplementedError(
+            "rms_slope not implemented for parallelized topographies")
     if topography.dim == 1:
-        return np.sqrt((topography.derivative(1)**2).mean())
+        return np.sqrt((topography.derivative(1) ** 2).mean())
     elif topography.dim == 2:
         slx, sly = topography.derivative(1)
-        return np.sqrt((slx**2).mean() + (sly**2).mean())
+        return np.sqrt((slx ** 2).mean() + (sly ** 2).mean())
     else:
-        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
+        raise ValueError('Cannot handle topographies of dimension {}'.format(
+            topography.dim))
 
 
 def rms_laplacian(topography):
@@ -115,18 +118,21 @@ def rms_laplacian(topography):
         Root mean square Laplacian value.
     """
     if topography.is_domain_decomposed:
-        raise NotImplementedError("rms_Laplacian not implemented for parallelized topographies")
+        raise NotImplementedError(
+            "rms_Laplacian not implemented for parallelized topographies")
     if topography.dim == 1:
         curv = topography.derivative(2)
-        return np.sqrt((curv[1:-1]**2).mean())
+        return np.sqrt((curv[1:-1] ** 2).mean())
     elif topography.dim == 2:
         curv = topography.derivative(2)
         if topography.is_periodic:
-            return np.sqrt(((curv[0]+curv[1])**2).mean())
+            return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
         else:
             return np.sqrt(((curv[0][:, 1:-1] + curv[1][1:-1, :]) ** 2).mean())
     else:
-        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
+        raise ValueError('Cannot handle topographies of dimension {}'.format(
+            topography.dim))
+
 
 def rms_curvature(topography):
     """
@@ -148,19 +154,19 @@ def rms_curvature(topography):
         Root mean square curvature value.
     """
     if topography.is_domain_decomposed:
-        raise NotImplementedError("rms_curvature not implemented for parallelized topographies")
+        raise NotImplementedError(
+            "rms_curvature not implemented for parallelized topographies")
     if topography.dim == 1:
         fac = 1.
     elif topography.dim == 2:
-        fac = 1./2
+        fac = 1. / 2
     else:
-        raise ValueError('Cannot handle topographies of dimension {}'.format(topography.dim))
+        raise ValueError('Cannot handle topographies of dimension {}'.format(
+            topography.dim))
     return fac * rms_laplacian(topography)
 
 
-
-### Register analysis functions from this module
-
+# Register analysis functions from this module
 UniformTopographyInterface.register_function('rms_height', rms_height)
 UniformTopographyInterface.register_function('rms_slope', rms_slope)
 UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)

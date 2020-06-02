@@ -37,11 +37,12 @@ class ChannelInfo:
     is identical to :obj:`HeightContainer` and subclasses.
     """
 
-    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None, periodic=None,
+    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
+                 physical_sizes=None, periodic=None,
                  info={}):
         """
-        Initialize the channel. Use as many information from the file as possible
-        by passing it in the keyword arguments.
+        Initialize the channel. Use as many information from the file as
+        possible by passing it in the keyword arguments.
 
         Arguments
         ---------
@@ -50,8 +51,8 @@ class ChannelInfo:
         index: int
             Index of channel in the file, where zero is the first channel.
         name: str
-            Name of the channel. If no name is given, "channel <index>" will be used,
-            where "<index>" is replaced with the index.
+            Name of the channel. If no name is given, "channel <index>" will
+            be used, where "<index>" is replaced with the index.
         dim: int
             Number of dimensions.
         nb_grid_pts: tuple of ints
@@ -59,18 +60,21 @@ class ChannelInfo:
         physical_sizes: tuple of floats
             Physical dimensions.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of a
-            periodic surface. This will affect the PSD and autocorrelation
+            Wether the SurfaceTopography should be interpreted as one period of
+            a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
         info: dict
             Meta data found in the file.
         """
         self._reader = reader
         self._index = int(index)
-        self._name = "channel {}".format(self._index) if name is None else str(name)
+        self._name = "channel {}".format(self._index) \
+            if name is None else str(name)
         self._dim = dim
-        self._nb_grid_pts = None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
-        self._physical_sizes = None if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        self._nb_grid_pts = None \
+            if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
+        self._physical_sizes = None \
+            if physical_sizes is None else tuple(np.ravel(physical_sizes))
         self._periodic = periodic
         self._info = info.copy()
 
@@ -96,8 +100,8 @@ class ChannelInfo:
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of a
-            periodic surface. This will affect the PSD and autocorrelation
+            Wether the SurfaceTopography should be interpreted as one period of
+            a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
             Origin (location) of the subdomain handled by the present MPI
@@ -192,7 +196,7 @@ class ChannelInfo:
             return None
         else:
             return tuple(np.array(self._physical_sizes) /
-                np.array(self._nb_grid_pts))
+                         np.array(self._nb_grid_pts))
 
     @property
     def area_per_pt(self):
@@ -221,7 +225,7 @@ class ChannelInfo:
             can be voltages or some other quantity actually acquired in the
             measurement technique) to heights with the given 'unit'.
         """
-        return self._info    
+        return self._info
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
@@ -247,7 +251,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         if cls._format is None:
             raise RuntimeError('Reader does not provide a format string')
         return cls._format
-    
+
     @classmethod
     def name(cls):
         """
@@ -286,22 +290,28 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
     @property
     def default_channel(self):
-        """Return the default channel. This is often the first channel with height information."""
+        """Return the default channel. This is often the first channel with
+        height information."""
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(self, physical_sizes_from_arg, physical_sizes=None):
+    def _check_physical_sizes(self, physical_sizes_from_arg,
+                              physical_sizes=None):
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
-                raise ValueError("physical_sizes could not be extracted from file, you should provide it")
+                raise ValueError("physical_sizes could not be extracted from "
+                                 "file, you should provide it")
         else:
             if physical_sizes_from_arg is None:
                 physical_sizes_from_arg = physical_sizes
             elif tuple(physical_sizes_from_arg) != tuple(physical_sizes):
-                warnings.warn("A physical size different from the value specified when calling the reader "
-                              "was present in the file. We will ignore the value given in the file. "
-                              "Specified values: {}; Values from file: {}".format(physical_sizes,
-                                                                                  physical_sizes_from_arg))
+                warnings.warn(
+                    "A physical size different from the value specified when "
+                    "calling the reader was present in the file. We will "
+                    "ignore the value given in the file. Specified values: "
+                    "{}; Values from file: {}".format(
+                        physical_sizes,
+                        physical_sizes_from_arg))
         return physical_sizes_from_arg
 
     @abc.abstractmethod
@@ -330,8 +340,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of a
-            periodic surface. This will affect the PSD and autocorrelation
+            Wether the SurfaceTopography should be interpreted as one period of
+            a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
             Origin (location) of the subdomain handled by the present MPI
@@ -361,6 +371,7 @@ class CannotDetectFileFormat(ReadFileError):
     Raised when no reader is able to open_topography the file
     """
     pass
+
 
 class FileFormatMismatch(ReadFileError):
     """

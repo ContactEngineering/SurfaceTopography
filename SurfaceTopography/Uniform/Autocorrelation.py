@@ -36,7 +36,8 @@ from ..HeightContainer import UniformTopographyInterface
 
 def autocorrelation_1D(topography):
     r"""
-    Compute the one-dimensional height-difference autocorrelation function (ACF).
+    Compute the one-dimensional height-difference autocorrelation function
+    (ACF).
 
     For non-periodic surfaces the ACF at distance d is given by:
 
@@ -65,7 +66,7 @@ def autocorrelation_1D(topography):
         Distances. (Units: length)
     A : array
         Autocorrelation function. (Units: length**2)
-    """
+    """  # noqa: E501
     if topography.dim == 2:
         nx, dummy_ny = topography.nb_grid_pts
         sx, dummy_sy = topography.physical_sizes
@@ -108,8 +109,9 @@ def autocorrelation_1D(topography):
         # which determines the number of data points that are actually
         # included into the computation of <h(x)h(x+d)>_d. h_rms^2 needs to
         # be computed over the same data points.
-        p_sq = p**2
-        A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[::-1])/2
+        p_sq = p ** 2
+        A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[
+                                             ::-1]) / 2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
@@ -150,9 +152,6 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
-    # Pixel physical_sizes
-    area0 = (sx / nx) * (sy / ny)
-
     # Compute FFT and normalize
     if topography.is_periodic:
         surface_qk = np.fft.fft2(topography[...])
@@ -167,7 +166,8 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
             return A_xy
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
+        r_edges, n, r_val, A_val = radial_average(
+            # pylint: disable=invalid-name
             A_xy, (sx + sy) / 4, nbins, physical_sizes=(sx, sy))
     else:
         p = topography.heights()
@@ -177,20 +177,25 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft2(C_qk).real
 
-        # Correction to turn height-height into height-difference autocorrelation
-        p_sq = p**2
-        A0_xy = (p_sq.cumsum(axis=0).cumsum(axis=1)[::-1, ::-1] + \
-                 p_sq[::-1, ::-1].cumsum(axis=0).cumsum(axis=1)[::-1, ::-1])/2
+        # Correction to turn height-height into height-difference
+        # autocorrelation
+        p_sq = p ** 2
+        A0_xy = (p_sq.cumsum(axis=0).cumsum(axis=1)[::-1, ::-1] +
+                 p_sq[::-1, ::-1].cumsum(axis=0).cumsum(axis=1)[::-1,
+                 ::-1]) / 2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = (A0_xy - A_xy[:nx, :ny]) / ((nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
+        A_xy = (A0_xy - A_xy[:nx, :ny]) / (
+                    (nx - np.arange(nx)).reshape(-1, 1) * (
+                        ny - np.arange(ny)).reshape(1, -1))
 
         if nbins is None:
             return A_xy
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(  # pylint: disable=invalid-name
+        r_edges, n, r_val, A_val = radial_average(
+            # pylint: disable=invalid-name
             A_xy, (sx + sy) / 2, nbins, physical_sizes=(sx, sy), full=False)
 
     if return_map:
@@ -199,7 +204,8 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         return r_val[n > 0], A_val[n > 0]
 
 
-### Register analysis functions from this module
-
-UniformTopographyInterface.register_function('autocorrelation_1D', autocorrelation_1D)
-UniformTopographyInterface.register_function('autocorrelation_2D', autocorrelation_2D)
+# Register analysis functions from this module
+UniformTopographyInterface.register_function('autocorrelation_1D',
+                                             autocorrelation_1D)
+UniformTopographyInterface.register_function('autocorrelation_2D',
+                                             autocorrelation_2D)
