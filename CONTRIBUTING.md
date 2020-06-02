@@ -4,6 +4,8 @@ Contributing to SurfaceTopography
 Code style
 ----------
 Always follow [PEP-8](https://www.python.org/dev/peps/pep-0008/).
+Documentation strings must follow the
+[numpydoc](https://numpydoc.readthedocs.io/) standard.
 
 Development branches
 --------------------
