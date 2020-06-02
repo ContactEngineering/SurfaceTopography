@@ -36,7 +36,8 @@ import numpy as np
 
 from SurfaceTopography import Topography
 
-from .FromFile import get_unit_conversion_factor, height_units, mangle_height_unit
+from .FromFile import get_unit_conversion_factor, height_units, \
+    mangle_height_unit
 from .Reader import ReaderBase, ChannelInfo
 
 
@@ -46,9 +47,10 @@ class DIReader(ReaderBase):
     _format = 'di'
     _name = 'Veeco (Digital Instruments) Nanoscope'
     _description = '''
-Digitial Instruments Nanoscope files typically have a three-digit number as the file extension (.001, .002, .003, ...).
-This format contains information on the physical size of the topography map as well as its units. The reader supports
-V4.3 and later version of the format.
+Digitial Instruments Nanoscope files typically have a three-digit number as
+the file extension (.001, .002, .003, ...). This format contains information
+on the physical size of the topography map as well as its units. The reader
+supports V4.3 and later version of the format.
 '''
 
     def __init__(self, fobj):
@@ -70,21 +72,23 @@ V4.3 and later version of the format.
             section_name = None
             section_dict = {}
 
-            l = fobj.readline().decode('latin-1').strip()
-            while l and l.lower() != r'\*file list end':
-                if l.startswith('\\*'):
+            L = fobj.readline().decode('latin-1').strip()
+            while L and L.lower() != r'\*file list end':
+                if L.startswith('\\*'):
                     if section_name is not None:
                         parameters += [(section_name, section_dict)]
-                    new_section_name = l[2:].lower()
+                    new_section_name = L[2:].lower()
                     if section_name is None:
                         if new_section_name != 'file list':
-                             raise IOError("Header must start with the 'File list' section.")
+                            raise IOError("Header must start with the "
+                                          "'File list' section.")
                     section_name = new_section_name
                     section_dict = {}
-                elif l.startswith('\\'):
+                elif L.startswith('\\'):
                     if section_name is None:
-                        raise IOError('Encountered key before section header.')
-                    s = l[1:].split(': ', 1)
+                        raise IOError('Encountered key before section '
+                                      'header.')
+                    s = L[1:].split(': ', 1)
                     try:
                         key, value = s
                     except ValueError:
@@ -92,8 +96,10 @@ V4.3 and later version of the format.
                         value = ''
                     section_dict[key.lower()] = value.strip()
                 else:
-                    raise IOError("Header line '{}' does not start with a slash.".format(l))
-                l = fobj.readline().decode('latin-1').strip()
+                    raise IOError(
+                        "Header line '{}' does not start with a slash."
+                        .format(L))
+                L = fobj.readline().decode('latin-1').strip()
             if section_name is None:
                 raise IOError('No sections found in header.')
             parameters += [(section_name, section_dict)]
@@ -106,7 +112,9 @@ V4.3 and later version of the format.
             for n, p in parameters:
                 if n == 'file list':
                     if 'date' in p:
-                        info['acquisition_time'] = datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y')
+                        info['acquisition_time'] = \
+                            datetime.strptime(p['date'],
+                                              '%I:%M:%S %p %a %b %d %Y')
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'ciao image list':
@@ -127,10 +135,13 @@ V4.3 and later version of the format.
                     length = int(p['data length'])
                     elsize = int(p['bytes/pixel'])
                     if elsize != 2:
-                        raise IOError("Don't know how to handle {} bytes per pixel "
-                                      "data.".format(elsize))
+                        raise IOError(
+                            "Don't know how to handle {} bytes per pixel "
+                            "data.".format(elsize))
                     if nx * ny * elsize != length:
-                        raise IOError('Data block physical_sizes differs from extend of surface.')
+                        raise IOError(
+                            'Data block physical_sizes differs from extend '
+                            'of surface.')
 
                     scale_re = re.match(
                         r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
@@ -152,15 +163,17 @@ V4.3 and later version of the format.
                         hard_to_soft = get_unit_conversion_factor(hard_unit,
                                                                   soft_unit)
                         if hard_to_soft is None:
-                            raise ValueError("Units for hard (={}) and soft (={}) "
-                                             "scale differ for '{}'. Don't know how "
-                                             "to handle this.".format(hard_unit,
-                                                                      soft_unit,
-                                                                      image_data_key))
+                            raise ValueError(
+                                "Units for hard (={}) and soft (={}) "
+                                "scale differ for '{}'. Don't know how "
+                                "to handle this.".format(hard_unit,
+                                                         soft_unit,
+                                                         image_data_key))
                     if height_unit in height_units:
                         height_unit = mangle_height_unit(height_unit)
                         if xy_unit != height_unit:
-                            fac = get_unit_conversion_factor(xy_unit, height_unit)
+                            fac = get_unit_conversion_factor(xy_unit,
+                                                             height_unit)
                             sx *= fac
                             sy *= fac
                             xy_unit = height_unit
@@ -169,7 +182,10 @@ V4.3 and later version of the format.
                         unit = (xy_unit, height_unit)
 
                     channel_info = info.copy()
-                    channel_info.update(dict(unit=unit, height_scale_factor=hard_scale * hard_to_soft * soft_scale))
+                    channel_info.update(dict(
+                        unit=unit,
+                        height_scale_factor=hard_scale * hard_to_soft *
+                        soft_scale))
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
@@ -193,8 +209,10 @@ V4.3 and later version of the format.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
         close_file = False
         if not hasattr(self._fobj, 'read'):
             fobj = open(self._fobj, 'rb')
@@ -203,7 +221,8 @@ V4.3 and later version of the format.
             fobj = self._fobj
 
         channel = self._channels[channel_index]
-        sx, sy = self._check_physical_sizes(physical_sizes, channel.physical_sizes)
+        sx, sy = self._check_physical_sizes(physical_sizes,
+                                            channel.physical_sizes)
 
         nx, ny = channel.nb_grid_pts
 
@@ -227,7 +246,8 @@ V4.3 and later version of the format.
         # the image of gwyddion when plotted with imshow(t.heights().T)
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
-        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), info=_info, periodic=periodic)
+        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), info=_info,
+                             periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)

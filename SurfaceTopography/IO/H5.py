@@ -31,13 +31,14 @@ class H5Reader(ReaderBase):
     _format = 'h5'
     _name = 'Hierarchical data format (HDF5)'
     _description = '''
-Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided within the contact mechanics
-challenge. The reader looks for a two-dimensional array named `surface`. HDF5 files do not store units
-or physical sizes. These need to be manually provided by the user.
+Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided
+within the contact mechanics challenge. The reader looks for a two-dimensional
+array named `surface`. HDF5 files do not store units or physical sizes. These
+need to be manually provided by the user.
 
 The original contact mechanics challenge data can be downloaded
 [here](https://www.lmp.uni-saarland.de/index.php/research-topics/contact-mechanics-challenge-announcement/).
-    '''
+    '''  # noqa: E501
 
     def __init__(self, fobj):
         self._h5 = None
@@ -51,7 +52,7 @@ The original contact mechanics challenge data can be downloaded
     @property
     def channels(self):
         return [ChannelInfo(self,
-                            0, # channel index
+                            0,  # channel index
                             name='Default',
                             dim=len(self._h5['surface'].shape),
                             nb_grid_pts=self._h5['surface'].shape)]
@@ -59,14 +60,17 @@ The original contact mechanics challenge data can be downloaded
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
         if channel_index is None:
             channel_index = self._default_channel_index
         if channel_index != 0:
             raise RuntimeError('HDF5 reader only supports a single channel')
         size = self._check_physical_sizes(physical_sizes)
-        t = Topography(self._h5['surface'][...], size, info=info, periodic=periodic)
+        t = Topography(self._h5['surface'][...], size, info=info,
+                       periodic=periodic)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
         return t

@@ -23,6 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 import numpy as np
 from io import TextIOBase
 
@@ -37,23 +38,26 @@ class IBWReader(ReaderBase):
     _name = 'Igor binary wave'
     _description = '''
 Igor binary wave is a container format of the
-[Igor Pro](https://www.wavemetrics.com/products/igorpro/programming) language. This format is used by
-AFMs from Asylum Research (now Oxford Instruments) to store topography information. This format contains
-information on the physical size of the topography map as well as its units.
+[Igor Pro](https://www.wavemetrics.com/products/igorpro/programming)
+language. This format is used by AFMs from Asylum Research (now Oxford
+Instruments) to store topography information. This format contains information
+on the physical size of the topography map as well as its units.
 '''
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
 
-        # depending from where this function is called, file_path might already be a filestream
+        # depending from where this function is called, file_path might already
+        # be a filestream
         already_open = False
         if not hasattr(file_path, 'read'):
             f = open(file_path, "rb")
         else:
             already_open = True
             if isinstance(file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to get the binary data
-                f = file_path.buffer  
+                # file was opened without the 'b' option, so read its buffer to
+                # get the binary data
+                f = file_path.buffer
             else:
                 f = file_path
 
@@ -63,9 +67,8 @@ information on the physical size of the topography map as well as its units.
         except Exception:
             if not f.closed:
                 if not already_open:
-                   f.close()
+                    f.close()
             raise RuntimeError('Invalid file format.')
-
 
         if file['version'] != 5:
             raise RuntimeError('Only IBW version 5 supported!')
@@ -73,7 +76,8 @@ information on the physical size of the topography map as well as its units.
         self.data = file['wave']
 
         # the first two labels are of x and y axis. we cannot read those
-        self._channel_names = [channel.decode() for channel in self.data['labels'][2][1:]]
+        self._channel_names = [channel.decode() for channel in
+                               self.data['labels'][2][1:]]
         self._default_channel = 0
 
         #
@@ -84,8 +88,8 @@ information on the physical size of the topography map as well as its units.
 
         # TODO is it always like this?
         assert len(height_data.shape) == 3, \
-            "We expect all channels being coded in to one wave and all are 2D. "+\
-            "This is not true somehow, cannot proceed."
+            "We expect all channels being coded in to one wave and all are " \
+            "2D. This is not true somehow, cannot proceed."
         nx, ny, num_channels = height_data.shape
 
         # ensure that there are not too many channel names
@@ -107,12 +111,15 @@ information on the physical size of the topography map as well as its units.
         x_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][0])
         y_unit = decode_unit_entry(self.data['wave_header']['dimUnits'][1])
 
-        # the following is not necessary, we could handle different units by rescaling,
-        # however I'll leave it like this for now, print some message
-        # so we know what to do if a file occurs which does not fulfill this assumption
+        # the following is not necessary, we could handle different units by
+        # rescaling, however I'll leave it like this for now, print some
+        # message so we know what to do if a file occurs which does not fulfill
+        # this assumption
         assert data_unit == x_unit == y_unit, \
-            "So far, data units and dimension units must be all the same. "+\
-            "data unit: '{}', x unit: '{}', y unit: '{}'".format(data_unit, x_unit, y_unit)
+            "So far, data units and dimension units must be all the same. " +\
+            "data unit: '{}', x unit: '{}', y unit: '{}'".format(data_unit,
+                                                                 x_unit,
+                                                                 y_unit)
 
         self._data_unit = data_unit
         #
@@ -120,35 +127,39 @@ information on the physical size of the topography map as well as its units.
         #
         sfA = self.data['wave_header']['sfA']
         self._physical_sizes = (nx * sfA[0], ny * sfA[1])
-        # Comment in C header file on these fields: Index value for element e of dimension d = sfA[d]*e + sfB[d].
-        # sfB is left out here, because we are interested in the width and height, not the absolute offsets.
+        # Comment in C header file on these fields: Index value for element e
+        # of dimension d = sfA[d]*e + sfB[d]. sfB is left out here, because we
+        # are interested in the width and height, not the absolute offsets.
 
         #
         # Build channel information
         #
-        self._channels = [ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny),
-                                      physical_sizes=self._physical_sizes)
-                          for i, cn in enumerate(self._channel_names)]
+        self._channels = [
+            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny),
+                        physical_sizes=self._physical_sizes)
+            for i, cn in enumerate(self._channel_names)]
 
-        #
-        #
-        # Shall we use the channel names in order to assign a unit as Gwyddion does?
+        # Shall we use the channel names in order to assign a unit as Gwyddion
+        # does?
 
     @property
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None,
+                   height_scale_factor=None, info={},
+                   periodic=False, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
 
         height_data = self.data['wData']
         height_data = np.fliplr(height_data[:, :, channel_index].copy())
-
 
         if physical_sizes is None:
             physical_sizes = self._physical_sizes
@@ -156,10 +167,10 @@ information on the physical size of the topography map as well as its units.
         topo = Topography(height_data, physical_sizes,
                           info=info,
                           periodic=periodic)
-        # we could pass the data units here, but they dont seem to be always correct for all channels?!
+        # we could pass the data units here, but they dont seem to be always
+        # correct for all channels?!
 
         if height_scale_factor is not None:
-           topo = topo.scale(height_scale_factor)
+            topo = topo.scale(height_scale_factor)
 
         return topo
-

@@ -41,7 +41,7 @@ from .NPY import NPYReader
 from .OPDx import OPDxReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
-    FileFormatMismatch, CorruptFile, ReaderBase
+    FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
 
 readers = [
     AscReader,
@@ -53,7 +53,9 @@ readers = [
     XYZReader,
     IBWReader,
     MIReader,
-    NCReader, # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
+    NCReader,
+    # NCReader must come before H5Reader, because NC4 *is* a specialized form
+    # of HDF5
     H5Reader,
     NPYReader,
     HGTReader,
@@ -62,6 +64,7 @@ readers = [
 lookup_reader_by_format = {}
 for reader in readers:
     lookup_reader_by_format[reader.format()] = reader
+
 
 def detect_format(fobj, comm=None):
     """
@@ -159,7 +162,7 @@ def open_topography(fobj, format=None, communicator=None):
     >>> plt.imshow(top.heights().T)
 
     with origin in the upper left (inverted y axis).
-    """
+    """  # noqa: E501
     if communicator is not None:
         kwargs = {"communicator": communicator}
     else:
@@ -184,8 +187,9 @@ def open_topography(fobj, format=None, communicator=None):
         raise CannotDetectFileFormat(msg)
     else:
         if format not in lookup_reader_by_format.keys():
-            raise UnknownFileFormatGiven("{} not in registered file formats {}".format(fobj,
-                                                                                       lookup_reader_by_format.keys()))
+            raise UnknownFileFormatGiven(
+                "{} not in registered file formats {}".format(
+                    fobj, lookup_reader_by_format.keys()))
         return lookup_reader_by_format[format](fobj, **kwargs)
 
 
@@ -231,6 +235,7 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
     topography : subclass of :obj:`HeightContainer`
         The object containing the actual topography data.
     """
-    with open_topography(fn, format=format, communicator=communicator) as reader:
+    with open_topography(fn, format=format,
+                         communicator=communicator) as reader:
         t = reader.topography(**kwargs)
     return t
