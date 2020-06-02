@@ -79,8 +79,8 @@ for skip in skips:
     l, = ax.plot(x[grid_slice][:, 0], topography.heights()[grid_slice][:, 0],
                  "+")
     ax.plot(x[:, 0], interp_field[:, 0], color=l.get_color(),
-            label=r"bicubic, $l_{cor} / \Delta_x=$" +
-                  f"{hc / (skip * topography.pixel_size[0])}")
+            label=r"bicubic, $l_{{cor}} / \Delta_x={}$"
+            .format(hc / (skip * topography.pixel_size[0])))
 
     rms_err.append(
         np.sqrt(np.mean((interp_field - topography.heights()) ** 2)))
