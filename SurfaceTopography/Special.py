@@ -32,11 +32,14 @@ import numpy as np
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-from .UniformLineScanAndTopography import Topography, UniformLineScan, DecoratedUniformTopography
+from .UniformLineScanAndTopography import Topography, UniformLineScan, \
+    DecoratedUniformTopography
 
 
-def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, offset=0, periodic=False, kind="sphere",
-                nb_subdomain_grid_pts=None, subdomain_locations=None, communicator=MPI.COMM_WORLD):
+def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0,
+                offset=0, periodic=False, kind="sphere",
+                nb_subdomain_grid_pts=None, subdomain_locations=None,
+                communicator=MPI.COMM_WORLD):
     r"""
     Simple sphere geometry.
 
@@ -77,8 +80,7 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, of
          whether the sphere can wrap around. tricky for large spheres
     communicator : mpi4py communicator NuMPI stub communicator
          MPI communicator object.
-    """
-    # pylint: disable=invalid-name
+    """  # noqa: E501
     if not hasattr(nb_grid_pts, "__iter__"):
         nb_grid_pts = (nb_grid_pts,)
     dim = len(nb_grid_pts)
@@ -90,9 +92,9 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, of
         centre = (centre,)
 
     if nb_subdomain_grid_pts is None:
-        nb_subdomain_grid_pts=nb_grid_pts
+        nb_subdomain_grid_pts = nb_grid_pts
     if subdomain_locations is None:
-        subdomain_locations=(0,0)
+        subdomain_locations = (0, 0)
     if not periodic:
         def get_r(res, size, centre, subd_loc, subd_res):
             " computes the non-periodic radii to evaluate"
@@ -102,14 +104,15 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, of
         def get_r(res, size, centre, subd_loc, subd_res):
             " computes the periodic radii to evaluate"
             x = (subd_loc + np.arange(subd_res)) * size / res
-            return (x - centre + size/2 ) % size - size / 2
+            return (x - centre + size / 2) % size - size / 2
 
     if dim == 1:
         r2 = get_r(nb_grid_pts[0], physical_sizes[0], centre[0],
                    subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2
     elif dim == 2:
         rx2 = (get_r(nb_grid_pts[0], physical_sizes[0], centre[0],
-                     subdomain_locations[0], nb_subdomain_grid_pts[0]) ** 2).reshape((-1, 1))
+                     subdomain_locations[0],
+                     nb_subdomain_grid_pts[0]) ** 2).reshape((-1, 1))
         ry2 = (get_r(nb_grid_pts[1], physical_sizes[1], centre[1],
                      subdomain_locations[1], nb_subdomain_grid_pts[1])) ** 2
         r2 = rx2 + ry2
@@ -117,23 +120,25 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0, of
         raise Exception("Problem has to be 1- or 2-dimensional. "
                         "Yours is {}-dimensional".format(dim))
 
-    if kind=="sphere":
+    if kind == "sphere":
         radius2 = radius ** 2  # avoid nans for small radiio
         outside = r2 > radius2
         r2[outside] = radius2
         h = np.sqrt(radius2 - r2) - radius
         h[outside] -= standoff
-    elif kind=="paraboloid":
+    elif kind == "paraboloid":
         h = - r2 / (2 * radius)
     else:
-        raise(ValueError("Wrong value given for parameter kind (). "
-                         "Should be 'sphere' or 'paraboloid'".format(kind)))
+        raise (ValueError("Wrong value given for parameter kind {}. "
+                          "Should be 'sphere' or 'paraboloid'".format(kind)))
 
     if dim == 1:
         return UniformLineScan(h + offset, physical_sizes)
     else:
-        return Topography(h + offset, physical_sizes, decomposition='subdomain',
-                          nb_grid_pts=nb_grid_pts, subdomain_locations=subdomain_locations,
+        return Topography(h + offset, physical_sizes,
+                          decomposition='subdomain',
+                          nb_grid_pts=nb_grid_pts,
+                          subdomain_locations=subdomain_locations,
                           communicator=communicator)
 
 
@@ -187,7 +192,8 @@ class PlasticTopography(DecoratedUniformTopography):
     @plastic_displ.setter
     def plastic_displ(self, plastic_displ):
         if plastic_displ.shape != self.nb_subdomain_grid_pts:
-            raise ValueError('Resolution of profile and plastic displacement must match.')
+            raise ValueError(
+                'Resolution of profile and plastic displacement must match.')
         self.__h_pl = plastic_displ
 
     def undeformed_profile(self):

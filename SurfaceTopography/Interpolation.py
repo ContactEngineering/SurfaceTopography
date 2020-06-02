@@ -27,4 +27,4 @@
 Interpolation module
 """
 
-from _SurfaceTopography import Bicubic
+from _SurfaceTopography import Bicubic  # noqa: F401

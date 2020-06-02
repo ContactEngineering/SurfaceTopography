@@ -29,7 +29,6 @@ Base class for geometric topogography descriptions
 """
 
 import abc
-import numpy as np
 
 from NuMPI import MPI
 
@@ -77,9 +76,11 @@ class AbstractHeightContainer(object):
             func.__doc__ = self._functions[name].__doc__
             return func
         else:
-            raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered "
-                                 "(class {}). Available functions: {}"
-                                 .format(name, self.__class__.__name__, ', '.join(self._functions.keys())))
+            raise AttributeError(
+                "Unkown attribute '{}' and no analysis or pipeline function "
+                "of this name registered (class {}). Available functions: {}"
+                .format(name, self.__class__.__name__,
+                        ', '.join(self._functions.keys())))
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
@@ -102,7 +103,8 @@ class AbstractHeightContainer(object):
     @property
     @abc.abstractmethod
     def is_periodic(self):
-        """Return whether the topography is periodically repeated at the boundaries."""
+        """Return whether the topography is periodically repeated at the
+        boundaries."""
         raise NotImplementedError
 
     @property

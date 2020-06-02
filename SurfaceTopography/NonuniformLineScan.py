@@ -30,7 +30,8 @@ Support for nonuniform topogography descriptions
 
 import numpy as np
 
-from .HeightContainer import AbstractHeightContainer, DecoratedTopography, NonuniformLineScanInterface
+from .HeightContainer import AbstractHeightContainer, DecoratedTopography, \
+    NonuniformLineScanInterface
 from .Nonuniform.Detrending import polyfit
 
 
@@ -73,7 +74,8 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
 
     @property
     def is_periodic(self):
-        """Return whether the topography is periodically repeated at the boundaries."""
+        """Return whether the topography is periodically repeated at the
+        boundaries."""
         return self._periodic
 
     @property
@@ -97,7 +99,8 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         return self._h
 
 
-class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInterface):
+class DecoratedNonuniformTopography(DecoratedTopography,
+                                    NonuniformLineScanInterface):
     @property
     def is_periodic(self):
         return self.parent_topography.is_periodic
@@ -122,7 +125,8 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         return self.parent_topography.positions()
 
     def squeeze(self):
-        return NonuniformLineScan(self.positions(), self.heights(), info=self.info)
+        return NonuniformLineScan(self.positions(), self.heights(),
+                                  info=self.info)
 
 
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):
@@ -180,7 +184,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             'center': center the topography, no trend correction.
             'height': adjust slope such that rms height is minimized.
             'slope': adjust slope such that rms slope is minimized.
-            'curvature': adjust slope and curvature such that rms height is minimized.
+            'curvature': adjust slope and curvature such that rms height is
+            minimized.
             (Default: 'height')
         """
         super().__init__(topography, info=info)
@@ -201,8 +206,9 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 2)
         else:
-            raise ValueError("Unsupported detrend mode '{}' for line scans." \
-                             .format(self._detrend_mode))
+            raise ValueError(
+                "Unsupported detrend mode '{}' for line scans."
+                .format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -264,7 +270,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             a0, a1, a2 = self._coeffs
             return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
         else:
-            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients '
+                               'tuple.')
 
     def stringify_plane(self, fmt=lambda x: str(x)):
         str_coeffs = [fmt(x) for x in self._coeffs]
@@ -276,7 +283,8 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         elif len(self._coeffs) == 3:
             return '{0} + {1} x + {2} x^2'.format(*str_coeffs)
         else:
-            raise RuntimeError('Unknown physical_sizes of coefficients tuple.')
+            raise RuntimeError('Unknown physical_sizes of coefficients '
+                               'tuple.')
 
     @property
     def curvatures(self):
@@ -286,15 +294,17 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             return 0,
 
 
+# Register analysis functions from this module
+NonuniformLineScanInterface.register_function(
+    'mean', lambda this:
+    np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
+NonuniformLineScanInterface.register_function(
+    'min', lambda this: this.heights().min())
+NonuniformLineScanInterface.register_function(
+    'max', lambda this: this.heights().max())
 
-### Register analysis functions from this module
-
-NonuniformLineScanInterface.register_function('mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
-NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
-NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
-
-
-### Register pipeline functions from this module
-
-NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
-NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)
+# Register pipeline functions from this module
+NonuniformLineScanInterface.register_function(
+    'scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function(
+    'detrend', DetrendedNonuniformTopography)

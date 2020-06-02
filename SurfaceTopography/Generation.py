@@ -37,27 +37,30 @@ class CapillaryWavesExact(object):
     """Frozen capillary waves"""
     Error = Exception
 
-    def __init__(self, nb_grid_pts, physical_sizes, mass_density, surface_tension,
+    def __init__(self, nb_grid_pts, physical_sizes, mass_density,
+                 surface_tension,
                  bending_stiffness, seed=None):
         """
         Generates a surface with an exact power spectrum (deterministic
         amplitude)
         Keyword Arguments:
-        nb_grid_pts        -- Tuple containing number of points in spatial directions.
-                             The length of the tuple determines the spatial dimension
-                             of the problem (for the time being, only 1D or square 2D)
-        physical_sizes              -- domain physical_sizes. For multidimensional problems,
-                             a tuple can be provided to specify the length per
-                             dimension. If the tuple has less entries than dimensions,
-                             the last value in repeated.
+        nb_grid_pts      -- Tuple containing number of points in spatial
+                             directions. The length of the tuple determines the
+                             spatial dimension of the problem (for the time
+                             being, only 1D or square 2D)
+        physical_sizes   -- domain physical_sizes. For multidimensional
+                             problems, a tuple can be provided to specify the
+                             length per dimension. If the tuple has less
+                             entries than dimensions, the last value in
+                             repeated.
         mass_density      -- Mass density
         surface_tension   -- SurfaceTopography tension
         bending_stiffness -- Bending stiffness
         rms_height        -- root mean square height of surface
         rms_slope         -- root mean square slope of surface
-        seed              -- (default hash(None)) for repeatability, the random number
-                             generator is seeded previous to outputting the generated
-                             surface
+        seed              -- (default hash(None)) for repeatability, the random
+                             number generator is seeded previous to outputting
+                             the generated surface
         """
         if seed is not None:
             np.random.seed(hash(seed))
@@ -69,8 +72,8 @@ class CapillaryWavesExact(object):
         self.dim = len(nb_grid_pts)
         if self.dim not in (1, 2):
             raise self.Error(
-                ("Dimension of this problem is {}. Only 1 and 2-dimensional "
-                 "problems are supported").format(self.dim))
+                "Dimension of this problem is {}. Only 1 and 2-dimensional "
+                "problems are supported".format(self.dim))
         self.nb_grid_pts = nb_grid_pts
         tmpsize = list()
         for i in range(self.dim):
@@ -80,9 +83,6 @@ class CapillaryWavesExact(object):
         self.mass_density = mass_density
         self.surface_tension = surface_tension
         self.bending_stiffness = bending_stiffness
-
-        max_pixelsize = max(
-            (siz / res for siz, res in zip(self.size, self.nb_grid_pts)))
 
         self.q = compute_wavevectors(  # pylint: disable=invalid-name
             self.nb_grid_pts, self.size, self.dim)
@@ -152,8 +152,8 @@ class CapillaryWavesExact(object):
 
         Keyword Arguments:
         lambda_max -- (default None) specifies a cutoff value for the longest
-                      wavelength. By default, this is the domain physical_sizes in the
-                      smallest dimension
+                      wavelength. By default, this is the domain physical_sizes
+                      in the smallest dimension
         lambda_min -- (default None) specifies a cutoff value for the shortest
                       wavelength. by default this is determined by Shannon's
                       Theorem.
@@ -254,7 +254,8 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
 
     References
     -----------
-    [1]: Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
+    [1]: Jacobs, Junge, Pastewka,
+    Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)
 
     """
     nb_grid_pts = np.asarray(nb_grid_pts)
@@ -275,10 +276,12 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     if rms_height is not None:
         # Assuming no rolloff region
         fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
-                                       q_max ** (-2 * Hurst)) * np.sqrt(Hurst * np.pi)
+                                       q_max ** (-2 * Hurst)) * np.sqrt(
+            Hurst * np.pi)
     elif rms_slope is not None:
         fac = 2 * rms_slope / np.sqrt(q_max ** (2 - 2 * Hurst) -
-                                      q_min ** (2 - 2 * Hurst)) * np.sqrt((1 - Hurst) * np.pi)
+                                      q_min ** (2 - 2 * Hurst)) * np.sqrt(
+            (1 - Hurst) * np.pi)
     else:
         raise ValueError('Neither rms height nor rms slope is defined!')
 
@@ -291,7 +294,8 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
 def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                       rms_height=None, rms_slope=None, c0=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
-                      amplitude_distribution=lambda n: np.random.normal(size=n),
+                      amplitude_distribution=lambda n: np.random.normal(
+                          size=n),
                       rfn=None, kfn=None, progress_callback=None):
     r"""
     Create a self-affine, randomly rough surface using a Fourier filtering
@@ -321,8 +325,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
     rolloff : float
         Value for the power-spectral density (PSD) below the long-wavelength
         cutoff. This multiplies the value at the cutoff, i.e. unit will give a
-        PSD that is flat below the cutoff, zero will give a PSD that is vanishes
-        below cutoff. (Default: 1.0)
+        PSD that is flat below the cutoff, zero will give a PSD that is
+        vanishes below cutoff. (Default: 1.0)
     amplitude_distribution : function
         Function that generates the distribution of amplitudes.
         (Default: np.random.normal)
@@ -331,9 +335,9 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
         array will be created as a memory mapped file. This is useful for
         creating very large topography maps. (Default: None)
     kfn : str
-        Name of file that stores the Fourie-space array. If specified, real-space
-        array will be created as a memory mapped file. This is useful for
-        creating very large topography maps. (Default: None)
+        Name of file that stores the Fourie-space array. If specified,
+        real-space array will be created as a memory mapped file. This is
+        useful for creating very large topography maps. (Default: None)
     progress_callback : function(i, n)
         Function that is called to report progress.
 
@@ -345,7 +349,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
     if short_cutoff is not None:
         q_max = 2 * np.pi / short_cutoff
     else:
-        q_max = np.pi * np.min(np.asarray(nb_grid_pts) / np.asarray(physical_sizes))
+        q_max = np.pi * np.min(
+            np.asarray(nb_grid_pts) / np.asarray(physical_sizes))
 
     if long_cutoff is not None:
         q_min = 2 * np.pi / long_cutoff
@@ -353,15 +358,18 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
         q_min = None
 
     if c0 is None:
-        fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst, rms_height=rms_height,
-                                    rms_slope=rms_slope, short_cutoff=short_cutoff,
+        fac = self_affine_prefactor(nb_grid_pts, physical_sizes, hurst,
+                                    rms_height=rms_height,
+                                    rms_slope=rms_slope,
+                                    short_cutoff=short_cutoff,
                                     long_cutoff=long_cutoff)
     else:
         # prefactor for the fourier heights
-        fac = np.sqrt(c0) * np.prod(nb_grid_pts) / np.sqrt(np.prod(physical_sizes))
-        #                   ^                       ^ C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2
-        #                   |                         and h(x,y) = sum(1/A fh(q) e^(iqx)))
-        #                   compensate for the np.fft normalisation
+        fac = np.sqrt(c0) * np.prod(nb_grid_pts) / np.sqrt(
+            np.prod(physical_sizes))
+        # C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2
+        # and h(x,y) = sum(1/A fh(q) e^(iqx)))
+        # compensate for the np.fft normalisation
 
     if len(nb_grid_pts) == 2:
         nx, ny = nb_grid_pts
