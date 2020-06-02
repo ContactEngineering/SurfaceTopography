@@ -1012,7 +1012,6 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue((surf.heights() == surf2.heights().T).all())
 
 class ScalarParametersTest(unittest.TestCase):
-    @unittest.skip
     def test_rms_slope_1d(self):
         r = 4096
         res = (r, )
