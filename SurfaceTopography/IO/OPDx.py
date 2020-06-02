@@ -163,7 +163,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                     # common unit, no unit should be returned
                     try:
                         del metadata['unit']
-                    except IndexError:
+                    except KeyError:
                         pass
                 else:
                     # we want value in unit_x units
