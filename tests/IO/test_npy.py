@@ -26,17 +26,16 @@
 import numpy as np
 import os
 
-from NuMPI import MPI
-
-from SurfaceTopography.IO.NPY import NPYReader
-from SurfaceTopography.IO.NPY import save_npy
-from SurfaceTopography import open_topography
-
 import pytest
-from NuMPI import MPI
+
 from muFFT import FFT
 
+from SurfaceTopography import open_topography
+from SurfaceTopography.IO.NPY import NPYReader
+from SurfaceTopography.IO.NPY import save_npy
+
 DATADIR = os.path.dirname(os.path.realpath(__file__))
+
 
 def test_save_and_load(comm_self, file_format_examples):
     # sometimes the surface isn't transposed the same way when
@@ -45,17 +44,19 @@ def test_save_and_load(comm_self, file_format_examples):
         format="di").topography()
 
     npyfile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                          "test_save_and_load.npy")
+                           "test_save_and_load.npy")
     save_npy(npyfile, topography)
 
     loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
-        #nb_subdomain_grid_pts=topography.nb_grid_pts,
-        #subdomain_locations=(0,0),
-        physical_sizes=(1., 1.) )
+        # nb_subdomain_grid_pts=topography.nb_grid_pts,
+        # subdomain_locations=(0,0),
+        physical_sizes=(1., 1.))
 
-    np.testing.assert_allclose(loaded_topography.heights(), topography.heights())
+    np.testing.assert_allclose(loaded_topography.heights(),
+                               topography.heights())
 
     os.remove(npyfile)
+
 
 @pytest.mark.xfail
 def test_save_and_load_np(comm_self, file_format_examples):
@@ -68,25 +69,28 @@ def test_save_and_load_np(comm_self, file_format_examples):
     npyfile = "test_save_and_load_np.npy"
     np.save(npyfile, topography.heights())
 
-    loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(size=(1., 1.))
+    loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
+        size=(1., 1.))
 
-    np.testing.assert_allclose(loaded_topography.heights(), topography.heights())
-    
+    np.testing.assert_allclose(loaded_topography.heights(),
+                               topography.heights())
+
     os.remove(npyfile)
 
 
 @pytest.fixture
 def examplefile(comm):
     fn = DATADIR + "/worflowtest.npy"
-    res = (128,64)
+    res = (128, 64)
     np.random.seed(1)
-    data  = np.random.random(res )
+    data = np.random.random(res)
     data -= np.mean(data)
     if comm.rank == 0:
         np.save(fn, data)
 
     comm.barrier()
     return (fn, res, data)
+
 
 @pytest.mark.parametrize("loader", [open_topography, NPYReader])
 def test_reader(comm, loader, examplefile):
@@ -100,7 +104,7 @@ def test_reader(comm, loader, examplefile):
 
     fftengine = FFT(nb_grid_pts=fileReader.nb_grid_pts,
                     fft="mpi",
-                    communicator=comm )
+                    communicator=comm)
 
     top = fileReader.topography(
         subdomain_locations=fftengine.subdomain_locations,
@@ -110,10 +114,10 @@ def test_reader(comm, loader, examplefile):
     assert top.nb_grid_pts == fftengine.nb_domain_grid_pts
     assert top.nb_subdomain_grid_pts \
            == fftengine.nb_subdomain_grid_pts
-          # or top.nb_subdomain_grid_pts == (0,0) # for FreeFFTElHS
+    # or top.nb_subdomain_grid_pts == (0,0) # for FreeFFTElHS
     assert top.subdomain_locations == fftengine.subdomain_locations
 
-    np.testing.assert_array_equal(top.heights(),data[top.subdomain_slices])
+    np.testing.assert_array_equal(top.heights(), data[top.subdomain_slices])
 
     # test that the slicing is what is expected
 
@@ -124,8 +128,8 @@ def test_reader(comm, loader, examplefile):
         fulldomain_field[top.subdomain_slices],
         fulldomain_field[tuple([
             slice(fftengine.subdomain_locations[i],
-            fftengine.subdomain_locations[i]
-                  + max(0,min(fftengine.nb_domain_grid_pts[i]
-                  - fftengine.subdomain_locations[i],
-            fftengine.nb_subdomain_grid_pts[i])))
+                  fftengine.subdomain_locations[i]
+                  + max(0, min(fftengine.nb_domain_grid_pts[i]
+                               - fftengine.subdomain_locations[i],
+                               fftengine.nb_subdomain_grid_pts[i])))
             for i in range(len(fftengine.nb_domain_grid_pts))])])
