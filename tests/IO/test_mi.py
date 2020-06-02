@@ -29,17 +29,19 @@
 import unittest
 import os
 
-from SurfaceTopography.IO.MI import MIReader
 import pytest
 from NuMPI import MPI
 
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-        reason="tests only serial funcionalities, please execute with pytest")
+from SurfaceTopography.IO.MI import MIReader
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial funcionalities, please execute with pytest")
 
 DATADIR = os.path.join(
     os.path.dirname(
-    os.path.dirname(
-    os.path.realpath(__file__))),
+        os.path.dirname(
+            os.path.realpath(__file__))),
     'file_format_examples')
 
 
@@ -54,7 +56,9 @@ class MISurfaceTest(unittest.TestCase):
 
         # Like in Gwyddion, there should be 4 channels in total
         assert len(loader.channels) == 4
-        assert [ ch.name for ch in loader.channels ] == [ 'Topography', 'Deflection', 'Friction', 'Friction' ]
+        assert [ch.name for ch in loader.channels] == ['Topography',
+                                                       'Deflection',
+                                                       'Friction', 'Friction']
 
         # Check if metadata has been read in correctly
         self.assertEqual(loader.channels[0].dim, 2)
@@ -86,10 +90,11 @@ class MISurfaceTest(unittest.TestCase):
         topography = loader.topography()
 
         # Check one height value
-        self.assertAlmostEqual(topography._heights[0, 0], -0.4986900329589844, places=9)
+        self.assertAlmostEqual(topography._heights[0, 0], -0.4986900329589844,
+                               places=9)
 
-        # Check out if metadata from global and the channel are both in the result
-        # From channel metadata
+        # Check out if metadata from global and the channel are both in the
+        # result from channel metadata
         self.assertTrue('direction' in topography.info.keys())
         # From global metadata
         self.assertTrue('zDacRange' in topography.info.keys())

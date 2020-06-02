@@ -22,19 +22,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-from SurfaceTopography.Generation import fourier_synthesis
+
 import pytest
 import numpy as np
+
 from NuMPI import MPI
 
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-        reason="tests only serial functionalities, please execute with pytest")
+from SurfaceTopography.Generation import fourier_synthesis
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+
 
 @pytest.mark.parametrize("n", [128, 129])
 def test_fourier_synthesis(n):
     H = 0.74
     rms_slope = 1.2
-    qs = 2 * np.pi / (0.4e-9)  # 1/m
     s = 2e-6
 
     topography = fourier_synthesis((n, n), (s, s),
@@ -64,18 +68,21 @@ def test_fourier_synthesis_rms_height_more_wavevectors(comm_self):
 
     realised_rms_heights = []
     for i in range(50):
-        topography = fourier_synthesis((n, n), (s, s),
-                                       H,
-                                       rms_height=rms_height,
-                                       rolloff=0,
-                                       long_cutoff=s / 8,
-                                       short_cutoff=4 * s / n,
-                                       # amplitude_distribution=lambda n: np.ones(n)
-                                        )
+        topography = fourier_synthesis(
+            (n, n), (s, s),
+            H,
+            rms_height=rms_height,
+            rolloff=0,
+            long_cutoff=s / 8,
+            short_cutoff=4 * s / n,
+            # amplitude_distribution=lambda n: np.ones(n)
+        )
 
         realised_rms_heights.append(topography.rms_height())
     # print(abs(np.mean(realised_rms_heights) - rms_height) / rms_height)
-    assert abs(np.mean(realised_rms_heights) - rms_height) / rms_height < 0.1  # TODO: this is not very accurate !
+    # TODO: this is not very accurate !
+    assert abs(np.mean(
+        realised_rms_heights) - rms_height) / rms_height < 0.1
 
 
 def test_fourier_synthesis_rms_height():
@@ -86,15 +93,18 @@ def test_fourier_synthesis_rms_height():
 
     realised_rms_heights = []
     for i in range(50):
-        topography = fourier_synthesis((n, n), (s, s),
-                                       H,
-                                       rms_height=rms_height,
-                                       long_cutoff=None,
-                                       short_cutoff=4 * s / n,
-                                       # amplitude_distribution=lambda n: np.ones(n)
-                                       )
+        topography = fourier_synthesis(
+            (n, n), (s, s),
+            H,
+            rms_height=rms_height,
+            long_cutoff=None,
+            short_cutoff=4 * s / n,
+            # amplitude_distribution=lambda n: np.ones(n)
+        )
         realised_rms_heights.append(topography.rms_height())
-    assert abs(np.mean(realised_rms_heights) - rms_height) / rms_height < 0.5  # TODO: this is not very accurate !
+    # TODO: this is not very accurate !
+    assert abs(np.mean(
+        realised_rms_heights) - rms_height) / rms_height < 0.5
 
 
 def test_fourier_synthesis_c0():
@@ -133,7 +143,8 @@ def test_fourier_synthesis_c0():
         q, psd = topography.power_spectrum_1D()
         fig, ax = plt.subplots()
         ax.loglog(q, psd, label="generated data")
-        ax.loglog(q, c0 / np.pi * q ** (-1 - 2 * H), "--", label=r"$c_0 q^{-1-2H}$")
+        ax.loglog(q, c0 / np.pi * q ** (-1 - 2 * H), "--",
+                  label=r"$c_0 q^{-1-2H}$")
 
         ax.legend()
         ax.set_xlabel("q")
@@ -148,15 +159,16 @@ def test_fourier_synthesis_1D_input():
     n = 512
     s = n * 4.
     ls = 8
-    qs = 2 * np.pi / ls
     np.random.seed(0)
-    topography = fourier_synthesis((n,), (s,),
-                                   H,
-                                   c0=c0,
-                                   long_cutoff=s / 2,
-                                   short_cutoff=ls,
-                                   amplitude_distribution=lambda n: np.ones(n)
-                                   )
+    fourier_synthesis(
+        (n,), (s,),
+        H,
+        c0=c0,
+        long_cutoff=s / 2,
+        short_cutoff=ls,
+        amplitude_distribution=lambda n: np.ones(n)
+    )
+    # TODO: What's the point of this test? There is nothing that is tested
 
 
 @pytest.mark.parametrize("n", (256, 1024))
@@ -194,6 +206,7 @@ def test_fourier_synthesis_linescan_c0(n):
     ref_slope = np.sqrt(1 / (2 * np.pi) * c0 / (1 - H) * qs ** (2 - 2 * H))
     assert abs(t.rms_slope() - ref_slope) / ref_slope < 1e-1
 
+
 def test_fourier_synthesis_linescan_hprms():
     H = 0.7
     hprms = .2
@@ -201,7 +214,6 @@ def test_fourier_synthesis_linescan_hprms():
     n = 2048
     s = n * 4.
     ls = 64
-    qs = 2 * np.pi / ls
     # np.random.seed(0)
     realised_rms_slopes = []
     for i in range(20):
@@ -215,6 +227,7 @@ def test_fourier_synthesis_linescan_hprms():
     ref_slope = hprms
     assert abs(np.mean(realised_rms_slopes) - ref_slope) / ref_slope < 1e-1
 
+
 def test_fourier_synthesis_linescan_hrms_more_wavevectors():
     """
     Set amplitude to 0 (rolloff = 0) outside the self affine region.
@@ -227,7 +240,6 @@ def test_fourier_synthesis_linescan_hrms_more_wavevectors():
     n = 4096
     s = n * 4.
     ls = 8
-    qs = 2 * np.pi / ls
     np.random.seed(0)
     realised_rms_heights = []
     for i in range(50):
@@ -235,11 +247,13 @@ def test_fourier_synthesis_linescan_hrms_more_wavevectors():
                               rms_height=hrms,
                               hurst=H,
                               rolloff=0,
-                              long_cutoff=s/8,
+                              long_cutoff=s / 8,
                               short_cutoff=ls,
                               )
         realised_rms_heights.append(t.rms_height())
     realised_rms_heights = np.array(realised_rms_heights)
     ref_height = hrms
-    #print(np.sqrt(np.mean((realised_rms_heights - np.mean(realised_rms_heights))**2)))
-    assert abs(np.mean(realised_rms_heights) - ref_height) / ref_height < 0.1  #
+    # print(np.sqrt(np.mean(
+    # (realised_rms_heights - np.mean(realised_rms_heights))**2)))
+    assert abs(
+        np.mean(realised_rms_heights) - ref_height) / ref_height < 0.1  #

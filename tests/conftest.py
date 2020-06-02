@@ -30,6 +30,7 @@ from runtests.mpi.tester import WorldTooSmall, create_comm
 
 from NuMPI import MPI
 
+
 def MyMPITestFixture(commsize, scope='function'):
     """ Create a test fixture for MPI Communicators of various commsizes """
 
@@ -47,7 +48,8 @@ def MyMPITestFixture(commsize, scope='function'):
                 # Turn a None into a NuMPI stub communicator
                 if comm is None:
                     comm = MPI.COMM_SELF
-                print('MPI communicator: Rank {} (of {}).'.format(comm.rank, comm.size))
+                print('MPI communicator: Rank {} (of {}).'.format(comm.rank,
+                                                                  comm.size))
                 return comm
 
         except WorldTooSmall:
@@ -55,6 +57,7 @@ def MyMPITestFixture(commsize, scope='function'):
             return None
 
     return fixture
+
 
 comm = MyMPITestFixture([1, 4], scope='session')
 comm_self = MyMPITestFixture([1], scope='session')
@@ -64,4 +67,5 @@ maxcomm = MyMPITestFixture([MPI.COMM_WORLD.Get_size()], scope="session")
 
 @pytest.fixture(scope="session")
 def file_format_examples():
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                        'file_format_examples')

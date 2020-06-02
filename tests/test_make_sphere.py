@@ -24,8 +24,10 @@
 
 import numpy as np
 
-from SurfaceTopography import make_sphere
 from muFFT import FFT
+
+from SurfaceTopography import make_sphere
+
 
 def test_sphere(comm):
     nx = 8
@@ -33,15 +35,17 @@ def test_sphere(comm):
     sx = 6.
     sy = 7.
     R = 20.
-    center = (3.,3.)
+    center = (3., 3.)
     fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
-    topography = make_sphere(R, (nx, ny), (sx, sy), centre=center,
-                                      nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
-                                      subdomain_locations=fftengine.subdomain_locations,
-                                      communicator=comm)
+    topography = make_sphere(
+        R, (nx, ny), (sx, sy), centre=center,
+        nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
+        subdomain_locations=fftengine.subdomain_locations,
+        communicator=comm)
     X, Y, Z = topography.positions_and_heights()
 
-    np.testing.assert_allclose((X-center[0])**2 + (Y-center[1])**2 + (R+Z)**2,  R**2)
+    np.testing.assert_allclose(
+        (X - center[0]) ** 2 + (Y - center[1]) ** 2 + (R + Z) ** 2, R ** 2)
 
 
 def test_sphere_periodic(comm):
@@ -51,20 +55,24 @@ def test_sphere_periodic(comm):
     sy = 7.
     R = 20.
     center = (1., 1.5)
-    fftwngine = FFT((nx, ny), fft="mpi", communicator=comm)
+    fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
 
-    extended_topography = make_sphere(R, (nx, ny), (sx, sy),
-                                      centre=center,
-                                      nb_subdomain_grid_pts=fftwngine.nb_subdomain_grid_pts,
-                                      subdomain_locations=fftwngine.subdomain_locations,
-                                      communicator=comm,
-                                      periodic=True)
+    extended_topography = make_sphere(
+        R, (nx, ny), (sx, sy),
+        centre=center,
+        nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
+        subdomain_locations=fftengine.subdomain_locations,
+        communicator=comm,
+        periodic=True)
 
     X, Y, Z = extended_topography.positions_and_heights()
 
-    np.testing.assert_allclose((X - np.where(X < center[0] + sx/2, center[0], center[0] + sx) ) ** 2
-                + (Y - np.where(Y < center[1] + sy/2 , center[1], center[1] + sy) ) ** 2
-                  + (R + Z) ** 2, R**2)
+    np.testing.assert_allclose(
+        (X - np.where(X < center[0] + sx / 2, center[0], center[0] + sx)) ** 2
+        + (Y - np.where(Y < center[1] + sy / 2, center[1],
+                        center[1] + sy)) ** 2
+        + (R + Z) ** 2, R ** 2)
+
 
 def test_sphere_standoff(comm):
     nx = 8
@@ -78,23 +86,22 @@ def test_sphere_standoff(comm):
 
     fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
 
-    topography = make_sphere(R, (nx, ny), (sx, sy),
-                                      centre=center,
-                                      nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
-                                      subdomain_locations=fftengine.subdomain_locations,
-                                      communicator=comm,
-                                      standoff=standoff)
+    topography = make_sphere(
+        R, (nx, ny), (sx, sy),
+        centre=center,
+        nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
+        subdomain_locations=fftengine.subdomain_locations,
+        communicator=comm,
+        standoff=standoff)
     X, Y, Z = topography.positions_and_heights()
 
-    sl_inner= (X - center[0]) ** 2 + (Y - center[1]) ** 2 < R**2
-    np.testing.assert_allclose((
-        (X - center[0]) ** 2 +
-        (Y - center[1]) ** 2 +
-        (R + Z) ** 2)[sl_inner]
-        ,  R ** 2)
+    sl_inner = (X - center[0]) ** 2 + (Y - center[1]) ** 2 < R ** 2
+    np.testing.assert_allclose(((X - center[0]) ** 2 +
+                                (Y - center[1]) ** 2 +
+                                (R + Z) ** 2)[sl_inner],
+                               R ** 2)
 
-    np.testing.assert_allclose(Z[np.logical_not(sl_inner)] , - R - standoff )
+    np.testing.assert_allclose(Z[np.logical_not(sl_inner)], - R - standoff)
 
 #
 # #def test_paraboloid(comm, fftengine_class)
-

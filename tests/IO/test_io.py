@@ -31,29 +31,24 @@ import os
 import pickle
 import unittest
 import warnings
-import numpy as np
 
 import pytest
+import numpy as np
 from numpy.testing import assert_array_equal
 
 from NuMPI import MPI
 
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size() > 1,
-                                reason="tests only serial functionalities, please execute with pytest")
-
-from SurfaceTopography import open_topography, read_topography
-
-from SurfaceTopography.IO.FromFile import read_xyz
-
-from SurfaceTopography.IO.FromFile import is_binary_stream
-from SurfaceTopography.IO import detect_format
-
 import SurfaceTopography.IO
-from SurfaceTopography.IO import readers
+from SurfaceTopography import open_topography, read_topography
+from SurfaceTopography.IO import readers, detect_format
+from SurfaceTopography.IO.FromFile import read_xyz, is_binary_stream
 
-###
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
-DATADIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../file_format_examples')
+DATADIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                       '../file_format_examples')
 
 
 @pytest.mark.parametrize("reader", readers)
@@ -88,7 +83,7 @@ class IOTest(unittest.TestCase):
             os.path.join(DATADIR, 'di2.di'),
             os.path.join(DATADIR, 'di3.di'),
             os.path.join(DATADIR, 'di4.di'),
-            os.path.join(DATADIR, 'example.ibw'),            
+            os.path.join(DATADIR, 'example.ibw'),
             os.path.join(DATADIR, 'spot_1-1000nm.ibw'),
             # os.path.join(DATADIR, 'surface.2048x2048.h5'),
             os.path.join(DATADIR, '10x10-one_channel_without_name.ibw'),
@@ -139,12 +134,18 @@ class IOTest(unittest.TestCase):
         for datastr in self.text_example_memory_list:
             with io.StringIO(datastr) as f:
                 open_topography(f)
-                self.assertFalse(f.closed, msg="text memory stream for '{}' was closed".format(datastr))
+                self.assertFalse(
+                    f.closed,
+                    msg="text memory stream for '{}' was closed".format(
+                        datastr))
 
             # Doing the same when but only giving a binary stream
             with io.BytesIO(datastr.encode(encoding='utf-8')) as f:
                 open_topography(f)
-                self.assertFalse(f.closed, msg="binary memory stream for '{}' was closed".format(datastr))
+                self.assertFalse(
+                    f.closed,
+                    msg="binary memory stream for '{}' was closed".format(
+                        datastr))
 
     def test_is_binary_stream(self):
 
@@ -152,11 +153,14 @@ class IOTest(unittest.TestCase):
         fn = self.text_example_file_list[0]
 
         self.assertTrue(is_binary_stream(open(fn, mode='rb')))
-        self.assertFalse(is_binary_stream(open(fn, mode='r')))  # opened as text file
+        self.assertFalse(
+            is_binary_stream(open(fn, mode='r')))  # opened as text file
 
         # should also work with streams in memory
-        self.assertTrue(is_binary_stream(io.BytesIO(b"11111")))  # some bytes in memory
-        self.assertFalse(is_binary_stream(io.StringIO("11111")))  # some bytes in memory
+        self.assertTrue(
+            is_binary_stream(io.BytesIO(b"11111")))  # some bytes in memory
+        self.assertFalse(
+            is_binary_stream(io.StringIO("11111")))  # some bytes in memory
 
     def test_can_be_pickled(self):
         file_list = self.text_example_file_list + self.binary_example_file_list
@@ -168,14 +172,14 @@ class IOTest(unittest.TestCase):
                 physical_sizes = reader.default_channel.physical_sizes \
                     if reader.default_channel.physical_sizes is not None \
                     else (1.,) * reader.default_channel.dim
-            
+
             topography = reader.topography(physical_sizes=physical_sizes)
             topographies = [topography]
             if hasattr(topography, 'to_uniform'):
                 topographies += [topography.to_uniform(100, 0)]
             for t in topographies:
                 s = pickle.dumps(t)
-                pickled_t = pickle.loads(s)                
+                pickled_t = pickle.loads(s)
 
                 #
                 # Compare some attributes after unpickling
@@ -193,7 +197,6 @@ class IOTest(unittest.TestCase):
                         assert_array_equal(x.positions(), y.positions())
                         assert_array_equal(x.heights(), y.heights())
 
-
     def test_periodic_flag(self):
         file_list = self.text_example_file_list + self.binary_example_file_list
         for fn in file_list:
@@ -206,43 +209,54 @@ class IOTest(unittest.TestCase):
             t = reader.topography(physical_sizes=physical_sizes, periodic=True)
             assert t.is_periodic
 
-            t = reader.topography(physical_sizes=physical_sizes, periodic=False)
-            assert not  t.is_periodic
+            t = reader.topography(physical_sizes=physical_sizes,
+                                  periodic=False)
+            assert not t.is_periodic
 
     def test_reader_arguments(self):
-        """Check whether all readers have channel, physical_sizes and height_scale_factor arguments.
-        Also check whether we can execute `topography` multiple times for all readers"""
+        """Check whether all readers have channel, physical_sizes and
+        height_scale_factor arguments. Also check whether we can execute
+        `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(fn)
-            physical_sizes = None if r.channels[0].dim == 1 else physical_sizes0
-            t = r.topography(channel_index=0, physical_sizes=physical_sizes, height_scale_factor=None)
+            physical_sizes = None if r.channels[
+                                         0].dim == 1 else physical_sizes0
+            t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                             height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t.physical_sizes, physical_sizes)
             # Second call to topography
-            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes, height_scale_factor=None)
+            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                              height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t2.physical_sizes, physical_sizes)
             assert_array_equal(t.heights(), t2.heights())
             # Test read_topography
-            t = read_topography(fn, channel_index=0, physical_sizes=physical_sizes, height_scale_factor=None)
+            t = read_topography(fn, channel_index=0,
+                                physical_sizes=physical_sizes,
+                                height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t.physical_sizes, physical_sizes)
 
     def test_readers_with_binary_file_object(self):
-        """Check whether all readers have channel, physical_sizes and height_scale_factor arguments.
-        Also check whether we can execute `topography` multiple times for all readers"""
+        """Check whether all readers have channel, physical_sizes and
+        height_scale_factor arguments. Also check whether we can execute
+        `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(open(fn, mode='rb'))
-            physical_sizes = None if r.channels[0].dim == 1 else physical_sizes0
-            t = r.topography(channel_index=0, physical_sizes=physical_sizes, height_scale_factor=None)
+            physical_sizes = None if r.channels[
+                                         0].dim == 1 else physical_sizes0
+            t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                             height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t.physical_sizes, physical_sizes)
             # Second call to topography
-            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes, height_scale_factor=None)
+            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                              height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t2.physical_sizes, physical_sizes)
             assert_array_equal(t.heights(), t2.heights())
@@ -254,31 +268,28 @@ class IOTest(unittest.TestCase):
         """
 
         for fn in self.text_example_file_list + self.binary_example_file_list:
-
             reader = open_topography(fn)
 
             for channel in reader.channels:
-
                 topography = channel.topography(
-                    physical_sizes=
-                    (1, 1) if channel.physical_sizes is None
+                    physical_sizes=(1, 1) if channel.physical_sizes is None
                     else None)
                 assert channel.nb_grid_pts == topography.nb_grid_pts
-                if "unit" in channel.info.keys() or  "unit" in topography.info.keys():
+                if "unit" in channel.info.keys() or \
+                        "unit" in topography.info.keys():
                     assert channel.info["unit"] == topography.info["unit"]
 
                 if channel.physical_sizes is not None:
                     assert channel.physical_sizes == topography.physical_sizes
 
 
-
-
 class UnknownFileFormatGivenTest(unittest.TestCase):
 
     def test_read(self):
         with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
-            SurfaceTopography.IO.open_topography(os.path.join(DATADIR, "surface.2048x2048.h5"),
-                                                      format='Nonexistentfileformat')
+            SurfaceTopography.IO.open_topography(
+                os.path.join(DATADIR, "surface.2048x2048.h5"),
+                format='Nonexistentfileformat')
 
     def test_detect_format(self):
         with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
@@ -295,10 +306,12 @@ def test_file_format_mismatch():
 
 class LineScanInFileWithMinimalSpacesTest(unittest.TestCase):
     def test_detect_format_then_read(self):
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
+        self.assertEqual(detect_format(
+            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
 
     def test_read(self):
-        surface = read_xyz(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'))
+        surface = read_xyz(
+            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'))
 
         self.assertFalse(surface.is_uniform)
         self.assertEqual(surface.dim, 1)
@@ -307,19 +320,24 @@ class LineScanInFileWithMinimalSpacesTest(unittest.TestCase):
         self.assertGreater(len(x), 0)
         self.assertEqual(len(x), len(y))
 
+
 @pytest.mark.parametrize("reader", readers)
 def test_readers_have_name(reader):
     reader.name()
 
+
 def test_di_date():
     t = read_topography(os.path.join(DATADIR, 'di1.di'))
-    assert t.info['acquisition_time'] == datetime.datetime(2016,1, 12, 9, 57, 48)
+    assert t.info['acquisition_time'] == datetime.datetime(2016, 1, 12, 9, 57,
+                                                           48)
+
 
 # yes, the German version still has "Value units"
 @pytest.mark.parametrize("lang_filename_infix", ["english", "german"])
 def test_gwyddion_txt_import(lang_filename_infix):
-
-    fname = os.path.join(DATADIR, 'gwyddion-export-{}.txt'.format(lang_filename_infix))
+    fname = os.path.join(
+        DATADIR,
+        'gwyddion-export-{}.txt'.format(lang_filename_infix))
 
     #
     # test channel infos
@@ -331,16 +349,20 @@ def test_gwyddion_txt_import(lang_filename_infix):
 
     assert channel.name == "My Channel Name"
     assert channel.info['unit'] == 'm'
-    assert pytest.approx(channel.physical_sizes[0]) == 12.34*1e-6  # was given as µm
-    assert pytest.approx(channel.physical_sizes[1]) == 5678.9*1e-9  # was given as nm
+    assert pytest.approx(
+        channel.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
+    assert pytest.approx(
+        channel.physical_sizes[1]) == 5678.9 * 1e-9  # was given as nm
 
     #
     # test metadata of topography
     #
     topo = reader.topography()
     assert topo.info['unit'] == 'm'
-    assert pytest.approx(topo.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
-    assert pytest.approx(topo.physical_sizes[1]) == 5678.9 * 1e-9  # was given as nm
+    assert pytest.approx(
+        topo.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
+    assert pytest.approx(
+        topo.physical_sizes[1]) == 5678.9 * 1e-9  # was given as nm
 
     #
     # test scaling and order of data
@@ -349,29 +371,24 @@ def test_gwyddion_txt_import(lang_filename_infix):
     # are shown in the gwyddion plot.
     #
     # In gwyddion's text export:
-    # - first index corresponds to y dimension (rows), second index (columns) to x dimension
+    # - first index corresponds to y dimension (rows), second index (columns)
+    #   to x dimension
     # - y coordinates grow from top row to bottom row
     # - x coordinates grow from left column to column of array
     #
     # PyCo's heights() has a different order:
     # - first index corresponds to x dimension, second index to y dimension
-    # - plot from the heights correspond to same image in gwyddion if plotted with "pcolormesh(t.heights.T)",
-    #   but with origin in lower left, i.e. the image looks flipped vertically when compared to gwyddion
+    # - plot from the heights correspond to same image in gwyddion if plotted
+    #   with "pcolormesh(t.heights.T)", but with origin in lower left, i.e. the
+    #   image looks flipped vertically when compared to gwyddion
     #
     # => heights() must be same array as in file, but transposed
     #
-    heights_in_file = [[ 1, 1.5,  3],
-                       [-2,  -3, -6],
-                       [ 0,   0,  0],
-                       [ 9,   9,  9]]
+    heights_in_file = [[1, 1.5, 3],
+                       [-2, -3, -6],
+                       [0, 0, 0],
+                       [9, 9, 9]]
 
     expected_heights = np.array(heights_in_file).T
 
     np.testing.assert_allclose(topo.heights(), expected_heights)
-
-
-
-
-
-
-

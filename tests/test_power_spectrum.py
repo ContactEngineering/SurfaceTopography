@@ -31,14 +31,17 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
+
 from NuMPI import MPI
 
-from SurfaceTopography import read_topography, UniformLineScan, NonuniformLineScan, Topography
+from SurfaceTopography import read_topography, UniformLineScan, \
+    NonuniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Nonuniform.PowerSpectrum import sinc, dsinc
 
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-        reason="tests only serial functionalities, please execute with pytest")
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
@@ -55,15 +58,17 @@ def test_uniform():
                     t = UniformLineScan(h, physical_sizes=L, periodic=periodic)
                     q, C = t.power_spectrum_1D()
 
-                    # The ms height of the sine is 1/2. The sum over the PSD (from -q to +q) is the ms height.
-                    # Our PSD only contains *half* of the full PSD (on the +q branch, the -q branch is identical),
-                    # therefore the sum over it is 1/4.
+                    # The ms height of the sine is 1/2. The sum over the PSD
+                    # (from -q to +q) is the ms height. Our PSD only contains
+                    # *half* of the full PSD (on the +q branch, the -q branch
+                    # is identical), therefore the sum over it is 1/4.
                     assert_almost_equal(C.sum() / L, 1 / 4)
 
                     if periodic:
-                        # The value at the individual wavevector must also equal 1/4. This is only exactly true
-                        # for the periodic case. In the nonperiodic, this is convolved with the Fourier transform
-                        # of the window function.
+                        # The value at the individual wavevector must also
+                        # equal 1/4. This is only exactly true for the
+                        # periodic case. In the nonperiodic, this is convolved
+                        # with the Fourier transform of the window function.
                         C /= L
                         r = np.zeros_like(C)
                         r[k] = 1 / 4
@@ -79,15 +84,24 @@ def test_invariance():
 
         x = np.array([-a, a])
         h = np.array([b, c])
-        _, C1 = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        _, C1 = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
         x = np.array([-a, 0, a])
         h = np.array([b, (b + c) / 2, c])
-        _, C2 = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        _, C2 = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
         x = np.array([-a, 0, a / 2, a])
         h = np.array([b, (b + c) / 2, (3 * c + b) / 4, c])
-        _, C3 = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        _, C3 = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
         assert_array_almost_equal(C1, C2)
         assert_array_almost_equal(C2, C3)
@@ -100,7 +114,10 @@ def test_rectangle():
 
         q = np.linspace(0.01, 8 * np.pi / a, 101)
 
-        q, C = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        q, C = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
         C_ana = (2 * b * np.sin(a * q) / q) ** 2
         C_ana /= 2 * a
@@ -115,9 +132,13 @@ def test_triangle():
 
         q = np.linspace(0.01, 8 * np.pi / a, 101)
 
-        _, C = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        _, C = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
-        C_ana = (2 * b * (a * q * np.cos(a * q) - np.sin(a * q)) / (a * q ** 2)) ** 2
+        C_ana = (2 * b * (a * q * np.cos(a * q) - np.sin(a * q)) / (
+                a * q ** 2)) ** 2
         C_ana /= 2 * a
 
         assert_array_almost_equal(C, C_ana)
@@ -132,7 +153,10 @@ def test_rectangle_and_triangle():
 
         q = np.linspace(0.01, 8 * np.pi / (b - a), 101)
 
-        q, C = NonuniformLineScan(x, h).power_spectrum_1D(wavevectors=q, algorithm='brute-force', window='None')
+        q, C = NonuniformLineScan(x, h).power_spectrum_1D(
+            wavevectors=q,
+            algorithm='brute-force',
+            window='None')
 
         C_ana = np.exp(-1j * (a + b) * q) * (
                 np.exp(1j * a * q) * (c - d + 1j * (a - b) * d * q) +
@@ -168,17 +192,20 @@ def test_NaNs():
 def test_brute_force_vs_fft():
     t = read_topography(os.path.join(DATADIR, 'example.asc'))
     q, A = t.detrend().power_spectrum_1D(window="None")
-    q2, A2 = t.detrend().power_spectrum_1D(algorithm='brute-force', wavevectors=q, ninterpolate=5, window="None")
-    l = len(A2)
-    x = A[1:l // 16] / A2[1:l // 16]
+    q2, A2 = t.detrend().power_spectrum_1D(algorithm='brute-force',
+                                           wavevectors=q, ninterpolate=5,
+                                           window="None")
+    length = len(A2)
+    x = A[1:length // 16] / A2[1:length // 16]
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
+
 
 @pytest.mark.skip(reason="just plotting")
 def test_default_window_1D():
-    x = np.linspace(0,1,200)
+    x = np.linspace(0, 1, 200)
     heights = np.cos(2 * np.pi * x * 8.3)
     topography = UniformLineScan(heights,
-                                 physical_sizes=1,periodic=True)
+                                 physical_sizes=1, periodic=True)
 
     if True:
         import matplotlib.pyplot as plt
@@ -187,10 +214,8 @@ def test_default_window_1D():
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-
-
     topography = UniformLineScan(heights,
-                                 physical_sizes=1,periodic=False)
+                                 physical_sizes=1, periodic=False)
 
     if True:
         import matplotlib.pyplot as plt
@@ -201,35 +226,34 @@ def test_default_window_1D():
         ax.legend()
         plt.show(block=True)
 
+
 @pytest.mark.skip(reason="just plotting")
 def test_default_window_2D():
-    x = np.linspace(0,1,200).reshape(-1, 1)
-
+    x = np.linspace(0, 1, 200).reshape(-1, 1)
 
     heights = np.cos(2 * np.pi * x * 8.3) * np.ones((1, 200))
     topography = Topography(heights,
-                            physical_sizes=(1,1),periodic=True)
+                            physical_sizes=(1, 1), periodic=True)
 
     if True:
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
         ax.plot(*topography.power_spectrum_1D(), label="periodic=True")
-        ax.plot(*topography.power_spectrum_2D(nbins=20), label="2D, periodic=True")
+        ax.plot(*topography.power_spectrum_2D(nbins=20),
+                label="2D, periodic=True")
         ax.set_xscale("log")
         ax.set_yscale("log")
 
-
-
-
     topography = Topography(heights,
-                                 physical_sizes=(1,1),periodic=False)
+                            physical_sizes=(1, 1), periodic=False)
 
     if True:
         import matplotlib.pyplot as plt
         ax.plot(*topography.power_spectrum_1D(), label="periodic=False")
-        ax.plot(*topography.power_spectrum_2D(nbins=20), label="2D, periodic=False")
+        ax.plot(*topography.power_spectrum_2D(nbins=20),
+                label="2D, periodic=False")
         ax.set_xscale("log")
         ax.set_yscale("log")
-        #ax.set_ylim(bottom=1e-6)
+        # ax.set_ylim(bottom=1e-6)
         ax.legend()
         plt.show(block=True)

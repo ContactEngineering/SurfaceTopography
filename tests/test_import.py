@@ -24,18 +24,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 """
 Import testing
 """
 
-try:
-    import unittest
-    import importlib
-    import numpy as np
-except ImportError as err:
-    import sys
-    print(err)
-    sys.exit(-1)
+import unittest
+import importlib
+
 
 class ImportabilityChecks(unittest.TestCase):
 
@@ -44,7 +40,8 @@ class ImportabilityChecks(unittest.TestCase):
         try:
             importlib.import_module(module)
             return_code = 0
-        except ImportError: pass
+        except ImportError:
+            pass
         return return_code
 
     def test_Surface(self):
@@ -52,6 +49,7 @@ class ImportabilityChecks(unittest.TestCase):
 
     def test_SurfaceTopography_C_extension(self):
         self.assertEqual(self.import_module("_SurfaceTopography"), 0)
+
 
 if __name__ == '__main__':
     unittest.main()

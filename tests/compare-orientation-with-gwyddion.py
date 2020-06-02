@@ -23,39 +23,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-import PyCo
-import importlib
-importlib.reload(PyCo)
 
 import numpy as np
-import matplotlib.pyplot as plt 
-#from SurfaceTopography import read_topography
-from SurfaceTopography import open_topography
-#from SurfaceTopography import SurfaceTopography
+import matplotlib.pyplot as plt
 
-#plt.ion()                                                                                                                                                                                                  
-#fn='../data/issues/230/di1.txt'                                                                                                                                                                            
-#fn='tests/file_format_examples/opdx2.OPDx'
-#fn='tests/file_format_examples/example.opd'
-#fn='tests/file_format_examples/example2.x3p'
+from SurfaceTopography import open_topography
+
+
+# from SurfaceTopography import SurfaceTopography
+
+# plt.ion()
+# fn='../data/issues/230/di1.txt'
+# fn='tests/file_format_examples/opdx2.OPDx'
+# fn='tests/file_format_examples/example.opd'
+# fn='tests/file_format_examples/example2.x3p'
 # fn='tests/file_format_examples/mi1.mi'
 
 def plot(fn):
-    r=open_topography(fn)
+    r = open_topography(fn)
 
-    t=r.topography()
+    t = r.topography()
     if 'unit' in t.info:
         unit = t.info['unit']
     else:
         unit = '?'
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(10, 10))
     fig.suptitle("{}, channel {}".format(fn, r.default_channel.name))
 
-    ax = fig.add_subplot(2,2,1)
+    ax = fig.add_subplot(2, 2, 1)
     ax.set_title("pcolormesh(t.heights().T)")
     ax.pcolormesh(t.heights().T)
 
-    ax = fig.add_subplot(2,2,2)
+    ax = fig.add_subplot(2, 2, 2)
     ax.set_title("pcolormesh(*t.positions_and_heights())")
     ax.set_xlabel("x [{}]".format(unit))
     ax.set_ylabel("y [{}]".format(unit))
@@ -65,7 +64,7 @@ def plot(fn):
     ax.set_title("above is correct, if this is like Gwyddion")
     ax.pcolormesh(np.flipud(t.heights().T))
 
-    ax = fig.add_subplot(2,2,4)
+    ax = fig.add_subplot(2, 2, 4)
     ax.set_title("imshow(t.heights().T)")
     extent = (
         0, t.physical_sizes[0], t.physical_sizes[1], 0
@@ -75,18 +74,20 @@ def plot(fn):
     fig.show()
 
     h = t.heights()
-    for i,j in [(0,0), (0,-1), (-1,0), (-1,-1)]:
+    for i, j in [(0, 0), (0, -1), (-1, 0), (-1, -1)]:
         print("h[{},{}] == {}".format(i, j, h[i, j]))
 
     return t
 
-if __name__== '__main__':
+
+if __name__ == '__main__':
 
     plt.close('all')
     # plt.ion()
 
     filenames = [
-        # '../data/issues/230/di1.txt',  # this file you have to export yourself with gwyddion
+        # '../data/issues/230/di1.txt',  # this file you have to export
+        # yourself with gwyddion
         'tests/file_format_examples/di1.di',
         'tests/file_format_examples/opdx2.OPDx',
         'tests/file_format_examples/example.opd',
@@ -99,5 +100,3 @@ if __name__== '__main__':
         t = plot(fn)
 
     input("Press enter to proceed - last topography in variable 't'")
-
-

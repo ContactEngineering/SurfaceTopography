@@ -33,13 +33,16 @@ from SurfaceTopography import open_topography
 
 import pytest
 from NuMPI import MPI
-pytestmark = pytest.mark.skipif(MPI.COMM_WORLD.Get_size()> 1,
-        reason="tests only serial funcionalities, please execute with pytest")
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial funcionalities, please execute with pytest")
 
 DATADIR = os.path.join(
     os.path.dirname(
-    os.path.dirname(os.path.realpath(__file__))),
+        os.path.dirname(os.path.realpath(__file__))),
     'file_format_examples')
+
 
 class IBWSurfaceTest(unittest.TestCase):
 
@@ -48,43 +51,44 @@ class IBWSurfaceTest(unittest.TestCase):
 
     def test_read_filestream(self):
         """
-        The reader has to work when the file was already opened as binary for it to work in topobank.
+        The reader has to work when the file was already opened as binary for
+        it to work in TopoBank.
         """
 
         try:
             read_topography(self.file_path)
-        except:
-            self.fail("read_topography() raised an exception (not passing a file stream)!")
-
+        except Exception as e:
+            self.fail("read_topography() raised an exception (not passing a "
+                      "file stream)!" + str(e))
 
         try:
             f = open(self.file_path, 'r')
             read_topography(f)
-        except:
-            self.fail("read_topography() raised an exception (passing a non-binary file stream)!")                
-        finally:    
+        except Exception as e:
+            self.fail("read_topography() raised an exception (passing a "
+                      "non-binary file stream)!" + str(e))
+        finally:
             f.close()
-        
 
         try:
             f = open(self.file_path, 'rb')
             read_topography(f)
-        except:
-            self.fail("read_topography() raised an exception (passing a binary file stream)!")
+        except Exception as e:
+            self.fail("read_topography() raised an exception (passing a "
+                      "binary file stream)!" + str(e))
         finally:
             f.close()
 
-
     def test_init(self):
-
         reader = IBWReader(self.file_path)
 
-        self.assertEqual(reader._channel_names, ['HeightRetrace', 'AmplitudeRetrace', 'PhaseRetrace', 'ZSensorRetrace'])
+        self.assertEqual(reader._channel_names,
+                         ['HeightRetrace', 'AmplitudeRetrace',
+                          'PhaseRetrace', 'ZSensorRetrace'])
         self.assertEqual(reader._default_channel, 0)
         self.assertEqual(reader.data['wave_header']['next'], 114425520)
 
     def test_channels(self):
-
         reader = IBWReader(self.file_path)
 
         exp_size = 5.009784735812133e-08  # 50 nm, see also gwyddion result
@@ -92,24 +96,26 @@ class IBWSurfaceTest(unittest.TestCase):
         expected_channels = [
             {'name': 'HeightRetrace',
              'dim': 2,
-             'physical_sizes': (exp_size,exp_size)},
+             'physical_sizes': (exp_size, exp_size)},
             {'name': 'AmplitudeRetrace',
              'dim': 2,
-             'physical_sizes': (exp_size,exp_size)},
+             'physical_sizes': (exp_size, exp_size)},
             {'name': 'PhaseRetrace',
              'dim': 2,
-             'physical_sizes': (exp_size,exp_size)},
+             'physical_sizes': (exp_size, exp_size)},
             {'name': 'ZSensorRetrace',
              'dim': 2,
-             'physical_sizes': (exp_size,exp_size)}]
+             'physical_sizes': (exp_size, exp_size)}]
 
         self.assertEqual(len(reader.channels), len(expected_channels))
 
         for exp_ch, ch in zip(expected_channels, reader.channels):
             self.assertEqual(exp_ch['name'], ch.name)
             self.assertEqual(exp_ch['dim'], ch.dim)
-            self.assertAlmostEqual(exp_ch['physical_sizes'][0], ch.physical_sizes[0])
-            self.assertAlmostEqual(exp_ch['physical_sizes'][1], ch.physical_sizes[1])
+            self.assertAlmostEqual(exp_ch['physical_sizes'][0],
+                                   ch.physical_sizes[0])
+            self.assertAlmostEqual(exp_ch['physical_sizes'][1],
+                                   ch.physical_sizes[1])
 
     def test_topography(self):
 
@@ -141,18 +147,21 @@ def test_ibw_kpfm_file():
     # Try to read all channels
     #
     for channel_info in reader.channels:
-        assert pytest.approx(channel_info.physical_sizes[0], abs=0.01) == 2e-05  # 20 µm
-        assert pytest.approx(channel_info.physical_sizes[1], abs=0.01) == 2e-05  # 20 µm
+        assert pytest.approx(channel_info.physical_sizes[0],
+                             abs=0.01) == 2e-05  # 20 µm
+        assert pytest.approx(channel_info.physical_sizes[1],
+                             abs=0.01) == 2e-05  # 20 µm
 
         channel_info.topography()
 
+
 def test_ibw_file_with_one_channel_without_name():
     """
-     After implementing new IBW readers there was an issue
-     https://github.com/pastewka/TopoBank/issues/413
+    After implementing new IBW readers there was an issue
+    https://github.com/pastewka/TopoBank/issues/413
 
-     This test should ensure that it's fixed.
-     """
+    This test should ensure that it's fixed.
+    """
     fn = os.path.join(DATADIR, "10x10-one_channel_without_name.ibw")
 
     reader = open_topography(fn)
@@ -161,7 +170,9 @@ def test_ibw_file_with_one_channel_without_name():
 
     ch_info = reader.channels[0]
 
-    assert ch_info.name == 'no name (1)'  # we could use "Default" here, but what if there are multiple no names?
+    # we could use "Default" here, but what if there are multiple no names?
+    assert ch_info.name == 'no name (1)'
     assert ch_info.dim == 2
     assert ch_info.nb_grid_pts == (10, 10)
-    # TODO when the new ChannelInfo objects are used, we should check here if all expected fields are set correclty
+    # TODO when the new ChannelInfo objects are used, we should check here if
+    #  all expected fields are set correclty
