@@ -44,7 +44,7 @@ def test_save_and_load(comm):
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
     t.info['unit'] = 'μm'
 
-    fft = FFT(nb_grid_pts, 1, communicator=comm)
+    fft = FFT(nb_grid_pts, 1, communicator=comm, fft="mpi")
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
                             communicator=comm)
