@@ -102,19 +102,26 @@ def fourier_derivative(topography, imtol=1e-12):
 
     For example in x direction:
 
-    .. math:: \left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} = \frac{1}{2 \pi } \sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}
+    .. math::
 
-    For even number of points, the interpretation of the components at the Niquist
-    frequency is ambiguous (we are free to choose amplitude or phase)
-    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf), we assume it is cosinusoidal.
+        \left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} =
+        \frac{1}{2 \pi }
+        \sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}
+
+
+    With :math:`\tilde h_{kl}` the DFT of the heights :math:``h
+    For even number of points, the interpretation of the components at the
+    Niquist frequency is ambiguous (we are free to choose amplitude or phase)
+    Following (https://math.mit.edu/~stevenj/fft-deriv.pdf),
+    we assume it is cosinusoidal.
 
     Parameters
     ----------
     topography: Topography instance
     imtol: float
-        tolerance for the discarded imaginary part. If the maximum absolute of the
-        imaginary part of the interpolated topography is more then that value, an
-        AssertionError is raised
+        tolerance for the discarded imaginary part. If the maximum absolute of
+        the imaginary part of the interpolated topography is more then that
+        value, an AssertionError is raised
 
     Returns
     -------
