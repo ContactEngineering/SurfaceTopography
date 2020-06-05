@@ -7,6 +7,10 @@ Always follow [PEP-8](https://www.python.org/dev/peps/pep-0008/).
 Documentation strings must follow the
 [numpydoc](https://numpydoc.readthedocs.io/) standard.
 
+All parameters (for functions or methods) should be descriptive. Do not name
+a parameter after a symbol (e.g. `lambda`) but rather say that it is
+(e.g. `large_wavelength_cutoff`).
+
 Development branches
 --------------------
 New features should be developed always in its own branch. When creating your own branch,
