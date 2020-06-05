@@ -190,9 +190,45 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
                                 info=topography.info)
 
 
+def plot(topography, subplot_location=111):
+    """
+    Plot an image of the topography using matplotlib.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography`
+        Height information
+    """
+    # We import here because we don't want a global dependence on matplotlib
+    import matplotlib.pyplot as plt
+
+    try:
+        sx, sy = topography.physical_sizes
+    except TypeError:
+        sx, sy = topography.nb_grid_pts
+    nx, ny = topography.nb_grid_pts
+
+    ax = plt.subplot(subplot_location, aspect=sx / sy)
+    Y, X = np.meshgrid((np.arange(ny) + 0.5) * sy / ny,
+                       (np.arange(nx) + 0.5) * sx / nx)
+    Z = topography[...]
+    mesh = ax.pcolormesh(X, Y, Z)
+    plt.colorbar(mesh, ax=ax)
+    ax.set_xlim(0, sx)
+    ax.set_ylim(0, sy)
+    if 'unit' in topography.info:
+        unit = topography.info['unit']
+    else:
+        unit = 'a.u.'
+    ax.set_xlabel('Position $x$ ({})'.format(unit))
+    ax.set_ylabel('Position $y$ ({})'.format(unit))
+    return ax
+
+
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
 Topography.register_function('fourier_derivative', fourier_derivative)
 UniformTopographyInterface.register_function('domain_decompose',
                                              domain_decompose)
+Topography.register_function('plot', plot)
