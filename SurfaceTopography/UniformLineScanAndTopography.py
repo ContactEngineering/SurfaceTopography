@@ -501,14 +501,26 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     Remove trends from a topography. This is achieved by fitting polynomials
     to the topography data to extract trend lines. The resulting topography
     is then detrended by substracting these trend lines.
+
+    Note on periodicity: Detrended Topographies with mode other than "center"
+    will have `is_periodic` property set to False.
+
+    Parameters
+    ----------
+    detrend_mode : str
+        'center': center the topography, no trend correction.
+        'height': adjust slope such that rms height is minimized.
+        'slope': adjust slope such that rms slope is minimized.
+        'curvature': adjust slope and curvature such that rms height is
+        minimized.
+        (Default: 'height')
     """
 
     def __init__(self, topography, detrend_mode='height', info={}):
         """
 
-        Note on periodicity:
-        Detrended Topographies with mode other than "center" will have
-        is_periodic property set to False.
+        Note on periodicity: Detrended Topographies with mode other than
+        "center" will have `is_periodic` property set to False.
 
         Parameters
         ----------
