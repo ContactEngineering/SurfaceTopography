@@ -84,9 +84,9 @@ def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
         if cutoff_wavelength is not None:
             cutoff_wavevector = 2 * np.pi / cutoff_wavelength
         else:
-            raise ValueError("q_s or lam_s should be provided")
+            raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
     elif cutoff_wavelength is not None:
-        raise ValueError("q_s or lam_s should be provided")
+        raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
 
     filt = np.ones_like(q2)
 
