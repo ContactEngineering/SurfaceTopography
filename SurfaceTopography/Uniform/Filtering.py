@@ -84,9 +84,11 @@ def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
         if cutoff_wavelength is not None:
             cutoff_wavevector = 2 * np.pi / cutoff_wavelength
         else:
-            raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
+            raise ValueError(
+                "cutoff_wavevector or cutoff_wavelength should be provided")
     elif cutoff_wavelength is not None:
-        raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
+        raise ValueError(
+            "cutoff_wavevector or cutoff_wavelength should be provided")
 
     filt = np.ones_like(q2)
 
@@ -101,7 +103,8 @@ def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
     return Topography(h_qs, physical_sizes=topography.physical_sizes)
 
 
-def lowcut(topography, cutoff_wavevector=None, cutoff_wavelength=None, kind="circular step"):
+def lowcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
+           kind="circular step"):
     r"""Applies a lowcut filter to the topography using fft.
 
     for `kind=="circular step"` (default), parts of the spectrum with
@@ -157,9 +160,11 @@ def lowcut(topography, cutoff_wavevector=None, cutoff_wavelength=None, kind="cir
         if cutoff_wavelength is not None:
             cutoff_wavevector = 2 * np.pi / cutoff_wavelength
         else:
-            raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
+            raise ValueError(
+                "cutoff_wavevector or cutoff_wavelength should be provided")
     elif cutoff_wavelength is not None:
-        raise ValueError("cutoff_wavevector or cutoff_wavelength should be provided")
+        raise ValueError(
+            "cutoff_wavevector or cutoff_wavelength should be provided")
 
     filt = np.ones_like(q2)
 
