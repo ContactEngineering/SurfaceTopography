@@ -4,10 +4,6 @@ on:
   push:
     branches:    
       - master
-      - 20_June_fixes
-    pull_requests:
-      - 20_June_fixes
-
 
 jobs:
   build:
