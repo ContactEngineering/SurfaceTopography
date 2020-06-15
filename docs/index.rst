@@ -25,13 +25,11 @@ Contact mechanics with Python. This code implements computation of contact geome
    :caption: Package Reference
 
 
-   source/PyCo.ContactMechanics
-   source/PyCo.Goodies
-   source/PyCo.ReferenceSolutions
-   source/PyCo.SolidMechanics
-   source/PyCo.System
-   source/PyCo.Tools
-   source/PyCo.Topography
+   source/SurfaceTopography
+   source/SurfaceTopography.IO
+   source/SurfaceTopography.Nonuniform
+   source/SurfaceTopography.Tools
+   source/SurfaceTopography.Uniform
 
 
 Indices and tables
