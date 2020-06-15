@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2020 Michael Röttger</span>
+<span class="c1">#           2019 Kai Haase</span>
+<span class="c1">#           2019 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># Old-style readers</span>
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">AscReader</span><span class="p">,</span> <span class="n">HGTReader</span><span class="p">,</span> <span class="n">OPDReader</span><span class="p">,</span> <span class="n">X3PReader</span><span class="p">,</span> <span class="n">XYZReader</span>
+
+<span class="c1"># New-style readers</span>
+<span class="kn">from</span> <span class="nn">.DI</span> <span class="k">import</span> <span class="n">DIReader</span>
+<span class="kn">from</span> <span class="nn">.H5</span> <span class="k">import</span> <span class="n">H5Reader</span>
+<span class="kn">from</span> <span class="nn">.IBW</span> <span class="k">import</span> <span class="n">IBWReader</span>
+<span class="kn">from</span> <span class="nn">.Matlab</span> <span class="k">import</span> <span class="n">MatReader</span>
+<span class="kn">from</span> <span class="nn">.MI</span> <span class="k">import</span> <span class="n">MIReader</span>
+<span class="kn">from</span> <span class="nn">.NC</span> <span class="k">import</span> <span class="n">NCReader</span>
+<span class="kn">from</span> <span class="nn">.NPY</span> <span class="k">import</span> <span class="n">NPYReader</span>
+<span class="kn">from</span> <span class="nn">.OPDx</span> <span class="k">import</span> <span class="n">OPDxReader</span>
+
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">UnknownFileFormatGiven</span><span class="p">,</span> <span class="n">CannotDetectFileFormat</span><span class="p">,</span> \
+    <span class="n">FileFormatMismatch</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ReaderBase</span>  <span class="c1"># noqa: F401</span>
+
+<span class="n">readers</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">AscReader</span><span class="p">,</span>
+    <span class="n">DIReader</span><span class="p">,</span>
+    <span class="n">MatReader</span><span class="p">,</span>
+    <span class="n">OPDReader</span><span class="p">,</span>
+    <span class="n">OPDxReader</span><span class="p">,</span>
+    <span class="n">X3PReader</span><span class="p">,</span>
+    <span class="n">XYZReader</span><span class="p">,</span>
+    <span class="n">IBWReader</span><span class="p">,</span>
+    <span class="n">MIReader</span><span class="p">,</span>
+    <span class="n">NCReader</span><span class="p">,</span>
+    <span class="c1"># NCReader must come before H5Reader, because NC4 *is* a specialized form</span>
+    <span class="c1"># of HDF5</span>
+    <span class="n">H5Reader</span><span class="p">,</span>
+    <span class="n">NPYReader</span><span class="p">,</span>
+    <span class="n">HGTReader</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">lookup_reader_by_format</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">reader</span> <span class="ow">in</span> <span class="n">readers</span><span class="p">:</span>
+    <span class="n">lookup_reader_by_format</span><span class="p">[</span><span class="n">reader</span><span class="o">.</span><span class="n">format</span><span class="p">()]</span> <span class="o">=</span> <span class="n">reader</span>
+
+
+<div class="viewcode-block" id="detect_format"><a class="viewcode-back" href="../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.detect_format">[docs]</a><span class="k">def</span> <span class="nf">detect_format</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Detect file format based on its content.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    fobj : filename or file object</span>
+<span class="sd">    comm : mpi communicator, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">reader</span> <span class="ow">in</span> <span class="n">readers</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">reader</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reader</span><span class="p">(</span><span class="n">fobj</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">reader</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;tried </span><span class="si">{}</span><span class="s2">: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">):</span>
+                <span class="c1"># if the reader crashes the cursor in the file-like object</span>
+                <span class="c1"># has to be set back to the top of the file</span>
+                <span class="n">fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">CannotDetectFileFormat</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="open_topography"><a class="viewcode-back" href="../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.open_topography">[docs]</a><span class="k">def</span> <span class="nf">open_topography</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a reader object for the file `fobj`. The reader interface mirrors</span>
+<span class="sd">    the topography interface and can be used to extract meta data (number of</span>
+<span class="sd">    grid points, physical sizes, etc.) without reading the full topography in</span>
+<span class="sd">    memory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fobj : str or filelike object</span>
+<span class="sd">        path of the file or filelike object</span>
+<span class="sd">    format : str, optional</span>
+<span class="sd">        specify in which format the file should be interpreted</span>
+<span class="sd">    communicator : mpi4py or NuMPI communicator object</span>
+<span class="sd">        MPI communicator handling inter-process communication</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Instance of a :obj:`ReaderBase` subclass according to the format.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Simplest read workflow:</span>
+
+<span class="sd">    &gt;&gt;&gt; reader = open_topography(&quot;filename&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; top = reader.topography()</span>
+
+<span class="sd">    The first topography in file is returned, independently of whether</span>
+<span class="sd">    the file has multiple channels or not.</span>
+
+<span class="sd">    You can always check the channels and their metadata with</span>
+<span class="sd">    `reader.channels()`. This returns a list of dicts containing attributes `name`,</span>
+<span class="sd">    `physical_sizes`, `nb_grid_pts`, ``unit` and `height_scale_factor:</span>
+
+<span class="sd">    &gt;&gt;&gt; reader.channels</span>
+<span class="sd">    [{&#39;name&#39;: &#39;ZSensor&#39;,</span>
+<span class="sd">      &#39;nb_grid_pts&#39;: (256, 256),</span>
+<span class="sd">      &#39;physical_sizes&#39;: (9999.999999999998, 9999.999999999998),</span>
+<span class="sd">      &#39;unit&#39;: &#39;nm&#39;,</span>
+<span class="sd">      &#39;height_scale_factor&#39;: 0.29638271279074097},</span>
+<span class="sd">     {&#39;name&#39;: &#39;AmplitudeError&#39;,</span>
+<span class="sd">      &#39;nb_grid_pts&#39;: (256, 256),</span>
+<span class="sd">      &#39;physical_sizes&#39;: (10.0, 10.0),</span>
+<span class="sd">      &#39;unit&#39;: (&#39;µm&#39;, None),</span>
+<span class="sd">      &#39;height_scale_factor&#39;: 0.04577566528320313}]</span>
+
+<span class="sd">    Here the channel &#39;ZSensor&#39; offers a topography with sizes of</span>
+<span class="sd">    10000 nm in each dimension.</span>
+
+<span class="sd">    You can choose it by giving the index 0 to channel</span>
+<span class="sd">    (you would use `channel=1` for the second):</span>
+
+<span class="sd">    &gt;&gt;&gt; top = reader.topography(channel=0)</span>
+
+<span class="sd">    The returned topography has the physical sizes found in the file.</span>
+
+<span class="sd">    You can also prescribe some attributes when reading the topography:</span>
+
+<span class="sd">    &gt;&gt;&gt; top = reader.topography(channel=0, physical_sizes=(10.,10.), info={&quot;unit&quot;:&quot;µm&quot;})</span>
+
+<span class="sd">    In order to plot the topography with matplotlib, you can use</span>
+
+<span class="sd">    &gt;&gt;&gt; plt.pcolormesh(*top.positions_and_heights())</span>
+
+<span class="sd">    with origin in the lower left and correct tick labels at x and y axes, or</span>
+
+<span class="sd">    &gt;&gt;&gt; plt.imshow(top.heights().T)</span>
+
+<span class="sd">    with origin in the upper left (inverted y axis).</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="k">if</span> <span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;communicator&quot;</span><span class="p">:</span> <span class="n">communicator</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>  <span class="c1"># fobj is a path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fobj</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s2">&quot;file </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fobj</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">reader</span> <span class="ow">in</span> <span class="n">readers</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">reader</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;tried </span><span class="si">{}</span><span class="s2">: </span><span class="se">\n</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">):</span>
+                    <span class="c1"># if the reader crashes the cursor in the file-like object</span>
+                    <span class="c1"># has to be set back to the top of the file</span>
+                    <span class="n">fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CannotDetectFileFormat</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lookup_reader_by_format</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">UnknownFileFormatGiven</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> not in registered file formats </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">fobj</span><span class="p">,</span> <span class="n">lookup_reader_by_format</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">lookup_reader_by_format</span><span class="p">[</span><span class="nb">format</span><span class="p">](</span><span class="n">fobj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_topography"><a class="viewcode-back" href="../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.read_topography">[docs]</a><span class="k">def</span> <span class="nf">read_topography</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a topography object representing the topograpgy in the file `fobj`.</span>
+<span class="sd">    If there are multiple data channels within this file, the default channel</span>
+<span class="sd">    is returned. The default channel depends on the file format; see</span>
+<span class="sd">    documentation of the respective reader on this.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fobj : str or filelike object</span>
+<span class="sd">        path of the file or filelike object</span>
+<span class="sd">    format : str, optional</span>
+<span class="sd">        specify in which format the file should be interpreted</span>
+<span class="sd">    communicator : mpi4py or NuMPI communicator object</span>
+<span class="sd">        MPI communicator handling inter-process communication</span>
+<span class="sd">    channel : int</span>
+<span class="sd">        Number of the channel to load. See also `channels` method.</span>
+<span class="sd">    physical_sizes : tuple of floats</span>
+<span class="sd">        Physical size of the topography. It is necessary to specify this</span>
+<span class="sd">        if no physical size is found in the data file. If there is a</span>
+<span class="sd">        physical size, then this parameter will override the physical</span>
+<span class="sd">        size found in the data file.</span>
+<span class="sd">    height_scale_factor : float</span>
+<span class="sd">        Override height scale factor found in the data file.</span>
+<span class="sd">    info : dict</span>
+<span class="sd">        This dictionary will be appended to the info dictionary returned</span>
+<span class="sd">        by the reader.</span>
+<span class="sd">    periodic: bool</span>
+<span class="sd">        Wether the SurfaceTopography should be interpreted as one period of a</span>
+<span class="sd">        periodic surface. This will affect the PSD and autocorrelation</span>
+<span class="sd">        calculations (windowing)</span>
+<span class="sd">    subdomain_locations : tuple of ints</span>
+<span class="sd">        Origin (location) of the subdomain handled by the present MPI process.</span>
+<span class="sd">    nb_subdomain_grid_pts : tuple of ints</span>
+<span class="sd">        Number of grid points within the subdomain handled by the present</span>
+<span class="sd">        MPI process.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    topography : subclass of :obj:`HeightContainer`</span>
+<span class="sd">        The object containing the actual topography data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">open_topography</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span>
+                         <span class="n">communicator</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

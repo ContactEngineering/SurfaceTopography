@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.Tools package &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SurfaceTopography.Uniform package" href="SurfaceTopography.Uniform.html" />
+    <link rel="prev" title="SurfaceTopography.Nonuniform package" href="SurfaceTopography.Nonuniform.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SurfaceTopography.Uniform.html" title="SurfaceTopography.Uniform package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="SurfaceTopography.Nonuniform.html" title="SurfaceTopography.Nonuniform package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="SurfaceTopography.html" accesskey="U">SurfaceTopography package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Tools package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="surfacetopography-tools-package">
+<h1>SurfaceTopography.Tools package<a class="headerlink" href="#surfacetopography-tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-SurfaceTopography.Tools.common">
+<span id="surfacetopography-tools-common-module"></span><h2>SurfaceTopography.Tools.common module<a class="headerlink" href="#module-SurfaceTopography.Tools.common" title="Permalink to this headline">¶</a></h2>
+<p>Bin for small common helper function and classes</p>
+<dl class="py function">
+<dt id="SurfaceTopography.Tools.common.compute_wavevectors">
+<code class="sig-prename descclassname">SurfaceTopography.Tools.common.</code><code class="sig-name descname">compute_wavevectors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nb_grid_pts</span></em>, <em class="sig-param"><span class="n">physical_sizes</span></em>, <em class="sig-param"><span class="n">nb_dims</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Tools/common.html#compute_wavevectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Tools.common.compute_wavevectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes and returns the wavevectors q that exist for the surfaces
+physical_sizes and nb_grid_pts as one vector of components per dimension</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SurfaceTopography.Tools.common.fftn">
+<code class="sig-prename descclassname">SurfaceTopography.Tools.common.</code><code class="sig-name descname">fftn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arr</span></em>, <em class="sig-param"><span class="n">integral</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Tools/common.html#fftn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Tools.common.fftn" title="Permalink to this definition">¶</a></dt>
+<dd><p>n-dimensional fft according to the conventions detailed in
+power_spectrum.tex in the notes folder.</p>
+<p>Keyword Arguments:
+arr      – Input array, can be complex
+integral – depending of dimensionality:</p>
+<blockquote>
+<div><p>1D: Length of domain
+2D: Area
+etc</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SurfaceTopography.Tools.common.ifftn">
+<code class="sig-prename descclassname">SurfaceTopography.Tools.common.</code><code class="sig-name descname">ifftn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arr</span></em>, <em class="sig-param"><span class="n">integral</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Tools/common.html#ifftn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Tools.common.ifftn" title="Permalink to this definition">¶</a></dt>
+<dd><p>n-dimensional ifft according to the conventions detailed in
+power_spectrum.tex in the notes folder.</p>
+<p>Keyword Arguments:
+arr      – Input array, can be complex
+integral – depending of dimensionality:</p>
+<blockquote>
+<div><p>1D: Length of domain
+2D: Area
+etc</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-SurfaceTopography.Tools">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Tools" title="Permalink to this headline">¶</a></h2>
+<p>Helper tools for SurfaceTopography</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="SurfaceTopography.Nonuniform.html"
+                        title="previous chapter">SurfaceTopography.Nonuniform package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SurfaceTopography.Uniform.html"
+                        title="next chapter">SurfaceTopography.Uniform package</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SurfaceTopography.Uniform.html" title="SurfaceTopography.Uniform package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="SurfaceTopography.Nonuniform.html" title="SurfaceTopography.Nonuniform package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="SurfaceTopography.html" >SurfaceTopography package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Tools package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

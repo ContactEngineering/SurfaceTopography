@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO.Reader &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" accesskey="U">SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.Reader</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO.Reader</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2019-2020 Antoine Sanner</span>
+<span class="c1">#           2019-2020 Michael Röttger</span>
+<span class="c1">#           2019 Kai Haase</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="ChannelInfo"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo">[docs]</a><span class="k">class</span> <span class="nc">ChannelInfo</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Information on topography channels contained within a file. The interface</span>
+<span class="sd">    is identical to :obj:`HeightContainer` and subclasses.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the channel. Use as many information from the file as</span>
+<span class="sd">        possible by passing it in the keyword arguments.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        reader: ReaderBase</span>
+<span class="sd">            Reader instance this channel is coming from.</span>
+<span class="sd">        index: int</span>
+<span class="sd">            Index of channel in the file, where zero is the first channel.</span>
+<span class="sd">        name: str</span>
+<span class="sd">            Name of the channel. If no name is given, &quot;channel &lt;index&gt;&quot; will</span>
+<span class="sd">            be used, where &quot;&lt;index&gt;&quot; is replaced with the index.</span>
+<span class="sd">        dim: int</span>
+<span class="sd">            Number of dimensions.</span>
+<span class="sd">        nb_grid_pts: tuple of ints</span>
+<span class="sd">            Number grid points in each dimension.</span>
+<span class="sd">        physical_sizes: tuple of floats</span>
+<span class="sd">            Physical dimensions.</span>
+<span class="sd">        periodic: bool</span>
+<span class="sd">            Wether the SurfaceTopography should be interpreted as one period of</span>
+<span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
+<span class="sd">            calculations (windowing).</span>
+<span class="sd">        info: dict</span>
+<span class="sd">            Meta data found in the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span> <span class="o">=</span> <span class="n">reader</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">)</span> \
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="kc">None</span> \
+            <span class="k">if</span> <span class="n">nb_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="kc">None</span> \
+            <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">periodic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ChannelInfo.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an instance of a subclass of :obj:`HeightContainer` that</span>
+<span class="sd">        contains the topography data. The method allows to override data</span>
+<span class="sd">        found in the data file.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        physical_sizes : tuple of floats</span>
+<span class="sd">            Physical size of the topography. It is necessary to specify this</span>
+<span class="sd">            if no physical size is found in the data file. If there is a</span>
+<span class="sd">            physical size, then this parameter will override the physical</span>
+<span class="sd">            size found in the data file.</span>
+<span class="sd">        height_scale_factor : float</span>
+<span class="sd">            Override height scale factor found in the data file.</span>
+<span class="sd">        info : dict</span>
+<span class="sd">            This dictionary will be appended to the info dictionary returned</span>
+<span class="sd">            by the reader.</span>
+<span class="sd">        periodic: bool</span>
+<span class="sd">            Wether the SurfaceTopography should be interpreted as one period of</span>
+<span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
+<span class="sd">            calculations (windowing)</span>
+<span class="sd">        subdomain_locations : tuple of ints</span>
+<span class="sd">            Origin (location) of the subdomain handled by the present MPI</span>
+<span class="sd">            process.</span>
+<span class="sd">        nb_subdomain_grid_pts : tuple of ints</span>
+<span class="sd">            Number of grid points within the subdomain handled by the present</span>
+<span class="sd">            MPI process.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        topography : subclass of :obj:`HeightContainer`</span>
+<span class="sd">            The object containing the actual topography data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span>
+            <span class="n">channel_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">,</span>
+            <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+            <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
+            <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+            <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
+            <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+            <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unique integer channel index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Name of the channel.</span>
+<span class="sd">        Can be used in a UI for identifying a channel.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        1 for line scans and 2 for topography maps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of grid points in each direction, either 1 or 2 elements</span>
+<span class="sd">        depending on the dimension of the topography.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the physical size can be determined from the file, a tuple is</span>
+<span class="sd">        returned. The tuple has 1 or 2 elements (size_x, size_y), depending</span>
+<span class="sd">        on the dimension of the topography.</span>
+
+<span class="sd">        If the physical size can not be determined from the file, then</span>
+<span class="sd">        None is returned.</span>
+
+<span class="sd">        Note that the physical sizes obtained from the file can be</span>
+<span class="sd">        overwritten by passing a `physical_sizes` argument to the</span>
+<span class="sd">        `topography` method that returns the topography object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return whether the topography is periodically repeated at the</span>
+<span class="sd">        boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The pixel size is returned as the phyiscal size divided by the number</span>
+<span class="sd">        of grid points. If the physical size can be determined from the file,</span>
+<span class="sd">        a tuple is returned. The tuple has 1 or 2 elements (size_x, size_y),</span>
+<span class="sd">        depending on the dimension of the topography.</span>
+
+<span class="sd">        If the physical size can not be determined from the file, then</span>
+<span class="sd">        None is returned.</span>
+
+<span class="sd">        Note that the physical sizes obtained from the file can be overwritten</span>
+<span class="sd">        by passing a `physical_sizes` argument to the `topography` method that</span>
+<span class="sd">        returns the topography object. Overriding the physical size will also</span>
+<span class="sd">        affect the pixel size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span> <span class="o">/</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_per_pt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The area per point is returned as the product over the pixel size</span>
+<span class="sd">        tuple. If `pixel_size` returns None, than also `area_per_pt` returns</span>
+<span class="sd">        None.s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A dictionary containing additional information (metadata) not used by</span>
+<span class="sd">        PyCo itself, but required by third-party application.</span>
+
+<span class="sd">        Presently, the following entries have been standardized:</span>
+<span class="sd">        &#39;unit&#39;:</span>
+<span class="sd">            This is the unit of the physical size (if given in the file) and</span>
+<span class="sd">            the units of the heights.</span>
+<span class="sd">        &#39;height_scale_factor&#39;:</span>
+<span class="sd">            Factor which was used to scale the raw numbers from file (which</span>
+<span class="sd">            can be voltages or some other quantity actually acquired in the</span>
+<span class="sd">            measurement technique) to heights with the given &#39;unit&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span></div>
+
+
+<div class="viewcode-block" id="ReaderBase"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase">[docs]</a><span class="k">class</span> <span class="nc">ReaderBase</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for topography readers. These are object that allow to open a</span>
+<span class="sd">    file (from filename or stream object), inspect its metadata and then</span>
+<span class="sd">    request to load a topography from it. Metadata is typically extracted</span>
+<span class="sd">    without reading the full file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_format</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">_default_channel_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="ReaderBase.format"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.format">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        String identifier for this file format. Identifier must be unique and</span>
+<span class="sd">        is typically equal to the file extension of this format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Reader does not provide a format string&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_format</span></div>
+
+<div class="viewcode-block" id="ReaderBase.name"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.name">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Short name of this file format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Reader does not provide a name&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_name</span></div>
+
+<div class="viewcode-block" id="ReaderBase.description"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.description">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Long description of this file format. Should be formatted as markdown.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_description</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Reader does not provide a description string&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_description</span></div>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ReaderBase.close"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of :obj:`ChannelInfo`s describing the available data</span>
+<span class="sd">        channels.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">default_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the default channel. This is often the first channel with</span>
+<span class="sd">        height information.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_check_physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">physical_sizes_from_arg</span><span class="p">,</span>
+                              <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;physical_sizes could not be extracted from &quot;</span>
+                                 <span class="s2">&quot;file, you should provide it&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">physical_sizes_from_arg</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+            <span class="k">elif</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes_from_arg</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">):</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;A physical size different from the value specified when &quot;</span>
+                    <span class="s2">&quot;calling the reader was present in the file. We will &quot;</span>
+                    <span class="s2">&quot;ignore the value given in the file. Specified values: &quot;</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">; Values from file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">physical_sizes</span><span class="p">,</span>
+                        <span class="n">physical_sizes_from_arg</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">physical_sizes_from_arg</span>
+
+<div class="viewcode-block" id="ReaderBase.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.topography">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an instance of a subclass of :obj:`HeightContainer` that</span>
+<span class="sd">        contains the topography data. The method allows to override data</span>
+<span class="sd">        found in the data file.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        channel_index : int</span>
+<span class="sd">            Index of the channel to load. See also `channels` method.</span>
+<span class="sd">            (Default: None, which load the default channel)</span>
+<span class="sd">        physical_sizes : tuple of floats</span>
+<span class="sd">            Physical size of the topography. It is necessary to specify this</span>
+<span class="sd">            if no physical size is found in the data file. If there is a</span>
+<span class="sd">            physical size, then this parameter will override the physical</span>
+<span class="sd">            size found in the data file.</span>
+<span class="sd">        height_scale_factor : float</span>
+<span class="sd">            Override height scale factor found in the data file.</span>
+<span class="sd">        info : dict</span>
+<span class="sd">            This dictionary will be appended to the info dictionary returned</span>
+<span class="sd">            by the reader.</span>
+<span class="sd">        periodic: bool</span>
+<span class="sd">            Wether the SurfaceTopography should be interpreted as one period of</span>
+<span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
+<span class="sd">            calculations (windowing)</span>
+<span class="sd">        subdomain_locations : tuple of ints</span>
+<span class="sd">            Origin (location) of the subdomain handled by the present MPI</span>
+<span class="sd">            process.</span>
+<span class="sd">        nb_subdomain_grid_pts : tuple of ints</span>
+<span class="sd">            Number of grid points within the subdomain handled by the present</span>
+<span class="sd">            MPI process.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        topography : subclass of :obj:`HeightContainer`</span>
+<span class="sd">            The object containing the actual topography data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<div class="viewcode-block" id="ReadFileError"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReadFileError">[docs]</a><span class="k">class</span> <span class="nc">ReadFileError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="UnknownFileFormatGiven"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.UnknownFileFormatGiven">[docs]</a><span class="k">class</span> <span class="nc">UnknownFileFormatGiven</span><span class="p">(</span><span class="n">ReadFileError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="CannotDetectFileFormat"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.CannotDetectFileFormat">[docs]</a><span class="k">class</span> <span class="nc">CannotDetectFileFormat</span><span class="p">(</span><span class="n">ReadFileError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when no reader is able to open_topography the file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FileFormatMismatch"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.FileFormatMismatch">[docs]</a><span class="k">class</span> <span class="nc">FileFormatMismatch</span><span class="p">(</span><span class="n">ReadFileError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the reader cannot interpret the file at all</span>
+<span class="sd">    (obvious for txt vs binary, but holds also for a header)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="CorruptFile"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.CorruptFile">[docs]</a><span class="k">class</span> <span class="nc">CorruptFile</span><span class="p">(</span><span class="n">ReadFileError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when the reader identifies the file format as matching,</span>
+<span class="sd">    but there is a mistake, for example the number of points doesn&#39;t match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" >SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.Reader</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

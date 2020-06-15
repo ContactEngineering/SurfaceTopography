@@ -1,0 +1,78 @@
+SurfaceTopography.Uniform package
+=================================
+
+Submodules
+----------
+
+SurfaceTopography.Uniform.Autocorrelation module
+------------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Autocorrelation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.Detrending module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Detrending
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.Filtering module
+------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Filtering
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.Interpolation module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Interpolation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.PowerSpectrum module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.PowerSpectrum
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.ScalarParameters module
+-------------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.ScalarParameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.VariableBandwidth module
+--------------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.VariableBandwidth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.common module
+---------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Uniform
+   :members:
+   :undoc-members:
+   :show-inheritance:

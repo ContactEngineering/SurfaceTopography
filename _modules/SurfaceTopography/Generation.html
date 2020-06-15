@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.Generation &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Generation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.Generation</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2015-2016, 2018, 2020 Lars Pastewka</span>
+<span class="c1">#           2018, 2020 Antoine Sanner</span>
+<span class="c1">#           2015-2016 Till Junge</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Helper functions for the generation of random fractal surfaces</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span>
+<span class="kn">from</span> <span class="nn">.Tools.common</span> <span class="k">import</span> <span class="n">compute_wavevectors</span><span class="p">,</span> <span class="n">ifftn</span>
+
+
+<div class="viewcode-block" id="CapillaryWavesExact"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact">[docs]</a><span class="k">class</span> <span class="nc">CapillaryWavesExact</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Frozen capillary waves&quot;&quot;&quot;</span>
+    <span class="n">Error</span> <span class="o">=</span> <span class="ne">Exception</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">mass_density</span><span class="p">,</span>
+                 <span class="n">surface_tension</span><span class="p">,</span>
+                 <span class="n">bending_stiffness</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a surface with an exact power spectrum (deterministic</span>
+<span class="sd">        amplitude)</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        nb_grid_pts      -- Tuple containing number of points in spatial</span>
+<span class="sd">                             directions. The length of the tuple determines the</span>
+<span class="sd">                             spatial dimension of the problem (for the time</span>
+<span class="sd">                             being, only 1D or square 2D)</span>
+<span class="sd">        physical_sizes   -- domain physical_sizes. For multidimensional</span>
+<span class="sd">                             problems, a tuple can be provided to specify the</span>
+<span class="sd">                             length per dimension. If the tuple has less</span>
+<span class="sd">                             entries than dimensions, the last value in</span>
+<span class="sd">                             repeated.</span>
+<span class="sd">        mass_density      -- Mass density</span>
+<span class="sd">        surface_tension   -- SurfaceTopography tension</span>
+<span class="sd">        bending_stiffness -- Bending stiffness</span>
+<span class="sd">        rms_height        -- root mean square height of surface</span>
+<span class="sd">        rms_slope         -- root mean square slope of surface</span>
+<span class="sd">        seed              -- (default hash(None)) for repeatability, the random</span>
+<span class="sd">                             number generator is seeded previous to outputting</span>
+<span class="sd">                             the generated surface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+            <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">physical_sizes</span><span class="p">,)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span>
+                <span class="s2">&quot;Dimension of this problem is </span><span class="si">{}</span><span class="s2">. Only 1 and 2-dimensional &quot;</span>
+                <span class="s2">&quot;problems are supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="n">nb_grid_pts</span>
+        <span class="n">tmpsize</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">tmpsize</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tmpsize</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass_density</span> <span class="o">=</span> <span class="n">mass_density</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface_tension</span> <span class="o">=</span> <span class="n">surface_tension</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bending_stiffness</span> <span class="o">=</span> <span class="n">bending_stiffness</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">compute_wavevectors</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_phases</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_amplitudes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amplitude_distribution</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_coeffs</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="CapillaryWavesExact.get_negative_frequency_iterator"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact.get_negative_frequency_iterator">[docs]</a>    <span class="k">def</span> <span class="nf">get_negative_frequency_iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot; frequency complement&quot;</span>
+
+        <span class="k">def</span> <span class="nf">iterator</span><span class="p">():</span>  <span class="c1"># pylint: disable=missing-docstring</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="n">j</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">iterator</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CapillaryWavesExact.amplitude_distribution"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact.amplitude_distribution">[docs]</a>    <span class="k">def</span> <span class="nf">amplitude_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pylint: disable=no-self-use</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a multiplicative factor to apply to the fourier coeffs before</span>
+<span class="sd">        computing the inverse transform (trivial in this case, since there&#39;s no</span>
+<span class="sd">        stochastic distro in this case)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">1.</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">abs_q</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot; radial distances in q-space&quot;</span>
+        <span class="n">q_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">q_norm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># The first entry (for |q| = 0) is rejected, since it&#39;s 0 by construct</span>
+        <span class="k">return</span> <span class="n">q_norm</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="n">order</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+
+<div class="viewcode-block" id="CapillaryWavesExact.generate_phases"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact.generate_phases">[docs]</a>    <span class="k">def</span> <span class="nf">generate_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        generates appropriate random phases (φ(-q) = -φ(q))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rand_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">rand_phase</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pos_it</span><span class="p">,</span> <span class="n">neg_it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_negative_frequency_iterator</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pos_it</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">coeffs</span><span class="p">[</span><span class="n">neg_it</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="n">pos_it</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">r_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="n">r_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="n">r_2</span><span class="p">,</span> <span class="n">r_2</span><span class="p">]</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">r_2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">coeffs</span></div>
+
+<div class="viewcode-block" id="CapillaryWavesExact.generate_amplitudes"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact.generate_amplitudes">[docs]</a>    <span class="k">def</span> <span class="nf">generate_amplitudes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;compute an amplitude distribution&quot;</span>
+        <span class="n">q_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">q_2</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># to avoid div by zeros, needs to be fixed after</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span> <span class="o">*=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_density</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface_tension</span> <span class="o">*</span> <span class="n">q_2</span> <span class="o">+</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bending_stiffness</span> <span class="o">*</span> <span class="n">q_2</span> <span class="o">*</span> <span class="n">q_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># et voilà</span></div>
+        <span class="c1"># Fix Shannon limit:</span>
+        <span class="c1"># self.coeffs[q_2 &gt; self.q_max**2] = 0</span>
+
+<div class="viewcode-block" id="CapillaryWavesExact.get_topography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.CapillaryWavesExact.get_topography">[docs]</a>    <span class="k">def</span> <span class="nf">get_topography</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes and returs a NumpySurface object with the specified</span>
+<span class="sd">        properties. This follows appendices A and B of Persson et al. (2005)</span>
+
+<span class="sd">        Persson et al., On the nature of surface roughness with application to</span>
+<span class="sd">        contact mechanics, sealing, rubber friction and adhesion, J. Phys.:</span>
+<span class="sd">        Condens. Matter 17 (2005) R1-R62, http://arxiv.org/abs/cond-mat/0502419</span>
+
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        lambda_max -- (default None) specifies a cutoff value for the longest</span>
+<span class="sd">                      wavelength. By default, this is the domain physical_sizes</span>
+<span class="sd">                      in the smallest dimension</span>
+<span class="sd">        lambda_min -- (default None) specifies a cutoff value for the shortest</span>
+<span class="sd">                      wavelength. by default this is determined by Shannon&#39;s</span>
+<span class="sd">                      Theorem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">active_coeffs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coeffs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">active_coeffs</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">ifftn</span><span class="p">(</span><span class="n">active_coeffs</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_coeffs</span> <span class="o">=</span> <span class="n">active_coeffs</span>
+        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span></div></div>
+
+
+<span class="c1">###</span>
+
+<span class="k">def</span> <span class="nf">_irfft2</span><span class="p">(</span><span class="n">karr</span><span class="p">,</span> <span class="n">rarr</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inverse 2d real-to-complex FFT with callback that allows to report status</span>
+<span class="sd">    of the computation to user.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    karr : array_like</span>
+<span class="sd">        Fourier-space representation</span>
+<span class="sd">    rarr : array_like</span>
+<span class="sd">        Real-space representation</span>
+<span class="sd">    progress_callback : function(i, n)</span>
+<span class="sd">        Function that is called to report progress.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nrows</span><span class="p">,</span> <span class="n">ncolumns</span> <span class="o">=</span> <span class="n">karr</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncolumns</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ncolumns</span> <span class="o">+</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">karr</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">karr</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrows</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">ncolumns</span><span class="p">,</span> <span class="n">ncolumns</span> <span class="o">+</span> <span class="n">nrows</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rarr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rarr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rarr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">n</span><span class="o">=</span><span class="n">rarr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="self_affine_prefactor"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.self_affine_prefactor">[docs]</a><span class="k">def</span> <span class="nf">self_affine_prefactor</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">Hurst</span><span class="p">,</span> <span class="n">rms_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">rms_slope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute prefactor :math:`C_0` for the power-spectrum density of an ideal</span>
+<span class="sd">    self-affine topography given by</span>
+
+<span class="sd">    .. math ::</span>
+
+<span class="sd">        C(q) = C_0 q^{-2-2H}</span>
+
+<span class="sd">    for two-dimensional topography maps and</span>
+
+<span class="sd">    .. math ::</span>
+
+<span class="sd">        C(q) = C_0 q^{-1-2H}</span>
+
+<span class="sd">    for one-dimensional line scans. Here :math:`H` is the Hurst exponent.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">    In the 2D case:</span>
+
+<span class="sd">    .. math ::</span>
+
+<span class="sd">        h^2_{rms} = \frac{1}{2 \pi} \int_{0}^{\infty} q C^{iso}(q) dq</span>
+
+<span class="sd">    whereas in the 1D case:</span>
+
+<span class="sd">    .. math ::</span>
+
+<span class="sd">        h^2_{rms} = \frac{1}{\pi} \int_{0}^{\infty} C^{1D}(q) dq</span>
+
+<span class="sd">    See Equations (1) and (4) in [1].</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nb_grid_pts : array_like</span>
+<span class="sd">        Resolution of the topography map or the line scan.</span>
+<span class="sd">    physical_sizes : array_like</span>
+<span class="sd">        Physical physical_sizes of the topography map or the line scan.</span>
+<span class="sd">    Hurst : float</span>
+<span class="sd">        Hurst exponent.</span>
+<span class="sd">    rms_height : float</span>
+<span class="sd">        Root mean-squared height.</span>
+<span class="sd">    rms_slope : float</span>
+<span class="sd">        Root mean-squared slope of the topography map or the line scan.</span>
+<span class="sd">    short_cutoff : float</span>
+<span class="sd">        Short-wavelength cutoff.</span>
+<span class="sd">    long_cutoff : float</span>
+<span class="sd">        Long-wavelength cutoff.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    prefactor : float</span>
+<span class="sd">        Prefactor :math:`\sqrt{C_0}`</span>
+
+<span class="sd">    References</span>
+<span class="sd">    -----------</span>
+<span class="sd">    [1]: Jacobs, Junge, Pastewka,</span>
+<span class="sd">    Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+    <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">short_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">short_cutoff</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">nb_grid_pts</span> <span class="o">/</span> <span class="n">physical_sizes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">long_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">long_cutoff</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">physical_sizes</span><span class="p">)</span>
+
+    <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">rms_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Assuming no rolloff region</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rms_height</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">q_min</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Hurst</span><span class="p">)</span> <span class="o">-</span>
+                                       <span class="n">q_max</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Hurst</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">Hurst</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rms_slope</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rms_slope</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">q_max</span> <span class="o">**</span> <span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Hurst</span><span class="p">)</span> <span class="o">-</span>
+                                      <span class="n">q_min</span> <span class="o">**</span> <span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">Hurst</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Hurst</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Neither rms height nor rms slope is defined!&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fac</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">area</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fourier_synthesis"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.fourier_synthesis">[docs]</a><span class="k">def</span> <span class="nf">fourier_synthesis</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">hurst</span><span class="p">,</span>
+                      <span class="n">rms_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rms_slope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">short_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                      <span class="n">amplitude_distribution</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+                          <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                      <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rfn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kfn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a self-affine, randomly rough surface using a Fourier filtering</span>
+<span class="sd">    algorithm. The algorithm is described in:</span>
+<span class="sd">    Ramisetti et al., J. Phys.: Condens. Matter 23, 215004 (2011);</span>
+<span class="sd">    Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nb_grid_pts : array_like</span>
+<span class="sd">        Resolution of the topography map.</span>
+<span class="sd">    physical_sizes : array_like</span>
+<span class="sd">        Physical physical_sizes of the topography map.</span>
+<span class="sd">    hurst : float</span>
+<span class="sd">        Hurst exponent.</span>
+<span class="sd">    rms_height : float</span>
+<span class="sd">        Root mean-squared height.</span>
+<span class="sd">    rms_slope : float</span>
+<span class="sd">        Root mean-squared slope.</span>
+<span class="sd">    c0: float</span>
+<span class="sd">        self affine prefactor :math:`C_0`:</span>
+<span class="sd">        :math:`C(q) = C_0 q^{-2-2H}`</span>
+<span class="sd">    short_cutoff : float</span>
+<span class="sd">        Short-wavelength cutoff.</span>
+<span class="sd">    long_cutoff : float</span>
+<span class="sd">        Long-wavelength cutoff.</span>
+<span class="sd">    rolloff : float</span>
+<span class="sd">        Value for the power-spectral density (PSD) below the long-wavelength</span>
+<span class="sd">        cutoff. This multiplies the value at the cutoff, i.e. unit will give a</span>
+<span class="sd">        PSD that is flat below the cutoff, zero will give a PSD that is</span>
+<span class="sd">        vanishes below cutoff. (Default: 1.0)</span>
+<span class="sd">    amplitude_distribution : function</span>
+<span class="sd">        Function that generates the distribution of amplitudes.</span>
+<span class="sd">        (Default: np.random.normal)</span>
+<span class="sd">    periodic : bool</span>
+<span class="sd">        Return a periodic surface. (Default: True)</span>
+<span class="sd">    rfn : str</span>
+<span class="sd">        Name of file that stores the real-space array. If specified, real-space</span>
+<span class="sd">        array will be created as a memory mapped file. This is useful for</span>
+<span class="sd">        creating very large topography maps. (Default: None)</span>
+<span class="sd">    kfn : str</span>
+<span class="sd">        Name of file that stores the Fourie-space array. If specified,</span>
+<span class="sd">        real-space array will be created as a memory mapped file. This is</span>
+<span class="sd">        useful for creating very large topography maps. (Default: None)</span>
+<span class="sd">    progress_callback : function(i, n)</span>
+<span class="sd">        Function that is called to report progress.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    topography : UniformTopography or UniformLineScan</span>
+<span class="sd">        The topography.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">short_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">short_cutoff</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">long_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">long_cutoff</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q_min</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">c0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">self_affine_prefactor</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">hurst</span><span class="p">,</span>
+                                    <span class="n">rms_height</span><span class="o">=</span><span class="n">rms_height</span><span class="p">,</span>
+                                    <span class="n">rms_slope</span><span class="o">=</span><span class="n">rms_slope</span><span class="p">,</span>
+                                    <span class="n">short_cutoff</span><span class="o">=</span><span class="n">short_cutoff</span><span class="p">,</span>
+                                    <span class="n">long_cutoff</span><span class="o">=</span><span class="n">long_cutoff</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># prefactor for the fourier heights</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">c0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">))</span>
+        <span class="c1"># C(q) = c0 q^(-2-2H) = 1 / A |fh(q)|^2</span>
+        <span class="c1"># and h(x,y) = sum(1/A fh(q) e^(iqx)))</span>
+        <span class="c1"># compensate for the np.fft normalisation</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">nb_grid_pts</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+        <span class="n">kny</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">kshape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">kny</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">ny</span><span class="p">,</span> <span class="o">=</span> <span class="n">nb_grid_pts</span>
+        <span class="n">sx</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">sy</span><span class="p">,</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+        <span class="n">kny</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">kshape</span> <span class="o">=</span> <span class="p">(</span><span class="n">kny</span><span class="p">,)</span>
+
+    <span class="c1"># Create in-memory or memory-mapped arrays as storage buffers</span>
+    <span class="k">if</span> <span class="n">rfn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rarr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rarr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">rfn</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kfn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">karr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">kshape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">karr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">kfn</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">kshape</span><span class="p">)</span>
+
+    <span class="n">qy</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">kny</span><span class="p">)</span> <span class="o">/</span> <span class="n">sy</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">qx</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">sx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">qx</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="n">sx</span>
+        <span class="n">q_sq</span> <span class="o">=</span> <span class="n">qx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">qy</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">q_sq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">kny</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">ran</span> <span class="o">=</span> <span class="n">fac</span> <span class="o">*</span> <span class="n">phase</span> <span class="o">*</span> <span class="n">amplitude_distribution</span><span class="p">(</span><span class="n">kny</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">karr</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ran</span> <span class="o">*</span> <span class="n">q_sq</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">hurst</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">karr</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">q_sq</span> <span class="o">&gt;</span> <span class="n">q_max</span> <span class="o">**</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">karr</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ran</span> <span class="o">*</span> <span class="n">q_sq</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">hurst</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">karr</span><span class="p">[</span><span class="n">q_sq</span> <span class="o">&gt;</span> <span class="n">q_max</span> <span class="o">**</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">if</span> <span class="n">q_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">q_sq</span> <span class="o">&lt;</span> <span class="n">q_min</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">karr</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">rolloff</span> <span class="o">*</span> <span class="n">ran</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">q_min</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">hurst</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">karr</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">rolloff</span> <span class="o">*</span> <span class="n">ran</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">q_min</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">hurst</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">iy</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ny</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="c1"># Enforce symmetry</span>
+            <span class="k">if</span> <span class="n">nx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">])</span>
+                <span class="n">karr</span><span class="p">[</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">iy</span><span class="p">])</span>
+                <span class="n">karr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">karr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">])</span>
+                <span class="n">karr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">karr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+        <span class="n">_irfft2</span><span class="p">(</span><span class="n">karr</span><span class="p">,</span> <span class="n">rarr</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rarr</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">karr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Generation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

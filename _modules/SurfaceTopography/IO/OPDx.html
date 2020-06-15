@@ -1,0 +1,971 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO.OPDx &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" accesskey="U">SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.OPDx</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO.OPDx</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2019-2020 Michael Röttger</span>
+<span class="c1">#           2019-2020 Antoine Sanner</span>
+<span class="c1">#           2019-2020 Kai Haase</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">TextIOBase</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_height_unit</span>
+
+<span class="n">MAGIC</span> <span class="o">=</span> <span class="s2">&quot;VCA DATA</span><span class="se">\x01\x00\x00\x55</span><span class="s2">&quot;</span>
+<span class="n">MAGIC_SIZE</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="n">DEKTAK_MATRIX</span> <span class="o">=</span> <span class="mh">0x00</span>  <span class="c1"># Too lazy to assign an actual type id?</span>
+<span class="n">DEKTAK_BOOLEAN</span> <span class="o">=</span> <span class="mh">0x01</span>  <span class="c1"># Takes value 0 and 1</span>
+<span class="n">DEKTAK_SINT32</span> <span class="o">=</span> <span class="mh">0x06</span>
+<span class="n">DEKTAK_UINT32</span> <span class="o">=</span> <span class="mh">0x07</span>
+<span class="n">DEKTAK_SINT64</span> <span class="o">=</span> <span class="mh">0x0a</span>
+<span class="n">DEKTAK_UINT64</span> <span class="o">=</span> <span class="mh">0x0b</span>
+<span class="n">DEKTAK_FLOAT</span> <span class="o">=</span> <span class="mh">0x0c</span>  <span class="c1"># Single precision float</span>
+<span class="n">DEKTAK_DOUBLE</span> <span class="o">=</span> <span class="mh">0x0d</span>  <span class="c1"># Double precision float</span>
+<span class="n">DEKTAK_TYPE_ID</span> <span class="o">=</span> <span class="mh">0x0e</span>  <span class="c1"># Compound type holding some kind of type id</span>
+<span class="n">DEKTAK_STRING</span> <span class="o">=</span> <span class="mh">0x12</span>  <span class="c1"># Free-form string value</span>
+<span class="n">DEKTAK_QUANTITY</span> <span class="o">=</span> <span class="mh">0x13</span>  <span class="c1"># Value with units (compound type)</span>
+<span class="n">DEKTAK_TIME_STAMP</span> <span class="o">=</span> <span class="mh">0x15</span>  <span class="c1"># Datetime (string/9-byte binary)</span>
+<span class="n">DEKTAK_UNITS</span> <span class="o">=</span> <span class="mh">0x18</span>  <span class="c1"># Units (compound type)</span>
+<span class="n">DEKTAK_DOUBLE_ARRAY</span> <span class="o">=</span> <span class="mh">0x40</span>  <span class="c1"># Raw data array, in XML Base64-encoded</span>
+<span class="n">DEKTAK_STRING_LIST</span> <span class="o">=</span> <span class="mh">0x42</span>  <span class="c1"># List of Str</span>
+<span class="n">DEKTAK_RAW_DATA</span> <span class="o">=</span> <span class="mh">0x46</span>  <span class="c1"># Parent/wrapper tag of raw data</span>
+<span class="n">DEKTAK_RAW_DATA_2D</span> <span class="o">=</span> <span class="mh">0x47</span>  <span class="c1"># Parent/wrapper tag of raw data</span>
+<span class="c1"># Base64-encoded positions, not sure how it differs from 64</span>
+<span class="n">DEKTAK_POS_RAW_DATA</span> <span class="o">=</span> <span class="mh">0x7c</span>
+<span class="n">DEKTAK_CONTAINER</span> <span class="o">=</span> <span class="mh">0x7d</span>  <span class="c1"># General nested data structure</span>
+<span class="c1"># Always the last item. Usually a couple of 0xff bytes inside.</span>
+<span class="n">DEKTAK_TERMINATOR</span> <span class="o">=</span> <span class="mh">0x7f</span>
+
+<span class="n">TIMESTAMP_SIZE</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">UNIT_EXTRA</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">DOUBLE_ARRAY_EXTRA</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">MEAS_SETTINGS</span> <span class="o">=</span> <span class="s2">&quot;/MetaData/MeasurementSettings&quot;</span>
+<span class="n">RAW_1D_DATA</span> <span class="o">=</span> <span class="s2">&quot;/1D_Data/Raw&quot;</span>
+<span class="n">ANY_2D_DATA</span> <span class="o">=</span> <span class="s2">&quot;/2D_Data/&quot;</span>
+
+
+<div class="viewcode-block" id="OPDxReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader">[docs]</a><span class="k">class</span> <span class="nc">OPDxReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
+    <span class="n">_format</span> <span class="o">=</span> <span class="s1">&#39;opdx&#39;</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;Dektak OPDx&#39;</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">File format of the Bruker Dektak XT* series stylus profilometer.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+    <span class="c1"># Reads in the positions of all the data and metadata</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+
+        <span class="c1"># depending from where this function is called, file_path might already</span>
+        <span class="c1"># be a filestream</span>
+        <span class="n">already_open</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">already_open</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
+                <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer</span>
+                <span class="c1"># to get the binary data</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">buffer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">file_path</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="c1"># read topography in file as hexadecimal</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="p">[</span><span class="nb">chr</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span> <span class="k">for</span> <span class="n">byte</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()]</span>
+
+            <span class="c1"># length of file</span>
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+
+            <span class="c1"># check if correct header</span>
+            <span class="k">if</span> <span class="n">physical_sizes</span> <span class="o">&lt;</span> <span class="n">MAGIC_SIZE</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">[:</span><span class="n">MAGIC_SIZE</span><span class="p">])</span> <span class="o">!=</span> <span class="n">MAGIC</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid file format for Dektak OPDx.&#39;</span><span class="p">)</span>
+
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">MAGIC_SIZE</span>
+            <span class="n">hash_table</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="k">while</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="n">physical_sizes</span><span class="p">:</span>
+                <span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">hash_table</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">read_item</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">,</span>
+                                                       <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span>
+                                                       <span class="n">hash_table</span><span class="o">=</span><span class="n">hash_table</span><span class="p">,</span>
+                                                       <span class="n">path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Make a list of channels containing metadata about the</span>
+            <span class="c1"># topographies but not reading them in directly yet</span>
+            <span class="n">all_channels_data</span> <span class="o">=</span> <span class="n">find_2d_data</span><span class="p">(</span><span class="n">hash_table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+
+            <span class="c1"># Reformat the resulting dicts</span>
+            <span class="k">for</span> <span class="n">channel_name</span> <span class="ow">in</span> <span class="n">all_channels_data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">all_channels_data</span><span class="p">[</span><span class="n">channel_name</span><span class="p">][</span>
+                    <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">default_channel_name</span> <span class="o">=</span> <span class="n">reformat_dict</span><span class="p">(</span>
+                    <span class="n">channel_name</span><span class="p">,</span> <span class="n">all_channels_data</span><span class="p">[</span><span class="n">channel_name</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_channels_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+                <span class="n">default_channel_name</span><span class="p">)</span>
+
+            <span class="c1">#</span>
+            <span class="c1"># Build channel info objects and additional metadata for extracting</span>
+            <span class="c1"># data</span>
+            <span class="c1">#</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_channels_xres_yres_start_stop_q</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">channel_index</span><span class="p">,</span> <span class="n">channel_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_channels_data</span><span class="p">):</span>
+
+                <span class="n">channel_data</span> <span class="o">=</span> <span class="n">all_channels_data</span><span class="p">[</span><span class="n">channel_name</span><span class="p">]</span>
+                <span class="o">*</span><span class="n">xres_yres_start_stop_q</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">channel_data</span>
+
+                <span class="c1">#</span>
+                <span class="c1"># find out physical sizes in a  common unit</span>
+                <span class="c1"># without touching the meta data, scale heights accordingly</span>
+                <span class="c1">#</span>
+                <span class="n">unit_x</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Width_unit&#39;</span><span class="p">])</span>
+                <span class="n">size_x</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Width_value&#39;</span><span class="p">]</span>
+
+                <span class="n">unit_y</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Height_unit&#39;</span><span class="p">])</span>
+                <span class="n">size_y</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Height_value&#39;</span><span class="p">]</span>
+
+                <span class="n">unit_z</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">])</span>
+
+                <span class="c1"># we want value in unit_x units</span>
+                <span class="n">unit_factor_y</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit_y</span><span class="p">,</span>
+                                                           <span class="n">unit_x</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">unit_factor_y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;Units for size in x (&quot;</span><span class="si">{}</span><span class="s1">&quot;) and y (&quot;</span><span class="si">{}</span><span class="s1">&quot;) direction &#39;</span>
+                        <span class="s1">&#39;are incompatible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit_x</span><span class="p">,</span> <span class="n">unit_y</span><span class="p">))</span>
+                <span class="n">size_y</span> <span class="o">*=</span> <span class="n">unit_factor_y</span>
+
+                <span class="k">if</span> <span class="n">unit_z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># No unit given for heights. Since we can only return one</span>
+                    <span class="c1"># common unit, no unit should be returned</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># we want value in unit_x units</span>
+                    <span class="n">unit_factor_z</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit_z</span><span class="p">,</span>
+                                                               <span class="n">unit_x</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">unit_factor_z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s1">&#39;Units for width (&quot;</span><span class="si">{}</span><span class="s1">&quot;) and data units (&quot;</span><span class="si">{}</span><span class="s1">&quot;) &#39;</span>
+                            <span class="s1">&#39;are incompatible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit_x</span><span class="p">,</span> <span class="n">unit_y</span><span class="p">))</span>
+
+                    <span class="c1"># we have converted everything to this unit</span>
+                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_x</span>
+
+                <span class="n">ch_info</span> <span class="o">=</span> <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="p">,</span>
+                                      <span class="n">name</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                      <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ImageWidth&#39;</span><span class="p">],</span>
+                                                   <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ImageHeight&#39;</span><span class="p">]),</span>
+                                      <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">),</span>
+                                      <span class="n">info</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ch_info</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_channels_xres_yres_start_stop_q</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">xres_yres_start_stop_q</span><span class="p">)</span>  <span class="c1"># needed for building heights</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">already_open</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="OPDxReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
+                <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;This reader does not support MPI &#39;</span>
+                               <span class="s1">&#39;parallelization.&#39;</span><span class="p">)</span>
+
+        <span class="n">channel_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span>
+        <span class="n">res_x</span><span class="p">,</span> <span class="n">res_y</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels_xres_yres_start_stop_q</span><span class="p">[</span>
+            <span class="n">channel_index</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">build_matrix</span><span class="p">(</span><span class="n">res_x</span><span class="p">,</span> <span class="n">res_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">unit_z</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="n">common_unit</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">common_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">unit_z</span> <span class="o">!=</span> <span class="n">common_unit</span><span class="p">):</span>
+                <span class="c1"># There is a common unit, but the z-unit in the file differs</span>
+                <span class="c1"># from that common unit. So we need to scale the data</span>
+                <span class="c1"># accordingly, such that also the height are represented in</span>
+                <span class="c1"># common units.</span>
+                <span class="n">unit_factor_z</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit_z</span><span class="p">,</span> <span class="n">common_unit</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">unit_factor_z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;Common unit (&quot;</span><span class="si">{}</span><span class="s1">&quot;) derived from lateral units &#39;</span>
+                        <span class="s1">&#39;and data units (&quot;</span><span class="si">{}</span><span class="s1">&quot;) are incompatible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">common_unit</span><span class="p">,</span> <span class="n">unit_z</span><span class="p">))</span>
+                <span class="n">data</span> <span class="o">*=</span> <span class="n">unit_factor_z</span>
+
+        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span>
+            <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+
+        <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">heights</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+                          <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span>
+
+    <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
+
+
+<div class="viewcode-block" id="reformat_dict"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.reformat_dict">[docs]</a><span class="k">def</span> <span class="nf">reformat_dict</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">metadata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reformat the metadata dict from c convention to a more readable format and</span>
+<span class="sd">    remove artefacts. Also gets and returns the default channel.</span>
+<span class="sd">    :param name: The name of the current channel.</span>
+<span class="sd">    :param metadata: The metadata dict</span>
+<span class="sd">    :return:</span>
+<span class="sd">    new dict: The nicer dict</span>
+<span class="sd">    primary_channel_name: The name of the primary channel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="n">primary_channel_name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;::MetaData::PrimaryData2D&#39;</span><span class="p">:</span>
+            <span class="n">primary_channel_name</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;::MetaData::&#39;</span><span class="p">):</span>
+            <span class="c1"># These are in here for no reason and the value is None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">[</span><span class="mi">12</span><span class="p">:]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">):</span>
+                <span class="n">new_dict</span><span class="p">[</span><span class="n">key</span><span class="p">[</span><span class="mi">12</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)]</span> <span class="o">=</span> \
+                    <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;::&#39;</span><span class="p">):</span>
+            <span class="n">name_len</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">key</span><span class="p">[</span><span class="n">name_len</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;::&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)]</span> <span class="o">=</span> \
+                <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s1">&#39;&#39;</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;xres&#39;</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;xres&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;yres&#39;</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;yres&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Correct weird characters in units</span>
+    <span class="k">for</span> <span class="n">unit_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;Height_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;Width_unit&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">unit_key</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">unit_key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unit</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Â&quot;</span><span class="p">):</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">new_dict</span><span class="p">[</span><span class="n">unit_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
+
+    <span class="n">new_dict</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">return</span> <span class="n">new_dict</span><span class="p">,</span> <span class="n">primary_channel_name</span></div>
+
+
+<div class="viewcode-block" id="DektakItemData"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakItemData">[docs]</a><span class="k">class</span> <span class="nc">DektakItemData</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">si</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qun</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rawpos1d</span> <span class="o">=</span> <span class="n">DektakRawPos1D</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rawpos2d</span> <span class="o">=</span> <span class="n">DektakRawPos2D</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span> <span class="o">=</span> <span class="n">DektakMatrix</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strlist</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DektakItem"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakItem">[docs]</a><span class="k">class</span> <span class="nc">DektakItem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">typename</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">typeid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">DektakItemData</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DektakRawPos1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakRawPos1D">[docs]</a><span class="k">class</span> <span class="nc">DektakRawPos1D</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">DektakQuantUnit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">divisor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="n">DektakBuf</span></div>
+
+
+<div class="viewcode-block" id="DektakRawPos2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakRawPos2D">[docs]</a><span class="k">class</span> <span class="nc">DektakRawPos2D</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unitx</span> <span class="o">=</span> <span class="n">DektakQuantUnit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unity</span> <span class="o">=</span> <span class="n">DektakQuantUnit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">divisorx</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">divisory</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DektakQuantUnit"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakQuantUnit">[docs]</a><span class="k">class</span> <span class="nc">DektakQuantUnit</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbol</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extra</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DektakMatrix"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakMatrix">[docs]</a><span class="k">class</span> <span class="nc">DektakMatrix</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">another_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">some_int</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xres</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yres</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="n">DektakBuf</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DektakBuf"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakBuf">[docs]</a><span class="k">class</span> <span class="nc">DektakBuf</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span></div>
+
+
+<div class="viewcode-block" id="find_1d_data"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.find_1d_data">[docs]</a><span class="k">def</span> <span class="nf">find_1d_data</span><span class="p">(</span><span class="n">hash_table</span><span class="p">,</span> <span class="n">buf</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; THIS HAS NOT BEEN TESTED DUE TO NO FILES WITH 1D DATA AVAILABLE.&quot;&quot;&quot;</span>
+
+    <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;/MetaData/MeasurementSettings/SamplesToLog&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="find_2d_data"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.find_2d_data">[docs]</a><span class="k">def</span> <span class="nf">find_2d_data</span><span class="p">(</span><span class="n">hash_table</span><span class="p">,</span> <span class="n">buf</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Get all the 2d data channels out of the previously filled hash table.</span>
+
+<span class="sd">    :param hash_table: The filled hash table</span>
+<span class="sd">    :param buf: The raw hex data</span>
+<span class="sd">    :return: Dictionary with all names, data and metadata of the different</span>
+<span class="sd">    channels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">channels</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Get a list of all channels containing 2d data matrices</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">hash_table</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">find_2d_data_matrix</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="n">meta_data</span> <span class="o">=</span> <span class="n">create_meta</span><span class="p">(</span><span class="n">hash_table</span><span class="p">)</span>
+
+        <span class="n">string</span> <span class="o">=</span> <span class="n">ANY_2D_DATA</span>
+        <span class="n">string</span> <span class="o">+=</span> <span class="n">channel</span>
+
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+        <span class="c1"># Get position and res of data matrix</span>
+        <span class="n">string</span> <span class="o">+=</span> <span class="s2">&quot;/Matrix&quot;</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">string</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">p</span>
+
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span>
+        <span class="n">xres</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">xres</span>
+        <span class="n">yres</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">yres</span>
+
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::xres&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xres</span>
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::yres&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yres</span>
+
+        <span class="c1"># TODO: multiply value by interpret(item.data.qun.symbol)</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="p">[:</span><span class="n">length</span><span class="p">]</span>
+        <span class="n">string</span> <span class="o">+=</span> <span class="s2">&quot;/Dimension1Extent&quot;</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">string</span><span class="p">]</span>
+        <span class="n">yreal</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">yunit</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">symbol</span>
+
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::Height value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yreal</span>
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::Height unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yunit</span>
+
+        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="p">[:</span><span class="n">length</span><span class="p">]</span>
+        <span class="n">string</span> <span class="o">+=</span> <span class="s2">&quot;/Dimension2Extent&quot;</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">string</span><span class="p">]</span>
+        <span class="n">xreal</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">xunit</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">symbol</span>
+
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::Width value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreal</span>
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::Width unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xunit</span>
+
+        <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="p">[:</span><span class="n">length</span><span class="p">]</span>
+        <span class="n">string</span> <span class="o">+=</span> <span class="s2">&quot;/DataScale&quot;</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">string</span><span class="p">]</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">zunit</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">symbol</span>
+
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::z scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span>
+        <span class="n">meta_data</span><span class="p">[</span><span class="n">channel</span> <span class="o">+</span> <span class="s2">&quot;::z unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">zunit</span>
+
+        <span class="n">output</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">xres</span><span class="p">,</span> <span class="n">yres</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">meta_data</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="find_2d_data_matrix"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.find_2d_data_matrix">[docs]</a><span class="k">def</span> <span class="nf">find_2d_data_matrix</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks if an item is a matrix and if it is, returns it&#39;s channel name.</span>
+<span class="sd">    :param name: The name (key) of a found item</span>
+<span class="sd">    :param item: The item itself</span>
+<span class="sd">    :return: The name of the matrix data channel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">!=</span> <span class="n">DEKTAK_MATRIX</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">name</span><span class="p">[:</span><span class="mi">9</span><span class="p">]</span> <span class="o">!=</span> <span class="n">ANY_2D_DATA</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mi">9</span> <span class="o">+</span> <span class="n">name</span><span class="p">[</span><span class="mi">9</span><span class="p">:]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;Matrix&quot;</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="n">s</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="create_meta"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.create_meta">[docs]</a><span class="k">def</span> <span class="nf">create_meta</span><span class="p">(</span><span class="n">hash_table</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets all the metadata out of a hash table.</span>
+<span class="sd">    :param hash_table: The hash table</span>
+<span class="sd">    :return: Hash table with all metadata names and values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">container</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">hash_table</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/MetaData/&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">hash_table</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_BOOLEAN</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">b</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_SINT32</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">si</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_UINT32</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ui</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_SINT64</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sq</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_UINT64</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uq</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_DOUBLE</span> <span class="ow">or</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_FLOAT</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">d</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_STRING</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">buf</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_QUANTITY</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="o">.</span><span class="n">symbol</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_STRING_LIST</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strlist</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_TERMINATOR</span><span class="p">:</span>
+            <span class="n">metavalue</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Not really meta data</span>
+            <span class="k">continue</span>
+        <span class="n">metakey</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;::&quot;</span><span class="p">)</span>
+        <span class="n">container</span><span class="p">[</span><span class="n">metakey</span><span class="p">]</span> <span class="o">=</span> <span class="n">metavalue</span>
+    <span class="k">return</span> <span class="n">container</span></div>
+
+
+<div class="viewcode-block" id="read_item"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_item">[docs]</a><span class="k">def</span> <span class="nf">read_item</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">hash_table</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">abspos</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in the next item out of the buffer and saves it in the hash table.</span>
+<span class="sd">    May recursively call itself for containers.</span>
+<span class="sd">    :param buf: The raw data buffer</span>
+<span class="sd">    :param pos: Current position in the buffer</span>
+<span class="sd">    :param hash_table: The output hash table</span>
+<span class="sd">    :param path: Current name to save</span>
+<span class="sd">    :param abspos: Absolute position in buffer to keep track when calling</span>
+<span class="sd">    itself</span>
+<span class="sd">    :return:</span>
+<span class="sd">    Buffer, new position, hash table with new item in it, new path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">orig_path_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">item</span> <span class="o">=</span> <span class="n">DektakItem</span><span class="p">()</span>
+    <span class="n">itempos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">+=</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">path</span> <span class="o">+=</span> <span class="n">name</span>
+
+    <span class="n">item</span><span class="o">.</span><span class="n">typeid</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">typeid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># simple types</span>
+    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_BOOLEAN</span><span class="p">:</span>
+        <span class="n">b8</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">b8</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\x01</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">b8</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\x00</span><span class="s1">&#39;</span><span class="p">:</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Something went wrong.&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_SINT32</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">si</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_UINT32</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_SINT64</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sq</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int64</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_UINT64</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uq</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int64</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_FLOAT</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_float</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_DOUBLE</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_TIME_STAMP</span><span class="p">:</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">TIMESTAMP_SIZE</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">timestamp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_STRING</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">buf</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_QUANTITY</span><span class="p">:</span>
+        <span class="n">content</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> <span class="n">read_quantunit_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span>
+                                                        <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_UNITS</span><span class="p">:</span>
+        <span class="n">content</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">qun</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> <span class="n">read_quantunit_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_TERMINATOR</span><span class="p">:</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+
+    <span class="c1"># Container types.</span>
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_CONTAINER</span> <span class="ow">or</span> \
+            <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_RAW_DATA</span> <span class="ow">or</span> \
+            <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_RAW_DATA_2D</span><span class="p">:</span>
+        <span class="c1"># TODO find out if maybe better place somewhere else</span>
+        <span class="n">content</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">abspos</span> <span class="o">+=</span> <span class="n">start</span>
+        <span class="k">while</span> <span class="n">itempos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">):</span>
+            <span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span> <span class="n">hash_table</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">read_item</span><span class="p">(</span>
+                <span class="n">buf</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">itempos</span><span class="p">,</span> <span class="n">hash_table</span><span class="o">=</span><span class="n">hash_table</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">abspos</span><span class="o">=</span><span class="n">abspos</span><span class="p">)</span>
+
+    <span class="c1"># Types with string type name</span>
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_DOUBLE_ARRAY</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">buf</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_STRING_LIST</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">itempos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">):</span>
+            <span class="n">s</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">strlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_TYPE_ID</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">buf</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_POS_RAW_DATA</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/2D_Data&#39;</span><span class="p">):</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">unitx</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">divisorx</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> \
+                <span class="n">read_dimension2d_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span>
+                                         <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">unitx</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">unity</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">divisory</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> \
+                <span class="n">read_dimension2d_content</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span>
+                                         <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos2d</span><span class="o">.</span><span class="n">unity</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;/1_Data&#39;</span><span class="p">):</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+            <span class="n">content</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="n">buf</span><span class="o">.</span><span class="n">position</span>
+
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos1d</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> <span class="n">read_quantunit_content</span><span class="p">(</span>
+                <span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos1d</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="n">itempos</span> <span class="o">=</span> <span class="n">read_int64</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">itempos</span><span class="p">)</span>
+
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos1d</span><span class="o">.</span><span class="n">buf</span> <span class="o">=</span> <span class="n">content</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos1d</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="n">itempos</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">rawpos1d</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span> <span class="o">-=</span> <span class="n">itempos</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO check if should assume 1D here like gwyddion</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+
+    <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">DEKTAK_MATRIX</span><span class="p">:</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">typename</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">some_int</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">another_name</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_varlen</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">yres</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">xres</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>  <span class="c1"># 2 * sizeof int32</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span> <span class="o">-=</span> <span class="mi">8</span>
+        <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">+</span> <span class="n">abspos</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">-</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="n">item</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">matrix</span><span class="o">.</span><span class="n">buf</span><span class="o">.</span><span class="n">length</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span>
+    <span class="n">hash_table</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[:</span><span class="n">orig_path_len</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">hash_table</span><span class="p">,</span> <span class="n">path</span></div>
+
+
+<div class="viewcode-block" id="read_quantunit_content"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_quantunit_content">[docs]</a><span class="k">def</span> <span class="nf">read_quantunit_content</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">is_unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in a quantity unit: Value, name and symbol.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: The position in the buffer</span>
+<span class="sd">    :param is_unit: Whether or not it is a unit</span>
+<span class="sd">    :return: A quantunit item, filled with value, name and symbol</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">quantunit</span> <span class="o">=</span> <span class="n">DektakQuantUnit</span><span class="p">()</span>
+    <span class="n">quantunit</span><span class="o">.</span><span class="n">extra</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unit</span><span class="p">:</span>
+        <span class="n">quantunit</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="n">quantunit</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">quantunit</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_unit</span><span class="p">:</span>
+        <span class="n">quantunit</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">UNIT_EXTRA</span><span class="p">)</span>
+        <span class="n">quantunit</span><span class="o">.</span><span class="n">extra</span> <span class="o">+=</span> <span class="n">res</span>
+
+    <span class="k">return</span> <span class="n">quantunit</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_dimension2d_content"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_dimension2d_content">[docs]</a><span class="k">def</span> <span class="nf">read_dimension2d_content</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in information about a 2d dimension.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: The position in the buffer</span>
+<span class="sd">    :param unit: The unit</span>
+<span class="sd">    :return: The open_topography unit, divisor and new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unit</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">unit</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">unit</span><span class="o">.</span><span class="n">symbol</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">divisor</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">unit</span><span class="o">.</span><span class="n">extra</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">UNIT_EXTRA</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">unit</span><span class="p">,</span> <span class="n">divisor</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="build_matrix"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.build_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_matrix</span><span class="p">(</span><span class="n">xres</span><span class="p">,</span> <span class="n">yres</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a float matrix of given dimensions and multiplies with a scale.</span>
+<span class="sd">    :param xres: Resolution along x-axis</span>
+<span class="sd">    :param yres: Resolution along y-axis</span>
+<span class="sd">    :param data: The raw hex data</span>
+<span class="sd">    :param q: The scale of the data, a double</span>
+<span class="sd">    :return: A numpy array, now doubles aswell</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># build correct type: 4byte flat, little endian</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;f4&#39;</span><span class="p">)</span>  <span class="c1"># double</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)</span>  <span class="c1"># little-endian</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">yres</span><span class="p">,</span> <span class="n">xres</span><span class="p">))</span>
+    <span class="n">data</span> <span class="o">*=</span> <span class="n">q</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="read_name"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_name">[docs]</a><span class="k">def</span> <span class="nf">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a name.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    name, new position in buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Names always have a physical_sizes of 4 bytes</span>
+    <span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="ow">or</span> <span class="n">pos</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">-</span> <span class="n">length</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Some sizes went wrong.&quot;</span><span class="p">)</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">pos</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">buf</span><span class="p">[</span><span class="n">position</span><span class="p">:</span><span class="n">position</span> <span class="o">+</span> <span class="n">length</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="n">length</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_structured"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_structured">[docs]</a><span class="k">def</span> <span class="nf">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a length and returns a part of the buffer that long.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The slice of buffer, where it starts and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_varlen</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="ow">or</span> <span class="n">pos</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">-</span> <span class="n">length</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Some sizes went wrong.&quot;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">pos</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="n">length</span>
+    <span class="k">return</span> <span class="n">buf</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="n">length</span><span class="p">],</span> <span class="n">start</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_named_struct"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_named_struct">[docs]</a><span class="k">def</span> <span class="nf">read_named_struct</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Same as read_structured but there is a name to it.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    Name of the buffer, that buffer, its start and the new position in the</span>
+<span class="sd">    buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">typename</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_name</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">content</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_structured</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">typename</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_varlen"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_varlen">[docs]</a><span class="k">def</span> <span class="nf">read_varlen</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a length of variable length itself</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The open_topography length and new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lenlen</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">lenlen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">lenlen</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="s2">&quot;&lt;u1&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">lenlen</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">length</span> <span class="o">=</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="s2">&quot;&lt;u1&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">lenlen</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int16</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">lenlen</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">length</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span>
+    <span class="k">return</span> <span class="n">length</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_int64"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_int64">[docs]</a><span class="k">def</span> <span class="nf">read_int64</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a 64bit int.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :param signed: Whether of not the int is signed</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The int and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="s2">&quot;&lt;i8&quot;</span> <span class="k">if</span> <span class="n">signed</span> <span class="k">else</span> <span class="s2">&quot;&lt;u8&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)[</span>
+        <span class="mi">0</span><span class="p">]</span>  <span class="c1"># interpret hexadecimal -&gt; int (little-endian)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_int32"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_int32">[docs]</a><span class="k">def</span> <span class="nf">read_int32</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a 32bit int.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :param signed: Whether of not the int is signed</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The int and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="s2">&quot;&lt;i4&quot;</span> <span class="k">if</span> <span class="n">signed</span> <span class="k">else</span> <span class="s2">&quot;&lt;u4&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)[</span>
+        <span class="mi">0</span><span class="p">]</span>  <span class="c1"># interpret hexadecimal -&gt; int (little-endian)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_int16"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_int16">[docs]</a><span class="k">def</span> <span class="nf">read_int16</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a 16bit int.</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :param signed: Whether of not the int is signed</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The int and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="s2">&quot;&lt;i2&quot;</span> <span class="k">if</span> <span class="n">signed</span> <span class="k">else</span> <span class="s2">&quot;&lt;u2&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)[</span>
+        <span class="mi">0</span><span class="p">]</span>  <span class="c1"># interpret hexadecimal -&gt; int (little-endian)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_double"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_double">[docs]</a><span class="k">def</span> <span class="nf">read_double</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a double (64bit)</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The double and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>  <span class="c1"># double</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)</span>  <span class="c1"># little-endian</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)[</span>
+        <span class="mi">0</span><span class="p">]</span>  <span class="c1"># interpret hexadecimal -&gt; int (little-endian)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_float"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_float">[docs]</a><span class="k">def</span> <span class="nf">read_float</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a float (32bit)</span>
+<span class="sd">    :param buf: The buffer</span>
+<span class="sd">    :param pos: Position in the buffer</span>
+<span class="sd">    :return:</span>
+<span class="sd">    The float and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="o">=</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">)</span>  <span class="c1"># double</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">)</span>  <span class="c1"># little-endian</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)[</span>
+        <span class="mi">0</span><span class="p">]</span>  <span class="c1"># interpret hexadecimal -&gt; int (little-endian)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+
+
+<div class="viewcode-block" id="read_with_check"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_with_check">[docs]</a><span class="k">def</span> <span class="nf">read_with_check</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads and returns n bytes.</span>
+<span class="sd">    :param buf: The input buffer</span>
+<span class="sd">    :param pos: The current position</span>
+<span class="sd">    :param nbytes: number of bytes to open_topography in</span>
+<span class="sd">    :return: The bytes and the new position in the buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">nbytes</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">-</span> <span class="n">nbytes</span> <span class="o">&lt;</span> <span class="n">pos</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Some sizes went wrong.&quot;</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">buf</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span> <span class="o">+</span> <span class="n">nbytes</span><span class="p">]</span>
+    <span class="n">pos</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nbytes</span><span class="p">)</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">nbytes</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">out</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">pos</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" >SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.OPDx</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

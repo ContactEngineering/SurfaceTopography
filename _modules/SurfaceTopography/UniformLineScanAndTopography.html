@@ -1,0 +1,966 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.UniformLineScanAndTopography &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.UniformLineScanAndTopography</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.UniformLineScanAndTopography</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2019-2020 Antoine Sanner</span>
+<span class="c1">#           2019 Michael Röttger</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Support for uniform topogography descriptions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">NuMPI</span> <span class="k">import</span> <span class="n">MPI</span>
+
+<span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="n">AbstractHeightContainer</span><span class="p">,</span> \
+    <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">DecoratedTopography</span>
+<span class="kn">from</span> <span class="nn">.Uniform.Detrending</span> <span class="k">import</span> <span class="n">tilt_from_height</span><span class="p">,</span> <span class="n">tilt_and_curvature</span>
+
+
+<div class="viewcode-block" id="UniformLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan">[docs]</a><span class="k">class</span> <span class="nc">UniformLineScan</span><span class="p">(</span><span class="n">AbstractHeightContainer</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Line scan that lives on a uniform one-dimensional grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heights</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        profile : array_like</span>
+<span class="sd">            Data containing the height information. Needs to be a</span>
+<span class="sd">            one-dimensional array.</span>
+<span class="sd">        physical_sizes : tuple of floats</span>
+<span class="sd">            Physical physical_sizes of the topography map</span>
+<span class="sd">        periodic : bool</span>
+<span class="sd">            Flag setting the periodicity of the surface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">heights</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Heights array must be one-dimensional.&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="c1"># Automatically turn this into a masked array if there is data missing</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">heights</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">heights</span><span class="p">)),</span>
+                                         <span class="n">heights</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span> <span class="o">=</span> <span class="n">heights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">periodic</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
+
+    <span class="c1"># Implement abstract methods of AbstractHeightContainer</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span>
+
+    <span class="nd">@physical_sizes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">new_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_uniform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># Implement uniform line scan interface</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">),</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_domain_decomposed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_per_pt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_undefined_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span>
+
+<div class="viewcode-block" id="UniformLineScan.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">r</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="n">p</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span></div>
+
+<div class="viewcode-block" id="UniformLineScan.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span></div>
+
+<div class="viewcode-block" id="UniformLineScan.save"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        saves the topography as a NumpyTxtTopography. Warning: This only saves</span>
+<span class="sd">        the profile; the physical_sizes is not contained in the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">):</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div></div>
+
+
+<div class="viewcode-block" id="Topography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography">[docs]</a><span class="k">class</span> <span class="nc">Topography</span><span class="p">(</span><span class="n">AbstractHeightContainer</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a</span>
+<span class="sd">    topography map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heights</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span>
+                 <span class="n">nb_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">communicator</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        heights : array_like</span>
+<span class="sd">            Data containing the height information. Needs to be a</span>
+<span class="sd">            two-dimensional array.</span>
+<span class="sd">        physical_sizes : tuple of floats</span>
+<span class="sd">            Physical physical_sizes of the topography map</span>
+<span class="sd">        periodic : bool</span>
+<span class="sd">            The topography is periodic. (Default: False)</span>
+<span class="sd">        decomposition : str</span>
+<span class="sd">            Specification of the data decomposition of the heights array. If</span>
+<span class="sd">            set to &#39;subdomain&#39;, the heights array contains only the part of</span>
+<span class="sd">            the full topography local to the present MPI process. If set to</span>
+<span class="sd">            &#39;domain&#39;, the heights array contains the global array.</span>
+<span class="sd">            Default: &#39;serial&#39;, which fails for parallel runs.</span>
+<span class="sd">        nb_grid_pts : tuple of ints</span>
+<span class="sd">            Number of grid points for the full topography. This is only</span>
+<span class="sd">            required if decomposition is set to &#39;subdomain&#39;.</span>
+<span class="sd">        subdomain_locations : tuple of ints</span>
+<span class="sd">            Origin (location) of the subdomain handled by the present MPI</span>
+<span class="sd">            process.</span>
+<span class="sd">        nb_subdomain_grid_pts : tuple of ints</span>
+<span class="sd">            Number of grid points within the subdomain handled by the present</span>
+<span class="sd">            MPI process. This is only required if decomposition is set to</span>
+<span class="sd">            &#39;domain&#39;.</span>
+<span class="sd">        communicator : mpi4py communicator or NuMPI stub communicator</span>
+<span class="sd">            The MPI communicator object.</span>
+<span class="sd">            default value is COMM_SELF because sometimes NON-MPI readers that</span>
+<span class="sd">            do not set the communicator value are used in MPI Programs.</span>
+<span class="sd">            See discussion in issue #166</span>
+<span class="sd">        info : dict</span>
+<span class="sd">            The info dictionary containing auxiliary data. This data is never</span>
+<span class="sd">            used by PyCo but can be used by third-party codes.</span>
+
+<span class="sd">        Examples for initialisation:</span>
+<span class="sd">        ----------------------------</span>
+<span class="sd">        1. Serial code</span>
+<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic, info])</span>
+<span class="sd">        2. Parallel code, providing local data</span>
+<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic],</span>
+<span class="sd">                      decomposition=&#39;subdomain&#39;,</span>
+<span class="sd">                      subdomain_locations, nb_grid_pts, comm,</span>
+<span class="sd">                      [info])</span>
+<span class="sd">        3. Parallel code, providing full data</span>
+<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic],</span>
+<span class="sd">                      decomposition=&#39;domain&#39;,</span>
+<span class="sd">                      subdomain_locations, nb_subdomain_grid_pts, comm,</span>
+<span class="sd">                      [info])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">heights</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Heights array must be two-dimensional.&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span>
+
+        <span class="c1"># Automatically turn this into a masked array if there is data missing</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">heights</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">heights</span><span class="p">)),</span> <span class="n">heights</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">communicator</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># case 1. : no parallelization</span>
+            <span class="k">if</span> <span class="n">nb_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;This is a serial run but `nb_grid_pts` (= </span><span class="si">{}</span><span class="s1">) does not &#39;</span>
+                    <span class="s1">&#39;equal the shape of the `heights` (= </span><span class="si">{}</span><span class="s1">) array.&#39;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">subdomain_locations</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;This is a serial run but `subdomain_locations` (= </span><span class="si">{}</span><span class="s1">) &#39;</span>
+                    <span class="s1">&#39;is not the origin.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subdomain_locations</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">nb_subdomain_grid_pts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;This is a serial run but `nb_subdomain_grid_pts` &#39;</span>
+                    <span class="s1">&#39;(= </span><span class="si">{}</span><span class="s1">) does not equal the shape &#39;</span>
+                    <span class="s1">&#39;of the `heights` (= </span><span class="si">{}</span><span class="s1">) array.&#39;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nb_subdomain_grid_pts</span><span class="p">,</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">decomposition</span> <span class="o">==</span> <span class="s1">&#39;subdomain&#39;</span><span class="p">:</span>
+            <span class="c1"># Case 2.: parallelized and local data provided</span>
+            <span class="k">if</span> <span class="n">nb_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;This is a parallel run with &#39;subdomain&#39; decomposition; &#39;&quot;</span>
+                    <span class="s2">&quot;&#39;please specify `nb_grid_pts` since it cannot be &quot;</span>
+                    <span class="s2">&quot;inferred.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a parallel run; please specify &#39;</span>
+                                 <span class="s1">&#39;`subdomain_locations`.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span>
+                    <span class="n">nb_subdomain_grid_pts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;This is a parallel run with &#39;subdomain&#39; decomposition &quot;</span>
+                    <span class="s2">&quot;but `nb_subdomain_grid_pts` (= </span><span class="si">{}</span><span class="s2">) does not equal the &quot;</span>
+                    <span class="s2">&quot;shape of the `heights` (= </span><span class="si">{}</span><span class="s2">) array.&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nb_subdomain_grid_pts</span><span class="p">,</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="n">nb_grid_pts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span> <span class="o">=</span> <span class="n">subdomain_locations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">heights</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">decomposition</span> <span class="o">==</span> <span class="s1">&#39;domain&#39;</span><span class="p">:</span>
+            <span class="c1"># Case 3: parallelized but global data provided</span>
+            <span class="k">if</span> <span class="n">nb_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">!=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;This is a parallel run with &#39;domain&#39; decomposition but &quot;</span>
+                    <span class="s2">&quot;`nb_grid_pts` (= </span><span class="si">{}</span><span class="s2">) does not equal the shape of the &quot;</span>
+                    <span class="s2">&quot;`heights` (= </span><span class="si">{}</span><span class="s2">) array.&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a parallel run; please specify &#39;</span>
+                                 <span class="s1">&#39;`subdomain_locations`.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;This is a parallel run with &#39;domain&#39; decomposition; &quot;</span>
+                    <span class="s2">&quot;please specify `nb_subdomain_grid_pts` since it cannot &quot;</span>
+                    <span class="s2">&quot;be inferred.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="n">heights</span><span class="o">.</span><span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span> <span class="o">=</span> <span class="n">subdomain_locations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span>
+                <span class="n">heights</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">+</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span>
+                              <span class="nb">zip</span><span class="p">(</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                                  <span class="n">nb_subdomain_grid_pts</span><span class="p">))])</span>
+        <span class="k">elif</span> <span class="n">decomposition</span> <span class="o">==</span> <span class="s1">&#39;serial&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;`decomposition` is &#39;serial&#39; but this is a parallel run.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;`decomposition` can be either &#39;domain&#39; or &#39;subdomain&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">periodic</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">,</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
+
+    <span class="c1"># Implement abstract methods of AbstractHeightContainer</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_uniform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
+
+    <span class="nd">@physical_sizes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">new_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_subdomain_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; needs to be testable to make sure that geometry and halfspace are</span>
+<span class="sd">            compatible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subdomain_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_locations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subdomain_slices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span> <span class="o">+</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span>
+                     <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span><span class="p">))</span>
+
+    <span class="c1"># Implement topography interface</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_per_pt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_undefined_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="Topography.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># FIXME: Write test for this method</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="n">lnx</span><span class="p">,</span> <span class="n">lny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lnx</span><span class="p">))</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">,</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lny</span><span class="p">))</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">,</span>
+            <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Topography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span></div>
+
+<div class="viewcode-block" id="Topography.positions_and_heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.positions_and_heights">[docs]</a>    <span class="k">def</span> <span class="nf">positions_and_heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Topography.save"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        saves the topography as a NumpyTxtTopography. Warning: This only saves</span>
+<span class="sd">        the heights; the physical_sizes is not contained in the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">):</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">communicator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span></div>
+
+
+<div class="viewcode-block" id="DecoratedUniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">DecoratedUniformTopography</span><span class="p">(</span><span class="n">DecoratedTopography</span><span class="p">,</span>
+                                 <span class="n">UniformTopographyInterface</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_undefined_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">has_undefined_data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_domain_decomposed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">is_periodic</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">dim</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">pixel_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+
+    <span class="nd">@physical_sizes</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">new_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_subdomain_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; needs to be testable to make sure that geometry and halfspace are</span>
+<span class="sd">            compatible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subdomain_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">subdomain_locations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">subdomain_slices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">subdomain_slices</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">area_per_pt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">area_per_pt</span>
+
+<div class="viewcode-block" id="DecoratedUniformTopography.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="DecoratedUniformTopography.positions_and_heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.positions_and_heights">[docs]</a>    <span class="k">def</span> <span class="nf">positions_and_heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="DecoratedUniformTopography.squeeze"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.squeeze">[docs]</a>    <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                   <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                              <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ScaledUniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">ScaledUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; used when geometries are scaled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        topography  -- SurfaceTopography to scale</span>
+<span class="sd">        coeff -- Scaling factor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>
+
+<div class="viewcode-block" id="ScaledUniformTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the rescaled profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="DetrendedUniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">DetrendedUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove trends from a topography. This is achieved by fitting polynomials</span>
+<span class="sd">    to the topography data to extract trend lines. The resulting topography</span>
+<span class="sd">    is then detrended by substracting these trend lines.</span>
+
+<span class="sd">    Note on periodicity: Detrended Topographies with mode other than &quot;center&quot;</span>
+<span class="sd">    will have `is_periodic` property set to False.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    detrend_mode : str</span>
+<span class="sd">        &#39;center&#39;: center the topography, no trend correction.</span>
+<span class="sd">        &#39;height&#39;: adjust slope such that rms height is minimized.</span>
+<span class="sd">        &#39;slope&#39;: adjust slope such that rms slope is minimized.</span>
+<span class="sd">        &#39;curvature&#39;: adjust slope and curvature such that rms height is</span>
+<span class="sd">        minimized.</span>
+<span class="sd">        (Default: &#39;height&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Note on periodicity: Detrended Topographies with mode other than</span>
+<span class="sd">        &quot;center&quot; will have `is_periodic` property set to False.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topography : Topography</span>
+<span class="sd">            SurfaceTopography to be detrended.</span>
+<span class="sd">        detrend_mode : str</span>
+<span class="sd">            &#39;center&#39;: center the topography, no trend correction.</span>
+<span class="sd">            &#39;height&#39;: adjust slope such that rms height is minimized.</span>
+<span class="sd">            &#39;slope&#39;: adjust slope such that rms slope is minimized.</span>
+<span class="sd">            &#39;curvature&#39;: adjust slope and curvature such that rms height is</span>
+<span class="sd">            minimized.</span>
+<span class="sd">            (Default: &#39;height&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">=</span> <span class="n">detrend_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detrend</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_detrend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;center&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">mean</span><span class="p">(),)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
+                <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                    <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;slope&#39;</span><span class="p">:</span>
+                <span class="n">sl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>
+                                                       <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">n</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+                <span class="n">s</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">sl</span> <span class="o">*</span> <span class="n">s</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">grad</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">),</span>
+                    <span class="n">grad</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;curvature&#39;</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
+                <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span>
+                    <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Unsupported detrend mode &#39;</span><span class="si">{}</span><span class="s2">&#39; for line scans.&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># self.dim == 2</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;center&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">mean</span><span class="p">()]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;height&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span>
+                                <span class="n">tilt_from_height</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;slope&#39;</span><span class="p">:</span>
+                <span class="n">slx</span><span class="p">,</span> <span class="n">sly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">slx</span> <span class="o">=</span> <span class="n">slx</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">sly</span> <span class="o">=</span> <span class="n">sly</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+                <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">slx</span> <span class="o">*</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sly</span> <span class="o">*</span> <span class="n">sy</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">slx</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">*</span> <span class="p">(</span>
+                                            <span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nx</span><span class="p">)</span> <span class="o">-</span> <span class="n">sly</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">*</span> <span class="p">(</span>
+                                            <span class="n">ny</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                                        <span class="mi">2</span> <span class="o">*</span> <span class="n">ny</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">==</span> <span class="s1">&#39;curvature&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span>
+                                <span class="n">tilt_and_curvature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Unsupported detrend mode &#39;</span><span class="si">{}</span><span class="s2">&#39; for 2D topographies.&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">detrend_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span>
+
+    <span class="nd">@detrend_mode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">detrend_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detrend_mode</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span> <span class="o">=</span> <span class="n">detrend_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detrend</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        SurfaceTopography stays periodic only after detrend mode &quot;center&quot;.</span>
+<span class="sd">        Otherwise the detrended SurfaceTopography is non-periodic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detrend_mode</span> <span class="o">==</span> <span class="s2">&quot;center&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">is_periodic</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="DetrendedUniformTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the combined profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">a0</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">-</span> <span class="n">a0</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">-</span> <span class="n">a0</span> <span class="o">-</span> <span class="n">a1</span> <span class="o">*</span> <span class="n">x</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">-</span> <span class="n">a0</span> <span class="o">-</span> <span class="n">a1</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> \
+                    <span class="n">a2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unknown physical_sizes of coefficients tuple for line &#39;</span>
+                    <span class="s1">&#39;scans.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># self.dim == 2</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">),</span>
+                               <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">a1x</span><span class="p">,</span> <span class="n">a1y</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">-</span> <span class="n">a0</span> <span class="o">-</span> <span class="n">a1x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> \
+                    <span class="n">a1y</span> <span class="o">*</span> <span class="n">y</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mm</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="n">mn</span><span class="p">,</span> <span class="n">h0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+                <span class="n">xx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+                <span class="n">yy</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span>
+                <span class="n">xy</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">-</span> <span class="n">h0</span> <span class="o">-</span> <span class="n">m</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> \
+                    <span class="n">n</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="n">mm</span> <span class="o">*</span> <span class="n">xx</span> <span class="o">-</span> <span class="n">nn</span> <span class="o">*</span> <span class="n">yy</span> <span class="o">-</span> <span class="n">mn</span> <span class="o">*</span> <span class="n">xy</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unknown physical_sizes of coefficients &#39;</span>
+                                   <span class="s1">&#39;tuple for 2D topographies.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DetrendedUniformTopography.stringify_plane"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.stringify_plane">[docs]</a>    <span class="k">def</span> <span class="nf">stringify_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string giving the expression for the detrending plane.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">str_coeffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">h0</span><span class="p">,</span> <span class="o">=</span> <span class="n">str_coeffs</span>
+                <span class="k">return</span> <span class="n">h0</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> + </span><span class="si">{1}</span><span class="s1"> x&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">str_coeffs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> + </span><span class="si">{1}</span><span class="s1"> x + </span><span class="si">{2}</span><span class="s1"> x^2&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">str_coeffs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unknown physical_sizes of coefficients tuple.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">h0</span><span class="p">,</span> <span class="o">=</span> <span class="n">str_coeffs</span>
+                <span class="k">return</span> <span class="n">h0</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{2}</span><span class="s1"> + </span><span class="si">{0}</span><span class="s1"> x + </span><span class="si">{1}</span><span class="s1"> y&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">str_coeffs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{5}</span><span class="s1"> + </span><span class="si">{0}</span><span class="s1"> x + </span><span class="si">{1}</span><span class="s1"> y + </span><span class="si">{2}</span><span class="s1"> x^2 + </span><span class="si">{3}</span><span class="s1"> y^2 + </span><span class="si">{4}</span><span class="s1"> xy&#39;</span> \
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">str_coeffs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unknown physical_sizes of coefficients tuple.&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curvatures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        convenience function that computes the curvatures</span>
+<span class="sd">        :math:`\rho = \frac{1}{R}` of the fitted plane</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+
+<span class="sd">        dim = 1:</span>
+<span class="sd">        :math:`\rho` = 1 / R</span>
+<span class="sd">        dim = 2:</span>
+<span class="sd">        :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">}:</span>
+                <span class="k">return</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unknown physical_sizes of coefficients tuple.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+                <span class="k">return</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">sx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span>
+                            <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="n">sy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span>
+                                   <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">sx</span> <span class="o">*</span> <span class="n">sy</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">}:</span>
+                <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;Unknown physical_sizes of coefficients tuple.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TransposedUniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">TransposedUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tranpose topography.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topography : :obj:`UniformTopography`</span>
+<span class="sd">            SurfaceTopography to transpose</span>
+<span class="sd">        info : dict</span>
+<span class="sd">            Additional entries for the info dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return number of points &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+            <span class="k">return</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return physical physical_sizes &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+            <span class="k">return</span> <span class="n">sy</span><span class="p">,</span> <span class="n">sx</span>
+
+<div class="viewcode-block" id="TransposedUniformTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the rescaled profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span></div>
+
+<div class="viewcode-block" id="TransposedUniformTopography.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Y</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span></div></div>
+
+
+<div class="viewcode-block" id="TranslatedTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography">[docs]</a><span class="k">class</span> <span class="nc">TranslatedTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; used when geometries are translated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;translated_topography&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        topography  -- SurfaceTopography to translate</span>
+<span class="sd">        offset -- Translation offset in number of grid points</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">Topography</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">offset</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span>
+
+    <span class="nd">@offset</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">offsety</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">offsety</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offsety</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TranslatedTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the translated profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">offsetx</span><span class="p">,</span> <span class="n">offsety</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span> <span class="n">offsetx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+            <span class="n">offsety</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CompoundTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography">[docs]</a><span class="k">class</span> <span class="nc">CompoundTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; used when geometries are combined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;compound_topography&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography_a</span><span class="p">,</span> <span class="n">topography_b</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Behaves like a topography that is a sum of two Topographies</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        topography_a   -- first topography of the compound</span>
+<span class="sd">        topography_b   -- second topography of the compound</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">combined_val</span><span class="p">(</span><span class="n">prop_a</span><span class="p">,</span> <span class="n">prop_b</span><span class="p">,</span> <span class="n">propname</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            topographies can have a fixed or dynamic, adaptive nb_grid_pts (or</span>
+<span class="sd">            other attributes). This function assures that -- if this function</span>
+<span class="sd">            is called for two topographies with fixed nb_grid_ptss --</span>
+<span class="sd">            the nb_grid_pts are identical</span>
+<span class="sd">            Parameters:</span>
+<span class="sd">            prop_a   -- field of one topography</span>
+<span class="sd">            prop_b   -- field of other topography</span>
+<span class="sd">            propname -- field identifier (for error messages only)</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">prop_a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">prop_b</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prop_b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="n">prop_a</span> <span class="o">==</span> <span class="n">prop_b</span><span class="p">,</span> \
+                        <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> incompatible:</span><span class="si">{}</span><span class="s2"> &lt;-&gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">propname</span><span class="p">,</span> <span class="n">prop_a</span><span class="p">,</span> <span class="n">prop_b</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">prop_a</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="n">combined_val</span><span class="p">(</span><span class="n">topography_a</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">topography_b</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;dim&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="n">combined_val</span><span class="p">(</span><span class="n">topography_a</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span>
+                                         <span class="n">topography_b</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span>
+                                         <span class="s1">&#39;nb_grid_pts&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">combined_val</span><span class="p">(</span><span class="n">topography_a</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                  <span class="n">topography_b</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                  <span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_a</span> <span class="o">=</span> <span class="n">topography_a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_b</span> <span class="o">=</span> <span class="n">topography_b</span>
+
+<div class="viewcode-block" id="CompoundTopography.array"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.array">[docs]</a>    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the combined profile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_a</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">+</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_b</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div></div>
+
+
+<span class="c1"># Register analysis functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">this</span><span class="p">:</span> <span class="n">this</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">this</span><span class="p">:</span> <span class="n">this</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">this</span><span class="p">:</span> <span class="n">this</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+<span class="c1"># Register pipeline functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="n">ScaledUniformTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;detrend&#39;</span><span class="p">,</span> <span class="n">DetrendedUniformTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;transpose&#39;</span><span class="p">,</span> <span class="n">TransposedUniformTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
+    <span class="s1">&#39;translate&#39;</span><span class="p">,</span> <span class="n">TranslatedTopography</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.UniformLineScanAndTopography</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

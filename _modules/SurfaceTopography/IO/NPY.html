@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO.NPY &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" accesskey="U">SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.NPY</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO.NPY</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2019 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">In MPI Parallelized programs:</span>
+
+<span class="sd">- we have to use `MPI.File.Open` instead of `open` to allow several processors</span>
+<span class="sd">  to access the same file simultaneously</span>
+<span class="sd">- make the file reading in 3 steps:</span>
+<span class="sd">    - read the nb_grid_pts only (Reader.__init__)</span>
+<span class="sd">    - make the domain decomposition according to the nb_grid_pts</span>
+<span class="sd">    - load the relevant subdomain on each processor in Reader.topography()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">FileFormatMismatch</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+
+<span class="kn">from</span> <span class="nn">NuMPI</span> <span class="k">import</span> <span class="n">MPI</span>
+<span class="kn">import</span> <span class="nn">NuMPI</span>
+<span class="kn">import</span> <span class="nn">NuMPI.IO</span>
+
+
+<div class="viewcode-block" id="NPYReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader">[docs]</a><span class="k">class</span> <span class="nc">NPYReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    NPY is a file format made specially for numpy arrays. They contain no extra</span>
+<span class="sd">    metadata so we use directly the implementation from numpy and NuMPI.</span>
+
+<span class="sd">    For a description of the file format, see here:</span>
+<span class="sd">    https://docs.scipy.org/doc/numpy/reference/generated/numpy.lib.format.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_format</span> <span class="o">=</span> <span class="s1">&#39;npy&#39;</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;Numpy arrays (NPY)&#39;</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">Load topography information stored as a numpy array. The numpy array format is</span>
+<span class="s1">specified</span>
+<span class="s1">[here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).</span>
+<span class="s1">The reader expects a two-dimensional array and interprets it as a map of</span>
+<span class="s1">heights. Numpy arrays do not store units or physical sizes. These need to be</span>
+<span class="s1">manually provided by the user.</span>
+<span class="s1">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Open file in the NPY format.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fn: str</span>
+<span class="sd">            Name of the file</span>
+<span class="sd">        communicator: mpi4py MPI communicator or NuMPI stub communicator</span>
+<span class="sd">            MPI communicator object for parallel loads.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># if comm is None:</span>
+        <span class="c1">#    raise ValueError(&quot;you should provide comm when running with MPI&quot;)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span> <span class="o">=</span> <span class="n">NuMPI</span><span class="o">.</span><span class="n">IO</span><span class="o">.</span><span class="n">make_mpi_file_view</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">communicator</span><span class="p">,</span>
+                                                        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;npy&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="k">except</span> <span class="n">NuMPI</span><span class="o">.</span><span class="n">IO</span><span class="o">.</span><span class="n">MPIFileTypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FileFormatMismatch</span><span class="p">()</span>
+
+        <span class="c1"># TODO: maybe implement extras specific to SurfaceTopography, like</span>
+        <span class="c1">#  loading the units and the physical_sizes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
+                            <span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">),</span>
+                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="NPYReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This is a parallel run, you should provide &quot;</span>
+                                 <span class="s2">&quot;subdomain location and number of grid &quot;</span>
+                                 <span class="s2">&quot;points&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                    <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
+                <span class="n">physical_sizes</span><span class="p">,</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">info</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span>
+            <span class="n">heights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
+            <span class="n">decomposition</span><span class="o">=</span><span class="s2">&quot;subdomain&quot;</span><span class="p">,</span>
+            <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">,</span>
+            <span class="n">communicator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span>
+            <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+            <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
+            <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span></div>
+
+    <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
+
+
+<div class="viewcode-block" id="save_npy"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.save_npy">[docs]</a><span class="k">def</span> <span class="nf">save_npy</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">topography</span><span class="p">):</span>
+    <span class="n">NuMPI</span><span class="o">.</span><span class="n">IO</span><span class="o">.</span><span class="n">save_npy</span><span class="p">(</span><span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span>
+                      <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                      <span class="n">nb_grid_pts</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span><span class="p">,</span>
+                      <span class="n">comm</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" >SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.NPY</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

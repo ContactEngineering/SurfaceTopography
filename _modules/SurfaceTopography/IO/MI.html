@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO.MI &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" accesskey="U">SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.MI</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO.MI</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2020 Michael Röttger</span>
+<span class="c1">#           2019-2020 Kai Haase</span>
+<span class="c1">#           2019 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">mangle_height_unit</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">TextIOBase</span>
+
+<span class="n">image_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Image</span><span class="se">\n</span><span class="s1">&#39;</span>
+<span class="n">spec_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Spectroscopy</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+<span class="n">magic_data</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;data          </span><span class="se">\n</span><span class="s1">&#39;</span>
+<span class="n">magic_data_binary</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;data          BINARY</span><span class="se">\n</span><span class="s1">&#39;</span>
+<span class="n">magic_data_binary32</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;data          BINARY_32</span><span class="se">\n</span><span class="s1">&#39;</span>
+<span class="n">magic_data_ascii</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;data          ASCII&#39;</span>
+
+
+<div class="viewcode-block" id="MIReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader">[docs]</a><span class="k">class</span> <span class="nc">MIReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
+    <span class="n">_format</span> <span class="o">=</span> <span class="s1">&#39;mi&#39;</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;Molecular imaging data file&#39;</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">This reader opens Agilent Technologies (Molecular Imaging) AFM files saved</span>
+<span class="s1">in the MI format. This format contains information on the physical size of the</span>
+<span class="s1">topography map as well as its units.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+    <span class="c1"># Reads in the positions of all the data and metadata</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="n">file_path</span>
+
+        <span class="c1"># Start of the data in the file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># If image oder spectroscopy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Format of the saved data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Process the header and read in metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_header</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MIReader.process_header"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.process_header">[docs]</a>    <span class="k">def</span> <span class="nf">process_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">already_open</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">already_open</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
+                <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer</span>
+                <span class="c1"># to get the binary data</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="o">.</span><span class="n">buffer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+            <span class="c1"># Find out if image or spectroscopy</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">image_head</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">spec_head</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorruptFile</span>
+
+            <span class="c1"># Find the start of the height data and denote data type</span>
+            <span class="k">if</span> <span class="n">magic_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                <span class="n">header_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">magic_data</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;text&#39;</span>
+            <span class="k">elif</span> <span class="n">magic_data_binary</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                <span class="n">header_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">magic_data_binary</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;binary&#39;</span>
+            <span class="k">elif</span> <span class="n">magic_data_binary32</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                <span class="n">header_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">magic_data_binary32</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;binary32&#39;</span>
+            <span class="k">elif</span> <span class="n">magic_data_ascii</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                <span class="n">header_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">magic_data_ascii</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="s1">&#39;ascii&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CorruptFile</span>
+
+            <span class="c1"># Save start of data for later reading of the matrix</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_start</span> <span class="o">=</span> <span class="n">header_size</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="c1"># Create mifile from header, reading out meta data and channel info</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span> <span class="o">=</span> <span class="n">read_header_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">header_size</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># TODO</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span> <span class="o">=</span> <span class="n">read_header_spect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">header_size</span><span class="p">])</span>
+
+            <span class="c1"># Reformat the metadata</span>
+            <span class="k">for</span> <span class="n">buf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span>
+                    <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bufferUnit&#39;</span><span class="p">))</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bufferRange&#39;</span><span class="p">)</span>
+                <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bufferLabel&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xLength&#39;</span><span class="p">]),</span> \
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yLength&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xPixels&#39;</span><span class="p">]),</span> \
+                <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yPixels&#39;</span><span class="p">])</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">already_open</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MIReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
+                <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;This reader does not support MPI parallelization.&#39;</span><span class="p">)</span>
+
+        <span class="n">output_channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_start</span><span class="p">:])</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="p">[</span><span class="nb">chr</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">buffer</span><span class="p">]</span>
+
+        <span class="c1"># Read height data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_image</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;binary&#39;</span><span class="p">:</span>
+                <span class="n">dt</span> <span class="o">=</span> <span class="s2">&quot;i2&quot;</span>
+                <span class="n">encode_length</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="n">type_range</span> <span class="o">=</span> <span class="mi">32768</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="s1">&#39;binary32&#39;</span><span class="p">:</span>
+                <span class="n">dt</span> <span class="o">=</span> <span class="s2">&quot;i4&quot;</span>
+                <span class="n">encode_length</span> <span class="o">=</span> <span class="mi">4</span>
+                <span class="n">type_range</span> <span class="o">=</span> <span class="mi">2147483648</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># text or ascii</span>
+                <span class="n">type_range</span> <span class="o">=</span> <span class="mi">32768</span>
+
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">xres</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">yres</span><span class="p">)</span> <span class="o">*</span> <span class="n">encode_length</span> <span class="o">*</span> <span class="n">channel_index</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">xres</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">yres</span><span class="p">)</span> <span class="o">*</span> <span class="n">encode_length</span> <span class="o">*</span> <span class="p">(</span><span class="n">channel_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;raw_unicode_escape&quot;</span><span class="p">),</span> <span class="n">dt</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">xres</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">yres</span><span class="p">)))</span>
+
+            <span class="c1"># Undo normalizing with range of data type</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="n">type_range</span>
+
+            <span class="c1"># If scan direction is upwards, flip the height map vertically</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;scanUp&#39;</span><span class="p">]:</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Multiply the heights with the bufferRange</span>
+            <span class="n">out</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">output_channel</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># TODO</span>
+
+        <span class="n">joined_meta</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="o">**</span><span class="n">output_channel</span><span class="o">.</span><span class="n">meta</span><span class="p">}</span>
+
+        <span class="c1"># Initialize heights with transposed array in order to match Gwdyydion</span>
+        <span class="c1"># when plotted with pcolormesh(t.heights().T), except that the y axis</span>
+        <span class="c1"># is flipped because the origin is in lower left with pcolormesh;</span>
+        <span class="c1"># imshow(t.heights().T) shows the image like gwyddion</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">heights</span><span class="o">=</span><span class="n">out</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                       <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span>
+                           <span class="n">physical_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">),</span>
+                       <span class="n">info</span><span class="o">=</span><span class="n">joined_meta</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">channel</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                            <span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">),</span>
+                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">,</span>
+                            <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">,</span>
+                            <span class="n">info</span><span class="o">=</span><span class="n">channel</span><span class="o">.</span><span class="n">meta</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">channels</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return all the available metadata as a dict. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span>
+
+    <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
+
+
+<div class="viewcode-block" id="read_header_image"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.read_header_image">[docs]</a><span class="k">def</span> <span class="nf">read_header_image</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in global metadata and information about about included channels as</span>
+<span class="sd">    well as their metadata.</span>
+<span class="sd">    :param header: The header as a line of text.</span>
+<span class="sd">    :return:</span>
+<span class="sd">    MIFile item containing the metadata, with the channels as a list of</span>
+<span class="sd">    &#39;buffers&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># This object will store the file-wide metadata</span>
+    <span class="n">mifile</span> <span class="o">=</span> <span class="n">MIFile</span><span class="p">()</span>
+
+    <span class="c1"># False while reading global metadata, gets true if we start to read in the</span>
+    <span class="c1"># channel info</span>
+    <span class="n">reading_buffers</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="c1"># As soon as we see a line starting with &#39;bufferLabel&#39;, we know we are</span>
+        <span class="c1"># now reading in channels</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;bufferLabel&#39;</span><span class="p">):</span>
+            <span class="c1"># Create a new channel with the id as name</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">14</span><span class="p">:]))</span>
+            <span class="n">mifile</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="n">reading_buffers</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># For all key value pairs in the file:</span>
+        <span class="c1"># Append to global metadata oder channel metadata, depending on our</span>
+        <span class="c1"># state</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="mi">14</span><span class="p">])</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">14</span><span class="p">:])</span>
+
+        <span class="k">if</span> <span class="n">reading_buffers</span><span class="p">:</span>
+            <span class="n">mifile</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># Catch &#39;special&#39; metadata</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;xPixels&quot;</span><span class="p">:</span>
+            <span class="n">mifile</span><span class="o">.</span><span class="n">xres</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;yPixels&quot;</span><span class="p">:</span>
+            <span class="n">mifile</span><span class="o">.</span><span class="n">yres</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">mifile</span></div>
+
+
+<div class="viewcode-block" id="read_header_spect"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.read_header_spect">[docs]</a><span class="k">def</span> <span class="nf">read_header_spect</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in metadata out of the header.</span>
+<span class="sd">    :param header: The header.</span>
+<span class="sd">    :return:</span>
+<span class="sd">    MIFile item containing the metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Channel"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.Channel">[docs]</a><span class="k">class</span> <span class="nc">Channel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class structure for a channel contained in the file.</span>
+<span class="sd">    Has a name and metadata (height data is not needed since it is returned</span>
+<span class="sd">    directly).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span></div>
+
+
+<div class="viewcode-block" id="MIFile"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIFile">[docs]</a><span class="k">class</span> <span class="nc">MIFile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class structure for the while file. Has a list of channels, global metadata</span>
+<span class="sd">    and a nb_grid_pts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">meta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">xres</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yres</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="n">meta</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" >SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.MI</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

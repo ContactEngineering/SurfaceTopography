@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>The code is documented via Python’s documentation strings that can be accesses via the <cite>help</cite> command or by appending a questions mark <cite>?</cite> in ipython/jupyter. There are two command line tools available that may be a good starting point. They are in the <cite>commandline</cite> subdirectory:</p>
+<ul class="simple">
+<li><p><cite>hard_wall.py</cite>: Command line front end for calculations with hard, impenetrable walls between rigid and elastic flat. This front end exclusively uses Polonsky &amp; Keer’s constrained conjugate gradient solver to find the deformation of the substrate under the additional contact constraints. Run <cite>hard_wall.py –help</cite> to get a list of command line options.</p></li>
+<li><p><cite>soft_wall.py</cite>: Command line front end for calculations with soft (possibly adhesive) interactions between rigid and elastic flat. This is a stub rather than a fully featured command line tool that can be used as a starting point for modified script. The present implementation is set up for a solution of Martin Müser’s contact mechanics challenge.</p></li>
+</ul>
+<div class="section" id="handling-topographies">
+<h2>Handling topographies<a class="headerlink" href="#handling-topographies" title="Permalink to this headline">¶</a></h2>
+<p>Handling of topography data, either two-dimensional topography maps or line scan, is handled by the <code class="xref py py-mod docutils literal notranslate"><span class="pre">PyCo.Topography</span></code> module. There are three basic topography classes implemented in this module:</p>
+<ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Topography</span></code> is a representation of a two-dimensional topography map that lives on a uniform grid.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformLineScan</span></code> is a representation of a one-dimensional line-scan that lives on a uniform grid.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NonuniformTopography</span></code> is a representation of a one-dimensional line-scan that lives on a nonuniform grid. This class assumes that height information in between grid points can be obtained by a linear interpolation.</p></li>
+</ul>
+<p>Nonuniform line-scans are therefore always interpreted as a set of points connected by straight lines
+(linear interpolation). No interpolation is carried out for topography maps and uniform line scans.</p>
+<p>Topographies can be read from a file through a reader returned by <code class="xref py py-func docutils literal notranslate"><span class="pre">PyCo.Topography.open_topography()</span></code>.
+Each reader provides an interface to one or more channels in the file.
+Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
+The classes expose a homogeneous interface for handling topographies. Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+
+<span class="c1"># get a handle to the file (&quot;reader&quot;)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
+
+<span class="c1"># each file has a list of channels (one or more)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>  <span class="c1"># returns list of channels</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># first channel, alternatively use ..</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">default_channel</span>  <span class="c1"># .. - one of the channels is the &quot;default&quot; channel</span>
+
+<span class="c1"># each channel has some defined meta data</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># channel name</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimensions</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>  <span class="c1"># number of grid points</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>  <span class="c1"># number of dimensions (1 or 2)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>  <span class="c1"># more metadata, e.g. &#39;unit&#39; if unit was given in file</span>
+
+<span class="c1"># you can get a topography from a channel</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>   <span class="c1"># here meta data from the file is taken</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>   <span class="c1"># like this, you can overwrite meta data in file</span>
+
+<span class="c1"># each topography has a rich set of methods and properties for meta data and analysis</span>
+<span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimension</span>
+<span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>  <span class="c1"># Root mean square of heights</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>  <span class="c1"># access to the heights array</span>
+</pre></div>
+</div>
+<p>The raw data can be accesses via the <cite>heights</cite> method that return a one- or two-dimensional array containing height information.
+The <cite>positions</cite> method contains return the corresponding positions. For two-dimensional maps, it return two array for the <cite>x</cite> and <cite>y</cite> positions.
+For uniform topographies, these positions are uniformly spaced but for nonuniform topographies they may have any value.</p>
+<p>Operations on topographies can be analysis functions that compute some value or property,
+such as the root mean square height of the topography, or pipeline functions that compute a new topography,
+e.g. a detrended one, from the current topography. Both are described in the section <a class="reference internal" href="#analysis-functions"><span class="std std-ref">Analysis functions</span></a> below.</p>
+<div class="section" id="data-orientation">
+<h3>Data Orientation<a class="headerlink" href="#data-orientation" title="Permalink to this headline">¶</a></h3>
+<p>When working with 2D topographies it is useful to know, how the data in PyCo is oriented,
+also when compared against the expected image.</p>
+<p>After loading a topography, e.g. by</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>  <span class="c1"># returns the default channel</span>
+</pre></div>
+</div>
+<p>the heights array can be accessed by</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>or if you need also the coordinates of the heights, use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If matplotlib has been installed, these heights can be plotted by</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>   <span class="c1"># only heights, axes labels are just indices</span>
+<span class="c1"># or</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="o">*</span><span class="n">topo</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">())</span>   <span class="c1"># heights and coordinates, axes labels are positions</span>
+</pre></div>
+</div>
+<p>These two variants plot the origin in the lower left, in a typical cartesian coordinate system.
+If you like to have a plot of the topography as seen during measurement, similar to the output
+of other software as e.g. Gwyddion, use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="analysis-functions">
+<span id="id1"></span><h3>Analysis functions<a class="headerlink" href="#analysis-functions" title="Permalink to this headline">¶</a></h3>
+<p>All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.</p>
+<ul class="simple">
+<li><p><cite>mean</cite>: Compute the mean value.</p></li>
+<li><p><cite>rms_height</cite>: Computes the root mean square height of the topography.</p></li>
+<li><p><cite>rms_slope</cite>: Computes the root mean square slope.</p></li>
+<li><p><cite>rms_curvature</cite>: Computes the root mean square curvature.</p></li>
+<li><p><cite>power_spectrum_1D</cite>: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
+<li><p><cite>power_spectrum_2D</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
+</ul>
+<p>Example::</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="k">import</span> <span class="n">read_topography</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms slope =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_slope</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms curvature =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_curvature</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pipelines">
+<h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h3>
+<p>Pipeline functions return a new topography. This topography does not own the original data but executes the full pipeline everytime <cite>heights</cite> is executed. The <cite>clone</cite> method returns a new topography that contains the data returned by the pipeline. Pipelines can be concatenated together.</p>
+<ul class="simple">
+<li><p><cite>scale</cite>: Rescale all heights by a certain factor.</p></li>
+<li><p><cite>detrend</cite>: Compute a detrended topography.</p></li>
+</ul>
+<p>Example::</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="k">import</span> <span class="n">read_topography</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending and rescaling =&#39;</span><span class="p">,</span>
+      <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="elastic-half-space-module">
+<h2>Elastic half-space module<a class="headerlink" href="#elastic-half-space-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="coordinate-system">
+<h3>Coordinate system<a class="headerlink" href="#coordinate-system" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/geometry_pdf_tex.svg" src="_images/geometry_pdf_tex.svg" /><p><span class="math notranslate nohighlight">\(h_0(x)\)</span> is the content of the topography.</p>
+<p><span class="math notranslate nohighlight">\(\delta\)</span>: rigid body penetration</p>
+<p><span class="math notranslate nohighlight">\(h(x) = \delta + h_0(x)\)</span> is the height of the indenter with respect to the surface of the undeformed halfspace</p>
+<p><span class="math notranslate nohighlight">\(u(x)\)</span> displacent of the halfspace</p>
+<p><span class="math notranslate nohighlight">\(g(x) = u(x) - h(x) = u(x) - (\delta + h_0(x))\)</span>: gap</p>
+<p>The simulation models the indentation of an elastic halfspace (flat) with a rigid indenter whose geometry is given by the topography.</p>
+<p>In the picture above the maximum value of the topography <span class="math notranslate nohighlight">\(h_0(x)\)</span> is 0. First contact occurs at <span class="math notranslate nohighlight">\(\delta = 0 \)</span> increases.</p>
+<p>If <span class="math notranslate nohighlight">\(h_0(x)\)</span> contains positive values the first contact will occur at <span class="math notranslate nohighlight">\(\delta &lt; 0\)</span></p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="development.html"
+                        title="next chapter">Development</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Usage</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

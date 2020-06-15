@@ -1,0 +1,94 @@
+SurfaceTopography.IO package
+============================
+
+Submodules
+----------
+
+SurfaceTopography.IO.DI module
+------------------------------
+
+.. automodule:: SurfaceTopography.IO.DI
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.FromFile module
+------------------------------------
+
+.. automodule:: SurfaceTopography.IO.FromFile
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.H5 module
+------------------------------
+
+.. automodule:: SurfaceTopography.IO.H5
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.IBW module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.IBW
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.MI module
+------------------------------
+
+.. automodule:: SurfaceTopography.IO.MI
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.Matlab module
+----------------------------------
+
+.. automodule:: SurfaceTopography.IO.Matlab
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.NC module
+------------------------------
+
+.. automodule:: SurfaceTopography.IO.NC
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.NPY module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.NPY
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.OPDx module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.OPDx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.Reader module
+----------------------------------
+
+.. automodule:: SurfaceTopography.IO.Reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.IO
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.Uniform.VariableBandwidth &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Uniform.VariableBandwidth</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.Uniform.VariableBandwidth</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2018, 2020 Lars Pastewka</span>
+<span class="c1">#           2019 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Variable bandwidth analysis for uniform topographies</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+
+
+<div class="viewcode-block" id="checkerboard_detrend"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend">[docs]</a><span class="k">def</span> <span class="nf">checkerboard_detrend</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">subdivisions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform tilt correction (and substract mean value) in each individual</span>
+<span class="sd">    rectangle of a checkerboard decomposition of the surface. This is</span>
+<span class="sd">    identical to subdividing the surface into individual, nonoverlapping</span>
+<span class="sd">    rectangles and performing individual tilt corrections on them.</span>
+
+<span class="sd">    The main application of this function is to carry out a variable</span>
+<span class="sd">    bandwidth analysis of the surface.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    subdivisions : tuple</span>
+<span class="sd">        Number of subdivision per dimension, i.e. physical_sizes of the</span>
+<span class="sd">        checkerboard.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    arr : array</span>
+<span class="sd">        Array with height information, tilt-corrected within each</span>
+<span class="sd">        checkerboard.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">nb_dim</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># compute unique consecutive index for each subdivided region</span>
+    <span class="n">region_coord</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">subdivisions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">//</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">nb_dim</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">nb_dim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">region_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">region_coord</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">region_index</span> <span class="o">=</span> <span class="n">region_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nb_dim</span><span class="p">):</span>
+        <span class="n">region_index</span> <span class="o">=</span> <span class="n">subdivisions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">region_index</span> <span class="o">+</span> <span class="n">region_coord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="c1"># compute x- and y-coordinate</span>
+    <span class="k">if</span> <span class="n">nb_dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">nb_dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">),</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Cannot handle </span><span class="si">{}</span><span class="s1">-dimensional topographies.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nb_dim</span><span class="p">))</span>
+
+    <span class="n">region_index</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="n">sum_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">)</span>
+    <span class="n">sum_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">sum_xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">sum_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="n">sum_xh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nb_dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">y</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+        <span class="n">sum_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">sum_yy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">sum_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">sum_yh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">region_index</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">arr</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nb_dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Calculated detrended plane. Detrended plane is given by h0 + mx*x.</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">sum_1</span><span class="p">,</span> <span class="n">sum_x</span><span class="p">],</span>
+                      <span class="p">[</span><span class="n">sum_x</span><span class="p">,</span> <span class="n">sum_xx</span><span class="p">]])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sum_h</span><span class="p">,</span> <span class="n">sum_xh</span><span class="p">])</span>
+        <span class="n">h0</span><span class="p">,</span> <span class="n">mx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">arr</span> <span class="o">-=</span> <span class="n">h0</span><span class="p">[</span><span class="n">region_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">mx</span><span class="p">[</span><span class="n">region_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Calculated detrended plane. Detrended plane is given by</span>
+        <span class="c1"># h0 + mx*x + my*y.</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">sum_1</span><span class="p">,</span> <span class="n">sum_x</span><span class="p">,</span> <span class="n">sum_y</span><span class="p">],</span>
+                      <span class="p">[</span><span class="n">sum_x</span><span class="p">,</span> <span class="n">sum_xx</span><span class="p">,</span> <span class="n">sum_xy</span><span class="p">],</span>
+                      <span class="p">[</span><span class="n">sum_y</span><span class="p">,</span> <span class="n">sum_xy</span><span class="p">,</span> <span class="n">sum_yy</span><span class="p">]])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sum_h</span><span class="p">,</span> <span class="n">sum_xh</span><span class="p">,</span> <span class="n">sum_yh</span><span class="p">])</span>
+        <span class="n">h0</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">my</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">arr</span> <span class="o">-=</span> <span class="n">h0</span><span class="p">[</span><span class="n">region_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">mx</span><span class="p">[</span><span class="n">region_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">my</span><span class="p">[</span><span class="n">region_index</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span>
+
+    <span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+
+    <span class="k">return</span> <span class="n">arr</span></div>
+
+
+<div class="viewcode-block" id="variable_bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth">[docs]</a><span class="k">def</span> <span class="nf">variable_bandwidth</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nb_grid_pts_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform a variable bandwidth analysis by computing the mean</span>
+<span class="sd">    root-mean-square height within increasingly finer subdivisions of the</span>
+<span class="sd">    surface topography.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    nb_grid_pts_cutoff : int</span>
+<span class="sd">        Minimum nb_grid_pts to allow for subdivision. The analysis will</span>
+<span class="sd">        automatically analyze subdivision down to this nb_grid_pts.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    magnifications : array</span>
+<span class="sd">        Array containing the magnifications.</span>
+<span class="sd">    bandwidths : array</span>
+<span class="sd">        Array containing the bandwidths, here the physical sizes of the</span>
+<span class="sd">        subdivided topography. For 2D topography maps, this is the mean of the</span>
+<span class="sd">        two physical sizes of the subdivided section of the topography.</span>
+<span class="sd">    rms_heights : array</span>
+<span class="sd">        Array containing the rms height corresponding to the respective</span>
+<span class="sd">        magnification.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">magnification</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+    <span class="n">min_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span>
+    <span class="n">subdivisions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span> <span class="o">/</span> <span class="n">min_size</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">magnifications</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">bandwidths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">rms_heights</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="p">((</span><span class="n">nb_grid_pts</span> <span class="o">//</span> <span class="n">subdivisions</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">nb_grid_pts_cutoff</span><span class="p">):</span>
+        <span class="n">magnifications</span> <span class="o">+=</span> <span class="p">[</span><span class="n">magnification</span><span class="p">]</span>
+        <span class="n">bandwidths</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">physical_sizes</span> <span class="o">/</span> <span class="n">subdivisions</span><span class="p">)]</span>
+        <span class="n">rms_heights</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">checkerboard_detrend</span><span class="p">(</span><span class="n">subdivisions</span><span class="p">))]</span>
+        <span class="n">magnification</span> <span class="o">*=</span> <span class="mi">2</span>
+        <span class="n">subdivisions</span> <span class="o">*=</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">magnifications</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bandwidths</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="n">rms_heights</span><span class="p">)</span></div>
+
+
+<span class="c1"># Register analysis functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;checkerboard_detrend&#39;</span><span class="p">,</span>
+                                             <span class="n">checkerboard_detrend</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;variable_bandwidth&#39;</span><span class="p">,</span>
+                                             <span class="n">variable_bandwidth</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Uniform.VariableBandwidth</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

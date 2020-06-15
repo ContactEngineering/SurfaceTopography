@@ -1,0 +1,62 @@
+SurfaceTopography.Nonuniform package
+====================================
+
+Submodules
+----------
+
+SurfaceTopography.Nonuniform.Autocorrelation module
+---------------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.Autocorrelation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.Detrending module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.Detrending
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.PowerSpectrum module
+-------------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.PowerSpectrum
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.ScalarParameters module
+----------------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.ScalarParameters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.VariableBandwidth module
+-----------------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.VariableBandwidth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.common module
+------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Nonuniform
+   :members:
+   :undoc-members:
+   :show-inheritance:

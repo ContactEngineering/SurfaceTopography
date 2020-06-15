@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.Uniform.Interpolation &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Uniform.Interpolation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.Uniform.Interpolation</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2020 Lars Pastewka</span>
+<span class="c1">#           2020 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+<span class="kn">from</span> <span class="nn">..Interpolation</span> <span class="k">import</span> <span class="n">Bicubic</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+
+
+<div class="viewcode-block" id="bicubic_interpolator"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.bicubic_interpolator">[docs]</a><span class="k">def</span> <span class="nf">bicubic_interpolator</span><span class="p">(</span><span class="n">topography</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a bicubic interpolation function based on the topography&#39;s heights</span>
+<span class="sd">    and slopes (fourier_derivative)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Bicubic interpolation only implemented for periodic surfaces&quot;</span><span class="p">)</span>
+
+    <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">pixel_size</span>
+    <span class="n">derx</span><span class="p">,</span> <span class="n">dery</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">fourier_derivative</span><span class="p">()</span>
+    <span class="n">interp</span> <span class="o">=</span> <span class="n">Bicubic</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span>
+                     <span class="n">derx</span> <span class="o">*</span> <span class="n">dx</span><span class="p">,</span>  <span class="c1"># Bicubic assumes a grid spacing of 1</span>
+                     <span class="n">dery</span> <span class="o">*</span> <span class="n">dy</span>
+                     <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">wrapped_bicubic</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x:  array</span>
+<span class="sd">            coordinate where to interpolate the topography</span>
+<span class="sd">        y:  array</span>
+<span class="sd">            coordinate where to interpolate the topography</span>
+<span class="sd">        derivative: int 0, 1 or 2, optional</span>
+<span class="sd">            if &gt; 0 returns also derivatives. Note that the 2nd order</span>
+<span class="sd">            derivatives are not continuous and hence not really usefull</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        array of interpolated values or tuple with arrays of values and</span>
+<span class="sd">        derivatives</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">derivative</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">interp_field</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">dx</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="n">dy</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="n">derivative</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">interp_field</span>
+        <span class="k">elif</span> <span class="n">derivative</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">interp_field</span><span class="p">,</span> <span class="n">interp_derx</span><span class="p">,</span> <span class="n">interp_dery</span> <span class="o">=</span> \
+                <span class="n">interp</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">dx</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="n">dy</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="n">derivative</span><span class="p">)</span>
+            <span class="c1"># back to our original grid spacing</span>
+            <span class="n">interp_derx</span> <span class="o">=</span> <span class="n">interp_derx</span> <span class="o">/</span> <span class="n">dx</span>
+            <span class="n">interp_dery</span> <span class="o">=</span> <span class="n">interp_dery</span> <span class="o">/</span> <span class="n">dy</span>
+            <span class="k">return</span> <span class="n">interp_field</span><span class="p">,</span> <span class="n">interp_derx</span><span class="p">,</span> <span class="n">interp_dery</span>
+        <span class="k">elif</span> <span class="n">derivative</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">interp_field</span><span class="p">,</span> <span class="n">interp_derx</span><span class="p">,</span> <span class="n">interp_dery</span><span class="p">,</span> \
+                <span class="n">interp_derxx</span><span class="p">,</span> <span class="n">interp_deryy</span><span class="p">,</span> <span class="n">interp_derxy</span> <span class="o">=</span> \
+                <span class="n">interp</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">dx</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="n">dy</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="n">derivative</span><span class="p">)</span>
+
+            <span class="n">interp_derx</span> <span class="o">=</span> <span class="n">interp_derx</span> <span class="o">/</span> <span class="n">dx</span>
+            <span class="n">interp_dery</span> <span class="o">=</span> <span class="n">interp_dery</span> <span class="o">/</span> <span class="n">dy</span>
+
+            <span class="n">interp_derxx</span> <span class="o">=</span> <span class="n">interp_derxx</span> <span class="o">/</span> <span class="n">dx</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="n">interp_deryy</span> <span class="o">=</span> <span class="n">interp_deryy</span> <span class="o">/</span> <span class="n">dy</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="n">interp_derxy</span> <span class="o">=</span> <span class="n">interp_derxx</span> <span class="o">/</span> <span class="n">dx</span> <span class="o">/</span> <span class="n">dy</span>
+
+            <span class="k">return</span> <span class="n">interp_field</span><span class="p">,</span> <span class="n">interp_derx</span><span class="p">,</span> <span class="n">interp_dery</span><span class="p">,</span> \
+                <span class="n">interp_derxx</span><span class="p">,</span> <span class="n">interp_deryy</span><span class="p">,</span> <span class="n">interp_derxy</span>
+
+    <span class="k">return</span> <span class="n">wrapped_bicubic</span></div>
+
+
+<div class="viewcode-block" id="interpolate_fourier"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_fourier">[docs]</a><span class="k">def</span> <span class="nf">interpolate_fourier</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interpolates the heights of `topography` on a finer grid given by</span>
+<span class="sd">    `nb_grid_pts` by padding the fourier spectrum with zeros.</span>
+
+<span class="sd">    Only 2D implemented.</span>
+
+<span class="sd">    Note: at the nyquist frequenca we use the &quot;minimal-oscillation&quot;</span>
+<span class="sd">    interpolation, i.e. we assume a cosinus wave</span>
+<span class="sd">    (https://math.mit.edu/~stevenj/fft-deriv.pdf).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography: Topography</span>
+<span class="sd">    nb_grid_pts: tuple</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    SurfaceTopography with interolated values</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bigspectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                           <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+    <span class="n">smallspectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft2</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span>
+    <span class="n">snx</span><span class="p">,</span> <span class="n">sny</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+
+    <span class="c1"># the entries at the nyquist frequency are the superposition of the</span>
+    <span class="c1"># positive and negative frequency. When we increase the fourier domain, we</span>
+    <span class="c1"># will split that again between positive and negative, therefore we divide</span>
+    <span class="c1"># the value by two and copy it to the corresponding negative vector</span>
+    <span class="k">if</span> <span class="n">ny</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># the nyquist frequency also contains the symmetric and will be</span>
+        <span class="c1"># twice too big when the symmetric will be included</span>
+        <span class="n">smallspectrum</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="k">if</span> <span class="n">nx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># the nyquist frequency also contains the symmetric and will be</span>
+        <span class="c1"># twice too big when the symmetric will be included</span>
+        <span class="n">smallspectrum</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">nx</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">nx</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="p">:]</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">i</span> <span class="o">=</span> <span class="n">snx</span> <span class="o">//</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">snx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">(</span><span class="n">snx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">bigspectrum</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="p">[:</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span>
+    <span class="n">bigspectrum</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">snx</span> <span class="o">-</span> <span class="n">i</span><span class="p">):,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">snx</span> <span class="o">-</span> <span class="n">i</span><span class="p">):,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span>
+
+    <span class="c1"># in the y direction, the entries at the nyquist frequency are</span>
+    <span class="c1"># automatically symmetrised by the rfft, corresponding to a cosinusoidal</span>
+    <span class="c1"># wave, i.e. the &quot;minimal-oscillation&quot; trigonometric interpolation</span>
+    <span class="c1"># (https://math.mit.edu/~stevenj/fft-deriv.pdf).</span>
+    <span class="c1"># To ensure the same behaviour in the x direction</span>
+    <span class="c1"># (see test_fourier_interpolate_transpose_symmetry`)`</span>
+    <span class="c1"># we have to mirror the entries at the niquist frequency by hand</span>
+    <span class="k">if</span> <span class="n">snx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">bigspectrum</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span> <span class="o">=</span> <span class="n">smallspectrum</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span><span class="n">sny</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft2</span><span class="p">(</span><span class="n">bigspectrum</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+                      <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">),</span>
+                      <span class="c1"># normalization</span>
+                      <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
+
+
+<span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;interpolate_bicubic&quot;</span><span class="p">,</span> <span class="n">bicubic_interpolator</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;interpolate_fourier&#39;</span><span class="p">,</span>
+                                             <span class="n">interpolate_fourier</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.Uniform.Interpolation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

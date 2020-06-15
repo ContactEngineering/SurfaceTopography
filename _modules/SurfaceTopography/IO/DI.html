@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurfaceTopography.IO.DI &#8212; SurfaceTopography 1.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" accesskey="U">SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.DI</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for SurfaceTopography.IO.DI</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2019-2020 Lars Pastewka</span>
+<span class="c1">#           2020 Michael Röttger</span>
+<span class="c1">#           2019 Antoine Sanner</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="c1">#</span>
+<span class="c1"># The DI file format is described in detail here:</span>
+<span class="c1"># http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> \
+    <span class="n">mangle_height_unit</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+
+
+<span class="c1">###</span>
+
+<div class="viewcode-block" id="DIReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader">[docs]</a><span class="k">class</span> <span class="nc">DIReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
+    <span class="n">_format</span> <span class="o">=</span> <span class="s1">&#39;di&#39;</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;Veeco (Digital Instruments) Nanoscope&#39;</span>
+    <span class="n">_description</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">Digitial Instruments Nanoscope files typically have a three-digit number as</span>
+<span class="s1">the file extension (.001, .002, .003, ...). This format contains information</span>
+<span class="s1">on the physical size of the topography map as well as its units. The reader</span>
+<span class="s1">supports V4.3 and later version of the format.</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fobj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load Digital Instrument&#39;s Nanoscope files.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        fobj : filename or file object</span>
+<span class="sd">             File or data stream to open.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span> <span class="o">=</span> <span class="n">fobj</span>
+        <span class="n">close_file</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">fobj</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="n">close_file</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">section_name</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">section_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">L</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">while</span> <span class="n">L</span> <span class="ow">and</span> <span class="n">L</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="sa">r</span><span class="s1">&#39;\*file list end&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">L</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">*&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">section_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">parameters</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">section_dict</span><span class="p">)]</span>
+                    <span class="n">new_section_name</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">section_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">new_section_name</span> <span class="o">!=</span> <span class="s1">&#39;file list&#39;</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Header must start with the &quot;</span>
+                                          <span class="s2">&quot;&#39;File list&#39; section.&quot;</span><span class="p">)</span>
+                    <span class="n">section_name</span> <span class="o">=</span> <span class="n">new_section_name</span>
+                    <span class="n">section_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">elif</span> <span class="n">L</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">section_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Encountered key before section &#39;</span>
+                                      <span class="s1">&#39;header.&#39;</span><span class="p">)</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">s</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="n">key</span><span class="p">,</span> <span class="o">=</span> <span class="n">s</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">section_dict</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                        <span class="s2">&quot;Header line &#39;</span><span class="si">{}</span><span class="s2">&#39; does not start with a slash.&quot;</span>
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+                <span class="n">L</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">section_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;No sections found in header.&#39;</span><span class="p">)</span>
+            <span class="n">parameters</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">section_dict</span><span class="p">)]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">scanner</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;file list&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;date&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">],</span>
+                                              <span class="s1">&#39;%I:%M:%S %p %a %b </span><span class="si">%d</span><span class="s1"> %Y&#39;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;scanner list&#39;</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;ciao scan list&#39;</span><span class="p">:</span>
+                    <span class="n">scanner</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;ciao image list&#39;</span><span class="p">:</span>
+                    <span class="n">image_data_key</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^S \[(.*?)\] &#39;</span><span class="p">,</span>
+                                              <span class="n">p</span><span class="p">[</span><span class="s1">&#39;@2:image data&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+                    <span class="n">nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;samps/line&#39;</span><span class="p">])</span>
+                    <span class="n">ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;number of lines&#39;</span><span class="p">])</span>
+
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;scan size&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">sx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">sy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="n">xy_unit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;data offset&#39;</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+                    <span class="n">length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;data length&#39;</span><span class="p">])</span>
+                    <span class="n">elsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;bytes/pixel&#39;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">elsize</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                            <span class="s2">&quot;Don&#39;t know how to handle </span><span class="si">{}</span><span class="s2"> bytes per pixel &quot;</span>
+                            <span class="s2">&quot;data.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elsize</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">elsize</span> <span class="o">!=</span> <span class="n">length</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                            <span class="s1">&#39;Data block physical_sizes differs from extend &#39;</span>
+                            <span class="s1">&#39;of surface.&#39;</span><span class="p">)</span>
+
+                    <span class="n">scale_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span>
+                        <span class="sa">r</span><span class="s1">&#39;^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) &#39;</span>
+                        <span class="sa">r</span><span class="s1">&#39;(.*)&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;@2:z scale&#39;</span><span class="p">])</span>
+                    <span class="n">quantity</span> <span class="o">=</span> <span class="n">scale_re</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="n">hard_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scale_re</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">65536</span>
+                    <span class="n">hard_unit</span> <span class="o">=</span> <span class="n">scale_re</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">[</span><span class="s1">&#39;@&#39;</span> <span class="o">+</span> <span class="n">quantity</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;V&#39;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Malformed Nanoscope DI file.&#39;</span><span class="p">)</span>
+                    <span class="n">soft_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="n">height_unit</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">hard_to_soft</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="c1"># Check units</span>
+                        <span class="n">height_unit</span><span class="p">,</span> <span class="n">soft_unit</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+                        <span class="n">hard_to_soft</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">hard_unit</span><span class="p">,</span>
+                                                                  <span class="n">soft_unit</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">hard_to_soft</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="s2">&quot;Units for hard (=</span><span class="si">{}</span><span class="s2">) and soft (=</span><span class="si">{}</span><span class="s2">) &quot;</span>
+                                <span class="s2">&quot;scale differ for &#39;</span><span class="si">{}</span><span class="s2">&#39;. Don&#39;t know how &quot;</span>
+                                <span class="s2">&quot;to handle this.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hard_unit</span><span class="p">,</span>
+                                                         <span class="n">soft_unit</span><span class="p">,</span>
+                                                         <span class="n">image_data_key</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">height_unit</span> <span class="ow">in</span> <span class="n">height_units</span><span class="p">:</span>
+                        <span class="n">height_unit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">height_unit</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">xy_unit</span> <span class="o">!=</span> <span class="n">height_unit</span><span class="p">:</span>
+                            <span class="n">fac</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">xy_unit</span><span class="p">,</span>
+                                                             <span class="n">height_unit</span><span class="p">)</span>
+                            <span class="n">sx</span> <span class="o">*=</span> <span class="n">fac</span>
+                            <span class="n">sy</span> <span class="o">*=</span> <span class="n">fac</span>
+                            <span class="n">xy_unit</span> <span class="o">=</span> <span class="n">height_unit</span>
+                        <span class="n">unit</span> <span class="o">=</span> <span class="n">height_unit</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">unit</span> <span class="o">=</span> <span class="p">(</span><span class="n">xy_unit</span><span class="p">,</span> <span class="n">height_unit</span><span class="p">)</span>
+
+                    <span class="n">channel_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">channel_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+                        <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+                        <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">hard_scale</span> <span class="o">*</span> <span class="n">hard_to_soft</span> <span class="o">*</span>
+                        <span class="n">soft_scale</span><span class="p">))</span>
+                    <span class="n">channel</span> <span class="o">=</span> <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                          <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">),</span>
+                                          <span class="n">name</span><span class="o">=</span><span class="n">image_data_key</span><span class="p">,</span>
+                                          <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                          <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span>
+                                          <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span>
+                                          <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                          <span class="n">info</span><span class="o">=</span><span class="n">channel_info</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
+                <span class="n">fobj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span>
+
+<div class="viewcode-block" id="DIReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
+                <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;This reader does not support MPI parallelization.&#39;</span><span class="p">)</span>
+        <span class="n">close_file</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">fobj</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="n">close_file</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span>
+
+        <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                            <span class="n">channel</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offsets</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;&lt;i2&#39;</span><span class="p">)</span>
+
+        <span class="c1">###################################</span>
+
+        <span class="n">fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+        <span class="n">rawdata</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
+        <span class="n">unscaleddata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span><span class="p">,</span>
+                                     <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+
+        <span class="c1"># internal information from file</span>
+        <span class="n">_info</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">],</span> <span class="n">data_source</span><span class="o">=</span><span class="n">channel</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;acquisition_time&#39;</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="n">_info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span>
+
+        <span class="c1"># the orientation of the heights is modified in order to match</span>
+        <span class="c1"># the image of gwyddion when plotted with imshow(t.heights().T)</span>
+        <span class="c1"># or pcolormesh(t.heights().T) for origin in lower left and</span>
+        <span class="c1"># with inverted y axis (cartesian coordinate system)</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">unscaleddata</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">,</span>
+                             <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;height_scale_factor&quot;</span><span class="p">]</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
+            <span class="n">fobj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">surface</span></div>
+
+    <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SurfaceTopography 1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../IO.html" >SurfaceTopography.IO</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">SurfaceTopography.IO.DI</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015-2020, Lars Pastewka.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.1.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,89 @@
+SurfaceTopography package
+=========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   SurfaceTopography.IO
+   SurfaceTopography.Nonuniform
+   SurfaceTopography.Tools
+   SurfaceTopography.Uniform
+
+Submodules
+----------
+
+SurfaceTopography.Converters module
+-----------------------------------
+
+.. automodule:: SurfaceTopography.Converters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Generation module
+-----------------------------------
+
+.. automodule:: SurfaceTopography.Generation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.HeightContainer module
+----------------------------------------
+
+.. automodule:: SurfaceTopography.HeightContainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Interpolation module
+--------------------------------------
+
+.. automodule:: SurfaceTopography.Interpolation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.NonuniformLineScan module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.NonuniformLineScan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Special module
+--------------------------------
+
+.. automodule:: SurfaceTopography.Special
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.UniformLineScanAndTopography module
+-----------------------------------------------------
+
+.. automodule:: SurfaceTopography.UniformLineScanAndTopography
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.common module
+-------------------------------
+
+.. automodule:: SurfaceTopography.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography
+   :members:
+   :undoc-members:
+   :show-inheritance:
