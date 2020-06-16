@@ -69,22 +69,38 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="highcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.highcut">[docs]</a><span class="k">def</span> <span class="nf">highcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">q_s</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lam_s</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="highcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.highcut">[docs]</a><span class="k">def</span> <span class="nf">highcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a highcut filter to the topography using fft.</span>
+
+<span class="sd">    for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
+<span class="sd">    `|q| &gt; cutoff_wavevector` are set to zero</span>
+
+<span class="sd">    for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
+<span class="sd">    `q_x &gt; cutoff_wavevector or q_y &gt; cutoff_wavevector ` are set to zero</span>
+
+<span class="sd">    either `cutoff_wavelength` or</span>
+<span class="sd">    `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
+<span class="sd">    have to be provided.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    topography: SurfaceTopography</span>
-<span class="sd">    q_s: float</span>
+<span class="sd">    topography: Topography</span>
+<span class="sd">    cutoff_wavevector: float</span>
 <span class="sd">    highest wavevector</span>
-<span class="sd">    lam_s: float</span>
+<span class="sd">    cutoff_wavelength: float</span>
 <span class="sd">    shortest wavelength</span>
 <span class="sd">    kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
-<span class="sd">    ax: Axes, optional</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    SurfaceTopography with filtered heights</span>
+<span class="sd">    Topography with filtered heights</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; highcut(topography, cutoff_wavevector=2 * np.pi / l)</span>
+<span class="sd">    &gt;&gt;&gt; highcut(topography, cutoff_wavelength=l) # equivalent</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
@@ -106,43 +122,61 @@
     <span class="nb">print</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="c1"># square of the norm of the wavevector</span>
 
-    <span class="k">if</span> <span class="n">q_s</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">lam_s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">q_s</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">lam_s</span>
+    <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cutoff_wavevector</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavelength</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q_s or lam_s should be provided&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">lam_s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q_s or lam_s should be provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
 
     <span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&lt;=</span> <span class="n">q_s</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">q_s</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">q_s</span><span class="p">)</span>
+        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span>
 
     <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="n">filt</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">h_qs</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="lowcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.lowcut">[docs]</a><span class="k">def</span> <span class="nf">lowcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">q_l</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lam_l</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="lowcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.lowcut">[docs]</a><span class="k">def</span> <span class="nf">lowcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+           <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a lowcut filter to the topography using fft.</span>
+
+<span class="sd">    for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
+<span class="sd">    `|q| &lt; cutoff_wavevector` are set to zero</span>
+
+<span class="sd">    for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
+<span class="sd">    `q_x &lt; cutoff_wavevector or q_y &lt; cutoff_wavevector ` are set to zero</span>
+
+<span class="sd">    either `cutoff_wavelength` or</span>
+<span class="sd">    `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
+<span class="sd">    have to be provided.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    topography: SurfaceTopography</span>
-<span class="sd">    q_s: float</span>
+<span class="sd">    topography: Topography</span>
+<span class="sd">    cutoff_wavevector: float</span>
 <span class="sd">    highest wavevector</span>
-<span class="sd">    lam_s: float</span>
+<span class="sd">    cutoff_wavelength: float</span>
 <span class="sd">    shortest wavelength</span>
 <span class="sd">    kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
-<span class="sd">    ax: Axes, optional</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    SurfaceTopography with filtered heights</span>
+<span class="sd">    Topography with filtered heights</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; lowcut(topography, cutoff_wavevector=2 * np.pi / l)</span>
+<span class="sd">    &gt;&gt;&gt; lowcut(topography, cutoff_wavelength=l) # equivalent</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
@@ -164,21 +198,23 @@
     <span class="nb">print</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="c1"># square of the norm of the wavevector</span>
 
-    <span class="k">if</span> <span class="n">q_l</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">lam_l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">q_l</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">lam_l</span>
+    <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cutoff_wavevector</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavelength</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q_l or lam_l should be provided&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">lam_l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q_l or lam_l should be provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
 
     <span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&gt;=</span> <span class="n">q_l</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">q_l</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">q_l</span><span class="p">)</span>
+        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span>
 
     <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="n">filt</span><span class="p">)</span>
 
@@ -186,17 +222,24 @@
 
 
 <div class="viewcode-block" id="isotropic_filter"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.isotropic_filter">[docs]</a><span class="k">def</span> <span class="nf">isotropic_filter</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">filter_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">q</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">q</span><span class="p">)):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Multiplies filter_function(q) to the spectrum of the topography</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Multiplies filter_function(|q|) to the spectrum of the topography</span>
+<span class="sd">    (q is the wavevector)</span>
+
+<span class="sd">    returns</span>
+
+<span class="sd">    ..math :: h^f_{ij} = FFT^-1(f(|q_{kl}|) FFT(h)_{kl})_{ij}</span>
+
+<span class="sd">    with :math:`f` the `filter_function`</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    topography: SurfaceTopography object</span>
-<span class="sd">    filter_function: function of the absolute value of the wavevector |q|</span>
+<span class="sd">    topography: Topography</span>
+<span class="sd">    filter_function:</span>
+<span class="sd">    function of the absolute value of the wavevector |q|</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    SurfaceTopography with the modified heights</span>
+<span class="sd">    Topography with the modified heights</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
