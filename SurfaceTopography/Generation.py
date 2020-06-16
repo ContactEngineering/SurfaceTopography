@@ -296,7 +296,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(
                           size=n),
-                      rfn=None, kfn=None, progress_callback=None):
+                      periodic=True, rfn=None, kfn=None,
+                      progress_callback=None):
     r"""
     Create a self-affine, randomly rough surface using a Fourier filtering
     algorithm. The algorithm is described in:
@@ -330,6 +331,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
     amplitude_distribution : function
         Function that generates the distribution of amplitudes.
         (Default: np.random.normal)
+    periodic : bool
+        Return a periodic surface. (Default: True)
     rfn : str
         Name of file that stores the real-space array. If specified, real-space
         array will be created as a memory mapped file. This is useful for
@@ -430,8 +433,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                 karr[0, iy] = np.real(karr[0, iy])
                 karr[1:nx // 2 + 1, iy] = karr[-1:nx // 2:-1, iy].conj()
         _irfft2(karr, rarr, progress_callback)
-        return Topography(rarr, physical_sizes, periodic=True)
+        return Topography(rarr, physical_sizes, periodic=periodic)
     else:
         karr[0] = np.real(karr[0])
         rarr[:] = np.fft.irfft(karr)
-        return UniformLineScan(rarr, sy, periodic=True)
+        return UniformLineScan(rarr, sy, periodic=periodic)

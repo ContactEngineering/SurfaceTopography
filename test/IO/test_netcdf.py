@@ -45,6 +45,7 @@ def test_save_and_load(comm):
     t.info['unit'] = 'μm'
 
     fft = FFT(nb_grid_pts, communicator=comm, fft="mpi")
+    fft.initialise(1)
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
                             communicator=comm)
