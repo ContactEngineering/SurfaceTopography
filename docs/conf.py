@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# PyCo documentation build configuration file, created by
+# SurfaceTopography documentation build configuration file, created by
 # sphinx-quickstart on Tue Nov 27 17:14:58 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -17,6 +17,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import os
 import sys
 
@@ -49,9 +50,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'PyCo'
-copyright = '2018, Pastewka'
-author = 'Pastewka'
+project = 'SurfaceTopography'
+copyright = '2015-2020, Lars Pastewka'
+author = 'Lars Pastewka'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -115,7 +116,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PyCodoc'
+htmlhelp_basename = 'SurfaceTopographyDoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -142,7 +143,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PyCo.tex', 'PyCo Documentation',
+    (master_doc, 'SurfaceTopography.tex', 'SurfaceTopography Documentation',
      'Pastewka', 'manual'),
 ]
 
@@ -152,7 +153,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pyco', 'PyCo Documentation',
+    (master_doc, 'SurfaceTopography', 'SurfaceTopography Documentation',
      [author], 1)
 ]
 
@@ -163,8 +164,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PyCo', 'PyCo Documentation',
-     author, 'PyCo', 'One line description of project.',
+    (master_doc, 'SurfaceTopography', 'SurfaceTopography Documentation',
+     author, 'SurfaceTopography', 'One line description of project.',
      'Miscellaneous'),
 ]
 
