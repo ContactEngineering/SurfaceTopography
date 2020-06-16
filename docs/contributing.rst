@@ -3,6 +3,22 @@
 Contributing to SurfaceTopography
 *********************************
 
+Development
+===========
+To use the code without installing it, e.g. for development purposes, use the `env.sh` script to set the environment:
+
+.. code-block:: bash
+
+    source /path/to/PyCo/env.sh [python3]
+
+Note that the parameter to `env.sh` specifies the Python interpreter for which the environment is set up. PyCo contains portions that need to be compiled, make sure to run
+
+.. code-block:: bash
+
+    python setup.py build
+
+whenever any of the Cython (.pyx) sources are modified.
+
 Code style
 ==========
 
@@ -105,3 +121,12 @@ happens. It is a good idea to let the plots ready for use:
 .. _PEP-8: https://www.python.org/dev/peps/pep-0008/
 .. _numpydoc: https://numpydoc.readthedocs.io/
 .. _runtests: https://github.com/AntoineSIMTEK/runtests
+
+Compiling the documentation
+===========================
+
+- After changes to the SurfaceTopography source, you have to build again: ``python setup.py build``
+- Navigate into the docs folder: ``cd docs/``
+- Automatically generate reStructuredText files from the source: ``sphinx-apidoc -o source/ ../SurfaceTopography``. Do this just once, or if you have added/removed classes or methods. In case of the latter, be sure to remove the previous source before: ``rm -rf source/``
+- Build html files: ``make html``
+- The resulting html files can be found in the ``SurfaceTopography/docs/_build/html/`` folder. Root is ``SurfaceTopography/docs/_build/html/index.html``.

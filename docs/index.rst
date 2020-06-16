@@ -22,7 +22,6 @@ If you use this code, please cite:
 
    installation
    usage
-   development
    testing
    contributing
 
