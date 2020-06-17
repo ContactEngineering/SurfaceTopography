@@ -4,21 +4,19 @@
 # broken on most distributions.
 #
 
-# Installed via apt in .travis.yml
-#curl -k https://parallel-netcdf.github.io/Release/pnetcdf-${PNETCDF_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
-#  cd ${BUILDDIR}/pnetcdf-${PNETCDF_VERSION} &&
-#  CC=mpicc CXX=mpicxx ./configure --disable-fortran --disable-cxx --enable-shared --prefix=${PREFIX} &&
-#  make &&
-#  make install &&
-#  cd -
+curl -k https://parallel-netcdf.github.io/Release/pnetcdf-${PNETCDF_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
+  cd ${BUILDDIR}/pnetcdf-${PNETCDF_VERSION} &&
+  CC=mpicc CXX=mpicxx ./configure --disable-fortran --disable-cxx --enable-shared --prefix=${PREFIX} &&
+  make &&
+  make install &&
+  cd -
 
-# Installed via apt in .travis.yml
-#curl -k https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
-#  cd ${BUILDDIR}/hdf5-${HDF5_VERSION} &&
-#  CC=mpicc CXX=mpicxx ./configure --enable-parallel --prefix=${PREFIX} &&
-#  make &&
-#  make install &&
-#  cd -
+curl -k https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
+  cd ${BUILDDIR}/hdf5-${HDF5_VERSION} &&
+  CC=mpicc CXX=mpicxx ./configure --enable-parallel --prefix=${PREFIX} &&
+  make &&
+  make install &&
+  cd -
 
 # We need to compile NetCDF ourselves because there is no package that has
 # parallel PnetCDF and HDF5 enabled.
