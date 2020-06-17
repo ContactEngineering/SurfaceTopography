@@ -132,7 +132,7 @@ setup(
     ],
     install_requires=[
         'numpy>=1.11.0',
-        'NuMPI',
-        'muFFT'
+        'NuMPI>=0.1.1',
+        'muFFT>=0.9.0'
     ]
 )
