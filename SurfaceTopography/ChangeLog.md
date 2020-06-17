@@ -2,11 +2,13 @@
 Change log for SurfaceTopography
 =============================
 
-v0.90.0 (not yet released)
---------------------------
+v0.90.0 (17Jun20)
+-----------------
 
 - Refactored PyCo code into three separate Python modules:
   SurfaceTopography, ContactMechanics and Adhesion
+- muFFT dependency updated to muFFT-0.9.0
+- Moved documentation from README.md to the docs folder 
 
 v0.57.0 (15May20)
 -----------------
