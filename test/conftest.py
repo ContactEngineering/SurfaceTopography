@@ -28,28 +28,37 @@ import os
 
 from runtests.mpi.tester import WorldTooSmall, create_comm
 
+import NuMPI
 from NuMPI import MPI
 
 
 def MyMPITestFixture(commsize, scope='function'):
-    """ Create a test fixture for MPI Communicators of various commsizes """
+    """
+    Create a test fixture for MPI Communicators of various communicator
+    sizes.
+    """
 
     @pytest.fixture(params=commsize, scope=scope)
     def fixture(request):
-        from NuMPI import MPI
         MPI.COMM_WORLD.barrier()
+        # Return an NuMPI stub communicator if we don't have mpi4py
+        if not NuMPI._has_mpi4py:
+            return MPI.COMM_SELF
+
+        # Try creating a communicator and fallback to NuMPI stub
         try:
-            comm, color = create_comm(request.param, mpi_missing='ignore')
+            comm, color = create_comm(request.param)
 
             if color != 0:
-                pytest.skip("Not using communicator {}.".format(request.param))
+                pytest.skip("Not using communicator {}."
+                            .format(request.param))
                 return None
             else:
                 # Turn a None into a NuMPI stub communicator
                 if comm is None:
                     comm = MPI.COMM_SELF
-                print('MPI communicator: Rank {} (of {}).'.format(comm.rank,
-                                                                  comm.size))
+                print('MPI communicator: Rank {} (of {}).'
+                      .format(comm.rank, comm.size))
                 return comm
 
         except WorldTooSmall:
