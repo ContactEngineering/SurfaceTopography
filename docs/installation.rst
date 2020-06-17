@@ -61,7 +61,7 @@ provided by `numpy`, as often experienced on macOS, try providing following envi
     export PKG_CONFIG_PATH="/usr/local/opt/lapack/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 where the paths have probably to be adapted to your particular installation method.
-Here FFTW3_ was installed via Homebrew_.
+Here OpenBLAS_ and LAPACK_ was installed via Homebrew_.
 
 Updating SurfaceTopography
 --------------------------
@@ -74,3 +74,5 @@ uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of 
 .. _nuMPI: https://github.com/IMTEK-Simulation/NuMPI.git
 .. _runtests: https://github.com/AntoineSIMTEK/runtests.git
 .. _Homebrew: https://brew.sh/
+.. _OpenBLAS: https://www.openblas.net/
+.. _LAPACK: http://www.netlib.org/lapack/

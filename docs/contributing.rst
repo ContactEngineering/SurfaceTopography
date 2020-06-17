@@ -69,7 +69,7 @@ Writing tests
 =============
 
 Older tests are written using the `unittest` syntax. We now use `pytest` (that
-understands almost all unittest syntax), because it is compatible with the
+understands almost all unittest syntaxes), because it is compatible with the
 parallel test runner runtests_.
 
 If a whole test file should only be run in serial
@@ -118,10 +118,6 @@ happens. It is a good idea to let the plots ready for use:
         plt.colorbar(ax.pcolormesh(- system.substrate.force), label="pressure")
         plt.show(block=True)
 
-.. _PEP-8: https://www.python.org/dev/peps/pep-0008/
-.. _numpydoc: https://numpydoc.readthedocs.io/
-.. _runtests: https://github.com/AntoineSIMTEK/runtests
-
 Compiling the documentation
 ===========================
 
@@ -130,3 +126,7 @@ Compiling the documentation
 - Automatically generate reStructuredText files from the source: ``sphinx-apidoc -o source/ ../SurfaceTopography``. Do this just once, or if you have added/removed classes or methods. In case of the latter, be sure to remove the previous source before: ``rm -rf source/``
 - Build html files: ``make html``
 - The resulting html files can be found in the ``SurfaceTopography/docs/_build/html/`` folder. Root is ``SurfaceTopography/docs/_build/html/index.html``.
+
+.. _PEP-8: https://www.python.org/dev/peps/pep-0008/
+.. _numpydoc: https://numpydoc.readthedocs.io/
+.. _runtests: https://github.com/bccp/runtests
