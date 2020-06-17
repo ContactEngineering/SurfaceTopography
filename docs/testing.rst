@@ -20,4 +20,4 @@ Other usefull flags:
 - `--xterm`: one window per processor
 - `--xterm --pdb`: debugging
 
-.. _runtests: https://github.com/AntoineSIMTEK/runtests
+.. _runtests: https://github.com/bccp/runtests

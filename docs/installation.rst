@@ -72,7 +72,7 @@ uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of 
 .. _FFTW3: http://www.fftw.org/
 .. _muFFT: https://gitlab.com/muspectre/muspectre.git
 .. _nuMPI: https://github.com/IMTEK-Simulation/NuMPI.git
-.. _runtests: https://github.com/AntoineSIMTEK/runtests.git
+.. _runtests: https://github.com/bccp/runtests
 .. _Homebrew: https://brew.sh/
 .. _OpenBLAS: https://www.openblas.net/
 .. _LAPACK: http://www.netlib.org/lapack/
