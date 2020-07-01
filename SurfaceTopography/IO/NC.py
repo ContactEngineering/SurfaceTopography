@@ -44,7 +44,7 @@ named `x` and `y`.
 
 The reader additionally looks for two (optional) variables `x` and `y` that
 contain the x- and y-coordinates of the first and second index of the height
-arrays. The attribute `length` of x` and `y` must contain the physical size
+arrays. The attribute `length` of `x` and `y` must contain the physical size
 in the respective direction. The optional attribute `length_unit` of these
 variables describes the physical unit. The optional additional attribute
 `periodic` indicates whether the direction contains periodic data. If
@@ -68,7 +68,7 @@ variables:
         y:length_unit = "μm" ;
     double heights(x, y) ;
 }
-
+```
 The following code snippets reads the file and displays the topography data as
 a two-dimensional color map in Python:
 ```python
