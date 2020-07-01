@@ -666,7 +666,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
 
         der = surf3.derivative(n=1)
         np.testing.assert_allclose(der, [0, 0, 0], atol=1e-14)
-        assert_array_equal(surf3.heights(), np.zeros(y.shape))
+        np.testing.assert_allclose(surf3.heights(), np.zeros(y.shape), atol=1e-14)
         p = surf3.positions_and_heights()
         assert_array_equal(p[0], x)
         assert_array_equal(p[1], np.zeros(y.shape))
