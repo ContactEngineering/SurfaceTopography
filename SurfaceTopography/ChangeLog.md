@@ -2,6 +2,14 @@
 Change log for SurfaceTopography
 =============================
 
+v0.91.0 (1Jul20)
+----------------
+
+- BUG: Fixing missing deps in setup.py
+- ENH: Closes #19: return topography with undefined (masked) data filled
+- BUG: Closes #18: renamed CompoundTopography.array to CompoundTopography.heights
+- ENH: make_sphere has option to put undefined data in standoff or not
+
 v0.90.0 (17Jun20)
 -----------------
 
