@@ -36,7 +36,8 @@ from .UniformLineScanAndTopography import Topography, UniformLineScan, \
     DecoratedUniformTopography
 
 
-def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0,
+def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
+                standoff="undefined",
                 offset=0, periodic=False, kind="sphere",
                 nb_subdomain_grid_pts=None, subdomain_locations=None,
                 communicator=MPI.COMM_WORLD):
@@ -68,12 +69,15 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0,
          by default, the sphere is centred in the topography
     kind: str
         Options are "sphere" or "paraboloid". Default is "sphere".
-    standoff : float
+    standoff : float or "undefined"
          when using interaction forces with ranges of the order
          the radius, you might want to set the topography outside of
          the sphere to far away, maybe even pay the price of inf,
          if your interaction has no cutoff
-
+         
+         For `standoff="undefined"`, the entries will be masked in the 
+         topography and topography.has_undefined_data will be true
+         
          If `kind="paraboloid"` the paraboloid approximation is used
             and the standoff is not applied
     periodic : bool
@@ -121,11 +125,15 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0,
                         "Yours is {}-dimensional".format(dim))
 
     if kind == "sphere":
-        radius2 = radius ** 2  # avoid nans for small radiio
+        radius2 = radius ** 2  # avoid nans for small radii
         outside = r2 > radius2
         r2[outside] = radius2
         h = np.sqrt(radius2 - r2) - radius
-        h[outside] -= standoff
+        if standoff == "undefined":
+            standoff_val = np.nan
+        else:
+            standoff_val = - standoff - radius
+        h[outside] = standoff_val
     elif kind == "paraboloid":
         h = - r2 / (2 * radius)
     else:
@@ -133,13 +141,18 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None, standoff=0,
                           "Should be 'sphere' or 'paraboloid'".format(kind)))
 
     if dim == 1:
-        return UniformLineScan(h + offset, physical_sizes)
+        ret_top = UniformLineScan(h + offset, physical_sizes)
     else:
-        return Topography(h + offset, physical_sizes,
-                          decomposition='subdomain',
-                          nb_grid_pts=nb_grid_pts,
-                          subdomain_locations=subdomain_locations,
-                          communicator=communicator)
+        ret_top = Topography(h + offset, physical_sizes,
+                             decomposition='subdomain',
+                             nb_grid_pts=nb_grid_pts,
+                             subdomain_locations=subdomain_locations,
+                             communicator=communicator)
+
+    if standoff == "undefined":
+        return ret_top
+    else:
+        return ret_top.fill_undefined_data(standoff_val)
 
 
 class PlasticTopography(DecoratedUniformTopography):
