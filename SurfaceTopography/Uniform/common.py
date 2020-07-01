@@ -31,8 +31,9 @@ topographies.
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
+
 
 def bandwidth(self):
     """Computes lower and upper bound of bandwidth.

@@ -74,17 +74,17 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
          the radius, you might want to set the topography outside of
          the sphere to far away, maybe even pay the price of inf,
          if your interaction has no cutoff
-         
+
          For `standoff="undefined"`, the entries will be masked in the 
          topography and topography.has_undefined_data will be true
-         
+
          If `kind="paraboloid"` the paraboloid approximation is used
             and the standoff is not applied
     periodic : bool
          whether the sphere can wrap around. tricky for large spheres
     communicator : mpi4py communicator NuMPI stub communicator
          MPI communicator object.
-    """  # noqa: E501
+    """  # noqa: E501, W291
     if not hasattr(nb_grid_pts, "__iter__"):
         nb_grid_pts = (nb_grid_pts,)
     dim = len(nb_grid_pts)
