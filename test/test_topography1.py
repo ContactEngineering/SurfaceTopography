@@ -665,11 +665,12 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.dim, 1)
 
         der = surf3.derivative(n=1)
-        assert_array_equal(der, [0, 0, 0])
-        assert_array_equal(surf3.heights(), np.zeros(y.shape))
+        np.testing.assert_allclose(der, [0, 0, 0], atol=1e-14)
+        np.testing.assert_allclose(surf3.heights(), np.zeros(y.shape),
+                                   atol=1e-14)
         p = surf3.positions_and_heights()
         assert_array_equal(p[0], x)
-        assert_array_equal(p[1], np.zeros(y.shape))
+        np.testing.assert_allclose(p[1], np.zeros(y.shape), atol=1e-14)
 
     def test_nonuniform_linear(self):
         x = np.linspace(0, 10, 11) ** 2
