@@ -32,7 +32,7 @@ import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 def bandwidth(self):
     """Computes lower and upper bound of bandwidth.
@@ -225,40 +225,27 @@ def plot(topography, subplot_location=111):
     return ax
 
 
-def fill_undefined_data(topography, fill_value=-np.infty):
-    r"""
-    returns a topography where masked (undefined) data is replaced with
-    `fill_value`. For child topographies, note that this will also have the
-    same effect than `squeeze`
+class FilledTopography(DecoratedUniformTopography):
+    def __init__(self, topography, fill_value=-np.infty, info={}):
+        """
+        masked (undefined) data is replaced with `fill_value`.
 
-    periodic, and info property will be transmitted to the returned topography
+        Parameters
+        ----------
+        topography: Topography or UniformLineScan instance
+        fill_value: float or array of floats
+            masked value in topography will be replaced
+        """
+        super().__init__(topography, info=info)
+        self.fill_value = fill_value
 
-    Parameters
-    ----------
-    topography: Topography or UniformLineScan instance
-    fill_value: float or array of floats
-        masked value in topography will be replaced
-    """
-    heights = topography.heights()
-    heights = np.ma.filled(heights, fill_value=fill_value)
+    def heights(self):
+        return np.ma.filled(self.parent_topography.heights(),
+                            fill_value=self.fill_value)
 
-    if topography.dim == 1:
-        t = UniformLineScan(heights,
-                            physical_sizes=topography.physical_sizes,
-                            periodic=topography.is_periodic,
-                            info=topography.info)
-    else:
-        t = Topography(heights,
-                       physical_sizes=topography.physical_sizes,
-                       periodic=topography.is_periodic,
-                       info=topography.info,
-                       decomposition="subdomain",
-                       subdomain_locations=topography.subdomain_locations,
-                       nb_grid_pts=topography.nb_grid_pts,
-                       communicator=topography.communicator
-                       )
-    t._heights = heights
-    return t
+    @property
+    def has_undefined_data(self):
+        return False
 
 
 # Register analysis functions from this module
@@ -269,4 +256,4 @@ UniformTopographyInterface.register_function('domain_decompose',
                                              domain_decompose)
 Topography.register_function('plot', plot)
 UniformTopographyInterface.register_function('fill_undefined_data',
-                                             fill_undefined_data)
+                                             FilledTopography)
