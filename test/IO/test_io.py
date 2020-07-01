@@ -103,6 +103,8 @@ class IOTest(unittest.TestCase):
             os.path.join(DATADIR, 'example3.txt'),
             os.path.join(DATADIR, 'example4.txt'),
             os.path.join(DATADIR, 'example5.txt'),
+            os.path.join(DATADIR, 'example8.txt'),
+            # example8: from the reader's docstring, with extra newline at end
             os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'),
             os.path.join(DATADIR, 'opdx1.txt'),
             os.path.join(DATADIR, 'opdx2.txt'),
