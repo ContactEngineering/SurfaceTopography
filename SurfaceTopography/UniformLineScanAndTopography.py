@@ -861,7 +861,7 @@ class CompoundTopography(DecoratedUniformTopography):
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
-    def array(self):
+    def heights(self):
         """ Computes the combined profile
         """
         return (self.parent_topography_a.heights() +
