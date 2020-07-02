@@ -2,12 +2,15 @@
 Change log for SurfaceTopography
 =============================
 
-v0.90.1 (01Jul20)
------------------
+v0.91.0 (2Jul20)
+----------------
 
+- ENH: return topography with undefined (masked) data filled (#19)
+- ENH: make_sphere has option to put undefined data in standoff or not
+- BUG: Fixed missing dependencies when installed as package (#15)
 - BUG: Fixed error when loading text file with trailing newline (#16)
 - BUG: Fixed wrong error message when loading unknown text file format (#14)
-- BUG: Fixed missing dependencies when installed as package (#15)
+- BUG: renamed CompoundTopography.array to CompoundTopography.heights (#18)
 
 v0.90.0 (17Jun20)
 -----------------

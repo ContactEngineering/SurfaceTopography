@@ -32,6 +32,7 @@ import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 def bandwidth(self):
@@ -225,6 +226,29 @@ def plot(topography, subplot_location=111):
     return ax
 
 
+class FilledTopography(DecoratedUniformTopography):
+    def __init__(self, topography, fill_value=-np.infty, info={}):
+        """
+        masked (undefined) data is replaced with `fill_value`.
+
+        Parameters
+        ----------
+        topography: Topography or UniformLineScan instance
+        fill_value: float or array of floats
+            masked value in topography will be replaced
+        """
+        super().__init__(topography, info=info)
+        self.fill_value = fill_value
+
+    def heights(self):
+        return np.ma.filled(self.parent_topography.heights(),
+                            fill_value=self.fill_value)
+
+    @property
+    def has_undefined_data(self):
+        return False
+
+
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
@@ -232,3 +256,5 @@ Topography.register_function('fourier_derivative', fourier_derivative)
 UniformTopographyInterface.register_function('domain_decompose',
                                              domain_decompose)
 Topography.register_function('plot', plot)
+UniformTopographyInterface.register_function('fill_undefined_data',
+                                             FilledTopography)
