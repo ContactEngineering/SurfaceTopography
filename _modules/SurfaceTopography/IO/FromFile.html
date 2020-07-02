@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.90.1.dev7+g2b1d4f9 documentation</title>
+  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.90.1.dev13+g3f63191 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.90.1.dev7+g2b1d4f9
+                0.90.1.dev13+g3f63191
               </div>
             
           
@@ -521,7 +521,7 @@
     <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fobj</span><span class="p">:</span>
         <span class="n">line_elements</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">+=</span> <span class="p">[[</span><span class="nb">float</span><span class="p">(</span><span class="n">strval</span><span class="p">)</span> <span class="k">for</span> <span class="n">strval</span> <span class="ow">in</span> <span class="n">line_elements</span><span class="p">]]</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
