@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.90.1.dev13+g3f63191 documentation</title>
+  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.90.1.dev22+g7489266 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.90.1.dev13+g3f63191
+                0.90.1.dev22+g7489266
               </div>
             
           
@@ -197,6 +197,7 @@
 
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">DecoratedUniformTopography</span>
 
 
 <div class="viewcode-block" id="bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.bandwidth">[docs]</a><span class="k">def</span> <span class="nf">bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -390,6 +391,29 @@
     <span class="k">return</span> <span class="n">ax</span></div>
 
 
+<div class="viewcode-block" id="FilledTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography">[docs]</a><span class="k">class</span> <span class="nc">FilledTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        masked (undefined) data is replaced with `fill_value`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topography: Topography or UniformLineScan instance</span>
+<span class="sd">        fill_value: float or array of floats</span>
+<span class="sd">            masked value in topography will be replaced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="n">fill_value</span>
+
+<div class="viewcode-block" id="FilledTopography.heights"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span>
+                            <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_undefined_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
 <span class="c1"># Register analysis functions from this module</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span>
@@ -397,6 +421,8 @@
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;domain_decompose&#39;</span><span class="p">,</span>
                                              <span class="n">domain_decompose</span><span class="p">)</span>
 <span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;plot&#39;</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;fill_undefined_data&#39;</span><span class="p">,</span>
+                                             <span class="n">FilledTopography</span><span class="p">)</span>
 </pre></div>
 
            </div>

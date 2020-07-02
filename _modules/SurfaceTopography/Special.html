@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Special &mdash; SurfaceTopography 0.90.1.dev13+g3f63191 documentation</title>
+  <title>SurfaceTopography.Special &mdash; SurfaceTopography 0.90.1.dev22+g7489266 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.90.1.dev13+g3f63191
+                0.90.1.dev22+g7489266
               </div>
             
           
@@ -201,7 +201,8 @@
     <span class="n">DecoratedUniformTopography</span>
 
 
-<div class="viewcode-block" id="make_sphere"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Special.make_sphere">[docs]</a><span class="k">def</span> <span class="nf">make_sphere</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">standoff</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<div class="viewcode-block" id="make_sphere"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Special.make_sphere">[docs]</a><span class="k">def</span> <span class="nf">make_sphere</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">centre</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">standoff</span><span class="o">=</span><span class="s2">&quot;undefined&quot;</span><span class="p">,</span>
                 <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;sphere&quot;</span><span class="p">,</span>
                 <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">communicator</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">):</span>
@@ -233,11 +234,14 @@
 <span class="sd">         by default, the sphere is centred in the topography</span>
 <span class="sd">    kind: str</span>
 <span class="sd">        Options are &quot;sphere&quot; or &quot;paraboloid&quot;. Default is &quot;sphere&quot;.</span>
-<span class="sd">    standoff : float</span>
+<span class="sd">    standoff : float or &quot;undefined&quot;</span>
 <span class="sd">         when using interaction forces with ranges of the order</span>
 <span class="sd">         the radius, you might want to set the topography outside of</span>
 <span class="sd">         the sphere to far away, maybe even pay the price of inf,</span>
 <span class="sd">         if your interaction has no cutoff</span>
+
+<span class="sd">         For `standoff=&quot;undefined&quot;`, the entries will be masked in the </span>
+<span class="sd">         topography and topography.has_undefined_data will be true</span>
 
 <span class="sd">         If `kind=&quot;paraboloid&quot;` the paraboloid approximation is used</span>
 <span class="sd">            and the standoff is not applied</span>
@@ -245,7 +249,7 @@
 <span class="sd">         whether the sphere can wrap around. tricky for large spheres</span>
 <span class="sd">    communicator : mpi4py communicator NuMPI stub communicator</span>
 <span class="sd">         MPI communicator object.</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501, W291</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
         <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,)</span>
     <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">)</span>
@@ -286,11 +290,15 @@
                         <span class="s2">&quot;Yours is </span><span class="si">{}</span><span class="s2">-dimensional&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;sphere&quot;</span><span class="p">:</span>
-        <span class="n">radius2</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># avoid nans for small radiio</span>
+        <span class="n">radius2</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># avoid nans for small radii</span>
         <span class="n">outside</span> <span class="o">=</span> <span class="n">r2</span> <span class="o">&gt;</span> <span class="n">radius2</span>
         <span class="n">r2</span><span class="p">[</span><span class="n">outside</span><span class="p">]</span> <span class="o">=</span> <span class="n">radius2</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">radius2</span> <span class="o">-</span> <span class="n">r2</span><span class="p">)</span> <span class="o">-</span> <span class="n">radius</span>
-        <span class="n">h</span><span class="p">[</span><span class="n">outside</span><span class="p">]</span> <span class="o">-=</span> <span class="n">standoff</span>
+        <span class="k">if</span> <span class="n">standoff</span> <span class="o">==</span> <span class="s2">&quot;undefined&quot;</span><span class="p">:</span>
+            <span class="n">standoff_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">standoff_val</span> <span class="o">=</span> <span class="o">-</span> <span class="n">standoff</span> <span class="o">-</span> <span class="n">radius</span>
+        <span class="n">h</span><span class="p">[</span><span class="n">outside</span><span class="p">]</span> <span class="o">=</span> <span class="n">standoff_val</span>
     <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;paraboloid&quot;</span><span class="p">:</span>
         <span class="n">h</span> <span class="o">=</span> <span class="o">-</span> <span class="n">r2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -298,13 +306,18 @@
                           <span class="s2">&quot;Should be &#39;sphere&#39; or &#39;paraboloid&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">)))</span>
 
     <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">h</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">)</span>
+        <span class="n">ret_top</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">h</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">h</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
-                          <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;subdomain&#39;</span><span class="p">,</span>
-                          <span class="n">nb_grid_pts</span><span class="o">=</span><span class="n">nb_grid_pts</span><span class="p">,</span>
-                          <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
-                          <span class="n">communicator</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span></div>
+        <span class="n">ret_top</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">h</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                             <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;subdomain&#39;</span><span class="p">,</span>
+                             <span class="n">nb_grid_pts</span><span class="o">=</span><span class="n">nb_grid_pts</span><span class="p">,</span>
+                             <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                             <span class="n">communicator</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">standoff</span> <span class="o">==</span> <span class="s2">&quot;undefined&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret_top</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret_top</span><span class="o">.</span><span class="n">fill_undefined_data</span><span class="p">(</span><span class="n">standoff_val</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="PlasticTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Special.PlasticTopography">[docs]</a><span class="k">class</span> <span class="nc">PlasticTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>

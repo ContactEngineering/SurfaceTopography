@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.90.1.dev13+g3f63191 documentation</title>
+  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.90.1.dev22+g7489266 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.90.1.dev13+g3f63191
+                0.90.1.dev22+g7489266
               </div>
             
           
@@ -196,9 +196,12 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">NuMPI</span> <span class="k">import</span> <span class="n">MPI</span>
+<span class="kn">from</span> <span class="nn">NuMPI.Tools</span> <span class="k">import</span> <span class="n">Reduction</span>
 
-<span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="n">AbstractHeightContainer</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">AbstractHeightContainer</span><span class="p">,</span>
     <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">DecoratedTopography</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.Uniform.Detrending</span> <span class="k">import</span> <span class="n">tilt_from_height</span><span class="p">,</span> <span class="n">tilt_and_curvature</span>
 
 
@@ -516,9 +519,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_undefined_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">reduction</span> <span class="o">=</span> <span class="n">Reduction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reduction</span><span class="o">.</span><span class="n">any</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">nomask</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">getmask</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_heights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Topography.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># FIXME: Write test for this method</span>
@@ -1021,7 +1026,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_a</span> <span class="o">=</span> <span class="n">topography_a</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_b</span> <span class="o">=</span> <span class="n">topography_b</span>
 
-<div class="viewcode-block" id="CompoundTopography.array"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.array">[docs]</a>    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CompoundTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Computes the combined profile</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography_a</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span> <span class="o">+</span>
