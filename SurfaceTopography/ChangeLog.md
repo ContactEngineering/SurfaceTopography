@@ -2,6 +2,13 @@
 Change log for SurfaceTopography
 =============================
 
+v0.90.1 (01Jul20)
+-----------------
+
+- BUG: Fixed error when loading text file with trailing newline (#16)
+- BUG: Fixed wrong error message when loading unknown text file format (#14)
+- BUG: Fixed missing dependencies when installed as package (#15)
+
 v0.90.0 (17Jun20)
 -----------------
 
