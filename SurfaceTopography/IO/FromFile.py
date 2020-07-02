@@ -354,7 +354,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     data = []
     for line in fobj:
         line_elements = line.strip().split()
-        if len(line) > 0:
+        if len(line_elements) > 0:
             try:
                 data += [[float(strval) for strval in line_elements]]
             except ValueError:
