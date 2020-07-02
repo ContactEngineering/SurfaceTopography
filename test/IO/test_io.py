@@ -40,7 +40,7 @@ from NuMPI import MPI
 
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.IO import readers, detect_format
+from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat
 from SurfaceTopography.IO.FromFile import read_xyz, is_binary_stream
 
 pytestmark = pytest.mark.skipif(
@@ -76,6 +76,11 @@ def test_uniform_stylus():
     assert t.is_uniform
 
 
+def test_cannot_detect_file_format_on_txt():
+    with pytest.raises(CannotDetectFileFormat):
+        read_topography(os.path.join(DATADIR, 'nonsense_txt_file.txt'))
+
+
 class IOTest(unittest.TestCase):
     def setUp(self):
         self.binary_example_file_list = [
@@ -103,6 +108,8 @@ class IOTest(unittest.TestCase):
             os.path.join(DATADIR, 'example3.txt'),
             os.path.join(DATADIR, 'example4.txt'),
             os.path.join(DATADIR, 'example5.txt'),
+            os.path.join(DATADIR, 'example8.txt'),
+            # example8: from the reader's docstring, with extra newline at end
             os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'),
             os.path.join(DATADIR, 'opdx1.txt'),
             os.path.join(DATADIR, 'opdx2.txt'),
