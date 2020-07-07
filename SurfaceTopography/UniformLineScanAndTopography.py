@@ -31,9 +31,12 @@ Support for uniform topogography descriptions
 import numpy as np
 
 from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
-from .HeightContainer import AbstractHeightContainer, \
+from .HeightContainer import (
+    AbstractHeightContainer,
     UniformTopographyInterface, DecoratedTopography
+)
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 
 
@@ -351,9 +354,11 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return np.ma.getmask(
-            self._heights) is not np.ma.nomask and np.ma.getmask(
-            self._heights).sum() > 0
+        reduction = Reduction(self.communicator)
+        return reduction.any(
+            np.ma.getmask(
+                self._heights) is not np.ma.nomask and np.ma.getmask(
+                self._heights).sum() > 0)
 
     def positions(self):
         # FIXME: Write test for this method
@@ -856,7 +861,7 @@ class CompoundTopography(DecoratedUniformTopography):
         self.parent_topography_a = topography_a
         self.parent_topography_b = topography_b
 
-    def array(self):
+    def heights(self):
         """ Computes the combined profile
         """
         return (self.parent_topography_a.heights() +
