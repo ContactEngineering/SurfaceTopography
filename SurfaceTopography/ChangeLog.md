@@ -2,8 +2,8 @@
 Change log for SurfaceTopography
 =============================
 
-head (not yet released)
------------------------
+v0.91.1 (23Jul20)
+-----------------
 
 - MAINT: Bumped muFFT dependency to v0.10.0
 
