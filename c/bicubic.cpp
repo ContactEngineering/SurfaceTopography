@@ -586,6 +586,7 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
         }
         py_return_value = PyTuple_Pack(3, py_v, py_dx, py_dy);
       }
+      Py_DECREF(py_v);
       Py_DECREF(py_dx);
       Py_DECREF(py_dy);
     }
@@ -595,8 +596,6 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
       }
       py_return_value = py_v;
     }
-
-    Py_DECREF(py_v);
 
     Py_DECREF(py_xd);
     Py_DECREF(py_yd);
