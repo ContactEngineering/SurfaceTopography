@@ -2,6 +2,11 @@
 Change log for SurfaceTopography
 =============================
 
+v0.91.2 (31Jul20)
+-----------------
+
+- BUG: Memory leak in Python bindings for bicubic interpolation
+
 v0.91.1 (23Jul20)
 -----------------
 
