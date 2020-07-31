@@ -1,4 +1,4 @@
-include tests/file_format_examples/*
+prune test
 include examples/*.py
 include examples/*.ipynb
 include c/*.h
