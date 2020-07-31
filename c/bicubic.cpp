@@ -396,6 +396,7 @@ bicubic_dealloc(bicubic_t *self)
 {
   if (self->map_)
     delete self->map_;
+  self->map_ = NULL;
 
   Py_TYPE(self)->tp_free((PyObject*) self);
 }
@@ -456,6 +457,8 @@ bicubic_init(bicubic_t *self, PyObject *args, PyObject *kwargs)
     self->map_ = new Bicubic(nx, ny, static_cast<double*>(PyArray_DATA(py_values)), NULL, NULL, true, false);
   }
   Py_DECREF(py_values);
+  if (py_derivativex)  Py_DECREF(py_derivativex);
+  if (py_derivativey)  Py_DECREF(py_derivativey);
 
   return 0;
 }
@@ -573,6 +576,9 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
           self->map_->eval(x[i], y[i], v[i], dx[i], dy[i], d2x[i], d2y[i], d2xy[i]);
         }
         py_return_value = PyTuple_Pack(6, py_v, py_dx, py_dy, py_d2x, py_d2y, py_d2xy);
+        Py_DECREF(py_d2x);
+        Py_DECREF(py_d2y);
+        Py_DECREF(py_d2xy);
       }
       else {
         for (int i = 0; i < n; i++) {
@@ -580,6 +586,9 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
         }
         py_return_value = PyTuple_Pack(3, py_v, py_dx, py_dy);
       }
+      Py_DECREF(py_v);
+      Py_DECREF(py_dx);
+      Py_DECREF(py_dy);
     }
     else {
       for (int i = 0; i < n; i++) {
