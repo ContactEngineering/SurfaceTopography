@@ -1168,7 +1168,7 @@ def test_fourier_derivative_realness(nx, ny):
     # configuration of odd and even grid points
     topography = Topography(np.random.random((nx, ny)),
                             physical_sizes=(2., 3.))
-    topography.fourier_derivative()
+    topography.fourier_derivative(imtol=1e-12)
 
 
 def test_fourier_derivative(plot=False):
@@ -1181,7 +1181,7 @@ def test_fourier_derivative(plot=False):
     topography = topography.scale(1 / topography.rms_height())
 
     # numerical derivatives to double check
-    dx, dy = topography.fourier_derivative()
+    dx, dy = topography.fourier_derivative(imtol=1e-12)
     dx_num, dy_num = topography.derivative(1)
 
     np.testing.assert_allclose(dx, dx_num, atol=topography.rms_slope() * 1e-1)
