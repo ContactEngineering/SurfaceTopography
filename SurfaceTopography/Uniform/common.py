@@ -147,8 +147,10 @@ def fourier_derivative(topography, imtol=None):
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
     if imtol is not None:
-        assert (abs(dx.imag) / np.mean(abs(dx)) < imtol).all(), np.max(abs(dx.imag) / np.mean(abs(dx)))
-        assert (abs(dy.imag) / np.mean(abs(dy)) < imtol).all(), np.max(abs(dy.imag) / np.mean(abs(dy)))
+        assert (abs(dx.imag) / np.mean(abs(dx)) < imtol).all(), \
+            np.max(abs(dx.imag) / np.mean(abs(dx)))
+        assert (abs(dy.imag) / np.mean(abs(dy)) < imtol).all(), \
+            np.max(abs(dy.imag) / np.mean(abs(dy)))
 
     dx = dx.real
     dy = dy.real
