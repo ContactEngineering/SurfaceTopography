@@ -96,7 +96,7 @@ def derivative(topography, n, periodic=None):
         return der
 
 
-def fourier_derivative(topography, imtol=1e-12):
+def fourier_derivative(topography, imtol=None):
     r"""
 
     First order derivatives of the fourier interpolation of the Topography
@@ -119,11 +119,11 @@ def fourier_derivative(topography, imtol=1e-12):
     Parameters
     ----------
     topography: Topography instance
-    imtol: float
+    imtol: float, optional
         tolerance for the discarded imaginary part. If the maximum absolute of
         the imaginary part of the interpolated topography is more then that
-        value, an AssertionError is raised
-
+        value times the total absolute value of dx, an AssertionError is raised
+        If not specified the assertion will not be made.
     Returns
     -------
     dx: array of floats
@@ -146,8 +146,11 @@ def fourier_derivative(topography, imtol=1e-12):
     dx = np.fft.ifft2(spectrum * (1j * qx))
     dy = np.fft.ifft2(spectrum * (1j * qy))
 
-    assert (abs(dx.imag) < imtol).all(), np.max(abs(dx.imag))
-    assert (abs(dy.imag) < imtol).all(), np.max(abs(dy.imag))
+    if imtol is not None:
+        assert (abs(dx.imag) / np.mean(abs(dx)) < imtol).all(), \
+            np.max(abs(dx.imag) / np.mean(abs(dx)))
+        assert (abs(dy.imag) / np.mean(abs(dy)) < imtol).all(), \
+            np.max(abs(dy.imag) / np.mean(abs(dy)))
 
     dx = dx.real
     dy = dy.real
