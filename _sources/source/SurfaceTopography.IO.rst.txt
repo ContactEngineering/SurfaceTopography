@@ -84,7 +84,6 @@ SurfaceTopography.IO.Reader module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

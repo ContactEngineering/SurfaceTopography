@@ -68,7 +68,6 @@ SurfaceTopography.Uniform.common module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

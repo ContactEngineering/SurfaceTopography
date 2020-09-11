@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.91.2 documentation</title>
+  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.91.3.dev4+g3c20e48 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.2
+                0.91.3.dev4+g3c20e48
               </div>
             
           
@@ -261,7 +261,7 @@
         <span class="k">return</span> <span class="n">der</span></div>
 
 
-<div class="viewcode-block" id="fourier_derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.fourier_derivative">[docs]</a><span class="k">def</span> <span class="nf">fourier_derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">imtol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">):</span>
+<div class="viewcode-block" id="fourier_derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.fourier_derivative">[docs]</a><span class="k">def</span> <span class="nf">fourier_derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">imtol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    First order derivatives of the fourier interpolation of the Topography</span>
@@ -284,11 +284,11 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    topography: Topography instance</span>
-<span class="sd">    imtol: float</span>
+<span class="sd">    imtol: float, optional</span>
 <span class="sd">        tolerance for the discarded imaginary part. If the maximum absolute of</span>
 <span class="sd">        the imaginary part of the interpolated topography is more then that</span>
-<span class="sd">        value, an AssertionError is raised</span>
-
+<span class="sd">        value times the total absolute value of dx, an AssertionError is raised</span>
+<span class="sd">        If not specified the assertion will not be made.</span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dx: array of floats</span>
@@ -311,8 +311,11 @@
     <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">spectrum</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">qx</span><span class="p">))</span>
     <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">spectrum</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">qy</span><span class="p">))</span>
 
-    <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">imtol</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="o">.</span><span class="n">imag</span><span class="p">))</span>
-    <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">imtol</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="o">.</span><span class="n">imag</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">imtol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">imtol</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)))</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">imtol</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">)))</span>
 
     <span class="n">dx</span> <span class="o">=</span> <span class="n">dx</span><span class="o">.</span><span class="n">real</span>
     <span class="n">dy</span> <span class="o">=</span> <span class="n">dy</span><span class="o">.</span><span class="n">real</span>
