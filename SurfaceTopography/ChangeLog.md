@@ -2,6 +2,13 @@
 Change log for SurfaceTopography
 =============================
 
+v0.91.3 (22Sep20)
+-----------------
+
+- BUG: UniformLineScan.area_per_pt is now a scalar, not a tuple
+- BUG: supress assertio that discarded imaginary part in fourier 
+       derivative is small
+
 v0.91.2 (31Jul20)
 -----------------
 
