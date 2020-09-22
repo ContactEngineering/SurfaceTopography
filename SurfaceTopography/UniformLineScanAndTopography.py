@@ -119,7 +119,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def area_per_pt(self):
-        return self.pixel_size
+        return self.pixel_size[0]
 
     @property
     def has_undefined_data(self):
