@@ -34,6 +34,8 @@ from SurfaceTopography import open_topography
 from SurfaceTopography.IO.NPY import NPYReader
 from SurfaceTopography.IO.NPY import save_npy
 
+from NuMPI import MPI
+
 DATADIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -57,7 +59,9 @@ def test_save_and_load(comm_self, file_format_examples):
 
     os.remove(npyfile)
 
-
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 def test_load_binary(comm_self, file_format_examples):
     with open(os.path.join(file_format_examples, 'example-2d.npy'),
               mode="rb") as f:
