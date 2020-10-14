@@ -248,7 +248,8 @@ class IOTest(unittest.TestCase):
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(fn)
-            physical_sizes = None if r.channels[0].dim == 1 else physical_sizes0
+            physical_sizes = None if r.channels[0].dim == 1 \
+                else physical_sizes0
             t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                              height_scale_factor=None)
             if physical_sizes is not None:
@@ -274,7 +275,8 @@ class IOTest(unittest.TestCase):
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(open(fn, mode='rb'))
-            physical_sizes = None if r.channels[0].dim == 1 else physical_sizes0
+            physical_sizes = None if r.channels[0].dim == 1 \
+                else physical_sizes0
             t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                              height_scale_factor=None)
             if physical_sizes is not None:
