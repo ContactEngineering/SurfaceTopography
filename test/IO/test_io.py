@@ -234,11 +234,11 @@ class IOTest(unittest.TestCase):
                     if reader.default_channel.physical_sizes is not None \
                     else [1., ] * reader.default_channel.dim
             t = reader.topography(physical_sizes=physical_sizes, periodic=True)
-            assert t.is_periodic
+            assert t.is_periodic, fn
 
             t = reader.topography(physical_sizes=physical_sizes,
                                   periodic=False)
-            assert not t.is_periodic
+            assert not t.is_periodic, fn
 
     def test_reader_arguments(self):
         """Check whether all readers have channel, physical_sizes and
@@ -286,7 +286,7 @@ class IOTest(unittest.TestCase):
                               height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t2.physical_sizes, physical_sizes)
-            assert_array_equal(t.heights(), t2.heights())
+            assert_array_equal(t.heights(), t2.heights(), err_msg=fn)
 
     def test_reader_topography_same(self):
         """
