@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.IO.NPY &mdash; SurfaceTopography 0.91.4.dev3+g83b2d2f documentation</title>
+  <title>SurfaceTopography.IO.NPY &mdash; SurfaceTopography 0.91.4.dev14+g4dff01a documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.4.dev3+g83b2d2f
+                0.91.4.dev14+g4dff01a
               </div>
             
           
@@ -276,10 +276,11 @@
                                  <span class="s2">&quot;subdomain location and number of grid &quot;</span>
                                  <span class="s2">&quot;points&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                <span class="n">heights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
                     <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
                     <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
-                <span class="n">physical_sizes</span><span class="p">,</span>
+                <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
                 <span class="n">info</span><span class="o">=</span><span class="n">info</span>
             <span class="p">)</span>
 
