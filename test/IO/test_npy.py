@@ -59,6 +59,7 @@ def test_save_and_load(comm_self, file_format_examples):
 
     os.remove(npyfile)
 
+
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
