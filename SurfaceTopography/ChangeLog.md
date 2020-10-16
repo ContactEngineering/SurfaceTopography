@@ -2,11 +2,17 @@
 Change log for SurfaceTopography
 =============================
 
+v0.91.4 (16Oct20)
+-----------------
+
+- BUG: Fixed issue with reading npy from binary stream
+- BUG: Fixed periodic flag for npy files in some cases
+
 v0.91.3 (22Sep20)
 -----------------
 
 - BUG: UniformLineScan.area_per_pt is now a scalar, not a tuple
-- BUG: supress assertio that discarded imaginary part in fourier 
+- BUG: supress assertion that discarded imaginary part in fourier 
        derivative is small
 
 v0.91.2 (31Jul20)

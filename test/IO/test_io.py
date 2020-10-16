@@ -82,40 +82,60 @@ def test_cannot_detect_file_format_on_txt():
 
 
 class IOTest(unittest.TestCase):
+
+    @staticmethod
+    def _convert_filelist(filelist):
+        """
+        Parameters
+        ----------
+        filelist
+            list of strings with filenames withput path
+
+        Returns
+        -------
+        List of filenames prepended with DATADIR
+        """
+        return [os.path.join(DATADIR, fn) for fn in filelist]
+
     def setUp(self):
-        self.binary_example_file_list = [
-            os.path.join(DATADIR, 'di1.di'),
-            os.path.join(DATADIR, 'di2.di'),
-            os.path.join(DATADIR, 'di3.di'),
-            os.path.join(DATADIR, 'di4.di'),
-            os.path.join(DATADIR, 'example.ibw'),
-            os.path.join(DATADIR, 'spot_1-1000nm.ibw'),
-            # os.path.join(DATADIR, 'surface.2048x2048.h5'),
-            os.path.join(DATADIR, '10x10-one_channel_without_name.ibw'),
-            os.path.join(DATADIR, 'example1.mat'),
-            os.path.join(DATADIR, 'example.opd'),
-            os.path.join(DATADIR, 'example.x3p'),
-            os.path.join(DATADIR, 'example2.x3p'),
-            os.path.join(DATADIR, 'opdx1.OPDx'),
-            os.path.join(DATADIR, 'opdx2.OPDx'),
-            os.path.join(DATADIR, 'mi1.mi'),
-            os.path.join(DATADIR, 'N46E013.hgt'),
+        binary_examples = [
+            'di1.di',
+            'di2.di',
+            'di3.di',
+            'di4.di',
+            'example.ibw',
+            'spot_1-1000nm.ibw',
+            # 'surface.2048x2048.h5',
+            '10x10-one_channel_without_name.ibw',
+            'example1.mat',
+            'example.opd',
+            'example.x3p',
+            'example2.x3p',
+            'opdx1.OPDx',
+            'opdx2.OPDx',
+            'mi1.mi',
+            'N46E013.hgt',
+            'example-2d.npy',
         ]
-        self.text_example_file_list = [
-            os.path.join(DATADIR, 'example.asc'),
-            os.path.join(DATADIR, 'example1.txt'),
-            os.path.join(DATADIR, 'example2.txt'),
-            os.path.join(DATADIR, 'example3.txt'),
-            os.path.join(DATADIR, 'example4.txt'),
-            os.path.join(DATADIR, 'example5.txt'),
-            os.path.join(DATADIR, 'example8.txt'),
+
+        text_examples = [
+            'example.asc',
+            'example1.txt',
+            'example2.txt',
+            'example3.txt',
+            'example4.txt',
+            'example5.txt',
+            'example8.txt',
             # example8: from the reader's docstring, with extra newline at end
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'),
-            os.path.join(DATADIR, 'opdx1.txt'),
-            os.path.join(DATADIR, 'opdx2.txt'),
+            'line_scan_1_minimal_spaces.asc',
+            'opdx1.txt',
+            'opdx2.txt',
             # Not yet working
-            # os.path.join(DATADIR, 'example6.txt'),
+            # 'example6.txt',
         ]
+
+        self.binary_example_file_list = self._convert_filelist(binary_examples)
+        self.text_example_file_list = self._convert_filelist(text_examples)
         self.text_example_memory_list = [
             """
             0 0
@@ -214,11 +234,11 @@ class IOTest(unittest.TestCase):
                     if reader.default_channel.physical_sizes is not None \
                     else [1., ] * reader.default_channel.dim
             t = reader.topography(physical_sizes=physical_sizes, periodic=True)
-            assert t.is_periodic
+            assert t.is_periodic, fn
 
             t = reader.topography(physical_sizes=physical_sizes,
                                   periodic=False)
-            assert not t.is_periodic
+            assert not t.is_periodic, fn
 
     def test_reader_arguments(self):
         """Check whether all readers have channel, physical_sizes and
@@ -228,8 +248,8 @@ class IOTest(unittest.TestCase):
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(fn)
-            physical_sizes = None if r.channels[
-                                         0].dim == 1 else physical_sizes0
+            physical_sizes = None if r.channels[0].dim == 1 \
+                else physical_sizes0
             t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                              height_scale_factor=None)
             if physical_sizes is not None:
@@ -255,8 +275,8 @@ class IOTest(unittest.TestCase):
         for fn in self.text_example_file_list + self.binary_example_file_list:
             # Test open -> topography
             r = open_topography(open(fn, mode='rb'))
-            physical_sizes = None if r.channels[
-                                         0].dim == 1 else physical_sizes0
+            physical_sizes = None if r.channels[0].dim == 1 \
+                else physical_sizes0
             t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                              height_scale_factor=None)
             if physical_sizes is not None:
@@ -266,7 +286,7 @@ class IOTest(unittest.TestCase):
                               height_scale_factor=None)
             if physical_sizes is not None:
                 self.assertEqual(t2.physical_sizes, physical_sizes)
-            assert_array_equal(t.heights(), t2.heights())
+            assert_array_equal(t.heights(), t2.heights(), err_msg=fn)
 
     def test_reader_topography_same(self):
         """

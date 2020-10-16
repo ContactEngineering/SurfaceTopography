@@ -34,6 +34,8 @@ from SurfaceTopography import open_topography
 from SurfaceTopography.IO.NPY import NPYReader
 from SurfaceTopography.IO.NPY import save_npy
 
+from NuMPI import MPI
+
 DATADIR = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -58,7 +60,19 @@ def test_save_and_load(comm_self, file_format_examples):
     os.remove(npyfile)
 
 
-@pytest.mark.xfail
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_load_binary(comm_self, file_format_examples):
+    with open(os.path.join(file_format_examples, 'example-2d.npy'),
+              mode="rb") as f:
+        loaded_topography = NPYReader(f, communicator=comm_self).topography(
+            # nb_subdomain_grid_pts=topography.nb_grid_pts,
+            # subdomain_locations=(0,0),
+            physical_sizes=(1., 1.))
+        loaded_topography
+
+
 def test_save_and_load_np(comm_self, file_format_examples):
     # sometimes the surface isn't transposed the same way when
 
@@ -70,7 +84,7 @@ def test_save_and_load_np(comm_self, file_format_examples):
     np.save(npyfile, topography.heights())
 
     loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
-        size=(1., 1.))
+        physical_sizes=(1., 1.))
 
     np.testing.assert_allclose(loaded_topography.heights(),
                                topography.heights())

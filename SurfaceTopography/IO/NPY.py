@@ -109,10 +109,11 @@ manually provided by the user.
                                  "subdomain location and number of grid "
                                  "points")
             return Topography(
-                self.mpi_file.read(
+                heights=self.mpi_file.read(
                     subdomain_locations=subdomain_locations,
                     nb_subdomain_grid_pts=nb_subdomain_grid_pts),
-                physical_sizes,
+                physical_sizes=physical_sizes,
+                periodic=periodic,
                 info=info
             )
 
