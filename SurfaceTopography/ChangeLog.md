@@ -2,6 +2,11 @@
 Change log for SurfaceTopography
 =============================
 
+v0.91.5 (19Oct20)
+-----------------
+
+- BUG: Fixed differing versions in setup.py and requirements
+
 v0.91.4 (16Oct20)
 -----------------
 
