@@ -1,3 +1,4 @@
+wheel
 setuptools
 igor
 matplotlib>=1.0.0
