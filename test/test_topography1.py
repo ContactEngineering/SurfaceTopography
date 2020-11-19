@@ -1117,9 +1117,6 @@ def test_autocompletion(self):
     self.assertIn('to_uniform', dir(t3))
 
 
-
-
-
 @pytest.mark.parametrize("ny", [7, 6])
 @pytest.mark.parametrize("nx", [5, 4])
 def test_fourier_derivative_realness(nx, ny):
@@ -1129,40 +1126,6 @@ def test_fourier_derivative_realness(nx, ny):
     topography = Topography(np.random.random((nx, ny)),
                             physical_sizes=(2., 3.))
     topography.fourier_derivative(imtol=1e-12)
-
-
-def test_fourier_derivative(plot=False):
-    nx, ny = [256] * 2
-    sx, sy = [1.] * 2
-
-    lc = 0.5
-    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
-                                   short_cutoff=lc, long_cutoff=lc + 1e-9, )
-    topography = topography.scale(1 / topography.rms_height())
-
-    # numerical derivatives to double check
-    dx, dy = topography.fourier_derivative(imtol=1e-12)
-    dx_num, dy_num = topography.derivative(1)
-
-    np.testing.assert_allclose(dx, dx_num, atol=topography.rms_slope() * 1e-1)
-    np.testing.assert_allclose(dy, dy_num, atol=topography.rms_slope() * 1e-1)
-
-    if plot:
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()
-        x, y = topography.positions()
-
-        ax.plot(x[:, 0], topography.heights()[:, 0])
-        ax.plot(x[:, 0], dx[:, 0])
-        ax.plot(x[:, 0], dx_num[:, 0])
-        fig.show()
-
-        fig, ax = plt.subplots()
-        x, y = topography.positions()
-        ax.plot(y[-1, :], topography.heights()[-1, :])
-        ax.plot(y[-1, :], dy[-1, :])
-        ax.plot(y[-1, :], dy_num[-1, :])
-        fig.show()
 
 
 def test_fourier_interpolate_nyquist(plot=False):
