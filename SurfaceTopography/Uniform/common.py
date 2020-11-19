@@ -35,32 +35,10 @@ import muFFT
 import muFFT.Stencils1D as Stencils1D
 import muFFT.Stencils2D as Stencils2D
 
+from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
-
-
-def make_fft(topography, fft='mpi'):
-    """
-    Instantiate a muFFT object that can compute the Fourier transform of the
-    topography and has the same decomposition layout (or raise an error if
-    this is not the case).
-    """
-
-    # We only initialize this once and attach it to the topography object
-    if hasattr(topography, '_mufft'):
-        return topography._mufft
-
-    if topography.is_domain_decomposed:
-        fft = muFFT.FFT(topography.nb_grid_pts, fft=fft, communicator=topography.communicator)
-        if fft.subdomain_locations != topography.subdomain_locations or \
-                fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
-            raise RuntimeError('muFFT suggested a domain decomposition that '
-                               'differs from the decomposition of the topography.')
-    else:
-        fft = muFFT.FFT(topography.nb_grid_pts)
-    topography._mufft = fft
-    return fft
 
 
 def bandwidth(topography):
@@ -140,11 +118,9 @@ def _trim_nonperiodic(arr, op):
     return arr[tuple(trimmed_slice)]
 
 
-def derivative(topography, n, operator=None, periodic=None):
+def derivative(topography, n, operator=None, periodic=None, mask_function=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
-
-    Specify either `n` or `operator`, not both.
 
     Parameters
     ----------
@@ -158,6 +134,11 @@ def derivative(topography, n, operator=None, periodic=None):
         derivative.
     periodic : bool
         Override periodic flag from topography.
+    mask_function : function
+        A function that takes as argument the output of FFT.fftfreq and
+        returns a mask that will be multiplied with the Fourier transformed
+        topography. This can be used to implement Fourier filtering before
+        computing the derivative.
 
     Returns
     -------
@@ -177,7 +158,7 @@ def derivative(topography, n, operator=None, periodic=None):
     if operator is None:
         operator = _get_default_derivative_operator(n, topography.dim)
 
-    grid_spacing = topography.pixel_size
+    grid_spacing = np.array(topography.pixel_size)
     is_periodic = topography.is_periodic if periodic is None else periodic
 
     # Return FFT object (this will only be initialized once and reused in subsequent calls)
@@ -188,6 +169,10 @@ def derivative(topography, n, operator=None, periodic=None):
     fourier_field = fft.fetch_or_register_fourier_space_field('complex_temporary', 1)
     np.array(real_field, copy=False)[...] = topography.heights()
     fft.fft(real_field, fourier_field)
+
+    # Apply mask function
+    if mask_function is not None:
+        fourier_field *= mask_function(fft.fftfreq.T * np.array(topography.nb_grid_pts) / grid_spacing)
 
     # Apply derivative operator in Fourier space
     if isinstance(operator, tuple):

@@ -31,8 +31,10 @@ Functions computing scalar roughness parameters
 
 import numpy as np
 
-from ..HeightContainer import UniformTopographyInterface
 from NuMPI.Tools import Reduction
+
+from ..FFTTricks import make_fft
+from ..HeightContainer import UniformTopographyInterface
 
 
 def rms_height(topography, kind='Sq'):
@@ -73,7 +75,7 @@ def rms_height(topography, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def rms_slope(topography):
+def rms_slope(topography, short_wavelength_cutoff=None):
     """
     Compute the root mean square amplitude of the height gradient of a
     topography or line scan stored on a uniform grid.
@@ -82,6 +84,10 @@ def rms_slope(topography):
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         SurfaceTopography object containing height information.
+    short_wavelength_cutoff : float
+        All wavelengths below this cutoff will be set to zero amplitude.
+        If the surface is non-periodic, a window function will be
+        additionally applied before computing the slope.
 
     Returns
     -------
@@ -92,10 +98,14 @@ def rms_slope(topography):
         raise NotImplementedError(
             "rms_slope not implemented for parallelized topographies")
     if topography.dim == 1:
-        return np.sqrt((topography.derivative(1) ** 2).mean())
+        mask_function = None if short_wavelength_cutoff is None else \
+            lambda q: q ** 2 < 1 / short_wavelength_cutoff ** 2
+        return np.sqrt((topography.derivative(1, mask_function=mask_function) ** 2).mean())
     elif topography.dim == 2:
-        slx, sly = topography.derivative(1)
-        return np.sqrt((slx ** 2).mean() + (sly ** 2).mean())
+        mask_function = None if short_wavelength_cutoff is None else \
+            lambda q: q[0] ** 2 + q[1] ** 2 < 1 / short_wavelength_cutoff ** 2
+        slx, sly = topography.derivative(1, mask_function=mask_function)
+        return np.sqrt((slx ** 2 + sly ** 2).mean())
     else:
         raise ValueError('Cannot handle topographies of dimension {}'.format(
             topography.dim))
