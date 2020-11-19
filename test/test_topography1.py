@@ -1005,116 +1005,69 @@ class h5SurfaceTest(unittest.TestCase):
         self.assertEqual(topography.dim, 2)
 
 
-def test_detect_format_then_read(self):
-    self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
-                     'xyz')
+def test_detect_format_then_read():
+    assert detect_format(os.path.join(DATADIR, 'example.asc')) == 'xyz'
 
 
-def test_read(self):
+def test_read():
     surface = read_xyz(os.path.join(DATADIR, 'example.asc'))
-    self.assertFalse(surface.is_uniform)
+    assert not surface.is_uniform
     x, y = surface.positions_and_heights()
-    self.assertGreater(len(x), 0)
-    self.assertEqual(len(x), len(y))
-    self.assertFalse(surface.is_uniform)
-    self.assertEqual(surface.dim, 1)
-    self.assertFalse(surface.is_periodic)
+    assert len(x) > 0
+    assert len(x) == len(y)
+    assert not surface.is_uniform
+    assert surface.dim == 1
+    assert not surface.is_periodic
 
 
-def test_scaled_topography(self):
-    surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
-    for fac in [1.0, 2.0, np.pi]:
-        surf2 = surf.scale(fac)
-        self.assertAlmostEqual(fac * surf.rms_height(kind='Rq'),
-                               surf2.rms_height(kind='Rq'))
-
-
-def test_transposed_topography(self):
-    surf = fourier_synthesis([124, 368], [6, 3], 0.8, rms_slope=0.1)
-    nx, ny = surf.nb_grid_pts
-    sx, sy = surf.physical_sizes
-    surf2 = surf.transpose()
-    nx2, ny2 = surf2.nb_grid_pts
-    sx2, sy2 = surf2.physical_sizes
-    self.assertEqual(nx, ny2)
-    self.assertEqual(ny, nx2)
-    self.assertEqual(sx, sy2)
-    self.assertEqual(sy, sx2)
-    self.assertTrue((surf.heights() == surf2.heights().T).all())
-
-
-def test_rms_slope_1d(self):
-    r = 4096
-    res = (r,)
-    for H in [0.3, 0.8]:
-        for s in [(1,), (1.4,)]:
-            t = fourier_synthesis(res, s, H,
-                                  short_cutoff=32 / r * np.mean(s),
-                                  rms_slope=0.1,
-                                  amplitude_distribution=lambda n: 1.0)
-            self.assertAlmostEqual(t.rms_slope(), 0.1, places=2)
-
-
-def test_rms_slope_2d(self):
-    r = 2048
-    res = [r, r]
-    for H in [0.3, 0.8]:
-        for s in [(1, 1), (1.4, 3.3)]:
-            t = fourier_synthesis(res, s, H,
-                                  short_cutoff=8 / r * np.mean(s),
-                                  rms_slope=0.1,
-                                  amplitude_distribution=lambda n: 1.0)
-            self.assertAlmostEqual(t.rms_slope(), 0.1, places=2)
-
-
-def test_wrapped_x_range(self):
+def test_wrapped_x_range():
     t = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1).to_nonuniform()
     x = t.positions()
-    self.assertAlmostEqual(t.x_range[0], x[0])
-    self.assertAlmostEqual(t.x_range[1], x[-1])
+    np.testing.assert_almost_equal(t.x_range[0], x[0])
+    np.testing.assert_almost_equal(t.x_range[1], x[-1])
 
 
-def test_delegation(self):
+def test_delegation():
     t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
     t2 = t1.detrend()
     t3 = t2.to_nonuniform()
     t4 = t3.scale(2.0)
 
     t4.scale_factor
-    with self.assertRaises(AttributeError):
+    with pytest.raises(AttributeError):
         t2.scale_factor
     t2.detrend_mode
     # detrend_mode should not be delegated to the parent class
-    with self.assertRaises(AttributeError):
+    with pytest.raises(AttributeError):
         t4.detrend_mode
 
     # t2 should have 'to_nonuniform'
     t2.to_nonuniform()
     # but it should not have 'to_uniform'
-    with self.assertRaises(AttributeError):
+    with pytest.raises(AttributeError):
         t2.to_uniform(100, 10)
 
     # t4 should have 'to_uniform'
     t5 = t4.to_uniform(100, 10)
     # but it should not have 'to_nonuniform'
-    with self.assertRaises(AttributeError):
+    with pytest.raises(AttributeError):
         t4.to_nonuniform()
 
     # t5 should have 'to_nonuniform'
     t5.to_nonuniform()
     # but it should not have 'to_uniform'
-    with self.assertRaises(AttributeError):
+    with pytest.raises(AttributeError):
         t5.to_uniform(100, 10)
 
 
-def test_autocompletion(self):
+def test_autocompletion():
     t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
     t2 = t1.detrend()
     t3 = t2.to_nonuniform()
 
-    self.assertIn('detrend', dir(t1))
-    self.assertIn('to_nonuniform', dir(t2))
-    self.assertIn('to_uniform', dir(t3))
+    assert 'detrend' in dir(t1)
+    assert 'to_nonuniform' in dir(t2)
+    assert 'to_uniform' in dir(t3)
 
 
 @pytest.mark.parametrize("ny", [7, 6])

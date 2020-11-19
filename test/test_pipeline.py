@@ -122,3 +122,25 @@ def test_fill_undefined_data_parallel(comm):
     assert reduction.all(filled_topography[nmask] == topography[nmask])
     assert reduction.all(filled_topography[mask] == - np.infty)
     assert not filled_topography.has_undefined_data
+
+
+def test_scaled_topography(self):
+    surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
+    for fac in [1.0, 2.0, np.pi]:
+        surf2 = surf.scale(fac)
+        self.assertAlmostEqual(fac * surf.rms_height(kind='Rq'),
+                               surf2.rms_height(kind='Rq'))
+
+
+def test_transposed_topography(self):
+    surf = fourier_synthesis([124, 368], [6, 3], 0.8, rms_slope=0.1)
+    nx, ny = surf.nb_grid_pts
+    sx, sy = surf.physical_sizes
+    surf2 = surf.transpose()
+    nx2, ny2 = surf2.nb_grid_pts
+    sx2, sy2 = surf2.physical_sizes
+    self.assertEqual(nx, ny2)
+    self.assertEqual(ny, nx2)
+    self.assertEqual(sx, sy2)
+    self.assertEqual(sy, sx2)
+    self.assertTrue((surf.heights() == surf2.heights().T).all())

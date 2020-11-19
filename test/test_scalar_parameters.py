@@ -32,6 +32,7 @@ from NuMPI import MPI
 from muFFT import FFT
 
 from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
 
 
 @pytest.fixture
@@ -172,5 +173,25 @@ class SinewaveTestNonuniform(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_rms_slope_1d():
+    r = 4096
+    res = (r,)
+    for H in [0.3, 0.8]:
+        for s in [(1,), (1.4,)]:
+            t = fourier_synthesis(res, s, H,
+                                  short_cutoff=32 / r * np.mean(s),
+                                  rms_slope=0.1,
+                                  amplitude_distribution=lambda n: 1.0)
+            np.testing.assert_almost_equal(t.rms_slope(), 0.1, decimal=2)
+
+
+def test_rms_slope_2d():
+    r = 2048
+    res = [r, r]
+    for H in [0.3, 0.8]:
+        for s in [(1, 1), (1.4, 3.3)]:
+            t = fourier_synthesis(res, s, H,
+                                  short_cutoff=8 / r * np.mean(s),
+                                  rms_slope=0.1,
+                                  amplitude_distribution=lambda n: 1.0)
+            np.testing.assert_almost_equal(t.rms_slope(), 0.1, decimal=2)
