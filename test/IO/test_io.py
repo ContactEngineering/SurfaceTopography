@@ -47,8 +47,10 @@ pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
 
-DATADIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       '../file_format_examples')
+DATADIR = os.path.join(
+    os.path.dirname(
+        os.path.dirname(os.path.realpath(__file__))),
+    'file_format_examples')
 
 
 @pytest.mark.parametrize("reader", readers)
@@ -419,3 +421,28 @@ def test_gwyddion_txt_import(lang_filename_infix):
     expected_heights = np.array(heights_in_file).T
 
     np.testing.assert_allclose(topo.heights(), expected_heights)
+
+
+class DetectFormatTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_detection(self):
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'di1.di')), 'di')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'di2.di')), 'di')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.ibw')),
+                         'ibw')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.opd')),
+                         'opd')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.x3p')),
+                         'x3p')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'example1.mat')),
+                         'mat')
+        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
+                         'xyz')
+        self.assertEqual(detect_format(
+            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
+
+
+def test_detect_format_then_read():
+    assert detect_format(os.path.join(DATADIR, 'example.asc')) == 'xyz'

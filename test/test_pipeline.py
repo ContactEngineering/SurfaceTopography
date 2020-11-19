@@ -2,6 +2,7 @@
 Tests of the filter and modification pipeline
 """
 
+import os
 import pytest
 
 import numpy as np
@@ -11,6 +12,10 @@ from NuMPI.Tools import Reduction
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.IO.FromFile import read_xyz
+
+DATADIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
 
 
 def test_translate(comm_self):
@@ -124,23 +129,23 @@ def test_fill_undefined_data_parallel(comm):
     assert not filled_topography.has_undefined_data
 
 
-def test_scaled_topography(self):
+def test_scaled_topography():
     surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
-        self.assertAlmostEqual(fac * surf.rms_height(kind='Rq'),
-                               surf2.rms_height(kind='Rq'))
+        np.testing.assert_almost_equal(fac * surf.rms_height(kind='Rq'),
+                                       surf2.rms_height(kind='Rq'))
 
 
-def test_transposed_topography(self):
+def test_transposed_topography():
     surf = fourier_synthesis([124, 368], [6, 3], 0.8, rms_slope=0.1)
     nx, ny = surf.nb_grid_pts
     sx, sy = surf.physical_sizes
     surf2 = surf.transpose()
     nx2, ny2 = surf2.nb_grid_pts
     sx2, sy2 = surf2.physical_sizes
-    self.assertEqual(nx, ny2)
-    self.assertEqual(ny, nx2)
-    self.assertEqual(sx, sy2)
-    self.assertEqual(sy, sx2)
-    self.assertTrue((surf.heights() == surf2.heights().T).all())
+    assert nx == ny2
+    assert ny == nx2
+    assert sx == sy2
+    assert sy == sx2
+    assert (surf.heights() == surf2.heights().T).all()

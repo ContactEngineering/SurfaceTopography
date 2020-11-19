@@ -43,16 +43,12 @@ from muFFT import FFT
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-import SurfaceTopography.IO
 from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.FromFile import read_asc, read_hgt, read_opd, \
-    read_x3p, read_xyz, AscReader
+from SurfaceTopography.IO.FromFile import read_asc, read_xyz, AscReader
 from SurfaceTopography.IO.FromFile import get_unit_conversion_factor
-from SurfaceTopography.IO import detect_format
-from SurfaceTopography.IO import NPYReader, H5Reader, IBWReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -758,120 +754,6 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(abs(detrended.curvatures[0]), 1 / radius)
 
 
-class DetectFormatTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_detection(self):
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di1.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di2.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.ibw')),
-                         'ibw')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.opd')),
-                         'opd')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.x3p')),
-                         'x3p')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example1.mat')),
-                         'mat')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
-                         'xyz')
-        self.assertEqual(detect_format(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
-
-
-class matSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        from SurfaceTopography.IO import MatReader
-        surface = MatReader(os.path.join(DATADIR, 'example1.mat')).topography(
-            physical_sizes=[1., 1.])
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 2048)
-        self.assertEqual(ny, 2048)
-        self.assertAlmostEqual(surface.rms_height(), 1.234061e-07)
-        self.assertTrue(surface.is_uniform)
-
-    # TODO: test with multiple data
-
-
-class npySurfaceTest(unittest.TestCase):
-    def setUp(self):
-        self.fn = "example.npy"
-        self.res = (128, 64)
-        np.random.seed(1)
-        self.data = np.random.random(self.res)
-        self.data -= np.mean(self.data)
-
-        np.save(self.fn, self.data)
-
-    def test_read(self):
-        size = (2, 4)
-        loader = NPYReader(self.fn)
-
-        topo = loader.topography(physical_sizes=size)
-
-        np.testing.assert_array_almost_equal(topo.heights(), self.data)
-
-        # self.assertEqual(topo.info, loader.info)
-        self.assertEqual(topo.physical_sizes, size)
-
-    def tearDown(self):
-        os.remove(self.fn)
-
-
-class x3pSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        surface = read_x3p(os.path.join(DATADIR, 'example.x3p'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 777)
-        self.assertEqual(ny, 1035)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 0.00068724)
-        self.assertAlmostEqual(sy, 0.00051593)
-        surface = read_x3p(os.path.join(DATADIR, 'example2.x3p'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 650)
-        self.assertEqual(ny, 650)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 8.29767313942749e-05)
-        self.assertAlmostEqual(sy, 0.0002044783737930349)
-        self.assertTrue(surface.is_uniform)
-
-    def test_points_for_uniform_topography(self):
-        surface = read_x3p(os.path.join(DATADIR, 'example.x3p'))
-        x, y, z = surface.positions_and_heights()
-        self.assertAlmostEqual(np.mean(np.diff(x[:, 0])),
-                               surface.physical_sizes[0] / surface.nb_grid_pts[
-                                   0])
-        self.assertAlmostEqual(np.mean(np.diff(y[0, :])),
-                               surface.physical_sizes[1] / surface.nb_grid_pts[
-                                   1])
-
-
-class opdSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        surface = read_opd(os.path.join(DATADIR, 'example.opd'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 640)
-        self.assertEqual(ny, 480)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 0.125909140)
-        self.assertAlmostEqual(sy, 0.094431855)
-        self.assertTrue(surface.is_uniform)
-
-    def test_undefined_points(self):
-        t = read_opd(os.path.join(DATADIR, 'example2.opd'))
-        self.assertTrue(t.has_undefined_data)
-
-
 class diSurfaceTest(unittest.TestCase):
     def setUp(self):
         pass
@@ -946,80 +828,6 @@ def test_di_orientation():
     assert pytest.approx(di_heights[0, -1], abs=1e-3) == 2.843
     assert pytest.approx(di_heights[-1, 0], abs=1e-3) == -9.740
     assert pytest.approx(di_heights[-1, -1], abs=1e-3) == -30.306
-
-
-class ibwSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        reader = IBWReader(os.path.join(DATADIR, 'example.ibw'))
-        surface = reader.topography()
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 512)
-        self.assertEqual(ny, 512)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 5.00978e-8)
-        self.assertAlmostEqual(sy, 5.00978e-8)
-        # self.assertEqual(surface.info['unit'], 'm')
-        # Disabled unit check because I'm not sure
-        # how to assign a valid unit to every channel - see IBW.py
-        self.assertTrue(surface.is_uniform)
-
-    def test_detect_format_then_read(self):
-        f = open(os.path.join(DATADIR, 'example.ibw'), 'rb')
-        fmt = detect_format(f)
-        self.assertTrue(fmt, 'ibw')
-        open_topography(f, format=fmt).topography()
-        f.close()
-
-
-class hgtSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        surface = read_hgt(os.path.join(DATADIR, 'N46E013.hgt'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 3601)
-        self.assertEqual(ny, 3601)
-        self.assertTrue(surface.is_uniform)
-
-
-class h5SurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_detect_format(self):
-        self.assertEqual(SurfaceTopography.IO.detect_format(
-            # TODO(pastewka): this will be the standard detect format method
-            #  in the future
-            os.path.join(DATADIR, 'surface.2048x2048.h5')), 'h5')
-
-    def test_read(self):
-        loader = H5Reader(os.path.join(DATADIR, 'surface.2048x2048.h5'))
-
-        topography = loader.topography(physical_sizes=(1., 1.))
-        nx, ny = topography.nb_grid_pts
-        self.assertEqual(nx, 2048)
-        self.assertEqual(ny, 2048)
-        self.assertTrue(topography.is_uniform)
-        self.assertEqual(topography.dim, 2)
-
-
-def test_detect_format_then_read():
-    assert detect_format(os.path.join(DATADIR, 'example.asc')) == 'xyz'
-
-
-def test_read():
-    surface = read_xyz(os.path.join(DATADIR, 'example.asc'))
-    assert not surface.is_uniform
-    x, y = surface.positions_and_heights()
-    assert len(x) > 0
-    assert len(x) == len(y)
-    assert not surface.is_uniform
-    assert surface.dim == 1
-    assert not surface.is_periodic
 
 
 def test_wrapped_x_range():
