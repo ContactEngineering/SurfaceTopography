@@ -99,7 +99,7 @@ def test_positions_and_heights():
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
-        (0, 0, 0)])
+        (0, 0, 0)], atol=1e-15)
 
     X2, Y2, h2 = dt.positions_and_heights()
 
@@ -120,7 +120,7 @@ def test_positions_and_heights():
         (0, 0, 0),
         (0, 0, 0),
         (0, 0, 0),
-        (0, 0, 0)])
+        (0, 0, 0)], atol=1e-15)
 
 
 def test_squeeze():
