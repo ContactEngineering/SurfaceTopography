@@ -2,6 +2,11 @@
 Change log for SurfaceTopography
 =============================
 
+v0.92.0 (not yet released)
+--------------------------
+
+- MAINT: Derivatives now use muFFT derivative operators
+
 v0.91.5 (19Oct20)
 -----------------
 
