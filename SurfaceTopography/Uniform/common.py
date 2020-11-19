@@ -30,34 +30,128 @@ topographies.
 
 import numpy as np
 
+import muFFT
+
+import muFFT.Stencils1D as Stencils1D
+import muFFT.Stencils2D as Stencils2D
+
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
-def bandwidth(self):
+def make_fft(topography, fft='mpi'):
+    """
+    Instantiate a muFFT object that can compute the Fourier transform of the
+    topography and has the same decomposition layout (or raise an error if
+    this is not the case).
+    """
+
+    # We only initialize this once and attach it to the topography object
+    if hasattr(topography, '_mufft'):
+        return topography._mufft
+
+    if topography.is_domain_decomposed:
+        fft = muFFT.FFT(topography.nb_grid_pts, fft=fft, communicator=topography.communicator)
+        if fft.subdomain_locations != topography.subdomain_locations or \
+                fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
+            raise RuntimeError('muFFT suggested a domain decomposition that '
+                               'differs from the decomposition of the topography.')
+    else:
+        fft = muFFT.FFT(topography.nb_grid_pts)
+    topography._mufft = fft
+    return fft
+
+
+def bandwidth(topography):
     """Computes lower and upper bound of bandwidth.
 
     Returns
     -------
     A 2-tuple (lower_bound, upper_bound) where the elements are floats.
     """
-    lower_bound = np.mean(self.pixel_size)
-    upper_bound = np.mean(self.physical_sizes)
+    lower_bound = np.mean(topography.pixel_size)
+    upper_bound = np.mean(topography.physical_sizes)
 
     return lower_bound, upper_bound
 
 
-def derivative(topography, n, periodic=None):
+def _get_default_derivative_operator(n, dim):
+    """
+    Return a default set of (finite-differences) derivative operators.
+
+    Parameters
+    ----------
+    n : int
+        Order of derivative.
+    dim : int
+        Dimension of the underlying field. (For dim > 1, this returns a
+        representation of the nabla-operator.)
+    """
+    if dim == 1:
+        if n == 1:
+            return Stencils1D.upwind
+        elif n == 2:
+            return Stencils1D.central_2nd
+        else:
+            raise ValueError("Don't know how to compute derivative of order "
+                             "{}.".format(n))
+    elif dim == 2:
+        if n == 1:
+            return Stencils2D.upwind
+        elif n == 2:
+            return Stencils2D.central_2nd
+        else:
+            raise ValueError("Don't know how to compute derivative of order "
+                             "{}.".format(n))
+    else:
+        raise ValueError("Don't know how to compute the derivative of a "
+                         "topography of dimension {}.".format(dim))
+
+
+def _trim_nonperiodic(arr, op):
+    """
+    Trim the outer edges of an array that contains derivatives computed under
+    the assumption of periodicity. (These values at the outer edge will simply
+    be wrong.)
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        Array to be trimmed.
+    op : muFFT.DiscreteDerivative
+        Derivative operator that contains information about the size of the
+        stencil.
+    """
+    if not isinstance(op, muFFT.DiscreteDerivative):
+        raise ValueError('Can only trim edges for discrete derivatives.')
+
+    lbounds = np.array(op.lbounds)
+    rbounds = lbounds + np.array(op.stencil.shape)
+
+    trimmed_slice = []
+    for l, r in zip(lbounds, rbounds):
+        trimmed_slice += [slice(-min(l, 0), -max(0, r - 1))]
+
+    return arr[tuple(trimmed_slice)]
+
+
+def derivative(topography, n, operator=None, periodic=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
+
+    Specify either `n` or `operator`, not both.
 
     Parameters
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         SurfaceTopography object containing height information.
+    n : int
+        Order of the derivative.
     operator : muFFT.Derivative object or tuple of muFFT.Derivative objects
-        Number of times the derivative is taken.
+        Derivative operator used to compute the derivative. If unspecified,
+        a simple upwind differences scheme will be applied to compute the
+        derivative.
     periodic : bool
         Override periodic flag from topography.
 
@@ -75,25 +169,53 @@ def derivative(topography, n, periodic=None):
         raise ValueError(
             'SurfaceTopography does not have physical size information, but '
             'this is required to be able to compute a derivative.')
+
+    if operator is None:
+        if n is None:
+            raise ValueError('Please specify either *n* (order of derivative) '
+                             'or *operator* (muFFT derivative operator). You '
+                             'specified neither.')
+
+        operator = _get_default_derivative_operator(n, topography.dim)
+    elif n is not None:
+        raise ValueError('Please specify either *n* (order of derivative) or '
+                         '*operator* (muFFT derivative operator). You '
+                         'specified both.')
+
     grid_spacing = topography.pixel_size
-    heights = topography.heights()
     is_periodic = topography.is_periodic if periodic is None else periodic
-    if is_periodic:
-        der = np.array(
-            [(np.roll(heights, -1, axis=d) - heights) / grid_spacing[d]
-             for d in range(len(heights.shape))])
-        # Apply derivative into each direction multiple times
-        for i in range(n - 1):
-            der = np.array(
-                [(np.roll(der[d], -1, axis=d) - der[d]) / grid_spacing[d]
-                 for d in range(len(heights.shape))])
+
+    # Return FFT object (this will only be initialized once and reused in subsequent calls)
+    fft = topography.make_fft()
+
+    # These fields are reused when this function is called multiple times
+    real_field = fft.fetch_or_register_real_space_field('real_temporary', 1)
+    fourier_field = fft.fetch_or_register_fourier_space_field('complex_temporary', 1)
+    np.array(real_field, copy=False)[...] = topography.heights()
+    fft.fft(real_field, fourier_field)
+
+    # Apply derivative operator in Fourier space
+    if isinstance(operator, tuple):
+        fourier_array = np.array(fourier_field, copy=False)
+        fourier_copy = fourier_array.copy()
+        der = []
+        for i, op in enumerate(operator):
+            if i != 0:
+                fourier_array *= op.fourier(fft.fftfreq)
+            else:
+                fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq)
+            fft.ifft(fourier_field, real_field)
+            _der = np.array(real_field, copy=False) * fft.normalisation / grid_spacing[i] ** n
+            if not is_periodic:
+                _der = _trim_nonperiodic(_der, op)
+            der += [_der]
     else:
-        der = np.array([np.diff(heights, n=n, axis=d) / grid_spacing[d] ** n
-                        for d in range(len(heights.shape))])
-    if der.shape[0] == 1:
-        return der[0]
-    else:
-        return der
+        fourier_field *= operator.fourier(fft.fftfreq)
+        fft.ifft(fourier_field, real_field)
+        der = np.array(real_field, copy=False) * fft.normalisation / grid_spacing[0] ** n
+        if not is_periodic:
+            der = _trim_nonperiodic(der, operator)
+    return der
 
 
 def fourier_derivative(topography, imtol=None):
@@ -253,11 +375,10 @@ class FilledTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
+UniformTopographyInterface.register_function('make_fft', make_fft)
 UniformTopographyInterface.register_function('bandwidth', bandwidth)
 UniformTopographyInterface.register_function('derivative', derivative)
 Topography.register_function('fourier_derivative', fourier_derivative)
-UniformTopographyInterface.register_function('domain_decompose',
-                                             domain_decompose)
+UniformTopographyInterface.register_function('domain_decompose', domain_decompose)
 Topography.register_function('plot', plot)
-UniformTopographyInterface.register_function('fill_undefined_data',
-                                             FilledTopography)
+UniformTopographyInterface.register_function('fill_undefined_data', FilledTopography)
