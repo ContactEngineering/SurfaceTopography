@@ -131,7 +131,11 @@ def _trim_nonperiodic(arr, op):
 
     trimmed_slice = []
     for l, r in zip(lbounds, rbounds):
-        trimmed_slice += [slice(-min(l, 0), -max(0, r - 1))]
+        l = -min(l, 0)
+        r = -max(0, r - 1)
+        if r == 0:
+            r = None
+        trimmed_slice += [slice(l, r)]
 
     return arr[tuple(trimmed_slice)]
 
