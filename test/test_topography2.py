@@ -24,7 +24,7 @@
 #
 
 import pickle
-import unittest
+
 import pytest
 
 import numpy as np
@@ -34,10 +34,6 @@ from muFFT import FFT
 from NuMPI.Tools import Reduction
 
 from SurfaceTopography import Topography
-from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UniformLineScanAndTopography import (
-    DetrendedUniformTopography, UniformLineScan
-)
 
 
 def test_positions(comm):
@@ -64,265 +60,155 @@ def test_positions(comm):
     assert abs(Reduction(comm).max(y) - sy * (1 - 1. / ny)) < 1e-8
 
 
-class TopographyTest(unittest.TestCase):
+def test_positions_and_heights():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
 
-    def test_positions_and_heights(self):
-        X = np.arange(3).reshape(1, 3)
-        Y = np.arange(4).reshape(4, 1)
-        h = X + Y
+    t = Topography(h, (8, 6))
 
-        t = Topography(h, (8, 6))
+    assert t.nb_grid_pts == (4, 3)
 
-        self.assertEqual(t.nb_grid_pts, (4, 3))
+    assert_array_equal(t.heights(), h)
+    X2, Y2, h2 = t.positions_and_heights()
+    assert_array_equal(X2, [
+        (0, 0, 0),
+        (2, 2, 2),
+        (4, 4, 4),
+        (6, 6, 6),
+    ])
+    assert_array_equal(Y2, [
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+    ])
+    assert_array_equal(h2, [
+        (0, 1, 2),
+        (1, 2, 3),
+        (2, 3, 4),
+        (3, 4, 5)])
 
-        assert_array_equal(t.heights(), h)
-        X2, Y2, h2 = t.positions_and_heights()
-        assert_array_equal(X2, [
-            (0, 0, 0),
-            (2, 2, 2),
-            (4, 4, 4),
-            (6, 6, 6),
-        ])
-        assert_array_equal(Y2, [
-            (0, 2, 4),
-            (0, 2, 4),
-            (0, 2, 4),
-            (0, 2, 4),
-        ])
-        assert_array_equal(h2, [
-            (0, 1, 2),
-            (1, 2, 3),
-            (2, 3, 4),
-            (3, 4, 5)])
+    #
+    # After detrending, the position and heights should have again
+    # just 3 arrays and the third array should be the same as .heights()
+    #
+    dt = t.detrend(detrend_mode='slope')
 
-        #
-        # After detrending, the position and heights should have again
-        # just 3 arrays and the third array should be the same as .heights()
-        #
-        dt = t.detrend(detrend_mode='slope')
+    np.testing.assert_allclose(dt.heights(), [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0)])
 
-        np.testing.assert_allclose(dt.heights(), [
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 0, 0)])
+    X2, Y2, h2 = dt.positions_and_heights()
 
-        X2, Y2, h2 = dt.positions_and_heights()
-
-        assert h2.shape == (4, 3)
-        assert_array_equal(X2, [
-            (0, 0, 0),
-            (2, 2, 2),
-            (4, 4, 4),
-            (6, 6, 6),
-        ])
-        assert_array_equal(Y2, [
-            (0, 2, 4),
-            (0, 2, 4),
-            (0, 2, 4),
-            (0, 2, 4),
-        ])
-        np.testing.assert_allclose(h2, [
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 0, 0)])
-
-    def test_squeeze(self):
-        x = np.linspace(0, 4 * np.pi, 101)
-        y = np.linspace(0, 8 * np.pi, 103)
-        h = np.sin(x.reshape(-1, 1)) + np.cos(y.reshape(1, -1))
-        surface = Topography(h, (1.2, 3.2)).scale(2.0)
-        surface2 = surface.squeeze()
-        self.assertTrue(isinstance(surface2, Topography))
-        np.testing.assert_allclose(surface.heights(), surface2.heights())
-
-    def test_attribute_error(self):
-        X = np.arange(3).reshape(1, 3)
-        Y = np.arange(4).reshape(4, 1)
-        h = X + Y
-        t = Topography(h, (8, 6))
-
-        # nonsense attributes return attribute error
-        with self.assertRaises(AttributeError):
-            t.ababababababababa
-
-        #
-        # only scaled topographies have coeff
-        #
-        with self.assertRaises(AttributeError):
-            t.coeff
-
-        st = t.scale(1)
-
-        self.assertEqual(st.scale_factor, 1)
-
-        #
-        # only detrended topographies have detrend_mode
-        #
-        with self.assertRaises(AttributeError):
-            st.detrend_mode
-
-        dm = st.detrend(detrend_mode='height').detrend_mode
-        self.assertEqual(dm, 'height')
-
-        #
-        # this all should also work after pickling
-        #
-        t2 = pickle.loads(pickle.dumps(t))
-
-        with self.assertRaises(AttributeError):
-            t2.scale_factor
-
-        st2 = t2.scale(1)
-
-        self.assertEqual(st2.scale_factor, 1)
-
-        with self.assertRaises(AttributeError):
-            st2.detrend_mode
-
-        dm2 = st2.detrend(detrend_mode='height').detrend_mode
-        self.assertEqual(dm2, 'height')
-
-        #
-        # this all should also work after scaled+pickled
-        #
-        t3 = pickle.loads(pickle.dumps(st))
-
-        with self.assertRaises(AttributeError):
-            t3.detrend_mode
-
-        dm3 = t3.detrend(detrend_mode='height').detrend_mode
-        self.assertEqual(dm3, 'height')
-
-    def test_init_with_lists_calling_scale_and_detrend(self):
-        t = Topography(np.array([[1, 1, 1, 1],
-                                 [1, 1, 1, 1],
-                                 [1, 1, 1, 1]]), physical_sizes=(1, 1))
-
-        # the following commands should be possible without errors
-        st = t.scale(1)
-        st.detrend(detrend_mode='center')
-
-    def test_power_spectrum_1D(self):
-        X = np.arange(3).reshape(1, 3)
-        Y = np.arange(4).reshape(4, 1)
-        h = X + Y
-
-        t = Topography(h, (8, 6))
-
-        q1, C1 = t.power_spectrum_1D(window='hann')
-
-        # TODO add check for values
+    assert h2.shape == (4, 3)
+    assert_array_equal(X2, [
+        (0, 0, 0),
+        (2, 2, 2),
+        (4, 4, 4),
+        (6, 6, 6),
+    ])
+    assert_array_equal(Y2, [
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+    ])
+    np.testing.assert_allclose(h2, [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0)])
 
 
-def test_translate(comm_self):
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.))
-    print(topography.heights().shape)
-
-    assert (topography.translate(offset=(1, 0)).heights()
-            ==
-            np.array([[0, 0, 0],
-                      [0, 1, 0]])).all()
-
-    assert (topography.translate(offset=(2, 0)).heights()
-            ==
-            np.array([[0, 1, 0],
-                      [0, 0, 0]])).all()
-
-    assert (topography.translate(offset=(0, -1)).heights()
-            ==
-            np.array([[1, 0, 0],
-                      [0, 0, 0]])).all()
+def test_squeeze():
+    x = np.linspace(0, 4 * np.pi, 101)
+    y = np.linspace(0, 8 * np.pi, 103)
+    h = np.sin(x.reshape(-1, 1)) + np.cos(y.reshape(1, -1))
+    surface = Topography(h, (1.2, 3.2)).scale(2.0)
+    surface2 = surface.squeeze()
+    assert isinstance(surface2, Topography)
+    np.testing.assert_allclose(surface.heights(), surface2.heights())
 
 
-def test_pipeline():
-    t1 = fourier_synthesis((511, 511), (1., 1.), 0.8, rms_height=1)
-    t2 = t1.detrend()
-    p = t2.pipeline()
-    assert isinstance(p[0], Topography)
-    assert isinstance(p[1], DetrendedUniformTopography)
+def test_attribute_error():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
+    t = Topography(h, (8, 6))
+
+    # nonsense attributes return attribute error
+    with pytest.raises(AttributeError):
+        t.ababababababababa
+
+    #
+    # only scaled topographies have coeff
+    #
+    with pytest.raises(AttributeError):
+        t.coeff
+
+    st = t.scale(1)
+
+    assert st.scale_factor == 1
+
+    #
+    # only detrended topographies have detrend_mode
+    #
+    with pytest.raises(AttributeError):
+        st.detrend_mode
+
+    dm = st.detrend(detrend_mode='height').detrend_mode
+    assert dm == 'height'
+
+    #
+    # this all should also work after pickling
+    #
+    t2 = pickle.loads(pickle.dumps(t))
+
+    with pytest.raises(AttributeError):
+        t2.scale_factor
+
+    st2 = t2.scale(1)
+
+    assert st2.scale_factor == 1
+
+    with pytest.raises(AttributeError):
+        st2.detrend_mode
+
+    dm2 = st2.detrend(detrend_mode='height').detrend_mode
+    assert dm2 == 'height'
+
+    #
+    # this all should also work after scaled+pickled
+    #
+    t3 = pickle.loads(pickle.dumps(st))
+
+    with pytest.raises(AttributeError):
+        t3.detrend_mode
+
+    dm3 = t3.detrend(detrend_mode='height').detrend_mode
+    assert dm3 == 'height'
 
 
-def test_uniform_detrended_periodicity():
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.), periodic=True)
-    assert topography.detrend("center").is_periodic
-    assert not topography.detrend("height").is_periodic
-    assert not topography.detrend("curvature").is_periodic
+def test_init_with_lists_calling_scale_and_detrend():
+    t = Topography(np.array([[1, 1, 1, 1],
+                             [1, 1, 1, 1],
+                             [1, 1, 1, 1]]), physical_sizes=(1, 1))
+
+    # the following commands should be possible without errors
+    st = t.scale(1)
+    st.detrend(detrend_mode='center')
 
 
-def test_passing_of_docstring():
-    from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_1D
-    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.), periodic=True)
-    assert topography.power_spectrum_1D.__doc__ == power_spectrum_1D.__doc__
+def test_power_spectrum_1D():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
 
+    t = Topography(h, (8, 6))
 
-@pytest.mark.parametrize("periodic", (True, False))
-def test_fill_undefined_data_linescan(periodic):
-    topography = UniformLineScan(np.array([1, np.nan, 4.]),
-                                 (1.,),
-                                 info=dict(test=1),
-                                 periodic=periodic,
-                                 )
-    assert topography.has_undefined_data
+    q1, C1 = t.power_spectrum_1D(window='hann')
 
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
-    assert not filled_topography.has_undefined_data
-
-    assert filled_topography.physical_sizes == topography.physical_sizes
-    assert filled_topography.is_periodic == topography.is_periodic
-    assert filled_topography.info["test"] == 1
-
-
-@pytest.mark.parametrize("periodic", (True, False))
-def test_fill_undefined_data(periodic):
-    topography = Topography(np.array([[1, np.nan, 4.],
-                                      [3, 4, 5]]),
-                            (1., 1.),
-                            info=dict(test=1),
-                            periodic=periodic,
-                            )
-    assert topography.has_undefined_data
-
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
-    mask = np.ma.getmask(topography.heights())
-    nmask = np.logical_not(mask)
-    assert (filled_topography[nmask] == topography[nmask]).all()
-    assert (filled_topography[mask] == - np.infty).all()
-    assert not filled_topography.has_undefined_data
-
-    assert filled_topography.physical_sizes == topography.physical_sizes
-    assert filled_topography.is_periodic == topography.is_periodic
-    assert filled_topography.info["test"] == 1
-
-
-def test_fill_undefined_data_parallel(comm):
-    np.random.seed(comm.rank)
-    local_data = np.random.uniform(size=(3, 1))
-    local_data[local_data > 0.9] = np.nan
-    if comm.rank == 0:  # make sure we always have undefined data
-        local_data[0, 0] = np.nan
-    topography = Topography(local_data,
-                            (1., 1.),
-                            info=dict(test=1),
-                            communicator=comm,
-                            decomposition="subdomain",
-                            nb_grid_pts=(3, comm.size),
-                            subdomain_locations=(0, comm.rank)
-                            )
-
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
-    assert topography.has_undefined_data
-    assert not filled_topography.has_undefined_data
-
-    mask = np.ma.getmask(topography.heights())
-    nmask = np.logical_not(mask)
-
-    reduction = Reduction(comm)
-
-    assert reduction.all(filled_topography[nmask] == topography[nmask])
-    assert reduction.all(filled_topography[mask] == - np.infty)
-    assert not filled_topography.has_undefined_data
+    # TODO add check for values
