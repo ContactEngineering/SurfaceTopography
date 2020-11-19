@@ -122,7 +122,7 @@ def rms_laplacian(topography):
             "rms_Laplacian not implemented for parallelized topographies")
     if topography.dim == 1:
         curv = topography.derivative(2)
-        return np.sqrt((curv[1:-1] ** 2).mean())
+        return np.sqrt((curv ** 2).mean())
     elif topography.dim == 2:
         curv = topography.derivative(2)
         if topography.is_periodic:
