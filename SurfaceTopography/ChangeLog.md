@@ -6,6 +6,7 @@ v0.92.0 (not yet released)
 --------------------------
 
 - MAINT: Derivatives now use muFFT derivative operators
+- MAINT: Bumped muFFT dependency to v0.12.0
 
 v0.91.5 (19Oct20)
 -----------------
