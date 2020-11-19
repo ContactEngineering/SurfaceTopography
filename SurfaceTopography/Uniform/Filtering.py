@@ -23,13 +23,14 @@
 # SOFTWARE.
 #
 
-from SurfaceTopography import Topography
 import numpy as np
+
+from SurfaceTopography import Topography
 
 
 def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
             kind="circular step"):
-    r"""Applies a highcut filter to the topography using fft.
+    r"""Set the amplitude of all wavelengths shorter a certain value to zero.
 
     for `kind=="circular step"` (default), parts of the spectrum with
     `|q| > cutoff_wavevector` are set to zero
@@ -105,7 +106,7 @@ def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
 
 def lowcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
            kind="circular step"):
-    r"""Applies a lowcut filter to the topography using fft.
+    r"""Set the amplitude of all wavelength larger a certain value to zero.
 
     for `kind=="circular step"` (default), parts of the spectrum with
     `|q| < cutoff_wavevector` are set to zero
