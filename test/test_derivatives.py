@@ -44,7 +44,7 @@ def test_analytic():
 
     np.testing.assert_allclose(d1, -np.sin(x[:-2] + (x[1] - x[0])),
                                atol=1e-5)
-    np.testing.assert_allclose(d2, -np.sin(x + (x[1] - x[0])), atol=1e-5)
+    np.testing.assert_allclose(d2, -np.sin(x), atol=1e-5)
     np.testing.assert_allclose(d3, -np.sin(x[:-2] + (x[1] - x[0])),
                                atol=1e-5)
 
