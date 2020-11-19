@@ -9,17 +9,13 @@ from SurfaceTopography.Generation import fourier_synthesis
 
 
 def test_uniform_vs_nonuniform():
-    t1 = fourier_synthesis([12], [6], 0.8, rms_slope=0.1)
+    t1 = fourier_synthesis([12], [6], 0.8, rms_slope=0.1, periodic=False)
     t2 = t1.to_nonuniform()
 
     d1 = t1.derivative(1)
     d2 = t2.derivative(1)
 
-    print(t1.nb_grid_pts)
-    print(d1.shape)
-    print(d2.shape)
-
-    np.testing.assert_allclose(d1[:-1], d2)
+    np.testing.assert_allclose(d1, d2)
 
 
 def test_analytic():
