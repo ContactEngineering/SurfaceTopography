@@ -171,16 +171,7 @@ def derivative(topography, n, operator=None, periodic=None):
             'this is required to be able to compute a derivative.')
 
     if operator is None:
-        if n is None:
-            raise ValueError('Please specify either *n* (order of derivative) '
-                             'or *operator* (muFFT derivative operator). You '
-                             'specified neither.')
-
         operator = _get_default_derivative_operator(n, topography.dim)
-    elif n is not None:
-        raise ValueError('Please specify either *n* (order of derivative) or '
-                         '*operator* (muFFT derivative operator). You '
-                         'specified both.')
 
     grid_spacing = topography.pixel_size
     is_periodic = topography.is_periodic if periodic is None else periodic
@@ -200,10 +191,7 @@ def derivative(topography, n, operator=None, periodic=None):
         fourier_copy = fourier_array.copy()
         der = []
         for i, op in enumerate(operator):
-            if i != 0:
-                fourier_array *= op.fourier(fft.fftfreq)
-            else:
-                fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq)
+            fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq)
             fft.ifft(fourier_field, real_field)
             _der = np.array(real_field, copy=False) * fft.normalisation / grid_spacing[i] ** n
             if not is_periodic:

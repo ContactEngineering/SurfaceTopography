@@ -4,6 +4,8 @@ Test derivatives
 
 import numpy as np
 
+import muFFT.Stencils2D as Stencils2D
+
 from SurfaceTopography import UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
@@ -55,12 +57,15 @@ def test_fourier_derivative(plot=False):
 
     lc = 0.5
     topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
-                                   short_cutoff=lc, long_cutoff=lc + 1e-9, )
+                                   short_cutoff=lc, long_cutoff=lc + 1e-9)
     topography = topography.scale(1 / topography.rms_height())
 
-    # numerical derivatives to double check
+    # Fourier derivative
     dx, dy = topography.fourier_derivative(imtol=1e-12)
-    dx_num, dy_num = topography.derivative(1)
+
+    # Finite-differences. We use central differences because this produces the
+    # derivative at the same point as the Fourier derivative
+    dx_num, dy_num = topography.derivative(1, operator=Stencils2D.central)
 
     np.testing.assert_allclose(dx, dx_num, atol=topography.rms_slope() * 1e-1)
     np.testing.assert_allclose(dy, dy_num, atol=topography.rms_slope() * 1e-1)
