@@ -25,7 +25,7 @@ The classes expose a homogeneous interface for handling topographies. Example:
 
 .. code-block:: python
 
-    from PyCo.Topography import open_topography
+    from SurfaceTopography import open_topography
 
     # get a handle to the file ("reader")
     reader = open_topography("example.opd")   # you can find this file in the folder 'tests/file_format_examples'
@@ -69,7 +69,7 @@ After loading a topography, e.g. by
 
 .. code-block:: python
 
-    from PyCo.Topography import open_topography
+    from SurfaceTopography import open_topography
     reader = open_topography("example.opd")   # you can find this file in the folder 'tests/file_format_examples'
     topo = reader.topography()  # returns the default channel
 
@@ -123,7 +123,7 @@ All topography classes implement the following analysis functions that can retur
 
 Example:::
 
-    from PyCo.Topography import read_topography
+    from SurfaceTopography import read_topography
     topo = read_topography('my_surface.opd')
     print('rms height =', topo.rms_height())
     print('rms slope =', topo.rms_slope())
@@ -139,34 +139,9 @@ Pipeline functions return a new topography. This topography does not own the ori
 
 Example:::
 
-    from PyCo.Topography import read_topography
+    from SurfaceTopography import read_topography
     topo = read_topography('my_surface.opd')
     print('rms height before detrending =', topo.rms_height())
     print('rms height after detrending =', topo.detrend(detrend_mode='curvature').rms_height())
     print('rms height after detrending and rescaling =',
           topo.detrend(detrend_mode='curvature').scale(2.0).rms_height())
-
-Elastic half-space module
--------------------------
-
-Coordinate system
-+++++++++++++++++
-
-.. image:: ./Figures/geometry_pdf_tex.svg
-
-:math:`h_0(x)` is the content of the topography.
-
-:math:`\delta`: rigid body penetration
-
-:math:`h(x) = \delta + h_0(x)` is the height of the indenter with respect to the surface of the undeformed halfspace
-
-:math:`u(x)` displacent of the halfspace
-
-:math:`g(x) = u(x) - h(x) = u(x) - (\delta + h_0(x))`: gap
-
-
-The simulation models the indentation of an elastic halfspace (flat) with a rigid indenter whose geometry is given by the topography.
-
-In the picture above the maximum value of the topography :math:`h_0(x)` is 0. First contact occurs at :math:`\delta = 0 ` and the load will increase as `delta` increases.
-
-If :math:`h_0(x)` contains positive values the first contact will occur at :math:`\delta < 0`
