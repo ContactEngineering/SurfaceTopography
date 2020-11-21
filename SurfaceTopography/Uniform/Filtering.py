@@ -23,18 +23,18 @@
 # SOFTWARE.
 #
 
-from SurfaceTopography import Topography
-from SurfaceTopography.UniformLineScanAndTopography import DecoratedUniformTopography
+from SurfaceTopography.UniformLineScanAndTopography import \
+    DecoratedUniformTopography
 from SurfaceTopography.HeightContainer import UniformTopographyInterface
 import numpy as np
-
 
 
 class FilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
-                 filter_function=lambda qx, qy: (np.abs(qx) <= 1 )* np.abs(qy) <= 1,
+                 filter_function=lambda qx, qy: (np.abs(qx) <= 1) * np.abs(
+                     qy) <= 1,
                  isotropic=True,
                  info={}):
 
@@ -43,7 +43,8 @@ class FilteredUniformTopography(DecoratedUniformTopography):
         super().__init__(topography, info=info)
 
         self._filter_function = filter_function
-        self._is_filter_isotropic = isotropic # TODO: should be deductible from the filter function signature
+        self._is_filter_isotropic = isotropic
+        # TODO: should be deductible from the filter function signature
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -76,16 +77,16 @@ class FilteredUniformTopography(DecoratedUniformTopography):
             q
         """
 
-        if self.dim==2 and not self.is_filter_isotropic\
-            and len(args) != 2:
-            raise("ValueError: qx, qy expected")
+        if self.dim == 2 and not self.is_filter_isotropic \
+                and len(args) != 2:
+            raise ("ValueError: qx, qy expected")
         elif self.dim == 1 and len(args) != 1:
-            raise("ValueError: q expected")
+            raise ("ValueError: q expected")
 
         return self._filter_function(*args)
 
     def heights(self):
-        if self.dim==2:
+        if self.dim == 2:
             nx, ny = self.parent_topography.nb_grid_pts
             sx, sy = self.parent_topography.physical_sizes
 
@@ -97,9 +98,13 @@ class FilteredUniformTopography(DecoratedUniformTopography):
             qy *= 2 * np.pi / sy
 
             if self.is_filter_isotropic:
-                h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) * self.filter_function(np.sqrt(qx**2 + qy**2)))
+                h_qs = np.fft.irfftn(np.fft.rfftn(
+                    self.parent_topography.heights()) * self.filter_function(
+                    np.sqrt(qx ** 2 + qy ** 2)))
             else:
-                h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) * self.filter_function(qx, qy))
+                h_qs = np.fft.irfftn(np.fft.rfftn(
+                    self.parent_topography.heights()) * self.filter_function(
+                    qx, qy))
 
             return h_qs
         elif self.dim == 1:
@@ -163,21 +168,21 @@ class ShortCutTopography(FilteredUniformTopography):
             if cutoff_wavevector is not None:
                 cutoff_wavelength = 2 * np.pi / cutoff_wavevector
             else:
-                raise ValueError(
-                    "cutoff_wavevector or cutoff_wavelength should be provided")
+                raise ValueError("cutoff_wavevector "
+                                 "or cutoff_wavelength should be provided")
         elif cutoff_wavevector is not None:
-            raise ValueError(
-                "cutoff_wavevector or cutoff_wavelength should be provided")
+            raise ValueError("cutoff_wavevector "
+                             "or cutoff_wavelength should be provided")
 
         self._cutoff_wavelength = cutoff_wavelength
         self._kind = kind
 
         def circular_step(q):
-             return q <= self.cutoff_wavevector
+            return q <= self.cutoff_wavevector
 
         def square_step(qx, qy):
             return (np.abs(qx) <= self.cutoff_wavevector) * (
-                        np.abs(qy) <= self.cutoff_wavevector)
+                    np.abs(qy) <= self.cutoff_wavevector)
 
         if self._kind == "circular step":
             super().__init__(topography, info=info,
@@ -259,21 +264,21 @@ class LongCutTopography(FilteredUniformTopography):
             if cutoff_wavevector is not None:
                 cutoff_wavelength = 2 * np.pi / cutoff_wavevector
             else:
-                raise ValueError(
-                    "cutoff_wavevector or cutoff_wavelength should be provided")
+                raise ValueError("cutoff_wavevector "
+                                 "or cutoff_wavelength should be provided")
         elif cutoff_wavevector is not None:
-            raise ValueError(
-                "cutoff_wavevector or cutoff_wavelength should be provided")
+            raise ValueError("cutoff_wavevector "
+                             "or cutoff_wavelength should be provided")
 
         self._cutoff_wavelength = cutoff_wavelength
         self._kind = kind
 
         def circular_step(q):
-             return q >= self.cutoff_wavevector
+            return q >= self.cutoff_wavevector
 
         def square_step(qx, qy):
             return (np.abs(qx) >= self.cutoff_wavevector) * (
-                        np.abs(qy) >= self.cutoff_wavevector)
+                    np.abs(qy) >= self.cutoff_wavevector)
 
         if self._kind == "circular step":
             super().__init__(topography, info=info,
@@ -283,6 +288,7 @@ class LongCutTopography(FilteredUniformTopography):
                              filter_function=square_step, isotropic=False)
         else:
             raise ValueError("Invalid kind")
+
     @property
     def cutoff_wavevector(self):
         return 2 * np.pi / self._cutoff_wavelength
