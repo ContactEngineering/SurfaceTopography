@@ -29,173 +29,8 @@ from SurfaceTopography.HeightContainer import UniformTopographyInterface
 import numpy as np
 
 
-def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
-            kind="circular step"):
-    r"""Applies a highcut filter to the topography using fft.
 
-    for `kind=="circular step"` (default), parts of the spectrum with
-    `|q| > cutoff_wavevector` are set to zero
-
-    for `kind=="square step"`, parts of the spectrum with
-    `q_x > cutoff_wavevector or q_y > cutoff_wavevector ` are set to zero
-
-    either `cutoff_wavelength` or
-    `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
-    have to be provided.
-
-    Parameters
-    ----------
-    topography: Topography
-    cutoff_wavevector: float
-    highest wavevector
-    cutoff_wavelength: float
-    shortest wavelength
-    kind: {"circular step", "square step"}
-
-    Returns
-    -------
-    Topography with filtered heights
-
-    Examples
-    --------
-    >>> highcut(topography, cutoff_wavevector=2 * np.pi / l)
-    >>> highcut(topography, cutoff_wavelength=l) # equivalent
-
-    """
-
-    if not topography.is_periodic:
-        raise ValueError("only implemented for periodic topographies")
-
-    # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,
-    # topography.physical_sizes)]
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
-
-    qx = np.arange(0, nx, dtype=np.float64)
-    qx = np.where(qx <= nx // 2, qx / sx, (nx - qx) / sx)
-    qx *= 2 * np.pi
-
-    qy = np.arange(0, ny // 2 + 1, dtype=np.float64)
-    qy *= 2 * np.pi / sy
-
-    q2 = (qx ** 2).reshape(-1, 1) + (qy ** 2).reshape(1, -1)
-    print(q2.shape)
-    q = np.sqrt((qx ** 2).reshape(-1, 1) + (qy ** 2).reshape(1, -1))
-    # square of the norm of the wavevector
-
-    if cutoff_wavevector is None:
-        if cutoff_wavelength is not None:
-            cutoff_wavevector = 2 * np.pi / cutoff_wavelength
-        else:
-            raise ValueError(
-                "cutoff_wavevector or cutoff_wavelength should be provided")
-    elif cutoff_wavelength is not None:
-        raise ValueError(
-            "cutoff_wavevector or cutoff_wavelength should be provided")
-
-    #filt = np.ones_like(q2)
-
-    if kind == "circular step":
-        filt = (q <= cutoff_wavevector)
-    elif kind == "square step":
-        filt = (np.abs(qx.reshape(-1, 1)) <= cutoff_wavevector) * (
-                np.abs(qy.reshape(1, -1)) <= cutoff_wavevector)
-    else:
-        raise ValueError
-    h_qs = np.fft.irfftn(np.fft.rfftn(topography.heights()) * filt)
-
-    return Topography(h_qs, physical_sizes=topography.physical_sizes, periodic=True)
-
-class LongCutTopography(DecoratedUniformTopography):
-    name = 'longcut_filtered_topography'
-
-    def __init__(self, topography,
-                 cutoff_wavevector=None, cutoff_wavelength=None,
-                 kind="circular step",
-                 info={}):
-        r"""Applies a long wavelength cut filter to the topography using fft.
-
-        for `kind=="circular step"` (default), parts of the spectrum with
-        `|q| < cutoff_wavevector` are set to zero
-
-        for `kind=="square step"`, parts of the spectrum with
-        `q_x < cutoff_wavevector or q_y < cutoff_wavevector ` are set to zero
-
-        either `cutoff_wavelength` or
-        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
-        have to be provided.
-
-        Parameters
-        ----------
-        topography: Topography
-        cutoff_wavevector: float
-        highest wavevector
-        cutoff_wavelength: float
-        shortest wavelength
-        kind: {"circular step", "square step"}
-
-        Returns
-        -------
-        Topography with filtered heights
-
-        Examples
-        --------
-        >>> topography.lowcut(cutoff_wavevector=2 * np.pi / l)
-        >>> topography.lowcut(cutoff_wavelength=l) # equivalent
-
-        """
-        if not topography.is_periodic:
-            raise ValueError("only implemented for periodic topographies")
-        super().__init__(topography, info=info)
-
-        if cutoff_wavelength is None:
-            if cutoff_wavevector is not None:
-                cutoff_wavelength = 2 * np.pi / cutoff_wavevector
-            else:
-                raise ValueError(
-                    "cutoff_wavevector or cutoff_wavelength should be provided")
-        elif cutoff_wavevector is not None:
-            raise ValueError(
-                "cutoff_wavevector or cutoff_wavelength should be provided")
-
-        self._cutoff_wavelength = cutoff_wavelength
-        self._kind = kind
-
-    @property
-    def cutoff_wavevector(self):
-        return 2 * np.pi / self._cutoff_wavelength
-
-    @property
-    def cutoff_wavelength(self):
-        return self._cutoff_wavelength
-
-    @property
-    def filter_function(self, qx, qy):
-        if self._kind == "circular step":
-            return ((qx**2 + qy**2) >= self.cutoff_wavevector ** 2)
-        elif self._kind == "square step":
-            return (np.abs(qx) >= self.cutoff_wavevector) * (
-                        np.abs(qy) >= self.cutoff_wavevector)
-
-    def heights(self):
-        # dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,
-        # topography.physical_sizes)]
-        nx, ny = self.parent_topography.nb_grid_pts
-        sx, sy = self.parent_topography.physical_sizes
-
-        qx = np.arange(0, nx, dtype=np.float64).reshape(-1, 1)
-        qx = np.where(qx <= nx // 2, qx / sx, (nx - qx) / sx)
-        qx *= 2 * np.pi
-
-        qy = np.arange(0, ny // 2 + 1, dtype=np.float64).reshape(1, -1)
-        qy *= 2 * np.pi / sy
-
-        h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) * self.filter_function(qx, qy))
-
-        return h_qs
-
-
-class FilteredTopography(DecoratedUniformTopography):
+class FilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
@@ -283,39 +118,90 @@ class FilteredTopography(DecoratedUniformTopography):
             return np.real(h_q_filtered)
 
 
-# TODO: remove
-class IsotropicFilteredTopography(DecoratedUniformTopography):
-    name = 'isotropic_filtered_topography'
+class ShortCutTopography(FilteredUniformTopography):
+    name = 'shortcut_filtered_topography'
+
     def __init__(self, topography,
-                 filter_function=lambda q: np.exp(-q),
+                 cutoff_wavevector=None, cutoff_wavelength=None,
+                 kind="circular step",
                  info={}):
-        r"""Multiplies filter_function(|q|) to the spectrum of the topography
-        (q is the wavevector)
+        r"""Applies a short wavelength cut filter to the topography using fft.
 
-        returns
+        for `kind=="circular step"` (default), parts of the spectrum with
+        `|q| > cutoff_wavevector` are set to zero
 
-        ..math :: h^f_{ij} = FFT^-1(f(|q_{kl}|) FFT(h)_{kl})_{ij}
+        for `kind=="square step"`, parts of the spectrum with
+        `q_x > cutoff_wavevector or q_y > cutoff_wavevector ` are set to zero
 
-        with :math:`f` the `filter_function`
+        either `cutoff_wavelength` or
+        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
+        have to be provided.
 
         Parameters
         ----------
-          topography: Topography
-          filter_function:
-          function of the absolute value of the wavevector |q|
+        topography: Topography
+        cutoff_wavevector: float
+        highest wavevector
+        cutoff_wavelength: float
+        shortest wavelength
+        kind: {"circular step", "square step"}
+
+        Returns
+        -------
+        Topography with filtered heights
+
+        Examples
+        --------
+        >>> topography.shortcut(cutoff_wavevector=2 * np.pi / l)
+        >>> topography.shortcut(cutoff_wavelength=l) # equivalent
 
         """
         if not topography.is_periodic:
             raise ValueError("only implemented for periodic topographies")
-        super().__init__(topography, info=info)
-        self._filter_function = filter_function
 
+        if cutoff_wavelength is None:
+            if cutoff_wavevector is not None:
+                cutoff_wavelength = 2 * np.pi / cutoff_wavevector
+            else:
+                raise ValueError(
+                    "cutoff_wavevector or cutoff_wavelength should be provided")
+        elif cutoff_wavevector is not None:
+            raise ValueError(
+                "cutoff_wavevector or cutoff_wavelength should be provided")
+
+        self._cutoff_wavelength = cutoff_wavelength
+        self._kind = kind
+
+        def circular_step(q):
+             return q <= self.cutoff_wavevector
+
+        def square_step(qx, qy):
+            return (np.abs(qx) <= self.cutoff_wavevector) * (
+                        np.abs(qy) <= self.cutoff_wavevector)
+
+        if self._kind == "circular step":
+            super().__init__(topography, info=info,
+                             filter_function=circular_step)
+        elif self._kind == "square step":
+            super().__init__(topography, info=info,
+                             filter_function=square_step, isotropic=False)
+        else:
+            raise ValueError("Invalid kind")
+
+    @property
+    def cutoff_wavevector(self):
+        return 2 * np.pi / self._cutoff_wavelength
+
+    @property
+    def cutoff_wavelength(self):
+        return self._cutoff_wavelength
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._filter_function
+        state = super().__getstate__(), self._filter_function, \
+            self._kind, self._cutoff_wavelength
         return state
 
     def __setstate__(self, state):
@@ -323,51 +209,107 @@ class IsotropicFilteredTopography(DecoratedUniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._filter_function = state
+        superstate, self._filter_function, self._kind, \
+            self._cutoff_wavelength = state
         super().__setstate__(superstate)
 
-    def filter_function(self, q):
-        return self._filter_function(q)
 
-    def heights(self):
+class LongCutTopography(FilteredUniformTopography):
+    name = 'longcut_filtered_topography'
 
-        if self.dim == 2:
-            sx, sy = self.parent_topography.physical_sizes
-            nx, ny = self.parent_topography.nb_grid_pts
-            qx = np.arange(0, nx, dtype=np.float64)
-            qx = np.where(qx <= nx // 2, qx / sx, (nx - qx) / sx)
-            qx *= 2 * np.pi
+    def __init__(self, topography,
+                 cutoff_wavevector=None, cutoff_wavelength=None,
+                 kind="circular step",
+                 info={}):
+        r"""Applies a long wavelength cut filter to the topography using fft.
 
-            qy = np.arange(0, ny // 2 + 1, dtype=np.float64)
-            qy *= 2 * np.pi / sy
+        for `kind=="circular step"` (default), parts of the spectrum with
+        `|q| < cutoff_wavevector` are set to zero
 
-            q = np.sqrt((qx ** 2).reshape(-1, 1) + (qy ** 2).reshape(1, -1))
+        for `kind=="square step"`, parts of the spectrum with
+        `q_x < cutoff_wavevector or q_y < cutoff_wavevector ` are set to zero
 
-            # h_q = np.fft.fft2(h)
-            # h_q_filtered = np.fft.ifft2(h_q * self.filter_function(q))
-            h_q_filtered = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) * self.filter_function(q))
-            # Max_imaginary = np.max(np.imag(shifted_pot))
-            # assert Max_imaginary < 1e-14 *np.max(np.real(shifted_pot)) ,
-            # f"{Max_imaginary}"
+        either `cutoff_wavelength` or
+        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`
+        have to be provided.
 
-            return h_q_filtered
-        elif self.dim == 1:
-            s, = self.parent_topography.physical_sizes
-            n, = self.parent_topography.nb_grid_pts
-            q = abs(2 * np.pi * np.fft.fftfreq(n, s / n))
+        Parameters
+        ----------
+        topography: Topography
+        cutoff_wavevector: float
+        highest wavevector
+        cutoff_wavelength: float
+        shortest wavelength
+        kind: {"circular step", "square step"}
 
-            h = self.parent_topography.heights()
-            h_q = np.fft.fft(h)
-            h_q_filtered = np.fft.ifft(h_q * self.filter_function(q))
+        Returns
+        -------
+        Topography with filtered heights
 
-            # Max_imaginary = np.max(np.imag(shifted_pot))
-            # assert Max_imaginary < 1e-14 *np.max(np.real(shifted_pot)) ,
-            # f"{Max_imaginary}"
+        Examples
+        --------
+        >>> topography.longcut(cutoff_wavevector=2 * np.pi / l)
+        >>> topography.longcut(cutoff_wavelength=l) # equivalent
 
-            return np.real(h_q_filtered)
+        """
+        if not topography.is_periodic:
+            raise ValueError("only implemented for periodic topographies")
+
+        if cutoff_wavelength is None:
+            if cutoff_wavevector is not None:
+                cutoff_wavelength = 2 * np.pi / cutoff_wavevector
+            else:
+                raise ValueError(
+                    "cutoff_wavevector or cutoff_wavelength should be provided")
+        elif cutoff_wavevector is not None:
+            raise ValueError(
+                "cutoff_wavevector or cutoff_wavelength should be provided")
+
+        self._cutoff_wavelength = cutoff_wavelength
+        self._kind = kind
+
+        def circular_step(q):
+             return q >= self.cutoff_wavevector
+
+        def square_step(qx, qy):
+            return (np.abs(qx) >= self.cutoff_wavevector) * (
+                        np.abs(qy) >= self.cutoff_wavevector)
+
+        if self._kind == "circular step":
+            super().__init__(topography, info=info,
+                             filter_function=circular_step)
+        elif self._kind == "square step":
+            super().__init__(topography, info=info,
+                             filter_function=square_step, isotropic=False)
+        else:
+            raise ValueError("Invalid kind")
+    @property
+    def cutoff_wavevector(self):
+        return 2 * np.pi / self._cutoff_wavelength
+
+    @property
+    def cutoff_wavelength(self):
+        return self._cutoff_wavelength
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self._filter_function, \
+            self._kind, self._cutoff_wavelength
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._filter_function, self._kind, \
+            self._cutoff_wavelength = state
+        super().__setstate__(superstate)
 
 
-UniformTopographyInterface.register_function("isotropic_filter",
-                                             FilteredTopography)
-UniformTopographyInterface.register_function("highcut", highcut)
+UniformTopographyInterface.register_function("filter",
+                                             FilteredUniformTopography)
+UniformTopographyInterface.register_function("shortcut", ShortCutTopography)
 UniformTopographyInterface.register_function("longcut", LongCutTopography)
