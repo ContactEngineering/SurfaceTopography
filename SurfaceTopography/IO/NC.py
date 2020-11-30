@@ -178,7 +178,7 @@ plt.show()
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-def write_nc(topography, filename, format='NETCDF4'):
+def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
     """
     Write topography into a NetCDF file.
 
@@ -189,7 +189,7 @@ def write_nc(topography, filename, format='NETCDF4'):
     filename : str
         Name of the NetCDF file
     format : str
-        NetCDF file format. Default is 'NETCDF4'.
+        NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
     from netCDF4 import Dataset
     if not topography.is_domain_decomposed and \
