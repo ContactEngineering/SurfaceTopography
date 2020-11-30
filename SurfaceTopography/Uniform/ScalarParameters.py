@@ -33,7 +33,6 @@ import numpy as np
 
 from NuMPI.Tools import Reduction
 
-from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
 
 
@@ -111,7 +110,7 @@ def rms_slope(topography, short_wavelength_cutoff=None):
             topography.dim))
 
 
-def rms_laplacian(topography):
+def rms_laplacian(topography, short_wavelength_cutoff=None):
     """
     Compute the root mean square Laplacian of the height gradient of a
     topography or line scan stored on a uniform grid. The rms curvature
@@ -121,6 +120,10 @@ def rms_laplacian(topography):
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         SurfaceTopography object containing height information.
+    short_wavelength_cutoff : float
+        All wavelengths below this cutoff will be set to zero amplitude.
+        If the surface is non-periodic, a window function will be
+        additionally applied before computing the slope.
 
     Returns
     -------
@@ -131,10 +134,14 @@ def rms_laplacian(topography):
         raise NotImplementedError(
             "rms_Laplacian not implemented for parallelized topographies")
     if topography.dim == 1:
-        curv = topography.derivative(2)
+        mask_function = None if short_wavelength_cutoff is None else \
+            lambda q: q ** 2 < 1 / short_wavelength_cutoff ** 2
+        curv = topography.derivative(2, mask_function=mask_function)
         return np.sqrt((curv ** 2).mean())
     elif topography.dim == 2:
-        curv = topography.derivative(2)
+        mask_function = None if short_wavelength_cutoff is None else \
+            lambda q: q[0] ** 2 + q[1] ** 2 < 1 / short_wavelength_cutoff ** 2
+        curv = topography.derivative(2, mask_function=mask_function)
         if topography.is_periodic:
             return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
         else:
@@ -144,7 +151,7 @@ def rms_laplacian(topography):
             topography.dim))
 
 
-def rms_curvature(topography):
+def rms_curvature(topography, short_wavelength_cutoff=None):
     """
     Compute the root mean square curvature of the height gradient of a
     topography or line scan stored on a uniform grid.
@@ -157,6 +164,10 @@ def rms_curvature(topography):
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         SurfaceTopography object containing height information.
+    short_wavelength_cutoff : float
+        All wavelengths below this cutoff will be set to zero amplitude.
+        If the surface is non-periodic, a window function will be
+        additionally applied before computing the slope.
 
     Returns
     -------
@@ -173,7 +184,7 @@ def rms_curvature(topography):
     else:
         raise ValueError('Cannot handle topographies of dimension {}'.format(
             topography.dim))
-    return fac * rms_laplacian(topography)
+    return fac * rms_laplacian(topography, short_wavelength_cutoff=short_wavelength_cutoff)
 
 
 # Register analysis functions from this module

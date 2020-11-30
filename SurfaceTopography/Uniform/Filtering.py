@@ -25,7 +25,8 @@
 
 import numpy as np
 
-from SurfaceTopography import Topography
+from .. import Topography
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 def highcut(topography, cutoff_wavevector=None, cutoff_wavelength=None,
@@ -221,6 +222,58 @@ def isotropic_filter(topography, filter_function=lambda q: np.exp(-q)):
     return Topography(np.real(h_q_filtered),
                       physical_sizes=topography.physical_sizes)
 
+
+class WindowedUniformTopography(DecoratedUniformTopography):
+    """
+    Apply a window function to the topography
+    """
+
+    def __init__(self, topography, window=None, info={}):
+        """
+        Parameters
+        ----------
+        topography : UniformTopographyInterface
+            The window function is applied to this topography.
+        window : str
+            String for the window function.
+        """
+        super().__init__(topography, info=info)
+
+        if window is None:
+            window = 'hann'
+
+        # Construct and apply window
+        if window is not None and window != 'None':
+            win = get_window(window, nx)
+            # Normalize window
+            win *= np.sqrt(nx / (win ** 2).sum())
+            h = (win * h.T).T
+
+        self._scale_factor = float(scale_factor)
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), self._scale_factor
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._scale_factor = state
+        super().__setstate__(superstate)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
+
+    def heights(self):
+        """ Computes the rescaled profile.
+        """
+        return self._scale_factor * self.parent_topography.heights()
 
 Topography.register_function("isotropic_filter", isotropic_filter)
 Topography.register_function("highcut", highcut)
