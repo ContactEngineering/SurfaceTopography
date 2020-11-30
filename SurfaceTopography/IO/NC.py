@@ -178,7 +178,7 @@ plt.show()
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-MAIdef write_nc(topography, filename, format='NETCDF4'):
+def write_nc(topography, filename, format='NETCDF4'):
     """
     Write topography into a NetCDF file.
 
