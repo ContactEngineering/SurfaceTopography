@@ -26,7 +26,7 @@
 import numpy as np
 
 from SurfaceTopography.Generation import fourier_synthesis
-
+from SurfaceTopography import Topography
 
 def test_lowcut():
     # high number of points required because of binning in the isotropic psd
@@ -67,3 +67,22 @@ def test_highcut():
         ax.loglog(*t.power_spectrum_2D(), label="original")
         ax.legend()
         fig.show()
+
+
+def test_mirror_stitch():
+    t = Topography(np.array(((0, 1),
+                    (0, 0))),
+                    (2., 3.))
+    tp = t.mirror_stitch_periodize()
+
+    assert tp.is_periodic
+
+    np.testing.assert_allclose(tp.physical_sizes, (4., 6.))
+
+    np.testing.assert_allclose(tp.heights(),
+                               [[0, 1, 1, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 1, 1, 0]
+                                ]
+                               )

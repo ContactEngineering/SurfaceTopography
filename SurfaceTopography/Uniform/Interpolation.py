@@ -28,6 +28,7 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 from ..Interpolation import Bicubic
 from ..UniformLineScanAndTopography import Topography
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 def bicubic_interpolator(topography):
@@ -154,6 +155,48 @@ def interpolate_fourier(topography, nb_grid_pts):
                       physical_sizes=topography.physical_sizes)
 
 
+class MirrorStichPeriodizedTopography(DecoratedUniformTopography):
+    """
+    adds mirror images at the top (big y) and at the right (big x) of the
+    topography, making it kind of periodic
+
+    """
+
+    def __init__(self, parent_topography, info={}):
+        if parent_topography.communicator.Get_size() > 1:
+            raise (NotImplemented("MirrorStichPeriodizedTopography "
+                                  "not domain decomposable"))
+        super().__init__(parent_topography, info)
+
+    @property
+    def is_periodic(self):
+        return True
+
+    @property
+    def physical_sizes(self):
+        return [2 * s for s in self.parent_topography.physical_sizes]
+
+    @property
+    def nb_grid_pts(self):
+        return [2 * s for s in self.parent_topography.nb_grid_pts]
+
+    def heights(self):
+        h = self.parent_topography.heights()
+        return np.block([[h[:, :], h[:, ::-1]],
+                         [h[:: -1, :], h[::-1, :: -1]]])
+
+    def positions(self):
+        nx, ny = self.nb_grid_pts
+        lnx, lny = self.nb_subdomain_grid_pts
+        sx, sy = self.physical_sizes
+        return np.meshgrid(
+            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
+            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
+            indexing='ij')
+
+
+Topography.register_function("mirror_stitch_periodize",
+                             MirrorStichPeriodizedTopography)
 Topography.register_function("interpolate_bicubic", bicubic_interpolator)
 UniformTopographyInterface.register_function('interpolate_fourier',
                                              interpolate_fourier)
