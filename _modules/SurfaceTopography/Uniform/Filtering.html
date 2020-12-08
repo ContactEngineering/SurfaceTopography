@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.Filtering &mdash; SurfaceTopography 0.91.5 documentation</title>
+  <title>SurfaceTopography.Uniform.Filtering &mdash; SurfaceTopography 0.91.6.dev7+gd7d2513 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.5
+                0.91.6.dev7+gd7d2513
               </div>
             
           
@@ -188,207 +188,302 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">SurfaceTopography.UniformLineScanAndTopography</span> <span class="k">import</span> \
+    <span class="n">DecoratedUniformTopography</span>
+<span class="kn">from</span> <span class="nn">SurfaceTopography.HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="highcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.highcut">[docs]</a><span class="k">def</span> <span class="nf">highcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a highcut filter to the topography using fft.</span>
+<div class="viewcode-block" id="FilteredUniformTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">FilteredUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;filtered_topography&#39;</span>
 
-<span class="sd">    for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
-<span class="sd">    `|q| &gt; cutoff_wavevector` are set to zero</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span>
+                 <span class="n">filter_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">qx</span><span class="p">,</span> <span class="n">qy</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                     <span class="n">qy</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="n">isotropic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
 
-<span class="sd">    for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
-<span class="sd">    `q_x &gt; cutoff_wavevector or q_y &gt; cutoff_wavevector ` are set to zero</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
 
-<span class="sd">    either `cutoff_wavelength` or</span>
-<span class="sd">    `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
-<span class="sd">    have to be provided.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span> <span class="o">=</span> <span class="n">filter_function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_filter_isotropic</span> <span class="o">=</span> <span class="n">isotropic</span>
+        <span class="c1"># TODO: should be deductible from the filter function signature</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    topography: Topography</span>
-<span class="sd">    cutoff_wavevector: float</span>
-<span class="sd">    highest wavevector</span>
-<span class="sd">    cutoff_wavelength: float</span>
-<span class="sd">    shortest wavelength</span>
-<span class="sd">    kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_filter_isotropic</span>
+        <span class="k">return</span> <span class="n">state</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Topography with filtered heights</span>
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_filter_isotropic</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
 
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; highcut(topography, cutoff_wavevector=2 * np.pi / l)</span>
-<span class="sd">    &gt;&gt;&gt; highcut(topography, cutoff_wavelength=l) # equivalent</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_filter_isotropic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_filter_isotropic</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FilteredUniformTopography.filter_function"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.filter_function">[docs]</a>    <span class="k">def</span> <span class="nf">filter_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        if dim = 2 and filter is not isotropic</span>
+<span class="sd">            qx, qy</span>
+<span class="sd">        if dim = 1</span>
+<span class="sd">            q</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-    <span class="c1"># dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,</span>
-    <span class="c1"># topography.physical_sizes)]</span>
-    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_filter_isotropic</span> \
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="s2">&quot;ValueError: qx, qy expected&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="s2">&quot;ValueError: q expected&quot;</span><span class="p">)</span>
 
-    <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">qx</span> <span class="o">&lt;=</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">qx</span> <span class="o">/</span> <span class="n">sx</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">qx</span><span class="p">)</span> <span class="o">/</span> <span class="n">sx</span><span class="p">)</span>
-    <span class="n">qx</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
 
-    <span class="n">qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">qy</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sy</span>
+<div class="viewcode-block" id="FilteredUniformTopography.heights"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+            <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
 
-    <span class="n">q2</span> <span class="o">=</span> <span class="p">(</span><span class="n">qx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">qy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="c1"># square of the norm of the wavevector</span>
+            <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">qx</span> <span class="o">&lt;=</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">qx</span> <span class="o">/</span> <span class="n">sx</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">qx</span><span class="p">)</span> <span class="o">/</span> <span class="n">sx</span><span class="p">)</span>
+            <span class="n">qx</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
-    <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">cutoff_wavevector</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavelength</span>
+            <span class="n">qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">qy</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sy</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_filter_isotropic</span><span class="p">:</span>
+                <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_function</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">qy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_function</span><span class="p">(</span>
+                    <span class="n">qx</span><span class="p">,</span> <span class="n">qy</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">h_qs</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+            <span class="n">n</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">s</span> <span class="o">/</span> <span class="n">n</span><span class="p">))</span>
+
+            <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+            <span class="n">h_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+            <span class="n">h_q_filtered</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">h_q</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_function</span><span class="p">(</span><span class="n">q</span><span class="p">))</span>
+
+            <span class="c1"># Max_imaginary = np.max(np.imag(shifted_pot))</span>
+            <span class="c1"># assert Max_imaginary &lt; 1e-14 *np.max(np.real(shifted_pot)) ,</span>
+            <span class="c1"># f&quot;{Max_imaginary}&quot;</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">h_q_filtered</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ShortCutTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography">[docs]</a><span class="k">class</span> <span class="nc">ShortCutTopography</span><span class="p">(</span><span class="n">FilteredUniformTopography</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;shortcut_filtered_topography&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span>
+                 <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">,</span>
+                 <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a short wavelength cut filter to the topography using fft.</span>
+
+<span class="sd">        for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
+<span class="sd">        `|q| &gt; cutoff_wavevector` are set to zero</span>
+
+<span class="sd">        for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
+<span class="sd">        `q_x &gt; cutoff_wavevector or q_y &gt; cutoff_wavevector ` are set to zero</span>
+
+<span class="sd">        either `cutoff_wavelength` or</span>
+<span class="sd">        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
+<span class="sd">        have to be provided.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topography: Topography</span>
+<span class="sd">        cutoff_wavevector: float</span>
+<span class="sd">        highest wavevector</span>
+<span class="sd">        cutoff_wavelength: float</span>
+<span class="sd">        shortest wavelength</span>
+<span class="sd">        kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Topography with filtered heights</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; topography.shortcut(cutoff_wavevector=2 * np.pi / l)</span>
+<span class="sd">        &gt;&gt;&gt; topography.shortcut(cutoff_wavelength=l) # equivalent</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cutoff_wavelength</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavevector</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cutoff_wavevector &quot;</span>
+                                 <span class="s2">&quot;or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cutoff_wavevector &quot;</span>
+                             <span class="s2">&quot;or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span> <span class="o">=</span> <span class="n">cutoff_wavelength</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">=</span> <span class="n">kind</span>
+
+        <span class="k">def</span> <span class="nf">circular_step</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">q</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span>
+
+        <span class="k">def</span> <span class="nf">square_step</span><span class="p">(</span><span class="n">qx</span><span class="p">,</span> <span class="n">qy</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                             <span class="n">filter_function</span><span class="o">=</span><span class="n">circular_step</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                             <span class="n">filter_function</span><span class="o">=</span><span class="n">square_step</span><span class="p">,</span> <span class="n">isotropic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid kind&quot;</span><span class="p">)</span>
 
-    <span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cutoff_wavevector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
 
-    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cutoff_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
 
-    <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="n">filt</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
+        <span class="k">return</span> <span class="n">state</span>
 
-    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">h_qs</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">,</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="lowcut"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.lowcut">[docs]</a><span class="k">def</span> <span class="nf">lowcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-           <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a lowcut filter to the topography using fft.</span>
+<div class="viewcode-block" id="LongCutTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography">[docs]</a><span class="k">class</span> <span class="nc">LongCutTopography</span><span class="p">(</span><span class="n">FilteredUniformTopography</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;longcut_filtered_topography&#39;</span>
 
-<span class="sd">    for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
-<span class="sd">    `|q| &lt; cutoff_wavevector` are set to zero</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span>
+                 <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;circular step&quot;</span><span class="p">,</span>
+                 <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Applies a long wavelength cut filter to the topography using fft.</span>
 
-<span class="sd">    for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
-<span class="sd">    `q_x &lt; cutoff_wavevector or q_y &lt; cutoff_wavevector ` are set to zero</span>
+<span class="sd">        for `kind==&quot;circular step&quot;` (default), parts of the spectrum with</span>
+<span class="sd">        `|q| &lt; cutoff_wavevector` are set to zero</span>
 
-<span class="sd">    either `cutoff_wavelength` or</span>
-<span class="sd">    `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
-<span class="sd">    have to be provided.</span>
+<span class="sd">        for `kind==&quot;square step&quot;`, parts of the spectrum with</span>
+<span class="sd">        `q_x &lt; cutoff_wavevector or q_y &lt; cutoff_wavevector ` are set to zero</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    topography: Topography</span>
-<span class="sd">    cutoff_wavevector: float</span>
-<span class="sd">    highest wavevector</span>
-<span class="sd">    cutoff_wavelength: float</span>
-<span class="sd">    shortest wavelength</span>
-<span class="sd">    kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
+<span class="sd">        either `cutoff_wavelength` or</span>
+<span class="sd">        `cutoff_wavevector` :math:`= 2 pi /` `cutoff_wavelength`</span>
+<span class="sd">        have to be provided.</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Topography with filtered heights</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topography: Topography</span>
+<span class="sd">        cutoff_wavevector: float</span>
+<span class="sd">        highest wavevector</span>
+<span class="sd">        cutoff_wavelength: float</span>
+<span class="sd">        shortest wavelength</span>
+<span class="sd">        kind: {&quot;circular step&quot;, &quot;square step&quot;}</span>
 
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; lowcut(topography, cutoff_wavevector=2 * np.pi / l)</span>
-<span class="sd">    &gt;&gt;&gt; lowcut(topography, cutoff_wavelength=l) # equivalent</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Topography with filtered heights</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; topography.longcut(cutoff_wavevector=2 * np.pi / l)</span>
+<span class="sd">        &gt;&gt;&gt; topography.longcut(cutoff_wavelength=l) # equivalent</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
 
-    <span class="c1"># dx, dy =  [r / s for r,s in zip(topography.nb_grid_pts,</span>
-    <span class="c1"># topography.physical_sizes)]</span>
-    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cutoff_wavelength</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavevector</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cutoff_wavevector &quot;</span>
+                                 <span class="s2">&quot;or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cutoff_wavevector &quot;</span>
+                             <span class="s2">&quot;or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
 
-    <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">qx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">qx</span> <span class="o">&lt;=</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">qx</span> <span class="o">/</span> <span class="n">sx</span><span class="p">,</span> <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">qx</span><span class="p">)</span> <span class="o">/</span> <span class="n">sx</span><span class="p">)</span>
-    <span class="n">qx</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span> <span class="o">=</span> <span class="n">cutoff_wavelength</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">=</span> <span class="n">kind</span>
 
-    <span class="n">qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-    <span class="n">qy</span> <span class="o">*=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sy</span>
+        <span class="k">def</span> <span class="nf">circular_step</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">q</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span>
 
-    <span class="n">q2</span> <span class="o">=</span> <span class="p">(</span><span class="n">qx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">qy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="c1"># square of the norm of the wavevector</span>
+        <span class="k">def</span> <span class="nf">square_step</span><span class="p">(</span><span class="n">qx</span><span class="p">,</span> <span class="n">qy</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutoff_wavevector</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">cutoff_wavevector</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">cutoff_wavevector</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">cutoff_wavelength</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                             <span class="n">filter_function</span><span class="o">=</span><span class="n">circular_step</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                             <span class="n">filter_function</span><span class="o">=</span><span class="n">square_step</span><span class="p">,</span> <span class="n">isotropic</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">cutoff_wavelength</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;cutoff_wavevector or cutoff_wavelength should be provided&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid kind&quot;</span><span class="p">)</span>
 
-    <span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">q2</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cutoff_wavevector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
 
-    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;circular step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">q2</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;square step&quot;</span><span class="p">:</span>
-        <span class="n">filt</span> <span class="o">*=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qx</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                    <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">qy</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&gt;=</span> <span class="n">cutoff_wavevector</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cutoff_wavelength</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
 
-    <span class="n">h_qs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfftn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftn</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span> <span class="o">*</span> <span class="n">filt</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span>
+        <span class="k">return</span> <span class="n">state</span>
 
-    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">h_qs</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="isotropic_filter"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.isotropic_filter">[docs]</a><span class="k">def</span> <span class="nf">isotropic_filter</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">filter_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">q</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">q</span><span class="p">)):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Multiplies filter_function(|q|) to the spectrum of the topography</span>
-<span class="sd">    (q is the wavevector)</span>
-
-<span class="sd">    returns</span>
-
-<span class="sd">    ..math :: h^f_{ij} = FFT^-1(f(|q_{kl}|) FFT(h)_{kl})_{ij}</span>
-
-<span class="sd">    with :math:`f` the `filter_function`</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    topography: Topography</span>
-<span class="sd">    filter_function:</span>
-<span class="sd">    function of the absolute value of the wavevector |q|</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Topography with the modified heights</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;only implemented for periodic topographies&quot;</span><span class="p">)</span>
-
-    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
-    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-    <span class="n">qx</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">qy</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">qy</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
-    <span class="n">h_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-    <span class="n">h_q_filtered</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">h_q</span> <span class="o">*</span> <span class="n">filter_function</span><span class="p">(</span><span class="n">q</span><span class="p">))</span>
-
-    <span class="c1"># Max_imaginary = np.max(np.imag(shifted_pot))</span>
-    <span class="c1"># assert Max_imaginary &lt; 1e-14 *np.max(np.real(shifted_pot)) ,</span>
-    <span class="c1"># f&quot;{Max_imaginary}&quot;</span>
-
-    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">h_q_filtered</span><span class="p">),</span>
-                      <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kind</span><span class="p">,</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cutoff_wavelength</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span></div>
 
 
-<span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;isotropic_filter&quot;</span><span class="p">,</span> <span class="n">isotropic_filter</span><span class="p">)</span>
-<span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;highcut&quot;</span><span class="p">,</span> <span class="n">highcut</span><span class="p">)</span>
-<span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;lowcut&quot;</span><span class="p">,</span> <span class="n">lowcut</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;filter&quot;</span><span class="p">,</span>
+                                             <span class="n">FilteredUniformTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;shortcut&quot;</span><span class="p">,</span> <span class="n">ShortCutTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;longcut&quot;</span><span class="p">,</span> <span class="n">LongCutTopography</span><span class="p">)</span>
 </pre></div>
 
            </div>

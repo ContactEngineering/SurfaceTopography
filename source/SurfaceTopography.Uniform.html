@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.91.5 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.91.6.dev7+gd7d2513 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.91.5
+                0.91.6.dev7+gd7d2513
               </div>
             
           
@@ -295,7 +295,7 @@ surface.</p>
 <li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
 <li><p>arr_out.sum() = 0</p></li>
 </ol>
-<p>3) <a href="#id7"><span class="problematic" id="id8">|ň|</span></a> = 1
+<p>3) <a href="#id3"><span class="problematic" id="id4">|ň|</span></a> = 1
 =&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
 <blockquote>
 <div><p>dofs = n_x, n_y, d = X</p>
@@ -320,7 +320,7 @@ function.</p>
 <li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
 <li><p>arr_out.sum() = 0</p></li>
 </ol>
-<p>3) <a href="#id9"><span class="problematic" id="id10">|ň|</span></a> = 1
+<p>3) <a href="#id5"><span class="problematic" id="id6">|ň|</span></a> = 1
 =&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
 <blockquote>
 <div><p>dofs = n_x, n_y, d = X</p>
@@ -344,101 +344,81 @@ function.</p>
 </div>
 <div class="section" id="module-SurfaceTopography.Uniform.Filtering">
 <span id="surfacetopography-uniform-filtering-module"></span><h2>SurfaceTopography.Uniform.Filtering module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Filtering" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="SurfaceTopography.Uniform.Filtering.highcut">
-<code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">highcut</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em>, <em class="sig-param"><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kind</span><span class="o">=</span><span class="default_value">'circular step'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#highcut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.highcut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies a highcut filter to the topography using fft.</p>
-<p>for <cite>kind==”circular step”</cite> (default), parts of the spectrum with
-<cite>|q| &gt; cutoff_wavevector</cite> are set to zero</p>
-<p>for <cite>kind==”square step”</cite>, parts of the spectrum with
-<a href="#id1"><span class="problematic" id="id2">`</span></a>q_x &gt; cutoff_wavevector or q_y &gt; cutoff_wavevector ` are set to zero</p>
-<p>either <cite>cutoff_wavelength</cite> or
-<cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
-have to be provided.</p>
-<dl class="field-list simple">
+<dl class="py class">
+<dt id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography">
+<em class="property">class </em><code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">FilteredUniformTopography</code><span class="sig-paren">(</span><em class="sig-param">topography</em>, <em class="sig-param">filter_function=&lt;function FilteredUniformTopography.&lt;lambda&gt;&gt;</em>, <em class="sig-param">isotropic=True</em>, <em class="sig-param">info={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#FilteredUniformTopography"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.filter_function">
+<code class="sig-name descname">filter_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#FilteredUniformTopography.filter_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.filter_function" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
-<li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
-<li><p><strong>wavevector</strong> (<em>highest</em>) – </p></li>
-<li><p><strong>cutoff_wavelength</strong> (<em>float</em>) – </p></li>
-<li><p><strong>wavelength</strong> (<em>shortest</em>) – </p></li>
-<li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
+<li><p><strong>dim = 2 and filter is not isotropic</strong> (<em>if</em>) – qx, qy</p></li>
+<li><p><strong>dim = 1</strong> (<em>if</em>) – q</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Topography with filtered heights</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">highcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">l</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">highcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="c1"># equivalent</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt id="SurfaceTopography.Uniform.Filtering.isotropic_filter">
-<code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">isotropic_filter</code><span class="sig-paren">(</span><em class="sig-param">topography</em>, <em class="sig-param">filter_function=&lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#isotropic_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.isotropic_filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Multiplies filter_function(<a href="#id11"><span class="problematic" id="id12">|q|</span></a>) to the spectrum of the topography
-(q is the wavevector)</p>
-<p>returns</p>
-<p>..math :: h^f_{ij} = FFT^-1(f(<a href="#id13"><span class="problematic" id="id14">|q_{kl}|</span></a>) FFT(h)_{kl})_{ij}</p>
-<p>with <span class="math notranslate nohighlight">\(f\)</span> the <cite>filter_function</cite></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
-<li><p><strong>filter_function</strong> – </p></li>
-<li><p><strong>of the absolute value of the wavevector q</strong> (<em>function</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Topography with the modified heights</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt id="SurfaceTopography.Uniform.Filtering.lowcut">
-<code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">lowcut</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em>, <em class="sig-param"><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kind</span><span class="o">=</span><span class="default_value">'circular step'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#lowcut"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.lowcut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Applies a lowcut filter to the topography using fft.</p>
-<p>for <cite>kind==”circular step”</cite> (default), parts of the spectrum with
-<cite>|q| &lt; cutoff_wavevector</cite> are set to zero</p>
-<p>for <cite>kind==”square step”</cite>, parts of the spectrum with
-<a href="#id3"><span class="problematic" id="id4">`</span></a>q_x &lt; cutoff_wavevector or q_y &lt; cutoff_wavevector ` are set to zero</p>
-<p>either <cite>cutoff_wavelength</cite> or
-<cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
-have to be provided.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
-<li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
-<li><p><strong>wavevector</strong> (<em>highest</em>) – </p></li>
-<li><p><strong>cutoff_wavelength</strong> (<em>float</em>) – </p></li>
-<li><p><strong>wavelength</strong> (<em>shortest</em>) – </p></li>
-<li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Topography with filtered heights</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lowcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavevector</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">l</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lowcut</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">cutoff_wavelength</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="c1"># equivalent</span>
-</pre></div>
-</div>
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.heights">
+<code class="sig-name descname">heights</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#FilteredUniformTopography.heights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic">
+<em class="property">property </em><code class="sig-name descname">is_filter_isotropic</code><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name">
+<code class="sig-name descname">name</code><em class="property"> = 'filtered_topography'</em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="SurfaceTopography.Uniform.Filtering.LongCutTopography">
+<em class="property">class </em><code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">LongCutTopography</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em>, <em class="sig-param"><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kind</span><span class="o">=</span><span class="default_value">'circular step'</span></em>, <em class="sig-param"><span class="n">info</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#LongCutTopography"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Uniform.Filtering.FilteredUniformTopography</span></code></a></p>
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength">
+<em class="property">property </em><code class="sig-name descname">cutoff_wavelength</code><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavevector">
+<em class="property">property </em><code class="sig-name descname">cutoff_wavevector</code><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavevector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="SurfaceTopography.Uniform.Filtering.LongCutTopography.name">
+<code class="sig-name descname">name</code><em class="property"> = 'longcut_filtered_topography'</em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="SurfaceTopography.Uniform.Filtering.ShortCutTopography">
+<em class="property">class </em><code class="sig-prename descclassname">SurfaceTopography.Uniform.Filtering.</code><code class="sig-name descname">ShortCutTopography</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em>, <em class="sig-param"><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kind</span><span class="o">=</span><span class="default_value">'circular step'</span></em>, <em class="sig-param"><span class="n">info</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Filtering.html#ShortCutTopography"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Uniform.Filtering.FilteredUniformTopography</span></code></a></p>
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength">
+<em class="property">property </em><code class="sig-name descname">cutoff_wavelength</code><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector">
+<em class="property">property </em><code class="sig-name descname">cutoff_wavevector</code><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.name">
+<code class="sig-name descname">name</code><em class="property"> = 'shortcut_filtered_topography'</em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -772,7 +752,7 @@ process.</p>
 \[\left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} =
 \frac{1}{2 \pi }
 \sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}\]</div>
-<p>With <span class="math notranslate nohighlight">\(\tilde h_{kl}\)</span> the DFT of the heights :math:<a href="#id5"><span class="problematic" id="id6">``</span></a>h
+<p>With <span class="math notranslate nohighlight">\(\tilde h_{kl}\)</span> the DFT of the heights :math:<a href="#id1"><span class="problematic" id="id2">``</span></a>h
 For even number of points, the interpretation of the components at the
 Niquist frequency is ambiguous (we are free to choose amplitude or phase)
 Following (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>),

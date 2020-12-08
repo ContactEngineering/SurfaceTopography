@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Usage &mdash; SurfaceTopography 0.91.5 documentation</title>
+  <title>Usage &mdash; SurfaceTopography 0.91.6.dev7+gd7d2513 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.91.5
+                0.91.6.dev7+gd7d2513
               </div>
             
           
@@ -95,10 +95,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#data-orientation">Data Orientation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#analysis-functions">Analysis functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pipelines">Pipelines</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#elastic-half-space-module">Elastic half-space module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#coordinate-system">Coordinate system</a></li>
 </ul>
 </li>
 </ul>
@@ -199,7 +195,7 @@
 Each reader provides an interface to one or more channels in the file.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">open_topography</span>
 
 <span class="c1"># get a handle to the file (&quot;reader&quot;)</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
@@ -237,7 +233,7 @@ e.g. a detrended one, from the current topography. Both are described in the sec
 <p>When working with 2D topographies it is useful to know, how the data in PyCo is oriented,
 also when compared against the expected image.</p>
 <p>After loading a topography, e.g. by</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">open_topography</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>  <span class="c1"># returns the default channel</span>
 </pre></div>
@@ -276,7 +272,7 @@ of other software as e.g. Gwyddion, use</p>
 <li><p><cite>power_spectrum_2D</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
 </ul>
 <p>Example::</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="k">import</span> <span class="n">read_topography</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms slope =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_slope</span><span class="p">())</span>
@@ -286,13 +282,18 @@ of other software as e.g. Gwyddion, use</p>
 </div>
 <div class="section" id="pipelines">
 <h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h3>
-<p>Pipeline functions return a new topography. This topography does not own the original data but executes the full pipeline everytime <cite>heights</cite> is executed. The <cite>clone</cite> method returns a new topography that contains the data returned by the pipeline. Pipelines can be concatenated together.</p>
+<p>Pipeline functions return a new topography.
+This topography does not own the original data but executes the full pipeline everytime <cite>heights</cite> is executed.
+By using the pipeline, this topography is not only a (pseudo-) height container
+but also documents the whole process leading from the raw heights to the current heights.
+The <cite>squeeze</cite> method returns a new topography that contains the data returned by the pipeline.
+Pipelines can be concatenated together.</p>
 <ul class="simple">
 <li><p><cite>scale</cite>: Rescale all heights by a certain factor.</p></li>
 <li><p><cite>detrend</cite>: Compute a detrended topography.</p></li>
 </ul>
 <p>Example::</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyCo.Topography</span> <span class="k">import</span> <span class="n">read_topography</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
@@ -300,20 +301,6 @@ of other software as e.g. Gwyddion, use</p>
       <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="elastic-half-space-module">
-<h2>Elastic half-space module<a class="headerlink" href="#elastic-half-space-module" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="coordinate-system">
-<h3>Coordinate system<a class="headerlink" href="#coordinate-system" title="Permalink to this headline">¶</a></h3>
-<img alt="_images/geometry_pdf_tex.svg" src="_images/geometry_pdf_tex.svg" /><p><span class="math notranslate nohighlight">\(h_0(x)\)</span> is the content of the topography.</p>
-<p><span class="math notranslate nohighlight">\(\delta\)</span>: rigid body penetration</p>
-<p><span class="math notranslate nohighlight">\(h(x) = \delta + h_0(x)\)</span> is the height of the indenter with respect to the surface of the undeformed halfspace</p>
-<p><span class="math notranslate nohighlight">\(u(x)\)</span> displacent of the halfspace</p>
-<p><span class="math notranslate nohighlight">\(g(x) = u(x) - h(x) = u(x) - (\delta + h_0(x))\)</span>: gap</p>
-<p>The simulation models the indentation of an elastic halfspace (flat) with a rigid indenter whose geometry is given by the topography.</p>
-<p>In the picture above the maximum value of the topography <span class="math notranslate nohighlight">\(h_0(x)\)</span> is 0. First contact occurs at <span class="math notranslate nohighlight">\(\delta = 0 \)</span> increases.</p>
-<p>If <span class="math notranslate nohighlight">\(h_0(x)\)</span> contains positive values the first contact will occur at <span class="math notranslate nohighlight">\(\delta &lt; 0\)</span></p>
 </div>
 </div>
 </div>
