@@ -25,7 +25,7 @@
 #
 
 """
-defines all surface types used in PyCo
+defines all surface types used in SurfaceTopography
 """
 
 from .UniformLineScanAndTopography import Topography, \
