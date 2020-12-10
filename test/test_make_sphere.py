@@ -31,13 +31,16 @@ from SurfaceTopography import make_sphere
 
 
 def test_sphere(comm):
-    nx = 8
-    ny = 5
+    nx = 33
+    ny = 11
     sx = 6.
     sy = 7.
     R = 20.
     center = (3., 3.)
     fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
+
+    print(fftengine.nb_subdomain_grid_pts)
+
     topography = make_sphere(
         R, (nx, ny), (sx, sy), centre=center,
         nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
@@ -50,8 +53,8 @@ def test_sphere(comm):
 
 
 def test_sphere_periodic(comm):
-    nx = 8
-    ny = 5
+    nx = 33
+    ny = 11
     sx = 6.
     sy = 7.
     R = 20.
@@ -76,8 +79,8 @@ def test_sphere_periodic(comm):
 
 
 def test_sphere_standoff(comm):
-    nx = 8
-    ny = 5
+    nx = 33
+    ny = 11
     sx = 6.
     sy = 7.
     R = 2.

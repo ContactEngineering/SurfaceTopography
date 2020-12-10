@@ -25,7 +25,7 @@
 #
 
 """
-SurfaceTopography --- Read and analyze surface topographies
+defines all surface types used in SurfaceTopography
 """
 
 from .UniformLineScanAndTopography import Topography, \
