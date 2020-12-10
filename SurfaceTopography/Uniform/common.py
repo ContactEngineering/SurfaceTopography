@@ -189,7 +189,7 @@ def derivative(topography, n, operator=None, periodic=None, mask_function=None):
 
     # Apply mask function
     if mask_function is not None:
-        fourier_field *= mask_function(fft.fftfreq.T * np.array(topography.nb_grid_pts) / grid_spacing)
+        np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / grid_spacing).T)
 
     # Apply derivative operator in Fourier space
     if isinstance(operator, tuple):

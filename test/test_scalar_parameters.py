@@ -153,11 +153,10 @@ class SinewaveTestNonuniform(unittest.TestCase):
 
         self.precision = 5
 
-    #    def test_rms_curvature(self):
-    #        numerical = Nonuniform.rms_curvature(self.X, self.sinsurf)
-    #        analytical = np.sqrt(16*np.pi**4 *self.hm**2 / self.L**4 )
-    #        #print(numerical-analytical)
-    #        self.assertAlmostEqual(numerical,analytical,self.precision)
+    # def test_rms_curvature(self):
+    #    numerical = NonuniformLineScan(self.X, self.sinsurf).rms_curvature()
+    #    analytical = np.sqrt(16 * np.pi ** 4 * self.hm ** 2 / self.L ** 4)
+    #    self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_slope(self):
         numerical = NonuniformLineScan(self.X, self.sinsurf).rms_slope()
@@ -195,3 +194,26 @@ def test_rms_slope_2d():
                                   rms_slope=0.1,
                                   amplitude_distribution=lambda n: 1.0)
             np.testing.assert_almost_equal(t.rms_slope(), 0.1, decimal=2)
+
+
+def test_scale_dependent_rms_slope_1d():
+    r = 4096
+    res = (r,)
+    for H in [0.3, 0.8]:
+        for s in [(1,), (1.4,)]:
+            t = fourier_synthesis(res, s, H,
+                                  short_cutoff=32 / r * np.mean(s),
+                                  rms_slope=0.1,
+                                  amplitude_distribution=lambda n: 1.0)
+            last_rms_slope = t.rms_slope()
+            np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
+            # rms slope should not depend on filter for these cutoffs...
+            for cutoff in [1, 2, 4, 8, 16]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                np.testing.assert_almost_equal(rms_slope, last_rms_slope)
+            # ...but starts being a monotonously decreasing function here
+            for cutoff in [64, 128, 256]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                assert rms_slope < last_rms_slope
+                last_rms_slope = rms_slope
+
