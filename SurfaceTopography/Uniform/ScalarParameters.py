@@ -142,10 +142,7 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
         mask_function = None if short_wavelength_cutoff is None else \
             lambda q: q[0] ** 2 + q[1] ** 2 < 1 / short_wavelength_cutoff ** 2
         curv = topography.derivative(2, mask_function=mask_function)
-        if topography.is_periodic:
-            return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
-        else:
-            return np.sqrt(((curv[0][:, 1:-1] + curv[1][1:-1, :]) ** 2).mean())
+        return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
     else:
         raise ValueError('Cannot handle topographies of dimension {}'.format(
             topography.dim))

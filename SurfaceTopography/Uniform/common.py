@@ -32,14 +32,31 @@ import numpy as np
 
 import muFFT
 
-import muFFT.Stencils1D as Stencils1D
-import muFFT.Stencils2D as Stencils2D
-
 from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
+### Stencils for first and second derivatives
+
+# First order upwind differences
+first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
+
+# Fourth order central differences of the second derivative
+second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
+
+# First order upwind differences
+first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
+first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
+first_2d = (first_2d_x, first_2d_y)
+
+# Fourth order central differences of the second derivative
+second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
+second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
+second_2d = (second_2d_x, second_2d_y)
+
+
+###
 
 def bandwidth(topography):
     """Computes lower and upper bound of bandwidth.
@@ -68,17 +85,17 @@ def _get_default_derivative_operator(n, dim):
     """
     if dim == 1:
         if n == 1:
-            return Stencils1D.upwind
+            return first_1d
         elif n == 2:
-            return Stencils1D.central_2nd
+            return second_1d
         else:
             raise ValueError("Don't know how to compute derivative of order "
                              "{}.".format(n))
     elif dim == 2:
         if n == 1:
-            return Stencils2D.upwind
+            return first_2d
         elif n == 2:
-            return Stencils2D.central_2nd
+            return second_2d
         else:
             raise ValueError("Don't know how to compute derivative of order "
                              "{}.".format(n))
