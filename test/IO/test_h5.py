@@ -9,6 +9,7 @@ DATADIR = os.path.join(
         os.path.dirname(os.path.realpath(__file__))),
     'file_format_examples')
 
+
 class h5SurfaceTest(unittest.TestCase):
     def setUp(self):
         pass

@@ -1,5 +1,7 @@
 import muFFT
 
+import numpy as np
+
 
 def make_fft(topography, fft='mpi'):
     """

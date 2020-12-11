@@ -216,6 +216,7 @@ def scale_dependent_rms_slope(topography):
     else:
         raise ValueError("Don't know how to handle a {}-dimensional topography".format(topography.dim))
 
+
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('autocorrelation_1D',
                                              autocorrelation_1D)

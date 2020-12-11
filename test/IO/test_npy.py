@@ -150,6 +150,7 @@ def test_reader(comm, loader, examplefile):
                                fftengine.nb_subdomain_grid_pts[i])))
             for i in range(len(fftengine.nb_domain_grid_pts))])])
 
+
 class npySurfaceTest(unittest.TestCase):
     def setUp(self):
         self.fn = "example.npy"

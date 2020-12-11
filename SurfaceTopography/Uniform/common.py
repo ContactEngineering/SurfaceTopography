@@ -37,7 +37,9 @@ from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
-### Stencils for first and second derivatives
+#
+# Stencils for first and second derivatives
+#
 
 # First order upwind differences
 first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
@@ -125,12 +127,12 @@ def _trim_nonperiodic(arr, op):
     rbounds = lbounds + np.array(op.stencil.shape)
 
     trimmed_slice = []
-    for l, r in zip(lbounds, rbounds):
-        l = -min(l, 0)
+    for L, r in zip(lbounds, rbounds):
+        L = -min(L, 0)
         r = -max(0, r - 1)
         if r == 0:
             r = None
-        trimmed_slice += [slice(l, r)]
+        trimmed_slice += [slice(L, r)]
 
     return arr[tuple(trimmed_slice)]
 
