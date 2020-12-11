@@ -213,8 +213,8 @@ def plot(topography, subplot_location=111):
     nx, ny = topography.nb_grid_pts
 
     ax = plt.subplot(subplot_location, aspect=sx / sy)
-    Y, X = np.meshgrid((np.arange(ny) + 0.5) * sy / ny,
-                       (np.arange(nx) + 0.5) * sx / nx)
+    Y, X = np.meshgrid((np.arange(ny+1) + 0.5) * sy / ny,
+                       (np.arange(nx+1) + 0.5) * sx / nx)
     Z = topography[...]
     mesh = ax.pcolormesh(X, Y, Z)
     plt.colorbar(mesh, ax=ax)
