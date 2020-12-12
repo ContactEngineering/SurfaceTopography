@@ -153,15 +153,13 @@ def test_reader(comm, loader, examplefile):
 
 class npySurfaceTest(unittest.TestCase):
     def setUp(self):
-        self.fn = "example.npy"
+        self.fn = "example{}.npy".format(MPI.COMM_WORLD.Get_rank())
         self.res = (128, 64)
         np.random.seed(1)
         self.data = np.random.random(self.res)
         self.data -= np.mean(self.data)
 
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            np.save(self.fn, self.data)
-        MPI.COMM_WORLD.Barrier()
+        np.save(self.fn, self.data)
 
     def test_read(self):
         size = (2, 4)
@@ -175,5 +173,4 @@ class npySurfaceTest(unittest.TestCase):
         self.assertEqual(topo.physical_sizes, size)
 
     def tearDown(self):
-        if MPI.COMM_WORLD.Get_rank() == 0:
-            os.remove(self.fn)
+        os.remove(self.fn)
