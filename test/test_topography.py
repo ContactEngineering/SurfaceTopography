@@ -358,7 +358,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 2000)
         self.assertAlmostEqual(surf.physical_sizes[1], 2000)
         self.assertAlmostEqual(surf.rms_height(), 17.22950485567042)
-        self.assertAlmostEqual(surf.rms_slope(), 0.45604053876290829)
+        self.assertAlmostEqual(surf.rms_slope(), 0.4560243831362324)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'nm')
 
@@ -368,7 +368,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 0.0002404103)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.0002404103)
         self.assertAlmostEqual(surf.rms_height(), 2.7722350402740072e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.35157901772258338)
+        self.assertAlmostEqual(surf.rms_slope(), 0.35152685030417763)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -378,7 +378,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 10e-6)
         self.assertAlmostEqual(surf.physical_sizes[1], 10e-6)
         self.assertAlmostEqual(surf.rms_height(), 3.5222918750198742e-08)
-        self.assertAlmostEqual(surf.rms_slope(), 0.19231536279425226)
+        self.assertAlmostEqual(surf.rms_slope(), 0.19235602282848963)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -390,7 +390,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_height(), 1.1745891510991089e-07)
         self.assertAlmostEqual(surf.rms_height(kind='Rq'),
                                1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.067915823359553706)
+        self.assertAlmostEqual(surf.rms_slope(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
