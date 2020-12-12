@@ -159,11 +159,13 @@ class npySurfaceTest(unittest.TestCase):
         self.data = np.random.random(self.res)
         self.data -= np.mean(self.data)
 
-        np.save(self.fn, self.data)
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            np.save(self.fn, self.data)
+        MPI.COMM_WORLD.Barrier()
 
     def test_read(self):
         size = (2, 4)
-        loader = NPYReader(self.fn)
+        loader = NPYReader(self.fn, communicator=MPI.COMM_SELF)
 
         topo = loader.topography(physical_sizes=size)
 
