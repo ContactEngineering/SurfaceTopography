@@ -205,22 +205,8 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         return r_val[n > 0], A_val[n > 0]
 
 
-def scale_dependent_rms_slope(topography):
-    if topography.dim == 1:
-        A = autocorrelation_1D(topography)
-        return np.sqrt(A)/(np.arange(len(A)) * topography.pixel_size[0])
-    elif topography.dim == 2:
-        Ax = autocorrelation_1D(topography)
-        Ay = autocorrelation_1D(topography, direction=1)
-        return np.sqrt(Ax + Ay)
-    else:
-        raise ValueError("Don't know how to handle a {}-dimensional topography".format(topography.dim))
-
-
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('autocorrelation_1D',
                                              autocorrelation_1D)
 UniformTopographyInterface.register_function('autocorrelation_2D',
                                              autocorrelation_2D)
-UniformTopographyInterface.register_function('scale_dependent_rms_slope',
-                                             scale_dependent_rms_slope)
