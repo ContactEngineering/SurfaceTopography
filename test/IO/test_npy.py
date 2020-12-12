@@ -175,4 +175,5 @@ class npySurfaceTest(unittest.TestCase):
         self.assertEqual(topo.physical_sizes, size)
 
     def tearDown(self):
-        os.remove(self.fn)
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            os.remove(self.fn)
