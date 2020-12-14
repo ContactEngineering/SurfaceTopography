@@ -16,9 +16,13 @@ SurfaceTopography can be installed by invoking
 The command will install other dependencies including muFFT_, NuMPI_ and
 runtests_.
 
-Note: sometimes muFFT_ will not find the FFTW3 installation you expect.
+Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
 You can specify the directory where you installed FFTW3_
 by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
+
+If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
+is missing), then set the environment variables `NETCDFDIR` (for serial
+compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
 
 Installation from source directory
 ----------------------------------

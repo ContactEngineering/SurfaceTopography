@@ -27,6 +27,7 @@
 import unittest
 import os
 
+from SurfaceTopography.IO import detect_format
 from SurfaceTopography.IO.IBW import IBWReader
 from SurfaceTopography import read_topography
 from SurfaceTopography import open_topography
@@ -176,3 +177,29 @@ def test_ibw_file_with_one_channel_without_name():
     assert ch_info.nb_grid_pts == (10, 10)
     # TODO when the new ChannelInfo objects are used, we should check here if
     #  all expected fields are set correclty
+
+
+class ibwSurfaceTest2(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_read(self):
+        reader = IBWReader(os.path.join(DATADIR, 'example.ibw'))
+        surface = reader.topography()
+        nx, ny = surface.nb_grid_pts
+        self.assertEqual(nx, 512)
+        self.assertEqual(ny, 512)
+        sx, sy = surface.physical_sizes
+        self.assertAlmostEqual(sx, 5.00978e-8)
+        self.assertAlmostEqual(sy, 5.00978e-8)
+        # self.assertEqual(surface.info['unit'], 'm')
+        # Disabled unit check because I'm not sure
+        # how to assign a valid unit to every channel - see IBW.py
+        self.assertTrue(surface.is_uniform)
+
+    def test_detect_format_then_read(self):
+        f = open(os.path.join(DATADIR, 'example.ibw'), 'rb')
+        fmt = detect_format(f)
+        self.assertTrue(fmt, 'ibw')
+        open_topography(f, format=fmt).topography()
+        f.close()

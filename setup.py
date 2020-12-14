@@ -128,12 +128,16 @@ setup(
     use_scm_version=True,
     zip_safe=False,
     setup_requires=[
-        'setuptools_scm>=3.5.0'
+        'setuptools_scm>=3.5.0',
+        'pytest-runner',
+    ],
+    tests_require=[
+        'pytest',
     ],
     install_requires=[
         'numpy>=1.11.0',
         'NuMPI>=0.1.4',
-        'muFFT>=0.11.1',
+        'muFFT>=0.12.0',
         'netCDF4>=1.5.0',
         'igor',
         'h5py',
