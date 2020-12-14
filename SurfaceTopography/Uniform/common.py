@@ -150,7 +150,8 @@ def derivative(topography, n, operator=None, periodic=None, mask_function=None):
     operator : muFFT.Derivative object or tuple of muFFT.Derivative objects
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
-        derivative.
+        derivative. A tuple contains the gradient, i.e. the derivative
+        operators in the Cartesian directions for multidimensional fields.
     periodic : bool
         Override periodic flag from topography.
     mask_function : function
