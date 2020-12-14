@@ -8,6 +8,11 @@ def make_fft(topography, fft='mpi'):
     Instantiate a muFFT object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
     this is not the case).
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography`
+        Container storing the topography map.
     """
 
     # We only initialize this once and attach it to the topography object
@@ -27,11 +32,36 @@ def make_fft(topography, fft='mpi'):
 
 
 def get_window_2D(window, nx, ny, physical_sizes=None):
+    """
+    Construct a rotationally symmetric window for windowing two-dimensional
+    signals (fields).
+
+    Parameters
+    ----------
+    window : str or np.ndarray
+        If window is an np.ndarray, it is just passed through (i.e.
+        immediately returned) from this function. If window is a string,
+        then a corresponding window will be constructed. Currently the only
+        support window is 'hann'.
+    nx : int
+        Number of grid points of the signal in x-direction
+    ny : int
+        Number of grid points of the signal in y-direction
+    physical_sizes : tuple of float
+        The physical size of the underlying signal. If None, then the number
+        of grid points nx, ny are used as the physical size. This parameter
+        is used to adjust the aspect ratio of the signal. (Default: None)
+
+    Returns
+    -------
+    window : np.ndarray
+        Numerical window, multiply the signal with this window
+    """
+
     if isinstance(window, np.ndarray):
         if window.shape != (nx, ny):
-            raise TypeError(
-                'Window physical_sizes (= {2}x{3}) must match signal '
-                'physical_sizes (={0}x{1})'.format(nx, ny, *window.shape))
+            raise TypeError('Window shape (= {0}x{1}) must match the number of points of the signal (={2}x{3})'
+                            .format(*window.shape, nx, ny))
         return window
 
     if physical_sizes is None:
