@@ -120,8 +120,6 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
-        If the surface is non-periodic, a window function will be
-        additionally applied before computing the slope.
 
     Returns
     -------
@@ -161,8 +159,6 @@ def rms_curvature(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
-        If the surface is non-periodic, a window function will be
-        additionally applied before computing the slope.
 
     Returns
     -------
