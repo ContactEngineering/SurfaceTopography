@@ -23,6 +23,14 @@ SurfaceTopography.Converters module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.FFTTricks module
+----------------------------------
+
+.. automodule:: SurfaceTopography.FFTTricks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generation module
 -----------------------------------
 

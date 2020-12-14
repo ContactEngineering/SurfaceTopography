@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SurfaceTopography.FFTTricks &mdash; SurfaceTopography 0.91.6.dev63+gc3846d1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> SurfaceTopography
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.91.6.dev63+gc3846d1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SurfaceTopography</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>SurfaceTopography.FFTTricks</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for SurfaceTopography.FFTTricks</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">muFFT</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="make_fft"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.FFTTricks.make_fft">[docs]</a><span class="k">def</span> <span class="nf">make_fft</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">fft</span><span class="o">=</span><span class="s1">&#39;mpi&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instantiate a muFFT object that can compute the Fourier transform of the</span>
+<span class="sd">    topography and has the same decomposition layout (or raise an error if</span>
+<span class="sd">    this is not the case).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography`</span>
+<span class="sd">        Container storing the topography map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># We only initialize this once and attach it to the topography object</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="s1">&#39;_mufft&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">topography</span><span class="o">.</span><span class="n">_mufft</span>
+
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
+        <span class="n">fft</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">FFT</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">fft</span><span class="o">=</span><span class="n">fft</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fft</span><span class="o">.</span><span class="n">subdomain_locations</span> <span class="o">!=</span> <span class="n">topography</span><span class="o">.</span><span class="n">subdomain_locations</span> <span class="ow">or</span> \
+                <span class="n">fft</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span> <span class="o">!=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;muFFT suggested a domain decomposition that &#39;</span>
+                               <span class="s1">&#39;differs from the decomposition of the topography.&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fft</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">FFT</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+    <span class="n">topography</span><span class="o">.</span><span class="n">_mufft</span> <span class="o">=</span> <span class="n">fft</span>
+    <span class="k">return</span> <span class="n">fft</span></div>
+
+
+<div class="viewcode-block" id="get_window_2D"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.FFTTricks.get_window_2D">[docs]</a><span class="k">def</span> <span class="nf">get_window_2D</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a rotationally symmetric window for windowing two-dimensional</span>
+<span class="sd">    signals (fields).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    window : str or np.ndarray</span>
+<span class="sd">        If window is an np.ndarray, it is just passed through (i.e.</span>
+<span class="sd">        immediately returned) from this function. If window is a string,</span>
+<span class="sd">        then a corresponding window will be constructed. Currently the only</span>
+<span class="sd">        support window is &#39;hann&#39;.</span>
+<span class="sd">    nx : int</span>
+<span class="sd">        Number of grid points of the signal in x-direction</span>
+<span class="sd">    ny : int</span>
+<span class="sd">        Number of grid points of the signal in y-direction</span>
+<span class="sd">    physical_sizes : tuple of float</span>
+<span class="sd">        The physical size of the underlying signal. If None, then the number</span>
+<span class="sd">        of grid points nx, ny are used as the physical size. This parameter</span>
+<span class="sd">        is used to adjust the aspect ratio of the signal. (Default: None)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    window : np.ndarray</span>
+<span class="sd">        Numerical window, multiply the signal with this window</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Window shape (= </span><span class="si">{0}</span><span class="s1">x</span><span class="si">{1}</span><span class="s1">) must match the number of points of the signal (=</span><span class="si">{2}</span><span class="s1">x</span><span class="si">{3}</span><span class="s1">)&#39;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">window</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">window</span>
+
+    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+    <span class="k">if</span> <span class="n">window</span> <span class="o">==</span> <span class="s1">&#39;hann&#39;</span><span class="p">:</span>
+        <span class="n">maxr</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">sx</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                    <span class="p">(</span><span class="n">sy</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">ny</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">win</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">/</span> <span class="n">maxr</span><span class="p">)</span>
+        <span class="n">win</span><span class="p">[</span><span class="n">r</span> <span class="o">&gt;</span> <span class="n">maxr</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">win</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown window type &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2015-2020 The Authors
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.91.6.dev16+g378e702 documentation</title>
+  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.91.6.dev63+gc3846d1 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.6.dev16+g378e702
+                0.91.6.dev63+gc3846d1
               </div>
             
           
@@ -195,25 +195,114 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">import</span> <span class="nn">muFFT</span>
+
+<span class="kn">from</span> <span class="nn">..FFTTricks</span> <span class="k">import</span> <span class="n">make_fft</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">DecoratedUniformTopography</span>
 
+<span class="c1">#</span>
+<span class="c1"># Stencils for first and second derivatives</span>
+<span class="c1">#</span>
 
-<div class="viewcode-block" id="bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.bandwidth">[docs]</a><span class="k">def</span> <span class="nf">bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="c1"># First order upwind differences</span>
+<span class="n">first_1d</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Fourth order central differences of the second derivative</span>
+<span class="n">second_1d</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># First order upwind differences</span>
+<span class="n">first_2d_x</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">first_2d_y</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">first_2d</span> <span class="o">=</span> <span class="p">(</span><span class="n">first_2d_x</span><span class="p">,</span> <span class="n">first_2d_y</span><span class="p">)</span>
+
+<span class="c1"># Fourth order central differences of the second derivative</span>
+<span class="n">second_2d_x</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">second_2d_y</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">second_2d</span> <span class="o">=</span> <span class="p">(</span><span class="n">second_2d_x</span><span class="p">,</span> <span class="n">second_2d_y</span><span class="p">)</span>
+
+
+<span class="c1">###</span>
+
+<div class="viewcode-block" id="bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.bandwidth">[docs]</a><span class="k">def</span> <span class="nf">bandwidth</span><span class="p">(</span><span class="n">topography</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Computes lower and upper bound of bandwidth.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    A 2-tuple (lower_bound, upper_bound) where the elements are floats.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span><span class="p">)</span>
-    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">pixel_size</span><span class="p">)</span>
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span></div>
 
 
-<div class="viewcode-block" id="derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.derivative">[docs]</a><span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_default_derivative_operator</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a default set of (finite-differences) derivative operators.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Order of derivative.</span>
+<span class="sd">    dim : int</span>
+<span class="sd">        Dimension of the underlying field. (For dim &gt; 1, this returns a</span>
+<span class="sd">        representation of the nabla-operator.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">first_1d</span>
+        <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">second_1d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to compute derivative of order &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">first_2d</span>
+        <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">second_2d</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to compute derivative of order &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to compute the derivative of a &quot;</span>
+                         <span class="s2">&quot;topography of dimension </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_trim_nonperiodic</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trim the outer edges of an array that contains derivatives computed under</span>
+<span class="sd">    the assumption of periodicity. (These values at the outer edge will simply</span>
+<span class="sd">    be wrong.)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : np.ndarray</span>
+<span class="sd">        Array to be trimmed.</span>
+<span class="sd">    op : muFFT.DiscreteDerivative</span>
+<span class="sd">        Derivative operator that contains information about the size of the</span>
+<span class="sd">        stencil.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Can only trim edges for discrete derivatives.&#39;</span><span class="p">)</span>
+
+    <span class="n">lbounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">lbounds</span><span class="p">)</span>
+    <span class="n">rbounds</span> <span class="o">=</span> <span class="n">lbounds</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">stencil</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="n">trimmed_slice</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">L</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lbounds</span><span class="p">,</span> <span class="n">rbounds</span><span class="p">):</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="o">-</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">trimmed_slice</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">trimmed_slice</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.derivative">[docs]</a><span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute derivative of topography or line scan stored on a uniform grid.</span>
 
@@ -221,10 +310,20 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
 <span class="sd">        SurfaceTopography object containing height information.</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Order of the derivative.</span>
 <span class="sd">    operator : muFFT.Derivative object or tuple of muFFT.Derivative objects</span>
-<span class="sd">        Number of times the derivative is taken.</span>
+<span class="sd">        Derivative operator used to compute the derivative. If unspecified,</span>
+<span class="sd">        a simple upwind differences scheme will be applied to compute the</span>
+<span class="sd">        derivative. A tuple contains the gradient, i.e. the derivative</span>
+<span class="sd">        operators in the Cartesian directions for multidimensional fields.</span>
 <span class="sd">    periodic : bool</span>
 <span class="sd">        Override periodic flag from topography.</span>
+<span class="sd">    mask_function : function</span>
+<span class="sd">        A function that takes as argument the output of FFT.fftfreq and</span>
+<span class="sd">        returns a mask that will be multiplied with the Fourier transformed</span>
+<span class="sd">        topography. This can be used to implement Fourier filtering before</span>
+<span class="sd">        computing the derivative.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -240,25 +339,45 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="s1">&#39;SurfaceTopography does not have physical size information, but &#39;</span>
             <span class="s1">&#39;this is required to be able to compute a derivative.&#39;</span><span class="p">)</span>
-    <span class="n">grid_spacing</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">pixel_size</span>
-    <span class="n">heights</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">operator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">_get_default_derivative_operator</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+
+    <span class="n">grid_spacing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">pixel_size</span><span class="p">)</span>
     <span class="n">is_periodic</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span>
-    <span class="k">if</span> <span class="n">is_periodic</span><span class="p">:</span>
-        <span class="n">der</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-            <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="n">heights</span><span class="p">)</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
-             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))])</span>
-        <span class="c1"># Apply derivative into each direction multiple times</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">der</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">der</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="o">-</span> <span class="n">der</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
-                 <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))])</span>
+
+    <span class="c1"># Return FFT object (this will only be initialized once and reused in subsequent calls)</span>
+    <span class="n">fft</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">make_fft</span><span class="p">()</span>
+
+    <span class="c1"># These fields are reused when this function is called multiple times</span>
+    <span class="n">real_field</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">fetch_or_register_real_space_field</span><span class="p">(</span><span class="s1">&#39;real_temporary&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fourier_field</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">fetch_or_register_fourier_space_field</span><span class="p">(</span><span class="s1">&#39;complex_temporary&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real_field</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+    <span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">real_field</span><span class="p">,</span> <span class="n">fourier_field</span><span class="p">)</span>
+
+    <span class="c1"># Apply mask function</span>
+    <span class="k">if</span> <span class="n">mask_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fourier_field</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="o">...</span><span class="p">]</span> <span class="o">*=</span> <span class="n">mask_function</span><span class="p">((</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="c1"># Apply derivative operator in Fourier space</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">fourier_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fourier_field</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">fourier_copy</span> <span class="o">=</span> <span class="n">fourier_array</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">op</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">operator</span><span class="p">):</span>
+            <span class="n">fourier_array</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">fourier_copy</span> <span class="o">*</span> <span class="n">op</span><span class="o">.</span><span class="n">fourier</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">)</span>
+            <span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">fourier_field</span><span class="p">,</span> <span class="n">real_field</span><span class="p">)</span>
+            <span class="n">_der</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real_field</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">*</span> <span class="n">fft</span><span class="o">.</span><span class="n">normalisation</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="n">n</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_periodic</span><span class="p">:</span>
+                <span class="n">_der</span> <span class="o">=</span> <span class="n">_trim_nonperiodic</span><span class="p">(</span><span class="n">_der</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+            <span class="n">der</span> <span class="o">+=</span> <span class="p">[</span><span class="n">_der</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">der</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">heights</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">**</span> <span class="n">n</span>
-                        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">heights</span><span class="o">.</span><span class="n">shape</span><span class="p">))])</span>
-    <span class="k">if</span> <span class="n">der</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">der</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">der</span></div>
+        <span class="n">fourier_field</span> <span class="o">*=</span> <span class="n">operator</span><span class="o">.</span><span class="n">fourier</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">)</span>
+        <span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">fourier_field</span><span class="p">,</span> <span class="n">real_field</span><span class="p">)</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">real_field</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">*</span> <span class="n">fft</span><span class="o">.</span><span class="n">normalisation</span> <span class="o">/</span> <span class="n">grid_spacing</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="n">n</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_periodic</span><span class="p">:</span>
+            <span class="n">der</span> <span class="o">=</span> <span class="n">_trim_nonperiodic</span><span class="p">(</span><span class="n">der</span><span class="p">,</span> <span class="n">operator</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">der</span></div>
 
 
 <div class="viewcode-block" id="fourier_derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.fourier_derivative">[docs]</a><span class="k">def</span> <span class="nf">fourier_derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">imtol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -418,14 +537,13 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;make_fft&#39;</span><span class="p">,</span> <span class="n">make_fft</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span>
 <span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;fourier_derivative&#39;</span><span class="p">,</span> <span class="n">fourier_derivative</span><span class="p">)</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;domain_decompose&#39;</span><span class="p">,</span>
-                                             <span class="n">domain_decompose</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;domain_decompose&#39;</span><span class="p">,</span> <span class="n">domain_decompose</span><span class="p">)</span>
 <span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;plot&#39;</span><span class="p">,</span> <span class="n">plot</span><span class="p">)</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;fill_undefined_data&#39;</span><span class="p">,</span>
-                                             <span class="n">FilledTopography</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;fill_undefined_data&#39;</span><span class="p">,</span> <span class="n">FilledTopography</span><span class="p">)</span>
 </pre></div>
 
            </div>

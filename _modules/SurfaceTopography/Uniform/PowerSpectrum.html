@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.91.6.dev16+g378e702 documentation</title>
+  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.91.6.dev63+gc3846d1 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.6.dev16+g378e702
+                0.91.6.dev63+gc3846d1
               </div>
             
           
@@ -197,7 +197,7 @@
 <span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">get_window</span>
 
 <span class="kn">from</span> <span class="nn">..common</span> <span class="k">import</span> <span class="n">radial_average</span>
-
+<span class="kn">from</span> <span class="nn">..FFTTricks</span> <span class="k">import</span> <span class="n">get_window_2D</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 
@@ -266,29 +266,6 @@
         <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">C_all</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">C_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="get_window_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.get_window_2D">[docs]</a><span class="k">def</span> <span class="nf">get_window_2D</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">window</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s1">&#39;Window physical_sizes (= </span><span class="si">{2}</span><span class="s1">x</span><span class="si">{3}</span><span class="s1">) must match signal &#39;</span>
-                <span class="s1">&#39;physical_sizes (=</span><span class="si">{0}</span><span class="s1">x</span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="o">*</span><span class="n">window</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">window</span>
-
-    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">physical_sizes</span>
-    <span class="k">if</span> <span class="n">window</span> <span class="o">==</span> <span class="s1">&#39;hann&#39;</span><span class="p">:</span>
-        <span class="n">maxr</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">sx</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
-                    <span class="p">(</span><span class="n">sy</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">ny</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">win</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">/</span> <span class="n">maxr</span><span class="p">)</span>
-        <span class="n">win</span><span class="p">[</span><span class="n">r</span> <span class="o">&gt;</span> <span class="n">maxr</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">return</span> <span class="n">win</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown window type &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="power_spectrum_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_2D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>

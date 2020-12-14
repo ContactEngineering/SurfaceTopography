@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.91.6.dev16+g378e702 documentation</title>
+  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.91.6.dev63+gc3846d1 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.91.6.dev16+g378e702
+                0.91.6.dev63+gc3846d1
               </div>
             
           
@@ -199,7 +199,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 
-<div class="viewcode-block" id="autocorrelation_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_1D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">):</span>
+<div class="viewcode-block" id="autocorrelation_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_1D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional height-difference autocorrelation function</span>
 <span class="sd">    (ACF).</span>
@@ -224,6 +224,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
 <span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    direction : int</span>
+<span class="sd">        Cartesian direction in which to compute the ACF</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -232,17 +234,21 @@
 <span class="sd">    A : array</span>
 <span class="sd">        Autocorrelation function. (Units: length**2)</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">dummy_ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-        <span class="n">sx</span><span class="p">,</span> <span class="n">dummy_sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-        <span class="n">sx</span><span class="p">,</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span>
+    <span class="n">sx</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Don&#39;t know how to handle direction &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">direction</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span><span class="p">:</span>
         <span class="c1"># Compute height-height autocorrelation function from a convolution</span>
         <span class="c1"># using FFT. This is periodic by nature.</span>
-        <span class="n">surface_qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">surface_qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">C_qy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">surface_qy</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># pylint: disable=invalid-name</span>
         <span class="n">A_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">C_qy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">real</span> <span class="o">/</span> <span class="n">nx</span>
 
@@ -257,8 +263,6 @@
 
         <span class="n">r</span> <span class="o">=</span> <span class="n">sx</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">nx</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
-
         <span class="c1"># Compute height-height autocorrelation function. We need to zero</span>
         <span class="c1"># pad the FFT for the nonperiodic case in order to separate images.</span>
         <span class="n">surface_qy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -275,8 +279,7 @@
         <span class="c1"># included into the computation of &lt;h(x)h(x+d)&gt;_d. h_rms^2 needs to</span>
         <span class="c1"># be computed over the same data points.</span>
         <span class="n">p_sq</span> <span class="o">=</span> <span class="n">p</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">A0_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_sq</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p_sq</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span>
-                                             <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">A0_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_sq</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p_sq</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
 
         <span class="c1"># Convert height-height autocorrelation to height-difference</span>
         <span class="c1"># autocorrelation</span>
@@ -346,14 +349,12 @@
         <span class="c1"># autocorrelation</span>
         <span class="n">p_sq</span> <span class="o">=</span> <span class="n">p</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">A0_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_sq</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
-                 <span class="n">p_sq</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+                 <span class="n">p_sq</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
 
         <span class="c1"># Convert height-height autocorrelation to height-difference</span>
         <span class="c1"># autocorrelation</span>
         <span class="n">A_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">A0_xy</span> <span class="o">-</span> <span class="n">A_xy</span><span class="p">[:</span><span class="n">nx</span><span class="p">,</span> <span class="p">:</span><span class="n">ny</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
-                    <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                        <span class="n">ny</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ny</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">A_xy</span>

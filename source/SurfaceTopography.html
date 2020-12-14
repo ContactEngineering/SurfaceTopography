@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.91.6.dev16+g378e702 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.91.6.dev63+gc3846d1 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.91.6.dev16+g378e702
+                0.91.6.dev63+gc3846d1
               </div>
             
           
@@ -106,6 +106,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Interpolation">SurfaceTopography.Interpolation module</a></li>
@@ -356,6 +357,50 @@ boundaries.</p>
 <em class="property">property </em><code class="sig-name descname">x_range</code><a class="headerlink" href="#SurfaceTopography.Converters.WrapAsNonuniformLineScan.x_range" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-SurfaceTopography.FFTTricks">
+<span id="surfacetopography-ffttricks-module"></span><h2>SurfaceTopography.FFTTricks module<a class="headerlink" href="#module-SurfaceTopography.FFTTricks" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="SurfaceTopography.FFTTricks.get_window_2D">
+<code class="sig-prename descclassname">SurfaceTopography.FFTTricks.</code><code class="sig-name descname">get_window_2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">window</span></em>, <em class="sig-param"><span class="n">nx</span></em>, <em class="sig-param"><span class="n">ny</span></em>, <em class="sig-param"><span class="n">physical_sizes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/FFTTricks.html#get_window_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.FFTTricks.get_window_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a rotationally symmetric window for windowing two-dimensional
+signals (fields).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window</strong> (<em>str</em><em> or </em><em>np.ndarray</em>) – If window is an np.ndarray, it is just passed through (i.e.
+immediately returned) from this function. If window is a string,
+then a corresponding window will be constructed. Currently the only
+support window is ‘hann’.</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – Number of grid points of the signal in x-direction</p></li>
+<li><p><strong>ny</strong> (<em>int</em>) – Number of grid points of the signal in y-direction</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple of float</em>) – The physical size of the underlying signal. If None, then the number
+of grid points nx, ny are used as the physical size. This parameter
+is used to adjust the aspect ratio of the signal. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>window</strong> – Numerical window, multiply the signal with this window</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SurfaceTopography.FFTTricks.make_fft">
+<code class="sig-prename descclassname">SurfaceTopography.FFTTricks.</code><code class="sig-name descname">make_fft</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em>, <em class="sig-param"><span class="n">fft</span><span class="o">=</span><span class="default_value">'mpi'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/FFTTricks.html#make_fft"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.FFTTricks.make_fft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate a muFFT object that can compute the Fourier transform of the
+topography and has the same decomposition layout (or raise an error if
+this is not the case).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the topography map.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
