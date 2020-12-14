@@ -423,26 +423,14 @@ def test_gwyddion_txt_import(lang_filename_infix):
     np.testing.assert_allclose(topo.heights(), expected_heights)
 
 
-class DetectFormatTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_detection(self):
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di1.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di2.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.ibw')),
-                         'ibw')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.opd')),
-                         'opd')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.x3p')),
-                         'x3p')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example1.mat')),
-                         'mat')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
-                         'xyz')
-        self.assertEqual(detect_format(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
-
-
-def test_detect_format_then_read():
+def test_detect_dormat():
+    assert detect_format(os.path.join(DATADIR, 'di1.di')) == 'di'
+    assert detect_format(os.path.join(DATADIR, 'di2.di')) == 'di'
+    assert detect_format(os.path.join(DATADIR, 'example.ibw')) == 'ibw'
+    assert detect_format(os.path.join(DATADIR, 'example.opd')) == 'opd'
+    assert detect_format(os.path.join(DATADIR, 'example.x3p')) == 'x3p'
+    assert detect_format(os.path.join(DATADIR, 'example1.mat')) == 'mat'
     assert detect_format(os.path.join(DATADIR, 'example.asc')) == 'xyz'
+    assert detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(DATADIR, 'example-2d.npy')) == 'npy'
+    assert detect_format(os.path.join(DATADIR, 'surface.2048x2048.h5')) == 'h5'
