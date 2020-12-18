@@ -155,7 +155,7 @@ def interpolate_fourier(topography, nb_grid_pts):
                       physical_sizes=topography.physical_sizes)
 
 
-class MirrorStichPeriodizedTopography(DecoratedUniformTopography):
+class MirrorStichedTopography(DecoratedUniformTopography):
     """
     adds mirror images at the top (big y) and at the right (big x) of the
     topography, making it kind of periodic
@@ -164,8 +164,8 @@ class MirrorStichPeriodizedTopography(DecoratedUniformTopography):
 
     def __init__(self, parent_topography, info={}):
         if parent_topography.communicator.Get_size() > 1:
-            raise (NotImplemented("MirrorStichPeriodizedTopography "
-                                  "not domain decomposable"))
+            raise (NotImplementedError("MirrorStichedTopography "
+                                       "not domain decomposable"))
         super().__init__(parent_topography, info)
 
     @property
@@ -195,8 +195,8 @@ class MirrorStichPeriodizedTopography(DecoratedUniformTopography):
             indexing='ij')
 
 
-Topography.register_function("mirror_stitch_periodize",
-                             MirrorStichPeriodizedTopography)
+Topography.register_function("mirror_stitch",
+                             MirrorStichedTopography)
 Topography.register_function("interpolate_bicubic", bicubic_interpolator)
 UniformTopographyInterface.register_function('interpolate_fourier',
                                              interpolate_fourier)
