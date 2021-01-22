@@ -5,6 +5,7 @@ Change log for SurfaceTopography
 v0.92.0 (not yet released)
 --------------------------
 
+- Drop support for python3.5
 - ENH: rms_slope, rms_curvature and rms_laplace can now filter short
   wavelength roughness
 - MAINT: Derivatives now use muFFT derivative operators
