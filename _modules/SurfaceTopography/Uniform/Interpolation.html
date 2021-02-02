@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.Interpolation &mdash; SurfaceTopography 0.91.6.dev64+g0f4c31e documentation</title>
+  <title>SurfaceTopography.Uniform.Interpolation &mdash; SurfaceTopography 0.91.6.dev68+g20a44bd documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.91.6.dev64+g0f4c31e
+                0.91.6.dev68+g20a44bd
               </div>
             
           
@@ -197,6 +197,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..Interpolation</span> <span class="k">import</span> <span class="n">Bicubic</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">DecoratedUniformTopography</span>
 
 
 <div class="viewcode-block" id="bicubic_interpolator"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.bicubic_interpolator">[docs]</a><span class="k">def</span> <span class="nf">bicubic_interpolator</span><span class="p">(</span><span class="n">topography</span><span class="p">):</span>
@@ -323,6 +324,48 @@
                       <span class="n">physical_sizes</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="MirrorStichedTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography">[docs]</a><span class="k">class</span> <span class="nc">MirrorStichedTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    adds mirror images at the top (big y) and at the right (big x) of the</span>
+<span class="sd">    topography, making it kind of periodic</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="k">if</span> <span class="n">parent_topography</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;MirrorStichedTopography &quot;</span>
+                                       <span class="s2">&quot;not domain decomposable&quot;</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent_topography</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">]</span>
+
+<div class="viewcode-block" id="MirrorStichedTopography.heights"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="n">h</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">h</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+                         <span class="p">[</span><span class="n">h</span><span class="p">[::</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">h</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">::</span> <span class="o">-</span><span class="mi">1</span><span class="p">]]])</span></div>
+
+<div class="viewcode-block" id="MirrorStichedTopography.positions"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="n">lnx</span><span class="p">,</span> <span class="n">lny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lnx</span><span class="p">))</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">,</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdomain_locations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lny</span><span class="p">))</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">,</span>
+            <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span></div></div>
+
+
+<span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;mirror_stitch&quot;</span><span class="p">,</span>
+                             <span class="n">MirrorStichedTopography</span><span class="p">)</span>
 <span class="n">Topography</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;interpolate_bicubic&quot;</span><span class="p">,</span> <span class="n">bicubic_interpolator</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;interpolate_fourier&#39;</span><span class="p">,</span>
                                              <span class="n">interpolate_fourier</span><span class="p">)</span>

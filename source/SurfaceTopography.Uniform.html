@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.91.6.dev64+g0f4c31e documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.91.6.dev68+g20a44bd documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.91.6.dev64+g0f4c31e
+                0.91.6.dev68+g20a44bd
               </div>
             
           
@@ -432,6 +432,44 @@ function.</p>
 </div>
 <div class="section" id="module-SurfaceTopography.Uniform.Interpolation">
 <span id="surfacetopography-uniform-interpolation-module"></span><h2>SurfaceTopography.Uniform.Interpolation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Interpolation" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography">
+<em class="property">class </em><code class="sig-prename descclassname">SurfaceTopography.Uniform.Interpolation.</code><code class="sig-name descname">MirrorStichedTopography</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent_topography</span></em>, <em class="sig-param"><span class="n">info</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Interpolation.html#MirrorStichedTopography"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<p>adds mirror images at the top (big y) and at the right (big x) of the
+topography, making it kind of periodic</p>
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">
+<code class="sig-name descname">heights</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Interpolation.html#MirrorStichedTopography.heights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic">
+<em class="property">property </em><code class="sig-name descname">is_periodic</code><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the topography is periodically repeated at the
+boundaries.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts">
+<em class="property">property </em><code class="sig-name descname">nb_grid_pts</code><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes">
+<em class="property">property </em><code class="sig-name descname">physical_sizes</code><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the physical sizes of the topography.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions">
+<code class="sig-name descname">positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Interpolation.html#MirrorStichedTopography.positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt id="SurfaceTopography.Uniform.Interpolation.bicubic_interpolator">
 <code class="sig-prename descclassname">SurfaceTopography.Uniform.Interpolation.</code><code class="sig-name descname">bicubic_interpolator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">topography</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/Interpolation.html#bicubic_interpolator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.bicubic_interpolator" title="Permalink to this definition">¶</a></dt>
