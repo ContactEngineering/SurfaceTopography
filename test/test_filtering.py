@@ -27,6 +27,7 @@ import numpy as np
 
 import SurfaceTopography
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography import Topography
 
 
 def test_longcut():
@@ -138,3 +139,22 @@ def test_isotropic_1d():
     q, psd = t.filter(
         filter_function=lambda q: q > cutoff_wavevector).power_spectrum_1D()
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
+
+
+def test_mirror_stitch():
+    t = Topography(np.array(((0, 1),
+                             (0, 0))),
+                   (2., 3.))
+    tp = t.mirror_stitch()
+
+    assert tp.is_periodic
+
+    np.testing.assert_allclose(tp.physical_sizes, (4., 6.))
+
+    np.testing.assert_allclose(tp.heights(),
+                               [[0, 1, 1, 0],
+                                [0, 0, 0, 0],
+                                [0, 0, 0, 0],
+                                [0, 1, 1, 0]
+                                ]
+                               )
