@@ -39,18 +39,16 @@ import pytest
 from numpy.random import rand
 from numpy.testing import assert_array_equal
 
+from muFFT import FFT
 from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
-import SurfaceTopography.IO
 from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.FromFile import read_asc, read_hgt, read_opd, \
-    read_x3p, read_xyz, AscReader
+from SurfaceTopography.IO.FromFile import read_asc, read_xyz, AscReader
 from SurfaceTopography.IO.FromFile import get_unit_conversion_factor
-from SurfaceTopography.IO import detect_format
-from SurfaceTopography.IO import NPYReader, H5Reader, IBWReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -360,7 +358,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 2000)
         self.assertAlmostEqual(surf.physical_sizes[1], 2000)
         self.assertAlmostEqual(surf.rms_height(), 17.22950485567042)
-        self.assertAlmostEqual(surf.rms_slope(), 0.45604053876290829)
+        self.assertAlmostEqual(surf.rms_slope(), 0.4560243831362324)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'nm')
 
@@ -370,7 +368,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 0.0002404103)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.0002404103)
         self.assertAlmostEqual(surf.rms_height(), 2.7722350402740072e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.35157901772258338)
+        self.assertAlmostEqual(surf.rms_slope(), 0.35152685030417763)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -380,7 +378,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 10e-6)
         self.assertAlmostEqual(surf.physical_sizes[1], 10e-6)
         self.assertAlmostEqual(surf.rms_height(), 3.5222918750198742e-08)
-        self.assertAlmostEqual(surf.rms_slope(), 0.19231536279425226)
+        self.assertAlmostEqual(surf.rms_slope(), 0.19235602282848963)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -392,7 +390,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_height(), 1.1745891510991089e-07)
         self.assertAlmostEqual(surf.rms_height(kind='Rq'),
                                1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.067915823359553706)
+        self.assertAlmostEqual(surf.rms_slope(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -756,120 +754,6 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(abs(detrended.curvatures[0]), 1 / radius)
 
 
-class DetectFormatTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_detection(self):
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di1.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'di2.di')), 'di')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.ibw')),
-                         'ibw')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.opd')),
-                         'opd')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.x3p')),
-                         'x3p')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example1.mat')),
-                         'mat')
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
-                         'xyz')
-        self.assertEqual(detect_format(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
-
-
-class matSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        from SurfaceTopography.IO import MatReader
-        surface = MatReader(os.path.join(DATADIR, 'example1.mat')).topography(
-            physical_sizes=[1., 1.])
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 2048)
-        self.assertEqual(ny, 2048)
-        self.assertAlmostEqual(surface.rms_height(), 1.234061e-07)
-        self.assertTrue(surface.is_uniform)
-
-    # TODO: test with multiple data
-
-
-class npySurfaceTest(unittest.TestCase):
-    def setUp(self):
-        self.fn = "example.npy"
-        self.res = (128, 64)
-        np.random.seed(1)
-        self.data = np.random.random(self.res)
-        self.data -= np.mean(self.data)
-
-        np.save(self.fn, self.data)
-
-    def test_read(self):
-        size = (2, 4)
-        loader = NPYReader(self.fn)
-
-        topo = loader.topography(physical_sizes=size)
-
-        np.testing.assert_array_almost_equal(topo.heights(), self.data)
-
-        # self.assertEqual(topo.info, loader.info)
-        self.assertEqual(topo.physical_sizes, size)
-
-    def tearDown(self):
-        os.remove(self.fn)
-
-
-class x3pSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        surface = read_x3p(os.path.join(DATADIR, 'example.x3p'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 777)
-        self.assertEqual(ny, 1035)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 0.00068724)
-        self.assertAlmostEqual(sy, 0.00051593)
-        surface = read_x3p(os.path.join(DATADIR, 'example2.x3p'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 650)
-        self.assertEqual(ny, 650)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 8.29767313942749e-05)
-        self.assertAlmostEqual(sy, 0.0002044783737930349)
-        self.assertTrue(surface.is_uniform)
-
-    def test_points_for_uniform_topography(self):
-        surface = read_x3p(os.path.join(DATADIR, 'example.x3p'))
-        x, y, z = surface.positions_and_heights()
-        self.assertAlmostEqual(np.mean(np.diff(x[:, 0])),
-                               surface.physical_sizes[0] / surface.nb_grid_pts[
-                                   0])
-        self.assertAlmostEqual(np.mean(np.diff(y[0, :])),
-                               surface.physical_sizes[1] / surface.nb_grid_pts[
-                                   1])
-
-
-class opdSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        surface = read_opd(os.path.join(DATADIR, 'example.opd'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 640)
-        self.assertEqual(ny, 480)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 0.125909140)
-        self.assertAlmostEqual(sy, 0.094431855)
-        self.assertTrue(surface.is_uniform)
-
-    def test_undefined_points(self):
-        t = read_opd(os.path.join(DATADIR, 'example2.opd'))
-        self.assertTrue(t.has_undefined_data)
-
-
 class diSurfaceTest(unittest.TestCase):
     def setUp(self):
         pass
@@ -946,218 +830,54 @@ def test_di_orientation():
     assert pytest.approx(di_heights[-1, -1], abs=1e-3) == -30.306
 
 
-class ibwSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_read(self):
-        reader = IBWReader(os.path.join(DATADIR, 'example.ibw'))
-        surface = reader.topography()
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 512)
-        self.assertEqual(ny, 512)
-        sx, sy = surface.physical_sizes
-        self.assertAlmostEqual(sx, 5.00978e-8)
-        self.assertAlmostEqual(sy, 5.00978e-8)
-        # self.assertEqual(surface.info['unit'], 'm')
-        # Disabled unit check because I'm not sure
-        # how to assign a valid unit to every channel - see IBW.py
-        self.assertTrue(surface.is_uniform)
-
-    def test_detect_format_then_read(self):
-        f = open(os.path.join(DATADIR, 'example.ibw'), 'rb')
-        fmt = detect_format(f)
-        self.assertTrue(fmt, 'ibw')
-        open_topography(f, format=fmt).topography()
-        f.close()
+def test_wrapped_x_range():
+    t = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1).to_nonuniform()
+    x = t.positions()
+    np.testing.assert_almost_equal(t.x_range[0], x[0])
+    np.testing.assert_almost_equal(t.x_range[1], x[-1])
 
 
-class hgtSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
+def test_delegation():
+    t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
+    t2 = t1.detrend()
+    t3 = t2.to_nonuniform()
+    t4 = t3.scale(2.0)
 
-    def test_read(self):
-        surface = read_hgt(os.path.join(DATADIR, 'N46E013.hgt'))
-        nx, ny = surface.nb_grid_pts
-        self.assertEqual(nx, 3601)
-        self.assertEqual(ny, 3601)
-        self.assertTrue(surface.is_uniform)
+    t4.scale_factor
+    with pytest.raises(AttributeError):
+        t2.scale_factor
+    t2.detrend_mode
+    # detrend_mode should not be delegated to the parent class
+    with pytest.raises(AttributeError):
+        t4.detrend_mode
 
+    # t2 should have 'to_nonuniform'
+    t2.to_nonuniform()
+    # but it should not have 'to_uniform'
+    with pytest.raises(AttributeError):
+        t2.to_uniform(100, 10)
 
-class h5SurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
+    # t4 should have 'to_uniform'
+    t5 = t4.to_uniform(100, 10)
+    # but it should not have 'to_nonuniform'
+    with pytest.raises(AttributeError):
+        t4.to_nonuniform()
 
-    def test_detect_format(self):
-        self.assertEqual(SurfaceTopography.IO.detect_format(
-            # TODO(pastewka): this will be the standard detect format method
-            #  in the future
-            os.path.join(DATADIR, 'surface.2048x2048.h5')), 'h5')
-
-    def test_read(self):
-        loader = H5Reader(os.path.join(DATADIR, 'surface.2048x2048.h5'))
-
-        topography = loader.topography(physical_sizes=(1., 1.))
-        nx, ny = topography.nb_grid_pts
-        self.assertEqual(nx, 2048)
-        self.assertEqual(ny, 2048)
-        self.assertTrue(topography.is_uniform)
-        self.assertEqual(topography.dim, 2)
-
-
-class xyzSurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def test_detect_format_then_read(self):
-        self.assertEqual(detect_format(os.path.join(DATADIR, 'example.asc')),
-                         'xyz')
-
-    def test_read(self):
-        surface = read_xyz(os.path.join(DATADIR, 'example.asc'))
-        self.assertFalse(surface.is_uniform)
-        x, y = surface.positions_and_heights()
-        self.assertGreater(len(x), 0)
-        self.assertEqual(len(x), len(y))
-        self.assertFalse(surface.is_uniform)
-        self.assertEqual(surface.dim, 1)
-        self.assertFalse(surface.is_periodic)
+    # t5 should have 'to_nonuniform'
+    t5.to_nonuniform()
+    # but it should not have 'to_uniform'
+    with pytest.raises(AttributeError):
+        t5.to_uniform(100, 10)
 
 
-class PipelineTests(unittest.TestCase):
-    def test_scaled_topography(self):
-        surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
-        for fac in [1.0, 2.0, np.pi]:
-            surf2 = surf.scale(fac)
-            self.assertAlmostEqual(fac * surf.rms_height(kind='Rq'),
-                                   surf2.rms_height(kind='Rq'))
+def test_autocompletion():
+    t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
+    t2 = t1.detrend()
+    t3 = t2.to_nonuniform()
 
-    def test_transposed_topography(self):
-        surf = fourier_synthesis([124, 368], [6, 3], 0.8, rms_slope=0.1)
-        nx, ny = surf.nb_grid_pts
-        sx, sy = surf.physical_sizes
-        surf2 = surf.transpose()
-        nx2, ny2 = surf2.nb_grid_pts
-        sx2, sy2 = surf2.physical_sizes
-        self.assertEqual(nx, ny2)
-        self.assertEqual(ny, nx2)
-        self.assertEqual(sx, sy2)
-        self.assertEqual(sy, sx2)
-        self.assertTrue((surf.heights() == surf2.heights().T).all())
-
-
-class ScalarParametersTest(unittest.TestCase):
-    def test_rms_slope_1d(self):
-        r = 4096
-        res = (r,)
-        for H in [0.3, 0.8]:
-            for s in [(1,), (1.4,)]:
-                t = fourier_synthesis(res, s, H,
-                                      short_cutoff=32 / r * np.mean(s),
-                                      rms_slope=0.1,
-                                      amplitude_distribution=lambda n: 1.0)
-                self.assertAlmostEqual(t.rms_slope(), 0.1, places=2)
-
-    def test_rms_slope_2d(self):
-        r = 2048
-        res = [r, r]
-        for H in [0.3, 0.8]:
-            for s in [(1, 1), (1.4, 3.3)]:
-                t = fourier_synthesis(res, s, H,
-                                      short_cutoff=8 / r * np.mean(s),
-                                      rms_slope=0.1,
-                                      amplitude_distribution=lambda n: 1.0)
-                self.assertAlmostEqual(t.rms_slope(), 0.1, places=2)
-
-
-class ConvertersTest(unittest.TestCase):
-    def test_wrapped_x_range(self):
-        t = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1).to_nonuniform()
-        x = t.positions()
-        self.assertAlmostEqual(t.x_range[0], x[0])
-        self.assertAlmostEqual(t.x_range[1], x[-1])
-
-    def test_delegation(self):
-        t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
-        t2 = t1.detrend()
-        t3 = t2.to_nonuniform()
-        t4 = t3.scale(2.0)
-
-        t4.scale_factor
-        with self.assertRaises(AttributeError):
-            t2.scale_factor
-        t2.detrend_mode
-        # detrend_mode should not be delegated to the parent class
-        with self.assertRaises(AttributeError):
-            t4.detrend_mode
-
-        # t2 should have 'to_nonuniform'
-        t2.to_nonuniform()
-        # but it should not have 'to_uniform'
-        with self.assertRaises(AttributeError):
-            t2.to_uniform(100, 10)
-
-        # t4 should have 'to_uniform'
-        t5 = t4.to_uniform(100, 10)
-        # but it should not have 'to_nonuniform'
-        with self.assertRaises(AttributeError):
-            t4.to_nonuniform()
-
-        # t5 should have 'to_nonuniform'
-        t5.to_nonuniform()
-        # but it should not have 'to_uniform'
-        with self.assertRaises(AttributeError):
-            t5.to_uniform(100, 10)
-
-    def test_autocompletion(self):
-        t1 = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1)
-        t2 = t1.detrend()
-        t3 = t2.to_nonuniform()
-
-        self.assertIn('detrend', dir(t1))
-        self.assertIn('to_nonuniform', dir(t2))
-        self.assertIn('to_uniform', dir(t3))
-
-
-class DerivativeTest(unittest.TestCase):
-    def test_uniform_vs_nonuniform(self):
-        t1 = fourier_synthesis([12], [6], 0.8, rms_slope=0.1)
-        t2 = t1.to_nonuniform()
-
-        d1 = t1.derivative(1)
-        d2 = t2.derivative(1)
-
-        np.testing.assert_allclose(d1[:-1], d2)
-
-    def test_analytic(self):
-        nb_pts = 1488
-        s = 4 * np.pi
-        x = np.arange(nb_pts) * s / nb_pts
-        h = np.sin(x)
-        t1 = UniformLineScan(h, (s,))
-        t2 = UniformLineScan(h, (s,), periodic=True)
-        t3 = t1.to_nonuniform()
-
-        d1 = t1.derivative(1)
-        d2 = t2.derivative(1)
-        d3 = t3.derivative(1)
-
-        np.testing.assert_allclose(d1, np.cos(x[:-1] + (x[1] - x[0]) / 2),
-                                   atol=1e-5)
-        np.testing.assert_allclose(d2, np.cos(x + (x[1] - x[0]) / 2),
-                                   atol=1e-5)
-        np.testing.assert_allclose(d3, np.cos(x[:-1] + (x[1] - x[0]) / 2),
-                                   atol=1e-5)
-
-        d1 = t1.derivative(2)
-        d2 = t2.derivative(2)
-        d3 = t3.derivative(2)
-
-        np.testing.assert_allclose(d1, -np.sin(x[:-2] + (x[1] - x[0])),
-                                   atol=1e-5)
-        np.testing.assert_allclose(d2, -np.sin(x + (x[1] - x[0])), atol=1e-5)
-        np.testing.assert_allclose(d3, -np.sin(x[:-2] + (x[1] - x[0])),
-                                   atol=1e-5)
+    assert 'detrend' in dir(t1)
+    assert 'to_nonuniform' in dir(t2)
+    assert 'to_uniform' in dir(t3)
 
 
 @pytest.mark.parametrize("ny", [7, 6])
@@ -1169,40 +889,6 @@ def test_fourier_derivative_realness(nx, ny):
     topography = Topography(np.random.random((nx, ny)),
                             physical_sizes=(2., 3.))
     topography.fourier_derivative(imtol=1e-12)
-
-
-def test_fourier_derivative(plot=False):
-    nx, ny = [256] * 2
-    sx, sy = [1.] * 2
-
-    lc = 0.5
-    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
-                                   short_cutoff=lc, long_cutoff=lc + 1e-9, )
-    topography = topography.scale(1 / topography.rms_height())
-
-    # numerical derivatives to double check
-    dx, dy = topography.fourier_derivative(imtol=1e-12)
-    dx_num, dy_num = topography.derivative(1)
-
-    np.testing.assert_allclose(dx, dx_num, atol=topography.rms_slope() * 1e-1)
-    np.testing.assert_allclose(dy, dy_num, atol=topography.rms_slope() * 1e-1)
-
-    if plot:
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()
-        x, y = topography.positions()
-
-        ax.plot(x[:, 0], topography.heights()[:, 0])
-        ax.plot(x[:, 0], dx[:, 0])
-        ax.plot(x[:, 0], dx_num[:, 0])
-        fig.show()
-
-        fig, ax = plt.subplots()
-        x, y = topography.positions()
-        ax.plot(y[-1, :], topography.heights()[-1, :])
-        ax.plot(y[-1, :], dy[-1, :])
-        ax.plot(y[-1, :], dy_num[-1, :])
-        fig.show()
 
 
 def test_fourier_interpolate_nyquist(plot=False):
@@ -1285,3 +971,181 @@ def test_different_dictionary_instance_Topography():
     b = Topography(np.array([[1, 8], [2, 4]]), physical_sizes=(1, 3))
 
     assert id(a.info) != id(b.info)
+
+
+def test_positions(comm):
+    nx, ny = (12 * comm.Get_size(), 10 * comm.Get_size() + 1)
+    sx = 33.
+    sy = 54.
+    fftengine = FFT((nx, ny), fft='mpi', communicator=comm)
+
+    surf = Topography(np.zeros(fftengine.nb_subdomain_grid_pts),
+                      physical_sizes=(sx, sy),
+                      decomposition='subdomain',
+                      nb_grid_pts=(nx, ny),
+                      subdomain_locations=fftengine.subdomain_locations,
+                      communicator=comm)
+
+    x, y = surf.positions()
+    assert x.shape == fftengine.nb_subdomain_grid_pts
+    assert y.shape == fftengine.nb_subdomain_grid_pts
+
+    assert Reduction(comm).min(x) == 0
+    assert abs(Reduction(comm).max(x) - sx * (1 - 1. / nx)) \
+           < 1e-8 * sx / nx, "{}".format(x)
+    assert Reduction(comm).min(y) == 0
+    assert abs(Reduction(comm).max(y) - sy * (1 - 1. / ny)) < 1e-8
+
+
+def test_positions_and_heights():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
+
+    t = Topography(h, (8, 6))
+
+    assert t.nb_grid_pts == (4, 3)
+
+    assert_array_equal(t.heights(), h)
+    X2, Y2, h2 = t.positions_and_heights()
+    assert_array_equal(X2, [
+        (0, 0, 0),
+        (2, 2, 2),
+        (4, 4, 4),
+        (6, 6, 6),
+    ])
+    assert_array_equal(Y2, [
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+    ])
+    assert_array_equal(h2, [
+        (0, 1, 2),
+        (1, 2, 3),
+        (2, 3, 4),
+        (3, 4, 5)])
+
+    #
+    # After detrending, the position and heights should have again
+    # just 3 arrays and the third array should be the same as .heights()
+    #
+    dt = t.detrend(detrend_mode='slope')
+
+    np.testing.assert_allclose(dt.heights(), [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0)], atol=1e-15)
+
+    X2, Y2, h2 = dt.positions_and_heights()
+
+    assert h2.shape == (4, 3)
+    assert_array_equal(X2, [
+        (0, 0, 0),
+        (2, 2, 2),
+        (4, 4, 4),
+        (6, 6, 6),
+    ])
+    assert_array_equal(Y2, [
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+        (0, 2, 4),
+    ])
+    np.testing.assert_allclose(h2, [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0)], atol=1e-15)
+
+
+def test_squeeze():
+    x = np.linspace(0, 4 * np.pi, 101)
+    y = np.linspace(0, 8 * np.pi, 103)
+    h = np.sin(x.reshape(-1, 1)) + np.cos(y.reshape(1, -1))
+    surface = Topography(h, (1.2, 3.2)).scale(2.0)
+    surface2 = surface.squeeze()
+    assert isinstance(surface2, Topography)
+    np.testing.assert_allclose(surface.heights(), surface2.heights())
+
+
+def test_attribute_error():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
+    t = Topography(h, (8, 6))
+
+    # nonsense attributes return attribute error
+    with pytest.raises(AttributeError):
+        t.ababababababababa
+
+    #
+    # only scaled topographies have coeff
+    #
+    with pytest.raises(AttributeError):
+        t.coeff
+
+    st = t.scale(1)
+
+    assert st.scale_factor == 1
+
+    #
+    # only detrended topographies have detrend_mode
+    #
+    with pytest.raises(AttributeError):
+        st.detrend_mode
+
+    dm = st.detrend(detrend_mode='height').detrend_mode
+    assert dm == 'height'
+
+    #
+    # this all should also work after pickling
+    #
+    t2 = pickle.loads(pickle.dumps(t))
+
+    with pytest.raises(AttributeError):
+        t2.scale_factor
+
+    st2 = t2.scale(1)
+
+    assert st2.scale_factor == 1
+
+    with pytest.raises(AttributeError):
+        st2.detrend_mode
+
+    dm2 = st2.detrend(detrend_mode='height').detrend_mode
+    assert dm2 == 'height'
+
+    #
+    # this all should also work after scaled+pickled
+    #
+    t3 = pickle.loads(pickle.dumps(st))
+
+    with pytest.raises(AttributeError):
+        t3.detrend_mode
+
+    dm3 = t3.detrend(detrend_mode='height').detrend_mode
+    assert dm3 == 'height'
+
+
+def test_init_with_lists_calling_scale_and_detrend():
+    t = Topography(np.array([[1, 1, 1, 1],
+                             [1, 1, 1, 1],
+                             [1, 1, 1, 1]]), physical_sizes=(1, 1))
+
+    # the following commands should be possible without errors
+    st = t.scale(1)
+    st.detrend(detrend_mode='center')
+
+
+def test_power_spectrum_1D():
+    X = np.arange(3).reshape(1, 3)
+    Y = np.arange(4).reshape(4, 1)
+    h = X + Y
+
+    t = Topography(h, (8, 6))
+
+    q1, C1 = t.power_spectrum_1D(window='hann')
+
+    # TODO add check for values

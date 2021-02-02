@@ -32,7 +32,7 @@ import numpy as np
 from scipy.signal import get_window
 
 from ..common import radial_average
-
+from ..FFTTricks import get_window_2D
 from ..HeightContainer import UniformTopographyInterface
 
 
@@ -101,29 +101,6 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all
     else:
         return q, C_all.mean(axis=1)
-
-
-def get_window_2D(window, nx, ny, physical_sizes=None):
-    if isinstance(window, np.ndarray):
-        if window.shape != (nx, ny):
-            raise TypeError(
-                'Window physical_sizes (= {2}x{3}) must match signal '
-                'physical_sizes (={0}x{1})'.format(nx, ny, *window.shape))
-        return window
-
-    if physical_sizes is None:
-        sx, sy = nx, ny
-    else:
-        sx, sy = physical_sizes
-    if window == 'hann':
-        maxr = min(sx, sy) / 2
-        r = np.sqrt((sx * (np.arange(nx).reshape(-1, 1) - nx // 2) / nx) ** 2 +
-                    (sy * (np.arange(ny).reshape(1, -1) - ny // 2) / ny) ** 2)
-        win = 0.5 + 0.5 * np.cos(np.pi * r / maxr)
-        win[r > maxr] = 0.0
-        return win
-    else:
-        raise ValueError("Unknown window type '{}'".format(window))
 
 
 def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name

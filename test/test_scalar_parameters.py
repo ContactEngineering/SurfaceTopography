@@ -32,6 +32,7 @@ from NuMPI import MPI
 from muFFT import FFT
 
 from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
 
 
 @pytest.fixture
@@ -121,7 +122,7 @@ def test_rms_curvature_paraboloid_uniform_1D():
     surf = UniformLineScan(heights, physical_sizes=(n,),
                            periodic=False)
     # central finite differences are second order and so exact for the parabola
-    assert abs((surf.rms_curvature() - curvature) / curvature) < 1e-15
+    assert abs((surf.rms_curvature() - curvature) / curvature) < 1e-14
 
 
 @pytest.mark.skipif(
@@ -152,11 +153,10 @@ class SinewaveTestNonuniform(unittest.TestCase):
 
         self.precision = 5
 
-    #    def test_rms_curvature(self):
-    #        numerical = Nonuniform.rms_curvature(self.X, self.sinsurf)
-    #        analytical = np.sqrt(16*np.pi**4 *self.hm**2 / self.L**4 )
-    #        #print(numerical-analytical)
-    #        self.assertAlmostEqual(numerical,analytical,self.precision)
+    # def test_rms_curvature(self):
+    #    numerical = NonuniformLineScan(self.X, self.sinsurf).rms_curvature()
+    #    analytical = np.sqrt(16 * np.pi ** 4 * self.hm ** 2 / self.L ** 4)
+    #    self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_slope(self):
         numerical = NonuniformLineScan(self.X, self.sinsurf).rms_slope()
@@ -172,5 +172,45 @@ class SinewaveTestNonuniform(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_rms_slope_1d():
+    r = 4096
+    res = (r,)
+    for H in [0.3, 0.8]:
+        for s in [(1,), (1.4,)]:
+            t = fourier_synthesis(res, s, H,
+                                  short_cutoff=32 / r * np.mean(s),
+                                  rms_slope=0.1,
+                                  amplitude_distribution=lambda n: 1.0)
+            last_rms_slope = t.rms_slope()
+            np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
+            # rms slope should not depend on filter for these cutoffs...
+            for cutoff in [1, 2, 4, 8, 16]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                np.testing.assert_almost_equal(rms_slope, last_rms_slope)
+            # ...but starts being a monotonously decreasing function here
+            for cutoff in [64, 128, 256]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                assert rms_slope < last_rms_slope
+                last_rms_slope = rms_slope
+
+
+def test_rms_slope_2d():
+    r = 2048
+    res = [r, r]
+    for H in [0.3, 0.8]:
+        for s in [(1, 1), (1.4, 3.3)]:
+            t = fourier_synthesis(res, s, H,
+                                  short_cutoff=8 / r * np.mean(s),
+                                  rms_slope=0.1,
+                                  amplitude_distribution=lambda n: 1.0)
+            last_rms_slope = t.rms_slope()
+            np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
+            # rms slope should not depend on filter for these cutoffs...
+            for cutoff in [4]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                np.testing.assert_almost_equal(rms_slope, last_rms_slope)
+            # ...but starts being a monotonously decreasing function here
+            for cutoff in [16, 32]:
+                rms_slope = t.rms_slope(short_wavelength_cutoff=s[0]/r*cutoff)
+                assert rms_slope < last_rms_slope
+                last_rms_slope = rms_slope

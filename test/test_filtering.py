@@ -25,18 +25,19 @@
 
 import numpy as np
 
+import SurfaceTopography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography import Topography
 
 
-def test_lowcut():
+def test_longcut():
     # high number of points required because of binning in the isotropic psd
     n = 200
     # t = SurfaceTopography(np.zeros(n,n), (2,3))
     t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
 
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
-    q, psd = t.lowcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_2D()
+    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_2D()
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
     # the cut is not clean because of the binning in the 2D PSD (Ciso)
 
@@ -51,13 +52,14 @@ def test_lowcut():
         fig.show()
 
 
-def test_highcut():
+def test_shortcut():
     n = 100
     # t = SurfaceTopography(np.zeros(n,n), (2,3))
     t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
 
     cutoff_wavevector = 2 * np.pi / 13 * 0.4 * n
-    q, psd = t.highcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_2D()
+    q, psd = t.shortcut(cutoff_wavevector=cutoff_wavevector
+                        ).power_spectrum_2D()
     assert (psd[q > 1.5 * cutoff_wavevector] < 1e-10).all()
 
     if False:
@@ -68,6 +70,75 @@ def test_highcut():
         ax.loglog(*t.power_spectrum_2D(), label="original")
         ax.legend()
         fig.show()
+
+
+def test_shortcut_vs_isotropic_filter():
+    print(SurfaceTopography.__file__)
+    n = 100
+    # t = SurfaceTopography(np.zeros(n,n), (2,3))
+    np.random.seed(0)
+    t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
+
+    cutoff_wavevector = 2 * np.pi / 13 * 0.4 * n
+    hc = t.shortcut(cutoff_wavevector=cutoff_wavevector)
+    fhc = t.filter(filter_function=lambda q: q <= cutoff_wavevector)
+
+    assert hc.is_filter_isotropic
+    assert fhc.is_filter_isotropic
+    if False:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*hc.power_spectrum_2D(), "+", label="shortcut")
+        ax.loglog(*fhc.power_spectrum_2D(), "x", label="filter")
+
+        ax.loglog(*t.power_spectrum_2D(), label="original")
+        ax.legend()
+        fig.show()
+
+    np.testing.assert_allclose(fhc.heights(), hc.heights())
+
+
+def test_shortcut_vs_square_filter():
+    print(SurfaceTopography.__file__)
+    n = 100
+    # t = SurfaceTopography(np.zeros(n,n), (2,3))
+    np.random.seed(0)
+    t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
+
+    cutoff_wavevector = 2 * np.pi / 13 * 0.2 * n
+    hc = t.shortcut(cutoff_wavevector=cutoff_wavevector, kind="square step")
+    fhc = t.filter(
+        filter_function=lambda qx, qy: (np.abs(qx) <= cutoff_wavevector)
+        * (np.abs(qy) <= cutoff_wavevector),
+        isotropic=False)
+
+    assert not hc.is_filter_isotropic
+    assert not fhc.is_filter_isotropic
+
+    if False:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*hc.power_spectrum_2D(), "+", label="shortcut")
+        ax.loglog(*fhc.power_spectrum_2D(), "x", label="filter")
+
+        ax.loglog(*t.power_spectrum_2D(), label="original")
+        ax.legend()
+        fig.show()
+
+    np.testing.assert_allclose(fhc.heights(), hc.heights())
+
+
+def test_isotropic_1d():
+    n = 32
+
+    t = fourier_synthesis((n,), (13,), 0.9, 1.)
+
+    cutoff_wavevector = 2 * np.pi / 13 * n / 4
+    q, psd = t.filter(
+        filter_function=lambda q: q > cutoff_wavevector).power_spectrum_1D()
+    assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
 
 
 def test_mirror_stitch():

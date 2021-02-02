@@ -23,6 +23,8 @@
 # SOFTWARE.
 #
 
+import unittest
+
 import numpy as np
 import os
 
@@ -147,3 +149,28 @@ def test_reader(comm, loader, examplefile):
                                - fftengine.subdomain_locations[i],
                                fftengine.nb_subdomain_grid_pts[i])))
             for i in range(len(fftengine.nb_domain_grid_pts))])])
+
+
+class npySurfaceTest(unittest.TestCase):
+    def setUp(self):
+        self.fn = "example{}.npy".format(MPI.COMM_WORLD.Get_rank())
+        self.res = (128, 64)
+        np.random.seed(1)
+        self.data = np.random.random(self.res)
+        self.data -= np.mean(self.data)
+
+        np.save(self.fn, self.data)
+
+    def test_read(self):
+        size = (2, 4)
+        loader = NPYReader(self.fn, communicator=MPI.COMM_SELF)
+
+        topo = loader.topography(physical_sizes=size)
+
+        np.testing.assert_array_almost_equal(topo.heights(), self.data)
+
+        # self.assertEqual(topo.info, loader.info)
+        self.assertEqual(topo.physical_sizes, size)
+
+    def tearDown(self):
+        os.remove(self.fn)

@@ -34,7 +34,7 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_1D(topography):
+def autocorrelation_1D(topography, direction=0):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -59,6 +59,8 @@ def autocorrelation_1D(topography):
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
+    direction : int
+        Cartesian direction in which to compute the ACF
 
     Returns
     -------
@@ -67,17 +69,21 @@ def autocorrelation_1D(topography):
     A : array
         Autocorrelation function. (Units: length**2)
     """  # noqa: E501
-    if topography.dim == 2:
-        nx, dummy_ny = topography.nb_grid_pts
-        sx, dummy_sy = topography.physical_sizes
-    else:
-        nx, = topography.nb_grid_pts
-        sx, = topography.physical_sizes
+    nx = topography.nb_grid_pts[direction]
+    sx = topography.physical_sizes[direction]
+
+    p = topography.heights()
+    if direction != 0:
+        if direction == 1:
+            p = p.T
+        else:
+            raise ValueError("Don't know how to handle direction "
+                             "{}".format(direction))
 
     if topography.is_periodic:
         # Compute height-height autocorrelation function from a convolution
         # using FFT. This is periodic by nature.
-        surface_qy = np.fft.fft(topography.heights(), axis=0)
+        surface_qy = np.fft.fft(p, axis=0)
         C_qy = abs(surface_qy) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft(C_qy, axis=0).real / nx
 
@@ -92,8 +98,6 @@ def autocorrelation_1D(topography):
 
         r = sx * np.arange(nx // 2) / nx
     else:
-        p = topography.heights()
-
         # Compute height-height autocorrelation function. We need to zero
         # pad the FFT for the nonperiodic case in order to separate images.
         surface_qy = np.fft.fft(p, n=2 * nx - 1, axis=0)
@@ -110,8 +114,7 @@ def autocorrelation_1D(topography):
         # included into the computation of <h(x)h(x+d)>_d. h_rms^2 needs to
         # be computed over the same data points.
         p_sq = p ** 2
-        A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[
-                                             ::-1]) / 2
+        A0_xy = (p_sq.cumsum(axis=0)[::-1] + p_sq[::-1].cumsum(axis=0)[::-1]) / 2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
@@ -181,14 +184,12 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         # autocorrelation
         p_sq = p ** 2
         A0_xy = (p_sq.cumsum(axis=0).cumsum(axis=1)[::-1, ::-1] +
-                 p_sq[::-1, ::-1].cumsum(axis=0).cumsum(axis=1)[::-1,
-                 ::-1]) / 2
+                 p_sq[::-1, ::-1].cumsum(axis=0).cumsum(axis=1)[::-1, ::-1]) / 2
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
         A_xy = (A0_xy - A_xy[:nx, :ny]) / (
-                    (nx - np.arange(nx)).reshape(-1, 1) * (
-                        ny - np.arange(ny)).reshape(1, -1))
+                    (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         if nbins is None:
             return A_xy
