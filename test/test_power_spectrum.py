@@ -47,6 +47,7 @@ DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
 ###
 
+
 def test_uniform():
     for periodic in [True, False]:
         for L in [1.3, 10.6]:
