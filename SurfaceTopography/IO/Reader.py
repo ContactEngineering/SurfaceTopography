@@ -329,7 +329,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         channel_index : int
             Index of the channel to load. See also `channels` method.
             (Default: None, which load the default channel)
-        physical_sizes : tuple of floats
+        physical_si""zes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
             physical size, then this parameter will override the physical
