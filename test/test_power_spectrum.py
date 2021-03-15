@@ -45,7 +45,6 @@ pytestmark = pytest.mark.skipif(
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
-
 ###
 
 def test_uniform():
@@ -87,6 +86,7 @@ def test_invariance():
         _, C1 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         x = np.array([-a, 0, a])
@@ -94,6 +94,7 @@ def test_invariance():
         _, C2 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         x = np.array([-a, 0, a / 2, a])
@@ -101,6 +102,7 @@ def test_invariance():
         _, C3 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         assert_array_almost_equal(C1, C2)
@@ -117,6 +119,7 @@ def test_rectangle():
         q, C = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         C_ana = (2 * b * np.sin(a * q) / q) ** 2
@@ -135,6 +138,7 @@ def test_triangle():
         _, C = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         C_ana = (2 * b * (a * q * np.cos(a * q) - np.sin(a * q)) / (
@@ -198,6 +202,25 @@ def test_brute_force_vs_fft():
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
+
+
+def test_short_cutoff():
+    t = read_topography(os.path.join(DATADIR, 'example.asc'))
+    q1, C1 = t.detrend().power_spectrum_1D()
+    q2, C2 = t.detrend().power_spectrum_1D(short_cutoff=np.min)
+    q3, C3 = t.detrend().power_spectrum_1D(short_cutoff=np.max)
+
+    assert len(q3) < len(q1)
+    assert len(q1) < len(q2)
+
+    assert np.max(q3) < np.max(q1)
+    assert np.max(q1) < np.max(q2)
+
+    x, y = t.positions_and_heights()
+
+    assert_almost_equal(np.max(q1), 2 * np.pi / np.mean(np.diff(x)))
+    assert abs(np.max(q2) - 2 * np.pi / np.min(np.diff(x))) < 0.03
+    assert abs(np.max(q3) - 2 * np.pi / np.max(np.diff(x))) < 0.02
 
 
 @pytest.mark.skip(reason="just plotting")

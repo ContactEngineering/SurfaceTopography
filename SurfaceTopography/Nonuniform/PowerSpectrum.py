@@ -96,7 +96,7 @@ def apply_window(x, y, window=None):
 
 
 def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
-                      ninterpolate=5, window=None):
+                      ninterpolate=5, short_cutoff=np.mean, window=None):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -118,9 +118,16 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
         equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`
         where :math:`\lambda` is the shortest distance between two points in
         the `x`-array. (Default: None)
-    ninterpolate : int
+    ninterpolate : int, optional
         Number of grid points to put between closest points on surface. Only
         used for 'fft' algorithm. (Default: 5)
+    short_cutoff : function, optional
+        Function that determines how the short cutoff for the returned PSD is
+        computed. If set to None, the full PSD of the interpolated data is
+        returned. If the user passes a function, that function is called with
+        an array that contains the distances between the points of the uniform
+        line scan. Pass `np.max`, `np.mean` or `np.min` to use the maximum,
+        mean or minimum of that distance as the cutoff.
     window : str, optional
         Name of the window function to apply before computing the PSD.
         Presently only supports Hann window ('hann') or no window (None or
@@ -147,8 +154,8 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
-        return line_scan.to_uniform(ninterpolate * int(s / min_dist),
-                                    0).power_spectrum_1D(window=window)
+        wavevectors, psd = line_scan.to_uniform(
+            ninterpolate * int(s / min_dist), 0).power_spectrum_1D(window=window)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
@@ -167,10 +174,16 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
             else:
                 raise ValueError('Nonuniform data points must be sorted in '
                                  'order of ascending x-values.')
-        return wavevectors, np.abs(y_q) ** 2 / L
+        psd = np.abs(y_q) ** 2 / L
     else:
         raise ValueError("Unknown algorithm '{}' specified."
                          .format(algorithm))
+
+    if short_cutoff is not None:
+        mask = wavevectors < 2 * np.pi / short_cutoff(np.diff(x))
+        wavevectors = wavevectors[mask]
+        psd = psd[mask]
+    return wavevectors, psd
 
 
 # Register analysis functions from this module
