@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.91.6.dev73+gf47f4e4 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.91.6.dev79+g2a0a814 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.91.6.dev73+gf47f4e4
+                0.91.6.dev79+g2a0a814
               </div>
             
           
@@ -358,7 +358,7 @@ function is real-valued.</p>
 
 <dl class="py function">
 <dt id="SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></code><code class="sig-name descname"><span class="pre">power_spectrum_1D</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fft'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wavevectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ninterpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Nonuniform/PowerSpectrum.html#power_spectrum_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></code><code class="sig-name descname"><span class="pre">power_spectrum_1D</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">line_scan</span></em>, <em class="sig-param"><span class="pre">algorithm='fft'</span></em>, <em class="sig-param"><span class="pre">wavevectors=None</span></em>, <em class="sig-param"><span class="pre">ninterpolate=5</span></em>, <em class="sig-param"><span class="pre">short_cutoff=&lt;function</span> <span class="pre">mean&gt;</span></em>, <em class="sig-param"><span class="pre">window=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Nonuniform/PowerSpectrum.html#power_spectrum_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute power-spectral density (PSD) for a nonuniform topography. The
 topography is assumed to be given by a series of points connected by
 straight lines.</p>
@@ -376,8 +376,14 @@ Scale O(N^2 M) where M is the number of distance point.
 equally spaced with a spacing that corresponds to <span class="math notranslate nohighlight">\(2\pi/\lambda\)</span>
 where <span class="math notranslate nohighlight">\(\lambda\)</span> is the shortest distance between two points in
 the <cite>x</cite>-array. (Default: None)</p></li>
-<li><p><strong>ninterpolate</strong> (<em>int</em>) – Number of grid points to put between closest points on surface. Only
+<li><p><strong>ninterpolate</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of grid points to put between closest points on surface. Only
 used for ‘fft’ algorithm. (Default: 5)</p></li>
+<li><p><strong>short_cutoff</strong> (<em>function</em><em>, </em><em>optional</em>) – Function that determines how the short cutoff for the returned PSD is
+computed. If set to None, the full PSD of the interpolated data is
+returned. If the user passes a function, that function is called with
+an array that contains the distances between the points of the uniform
+line scan. Pass <cite>np.max</cite>, <cite>np.mean</cite> or <cite>np.min</cite> to use the maximum,
+mean or minimum of that distance as the cutoff.</p></li>
 <li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the window function to apply before computing the PSD.
 Presently only supports Hann window (‘hann’) or no window (None or
 ‘None’).

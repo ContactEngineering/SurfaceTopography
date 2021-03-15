@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.PowerSpectrum &mdash; SurfaceTopography 0.91.6.dev73+gf47f4e4 documentation</title>
+  <title>SurfaceTopography.Nonuniform.PowerSpectrum &mdash; SurfaceTopography 0.91.6.dev79+g2a0a814 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.91.6.dev73+gf47f4e4
+                0.91.6.dev79+g2a0a814
               </div>
             
           
@@ -264,7 +264,7 @@
 
 
 <div class="viewcode-block" id="power_spectrum_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_1D</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span> <span class="n">wavevectors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute power-spectral density (PSD) for a nonuniform topography. The</span>
 <span class="sd">    topography is assumed to be given by a series of points connected by</span>
@@ -286,9 +286,16 @@
 <span class="sd">        equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`</span>
 <span class="sd">        where :math:`\lambda` is the shortest distance between two points in</span>
 <span class="sd">        the `x`-array. (Default: None)</span>
-<span class="sd">    ninterpolate : int</span>
+<span class="sd">    ninterpolate : int, optional</span>
 <span class="sd">        Number of grid points to put between closest points on surface. Only</span>
 <span class="sd">        used for &#39;fft&#39; algorithm. (Default: 5)</span>
+<span class="sd">    short_cutoff : function, optional</span>
+<span class="sd">        Function that determines how the short cutoff for the returned PSD is</span>
+<span class="sd">        computed. If set to None, the full PSD of the interpolated data is</span>
+<span class="sd">        returned. If the user passes a function, that function is called with</span>
+<span class="sd">        an array that contains the distances between the points of the uniform</span>
+<span class="sd">        line scan. Pass `np.max`, `np.mean` or `np.min` to use the maximum,</span>
+<span class="sd">        mean or minimum of that distance as the cutoff.</span>
 <span class="sd">    window : str, optional</span>
 <span class="sd">        Name of the window function to apply before computing the PSD.</span>
 <span class="sd">        Presently only supports Hann window (&#39;hann&#39;) or no window (None or</span>
@@ -315,8 +322,8 @@
         <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Positions not sorted.&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span><span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span>
-                                    <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">power_spectrum_1D</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+        <span class="n">wavevectors</span><span class="p">,</span> <span class="n">psd</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span>
+            <span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">power_spectrum_1D</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;brute-force&#39;</span><span class="p">:</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">apply_window</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -335,10 +342,16 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Nonuniform data points must be sorted in &#39;</span>
                                  <span class="s1">&#39;order of ascending x-values.&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">wavevectors</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_q</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">L</span>
+        <span class="n">psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_q</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">L</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown algorithm &#39;</span><span class="si">{}</span><span class="s2">&#39; specified.&quot;</span>
-                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span></div>
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">short_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">wavevectors</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">short_cutoff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">wavevectors</span> <span class="o">=</span> <span class="n">wavevectors</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">psd</span> <span class="o">=</span> <span class="n">psd</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">wavevectors</span><span class="p">,</span> <span class="n">psd</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>
