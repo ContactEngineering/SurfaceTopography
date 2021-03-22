@@ -28,7 +28,7 @@ Tests for scale-dependent slope analysis
 """
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
+from numpy.testing import assert_almost_equal
 
 from SurfaceTopography.Generation import fourier_synthesis
 
@@ -47,8 +47,9 @@ def test_slope():
 
     px, py = t.pixel_size
 
-    np.testing.assert_almost_equal(s[0], np.sqrt(np.mean((np.diff(t.heights(), axis=0)/px)**2)), decimal=4)
+    rms_slope = np.sqrt(np.mean(((np.roll(t.heights(), 1, 0) - t.heights())/px)**2))
+    assert_almost_equal(s[0], rms_slope)
 
     r2, s2 = t.scale_dependent_slope_2D()
 
-    np.testing.assert_almost_equal(s[0], s2[0])
+    assert_almost_equal(s[0], s2[0])
