@@ -32,7 +32,7 @@ from ..HeightContainer import UniformTopographyInterface
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def scale_dependent_slope_1D(topography, **kwargs):
+def scale_dependent_curvature_1D(topography, **kwargs):
     r"""
     Compute the one-dimensional scale-dependent slope.
 
@@ -42,7 +42,7 @@ def scale_dependent_slope_1D(topography, **kwargs):
          :nowrap:
 
          \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
+         h_\text{rms}^\prime(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
          \end{equation}
 
     where :math:`A(\lambda)` is the autocorrelation function.
@@ -62,10 +62,12 @@ def scale_dependent_slope_1D(topography, **kwargs):
         Slope. (Units: dimensionless)
     """  # noqa: E501
     r, A = topography.autocorrelation_1D(**kwargs)
-    return r[1:], np.sqrt(2 * A[1:]) / r[1:]
+    n = (len(r) + 1) // 2
+    # Important: The following expression relies on the fact that r is equally spaced!
+    return r[1:n], np.sqrt(8 * A[1:n] - 2 * A[2::2]) / r[1:n]
 
 
-def scale_dependent_slope_2D(topography, **kwargs):
+def scale_dependent_curvature_2D(topography, **kwargs):
     r"""
     Compute the two-dimensional, radially averaged scale-dependent slope.
 
@@ -75,7 +77,7 @@ def scale_dependent_slope_2D(topography, **kwargs):
          :nowrap:
 
          \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
+         h_\text{rms}^\prime(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda
          \end{equation}
 
     where :math:`A(\lambda)` is the autocorrelation function.
@@ -95,15 +97,15 @@ def scale_dependent_slope_2D(topography, **kwargs):
         Slope. (Units: dimensionless)
     """  # noqa: E501
     r, A = topography.autocorrelation_2D(**kwargs)
-    return r[1:], np.sqrt(2 * A[1:]) / r[1:]
-
+    n = (len(r) + 1) // 2
+    return r[1:n], np.sqrt(8 * A[1:n] - 2 * A[2::2]) / r[1:n]
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('scale_dependent_slope_1D',
-                                             scale_dependent_slope_1D)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_1D',
-                                              scale_dependent_slope_1D)
-UniformTopographyInterface.register_function('scale_dependent_slope_2D',
-                                             scale_dependent_slope_2D)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_2D',
-                                              scale_dependent_slope_2D)
+UniformTopographyInterface.register_function('scale_dependent_curvature_1D',
+                                             scale_dependent_curvature_1D)
+NonuniformLineScanInterface.register_function('scale_dependent_curvature_1D',
+                                              scale_dependent_curvature_1D)
+UniformTopographyInterface.register_function('scale_dependent_curvature_2D',
+                                             scale_dependent_curvature_2D)
+NonuniformLineScanInterface.register_function('scale_dependent_curvature_2D',
+                                              scale_dependent_curvature_2D)

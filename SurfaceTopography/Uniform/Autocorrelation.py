@@ -34,7 +34,7 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_1D(topography, direction=0):
+def autocorrelation_1D(topography, direction=0, subinterval=None):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -61,6 +61,8 @@ def autocorrelation_1D(topography, direction=0):
         Container storing the uniform topography map
     direction : int
         Cartesian direction in which to compute the ACF
+    subinterval : tuple of ints
+        Compute autocorrelation function only on this subinterval
 
     Returns
     -------
@@ -79,8 +81,20 @@ def autocorrelation_1D(topography, direction=0):
         else:
             raise ValueError("Don't know how to handle direction "
                              "{}".format(direction))
+    is_periodic = topography.is_periodic
+    if subinterval is not None:
+        # If a subinterval is selected, the topography is automatically
+        # non-periodic
+        is_periodic = False
+        l, r = subinterval
+        p = p[l:r]
+        # Compute new sizes
+        dx = sx/nx
+        nx = len(p)
+        print(nx, l-r)
+        sx = nx*dx
 
-    if topography.is_periodic:
+    if is_periodic:
         # Compute height-height autocorrelation function from a convolution
         # using FFT. This is periodic by nature.
         surface_qy = np.fft.fft(p, axis=0)
@@ -147,7 +161,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
     r : array
         Distances. (Units: length)
     A : array
-        Autocorrelation function. (Units: length**2)
+        Radially averaged autocorrelation function. (Units: length**2)
     A_xy : array
         2D autocorrelation function. Only returned if return_map=True.
         (Units: length**2)
