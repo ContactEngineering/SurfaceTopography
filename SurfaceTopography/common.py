@@ -30,7 +30,8 @@ Bin for small common helper function and classes
 import numpy as np
 
 
-def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log', physical_sizes=None, full=True):
+def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log',
+                   physical_sizes=None, log_factor=1.1, full=True):
     """
     Compute radial average of quantities reported on a 2D grid.
 
@@ -55,6 +56,9 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log', physical_sizes=
     physical_sizes : (float, float), optional
         Physical size of the 2D grid. (Default: Size is equal to number of
         grid points.)
+    log_factor : float, optional
+        Factor between consecutive bin edges for log-spaced bins.
+        (Default: 1.1)
     full : bool
         Number of quadrants contained in data. (Default: True)
         True: Full radial average from 0 to 2*pi.
@@ -98,7 +102,7 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log', physical_sizes=
             # which is the (minimal) size of a grid point
             # i.e. rmin = np.exp(np.log(rmin) + dl) - rmin
             # => dl = np.log(2)
-            nbins = int((np.log(rmax) - np.log(rmin)) / np.log(2)) + 1
+            nbins = int((np.log(rmax) - np.log(rmin)) / np.log(log_factor)) + 1
         dr_r = np.exp(np.linspace(np.log(rmin), np.log(rmax), nbins - 1))
     elif bin_edges == 'quadratic':
         # Quadratic -> similar statistics for each data point
