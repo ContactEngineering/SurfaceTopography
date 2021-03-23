@@ -147,7 +147,7 @@ def test_uniform_brute_force_autocorrelation_2D():
     m = 11
     for surf in [Topography(np.ones([n, m]), (n, m), periodic=False),
                  Topography(np.random.random([n, m]), (n, m), periodic=False)]:
-        r, A, A_xy = surf.autocorrelation_2D(return_map=True)
+        r, A, A_xy = surf.autocorrelation_2D(nbins=100, return_map=True)
 
         nx, ny = surf.nb_grid_pts
         dir_A_xy = np.zeros([n, m])

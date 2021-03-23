@@ -147,7 +147,7 @@ def derivative(topography, n, operator=None, periodic=None, mask_function=None):
         SurfaceTopography object containing height information.
     n : int
         Order of the derivative.
-    operator : muFFT.Derivative object or tuple of muFFT.Derivative objects
+    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative

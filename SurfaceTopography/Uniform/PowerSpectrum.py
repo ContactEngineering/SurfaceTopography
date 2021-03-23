@@ -103,7 +103,8 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
+def power_spectrum_2D(topography, nbins=50,  # pylint: disable=invalid-name
+                      bin_edges='log',
                       window=None, normalize_window=True,
                       return_map=False):
     """
@@ -114,9 +115,17 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int
+    nbins : int, optional
         Number of bins for radial average. Note: Returned array can be smaller
-        than this because bins without data point are discarded.
+        than this because bins without data points are discarded.
+        (Default: 50)
+    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
+        Edges used for binning the average. Specifying 'log' yields bins
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
@@ -158,7 +167,8 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, 2 * np.pi * nx / (2 * sx), nbins,
+        C_qk, rmax=2 * np.pi * nx / (2 * sx),
+        nbins=nbins, bin_edges=bin_edges,
         physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
     if return_map:
