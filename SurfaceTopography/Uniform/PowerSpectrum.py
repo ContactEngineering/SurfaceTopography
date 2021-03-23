@@ -103,7 +103,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_2D(topography, nbins=50,  # pylint: disable=invalid-name
+def power_spectrum_2D(topography, nbins=None,  # pylint: disable=invalid-name
                       bin_edges='log',
                       window=None, normalize_window=True,
                       return_map=False):
@@ -116,9 +116,10 @@ def power_spectrum_2D(topography, nbins=50,  # pylint: disable=invalid-name
     topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
     nbins : int, optional
-        Number of bins for radial average. Note: Returned array can be smaller
+        Number of bins for radial average. Bins are automatically determined
+        if set to None. (Default: None) Note: Returned array can be smaller
         than this because bins without data points are discarded.
-        (Default: 50)
+        (Default: None)
     bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
         Edges used for binning the average. Specifying 'log' yields bins
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -161,9 +162,6 @@ def power_spectrum_2D(topography, nbins=50,  # pylint: disable=invalid-name
     # Compute FFT and normalize
     surface_qk = area0 * np.fft.fft2(topography[:, :])
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
-
-    if nbins is None:
-        return C_qk
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name

@@ -43,7 +43,8 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log', physical_sizes=
     rmax : float, optional
         Maximum radius. (Default: None)
     nbins : int, optional
-        Number of bins for averaging. (Default: None)
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
     bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
         Edges used for binning the average. Specifying 'log' yields bins
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -79,26 +80,37 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log', physical_sizes=
     if full:
         x = np.where(x > nx // 2, nx - x, x)
         y = np.where(y > ny // 2, ny - y, y)
-    x = x / nx
-    y = y / ny
 
     rmin = 1.0
     if physical_sizes is not None:
         sx, sy = physical_sizes
-        x *= sx
-        y *= sy
+        x = sx / nx * x
+        y = sy / ny * y
         rmin = min(sx / nx, sy / ny)
     dr_xy = np.sqrt((x ** 2).reshape(-1, 1) + (y ** 2).reshape(1, -1))
+    if rmax is None:
+        rmax = np.max(dr_xy)
 
     if bin_edges == 'log':
         # Power law -> equally spaced on a log-log plot
-        dr_r = np.exp(np.linspace(np.log(rmin), np.log(rmax), nbins))
+        if nbins is None:
+            # The size of the first bin should be equal to rmin,
+            # which is the (minimal) size of a grid point
+            # i.e. rmin = np.exp(np.log(rmin) + dl) - rmin
+            # => dl = np.log(2)
+            nbins = int((np.log(rmax) - np.log(rmin)) / np.log(2)) + 1
+        dr_r = np.exp(np.linspace(np.log(rmin), np.log(rmax), nbins - 1))
     elif bin_edges == 'quadratic':
         # Quadratic -> similar statistics for each data point
-        dr_r = np.sqrt(np.linspace(0, rmax**2, nbins))
+        if nbins is None:
+            raise ValueError("Please specify number of bins for 'quadratic' "
+                             "bins.")
+        dr_r = np.sqrt(np.linspace(0, rmax ** 2, nbins)[1:])
     elif bin_edges == 'linear':
         # Linear
-        dr_r = np.linspace(rmin, rmax, nbins)
+        if nbins is None:
+            nbins = int(rmax / rmin) + 1
+        dr_r = np.linspace(0, rmax, nbins)[1:]
     else:
         dr_r = bin_edges
 
