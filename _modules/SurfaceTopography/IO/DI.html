@@ -284,7 +284,7 @@
                     <span class="k">if</span> <span class="s1">&#39;date&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
                         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> \
                             <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">],</span>
-                                              <span class="s1">&#39;%I:%M:%S %p %a %b </span><span class="si">%d</span><span class="s1"> %Y&#39;</span><span class="p">)</span>
+                                              <span class="s1">&#39;%I:%M:%S %p </span><span class="si">%a</span><span class="s1"> %b </span><span class="si">%d</span><span class="s1"> %Y&#39;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;scanner list&#39;</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;ciao scan list&#39;</span><span class="p">:</span>
                     <span class="n">scanner</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;ciao image list&#39;</span><span class="p">:</span>
