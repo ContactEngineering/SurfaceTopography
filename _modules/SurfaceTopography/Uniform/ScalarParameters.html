@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.ScalarParameters &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Uniform.ScalarParameters &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -242,7 +242,8 @@
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unknown rms height kind &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="rms_slope"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope">[docs]</a><span class="k">def</span> <span class="nf">rms_slope</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="rms_slope"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope">[docs]</a><span class="k">def</span> <span class="nf">rms_slope</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the root mean square amplitude of the height gradient of a</span>
 <span class="sd">    topography or line scan stored on a uniform grid.</span>
@@ -253,6 +254,16 @@
 <span class="sd">        SurfaceTopography object containing height information.</span>
 <span class="sd">    short_wavelength_cutoff : float</span>
 <span class="sd">        All wavelengths below this cutoff will be set to zero amplitude.</span>
+<span class="sd">    window : str, optional</span>
+<span class="sd">        Window for eliminating edge effect. See scipy.signal.get_window.</span>
+<span class="sd">        Only used if short wavelength cutoff is set.</span>
+<span class="sd">        (Default: no window for periodic Topographies, &quot;hann&quot; window for</span>
+<span class="sd">        nonperiodic Topographies)</span>
+<span class="sd">    direction : str, optional</span>
+<span class="sd">        Direction in which the window is applied. Possible options are</span>
+<span class="sd">        &#39;x&#39;, &#39;y&#39; and &#39;radial&#39;. If set to None, it chooses &#39;x&#39; for line</span>
+<span class="sd">        scans and &#39;radial&#39; for topographies. Only used if short wavelength</span>
+<span class="sd">        cutoff is set. (Default: None)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -262,13 +273,15 @@
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="s2">&quot;rms_slope not implemented for parallelized topographies&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
             <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
-            <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">slx</span><span class="p">,</span> <span class="n">sly</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">slx</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">sly</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
@@ -276,7 +289,8 @@
             <span class="n">topography</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="rms_laplacian"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">[docs]</a><span class="k">def</span> <span class="nf">rms_laplacian</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="rms_laplacian"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">[docs]</a><span class="k">def</span> <span class="nf">rms_laplacian</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the root mean square Laplacian of the height gradient of a</span>
 <span class="sd">    topography or line scan stored on a uniform grid. The rms curvature</span>
@@ -288,6 +302,16 @@
 <span class="sd">        SurfaceTopography object containing height information.</span>
 <span class="sd">    short_wavelength_cutoff : float</span>
 <span class="sd">        All wavelengths below this cutoff will be set to zero amplitude.</span>
+<span class="sd">    window : str, optional</span>
+<span class="sd">        Window for eliminating edge effect. See scipy.signal.get_window.</span>
+<span class="sd">        Only used if short wavelength cutoff is set.</span>
+<span class="sd">        (Default: no window for periodic Topographies, &quot;hann&quot; window for</span>
+<span class="sd">        nonperiodic Topographies)</span>
+<span class="sd">    direction : str, optional</span>
+<span class="sd">        Direction in which the window is applied. Possible options are</span>
+<span class="sd">        &#39;x&#39;, &#39;y&#39; and &#39;radial&#39;. If set to None, it chooses &#39;x&#39; for line</span>
+<span class="sd">        scans and &#39;radial&#39; for topographies. Only used if short wavelength</span>
+<span class="sd">        cutoff is set. (Default: None)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -297,6 +321,8 @@
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
             <span class="s2">&quot;rms_Laplacian not implemented for parallelized topographies&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
             <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
@@ -304,7 +330,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">curv</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
-            <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">curv</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">curv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">curv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
@@ -312,7 +338,8 @@
             <span class="n">topography</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="rms_curvature"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature">[docs]</a><span class="k">def</span> <span class="nf">rms_curvature</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="rms_curvature"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature">[docs]</a><span class="k">def</span> <span class="nf">rms_curvature</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the root mean square curvature of the height gradient of a</span>
 <span class="sd">    topography or line scan stored on a uniform grid.</span>
@@ -327,6 +354,16 @@
 <span class="sd">        SurfaceTopography object containing height information.</span>
 <span class="sd">    short_wavelength_cutoff : float</span>
 <span class="sd">        All wavelengths below this cutoff will be set to zero amplitude.</span>
+<span class="sd">    window : str, optional</span>
+<span class="sd">        Window for eliminating edge effect. See scipy.signal.get_window.</span>
+<span class="sd">        Only used if short wavelength cutoff is set.</span>
+<span class="sd">        (Default: no window for periodic Topographies, &quot;hann&quot; window for</span>
+<span class="sd">        nonperiodic Topographies)</span>
+<span class="sd">    direction : str, optional</span>
+<span class="sd">        Direction in which the window is applied. Possible options are</span>
+<span class="sd">        &#39;x&#39;, &#39;y&#39; and &#39;radial&#39;. If set to None, it chooses &#39;x&#39; for line</span>
+<span class="sd">        scans and &#39;radial&#39; for topographies. Only used if short wavelength</span>
+<span class="sd">        cutoff is set. (Default: None)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -343,7 +380,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot handle topographies of dimension </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">topography</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">fac</span> <span class="o">*</span> <span class="n">rms_laplacian</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="n">short_wavelength_cutoff</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">fac</span> <span class="o">*</span> <span class="n">rms_laplacian</span><span class="p">(</span>
+        <span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="n">short_wavelength_cutoff</span><span class="p">,</span>
+        <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>

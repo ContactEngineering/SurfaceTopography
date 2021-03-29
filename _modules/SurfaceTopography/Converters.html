@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Converters &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Converters &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -334,7 +334,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">r</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">r</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">area_per_pt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

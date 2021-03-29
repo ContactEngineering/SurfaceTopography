@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SurfaceTopography.IO package" href="SurfaceTopography.IO.html" />
+    <link rel="next" title="SurfaceTopography.Generic package" href="SurfaceTopography.Generic.html" />
     <link rel="prev" title="Contributing to SurfaceTopography" href="../contributing.html" /> 
 </head>
 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -100,6 +100,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a></li>
@@ -196,6 +197,13 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a></li>
@@ -1478,16 +1486,27 @@ the profile; the physical_sizes is not contained in the file</p>
 <p>Bin for small common helper function and classes</p>
 <dl class="py function">
 <dt id="SurfaceTopography.common.radial_average">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.common.</span></code><code class="sig-name descname"><span class="pre">radial_average</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_xy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/common.html#radial_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.common.radial_average" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.common.</span></code><code class="sig-name descname"><span class="pre">radial_average</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C_xy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/common.html#radial_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.common.radial_average" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute radial average of quantities reported on a 2D grid.</p>
+<p>Either <cite>nbins</cite> or <cite>bin_edges</cite> must be present.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>C_xy</strong> (<em>array_like</em>) – 2D-array of values to be averaged.</p></li>
-<li><p><strong>rmax</strong> (<em>float</em>) – Maximum radius.</p></li>
-<li><p><strong>nbins</strong> (<em>int</em>) – Number of bins for averaging.</p></li>
+<li><p><strong>rmax</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum radius, is automatically determined from the range of the data
+if not provided. (Default: None)</p></li>
+<li><p><strong>nbins</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
+to None. (Default: None)</p></li>
+<li><p><strong>bin_edges</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Edges used for binning the average. Specifying ‘log’ yields bins
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</cite> is
+ignored. (Default: ‘log’)</p></li>
 <li><p><strong>physical_sizes</strong> (<em>(</em><em>float</em><em>, </em><em>float</em><em>)</em><em>, </em><em>optional</em>) – Physical size of the 2D grid. (Default: Size is equal to number of
 grid points.)</p></li>
+<li><p><strong>log_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Factor between consecutive bin edges for log-spaced bins.
+(Default: 1.1)</p></li>
 <li><p><strong>full</strong> (<em>bool</em>) – Number of quadrants contained in data. (Default: True)
 True: Full radial average from 0 to 2*pi.
 False: Only the one quarter of the full circle is present. Radial
@@ -1497,8 +1516,9 @@ average from 0 to pi/2.</p></li>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>r_edges</strong> (<em>array</em>) – Bin edges.</p></li>
-<li><p><strong>r_averages</strong> (<em>array</em>) – Bin centers, obtained by averaging actual distance values.</p></li>
-<li><p><strong>n</strong> (<em>array</em>) – Number of data points per radial grid.</p></li>
+<li><p><strong>r_averages</strong> (<em>array</em>) – Bin centers, obtained by averaging actual distance values.
+(This is <em>not</em> the average of adjacent <cite>bin_edges</cite>!)</p></li>
+<li><p><strong>n</strong> (<em>array</em>) – Number of data points per radial bin.</p></li>
 <li><p><strong>C_r</strong> (<em>array</em>) – Averaged values.</p></li>
 </ul>
 </p>
@@ -1519,7 +1539,7 @@ average from 0 to pi/2.</p></li>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="SurfaceTopography.IO.html" class="btn btn-neutral float-right" title="SurfaceTopography.IO package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="SurfaceTopography.Generic.html" class="btn btn-neutral float-right" title="SurfaceTopography.Generic package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="../contributing.html" class="btn btn-neutral float-left" title="Contributing to SurfaceTopography" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.Filtering &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Uniform.Filtering &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -191,10 +191,120 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span> <span class="nn">SurfaceTopography.UniformLineScanAndTopography</span> <span class="k">import</span> \
-    <span class="n">DecoratedUniformTopography</span>
-<span class="kn">from</span> <span class="nn">SurfaceTopography.HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">get_window</span>
+
+<span class="kn">from</span> <span class="nn">..FFTTricks</span> <span class="k">import</span> <span class="n">get_window_2D</span>
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">DecoratedUniformTopography</span>
+
+
+<div class="viewcode-block" id="WindowedUniformTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">WindowedUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a topography with a window function applied to it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;windowed_topography&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        window : str, optional</span>
+<span class="sd">            Window for eliminating edge effect. See scipy.signal.get_window.</span>
+<span class="sd">            (Default: no window for periodic Topographies, &quot;hann&quot; window for</span>
+<span class="sd">            nonperiodic Topographies)</span>
+<span class="sd">        direction : str, optional</span>
+<span class="sd">            Direction in which the window is applied. Possible options are</span>
+<span class="sd">            &#39;x&#39;, &#39;y&#39; and &#39;radial&#39;. If set to None, it chooses &#39;x&#39; for line</span>
+<span class="sd">            scans and &#39;radial&#39; for topographies. (Default: None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_window_name</span> <span class="o">=</span> <span class="n">window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_window_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_make_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_window_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="o">=</span> <span class="n">n</span>
+
+        <span class="n">window_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window_name</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="ow">and</span> <span class="n">window_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">window_name</span> <span class="o">=</span> <span class="s2">&quot;hann&quot;</span>
+
+        <span class="n">direction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;radial&#39;</span>
+
+        <span class="c1"># Construct window</span>
+        <span class="k">if</span> <span class="n">window_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">window_name</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
+                <span class="c1"># Get window from scipy.signal</span>
+                <span class="n">win</span> <span class="o">=</span> <span class="n">get_window</span><span class="p">(</span><span class="n">window_name</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+                <span class="c1"># Normalize window</span>
+                <span class="n">win</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nx</span> <span class="o">/</span> <span class="p">(</span><span class="n">win</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Direction &#39;y&#39; does not make sense for line scans.&quot;</span><span class="p">)</span>
+                <span class="c1"># Get window from scipy.signal</span>
+                <span class="n">win</span> <span class="o">=</span> <span class="n">get_window</span><span class="p">(</span><span class="n">window_name</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+                <span class="c1"># Normalize window</span>
+                <span class="n">win</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ny</span> <span class="o">/</span> <span class="p">(</span><span class="n">win</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;radial&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Direction &#39;radial&#39; does not make sense for line scans.&quot;</span><span class="p">)</span>
+                <span class="n">win</span> <span class="o">=</span> <span class="n">get_window_2D</span><span class="p">(</span><span class="n">window_name</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+                <span class="c1"># Normalize window</span>
+                <span class="n">win</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">/</span> <span class="p">(</span><span class="n">win</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unknown direction &#39;</span><span class="si">{self._direction}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_window_data</span> <span class="o">=</span> <span class="n">win</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
+<span class="sd">            the instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_window_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upon unpickling, it is called with the unpickled state</span>
+<span class="sd">        Keyword Arguments:</span>
+<span class="sd">        state -- result of __getstate__</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">window_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_window</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window_data</span>
+
+<div class="viewcode-block" id="WindowedUniformTopography.heights"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the windowed topography.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">direction</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;radial&#39;</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span> <span class="ow">or</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;radial&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_data</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unknown direction &#39;</span><span class="si">{self._direction}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="FilteredUniformTopography"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography">[docs]</a><span class="k">class</span> <span class="nc">FilteredUniformTopography</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
@@ -483,6 +593,8 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span></div>
 
 
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;window&quot;</span><span class="p">,</span>
+                                             <span class="n">WindowedUniformTopography</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;filter&quot;</span><span class="p">,</span>
                                              <span class="n">FilteredUniformTopography</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s2">&quot;shortcut&quot;</span><span class="p">,</span> <span class="n">ShortCutTopography</span><span class="p">)</span>

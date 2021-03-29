@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.common &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.common &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -198,21 +198,36 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="radial_average"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.common.radial_average">[docs]</a><span class="k">def</span> <span class="nf">radial_average</span><span class="p">(</span><span class="n">C_xy</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">nbins</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="radial_average"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.common.radial_average">[docs]</a><span class="k">def</span> <span class="nf">radial_average</span><span class="p">(</span><span class="n">C_xy</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
+                   <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_factor</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute radial average of quantities reported on a 2D grid.</span>
+
+<span class="sd">    Either `nbins` or `bin_edges` must be present.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    C_xy : array_like</span>
 <span class="sd">        2D-array of values to be averaged.</span>
-<span class="sd">    rmax : float</span>
-<span class="sd">        Maximum radius.</span>
-<span class="sd">    nbins : int</span>
-<span class="sd">        Number of bins for averaging.</span>
+<span class="sd">    rmax : float, optional</span>
+<span class="sd">        Maximum radius, is automatically determined from the range of the data</span>
+<span class="sd">        if not provided. (Default: None)</span>
+<span class="sd">    nbins : int, optional</span>
+<span class="sd">        Number of bins for averaging. Bins are automatically determined if set</span>
+<span class="sd">        to None. (Default: None)</span>
+<span class="sd">    bin_edges : {&#39;log&#39;, &#39;quadratic&#39;, &#39;linear&#39;, array_like}, optional</span>
+<span class="sd">        Edges used for binning the average. Specifying &#39;log&#39; yields bins</span>
+<span class="sd">        equally spaced on a log scale, &#39;quadratic&#39; yields bins with</span>
+<span class="sd">        similar number of data points and &#39;linear&#39; yields linear bins.</span>
+<span class="sd">        Alternatively, it is possible to explicitly specify the bin edges.</span>
+<span class="sd">        If bin_edges are explicitly specified, then `rmax` and `nbins` is</span>
+<span class="sd">        ignored. (Default: &#39;log&#39;)</span>
 <span class="sd">    physical_sizes : (float, float), optional</span>
 <span class="sd">        Physical size of the 2D grid. (Default: Size is equal to number of</span>
 <span class="sd">        grid points.)</span>
+<span class="sd">    log_factor : float, optional</span>
+<span class="sd">        Factor between consecutive bin edges for log-spaced bins.</span>
+<span class="sd">        (Default: 1.1)</span>
 <span class="sd">    full : bool</span>
 <span class="sd">        Number of quadrants contained in data. (Default: True)</span>
 <span class="sd">        True: Full radial average from 0 to 2*pi.</span>
@@ -225,43 +240,52 @@
 <span class="sd">        Bin edges.</span>
 <span class="sd">    r_averages : array</span>
 <span class="sd">        Bin centers, obtained by averaging actual distance values.</span>
+<span class="sd">        (This is *not* the average of adjacent `bin_edges`!)</span>
 <span class="sd">    n : array</span>
-<span class="sd">        Number of data points per radial grid.</span>
+<span class="sd">        Number of data points per radial bin.</span>
 <span class="sd">    C_r : array</span>
 <span class="sd">        Averaged values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># pylint: disable=invalid-name</span>
     <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">C_xy</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">sx</span> <span class="o">=</span> <span class="n">sy</span> <span class="o">=</span> <span class="mf">1.</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">full</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">nx</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">ny</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">ny</span><span class="o">-</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">nx</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">/</span><span class="n">ny</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nx</span> <span class="o">-</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="n">ny</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ny</span> <span class="o">-</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
-    <span class="n">rmin</span> <span class="o">=</span> <span class="mf">0.0</span>
-
+    <span class="n">rmin</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">physical_sizes</span>
-        <span class="n">x</span> <span class="o">*=</span> <span class="n">sx</span>
-        <span class="n">y</span> <span class="o">*=</span> <span class="n">sy</span>
-        <span class="n">rmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sx</span><span class="o">/</span><span class="n">nx</span><span class="p">,</span> <span class="n">sy</span><span class="o">/</span><span class="n">ny</span><span class="p">)</span>
-    <span class="n">dr_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">y</span>
+        <span class="n">rmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="n">dr_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">rmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dr_xy</span><span class="p">)</span>
 
-    <span class="c1"># Quadratic -&gt; similar statistics for each data point</span>
-    <span class="c1"># dr_r        = np.sqrt( np.linspace(0, rmax**2, nbins) )</span>
-
-    <span class="c1"># Power law -&gt; equally spaced on a log-log plot</span>
-    <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmin</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmax</span><span class="p">),</span> <span class="n">nbins</span><span class="p">))</span>
-
-    <span class="n">dr_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dr_xy</span><span class="p">)</span>
-    <span class="c1"># Keep dr_max sorted</span>
-    <span class="k">if</span> <span class="n">dr_max</span> <span class="o">&gt;</span> <span class="n">dr_r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dr_r</span><span class="p">,</span> <span class="p">[</span><span class="n">dr_max</span><span class="o">+</span><span class="mf">0.1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">bin_edges</span> <span class="o">==</span> <span class="s1">&#39;log&#39;</span><span class="p">:</span>
+        <span class="c1"># Power law -&gt; equally spaced on a log-log plot</span>
+        <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># The size of the first bin should be equal to rmin,</span>
+            <span class="c1"># which is the (minimal) size of a grid point</span>
+            <span class="c1"># i.e. rmin = np.exp(np.log(rmin) + dl) - rmin</span>
+            <span class="c1"># =&gt; dl = np.log(2)</span>
+            <span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmax</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmin</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">log_factor</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmin</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rmax</span><span class="p">),</span> <span class="n">nbins</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">bin_edges</span> <span class="o">==</span> <span class="s1">&#39;quadratic&#39;</span><span class="p">:</span>
+        <span class="c1"># Quadratic -&gt; similar statistics for each data point</span>
+        <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please specify number of bins for &#39;quadratic&#39; &quot;</span>
+                             <span class="s2">&quot;bins.&quot;</span><span class="p">)</span>
+        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rmax</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nbins</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">elif</span> <span class="n">bin_edges</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+        <span class="c1"># Linear</span>
+        <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">nbins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rmax</span> <span class="o">/</span> <span class="n">rmin</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">rmax</span><span class="p">,</span> <span class="n">nbins</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dr_r</span><span class="p">,</span> <span class="p">[</span><span class="n">dr_r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mf">0.1</span><span class="p">])</span>
+        <span class="n">dr_r</span> <span class="o">=</span> <span class="n">bin_edges</span>
 
     <span class="c1"># Linear interpolation</span>
     <span class="n">dr_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">dr_xy</span><span class="p">)</span>

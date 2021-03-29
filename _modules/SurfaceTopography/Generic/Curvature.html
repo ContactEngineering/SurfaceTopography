@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SurfaceTopography.Generic.Curvature &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> SurfaceTopography
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.92.1.dev26+ge4ab105
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SurfaceTopography</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>SurfaceTopography.Generic.Curvature</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for SurfaceTopography.Generic.Curvature</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2021 Lars Pastewka</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Scale-dependent slope</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
+
+
+<div class="viewcode-block" id="scale_dependent_curvature_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_1D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_curvature_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the one-dimensional scale-dependent curvature.</span>
+
+<span class="sd">    The scale-dependent curvature is given by</span>
+
+<span class="sd">       .. math::</span>
+<span class="sd">         :nowrap:</span>
+
+<span class="sd">         \begin{equation}</span>
+<span class="sd">         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2</span>
+<span class="sd">         \end{equation}</span>
+
+<span class="sd">    where :math:`A(\lambda)` is the autocorrelation function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword parameters are passed on to `autocorrelation_1D`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    r : array</span>
+<span class="sd">        Distances. (Units: length)</span>
+<span class="sd">    curvature : array</span>
+<span class="sd">        Curvature. (Units: 1/length)</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_1D</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">B</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">nz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Important: The following expression relies on the fact that r is equally spaced!</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="scale_dependent_curvature_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_2D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_curvature_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the two-dimensional, radially averaged scale-dependent curvature.</span>
+
+<span class="sd">    The scale-dependent curvature is given by</span>
+
+<span class="sd">       .. math::</span>
+<span class="sd">         :nowrap:</span>
+
+<span class="sd">         \begin{equation}</span>
+<span class="sd">         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2</span>
+<span class="sd">         \end{equation}</span>
+
+<span class="sd">    where :math:`A(\lambda)` is the autocorrelation function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    nbins : int</span>
+<span class="sd">        Number of bins for radial average. Bins are automatically determined</span>
+<span class="sd">        if set to None. Note: Returned array can be smaller than this because</span>
+<span class="sd">        bins without data points are discarded. (Default: None)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    r : array</span>
+<span class="sd">        Distances. (Units: length)</span>
+<span class="sd">    curvature : array</span>
+<span class="sd">        Curvature. (Units: 1/length)</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_2D</span><span class="p">(</span><span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">]</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">B</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">nz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Important: The following expression relies on the fact that r is equally spaced!</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+
+<span class="c1"># Register analysis functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_curvature_1D&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_curvature_1D</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_curvature_1D&#39;</span><span class="p">,</span>
+                                              <span class="n">scale_dependent_curvature_1D</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_curvature_2D&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_curvature_2D</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2015-2020 The Authors.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

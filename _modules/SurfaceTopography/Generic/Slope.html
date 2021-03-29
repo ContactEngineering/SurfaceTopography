@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.common &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
+  <title>SurfaceTopography.Generic.Slope &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -150,7 +150,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>SurfaceTopography.Nonuniform.common</li>
+      <li>SurfaceTopography.Generic.Slope</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -165,12 +165,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for SurfaceTopography.Nonuniform.common</h1><div class="highlight"><pre>
+  <h1>Source code for SurfaceTopography.Generic.Slope</h1><div class="highlight"><pre>
 <span></span><span class="c1">#</span>
-<span class="c1"># Copyright 2018, 2020 Lars Pastewka</span>
-<span class="c1">#           2019 Antoine Sanner</span>
-<span class="c1">#           2019 Michael Röttger</span>
-<span class="c1">#           2015-2016 Till Junge</span>
+<span class="c1"># Copyright 2021 Lars Pastewka</span>
 <span class="c1">#</span>
 <span class="c1"># ### MIT license</span>
 <span class="c1">#</span>
@@ -194,73 +191,90 @@
 <span class="c1">#</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Bin for small common helper function and classes for nonuniform</span>
-<span class="sd">topographies.</span>
+<span class="sd">Scale-dependent slope</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
 
 
-<div class="viewcode-block" id="bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.common.bandwidth">[docs]</a><span class="k">def</span> <span class="nf">bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Computes lower and upper bound of bandwidth.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    A 2-tuple (lower_bound, upper_bound) where the elements are floats.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
-    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-    <span class="n">upper_bound</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
-
-    <span class="k">return</span> <span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span></div>
-
-
-<div class="viewcode-block" id="derivative"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.common.derivative">[docs]</a><span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<div class="viewcode-block" id="scale_dependent_slope_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_1D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute derivative of nonuniform line-scan. Function assumes nonperiodic</span>
-<span class="sd">    topographies.</span>
+<span class="sd">    Compute the one-dimensional scale-dependent slope.</span>
 
-<span class="sd">    First derivative: Central differences.</span>
-<span class="sd">    Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`(x-\Delta x_-)` up to second order in the grid</span>
-<span class="sd">    spacing :math:`\Delta x_+` and :math:`\Delta x_+`. Then</span>
-<span class="sd">    :math:`\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)` yields:</span>
+<span class="sd">    The scale-dependent slope is given by</span>
 
-<span class="sd">    .. math::</span>
+<span class="sd">       .. math::</span>
+<span class="sd">         :nowrap:</span>
 
-<span class="sd">         \frac{d^2h}{dx^2} \approx  = 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x+-\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}</span>
+<span class="sd">         \begin{equation}</span>
+<span class="sd">         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda</span>
+<span class="sd">         \end{equation}</span>
+
+<span class="sd">    where :math:`A(\lambda)` is the autocorrelation function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    topography : SurfaceTopography or UniformLineScan</span>
-<span class="sd">        SurfaceTopography object containing height information.</span>
-<span class="sd">    n : int</span>
-<span class="sd">        Number of times the derivative is taken.</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword parameters are passed on to `autocorrelation_1D`</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    derivative : array</span>
-<span class="sd">        Array with derivative values. Length of array is reduced by :math:`n` with</span>
-<span class="sd">        respect to the input array for the :math:`n`th derivative.</span>
+<span class="sd">    r : array</span>
+<span class="sd">        Distances. (Units: length)</span>
+<span class="sd">    slope : array</span>
+<span class="sd">        Slope. (Units: dimensionless)</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="n">x</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">dxp</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">dxm</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_1D</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
 
-        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">dxm</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">-</span> <span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">dxp</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="o">/</span> <span class="p">(</span>
-                    <span class="n">dxp</span> <span class="o">*</span> <span class="n">dxm</span> <span class="o">*</span> <span class="p">(</span><span class="n">dxp</span> <span class="o">+</span> <span class="n">dxm</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Currently only first and second derivatives are &#39;</span>
-                           <span class="s1">&#39;supported for nonuniform topographies.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="scale_dependent_slope_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_2D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the two-dimensional, radially averaged scale-dependent slope.</span>
+
+<span class="sd">    The scale-dependent slope is given by</span>
+
+<span class="sd">       .. math::</span>
+<span class="sd">         :nowrap:</span>
+
+<span class="sd">         \begin{equation}</span>
+<span class="sd">         h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda</span>
+<span class="sd">         \end{equation}</span>
+
+<span class="sd">    where :math:`A(\lambda)` is the autocorrelation function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        Container storing the uniform topography map</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword parameters are passed on to `autocorrelation_2D`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    r : array</span>
+<span class="sd">        Distances. (Units: length)</span>
+<span class="sd">    slope : array</span>
+<span class="sd">        Slope. (Units: dimensionless)</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_2D</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span> <span class="n">derivative</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_1D&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_slope_1D</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_1D&#39;</span><span class="p">,</span>
+                                              <span class="n">scale_dependent_slope_1D</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_2D&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_slope_2D</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_2D&#39;</span><span class="p">,</span>
+                                              <span class="n">scale_dependent_slope_2D</span><span class="p">)</span>
 </pre></div>
 
            </div>

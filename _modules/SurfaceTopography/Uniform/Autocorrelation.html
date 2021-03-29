@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -296,7 +296,7 @@
         <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">A</span></div>
 
 
-<div class="viewcode-block" id="autocorrelation_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_2D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="autocorrelation_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_2D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute height-difference autocorrelation function and radial average.</span>
 
@@ -304,9 +304,17 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`SurfaceTopography`</span>
 <span class="sd">        Container storing the (two-dimensional) topography map.</span>
-<span class="sd">    nbins : int</span>
-<span class="sd">        Number of bins for radial average. Note: Returned array can be smaller</span>
-<span class="sd">        than this because bins without data point are discarded.</span>
+<span class="sd">    nbins : int, optional</span>
+<span class="sd">        Number of bins for radial average. Bins are automatically determined</span>
+<span class="sd">        if set to None. Note: Returned array can be smaller than this because</span>
+<span class="sd">        bins without data points are discarded. (Default: None)</span>
+<span class="sd">    bin_edges : {&#39;log&#39;, &#39;quadratic&#39;, &#39;linear&#39;, array_like}, optional</span>
+<span class="sd">        Edges used for binning the average. Specifying &#39;log&#39; yields bins</span>
+<span class="sd">        equally spaced on a log scale, &#39;quadratic&#39; yields bins with</span>
+<span class="sd">        similar number of data points and &#39;linear&#39; yields linear bins.</span>
+<span class="sd">        Alternatively, it is possible to explicitly specify the bin edges.</span>
+<span class="sd">        If `bin_edges` are explicitly specified, then `nbins` is ignored.</span>
+<span class="sd">        (Default: &#39;log&#39;)</span>
 <span class="sd">    return_map : bool, optional</span>
 <span class="sd">        Return full 2D autocorrelation map. (Default: False)</span>
 
@@ -315,7 +323,7 @@
 <span class="sd">    r : array</span>
 <span class="sd">        Distances. (Units: length)</span>
 <span class="sd">    A : array</span>
-<span class="sd">        Autocorrelation function. (Units: length**2)</span>
+<span class="sd">        Radially averaged autocorrelation function. (Units: length**2)</span>
 <span class="sd">    A_xy : array</span>
 <span class="sd">        2D autocorrelation function. Only returned if return_map=True.</span>
 <span class="sd">        (Units: length**2)</span>
@@ -333,13 +341,11 @@
         <span class="c1"># autocorrelation</span>
         <span class="n">A_xy</span> <span class="o">=</span> <span class="n">A_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">A_xy</span>
 
-        <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">A_xy</span>
-
         <span class="c1"># Radial average</span>
         <span class="n">r_edges</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">r_val</span><span class="p">,</span> <span class="n">A_val</span> <span class="o">=</span> <span class="n">radial_average</span><span class="p">(</span>
             <span class="c1"># pylint: disable=invalid-name</span>
-            <span class="n">A_xy</span><span class="p">,</span> <span class="p">(</span><span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">nbins</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">))</span>
+            <span class="n">A_xy</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="n">bin_edges</span><span class="p">,</span>
+            <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
 
@@ -359,13 +365,11 @@
         <span class="n">A_xy</span> <span class="o">=</span> <span class="p">(</span><span class="n">A0_xy</span> <span class="o">-</span> <span class="n">A_xy</span><span class="p">[:</span><span class="n">nx</span><span class="p">,</span> <span class="p">:</span><span class="n">ny</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
                     <span class="p">(</span><span class="n">nx</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ny</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">A_xy</span>
-
         <span class="c1"># Radial average</span>
         <span class="n">r_edges</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">r_val</span><span class="p">,</span> <span class="n">A_val</span> <span class="o">=</span> <span class="n">radial_average</span><span class="p">(</span>
             <span class="c1"># pylint: disable=invalid-name</span>
-            <span class="n">A_xy</span><span class="p">,</span> <span class="p">(</span><span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nbins</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">A_xy</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span> <span class="o">+</span> <span class="n">sy</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="n">bin_edges</span><span class="p">,</span>
+            <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">return_map</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">r_val</span><span class="p">[</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">A_val</span><span class="p">[</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">],</span> <span class="n">A_xy</span>

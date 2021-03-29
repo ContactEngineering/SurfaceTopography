@@ -1,0 +1,29 @@
+SurfaceTopography.Generic package
+=================================
+
+Submodules
+----------
+
+SurfaceTopography.Generic.Curvature module
+------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.Curvature
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Generic.Slope module
+--------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.Slope
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Generic
+   :members:
+   :undoc-members:
+   :show-inheritance:

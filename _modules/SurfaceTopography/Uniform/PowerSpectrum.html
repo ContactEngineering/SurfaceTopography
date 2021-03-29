@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -197,10 +197,8 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">get_window</span>
 
 <span class="kn">from</span> <span class="nn">..common</span> <span class="k">import</span> <span class="n">radial_average</span>
-<span class="kn">from</span> <span class="nn">..FFTTricks</span> <span class="k">import</span> <span class="n">get_window_2D</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 
@@ -236,23 +234,10 @@
         <span class="n">nx</span><span class="p">,</span> <span class="o">=</span> <span class="n">n</span>
         <span class="n">sx</span><span class="p">,</span> <span class="o">=</span> <span class="n">s</span>
 
-    <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="ow">and</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="s2">&quot;hann&quot;</span>
-
-    <span class="c1"># Construct and apply window</span>
-    <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">window</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
-        <span class="n">win</span> <span class="o">=</span> <span class="n">get_window</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
-        <span class="c1"># Normalize window</span>
-        <span class="n">win</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nx</span> <span class="o">/</span> <span class="p">(</span><span class="n">win</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">win</span> <span class="o">*</span> <span class="n">h</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-
-    <span class="c1"># Pixel physical_sizes</span>
-    <span class="n">len0</span> <span class="o">=</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="p">)</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
 
     <span class="c1"># Compute FFT and normalize</span>
-    <span class="n">fourier_topography</span> <span class="o">=</span> <span class="n">len0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fourier_topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">area_per_pt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">dq</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sx</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">dq</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
 
@@ -271,7 +256,8 @@
         <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">C_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="power_spectrum_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_2D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<div class="viewcode-block" id="power_spectrum_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_2D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                      <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
                       <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_window</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -282,9 +268,18 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`SurfaceTopography`</span>
 <span class="sd">        Container storing the (two-dimensional) topography map.</span>
-<span class="sd">    nbins : int</span>
-<span class="sd">        Number of bins for radial average. Note: Returned array can be smaller</span>
-<span class="sd">        than this because bins without data point are discarded.</span>
+<span class="sd">    nbins : int, optional</span>
+<span class="sd">        Number of bins for radial average. Bins are automatically determined</span>
+<span class="sd">        if set to None. (Default: None) Note: Returned array can be smaller</span>
+<span class="sd">        than this because bins without data points are discarded.</span>
+<span class="sd">        (Default: None)</span>
+<span class="sd">    bin_edges : {&#39;log&#39;, &#39;quadratic&#39;, &#39;linear&#39;, array_like}, optional</span>
+<span class="sd">        Edges used for binning the average. Specifying &#39;log&#39; yields bins</span>
+<span class="sd">        equally spaced on a log scale, &#39;quadratic&#39; yields bins with</span>
+<span class="sd">        similar number of data points and &#39;linear&#39; yields linear bins.</span>
+<span class="sd">        Alternatively, it is possible to explicitly specify the bin edges.</span>
+<span class="sd">        If bin_edges are explicitly specified, then `rmax` and `nbins` is</span>
+<span class="sd">        ignored. (Default: &#39;log&#39;)</span>
 <span class="sd">    window : str, optional</span>
 <span class="sd">        Window for eliminating edge effect. See scipy.signal.get_window.</span>
 <span class="sd">        (Default: None)</span>
@@ -303,30 +298,16 @@
     <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
     <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="ow">and</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">window</span> <span class="o">=</span> <span class="s2">&quot;hann&quot;</span>
-
-    <span class="c1"># Construct and apply window</span>
-    <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">win</span> <span class="o">=</span> <span class="n">get_window_2D</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
-        <span class="c1"># Normalize window</span>
-        <span class="k">if</span> <span class="n">normalize_window</span><span class="p">:</span>
-            <span class="n">win</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">/</span> <span class="p">(</span><span class="n">win</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-        <span class="n">topography</span> <span class="o">=</span> <span class="n">win</span> <span class="o">*</span> <span class="n">topography</span><span class="p">[:,</span> <span class="p">:]</span>
-
-    <span class="c1"># Pixel physical_sizes</span>
-    <span class="n">area0</span> <span class="o">=</span> <span class="p">(</span><span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;radial&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
 
     <span class="c1"># Compute FFT and normalize</span>
-    <span class="n">surface_qk</span> <span class="o">=</span> <span class="n">area0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">topography</span><span class="p">[:,</span> <span class="p">:])</span>
+    <span class="n">surface_qk</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">area_per_pt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
     <span class="n">C_qk</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">surface_qk</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="n">sx</span> <span class="o">*</span> <span class="n">sy</span><span class="p">)</span>  <span class="c1"># pylint: disable=invalid-name</span>
-
-    <span class="k">if</span> <span class="n">nbins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">C_qk</span>
 
     <span class="c1"># Radial average</span>
     <span class="n">q_edges</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">q_val</span><span class="p">,</span> <span class="n">C_val</span> <span class="o">=</span> <span class="n">radial_average</span><span class="p">(</span>  <span class="c1"># pylint: disable=invalid-name</span>
-        <span class="n">C_qk</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sx</span><span class="p">),</span> <span class="n">nbins</span><span class="p">,</span>
+        <span class="n">C_qk</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sx</span><span class="p">),</span>
+        <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="n">bin_edges</span><span class="p">,</span>
         <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">nx</span> <span class="o">/</span> <span class="n">sx</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">/</span> <span class="n">sy</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">return_map</span><span class="p">:</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -100,6 +100,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -232,7 +233,7 @@ this piece-wise linear interpolation of the data.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>line_scan</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
-<li><p><strong>algorithms</strong> (<em>str</em>) – Algorithm to compute autocorrelation.
+<li><p><strong>algorithm</strong> (<em>str</em>) – Algorithm to compute autocorrelation.
 * ‘fft’: Interpolates the nonuniform line scan on a grid and then uses
 the FFT to compute the autocorrelation. Scales O(N log N)
 * ‘brute-force’: Brute-force computation using between line segements.

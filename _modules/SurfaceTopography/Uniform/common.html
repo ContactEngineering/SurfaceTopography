@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.92.1.dev1+gb39b413 documentation</title>
+  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev1+gb39b413
+                0.92.1.dev26+ge4ab105
               </div>
             
           
@@ -315,18 +315,19 @@
 <span class="sd">        SurfaceTopography object containing height information.</span>
 <span class="sd">    n : int</span>
 <span class="sd">        Order of the derivative.</span>
-<span class="sd">    operator : muFFT.Derivative object or tuple of muFFT.Derivative objects</span>
+<span class="sd">    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects</span>
 <span class="sd">        Derivative operator used to compute the derivative. If unspecified,</span>
 <span class="sd">        a simple upwind differences scheme will be applied to compute the</span>
 <span class="sd">        derivative. A tuple contains the gradient, i.e. the derivative</span>
 <span class="sd">        operators in the Cartesian directions for multidimensional fields.</span>
-<span class="sd">    periodic : bool</span>
-<span class="sd">        Override periodic flag from topography.</span>
-<span class="sd">    mask_function : function</span>
+<span class="sd">        (Default: None)</span>
+<span class="sd">    periodic : bool, optional</span>
+<span class="sd">        Override periodic flag from topography. (Default: None)</span>
+<span class="sd">    mask_function : function, optional</span>
 <span class="sd">        A function that takes as argument the output of FFT.fftfreq and</span>
 <span class="sd">        returns a mask that will be multiplied with the Fourier transformed</span>
 <span class="sd">        topography. This can be used to implement Fourier filtering before</span>
-<span class="sd">        computing the derivative.</span>
+<span class="sd">        computing the derivative. (Default: None)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
