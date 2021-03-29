@@ -281,3 +281,23 @@ def test_default_window_2D():
         # ax.set_ylim(bottom=1e-6)
         ax.legend()
         plt.show(block=True)
+
+
+def test_q0_1D():
+    surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
+    rms_height = surf.rms_height(kind='Rq')  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_1D()
+    ratio = rms_height**2 / (np.trapz(C, q)/np.pi)
+    assert ratio > 0.2
+    assert ratio < 5
+
+
+def test_q0_2D():
+    surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
+    rms_height = surf.rms_height()  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_2D(nbins=200, bin_edges='quadratic')
+    # This is really not quantitative, it's just checking whether it's the right ballpark.
+    # Any bug in normalization would show up here as an order of magnitude
+    ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
+    assert ratio > 0.2
+    assert ratio < 5
