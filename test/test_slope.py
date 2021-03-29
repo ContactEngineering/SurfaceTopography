@@ -28,8 +28,9 @@ Tests for scale-dependent slope analysis
 """
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
+from SurfaceTopography import UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
 
