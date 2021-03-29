@@ -114,7 +114,7 @@ def height_difference_autocorrelation_1D(line_scan, algorithm='fft',
     ----------
     line_scan : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
-    algorithms : str
+    algorithm : str
         Algorithm to compute autocorrelation.
         * 'fft': Interpolates the nonuniform line scan on a grid and then uses
         the FFT to compute the autocorrelation. Scales O(N log N)

@@ -128,7 +128,7 @@ def autocorrelation_1D(topography, direction=0):
         return r, A
 
 
-def autocorrelation_2D(topography, nbins=100, return_map=False):
+def autocorrelation_2D(topography, nbins=None, bin_edges='log', return_map=False):
     """
     Compute height-difference autocorrelation function and radial average.
 
@@ -136,9 +136,17 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int
-        Number of bins for radial average. Note: Returned array can be smaller
-        than this because bins without data point are discarded.
+    nbins : int, optional
+        Number of bins for radial average. Bins are automatically determined
+        if set to None. Note: Returned array can be smaller than this because
+        bins without data points are discarded. (Default: None)
+    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
+        Edges used for binning the average. Specifying 'log' yields bins
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If `bin_edges` are explicitly specified, then `nbins` is ignored.
+        (Default: 'log')
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
 
@@ -147,7 +155,7 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
     r : array
         Distances. (Units: length)
     A : array
-        Autocorrelation function. (Units: length**2)
+        Radially averaged autocorrelation function. (Units: length**2)
     A_xy : array
         2D autocorrelation function. Only returned if return_map=True.
         (Units: length**2)
@@ -165,13 +173,11 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         # autocorrelation
         A_xy = A_xy[0, 0] - A_xy
 
-        if nbins is None:
-            return A_xy
-
         # Radial average
         r_edges, n, r_val, A_val = radial_average(
             # pylint: disable=invalid-name
-            A_xy, (sx + sy) / 4, nbins, physical_sizes=(sx, sy))
+            A_xy, rmax=(sx + sy) / 4, nbins=nbins, bin_edges=bin_edges,
+            physical_sizes=(sx, sy))
     else:
         p = topography.heights()
 
@@ -191,13 +197,11 @@ def autocorrelation_2D(topography, nbins=100, return_map=False):
         A_xy = (A0_xy - A_xy[:nx, :ny]) / (
                     (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
-        if nbins is None:
-            return A_xy
-
         # Radial average
         r_edges, n, r_val, A_val = radial_average(
             # pylint: disable=invalid-name
-            A_xy, (sx + sy) / 2, nbins, physical_sizes=(sx, sy), full=False)
+            A_xy, rmax=(sx + sy) / 2, nbins=nbins, bin_edges=bin_edges,
+            physical_sizes=(sx, sy), full=False)
 
     if return_map:
         return r_val[n > 0], A_val[n > 0], A_xy

@@ -23,11 +23,13 @@
 # SOFTWARE.
 #
 
+import pytest
+
 import numpy as np
 
 import SurfaceTopography
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography import Topography
+from SurfaceTopography import Topography, UniformLineScan
 
 
 def test_longcut():
@@ -158,3 +160,48 @@ def test_mirror_stitch():
                                 [0, 1, 1, 0]
                                 ]
                                )
+
+
+def test_window_line_scan():
+    nx = 27
+    sx = 1.3
+    h = np.ones((nx,))
+
+    t = UniformLineScan(h, physical_sizes=(sx,), periodic=True).window()
+    np.testing.assert_almost_equal(t.heights()[0], 1.0)
+    np.testing.assert_almost_equal((t.heights()**2).sum() / nx, 1.0)
+
+    t = UniformLineScan(h, physical_sizes=(sx,), periodic=False).window()
+    np.testing.assert_almost_equal(t.heights()[0], 0.0)
+    np.testing.assert_almost_equal((t.heights()**2).sum() / nx, 1.0)
+
+    with pytest.raises(ValueError):
+        UniformLineScan(h, physical_sizes=(sx,), periodic=False).window(direction='y').window_data
+
+    with pytest.raises(ValueError):
+        UniformLineScan(h, physical_sizes=(sx,), periodic=False).window(direction='radial').window_data
+
+
+def test_window_topography():
+    nx, ny = 27, 13
+    sx, sy = 1.3, 1.7
+    h = np.ones((nx, ny))
+
+    t = Topography(h, physical_sizes=(sx, sy), periodic=True).window(direction='x')
+    np.testing.assert_almost_equal(t.heights()[0, ny//2], 1.0)
+    np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
+
+    t = Topography(h, physical_sizes=(sx, sy), periodic=False).window(direction='x')
+    np.testing.assert_almost_equal(t.heights()[0, ny//2], 0.0)
+    assert t.heights()[nx//2, 0] > 1.0
+    np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
+
+    t = Topography(h, physical_sizes=(sx, sy), periodic=False).window(direction='y')
+    np.testing.assert_almost_equal(t.heights()[nx//2, 0], 0.0)
+    assert t.heights()[0, ny//2] > 1.0
+    np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
+
+    t = Topography(h, physical_sizes=(sx, sy), periodic=False).window(direction='radial')
+    np.testing.assert_almost_equal(t.heights()[0, 0], 0.0)
+    np.testing.assert_almost_equal(t.heights()[nx//2, 0], 0.0)
+    np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)

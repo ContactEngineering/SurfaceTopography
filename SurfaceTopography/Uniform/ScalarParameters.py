@@ -74,7 +74,8 @@ def rms_height(topography, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def rms_slope(topography, short_wavelength_cutoff=None):
+def rms_slope(topography, short_wavelength_cutoff=None, window=None,
+              direction=None):
     """
     Compute the root mean square amplitude of the height gradient of a
     topography or line scan stored on a uniform grid.
@@ -85,6 +86,16 @@ def rms_slope(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        Only used if short wavelength cutoff is set.
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
+    direction : str, optional
+        Direction in which the window is applied. Possible options are
+        'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+        scans and 'radial' for topographies. Only used if short wavelength
+        cutoff is set. (Default: None)
 
     Returns
     -------
@@ -94,13 +105,15 @@ def rms_slope(topography, short_wavelength_cutoff=None):
     if topography.is_domain_decomposed:
         raise NotImplementedError(
             "rms_slope not implemented for parallelized topographies")
+    if short_wavelength_cutoff is not None:
+        topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
         mask_function = None if short_wavelength_cutoff is None else \
             lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
         return np.sqrt((topography.derivative(1, mask_function=mask_function) ** 2).mean())
     elif topography.dim == 2:
         mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: frequency[0] ** 2 + frequency[1] ** 2 < 1 / short_wavelength_cutoff ** 2
+            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         slx, sly = topography.derivative(1, mask_function=mask_function)
         return np.sqrt((slx ** 2 + sly ** 2).mean())
     else:
@@ -108,7 +121,8 @@ def rms_slope(topography, short_wavelength_cutoff=None):
             topography.dim))
 
 
-def rms_laplacian(topography, short_wavelength_cutoff=None):
+def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
+                  direction=None):
     """
     Compute the root mean square Laplacian of the height gradient of a
     topography or line scan stored on a uniform grid. The rms curvature
@@ -120,6 +134,16 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        Only used if short wavelength cutoff is set.
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
+    direction : str, optional
+        Direction in which the window is applied. Possible options are
+        'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+        scans and 'radial' for topographies. Only used if short wavelength
+        cutoff is set. (Default: None)
 
     Returns
     -------
@@ -129,6 +153,8 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
     if topography.is_domain_decomposed:
         raise NotImplementedError(
             "rms_Laplacian not implemented for parallelized topographies")
+    if short_wavelength_cutoff is not None:
+        topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
         mask_function = None if short_wavelength_cutoff is None else \
             lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
@@ -136,7 +162,7 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
         return np.sqrt((curv ** 2).mean())
     elif topography.dim == 2:
         mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: frequency[0] ** 2 + frequency[1] ** 2 < 1 / short_wavelength_cutoff ** 2
+            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         curv = topography.derivative(2, mask_function=mask_function)
         return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
     else:
@@ -144,7 +170,8 @@ def rms_laplacian(topography, short_wavelength_cutoff=None):
             topography.dim))
 
 
-def rms_curvature(topography, short_wavelength_cutoff=None):
+def rms_curvature(topography, short_wavelength_cutoff=None, window=None,
+                  direction=None):
     """
     Compute the root mean square curvature of the height gradient of a
     topography or line scan stored on a uniform grid.
@@ -159,6 +186,16 @@ def rms_curvature(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        Only used if short wavelength cutoff is set.
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
+    direction : str, optional
+        Direction in which the window is applied. Possible options are
+        'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+        scans and 'radial' for topographies. Only used if short wavelength
+        cutoff is set. (Default: None)
 
     Returns
     -------
@@ -175,7 +212,9 @@ def rms_curvature(topography, short_wavelength_cutoff=None):
     else:
         raise ValueError('Cannot handle topographies of dimension {}'.format(
             topography.dim))
-    return fac * rms_laplacian(topography, short_wavelength_cutoff=short_wavelength_cutoff)
+    return fac * rms_laplacian(
+        topography, short_wavelength_cutoff=short_wavelength_cutoff,
+        window=window, direction=direction)
 
 
 # Register analysis functions from this module
