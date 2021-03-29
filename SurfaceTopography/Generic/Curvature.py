@@ -42,7 +42,7 @@ def scale_dependent_curvature_1D(topography, **kwargs):
          :nowrap:
 
          \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
+         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
          \end{equation}
 
     where :math:`A(\lambda)` is the autocorrelation function.
@@ -82,7 +82,7 @@ def scale_dependent_curvature_2D(topography, nbins=None):
          :nowrap:
 
          \begin{equation}
-         h_\text{rms}^\prime(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda
+         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
          \end{equation}
 
     where :math:`A(\lambda)` is the autocorrelation function.
