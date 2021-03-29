@@ -34,9 +34,9 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 def scale_dependent_curvature_1D(topography, **kwargs):
     r"""
-    Compute the one-dimensional scale-dependent slope.
+    Compute the one-dimensional scale-dependent curvature.
 
-    The scale-dependent slope is given by
+    The scale-dependent curvature is given by
 
        .. math::
          :nowrap:
@@ -58,8 +58,8 @@ def scale_dependent_curvature_1D(topography, **kwargs):
     -------
     r : array
         Distances. (Units: length)
-    slope : array
-        Slope. (Units: dimensionless)
+    curvature : array
+        Curvature. (Units: 1/length)
     """  # noqa: E501
     r, A = topography.autocorrelation_1D(**kwargs)
     n = (len(r) + 1) // 2
@@ -74,9 +74,9 @@ def scale_dependent_curvature_1D(topography, **kwargs):
 
 def scale_dependent_curvature_2D(topography, nbins=None):
     r"""
-    Compute the two-dimensional, radially averaged scale-dependent slope.
+    Compute the two-dimensional, radially averaged scale-dependent curvature.
 
-    The scale-dependent slope is given by
+    The scale-dependent curvature is given by
 
        .. math::
          :nowrap:

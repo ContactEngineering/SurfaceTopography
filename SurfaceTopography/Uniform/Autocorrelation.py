@@ -34,7 +34,7 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_1D(topography, direction=0, subinterval=None):
+def autocorrelation_1D(topography, direction=0):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -61,8 +61,6 @@ def autocorrelation_1D(topography, direction=0, subinterval=None):
         Container storing the uniform topography map
     direction : int
         Cartesian direction in which to compute the ACF
-    subinterval : tuple of ints
-        Compute autocorrelation function only on this subinterval
 
     Returns
     -------
@@ -81,20 +79,8 @@ def autocorrelation_1D(topography, direction=0, subinterval=None):
         else:
             raise ValueError("Don't know how to handle direction "
                              "{}".format(direction))
-    is_periodic = topography.is_periodic
-    if subinterval is not None:
-        # If a subinterval is selected, the topography is automatically
-        # non-periodic
-        is_periodic = False
-        l, r = subinterval
-        p = p[l:r]
-        # Compute new sizes
-        dx = sx/nx
-        nx = len(p)
-        print(nx, l-r)
-        sx = nx*dx
 
-    if is_periodic:
+    if topography.is_periodic:
         # Compute height-height autocorrelation function from a convolution
         # using FFT. This is periodic by nature.
         surface_qy = np.fft.fft(p, axis=0)
@@ -152,16 +138,15 @@ def autocorrelation_2D(topography, nbins=None, bin_edges='log', return_map=False
         Container storing the (two-dimensional) topography map.
     nbins : int, optional
         Number of bins for radial average. Bins are automatically determined
-        if set to None. (Default: None) Note: Returned array can be smaller
-        than this because bins without data points are discarded.
-        (Default: None)
+        if set to None. Note: Returned array can be smaller than this because
+        bins without data points are discarded. (Default: None)
     bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
         Edges used for binning the average. Specifying 'log' yields bins
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
         Alternatively, it is possible to explicitly specify the bin edges.
-        If `bin_edges` are explicitly specified, then `rmax` and `nbins` is
-        ignored. (Default: 'log')
+        If `bin_edges` are explicitly specified, then `nbins` is ignored.
+        (Default: 'log')
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
 

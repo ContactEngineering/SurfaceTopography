@@ -42,12 +42,12 @@ class WindowedUniformTopography(DecoratedUniformTopography):
         """
         window : str, optional
             Window for eliminating edge effect. See scipy.signal.get_window.
-            Default: no window for periodic Topographies, "hann" window for
-            nonperiodic Topographies
+            (Default: no window for periodic Topographies, "hann" window for
+            nonperiodic Topographies)
         direction : str, optional
             Direction in which the window is applied. Possible options are
             'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
-            scans and 'radial' for topographies. Default: None
+            scans and 'radial' for topographies. (Default: None)
         """
         super().__init__(topography, info=info)
 
@@ -125,18 +125,16 @@ class WindowedUniformTopography(DecoratedUniformTopography):
     def heights(self):
         """ Computes the windowed topography.
         """
-        if self._window_data is None:
-            self._make_window()
-        if self._window_data is None:
+        if self.window_data() is None:
             return self.parent_topography.heights()
         else:
             direction = self._direction
             if direction is None:
                 direction = 'x' if self.parent_topography.dim == 1 else 'radial'
             if direction == 'x':
-                return (self._window_data * self.parent_topography.heights().T).T
+                return (self.window_data() * self.parent_topography.heights().T).T
             elif direction == 'y' or direction == 'radial':
-                return self._window_data * self.parent_topography.heights()
+                return self.window_data() * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 

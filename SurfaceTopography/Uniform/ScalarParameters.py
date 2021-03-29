@@ -89,13 +89,13 @@ def rms_slope(topography, short_wavelength_cutoff=None, window=None,
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
-        Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
     direction : str, optional
         Direction in which the window is applied. Possible options are
         'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
         scans and 'radial' for topographies. Only used if short wavelength
-        cutoff is set. Default: None
+        cutoff is set. (Default: None)
 
     Returns
     -------
@@ -137,13 +137,13 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
-        Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
     direction : str, optional
         Direction in which the window is applied. Possible options are
         'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
         scans and 'radial' for topographies. Only used if short wavelength
-        cutoff is set. Default: None
+        cutoff is set. (Default: None)
 
     Returns
     -------
@@ -189,13 +189,13 @@ def rms_curvature(topography, short_wavelength_cutoff=None, window=None,
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         Only used if short wavelength cutoff is set.
-        Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
     direction : str, optional
         Direction in which the window is applied. Possible options are
         'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
         scans and 'radial' for topographies. Only used if short wavelength
-        cutoff is set. Default: None
+        cutoff is set. (Default: None)
 
     Returns
     -------

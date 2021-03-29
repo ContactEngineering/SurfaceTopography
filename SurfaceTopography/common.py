@@ -42,7 +42,8 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log',
     C_xy : array_like
         2D-array of values to be averaged.
     rmax : float, optional
-        Maximum radius. (Default: None)
+        Maximum radius, is automatically determined from the range of the data
+        if not provided. (Default: None)
     nbins : int, optional
         Number of bins for averaging. Bins are automatically determined if set
         to None. (Default: None)
