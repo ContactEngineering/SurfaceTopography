@@ -68,23 +68,10 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         nx, = n
         sx, = s
 
-    h = topography.heights()
-
-    if not topography.is_periodic and window is None:
-        window = "hann"
-
-    # Construct and apply window
-    if window is not None and window != 'None':
-        win = get_window(window, nx)
-        # Normalize window
-        win *= np.sqrt(nx / (win ** 2).sum())
-        h = (win * h.T).T
-
-    # Pixel physical_sizes
-    len0 = sx / nx
+    h = topography.window(window).heights()
 
     # Compute FFT and normalize
-    fourier_topography = len0 * np.fft.fft(h, axis=0)
+    fourier_topography = topography.area_per_pt * np.fft.fft(h, axis=0)
     dq = 2 * np.pi / sx
     q = dq * np.arange(nx // 2)
 
@@ -145,22 +132,10 @@ def power_spectrum_2D(topography, nbins=None,  # pylint: disable=invalid-name
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
-    if not topography.is_periodic and window is None:
-        window = "hann"
-
-    # Construct and apply window
-    if window is not None:
-        win = get_window_2D(window, nx, ny, topography.physical_sizes)
-        # Normalize window
-        if normalize_window:
-            win *= np.sqrt(nx * ny / (win ** 2).sum())
-        topography = win * topography[:, :]
-
-    # Pixel physical_sizes
-    area0 = (sx / nx) * (sy / ny)
+    h = topography.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
-    surface_qk = area0 * np.fft.fft2(topography[:, :])
+    surface_qk = topography.area_per_pt * np.fft.fft2(h)
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average

@@ -74,7 +74,7 @@ def rms_height(topography, kind='Sq'):
         raise RuntimeError("Unknown rms height kind '{}'.".format(kind))
 
 
-def rms_slope(topography, short_wavelength_cutoff=None):
+def rms_slope(topography, short_wavelength_cutoff=None, window=None):
     """
     Compute the root mean square amplitude of the height gradient of a
     topography or line scan stored on a uniform grid.
@@ -85,6 +85,11 @@ def rms_slope(topography, short_wavelength_cutoff=None):
         SurfaceTopography object containing height information.
     short_wavelength_cutoff : float
         All wavelengths below this cutoff will be set to zero amplitude.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        This is only used when specifying a short wavelength cutoff.
+        Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies
 
     Returns
     -------
