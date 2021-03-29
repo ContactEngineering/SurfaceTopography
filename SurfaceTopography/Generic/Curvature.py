@@ -94,7 +94,7 @@ def scale_dependent_curvature_2D(topography, nbins=None):
     nbins : int
         Number of bins for radial average. Bins are automatically determined
         if set to None. Note: Returned array can be smaller than this because
-        bins without data points are discarded. (Default: None) 
+        bins without data points are discarded. (Default: None)
 
     Returns
     -------
@@ -112,6 +112,7 @@ def scale_dependent_curvature_2D(topography, nbins=None):
         n = nz[0]
     # Important: The following expression relies on the fact that r is equally spaced!
     return r[:n], np.sqrt(B[:n]) / r[:n] ** 2
+
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('scale_dependent_curvature_1D',

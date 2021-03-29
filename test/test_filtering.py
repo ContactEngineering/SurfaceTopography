@@ -204,5 +204,4 @@ def test_window_topography():
     t = Topography(h, physical_sizes=(sx, sy), periodic=False).window(direction='radial')
     np.testing.assert_almost_equal(t.heights()[0, 0], 0.0)
     np.testing.assert_almost_equal(t.heights()[nx//2, 0], 0.0)
-    #np.testing.assert_almost_equal(t.heights()[0, ny//2], 0.0)
     np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)

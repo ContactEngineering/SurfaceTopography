@@ -60,7 +60,6 @@ class WindowedUniformTopography(DecoratedUniformTopography):
         self._window_data = None
 
         n = self.parent_topography.nb_grid_pts
-        s = self.parent_topography.physical_sizes
 
         try:
             nx, ny = n
@@ -84,14 +83,14 @@ class WindowedUniformTopography(DecoratedUniformTopography):
                 win *= np.sqrt(nx / (win ** 2).sum())
             elif direction == 'y':
                 if self.parent_topography.dim == 1:
-                    raise ValueError(f"Direction 'y' does not make sense for line scans.")
+                    raise ValueError("Direction 'y' does not make sense for line scans.")
                 # Get window from scipy.signal
                 win = get_window(window_name, ny)
                 # Normalize window
                 win *= np.sqrt(ny / (win ** 2).sum())
             elif direction == 'radial':
                 if self.parent_topography.dim == 1:
-                    raise ValueError(f"Direction 'radial' does not make sense for line scans.")
+                    raise ValueError("Direction 'radial' does not make sense for line scans.")
                 win = get_window_2D(window_name, nx, ny,
                                     self.parent_topography.physical_sizes)
                 # Normalize window

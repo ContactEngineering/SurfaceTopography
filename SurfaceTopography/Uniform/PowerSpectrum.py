@@ -29,10 +29,8 @@ Power-spectral density for uniform topographies.
 """
 
 import numpy as np
-from scipy.signal import get_window
 
 from ..common import radial_average
-from ..FFTTricks import get_window_2D
 from ..HeightContainer import UniformTopographyInterface
 
 
