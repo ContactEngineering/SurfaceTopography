@@ -152,13 +152,14 @@ def derivative(topography, n, operator=None, periodic=None, mask_function=None):
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative
         operators in the Cartesian directions for multidimensional fields.
-    periodic : bool
-        Override periodic flag from topography.
-    mask_function : function
+        (Default: None)
+    periodic : bool, optional
+        Override periodic flag from topography. (Default: None)
+    mask_function : function, optional
         A function that takes as argument the output of FFT.fftfreq and
         returns a mask that will be multiplied with the Fourier transformed
         topography. This can be used to implement Fourier filtering before
-        computing the derivative.
+        computing the derivative. (Default: None)
 
     Returns
     -------

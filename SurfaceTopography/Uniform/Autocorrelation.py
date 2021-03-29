@@ -160,7 +160,7 @@ def autocorrelation_2D(topography, nbins=None, bin_edges='log', return_map=False
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
         Alternatively, it is possible to explicitly specify the bin edges.
-        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        If `bin_edges` are explicitly specified, then `rmax` and `nbins` is
         ignored. (Default: 'log')
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
