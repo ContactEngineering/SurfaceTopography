@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev26+ge4ab105 documentation</title>
+  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev28+g9de5027 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev26+ge4ab105
+                0.92.1.dev28+g9de5027
               </div>
             
           
@@ -237,7 +237,7 @@
     <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="p">)</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
 
     <span class="c1"># Compute FFT and normalize</span>
-    <span class="n">fourier_topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">area_per_pt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fourier_topography</span> <span class="o">=</span> <span class="n">sx</span><span class="o">/</span><span class="n">nx</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">dq</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">sx</span>
     <span class="n">q</span> <span class="o">=</span> <span class="n">dq</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
 
