@@ -125,16 +125,16 @@ class WindowedUniformTopography(DecoratedUniformTopography):
     def heights(self):
         """ Computes the windowed topography.
         """
-        if self.window_data() is None:
+        if self.window_data is None:
             return self.parent_topography.heights()
         else:
             direction = self._direction
             if direction is None:
                 direction = 'x' if self.parent_topography.dim == 1 else 'radial'
             if direction == 'x':
-                return (self.window_data() * self.parent_topography.heights().T).T
+                return (self.window_data * self.parent_topography.heights().T).T
             elif direction == 'y' or direction == 'radial':
-                return self.window_data() * self.parent_topography.heights()
+                return self.window_data * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
