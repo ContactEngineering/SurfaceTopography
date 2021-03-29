@@ -113,8 +113,7 @@ def rms_slope(topography, short_wavelength_cutoff=None, window=None,
         return np.sqrt((topography.derivative(1, mask_function=mask_function) ** 2).mean())
     elif topography.dim == 2:
         mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < \
-                              1 / short_wavelength_cutoff ** 2
+            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         slx, sly = topography.derivative(1, mask_function=mask_function)
         return np.sqrt((slx ** 2 + sly ** 2).mean())
     else:
@@ -163,8 +162,7 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
         return np.sqrt((curv ** 2).mean())
     elif topography.dim == 2:
         mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < \
-                              1 / short_wavelength_cutoff ** 2
+            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         curv = topography.derivative(2, mask_function=mask_function)
         return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
     else:
