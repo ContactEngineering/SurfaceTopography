@@ -38,7 +38,7 @@ class WindowedUniformTopography(DecoratedUniformTopography):
 
     name = 'windowed_topography'
 
-    def __init__(self, topography, window=None, direction='x', info={}):
+    def __init__(self, topography, window=None, direction=None, info={}):
         """
         window : str, optional
             Window for eliminating edge effect. See scipy.signal.get_window.
@@ -46,7 +46,8 @@ class WindowedUniformTopography(DecoratedUniformTopography):
             nonperiodic Topographies
         direction : str, optional
             Direction in which the window is applied. Possible options are
-            'x', 'y' and 'radial'. Default: 'x'
+            'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+            scans and 'radial' for topographies. Default: None
         """
         super().__init__(topography, info=info)
 
@@ -70,21 +71,25 @@ class WindowedUniformTopography(DecoratedUniformTopography):
         if not self.parent_topography.is_periodic and window_name is None:
             window_name = "hann"
 
+        direction = self._direction
+        if direction is None:
+            direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+
         # Construct window
         if window_name is not None and window_name != 'None':
-            if self._direction == 'x':
+            if direction == 'x':
                 # Get window from scipy.signal
                 win = get_window(window_name, nx)
                 # Normalize window
                 win *= np.sqrt(nx / (win ** 2).sum())
-            elif self._direction == 'y':
+            elif direction == 'y':
                 if self.parent_topography.dim == 1:
                     raise ValueError(f"Direction 'y' does not make sense for line scans.")
                 # Get window from scipy.signal
                 win = get_window(window_name, ny)
                 # Normalize window
                 win *= np.sqrt(ny / (win ** 2).sum())
-            elif self._direction == 'radial':
+            elif direction == 'radial':
                 if self.parent_topography.dim == 1:
                     raise ValueError(f"Direction 'radial' does not make sense for line scans.")
                 win = get_window_2D(window_name, nx, ny,
@@ -126,9 +131,12 @@ class WindowedUniformTopography(DecoratedUniformTopography):
         if self._window_data is None:
             return self.parent_topography.heights()
         else:
-            if self._direction == 'x':
+            direction = self._direction
+            if direction is None:
+                direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+            if direction == 'x':
                 return (self._window_data * self.parent_topography.heights().T).T
-            elif self._direction == 'y' or self._direction == 'radial':
+            elif direction == 'y' or direction == 'radial':
                 return self._window_data * self.parent_topography.heights()
             else:
                 raise ValueError(f"Unknown direction '{self._direction}'.")

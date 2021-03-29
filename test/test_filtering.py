@@ -187,11 +187,11 @@ def test_window_topography():
     sx, sy = 1.3, 1.7
     h = np.ones((nx, ny))
 
-    t = Topography(h, physical_sizes=(sx, sy), periodic=True).window()
+    t = Topography(h, physical_sizes=(sx, sy), periodic=True).window(direction='x')
     np.testing.assert_almost_equal(t.heights()[0, ny//2], 1.0)
     np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
 
-    t = Topography(h, physical_sizes=(sx, sy), periodic=False).window()
+    t = Topography(h, physical_sizes=(sx, sy), periodic=False).window(direction='x')
     np.testing.assert_almost_equal(t.heights()[0, ny//2], 0.0)
     assert t.heights()[nx//2, 0] > 1.0
     np.testing.assert_almost_equal((t.heights()**2).sum() / (nx*ny), 1.0)
