@@ -310,13 +310,3 @@ def test_brute_force_vs_fft():
                                             distances=r, ninterpolate=5)
     x = A[1:] / A2[1:]
     assert np.alltrue(np.logical_and(x > 0.98, x < 1.01))
-
-
-def test_scale_dependent_slope_1D():
-    nx = 1001
-    L = 7.3
-    qs = 2 * np.pi * 8 / L
-    t1 = UniformLineScan(np.sin(np.arange(nx) * L * qs / nx), L, periodic=True)
-
-    x, y = t1.scale_dependent_slope_1D()
-    assert_array_almost_equal(y, np.sqrt(1-np.cos(qs * x))/x)

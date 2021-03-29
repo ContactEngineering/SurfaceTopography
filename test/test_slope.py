@@ -33,7 +33,7 @@ from numpy.testing import assert_almost_equal
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-def test_slope():
+def test_limiting_values():
     nb_grid_pts = (128, 128)
     physical_sizes = (1.2, 2.1)
     Hurst = 0.8
@@ -53,3 +53,13 @@ def test_slope():
     r2, s2 = t.scale_dependent_slope_2D()
 
     assert_almost_equal(s[0], s2[0])
+
+
+def test_numeric_vs_analytical():
+    nx = 1001
+    L = 7.3
+    qs = 2 * np.pi * 8 / L
+    t1 = UniformLineScan(np.sin(np.arange(nx) * L * qs / nx), L, periodic=True)
+
+    x, y = t1.scale_dependent_slope_1D()
+    assert_array_almost_equal(y, np.sqrt(1-np.cos(qs * x))/x)
