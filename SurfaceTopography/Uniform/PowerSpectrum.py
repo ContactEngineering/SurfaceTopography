@@ -69,7 +69,7 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
     h = topography.window(window).heights()
 
     # Compute FFT and normalize
-    fourier_topography = topography.area_per_pt * np.fft.fft(h, axis=0)
+    fourier_topography = sx/nx * np.fft.fft(h, axis=0)
     dq = 2 * np.pi / sx
     q = dq * np.arange(nx // 2)
 
