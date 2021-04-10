@@ -86,3 +86,34 @@ def test_fourier_derivative(plot=False):
         ax.plot(y[-1, :], dy[-1, :])
         ax.plot(y[-1, :], dy_num[-1, :])
         fig.show()
+
+
+def test_scale_factor():
+    nx = 8
+    sx = 1
+
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=True)
+    topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=True)
+    topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=True)
+
+    d1 = topography.derivative(1, scale_factor=1)
+    d2 = topography.derivative(1, scale_factor=2)
+    d3 = topography1.derivative(1, scale_factor=1)
+    d4 = topography2.derivative(1, scale_factor=1)
+
+    assert len(d2) == len(d1)
+    np.testing.assert_allclose(d3, d2[::2])
+    np.testing.assert_allclose(d4, d2[1::2])
+
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+    topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=False)
+    topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=False)
+
+    d1 = topography.derivative(1, scale_factor=1)
+    d2 = topography.derivative(1, scale_factor=2)
+    d3 = topography1.derivative(1, scale_factor=1)
+    d4 = topography2.derivative(1, scale_factor=1)
+
+    assert len(d2) == len(d1) - 1
+    np.testing.assert_allclose(d3, d2[::2])
+    np.testing.assert_allclose(d4, d2[1::2])
