@@ -94,21 +94,6 @@ This reader open ZON files that are written by some Keyence instruments.
                                   'meter_per_pixel': meter_per_pixel,
                                   'meter_per_unit': meter_per_unit})]
 
-            # Parse image information
-            #root = ElementTree.parse(z.open(INVENTORY_UUID)).getroot()
-            #for i, image in enumerate(root.findall('ImagesGuidSet')):
-            #    image_uuid = image.find('Image').text, 'rb'
-            #    # Header consists of four int32, followed by image data
-            #    width, height, element_size = unpack('iii', z.open(image_uuid).read(12))
-            #    self._channels += [
-            #        ChannelInfo(self, i, name=image_uuid, dim=2,
-            #                    nb_grid_pts=(width, height),
-            #                    physical_sizes=(width * meter_per_pixel,
-            #                                    height * meter_per_unit),
-            #                    info={'unit': 'm',
-            #                          'meter_per_pixel': meter_per_pixel,
-            #                          'meter_per_unit': meter_per_unit})]
-
         self._file = f
 
     @property
