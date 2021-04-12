@@ -95,9 +95,6 @@ This reader open ZON files that are written by some Keyence instruments.
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 
-            print(f.tell(), already_open)
-            print(f.tell(), already_open)
-
         finally:
             if not already_open:
                 f.close()
