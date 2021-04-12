@@ -116,3 +116,18 @@ def test_scale_factor():
     assert len(d2) == len(d1) - 1
     np.testing.assert_allclose(d3, d2[::2])
     np.testing.assert_allclose(d4, d2[1::2])
+
+    ny = 10
+    sy = 0.8
+    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1., periodic=False)
+
+    d1, d2 = topography.derivative(1, scale_factor=[1, 2])
+    dx1, dy1 = d1
+    dx2, dy2 = d2
+
+    print(dx1.shape, dx2.shape)
+
+    assert dx2.shape[0] == dx1.shape[0] - 1
+    assert dx2.shape[1] == dx1.shape[1] - 1
+    assert dy2.shape[0] == dy1.shape[0] - 1
+    assert dy2.shape[1] == dy1.shape[1] - 1

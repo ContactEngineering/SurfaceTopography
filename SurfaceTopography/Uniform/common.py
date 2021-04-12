@@ -215,9 +215,9 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
 
     # Apply derivative operator in Fourier space
     derivatives = []
-    for s in toiter(scale_factor):
+    for i, op in enumerate(toiter(operator)):
         der = []
-        for i, op in enumerate(toiter(operator)):
+        for s in toiter(scale_factor):
             fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)
             _der = np.array(real_field, copy=False) * fft.normalisation / (s * grid_spacing[i]) ** n
@@ -225,12 +225,12 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
                 _der = _trim_nonperiodic(_der, s, op)
 
             try:
-                iter(operator)
+                iter(scale_factor)
                 der += [_der]
             except TypeError:
                 der = _der
         try:
-            iter(scale_factor)
+            iter(operator)
             derivatives += [der]
         except TypeError:
             derivatives = der
