@@ -125,9 +125,7 @@ def test_scale_factor():
     dx1, dy1 = d1
     dx2, dy2 = d2
 
-    print(dx1.shape, dx2.shape)
-
-    assert dx2.shape[0] == dx1.shape[0] - 1
-    assert dx2.shape[1] == dx1.shape[1] - 1
-    assert dy2.shape[0] == dy1.shape[0] - 1
-    assert dy2.shape[1] == dy1.shape[1] - 1
+    assert dx2.shape[0] == nx - 1
+    assert dx2.shape[1] == ny - 1
+    assert dy2.shape[0] == nx - 2
+    assert dy2.shape[1] == ny - 2
