@@ -22,6 +22,13 @@
 # SOFTWARE.
 #
 
+"""
+Reader for Keyence ZON files.
+"""
+
+# Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
+# format. See discussion here https://github.com/gabeguss/Keyence/issues/2
+
 import numpy as np
 from io import TextIOBase
 from struct import unpack
