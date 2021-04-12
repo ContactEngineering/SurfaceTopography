@@ -56,7 +56,7 @@ DATADIR = os.path.join(
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
     """
-    Tests for each reader class that he doesn't raise a Resourcewarning
+    Tests for each reader class that it doesn't raise a Resourcewarning
     """
     fn = os.path.join(DATADIR, "wrongnpyfile.npy")
     with warnings.catch_warnings(record=True) as w:
@@ -434,3 +434,4 @@ def test_detect_dormat():
     assert detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
     assert detect_format(os.path.join(DATADIR, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(DATADIR, 'surface.2048x2048.h5')) == 'h5'
+    assert detect_format(os.path.join(DATADIR, 'example.zon')) == 'zon'

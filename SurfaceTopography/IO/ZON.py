@@ -74,27 +74,32 @@ This reader open ZON files that are written by some Keyence instruments.
         # in that one. Python's ZipFile automatically skips that header.
 
         self._channels = []
-        with ZipFile(f, 'r') as z:
-            # Parse unit information
-            root = ElementTree.parse(z.open(UNIT_UUID)).getroot()
-            meter_per_pixel = float(root.find('XYCalibration').find('MeterPerPixel').text)
-            meter_per_unit = float(root.find('ZCalibration').find('MeterPerUnit').text)
+        try:
+            with ZipFile(f, 'r') as z:
+                # Parse unit information
+                root = ElementTree.parse(z.open(UNIT_UUID)).getroot()
+                meter_per_pixel = float(root.find('XYCalibration').find('MeterPerPixel').text)
+                meter_per_unit = float(root.find('ZCalibration').find('MeterPerUnit').text)
 
-            # Parse height data information
-            # Header consists of four int32, followed by image data
-            width, height, element_size = unpack('iii', z.open(HEIGHT_DATA_UUID).read(12))
-            assert element_size == 4
-            self._channels += [
-                ChannelInfo(self, 0, name='default', dim=2,
-                            nb_grid_pts=(width, height),
-                            physical_sizes=(width * meter_per_pixel,
-                                            height * meter_per_unit),
-                            info={'unit': 'm',
-                                  'data_uuid': HEIGHT_DATA_UUID,
-                                  'meter_per_pixel': meter_per_pixel,
-                                  'meter_per_unit': meter_per_unit})]
+                # Parse height data information
+                # Header consists of four int32, followed by image data
+                width, height, element_size = unpack('iii', z.open(HEIGHT_DATA_UUID).read(12))
+                assert element_size == 4
+                self._channels += [
+                    ChannelInfo(self, 0, name='default', dim=2,
+                                nb_grid_pts=(width, height),
+                                physical_sizes=(width * meter_per_pixel,
+                                                height * meter_per_unit),
+                                info={'unit': 'm',
+                                      'data_uuid': HEIGHT_DATA_UUID,
+                                      'meter_per_pixel': meter_per_pixel,
+                                      'meter_per_unit': meter_per_unit})]
 
-        self._file = f
+            self._file = f
+
+        finally:
+            if not already_open:
+                f.close()
 
     @property
     def channels(self):
@@ -119,7 +124,7 @@ This reader open ZON files that are written by some Keyence instruments.
         with ZipFile(self._file, 'r') as z:
             with z.open(channel_info.info['data_uuid']) as f:
                 f.read(16)  # skip header
-                height_data = np.frombuffer(f.read(4*nx*ny), np.dtype('i4'))
+                height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4'))
                 height_data.shape = (nx, ny)
 
         topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
