@@ -95,11 +95,14 @@ This reader open ZON files that are written by some Keyence instruments.
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 
-            self._file = f
+            print(f.tell(), already_open)
+            print(f.tell(), already_open)
 
         finally:
             if not already_open:
                 f.close()
+
+        self._file_path = file_path
 
     @property
     def channels(self):
@@ -119,13 +122,31 @@ This reader open ZON files that are written by some Keyence instruments.
 
         info.update(channel_info.info)
 
-        # Read image data
-        nx, ny = channel_info.nb_grid_pts
-        with ZipFile(self._file, 'r') as z:
-            with z.open(channel_info.info['data_uuid']) as f:
-                f.read(16)  # skip header
-                height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4'))
-                height_data.shape = (nx, ny)
+        # depending from where this function is called, file_path might already
+        # be a filestream
+        already_open = False
+        if not hasattr(self._file_path, 'read'):
+            f = open(self._file_path, "rb")
+        else:
+            already_open = True
+            if isinstance(self._file_path, TextIOBase):
+                # file was opened without the 'b' option, so read its buffer to
+                # get the binary data
+                f = self._file_path.buffer
+            else:
+                f = self._file_path
+
+        try:
+            # Read image data
+            nx, ny = channel_info.nb_grid_pts
+            with ZipFile(f, 'r') as z:
+                with z.open(channel_info.info['data_uuid']) as f:
+                    f.read(16)  # skip header
+                    height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4'))
+                    height_data.shape = (nx, ny)
+        finally:
+            if not already_open:
+                f.close()
 
         topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
 

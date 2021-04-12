@@ -118,6 +118,7 @@ class IOTest(unittest.TestCase):
             'mi1.mi',
             'N46E013.hgt',
             'example-2d.npy',
+            'example.zon',
         ]
 
         text_examples = [
