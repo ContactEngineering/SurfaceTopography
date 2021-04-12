@@ -139,8 +139,7 @@ This reader open ZON files that are written by some Keyence instruments.
             with ZipFile(f, 'r') as z:
                 with z.open(channel_info.info['data_uuid']) as f:
                     f.read(16)  # skip header
-                    height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4'))
-                    height_data.shape = (nx, ny)
+                    height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4')).reshape((ny, nx)).T
         finally:
             if not already_open:
                 f.close()

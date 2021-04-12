@@ -67,9 +67,9 @@ def test_topography():
 
     topography = loader.topography()
 
-    print(topography.heights()[0, 0])
     # Check one height value
     np.testing.assert_almost_equal(topography.heights()[0, 0], 1.301e-05)
+    np.testing.assert_almost_equal(topography.heights()[10, 5], 8.47e-05)
 
     # Check the value of one of the metadata
     assert topography.info['unit'] == 'm'
