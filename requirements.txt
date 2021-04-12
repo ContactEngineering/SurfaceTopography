@@ -16,3 +16,4 @@ pytest-flake8
 setuptools_scm>=3.5.0
 muFFT>=0.12.0
 runtests>=0.0.28
+defusedxml
