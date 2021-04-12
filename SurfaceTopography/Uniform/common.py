@@ -150,7 +150,7 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
         Surface topography object containing height information.
     n : int
         Order of the derivative.
-    scale_factor : int, optional
+    scale_factor : int or list of ints, optional
         Integer factor that scales the stencil difference, i.e.
         specifying 2 will compute the derviative over a distance of
         2 * dx. (Default: 1)
@@ -202,25 +202,39 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
     if mask_function is not None:
         np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / grid_spacing).T)
 
+    fourier_array = np.array(fourier_field, copy=False)
+    fourier_copy = fourier_array.copy()
+
+    def toiter(obj):
+        """If object is scalar, wrap it into a list"""
+        try:
+            iter(obj)
+            return obj
+        except TypeError:
+            return [obj]
+
     # Apply derivative operator in Fourier space
-    if isinstance(operator, tuple):
-        fourier_array = np.array(fourier_field, copy=False)
-        fourier_copy = fourier_array.copy()
+    derivatives = []
+    for s in toiter(scale_factor):
         der = []
-        for i, op in enumerate(operator):
-            fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * scale_factor)
+        for i, op in enumerate(toiter(operator)):
+            fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)
-            _der = np.array(real_field, copy=False) * fft.normalisation / (scale_factor * grid_spacing[i]) ** n
+            _der = np.array(real_field, copy=False) * fft.normalisation / (s * grid_spacing[i]) ** n
             if not is_periodic:
-                _der = _trim_nonperiodic(_der, scale_factor, op)
-            der += [_der]
-    else:
-        fourier_field *= operator.fourier(fft.fftfreq * scale_factor)
-        fft.ifft(fourier_field, real_field)
-        der = np.array(real_field, copy=False) * fft.normalisation / (scale_factor * grid_spacing[0]) ** n
-        if not is_periodic:
-            der = _trim_nonperiodic(der, scale_factor, operator)
-    return der
+                _der = _trim_nonperiodic(_der, s, op)
+
+            try:
+                iter(operator)
+                der += [_der]
+            except TypeError:
+                der = _der
+        try:
+            iter(scale_factor)
+            derivatives += [der]
+        except TypeError:
+            derivatives = der
+    return derivatives
 
 
 def fourier_derivative(topography, imtol=None):
