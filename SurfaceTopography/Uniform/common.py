@@ -106,7 +106,7 @@ def _get_default_derivative_operator(n, dim):
                          "topography of dimension {}.".format(dim))
 
 
-def _trim_nonperiodic(arr, op):
+def _trim_nonperiodic(arr, scale_factor, op):
     """
     Trim the outer edges of an array that contains derivatives computed under
     the assumption of periodicity. (These values at the outer edge will simply
@@ -116,6 +116,8 @@ def _trim_nonperiodic(arr, op):
     ----------
     arr : np.ndarray
         Array to be trimmed.
+    scale_factor : int, optional
+        Integer factor that scales the stencil difference.
     op : muFFT.DiscreteDerivative
         Derivative operator that contains information about the size of the
         stencil.
@@ -128,8 +130,8 @@ def _trim_nonperiodic(arr, op):
 
     trimmed_slice = []
     for L, r in zip(lbounds, rbounds):
-        L = -min(L, 0)
-        r = -max(0, r - 1)
+        L = -scale_factor * min(L, 0)
+        r = -scale_factor * max(0, r - 1)
         if r == 0:
             r = None
         trimmed_slice += [slice(L, r)]
@@ -137,17 +139,22 @@ def _trim_nonperiodic(arr, op):
     return arr[tuple(trimmed_slice)]
 
 
-def derivative(topography, n, operator=None, periodic=None, mask_function=None):
+def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
+               mask_function=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
     Parameters
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
+        Surface topography object containing height information.
     n : int
         Order of the derivative.
-    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects
+    scale_factor : int or list of ints, optional
+        Integer factor that scales the stencil difference, i.e.
+        specifying 2 will compute the derviative over a distance of
+        2 * dx. (Default: 1)
+    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative
@@ -195,25 +202,39 @@ def derivative(topography, n, operator=None, periodic=None, mask_function=None):
     if mask_function is not None:
         np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / grid_spacing).T)
 
+    fourier_array = np.array(fourier_field, copy=False)
+    fourier_copy = fourier_array.copy()
+
+    def toiter(obj):
+        """If object is scalar, wrap it into a list"""
+        try:
+            iter(obj)
+            return obj
+        except TypeError:
+            return [obj]
+
     # Apply derivative operator in Fourier space
-    if isinstance(operator, tuple):
-        fourier_array = np.array(fourier_field, copy=False)
-        fourier_copy = fourier_array.copy()
+    derivatives = []
+    for i, op in enumerate(toiter(operator)):
         der = []
-        for i, op in enumerate(operator):
-            fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq)
+        for s in toiter(scale_factor):
+            fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)
-            _der = np.array(real_field, copy=False) * fft.normalisation / grid_spacing[i] ** n
+            _der = np.array(real_field, copy=False) * fft.normalisation / (s * grid_spacing[i]) ** n
             if not is_periodic:
-                _der = _trim_nonperiodic(_der, op)
-            der += [_der]
-    else:
-        fourier_field *= operator.fourier(fft.fftfreq)
-        fft.ifft(fourier_field, real_field)
-        der = np.array(real_field, copy=False) * fft.normalisation / grid_spacing[0] ** n
-        if not is_periodic:
-            der = _trim_nonperiodic(der, operator)
-    return der
+                _der = _trim_nonperiodic(_der, s, op)
+
+            try:
+                iter(scale_factor)
+                der += [_der]
+            except TypeError:
+                der = _der
+        try:
+            iter(operator)
+            derivatives += [der]
+        except TypeError:
+            derivatives = der
+    return derivatives
 
 
 def fourier_derivative(topography, imtol=None):
@@ -238,7 +259,8 @@ def fourier_derivative(topography, imtol=None):
 
     Parameters
     ----------
-    topography: Topography instance
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        Surface topography object containing height information.
     imtol: float, optional
         tolerance for the discarded imaginary part. If the maximum absolute of
         the imaginary part of the interpolated topography is more then that
