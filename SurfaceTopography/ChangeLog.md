@@ -2,6 +2,14 @@
 Change log for SurfaceTopography
 =============================
 
+v0.93.0 (not yet released)
+--------------------------
+
+- ENH: Reader for Keyence ZON files
+- ENH: Derivative can be computed for different scales
+- ENH: Scale-dependent slope and curvature
+- ENH: Pipeline function for windowing
+
 v0.92.0 (15Mar21)
 -----------------
 
