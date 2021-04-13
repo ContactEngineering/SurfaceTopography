@@ -26,10 +26,10 @@
 #
 
 from collections import OrderedDict
-from io import TextIOBase
 import numpy as np
 
 from .. import Topography
+from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from .FromFile import get_unit_conversion_factor, mangle_height_unit
 
@@ -77,23 +77,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
-
-        # depending from where this function is called, file_path might already
-        # be a filestream
-        already_open = False
-        if not hasattr(file_path, 'read'):
-            f = open(file_path, "rb")
-        else:
-            already_open = True
-            if isinstance(file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer
-                # to get the binary data
-                f = file_path.buffer
-            else:
-                f = file_path
-
-        try:
-
+        with OpenFromAny(file_path, 'rb') as f:
             # read topography in file as hexadecimal
             self.buffer = [chr(byte) for byte in f.read()]
 
@@ -187,10 +171,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                 self._channels.append(ch_info)
                 self._channels_xres_yres_start_stop_q.append(
                     xres_yres_start_stop_q)  # needed for building heights
-
-        finally:
-            if not already_open:
-                f.close()
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={},

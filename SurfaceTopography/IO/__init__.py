@@ -39,6 +39,7 @@ from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .OPDx import OPDxReader
+from .ZON import ZONReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
@@ -58,6 +59,7 @@ readers = [
     # of HDF5
     H5Reader,
     NPYReader,
+    ZONReader,
     HGTReader,
 ]
 
