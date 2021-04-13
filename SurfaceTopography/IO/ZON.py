@@ -30,6 +30,7 @@ Reader for Keyence ZON files.
 # format. See discussion here https://github.com/gabeguss/Keyence/issues/2
 
 import numpy as np
+from numpy.lib.stride_tricks import as_strided
 from io import TextIOBase
 from struct import unpack
 from zipfile import ZipFile
@@ -50,6 +51,36 @@ UNIT_UUID = '686613b8-27b5-4a29-8ffc-438c2780873e'
 
 # This contains an inventory of *image* data
 INVENTORY_UUID = '772e6d38-40aa-4590-85d3-b041fa243570'
+
+
+def _read_array(f, dtype=np.dtype('<i4')):
+    """
+    Read binary array contained in a ZON archive
+
+    Arguments
+    ---------
+    f : file object
+        Stream to read array from
+    dtype : numpy.dtype, optional
+        Data type of individual element.
+        (Default: 32-bit integer)
+    """
+    width, height, element_size, row_bytes = unpack('iiii', f.read(16))
+    if element_size % dtype.itemsize != 0:
+        raise ValueError(f'File report element size of {element_size} bytes, '
+                         f'but requested data type requires {dtype.itemsize} bytes.')
+    if row_bytes % dtype.itemsize != 0:
+        raise ValueError(f'File reports {row_bytes} bytes per row, but this is not an integer multiple of the data '
+                         f'type of size {dtype.itemsize} bytes.')
+    raw_data = np.frombuffer(f.read(element_size * height * (row_bytes // dtype.itemsize)), dtype)
+
+    nb_entries = element_size // dtype.itemsize
+    if nb_entries == 1:
+        array_data = as_strided(raw_data, shape=(width, height), strides=(dtype.itemsize, row_bytes))
+    else:
+        array_data = as_strided(raw_data, shape=(width, height, nb_entries),
+                                strides=(dtype.itemsize, element_size, row_bytes))
+    return array_data
 
 
 class ZONReader(ReaderBase):
@@ -145,8 +176,7 @@ This reader open ZON files that are written by some Keyence instruments.
             nx, ny = channel_info.nb_grid_pts
             with ZipFile(f, 'r') as z:
                 with z.open(channel_info.info['data_uuid']) as f:
-                    f.read(16)  # skip header
-                    height_data = np.frombuffer(f.read(4 * nx * ny), np.dtype('i4')).reshape((ny, nx)).T
+                    height_data = _read_array(f)
         finally:
             if not already_open:
                 f.close()
