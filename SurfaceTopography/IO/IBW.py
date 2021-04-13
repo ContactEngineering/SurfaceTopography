@@ -25,7 +25,6 @@
 #
 
 import numpy as np
-from io import TextIOBase
 
 from igor.binarywave import load as loadibw
 

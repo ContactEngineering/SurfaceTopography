@@ -31,7 +31,6 @@ from .. import Topography
 from .common import OpenFromAny
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
 from .FromFile import mangle_height_unit
-from io import TextIOBase
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
@@ -112,10 +111,8 @@ topography map as well as its units.
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
-            self._physical_sizes = float(self.mifile.meta['xLength']), \
-                                   float(self.mifile.meta['yLength'])
-            self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
-                                int(self.mifile.meta['yPixels'])
+            self._physical_sizes = float(self.mifile.meta['xLength']), float(self.mifile.meta['yLength'])
+            self._nb_grid_pts = int(self.mifile.meta['xPixels']), int(self.mifile.meta['yPixels'])
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,

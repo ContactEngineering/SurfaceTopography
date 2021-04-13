@@ -26,7 +26,6 @@
 #
 
 from collections import OrderedDict
-from io import TextIOBase
 import numpy as np
 
 from .. import Topography
