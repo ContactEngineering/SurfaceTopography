@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.92.1.dev28+g9de5027 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.92.1.dev33+g1b2ee2c documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.92.1.dev28+g9de5027
+                0.92.1.dev33+g1b2ee2c
               </div>
             
           
@@ -805,14 +805,17 @@ topographies.</p>
 
 <dl class="py function">
 <dt id="SurfaceTopography.Uniform.common.derivative">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></code><code class="sig-name descname"><span class="pre">derivative</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/common.html#derivative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.common.derivative" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></code><code class="sig-name descname"><span class="pre">derivative</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/common.html#derivative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.common.derivative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute derivative of topography or line scan stored on a uniform grid.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
 <li><p><strong>n</strong> (<em>int</em>) – Order of the derivative.</p></li>
-<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects) – Derivative operator used to compute the derivative. If unspecified,
+<li><p><strong>scale_factor</strong> (<em>int</em><em> or </em><em>list of ints</em><em>, </em><em>optional</em>) – Integer factor that scales the stencil difference, i.e.
+specifying 2 will compute the derviative over a distance of
+2 * dx. (Default: 1)</p></li>
+<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
 a simple upwind differences scheme will be applied to compute the
 derivative. A tuple contains the gradient, i.e. the derivative
 operators in the Cartesian directions for multidimensional fields.
@@ -882,7 +885,7 @@ we assume it is cosinusoidal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<em>Topography instance</em>) – </p></li>
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
 <li><p><strong>imtol</strong> (<em>float</em><em>, </em><em>optional</em>) – tolerance for the discarded imaginary part. If the maximum absolute of
 the imaginary part of the interpolated topography is more then that
 value times the total absolute value of dx, an AssertionError is raised
