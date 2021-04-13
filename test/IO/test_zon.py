@@ -53,11 +53,11 @@ def test_read_header():
     # Check if metadata has been read in correctly
     assert loader.channels[0].dim == 2
     assert loader.channels[0].nb_grid_pts == (1779, 2588)
-    np.testing.assert_allclose(loader.channels[0].physical_sizes, (0.004378213553248556, 2.588e-05))
+    np.testing.assert_allclose(loader.channels[0].physical_sizes, (0.004378, 0.006369), rtol=1e-4)
 
     assert loader.default_channel.index == 0
     assert loader.default_channel.nb_grid_pts == (1779, 2588)
-    np.testing.assert_allclose(loader.default_channel.physical_sizes, (0.004378213553248556, 2.588e-05))
+    np.testing.assert_allclose(loader.default_channel.physical_sizes, (0.004378, 0.006369), rtol=1e-4)
 
 
 def test_topography():
