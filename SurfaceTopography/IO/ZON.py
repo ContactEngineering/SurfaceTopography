@@ -31,13 +31,13 @@ Reader for Keyence ZON files.
 
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
-from io import TextIOBase
 from struct import unpack
 from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 
 from .. import Topography
+from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
 # The files within ZON (zip) files are named using UUIDs. Some of these
@@ -92,27 +92,14 @@ This reader open ZON files that are written by some Keyence instruments.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
-
-        # depending from where this function is called, file_path might already
-        # be a filestream
-        already_open = False
-        if not hasattr(file_path, 'read'):
-            f = open(file_path, "rb")
-        else:
-            already_open = True
-            if isinstance(file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to
-                # get the binary data
-                f = file_path.buffer
-            else:
-                f = file_path
+        self._file_path = file_path
 
         # ZON files are ZIP files with a header. The header contains a
         # thumbnail of the measurement and we are not really interested
         # in that one. Python's ZipFile automatically skips that header.
 
         self._channels = []
-        try:
+        with OpenFromAny(self._file_path, 'rb') as f:
             with ZipFile(f, 'r') as z:
                 # Parse unit information
                 root = ElementTree.parse(z.open(UNIT_UUID)).getroot()
@@ -133,12 +120,6 @@ This reader open ZON files that are written by some Keyence instruments.
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 
-        finally:
-            if not already_open:
-                f.close()
-
-        self._file_path = file_path
-
     @property
     def channels(self):
         return self._channels
@@ -157,29 +138,12 @@ This reader open ZON files that are written by some Keyence instruments.
 
         info.update(channel_info.info)
 
-        # depending from where this function is called, file_path might already
-        # be a filestream
-        already_open = False
-        if not hasattr(self._file_path, 'read'):
-            f = open(self._file_path, "rb")
-        else:
-            already_open = True
-            if isinstance(self._file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to
-                # get the binary data
-                f = self._file_path.buffer
-            else:
-                f = self._file_path
-
-        try:
+        with OpenFromAny(self._file_path, 'rb') as f:
             # Read image data
             nx, ny = channel_info.nb_grid_pts
             with ZipFile(f, 'r') as z:
                 with z.open(channel_info.info['data_uuid']) as f:
                     height_data = _read_array(f)
-        finally:
-            if not already_open:
-                f.close()
 
         topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
 
