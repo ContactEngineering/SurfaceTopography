@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.92.1.dev33+g1b2ee2c documentation</title>
+  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.92.1.dev47+gbd4f979 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev33+g1b2ee2c
+                0.92.1.dev47+gbd4f979
               </div>
             
           
@@ -195,11 +195,11 @@
 <span class="c1">#</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">TextIOBase</span>
 
 <span class="kn">from</span> <span class="nn">igor.binarywave</span> <span class="k">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">loadibw</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
 
 
@@ -216,29 +216,8 @@
 
     <span class="c1"># Reads in the positions of all the data and metadata</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
-
-        <span class="c1"># depending from where this function is called, file_path might already</span>
-        <span class="c1"># be a filestream</span>
-        <span class="n">already_open</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">already_open</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
-                <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer to</span>
-                <span class="c1"># get the binary data</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">buffer</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="n">file_path</span>
-
-        <span class="c1"># This catches and closes on its own</span>
-        <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">OpenFromAny</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">file</span> <span class="o">=</span> <span class="n">loadibw</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">already_open</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Invalid file format.&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Only IBW version 5 supported!&#39;</span><span class="p">)</span>

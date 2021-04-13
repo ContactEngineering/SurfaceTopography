@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.MI &mdash; SurfaceTopography 0.92.1.dev33+g1b2ee2c documentation</title>
+  <title>SurfaceTopography.IO.MI &mdash; SurfaceTopography 0.92.1.dev47+gbd4f979 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev33+g1b2ee2c
+                0.92.1.dev47+gbd4f979
               </div>
             
           
@@ -198,9 +198,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ChannelInfo</span>
 <span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">mangle_height_unit</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">TextIOBase</span>
 
 <span class="n">image_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Image</span><span class="se">\n</span><span class="s1">&#39;</span>
 <span class="n">spec_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Spectroscopy</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -237,20 +237,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">process_header</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MIReader.process_header"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.process_header">[docs]</a>    <span class="k">def</span> <span class="nf">process_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="n">already_open</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">already_open</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
-                <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer</span>
-                <span class="c1"># to get the binary data</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="o">.</span><span class="n">buffer</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_path</span>
-
-        <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">OpenFromAny</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
 
             <span class="c1"># Find out if image or spectroscopy</span>
@@ -294,14 +281,8 @@
                 <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bufferRange&#39;</span><span class="p">)</span>
                 <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;bufferLabel&#39;</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xLength&#39;</span><span class="p">]),</span> \
-                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yLength&#39;</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xPixels&#39;</span><span class="p">]),</span> \
-                <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yPixels&#39;</span><span class="p">])</span>
-
-        <span class="k">finally</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">already_open</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xLength&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yLength&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;xPixels&#39;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mifile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;yPixels&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="MIReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>

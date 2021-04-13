@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.92.1.dev33+g1b2ee2c documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.92.1.dev47+gbd4f979 documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.92.1.dev33+g1b2ee2c
+                0.92.1.dev47+gbd4f979
               </div>
             
           
@@ -112,6 +112,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO">Module contents</a></li>
 </ul>
 </li>
@@ -145,6 +147,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO">Module contents</a></li>
 </ul>
 </li>
@@ -1628,6 +1632,71 @@ MPI process.</p></li>
 </dd></dl>
 
 </div>
+<div class="section" id="module-SurfaceTopography.IO.ZON">
+<span id="surfacetopography-io-zon-module"></span><h2>SurfaceTopography.IO.ZON module<a class="headerlink" href="#module-SurfaceTopography.IO.ZON" title="Permalink to this headline">¶</a></h2>
+<p>Reader for Keyence ZON files.</p>
+<dl class="py class">
+<dt id="SurfaceTopography.IO.ZON.ZONReader">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.ZON.</span></code><code class="sig-name descname"><span class="pre">ZONReader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/ZON.html#ZONReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReaderBase</span></code></a></p>
+<dl class="py method">
+<dt id="SurfaceTopography.IO.ZON.ZONReader.channels">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">channels</span></code><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of :obj:<a href="#id31"><span class="problematic" id="id32">`</span></a>ChannelInfo`s describing the available data
+channels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="SurfaceTopography.IO.ZON.ZONReader.topography">
+<code class="sig-name descname"><span class="pre">topography</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/ZON.html#ZONReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.topography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
+contains the topography data. The method allows to override data
+found in the data file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
+(Default: None, which load the default channel)</p></li>
+<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+if no physical size is found in the data file. If there is a
+physical size, then this parameter will override the physical
+size found in the data file.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Override height scale factor found in the data file.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – This dictionary will be appended to the info dictionary returned
+by the reader.</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em>) – Wether the SurfaceTopography should be interpreted as one period of
+a periodic surface. This will affect the PSD and autocorrelation
+calculations (windowing)</p></li>
+<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+process.</p></li>
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+MPI process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>topography</strong> – The object containing the actual topography data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-SurfaceTopography.IO.common">
+<span id="surfacetopography-io-common-module"></span><h2>SurfaceTopography.IO.common module<a class="headerlink" href="#module-SurfaceTopography.IO.common" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="SurfaceTopography.IO.common.OpenFromAny">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></code><code class="sig-name descname"><span class="pre">OpenFromAny</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/common.html#OpenFromAny"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.common.OpenFromAny" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Context manager for turning file names or already open streams into a
+single stream format for subsequent reading. The file is left in an
+identical state when the context manager returns.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-SurfaceTopography.IO">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.IO" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -1676,7 +1745,7 @@ memory.</p>
 the file has multiple channels or not.</p>
 <p>You can always check the channels and their metadata with
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
-<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id31"><span class="problematic" id="id32">``</span></a>unit` and <a href="#id33"><span class="problematic" id="id34">`</span></a>height_scale_factor:</p>
+<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id33"><span class="problematic" id="id34">``</span></a>unit` and <a href="#id35"><span class="problematic" id="id36">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
 <span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
 <span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>
