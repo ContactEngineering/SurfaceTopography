@@ -28,6 +28,7 @@
 import numpy as np
 
 from .. import Topography
+from .common import OpenFromAny
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
 from .FromFile import mangle_height_unit
 from io import TextIOBase
@@ -67,20 +68,7 @@ topography map as well as its units.
         self.process_header()
 
     def process_header(self):
-
-        already_open = False
-        if not hasattr(self.file_path, 'read'):
-            f = open(self.file_path, "rb")
-        else:
-            already_open = True
-            if isinstance(self.file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer
-                # to get the binary data
-                f = self.file_path.buffer
-            else:
-                f = self.file_path
-
-        try:
+        with OpenFromAny(self.file_path, 'rb') as f:
             self.lines = f.readlines()
 
             # Find out if image or spectroscopy
@@ -125,13 +113,9 @@ topography map as well as its units.
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
             self._physical_sizes = float(self.mifile.meta['xLength']), \
-                float(self.mifile.meta['yLength'])
+                                   float(self.mifile.meta['yLength'])
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), \
-                int(self.mifile.meta['yPixels'])
-
-        finally:
-            if not already_open:
-                f.close()
+                                int(self.mifile.meta['yPixels'])
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, info={}, periodic=False,
