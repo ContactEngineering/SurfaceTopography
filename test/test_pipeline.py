@@ -12,7 +12,7 @@ from NuMPI.Tools import Reduction
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.FromFile import read_xyz
+from SurfaceTopography.IO.Text import read_xyz
 
 DATADIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')

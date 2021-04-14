@@ -28,9 +28,8 @@
 import numpy as np
 
 from .. import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, mangle_height_unit
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
-from .FromFile import mangle_height_unit
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
