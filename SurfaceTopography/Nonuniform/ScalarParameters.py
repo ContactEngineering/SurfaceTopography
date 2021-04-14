@@ -60,7 +60,7 @@ def rms_height(topography):
     -------
     rms_height : float or array
         Root-mean square height.
-    """
+    """  # noqa: E501
     x, h = topography.positions_and_heights()
     dx = np.diff(x)
     if len(x) <= 1:

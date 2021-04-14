@@ -149,8 +149,7 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
         return line_scan.to_uniform(ninterpolate * int(s / min_dist),
                                     0).autocorrelation_from_profile()
     elif algorithm == 'brute-force':
-        return _SurfaceTopography.nonuniform_autocorrelation_1D(x, h, s,
-                                                                distances)
+        return _SurfaceTopography.nonuniform_autocorrelation(x, h, s, distances)
     else:
         raise ValueError("Unknown algorithm '{}' specified."
                          .format(algorithm))
