@@ -59,13 +59,28 @@ def get_unit_conversion_factor(unit1_str, unit2_str):
 
 
 def mangle_height_unit(unit):
-    unit = unit.strip()
+    if isinstance(unit, str):
+        unit = unit.strip()
+    else:
+        unit = unit.decode('utf-8').strip()
     if unit == '':
         return None
     elif unit == 'A':
         return 'Å'
     elif unit == 'μm' or unit == 'um' or unit == '~m':
         return 'µm'
+    else:
+        return unit
+
+
+def no_uft8_height_unit(unit):
+    unit = unit.strip()
+    if unit == '':
+        return None
+    elif unit == 'Å':
+        return 'A'
+    elif unit == 'μm' or unit == 'µm' or unit == '~m':
+        return 'um'
     else:
         return unit
 
