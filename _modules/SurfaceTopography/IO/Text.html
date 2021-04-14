@@ -1,0 +1,609 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SurfaceTopography.IO.Text &mdash; SurfaceTopography 0.92.1.dev55+g40461f6 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> SurfaceTopography
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.92.1.dev55+g40461f6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SurfaceTopography</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+          <li><a href="../IO.html">SurfaceTopography.IO</a> &raquo;</li>
+        
+      <li>SurfaceTopography.IO.Text</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for SurfaceTopography.IO.Text</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2021 Lars Pastewka</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_height_unit</span><span class="p">,</span> <span class="n">text</span>
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">make_wrapped_reader</span>
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+<span class="kn">from</span> <span class="nn">..NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span>
+
+<span class="c1">###</span>
+
+
+<span class="nd">@text</span>
+<span class="k">def</span> <span class="nf">read_matrix</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a surface profile from a text file and presents in in a</span>
+<span class="sd">    SurfaceTopography-conformant manner. No additional parsing of</span>
+<span class="sd">    meta-information is carried out.</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">    fobj -- filename or file object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fobj</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">surface</span>
+
+
+<span class="n">MatrixReader</span> <span class="o">=</span> <span class="n">make_wrapped_reader</span><span class="p">(</span>
+    <span class="n">read_matrix</span><span class="p">,</span> <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;MatrixReader&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;matrix&#39;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Plain text (matrix)&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@text</span>
+<span class="k">def</span> <span class="nf">read_asc</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+             <span class="n">z_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># pylint: disable=too-many-branches,too-many-statements,invalid-name</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads a surface profile (topography) from an generic asc file and presents</span>
+<span class="sd">    it in a surface-conformant manner. Applies some heuristic to extract</span>
+<span class="sd">    meta-information for different file formats.</span>
+
+<span class="sd">    The info dict of the topography returned is a copy from the given info dict</span>
+<span class="sd">    and may have some extra keys added:</span>
+<span class="sd">    - &quot;unit&quot;: a common unit for the data, for dimensions and heights</span>
+<span class="sd">    - &quot;channel_name&quot;: the name of the channel (if unknown &quot;Default&quot; is used&quot;)</span>
+
+<span class="sd">    Keyword Arguments:</span>
+<span class="sd">    fobj_in -- filename or file object</span>
+<span class="sd">    unit -- name of surface units, one of m, mm, μm/um, nm, A</span>
+<span class="sd">    x_factor -- multiplication factor for physical_sizes</span>
+<span class="sd">    z_factor -- multiplication factor for height</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="n">_float_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?&#39;</span>
+
+    <span class="n">checks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="c1"># Resolution keywords</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:x-pixels|h)\b\s*=\s*([0-9]+)&quot;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span>
+                   <span class="s2">&quot;yres&quot;</span><span class="p">))</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:y-pixels|w)\b\s*=\s*([0-9]+)&quot;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span>
+                   <span class="s2">&quot;xres&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Size keywords</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P&lt;value&gt;&quot;</span> <span class="o">+</span>
+                    <span class="n">_float_regex</span> <span class="o">+</span> <span class="s2">&quot;)(?P&lt;unit&gt;.*)&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">,</span> <span class="s2">&quot;xsiz&quot;</span><span class="p">))</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P&lt;value&gt;&quot;</span> <span class="o">+</span>
+                    <span class="n">_float_regex</span> <span class="o">+</span> <span class="s2">&quot;)(?P&lt;unit&gt;.*)&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">,</span> <span class="s2">&quot;ysiz&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Unit keywords</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:x-unit)\b\s*(?:=|\:)\s*(\w+)&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;xunit&quot;</span><span class="p">))</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:y-unit)\b\s*(?:=|\:)\s*(\w+)&quot;</span><span class="p">),</span> <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;yunit&quot;</span><span class="p">))</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:z-unit|Value units)\b\s*(?:=|\:)\s*(\w+)&quot;</span><span class="p">),</span>
+         <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;zunit&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Scale factor keywords</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?:pixel\s+size)\s*=\s*(?P&lt;value&gt;&quot;</span> <span class="o">+</span> <span class="n">_float_regex</span> <span class="o">+</span>
+                    <span class="s2">&quot;)(?P&lt;unit&gt;.*)&quot;</span><span class="p">),</span> <span class="nb">float</span><span class="p">,</span> <span class="s2">&quot;xfac&quot;</span><span class="p">))</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">((</span>
+                <span class="sa">r</span><span class="s2">&quot;(?:height\s+conversion\s+factor\s+\(-&gt;\s+(?P&lt;unit&gt;.*)\))\s*=&quot;</span>
+                <span class="sa">r</span><span class="s2">&quot;\s*(?P&lt;value&gt;&quot;</span> <span class="o">+</span> <span class="n">_float_regex</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">)),</span>
+        <span class="nb">float</span><span class="p">,</span> <span class="s2">&quot;zfac&quot;</span><span class="p">))</span>
+    <span class="c1"># Channel name keywords</span>
+    <span class="n">checks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)&quot;</span><span class="p">),</span>
+        <span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;channel_name&quot;</span><span class="p">))</span>
+
+    <span class="n">xres</span> <span class="o">=</span> <span class="n">yres</span> <span class="o">=</span> <span class="n">xsiz</span> <span class="o">=</span> <span class="n">ysiz</span> <span class="o">=</span> <span class="n">xunit</span> <span class="o">=</span> <span class="n">yunit</span> <span class="o">=</span> <span class="n">zunit</span> <span class="o">=</span> <span class="n">xfac</span> <span class="o">=</span> <span class="n">yfac</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">zfac</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">channel_name</span> <span class="o">=</span> <span class="s2">&quot;Default&quot;</span>
+
+    <span class="k">def</span> <span class="nf">process_comment</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+        <span class="s2">&quot;Find and interpret known comments in the header of the asc file&quot;</span>
+        <span class="k">nonlocal</span> <span class="n">xres</span><span class="p">,</span> <span class="n">yres</span><span class="p">,</span> <span class="n">xsiz</span><span class="p">,</span> <span class="n">ysiz</span><span class="p">,</span> <span class="n">xunit</span><span class="p">,</span> <span class="n">yunit</span><span class="p">,</span> <span class="n">zunit</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">xfac</span><span class="p">,</span> <span class="n">yfac</span>
+        <span class="k">nonlocal</span> <span class="n">zfac</span>
+        <span class="k">nonlocal</span> <span class="n">channel_name</span>
+        <span class="c1"># TODO Is &#39;fun&#39; needed here? No used so far..</span>
+        <span class="k">for</span> <span class="n">reg</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">checks</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xres&#39;</span><span class="p">:</span>
+                <span class="n">xres</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;yres&#39;</span><span class="p">:</span>
+                <span class="n">yres</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xsiz&#39;</span><span class="p">:</span>
+                <span class="n">xsiz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;ysiz&#39;</span><span class="p">:</span>
+                <span class="n">ysiz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">y</span><span class="p">:</span>
+                    <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xunit&#39;</span><span class="p">:</span>
+                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;yunit&#39;</span><span class="p">:</span>
+                <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;zunit&#39;</span><span class="p">:</span>
+                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xfac&#39;</span><span class="p">:</span>
+                <span class="n">xfac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;zfac&#39;</span><span class="p">:</span>
+                <span class="n">zfac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
+                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;channel_name&#39;</span><span class="p">:</span>
+                <span class="n">channel_name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fobj</span><span class="p">:</span>
+        <span class="n">line_elements</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">+=</span> <span class="p">[[</span><span class="nb">float</span><span class="p">(</span><span class="n">strval</span><span class="p">)</span> <span class="k">for</span> <span class="n">strval</span> <span class="ow">in</span> <span class="n">line_elements</span><span class="p">]]</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">process_comment</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">if</span> <span class="n">nx</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">ny</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;This file has just two rows or two columns and is more likely a &quot;</span>
+            <span class="s2">&quot;line scan than a map.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">xres</span> <span class="o">!=</span> <span class="n">nx</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;The number of rows (=</span><span class="si">{}</span><span class="s2">) open_topography from the file &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;does not match the nb_grid_pts in the file&#39;s metadata (=</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="n">xres</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">yres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">yres</span> <span class="o">!=</span> <span class="n">ny</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;The number of columns (=</span><span class="si">{}</span><span class="s2">) open_topography from the file &#39;</span><span class="si">{}</span><span class="s2">&#39; &quot;</span>
+            <span class="s2">&quot;does not match the nb_grid_pts in the file&#39;s metadata &quot;</span>
+            <span class="s2">&quot;(=</span><span class="si">{}</span><span class="s2">).&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="n">yres</span><span class="p">))</span>
+
+    <span class="c1"># Handle scale factors</span>
+    <span class="k">if</span> <span class="n">xfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">yfac</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">yfac</span> <span class="o">=</span> <span class="n">xfac</span>
+    <span class="k">elif</span> <span class="n">xfac</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">yfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xfac</span> <span class="o">=</span> <span class="n">yfac</span>
+    <span class="k">if</span> <span class="n">xfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">xsiz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xsiz</span> <span class="o">=</span> <span class="n">xfac</span> <span class="o">*</span> <span class="n">nx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xsiz</span> <span class="o">*=</span> <span class="n">xfac</span>
+    <span class="k">if</span> <span class="n">yfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ysiz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ysiz</span> <span class="o">=</span> <span class="n">yfac</span> <span class="o">*</span> <span class="n">ny</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ysiz</span> <span class="o">*=</span> <span class="n">yfac</span>
+    <span class="k">if</span> <span class="n">z_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">zfac</span> <span class="o">=</span> <span class="n">z_factor</span> <span class="k">if</span> <span class="n">zfac</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">zfac</span> <span class="o">*</span> <span class="n">z_factor</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Handle units -&gt; convert to target unit</span>
+    <span class="k">if</span> <span class="n">xunit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">zunit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xunit</span> <span class="o">=</span> <span class="n">zunit</span>
+    <span class="k">if</span> <span class="n">yunit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">zunit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">yunit</span> <span class="o">=</span> <span class="n">zunit</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">zunit</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">xunit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xsiz</span> <span class="o">*=</span> <span class="n">height_units</span><span class="p">[</span><span class="n">xunit</span><span class="p">]</span> <span class="o">/</span> <span class="n">height_units</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">yunit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ysiz</span> <span class="o">*=</span> <span class="n">height_units</span><span class="p">[</span><span class="n">yunit</span><span class="p">]</span> <span class="o">/</span> <span class="n">height_units</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">zunit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">zfac</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">zfac</span> <span class="o">=</span> <span class="n">height_units</span><span class="p">[</span><span class="n">zunit</span><span class="p">]</span> <span class="o">/</span> <span class="n">height_units</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">zfac</span> <span class="o">*=</span> <span class="n">height_units</span><span class="p">[</span><span class="n">zunit</span><span class="p">]</span> <span class="o">/</span> <span class="n">height_units</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
+
+    <span class="c1"># handle channel name</span>
+    <span class="c1"># we use the info dict here to transfer the channel name</span>
+    <span class="n">info</span><span class="p">[</span><span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel_name</span>
+
+    <span class="c1"># calculate physical sizes and generate topography</span>
+    <span class="k">if</span> <span class="n">xsiz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ysiz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_factor</span> <span class="o">*</span> <span class="n">xsiz</span><span class="p">,</span> <span class="n">x_factor</span> <span class="o">*</span> <span class="n">ysiz</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                                  <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                             <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">zfac</span> <span class="o">=</span> <span class="n">height_scale_factor</span>
+    <span class="k">if</span> <span class="n">zfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">zfac</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">zfac</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">surface</span>
+
+
+<span class="n">AscReader</span> <span class="o">=</span> <span class="n">make_wrapped_reader</span><span class="p">(</span><span class="n">read_asc</span><span class="p">,</span> <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;AscReader&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;asc&#39;</span><span class="p">,</span>
+                                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Plain text (with headers)&#39;</span><span class="p">,</span>
+                                <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">SurfaceTopography data stored in plain text (ASCII) format needs to be stored</span>
+<span class="s1">in a matrix format. Each row contains the height information for subsequent</span>
+<span class="s1">points in x-direction separated by a whitespace. The next row belong to the</span>
+<span class="s1">following y-coordinate. Note that if the file has three or less columns, it</span>
+<span class="s1">will be interpreted as a topography stored in a coordinate format (the three</span>
+<span class="s1">columns contain the x, y and z coordinates of the same points). The smallest</span>
+<span class="s1">topography that can be provided in this format is therefore 4 x 1.</span>
+
+<span class="s1">The reader supports parsing file headers for additional metadata. This allows</span>
+<span class="s1">to specify the physical size of the topography and the unit. In particular, it</span>
+<span class="s1">supports reading ASCII files exported from SPIP and Gwyddion.</span>
+
+<span class="s1">When writing your own ASCII files, we recommend to prepent the header with a</span>
+<span class="s1">&#39;#&#39;. The following file is an example that contains 4 x 3 data points:</span>
+<span class="s1">```</span>
+<span class="s1"># Channel: Main</span>
+<span class="s1"># Width: 10 µm</span>
+<span class="s1"># Height: 10 µm</span>
+<span class="s1"># Value units: m</span>
+<span class="s1"> 1.0  2.0  3.0  4.0</span>
+<span class="s1"> 5.0  6.0  7.0  8.0</span>
+<span class="s1"> 9.0 10.0 11.0 12.0</span>
+<span class="s1">```</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@text</span>
+<span class="k">def</span> <span class="nf">read_xyz</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+             <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load xyz-file. These files contain line scan information in terms of</span>
+<span class="sd">    (x,y)-positions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fobj : str or file object</span>
+<span class="sd">         File name or stream.</span>
+<span class="sd">    unit : str</span>
+<span class="sd">         Physical unit.</span>
+<span class="sd">    tol : float</span>
+<span class="sd">         Tolerance for detecting uniform grids</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    topography : Topography</span>
+<span class="sd">        SurfaceTopography object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># This is a line scan.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="n">x</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">d_uniform</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">d_uniform</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">d_uniform</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
+                                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;XYZ reader found nonuniform data. Manually setting the&#39;</span>
+                    <span class="s1">&#39;physical size is not possible for this type of data.&#39;</span><span class="p">)</span>
+
+            <span class="n">t</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="c1"># This is a topography map.</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># Sort x-values into bins. Assume points on surface are equally spaced.</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">binx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">dx</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">binx</span><span class="p">)</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">ny</span><span class="p">)</span>  <span class="c1"># FIXME: Turn assert into exception</span>
+
+        <span class="c1"># Sort y-values into bins.</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">binx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">binx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">biny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="n">dy</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">biny</span><span class="p">)</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="n">nx</span><span class="p">)</span>  <span class="c1"># FIXME: Turn assert into exception</span>
+
+        <span class="c1"># Sort data into bins.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">))</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">binx</span><span class="p">,</span> <span class="n">biny</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="c1"># Sanity check. Should be covered by above asserts.</span>
+        <span class="n">value_present</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">value_present</span><span class="p">[</span><span class="n">binx</span><span class="p">,</span> <span class="n">biny</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">value_present</span><span class="p">)</span>  <span class="c1"># FIXME: Turn assert into exception</span>
+
+        <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">ny</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s1">&#39;Expected two or three columns for topography that is a list of &#39;</span>
+            <span class="s1">&#39;positions and heights.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span>
+
+
+<span class="n">XYZReader</span> <span class="o">=</span> <span class="n">make_wrapped_reader</span><span class="p">(</span>
+    <span class="n">read_xyz</span><span class="p">,</span> <span class="n">class_name</span><span class="o">=</span><span class="s2">&quot;XYZReader&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;xyz&#39;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Plain text (x,y,z coordinates)&#39;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">SurfaceTopography information can be provided as coordinate data. This is a</span>
+<span class="s1">text file that contains either two columns (for line scans) or three columns</span>
+<span class="s1">(for two-dimensional topographies) of data. The parser does not support</span>
+<span class="s1">reading header information. Units can therefore not be provided directly</span>
+<span class="s1">within this file format.</span>
+
+<span class="s1">Line scans can be provided on a non-uniform grid. The x-coordinates do not</span>
+<span class="s1">need to be equally spaced and the surface specified in this format can be</span>
+<span class="s1">reentrant. The code interprets such topographies as piecewise linear between</span>
+<span class="s1">the points that are specified in the file.</span>
+
+<span class="s1">Two-dimensional topography maps need to reside on a regular grid. The x- and</span>
+<span class="s1">y-coordinates need to be equally spaced.</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="write_matrix"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Text.write_matrix">[docs]</a><span class="k">def</span> <span class="nf">write_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves the topography using `np.savetxt`. Warning: This only saves</span>
+<span class="sd">    the heights; the physical_sizes is not contained in the file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div>
+
+
+<span class="c1"># Register analysis functions from this module</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_matrix&#39;</span><span class="p">,</span> <span class="n">write_matrix</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2015-2020 The Authors.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

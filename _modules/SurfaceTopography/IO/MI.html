@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.MI &mdash; SurfaceTopography 0.92.1.dev51+ga670918 documentation</title>
+  <title>SurfaceTopography.IO.MI &mdash; SurfaceTopography 0.92.1.dev55+g40461f6 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev51+ga670918
+                0.92.1.dev55+g40461f6
               </div>
             
           
@@ -197,9 +197,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span><span class="p">,</span> <span class="n">mangle_height_unit</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ChannelInfo</span>
-<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">mangle_height_unit</span>
 
 <span class="n">image_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Image</span><span class="se">\n</span><span class="s1">&#39;</span>
 <span class="n">spec_head</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;fileType      Spectroscopy</span><span class="se">\n</span><span class="s1">&#39;</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.92.1.dev51+ga670918 documentation</title>
+  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.92.1.dev55+g40461f6 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev51+ga670918
+                0.92.1.dev55+g40461f6
               </div>
             
           
@@ -191,7 +191,87 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">TextIOBase</span>
+<span class="kn">import</span> <span class="nn">io</span>
+
+<span class="c1">###</span>
+
+<span class="n">height_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s1">&#39;µm&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;nm&#39;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s1">&#39;Å&#39;</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">}</span>
+<span class="n">voltage_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kV&#39;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mV&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s1">&#39;µV&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;nV&#39;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">}</span>
+
+<span class="n">units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="n">height_units</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="n">voltage_units</span><span class="p">)</span>
+
+<span class="n">CHANNEL_NAME_INFO_KEY</span> <span class="o">=</span> <span class="s1">&#39;channel_name&#39;</span>
+
+<span class="c1">###</span>
+
+
+<div class="viewcode-block" id="get_unit_conversion_factor"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.get_unit_conversion_factor">[docs]</a><span class="k">def</span> <span class="nf">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit1_str</span><span class="p">,</span> <span class="n">unit2_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute factor for conversion from unit1 to unit2. Return None if units are</span>
+<span class="sd">    incompatible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">unit1_str</span> <span class="o">==</span> <span class="n">unit2_str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">unit1_kind</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">unit2_kind</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">unit_scales</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">units</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">unit1_str</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">unit1_kind</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="n">unit_scales</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="k">if</span> <span class="n">unit2_str</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">unit2_kind</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="n">unit_scales</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="k">if</span> <span class="n">unit1_kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit2_kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit1_kind</span> <span class="o">!=</span> <span class="n">unit2_kind</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit1_str</span><span class="p">]</span> <span class="o">/</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit2_str</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="mangle_height_unit"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_height_unit">[docs]</a><span class="k">def</span> <span class="nf">mangle_height_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;Å&#39;</span>
+    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;μm&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;um&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;~m&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;µm&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">unit</span></div>
+
+
+<span class="c1">###</span>
+
+<div class="viewcode-block" id="is_binary_stream"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.is_binary_stream">[docs]</a><span class="k">def</span> <span class="nf">is_binary_stream</span><span class="p">(</span><span class="n">fobj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check whether fobj is a binary stream&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;b&#39;</span> <span class="ow">in</span> <span class="n">fobj</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="text"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.text">[docs]</a><span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorator that turns the first argument into a binary stream&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">close_file</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">):</span>
+            <span class="n">fobj</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">fobj_text</span> <span class="o">=</span> <span class="n">fobj</span>
+            <span class="n">close_file</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">is_binary_stream</span><span class="p">(</span><span class="n">fobj</span><span class="p">):</span>
+            <span class="n">fobj_text</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fobj_text</span> <span class="o">=</span> <span class="n">fobj</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">retvals</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">fobj_text</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_binary_stream</span><span class="p">(</span><span class="n">fobj</span><span class="p">):</span>
+                <span class="n">fobj_text</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                <span class="n">fobj_text</span> <span class="o">=</span> <span class="n">fobj</span>
+            <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
+                <span class="n">fobj_text</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">retvals</span>
+
+    <span class="k">return</span> <span class="n">func_wrapper</span></div>
 
 
 <div class="viewcode-block" id="OpenFromAny"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny">[docs]</a><span class="k">class</span> <span class="nc">OpenFromAny</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -231,13 +311,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_already_open</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s1">&#39;rb&#39;</span><span class="p">:</span>
                 <span class="c1"># Turn this into a binary stream, if it is a text stream</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOBase</span><span class="p">):</span>
                     <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer to get the binary data</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_fstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="o">.</span><span class="n">buffer</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_fstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">TextIOBase</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOBase</span><span class="p">):</span>
                     <span class="c1"># file was opened without the &#39;b&#39; option, so read its buffer to get the binary data</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_fstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span>
                 <span class="k">else</span><span class="p">:</span>

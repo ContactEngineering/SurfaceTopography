@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.92.1.dev51+ga670918 documentation</title>
+  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.92.1.dev55+g40461f6 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev51+ga670918
+                0.92.1.dev55+g40461f6
               </div>
             
           
@@ -198,9 +198,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span><span class="p">,</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_height_unit</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
-<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_height_unit</span>
 
 <span class="n">MAGIC</span> <span class="o">=</span> <span class="s2">&quot;VCA DATA</span><span class="se">\x01\x00\x00\x55</span><span class="s2">&quot;</span>
 <span class="n">MAGIC_SIZE</span> <span class="o">=</span> <span class="mi">12</span>
