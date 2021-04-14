@@ -34,7 +34,7 @@ import _SurfaceTopography
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def height_height_autocorrelation_1D(line_scan, distances=None):
+def height_height_autocorrelation(line_scan, distances=None):
     r"""
     Compute the one-dimensional height-height autocorrelation function
     (ACF).
@@ -100,8 +100,8 @@ def height_height_autocorrelation_1D(line_scan, distances=None):
     return distances, A
 
 
-def height_difference_autocorrelation_1D(line_scan, algorithm='fft',
-                                         distances=None, ninterpolate=5):
+def height_difference_autocorrelation(line_scan, algorithm='fft',
+                                      distances=None, ninterpolate=5):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -147,7 +147,7 @@ def height_difference_autocorrelation_1D(line_scan, algorithm='fft',
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
         return line_scan.to_uniform(ninterpolate * int(s / min_dist),
-                                    0).autocorrelation_1D()
+                                    0).autocorrelation_from_profile()
     elif algorithm == 'brute-force':
         return _SurfaceTopography.nonuniform_autocorrelation_1D(x, h, s,
                                                                 distances)
@@ -158,4 +158,4 @@ def height_difference_autocorrelation_1D(line_scan, algorithm='fft',
 
 # Register analysis functions from this module
 NonuniformLineScanInterface.register_function(
-    'autocorrelation_1D', height_difference_autocorrelation_1D)
+    'autocorrelation_from_profile', height_difference_autocorrelation)

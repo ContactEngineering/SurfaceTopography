@@ -33,7 +33,7 @@ import numpy as np
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def rms_height(topography, kind='Rq', tol=1e-6):
+def rms_height(topography):
     r"""
     Computes root-mean square height fluctuation of the line scan:
 
@@ -55,21 +55,12 @@ def rms_height(topography, kind='Rq', tol=1e-6):
     ----------
     topography : :obj:`NonuniformLineScan`
         SurfaceTopography object containing height information.
-    kind : str
-        For compatibility with uniform topographies that have different ways
-        of computing the rms height. Only 'Rq' is supported here.
-        (Default: 'Rq')
-    tol : float
-        Tolerance for searching for existing data points at domain boundaries.
-        (Default: 1e-6)
 
     Returns
     -------
     rms_height : float or array
         Root-mean square height.
-    """  # noqa: E501
-    if kind != 'Rq':
-        raise ValueError("Unsupported rms height kind '{}'.".format(kind))
+    """
     x, h = topography.positions_and_heights()
     dx = np.diff(x)
     if len(x) <= 1:
@@ -135,6 +126,6 @@ def rms_curvature(topography):
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('rms_height', rms_height)
-NonuniformLineScanInterface.register_function('rms_slope', rms_slope)
-NonuniformLineScanInterface.register_function('rms_curvature', rms_curvature)
+NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
+NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)
+NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature)

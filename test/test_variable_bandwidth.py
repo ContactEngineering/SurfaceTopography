@@ -80,7 +80,7 @@ class TestVariableBandwidth(unittest.TestCase):
             for t in [t0, t0.to_nonuniform()]:
                 mag, bwidth, rms = t.variable_bandwidth(
                     nb_grid_pts_cutoff=r // 32)
-                self.assertAlmostEqual(rms[0], t.detrend().rms_height())
+                self.assertAlmostEqual(rms[0], t.detrend().rms_height_from_profile())
                 np.testing.assert_allclose(bwidth, t.physical_sizes[0] / mag)
                 # Since this is a self-affine surface, rms(mag) ~ mag^-H
                 b, a = np.polyfit(np.log(mag[1:]), np.log(rms[1:]), 1)
@@ -94,7 +94,7 @@ class TestVariableBandwidth(unittest.TestCase):
             t = fourier_synthesis(res, (1, 1), H, rms_slope=0.1,
                                   amplitude_distribution=lambda n: 1.0)
             mag, bwidth, rms = t.variable_bandwidth(nb_grid_pts_cutoff=r // 32)
-            self.assertAlmostEqual(rms[0], t.detrend().rms_height())
+            self.assertAlmostEqual(rms[0], t.detrend().rms_height_from_area())
             # Since this is a self-affine surface, rms(mag) ~ mag^-H
             b, a = np.polyfit(np.log(mag[1:]), np.log(rms[1:]), 1)
             # The error is huge...

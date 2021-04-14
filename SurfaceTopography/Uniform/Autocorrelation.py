@@ -34,7 +34,7 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_1D(topography, direction=0):
+def autocorrelation_from_profile(topography, direction=0):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -128,7 +128,7 @@ def autocorrelation_1D(topography, direction=0):
         return r, A
 
 
-def autocorrelation_2D(topography, nbins=None, bin_edges='log', return_map=False):
+def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_map=False):
     """
     Compute height-difference autocorrelation function and radial average.
 
@@ -210,7 +210,7 @@ def autocorrelation_2D(topography, nbins=None, bin_edges='log', return_map=False
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('autocorrelation_1D',
-                                             autocorrelation_1D)
-UniformTopographyInterface.register_function('autocorrelation_2D',
-                                             autocorrelation_2D)
+UniformTopographyInterface.register_function('autocorrelation_from_profile',
+                                             autocorrelation_from_profile)
+UniformTopographyInterface.register_function('autocorrelation_from_area',
+                                             autocorrelation_from_area)

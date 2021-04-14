@@ -48,7 +48,7 @@ SOFTWARE.
   return py_ret;
 
 PyObject *
-nonuniform_autocorrelation_1D(PyObject *self, PyObject *args)
+nonuniform_autocorrelation(PyObject *self, PyObject *args)
 {
   PyObject *py_x = NULL, *py_double_x = NULL;
   PyObject *py_h = NULL, *py_double_h = NULL;

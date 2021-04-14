@@ -196,13 +196,13 @@ class UniformLineScanTest(unittest.TestCase):
             detrended = t.detrend(detrend_mode=mode)
             detrended.heights()
 
-    def test_power_spectrum_1D(self):
+    def test_power_spectrum_from_profile(self):
         #
         # this test was added, because there were issues calling
         # power spectrum 1D with a window given
         #
         t = UniformLineScan([2, 4, 6, 8], 4)
-        t.power_spectrum_1D(window='hann')
+        t.power_spectrum_from_profile(window='hann')
         # TODO add check for values
 
 
@@ -297,17 +297,17 @@ class NonuniformLineScanTest(unittest.TestCase):
         st = t.scale(1)
         st.detrend(detrend_mode='center')
 
-    def test_power_spectrum_1D(self):
+    def test_power_spectrum_from_profile(self):
         #
         # this test was added, because there were issues calling
         # power spectrum 1D with a window given
         #
         t = NonuniformLineScan(x=[1, 2, 3, 4], y=[2, 4, 6, 8])
-        q1, C1 = t.power_spectrum_1D(window='hann')
-        q1, C1 = t.detrend('center').power_spectrum_1D(window='hann')
-        q1, C1 = t.detrend('center').power_spectrum_1D()
-        q1, C1 = t.detrend('height').power_spectrum_1D(window='hann')
-        q1, C1 = t.detrend('height').power_spectrum_1D()
+        q1, C1 = t.power_spectrum_from_profile(window='hann')
+        q1, C1 = t.detrend('center').power_spectrum_from_profile(window='hann')
+        q1, C1 = t.detrend('center').power_spectrum_from_profile()
+        q1, C1 = t.detrend('height').power_spectrum_from_profile(window='hann')
+        q1, C1 = t.detrend('height').power_spectrum_from_profile()
         # ok can be called without errors
         # TODO add check for values
 
@@ -357,8 +357,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.nb_grid_pts, (1024, 1024))
         self.assertAlmostEqual(surf.physical_sizes[0], 2000)
         self.assertAlmostEqual(surf.physical_sizes[1], 2000)
-        self.assertAlmostEqual(surf.rms_height(), 17.22950485567042)
-        self.assertAlmostEqual(surf.rms_slope(), 0.4560243831362324)
+        self.assertAlmostEqual(surf.rms_height_from_area(), 17.22950485567042)
+        self.assertAlmostEqual(surf.rms_gradient(), 0.4560243831362324)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'nm')
 
@@ -367,8 +367,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.nb_grid_pts, (650, 650))
         self.assertAlmostEqual(surf.physical_sizes[0], 0.0002404103)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.0002404103)
-        self.assertAlmostEqual(surf.rms_height(), 2.7722350402740072e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.35152685030417763)
+        self.assertAlmostEqual(surf.rms_height_from_area(), 2.7722350402740072e-07)
+        self.assertAlmostEqual(surf.rms_gradient(), 0.35152685030417763)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -377,8 +377,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.nb_grid_pts, (256, 256))
         self.assertAlmostEqual(surf.physical_sizes[0], 10e-6)
         self.assertAlmostEqual(surf.physical_sizes[1], 10e-6)
-        self.assertAlmostEqual(surf.rms_height(), 3.5222918750198742e-08)
-        self.assertAlmostEqual(surf.rms_slope(), 0.19235602282848963)
+        self.assertAlmostEqual(surf.rms_height_from_area(), 3.5222918750198742e-08)
+        self.assertAlmostEqual(surf.rms_gradient(), 0.19235602282848963)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -387,10 +387,10 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.nb_grid_pts, (75, 305))
         self.assertAlmostEqual(surf.physical_sizes[0], 2.773965e-05)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.00011280791)
-        self.assertAlmostEqual(surf.rms_height(), 1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_height(kind='Rq'),
+        self.assertAlmostEqual(surf.rms_height_from_area(), 1.1745891510991089e-07)
+        self.assertAlmostEqual(surf.rms_height_from_profile(),
                                1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_slope(), 0.06776316911544318)
+        self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
@@ -404,9 +404,9 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertTrue(isinstance(surf, Topography))
         self.assertEqual(surf.nb_grid_pts, (10, 10))
         self.assertTrue(surf.physical_sizes is None)
-        self.assertAlmostEqual(surf.rms_height(), 1.0)
+        self.assertAlmostEqual(surf.rms_height_from_area(), 1.0)
         with self.assertRaises(ValueError):
-            surf.rms_slope()
+            surf.rms_gradient()
         self.assertTrue(surf.is_uniform)
         self.assertFalse('unit' in surf.info)
 
@@ -468,24 +468,24 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.dim, 1)
         self.assertTrue(surf.is_uniform)
         self.assertAlmostEqual(surf.mean(), 0)
-        self.assertAlmostEqual(surf.rms_slope(), 0)
+        self.assertAlmostEqual(surf.rms_slope_from_profile(), 0)
 
         surf = UniformLineScan(arr, arr.shape).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 1)
         self.assertTrue(surf.is_uniform)
         self.assertAlmostEqual(surf.mean(), 0)
-        self.assertAlmostEqual(surf.rms_slope(), 0)
+        self.assertAlmostEqual(surf.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf.rms_height() < UniformLineScan(arr, arr.shape).rms_height())
+            surf.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
 
         surf2 = UniformLineScan(arr, (1,)).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 1)
         self.assertTrue(surf2.is_uniform)
-        self.assertAlmostEqual(surf2.rms_slope(), 0)
+        self.assertAlmostEqual(surf2.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf2.rms_height() < UniformLineScan(arr, arr.shape).rms_height())
+            surf2.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
 
-        self.assertAlmostEqual(surf.rms_height(), surf2.rms_height())
+        self.assertAlmostEqual(surf.rms_height_from_area(), surf2.rms_height_from_area())
 
         x, z = surf2.positions_and_heights()
         self.assertAlmostEqual(np.mean(np.diff(x)),
@@ -508,24 +508,24 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.dim, 2)
         self.assertTrue(surf.is_uniform)
         self.assertAlmostEqual(surf.mean(), 0)
-        self.assertAlmostEqual(surf.rms_slope(), 0)
+        self.assertAlmostEqual(surf.rms_gradient(), 0)
 
         surf = Topography(arr, arr.shape).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 2)
         self.assertTrue(surf.is_uniform)
         self.assertAlmostEqual(surf.mean(), 0)
-        self.assertAlmostEqual(surf.rms_slope(), 0)
+        self.assertAlmostEqual(surf.rms_gradient(), 0)
         self.assertTrue(
-            surf.rms_height() < Topography(arr, arr.shape).rms_height())
+            surf.rms_height_from_area() < Topography(arr, arr.shape).rms_height_from_area())
 
         surf2 = Topography(arr, (1, 1)).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 2)
         self.assertTrue(surf2.is_uniform)
-        self.assertAlmostEqual(surf2.rms_slope(), 0)
+        self.assertAlmostEqual(surf2.rms_gradient(), 0)
         self.assertTrue(
-            surf2.rms_height() < Topography(arr, arr.shape).rms_height())
+            surf2.rms_height_from_area() < Topography(arr, arr.shape).rms_height_from_area())
 
-        self.assertAlmostEqual(surf.rms_height(), surf2.rms_height())
+        self.assertAlmostEqual(surf.rms_height_from_area(), surf2.rms_height_from_area())
 
         x, y, z = surf2.positions_and_heights()
         self.assertAlmostEqual(np.mean(np.diff(x[:, 0])),
@@ -546,10 +546,12 @@ class DetrendedSurfaceTest(unittest.TestCase):
             detrended = t.detrend(detrend_mode=mode)
             self.assertAlmostEqual(detrended.mean(), 0)
             if mode == 'slope':
-                self.assertGreater(t.rms_slope(), detrended.rms_slope(),
+                self.assertGreater(t.rms_slope_from_profile(),
+                                   detrended.rms_slope_from_profile(),
                                    msg=mode)
             else:
-                self.assertGreater(t.rms_height(), detrended.rms_height(),
+                self.assertGreater(t.rms_height_from_area(),
+                                   detrended.rms_height_from_area(),
                                    msg=mode)
 
     def test_smooth_without_size(self):
@@ -558,9 +560,9 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.dim, 2)
         self.assertTrue(surf.is_uniform)
         self.assertAlmostEqual(surf.mean(), 0)
-        self.assertAlmostEqual(surf.rms_slope(), 0)
+        self.assertAlmostEqual(surf.rms_gradient(), 0)
         self.assertTrue(
-            surf.rms_height() < Topography(arr, (1, 1)).rms_height())
+            surf.rms_height_from_area() < Topography(arr, (1, 1)).rms_height_from_area())
 
     def test_smooth_curved(self):
         a = 1.2
@@ -583,9 +585,9 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.coeffs[3], c * (ny * ny))
         self.assertAlmostEqual(surf.coeffs[4], e * (nx * ny))
         self.assertAlmostEqual(surf.coeffs[5], f)
-        self.assertAlmostEqual(surf.rms_height(), 0.0)
-        self.assertAlmostEqual(surf.rms_slope(), 0.0)
-        self.assertAlmostEqual(surf.rms_curvature(), 0.0)
+        self.assertAlmostEqual(surf.rms_height_from_area(), 0.0)
+        self.assertAlmostEqual(surf.rms_gradient(), 0.0)
+        self.assertAlmostEqual(surf.rms_curvature_from_area(), 0.0)
 
     def test_randomly_rough(self):
         surface = fourier_synthesis((511, 511), (1., 1.), 0.8, rms_height=1)
@@ -596,8 +598,8 @@ class DetrendedSurfaceTest(unittest.TestCase):
         untilt2 = cut.detrend(detrend_mode='slope')
         self.assertTrue(untilt1.is_uniform)
         self.assertTrue(untilt2.is_uniform)
-        self.assertTrue(untilt1.rms_height() < untilt2.rms_height())
-        self.assertTrue(untilt1.rms_slope() > untilt2.rms_slope())
+        self.assertTrue(untilt1.rms_height_from_area() < untilt2.rms_height_from_area())
+        self.assertTrue(untilt1.rms_gradient() > untilt2.rms_gradient())
 
     def test_nonuniform(self):
         surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
@@ -675,7 +677,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         y = 1.8 * x + 1.2
         surf = NonuniformLineScan(x, y).detrend(detrend_mode='height')
         self.assertAlmostEqual(surf.mean(), 0.0)
-        self.assertAlmostEqual(surf.rms_slope(), 0.0)
+        self.assertAlmostEqual(surf.rms_slope_from_profile(), 0.0)
 
     def test_nonuniform_quadratic(self):
         x = np.linspace(0, 10, 11) ** 1.3
@@ -684,15 +686,15 @@ class DetrendedSurfaceTest(unittest.TestCase):
         c = 0.3
         y = a + b * x + c * x * x / 2
         surf = NonuniformLineScan(x, y)
-        self.assertAlmostEqual(surf.rms_curvature(), c)
+        self.assertAlmostEqual(surf.rms_curvature_from_profile(), c)
 
         surf = surf.detrend(detrend_mode='height')
         self.assertAlmostEqual(surf.mean(), 0.0)
 
         surf.detrend_mode = 'curvature'
         self.assertAlmostEqual(surf.mean(), 0.0)
-        self.assertAlmostEqual(surf.rms_slope(), 0.0)
-        self.assertAlmostEqual(surf.rms_curvature(), 0.0)
+        self.assertAlmostEqual(surf.rms_slope_from_profile(), 0.0)
+        self.assertAlmostEqual(surf.rms_curvature_from_profile(), 0.0)
 
     def test_noniform_mean_zero(self):
         surface = fourier_synthesis((512,), (1.3,), 0.8,
@@ -798,7 +800,7 @@ class diSurfaceTest(unittest.TestCase):
                 self.assertAlmostEqual(
                     sy * get_unit_conversion_factor(unit, 'nm'), s)
                 if rms is not None:
-                    self.assertAlmostEqual(surface.rms_height(), rms)
+                    self.assertAlmostEqual(surface.rms_height_from_area(), rms)
                     self.assertEqual(unit, 'nm')
                 self.assertTrue(surface.is_uniform)
 
@@ -1139,13 +1141,13 @@ def test_init_with_lists_calling_scale_and_detrend():
     st.detrend(detrend_mode='center')
 
 
-def test_power_spectrum_1D():
+def test_power_spectrum_from_profile():
     X = np.arange(3).reshape(1, 3)
     Y = np.arange(4).reshape(4, 1)
     h = X + Y
 
     t = Topography(h, (8, 6))
 
-    q1, C1 = t.power_spectrum_1D(window='hann')
+    q1, C1 = t.power_spectrum_from_profile(window='hann')
 
     # TODO add check for values

@@ -142,10 +142,9 @@ def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
         magnifications += [magnification]
         bandwidths += [subdivided_line_scans[0].physical_sizes[0]]
         rms_heights += [
-            np.mean([line.rms_height() for line in subdivided_line_scans])]
+            np.mean([line.rms_height_from_profile() for line in subdivided_line_scans])]
         magnification *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(
-        rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
 # Register analysis functions from this module
