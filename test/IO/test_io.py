@@ -131,13 +131,13 @@ class IOTest(unittest.TestCase):
             'example3.txt',
             'example4.txt',
             'example5.txt',
+            'example6.txt',
+            'example7.txt',
             'example8.txt',
             # example8: from the reader's docstring, with extra newline at end
             'line_scan_1_minimal_spaces.asc',
             'opdx1.txt',
             'opdx2.txt',
-            # Not yet working
-            # 'example6.txt',
         ]
 
         self.binary_example_file_list = self._convert_filelist(binary_examples)
@@ -314,6 +314,20 @@ class IOTest(unittest.TestCase):
 
                 if channel.physical_sizes is not None:
                     assert channel.physical_sizes == topography.physical_sizes
+
+    def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
+        file_list = self.text_example_file_list + self.binary_example_file_list
+
+        for fn in file_list:
+            r = open_topography(fn)
+            self.assertTrue(isinstance(r.default_channel.nb_grid_pts, tuple),
+                            msg=f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}')
+            if r.default_channel.physical_sizes is not None:
+                self.assertTrue(isinstance(r.default_channel.physical_sizes, tuple),
+                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
+                # If it is a tuple, it cannot contains None's
+                self.assertTrue(np.all([p is not None for p in r.default_channel.physical_sizes]),
+                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
 
 
 class UnknownFileFormatGivenTest(unittest.TestCase):

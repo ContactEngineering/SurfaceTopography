@@ -93,8 +93,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
                 self._file_position = fobj.tell()
             self._topography = reader_func(fobj)
             if CHANNEL_NAME_INFO_KEY in self._topography.info:
-                self._channel_name = self._topography.info[
-                    CHANNEL_NAME_INFO_KEY]
+                self._channel_name = self._topography.info[CHANNEL_NAME_INFO_KEY]
                 del self._topography.info[CHANNEL_NAME_INFO_KEY]
             else:
                 self._channel_name = "Default"
