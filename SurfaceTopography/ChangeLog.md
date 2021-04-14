@@ -5,6 +5,7 @@ Change log for SurfaceTopography
 v0.93.0 (not yet released)
 --------------------------
 
+- API: `save` is now called `to_matrix`
 - ENH: Reader for Keyence ZON files
 - ENH: Derivative can be computed for different scales
 - ENH: Scale-dependent slope and curvature

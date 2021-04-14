@@ -28,7 +28,8 @@
 import os
 
 # Old-style readers
-from .FromFile import AscReader, HGTReader, OPDReader, X3PReader, XYZReader
+from .FromFile import HGTReader, OPDReader, X3PReader
+from .Text import AscReader, XYZReader
 
 # New-style readers
 from .DI import DIReader
