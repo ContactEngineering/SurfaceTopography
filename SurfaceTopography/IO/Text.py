@@ -34,6 +34,7 @@ from ..UniformLineScanAndTopography import Topography, UniformLineScan
 
 ###
 
+
 @text
 def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
     """
@@ -182,8 +183,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     if xres is not None and xres != nx:
         raise Exception(
             "The number of rows (={}) open_topography from the file '{}' "
-            "does not match the nb_grid_pts in the file's metadata (={})."
-                .format(nx, fobj, xres))
+            "does not match the nb_grid_pts in the file's metadata (={}).".format(nx, fobj, xres))
     if yres is not None and yres != ny:
         raise Exception(
             "The number of columns (={}) open_topography from the file '{}' "

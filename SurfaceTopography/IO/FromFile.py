@@ -346,8 +346,7 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={},
     if dim * dim * 2 != fsize:
         raise RuntimeError(
             'File physical_sizes of {0} bytes does not match file '
-            'physical_sizes for a map of dimension {1}x{1}.'
-                .format(fsize, dim))
+            'physical_sizes for a map of dimension {1}x{1}.'.format(fsize, dim))
     data = np.fromfile(fobj, dtype=np.dtype('>i2'),
                        count=dim * dim).reshape((dim, dim))
 

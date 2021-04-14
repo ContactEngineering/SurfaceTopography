@@ -35,6 +35,7 @@ CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 ###
 
+
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
     Compute factor for conversion from unit1 to unit2. Return None if units are
