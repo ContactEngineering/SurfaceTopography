@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev56+gd386027 documentation</title>
+  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev57+gb3b13e8 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev56+gd386027
+                0.92.1.dev57+gb3b13e8
               </div>
             
           
@@ -277,6 +277,11 @@
             <span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># We need to check magic ourselves because netcdf_file closes the</span>
+            <span class="c1"># stream</span>
+            <span class="n">magic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">magic</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;CDF&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;File or stream is not a valid NetCDF 3 file&#39;</span><span class="p">)</span>
             <span class="c1"># We run serial I/O through scipy. This has several advantages:</span>
             <span class="c1"># 1) lightweight, 2) can handle streams</span>
             <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
