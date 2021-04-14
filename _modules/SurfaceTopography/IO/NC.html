@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev55+g40461f6 documentation</title>
+  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev56+gd386027 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev55+g40461f6
+                0.92.1.dev56+gd386027
               </div>
             
           
@@ -195,9 +195,16 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_height_unit</span><span class="p">,</span> <span class="n">no_uft8_height_unit</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+
+
+<span class="n">format_to_scipy_version</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;NETCDF3_CLASSIC&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
 
 
 <div class="viewcode-block" id="NCReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader">[docs]</a><span class="k">class</span> <span class="nc">NCReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
@@ -265,18 +272,20 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="n">communicator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
-        <span class="k">if</span> <span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">communicator</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">communicator</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># For parallel I/O we need netCDF4</span>
+            <span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="c1"># We run serial I/O through scipy. This has several advantages:</span>
+            <span class="c1"># 1) lightweight, 2) can handle streams</span>
+            <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">netcdf_file</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">communicator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span>
-            <span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span>
-            <span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;heights&#39;</span><span class="p">]</span>
 
         <span class="c1"># The following information may be missing from the NetCDF file</span>
@@ -291,7 +300,7 @@
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
                 <span class="k">pass</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length_unit</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length_unit</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
                 <span class="k">pass</span>
 
@@ -305,10 +314,22 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># netCDF4</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># scipy.io.netcdf_file</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># netCDF4</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># scipy.io.netcdf_file</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
                             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
                             <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span><span class="p">)),</span>
+                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span>
                             <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">,</span>
                             <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">,</span>
                             <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">)]</span>
@@ -325,12 +346,12 @@
         <span class="n">_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
+            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">physical_sizes</span><span class="p">,</span>
                               <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
                               <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                               <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
+            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">physical_sizes</span><span class="p">,</span>
                               <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
                               <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                               <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span>
@@ -360,13 +381,18 @@
 <span class="sd">    format : str</span>
 <span class="sd">        NetCDF file format. Default is &#39;NETCDF3_64BIT_OFFSET&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span>
+                      <span class="n">parallel</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">,</span>
+                      <span class="n">comm</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span> <span class="k">as</span> <span class="n">Dataset</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">format_to_scipy_version</span><span class="p">[</span><span class="nb">format</span><span class="p">])</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span> <span class="ow">and</span> \
             <span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span>
-                 <span class="n">parallel</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">,</span>
-                 <span class="n">comm</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
         <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
         <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
 
@@ -380,12 +406,14 @@
         <span class="n">x_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sx</span>
         <span class="n">x_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="n">x_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
+            <span class="n">x_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">no_uft8_height_unit</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
         <span class="n">x_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span>
         <span class="n">y_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sy</span>
         <span class="n">y_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="n">y_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
+            <span class="n">y_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">no_uft8_height_unit</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
         <span class="n">y_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span>
 
         <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
