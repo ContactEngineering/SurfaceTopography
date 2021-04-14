@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.92.1.dev49+g2e7d5fa documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.92.1.dev51+ga670918 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.92.1.dev49+g2e7d5fa
+                0.92.1.dev51+ga670918
               </div>
             
           
@@ -103,7 +103,6 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 </li>
@@ -122,7 +121,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 
@@ -230,12 +228,6 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.VariableBandwidth">SurfaceTopography.Nonuniform.VariableBandwidth module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.common">SurfaceTopography.Nonuniform.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Tools.html">SurfaceTopography.Tools package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Tools.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Tools.html#module-SurfaceTopography.Tools.common">SurfaceTopography.Tools.common module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Tools.html#module-SurfaceTopography.Tools">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a><ul>
@@ -421,72 +413,6 @@ this is not the case).</p>
 <div class="section" id="module-SurfaceTopography.Generation">
 <span id="surfacetopography-generation-module"></span><h2>SurfaceTopography.Generation module<a class="headerlink" href="#module-SurfaceTopography.Generation" title="Permalink to this headline">¶</a></h2>
 <p>Helper functions for the generation of random fractal surfaces</p>
-<dl class="py class">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generation.</span></code><code class="sig-name descname"><span class="pre">CapillaryWavesExact</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_density</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_tension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bending_stiffness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Frozen capillary waves</p>
-<dl class="py attribute">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.Error">
-<code class="sig-name descname"><span class="pre">Error</span></code><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.Error" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.abs_q">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">abs_q</span></code><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.abs_q" title="Permalink to this definition">¶</a></dt>
-<dd><p>radial distances in q-space</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.amplitude_distribution">
-<code class="sig-name descname"><span class="pre">amplitude_distribution</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact.amplitude_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.amplitude_distribution" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns a multiplicative factor to apply to the fourier coeffs before
-computing the inverse transform (trivial in this case, since there’s no
-stochastic distro in this case)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.generate_amplitudes">
-<code class="sig-name descname"><span class="pre">generate_amplitudes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact.generate_amplitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.generate_amplitudes" title="Permalink to this definition">¶</a></dt>
-<dd><p>compute an amplitude distribution</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.generate_phases">
-<code class="sig-name descname"><span class="pre">generate_phases</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact.generate_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.generate_phases" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates appropriate random phases (φ(-q) = -φ(q))</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.get_negative_frequency_iterator">
-<code class="sig-name descname"><span class="pre">get_negative_frequency_iterator</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact.get_negative_frequency_iterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.get_negative_frequency_iterator" title="Permalink to this definition">¶</a></dt>
-<dd><p>frequency complement</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="SurfaceTopography.Generation.CapillaryWavesExact.get_topography">
-<code class="sig-name descname"><span class="pre">get_topography</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#CapillaryWavesExact.get_topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.CapillaryWavesExact.get_topography" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes and returs a NumpySurface object with the specified
-properties. This follows appendices A and B of Persson et al. (2005)</p>
-<p>Persson et al., On the nature of surface roughness with application to
-contact mechanics, sealing, rubber friction and adhesion, J. Phys.:
-Condens. Matter 17 (2005) R1-R62, <a class="reference external" href="http://arxiv.org/abs/cond-mat/0502419">http://arxiv.org/abs/cond-mat/0502419</a></p>
-<p>Keyword Arguments:
-lambda_max – (default None) specifies a cutoff value for the longest</p>
-<blockquote>
-<div><p>wavelength. By default, this is the domain physical_sizes
-in the smallest dimension</p>
-</div></blockquote>
-<dl class="simple">
-<dt>lambda_min – (default None) specifies a cutoff value for the shortest</dt><dd><p>wavelength. by default this is determined by Shannon’s
-Theorem.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
 <dt id="SurfaceTopography.Generation.fourier_synthesis">
 <code class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generation.</span></code><code class="sig-name descname"><span class="pre">fourier_synthesis</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">nb_grid_pts</span></em>, <em class="sig-param"><span class="pre">physical_sizes</span></em>, <em class="sig-param"><span class="pre">hurst</span></em>, <em class="sig-param"><span class="pre">rms_height=None</span></em>, <em class="sig-param"><span class="pre">rms_slope=None</span></em>, <em class="sig-param"><span class="pre">c0=None</span></em>, <em class="sig-param"><span class="pre">short_cutoff=None</span></em>, <em class="sig-param"><span class="pre">long_cutoff=None</span></em>, <em class="sig-param"><span class="pre">rolloff=1.0</span></em>, <em class="sig-param"><span class="pre">amplitude_distribution=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">periodic=True</span></em>, <em class="sig-param"><span class="pre">rfn=None</span></em>, <em class="sig-param"><span class="pre">kfn=None</span></em>, <em class="sig-param"><span class="pre">progress_callback=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generation.html#fourier_synthesis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generation.fourier_synthesis" title="Permalink to this definition">¶</a></dt>

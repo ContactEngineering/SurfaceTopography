@@ -10,7 +10,6 @@ Subpackages
    SurfaceTopography.Generic
    SurfaceTopography.IO
    SurfaceTopography.Nonuniform
-   SurfaceTopography.Tools
    SurfaceTopography.Uniform
 
 Submodules
