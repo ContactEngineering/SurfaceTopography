@@ -78,7 +78,7 @@ variables:
         y:periodic = 1 ;
         y:unit = "um" ;
     double heights(x, y) ;
-    	heights:unit = "um" ;
+        heights:unit = "um" ;
 }
 ```
 The following code snippets reads the file and displays the topography data as
