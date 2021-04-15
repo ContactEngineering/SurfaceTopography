@@ -310,7 +310,8 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             del info['unit']
         except KeyError:
             pass
-        nc.json = json.dumps(info, ensure_ascii=True, cls=NumpyEncoder)
+        if info != {}:
+            nc.json = json.dumps(info, ensure_ascii=True, cls=NumpyEncoder)
 
         # Create dimensions and heights variable
         try:
@@ -385,7 +386,8 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
             del info['unit']
         except KeyError:
             pass
-        nc.json = json.dumps(info)
+        if info != {}:
+            nc.json = json.dumps(info)
 
         nx, = line_scan.nb_grid_pts
 
