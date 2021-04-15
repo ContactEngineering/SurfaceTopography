@@ -70,14 +70,15 @@ dimensions:
     y = 128 ;
 variables:
     double x(x) ;
-        x:length = 3LL ;
-        x:periodic = 1LL ;
-        x:length_unit = "μm" ;
+        x:length = 3 ;
+        x:periodic = 1 ;
+        x:unit = "um" ;
     double y(y) ;
-        y:length = 3LL ;
-        y:periodic = 1LL ;
-        y:length_unit = "μm" ;
+        y:length = 3 ;
+        y:periodic = 1 ;
+        y:unit = "um" ;
     double heights(x, y) ;
+    	heights:unit = "um" ;
 }
 ```
 The following code snippets reads the file and displays the topography data as
@@ -85,13 +86,13 @@ a two-dimensional color map in Python:
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from netCDF4 import Dataset
+from scipy.io.netcdf import netcdf_file
 
-with Dataset('parallel_save_test.nc') as nc:
-    heights = np.array(nc.variables['heights'])
+with netcdf_file('test_nc_file.nc') as nc:
+    heights = np.array(nc.variables['heights'][...])
     length_x = nc.variables['x'].length
     length_y = nc.variables['y'].length
-    unit = nc.variables['x'].length_unit
+    unit = nc.variables['x'].unit
 
 plt.figure()
 plt.subplot(aspect=1)
@@ -99,7 +100,7 @@ plt.subplot(aspect=1)
 nx, ny = heights.shape
 x = (np.arange(nx)+0.5)*length_x/nx
 y = (np.arange(ny)+0.5)*length_y/ny
-plt.pcolormesh(x, y, heights)
+plt.pcolormesh(x, y, heights.T)
 
 plt.show()
 ```
@@ -161,14 +162,15 @@ plt.show()
                 except AttributeError:
                     pass
 
+        # Determine if the topography is periodic
         try:
-            self._periodic = self._heights_var.periodic != 0
+            self._periodic = self._x_var.periodic != 0
         except AttributeError:
             pass
 
         # Determine unit of topography
         try:
-            self._info['unit'] = mangle_length_unit_utf8(self._x_var.length_unit)
+            self._info['unit'] = mangle_length_unit_utf8(self._x_var.unit)
         except AttributeError:
             pass
 
@@ -240,11 +242,11 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(self._heights_var[...], physical_sizes,
+                    return Topography(np.array(self._heights_var[...]), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       info=_info)
                 else:
-                    return UniformLineScan(self._heights_var[...], physical_sizes,
+                    return UniformLineScan(np.array(self._heights_var[...]), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            info=_info)
             else:
@@ -252,7 +254,7 @@ plt.show()
                     raise ValueError('You cannot specify physical sizes for a nonuniform topography.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(self._x_var[...], self._heights_var[...],
+                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]),
                                           periodic=self._periodic if periodic is None else periodic,
                                           info=_info)
         else:
@@ -262,7 +264,7 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(self._heights_var[...], physical_sizes,
+            return Topography(np.array(self._heights_var[...]), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
@@ -340,7 +342,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             x_var.periodic = 1 if topography.is_periodic else 0
             if 'unit' in topography.info:
                 # scipy.io.netcdf_file does not support UTF-8
-                x_var.length_unit = mangle_length_unit_ascii(topography.info['unit'])
+                x_var.unit = mangle_length_unit_ascii(topography.info['unit'])
             x_var[...] = (np.arange(nx) + 0.5) * sx / nx
 
             if topography.dim > 1:
@@ -350,7 +352,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                 y_var.periodic = 1 if topography.is_periodic else 0
                 if 'unit' in topography.info:
                     # scipy.io.netcdf_file does not support UTF-8
-                    y_var.length_unit = mangle_length_unit_ascii(topography.info['unit'])
+                    y_var.unit = mangle_length_unit_ascii(topography.info['unit'])
                 y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
         if topography.is_domain_decomposed:
@@ -358,6 +360,8 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             heights_var[topography.subdomain_slices] = topography.heights()
         else:
             heights_var[...] = topography.heights()
+        if 'unit' in topography.info:
+            heights_var.unit = mangle_length_unit_ascii(topography.info['unit'])
 
 
 def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
@@ -399,7 +403,7 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
         x_var[...] = line_scan.positions()
         if 'unit' in line_scan.info:
             # scipy.io.netcdf_file does not support UTF-8
-            x_var.length_unit = mangle_length_unit_ascii(line_scan.info['unit'])
+            x_var.unit = mangle_length_unit_ascii(line_scan.info['unit'])
         heights_var[...] = line_scan.heights()
 
 
