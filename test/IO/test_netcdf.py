@@ -26,8 +26,8 @@
 import os
 
 import numpy as np
+from scipy.io.netcdf import netcdf_file
 
-from netCDF4 import Dataset
 from NuMPI import MPI
 from muFFT import FFT
 
@@ -42,14 +42,14 @@ def test_save_and_load(comm):
 
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
-    t.info['unit'] = 'μm'
+    t.info['unit'] = 'µm'
 
     fft = FFT(nb_grid_pts, communicator=comm, fft="mpi")
     fft.create_plan(1)
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
                             communicator=comm)
-    assert t.info['unit'] == 'μm'
+    assert t.info['unit'] == 'µm'
     if comm.size > 1:
         assert dt.is_domain_decomposed
 
@@ -110,12 +110,11 @@ def test_load_no_physical_sizes(comm_self):
 
     # Topographies always have physical size information, we need to create a
     # NetCDF file without any manually
-    with Dataset('no_physical_sizes.nc', 'w',
-                 format='NETCDF3_CLASSIC') as nc:
+    with netcdf_file('no_physical_sizes.nc', 'w') as nc:
         nc.createDimension('x', nb_grid_pts[0])
         nc.createDimension('y', nb_grid_pts[1])
         nc.createVariable('heights', 'f8', ('x', 'y'))
-        nc.variables['heights'] = t.heights()
+        nc.variables['heights'][...] = t.heights()
 
     # Attempt to open full file on each process
     # with pytest.raises(ValueError):
