@@ -295,8 +295,7 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
     def __eq__(self, other):
         return super.__eq__(self, other) and np.allclose(self._heights, other._heights) and \
-               self._size == other._size and self._periodic == other._periodic and \
-               self._subdomain_locations == other._subdomain_locations and self._nb_grid_pts == other._nb_grid_pts
+               self._size == other._size and self._periodic == other._periodic
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, self._subdomain_locations, \
@@ -474,9 +473,6 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         super().__init__(topography, info=info)
         self._scale_factor = float(scale_factor)
 
-    def __eq__(self, other):
-        return super.__eq__(self, other) and self._scale_factor == other._scale_factor
-
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
@@ -595,10 +591,6 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 raise ValueError(
                     "Unsupported detrend mode '{}' for 2D topographies."
                     .format(self._detrend_mode))
-
-    def __eq__(self, other):
-        return super.__eq__(self, other) and self._detrend_mode == other._detrend_mode and \
-               self._coeffs == other._coeffs
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for

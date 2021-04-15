@@ -326,7 +326,6 @@ class IOTest(unittest.TestCase):
                 self.assertEqual(t, t2)
 
 
-
 class UnknownFileFormatGivenTest(unittest.TestCase):
 
     def test_read(self):
