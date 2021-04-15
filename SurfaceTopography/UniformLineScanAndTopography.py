@@ -89,6 +89,8 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
 
     @property
     def physical_sizes(self):
+        if self._size is None:
+            return None
         return self._size,
 
     @physical_sizes.setter
