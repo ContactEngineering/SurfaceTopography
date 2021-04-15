@@ -29,10 +29,8 @@ Power-spectral density for uniform topographies.
 """
 
 import numpy as np
-from scipy.signal import get_window
 
 from ..common import radial_average
-from ..FFTTricks import get_window_2D
 from ..HeightContainer import UniformTopographyInterface
 
 
@@ -68,23 +66,10 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         nx, = n
         sx, = s
 
-    h = topography.heights()
-
-    if not topography.is_periodic and window is None:
-        window = "hann"
-
-    # Construct and apply window
-    if window is not None and window != 'None':
-        win = get_window(window, nx)
-        # Normalize window
-        win *= np.sqrt(nx / (win ** 2).sum())
-        h = (win * h.T).T
-
-    # Pixel physical_sizes
-    len0 = sx / nx
+    h = topography.window(window).heights()
 
     # Compute FFT and normalize
-    fourier_topography = len0 * np.fft.fft(h, axis=0)
+    fourier_topography = sx/nx * np.fft.fft(h, axis=0)
     dq = 2 * np.pi / sx
     q = dq * np.arange(nx // 2)
 
@@ -103,7 +88,8 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
+def power_spectrum_2D(topography, nbins=None,  # pylint: disable=invalid-name
+                      bin_edges='log',
                       window=None, normalize_window=True,
                       return_map=False):
     """
@@ -114,9 +100,18 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int
-        Number of bins for radial average. Note: Returned array can be smaller
-        than this because bins without data point are discarded.
+    nbins : int, optional
+        Number of bins for radial average. Bins are automatically determined
+        if set to None. (Default: None) Note: Returned array can be smaller
+        than this because bins without data points are discarded.
+        (Default: None)
+    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
+        Edges used for binning the average. Specifying 'log' yields bins
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
@@ -135,30 +130,16 @@ def power_spectrum_2D(topography, nbins=100,  # pylint: disable=invalid-name
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
-    if not topography.is_periodic and window is None:
-        window = "hann"
-
-    # Construct and apply window
-    if window is not None:
-        win = get_window_2D(window, nx, ny, topography.physical_sizes)
-        # Normalize window
-        if normalize_window:
-            win *= np.sqrt(nx * ny / (win ** 2).sum())
-        topography = win * topography[:, :]
-
-    # Pixel physical_sizes
-    area0 = (sx / nx) * (sy / ny)
+    h = topography.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
-    surface_qk = area0 * np.fft.fft2(topography[:, :])
+    surface_qk = topography.area_per_pt * np.fft.fft2(h)
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
-
-    if nbins is None:
-        return C_qk
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, 2 * np.pi * nx / (2 * sx), nbins,
+        C_qk, rmax=2 * np.pi * nx / (2 * sx),
+        nbins=nbins, bin_edges=bin_edges,
         physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
     if return_map:

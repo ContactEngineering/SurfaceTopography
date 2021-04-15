@@ -1,6 +1,6 @@
 import os
 
-from SurfaceTopography.IO.FromFile import read_xyz
+from SurfaceTopography.IO.Text import read_xyz
 
 DATADIR = os.path.join(
     os.path.dirname(

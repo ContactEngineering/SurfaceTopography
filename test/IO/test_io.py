@@ -29,6 +29,7 @@ import datetime
 import io
 import os
 import pickle
+import tempfile
 import unittest
 import warnings
 
@@ -41,7 +42,9 @@ from NuMPI import MPI
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
 from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat
-from SurfaceTopography.IO.FromFile import read_xyz, is_binary_stream
+from SurfaceTopography.IO.common import is_binary_stream
+from SurfaceTopography.IO.Text import read_matrix, read_xyz
+from SurfaceTopography.UniformLineScanAndTopography import Topography
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -56,7 +59,7 @@ DATADIR = os.path.join(
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
     """
-    Tests for each reader class that he doesn't raise a Resourcewarning
+    Tests for each reader class that it doesn't raise a Resourcewarning
     """
     fn = os.path.join(DATADIR, "wrongnpyfile.npy")
     with warnings.catch_warnings(record=True) as w:
@@ -118,6 +121,7 @@ class IOTest(unittest.TestCase):
             'mi1.mi',
             'N46E013.hgt',
             'example-2d.npy',
+            'example.zon',
         ]
 
         text_examples = [
@@ -434,3 +438,18 @@ def test_detect_dormat():
     assert detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
     assert detect_format(os.path.join(DATADIR, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(DATADIR, 'surface.2048x2048.h5')) == 'h5'
+    assert detect_format(os.path.join(DATADIR, 'example.zon')) == 'zon'
+
+
+def test_to_matrix():
+    info = dict(unit='nm')
+    y = np.arange(10).reshape((1, -1))
+    x = np.arange(5).reshape((-1, 1))
+    arr = -2 * y + 0 * x
+    t = Topography(arr, (5, 10), info=info)
+    # Check that we can export downstream the pipeline
+    with tempfile.TemporaryDirectory() as d:
+        t.to_matrix(f"{d}/topo.txt")
+        t.detrend('center').to_matrix(f'{d}/topo.txt')
+        t2 = read_matrix(f'{d}/topo.txt')
+        np.testing.assert_allclose(t.detrend('center').heights(), t2.heights())

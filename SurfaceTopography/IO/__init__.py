@@ -28,7 +28,8 @@
 import os
 
 # Old-style readers
-from .FromFile import AscReader, HGTReader, OPDReader, X3PReader, XYZReader
+from .FromFile import HGTReader, OPDReader, X3PReader
+from .Text import AscReader, XYZReader
 
 # New-style readers
 from .DI import DIReader
@@ -39,6 +40,7 @@ from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .OPDx import OPDxReader
+from .ZON import ZONReader
 
 from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
@@ -58,6 +60,7 @@ readers = [
     # of HDF5
     H5Reader,
     NPYReader,
+    ZONReader,
     HGTReader,
 ]
 

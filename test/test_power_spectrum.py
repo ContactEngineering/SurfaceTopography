@@ -45,8 +45,8 @@ pytestmark = pytest.mark.skipif(
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
-
 ###
+
 
 def test_uniform():
     for periodic in [True, False]:
@@ -87,6 +87,7 @@ def test_invariance():
         _, C1 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         x = np.array([-a, 0, a])
@@ -94,6 +95,7 @@ def test_invariance():
         _, C2 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         x = np.array([-a, 0, a / 2, a])
@@ -101,6 +103,7 @@ def test_invariance():
         _, C3 = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         assert_array_almost_equal(C1, C2)
@@ -117,6 +120,7 @@ def test_rectangle():
         q, C = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         C_ana = (2 * b * np.sin(a * q) / q) ** 2
@@ -135,6 +139,7 @@ def test_triangle():
         _, C = NonuniformLineScan(x, h).power_spectrum_1D(
             wavevectors=q,
             algorithm='brute-force',
+            short_cutoff=None,
             window='None')
 
         C_ana = (2 * b * (a * q * np.cos(a * q) - np.sin(a * q)) / (
@@ -200,6 +205,25 @@ def test_brute_force_vs_fft():
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
 
 
+def test_short_cutoff():
+    t = read_topography(os.path.join(DATADIR, 'example.asc'))
+    q1, C1 = t.detrend().power_spectrum_1D()
+    q2, C2 = t.detrend().power_spectrum_1D(short_cutoff=np.min)
+    q3, C3 = t.detrend().power_spectrum_1D(short_cutoff=np.max)
+
+    assert len(q3) < len(q1)
+    assert len(q1) < len(q2)
+
+    assert np.max(q3) < np.max(q1)
+    assert np.max(q1) < np.max(q2)
+
+    x, y = t.positions_and_heights()
+
+    assert_almost_equal(np.max(q1), 2 * np.pi / np.mean(np.diff(x)))
+    assert abs(np.max(q2) - 2 * np.pi / np.min(np.diff(x))) < 0.03
+    assert abs(np.max(q3) - 2 * np.pi / np.max(np.diff(x))) < 0.02
+
+
 @pytest.mark.skip(reason="just plotting")
 def test_default_window_1D():
     x = np.linspace(0, 1, 200)
@@ -257,3 +281,23 @@ def test_default_window_2D():
         # ax.set_ylim(bottom=1e-6)
         ax.legend()
         plt.show(block=True)
+
+
+def test_q0_1D():
+    surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
+    rms_height = surf.rms_height(kind='Rq')  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_1D()
+    ratio = rms_height**2 / (np.trapz(C, q)/np.pi)
+    assert ratio > 0.2
+    assert ratio < 5
+
+
+def test_q0_2D():
+    surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
+    rms_height = surf.rms_height()  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_2D(nbins=200, bin_edges='quadratic')
+    # This is really not quantitative, it's just checking whether it's the right ballpark.
+    # Any bug in normalization would show up here as an order of magnitude
+    ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
+    assert ratio > 0.2
+    assert ratio < 5

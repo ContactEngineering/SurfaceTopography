@@ -26,9 +26,16 @@
 import numpy as np
 
 from .. import Topography
+from .common import mangle_height_unit, no_uft8_height_unit
 from ..HeightContainer import UniformTopographyInterface
 
 from .Reader import ReaderBase, ChannelInfo
+
+
+format_to_scipy_version = {
+    'NETCDF3_CLASSIC': 1,
+    'NETCDF3_64BIT_OFFSET': 2
+}
 
 
 class NCReader(ReaderBase):
@@ -96,18 +103,26 @@ plt.show()
 
     def __init__(self, fobj, communicator=None):
         self._nc = None
-        from netCDF4 import Dataset
-        if communicator is not None and communicator.Get_size() > 1:
+        if communicator is not None and communicator.size > 1:
+            # For parallel I/O we need netCDF4
+            from netCDF4 import Dataset
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
         else:
-            self._nc = Dataset(fobj, 'r')
+            # We need to check magic ourselves if this is a stream because
+            # netcdf_file closes the stream
+            if hasattr('seek', fobj):
+                magic = fobj.read(3)
+                if not magic == b'CDF':
+                    raise TypeError('File or stream is not a valid NetCDF 3 file')
+            # We run serial I/O through scipy. This has several advantages:
+            # 1) lightweight, 2) can handle streams
+            from scipy.io.netcdf import netcdf_file
+            self._nc = netcdf_file(fobj, 'r')
         self._communicator = communicator
         self._x_dim = self._nc.dimensions['x']
         self._y_dim = self._nc.dimensions['y']
-        self._x_var = self._nc.variables[
-            'x'] if 'x' in self._nc.variables else None
-        self._y_var = self._nc.variables[
-            'y'] if 'y' in self._nc.variables else None
+        self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
+        self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
 
         # The following information may be missing from the NetCDF file
@@ -122,7 +137,7 @@ plt.show()
             except AttributeError:
                 pass
             try:
-                self._info['unit'] = self._x_var.length_unit
+                self._info['unit'] = mangle_height_unit(self._x_var.length_unit)
             except AttributeError:
                 pass
 
@@ -136,10 +151,22 @@ plt.show()
 
     @property
     def channels(self):
+        try:
+            # netCDF4
+            nx = self._x_dim.size
+        except AttributeError:
+            # scipy.io.netcdf_file
+            nx = self._x_dim
+        try:
+            # netCDF4
+            ny = self._y_dim.size
+        except AttributeError:
+            # scipy.io.netcdf_file
+            ny = self._y_dim
         return [ChannelInfo(self, 0,
                             name='Default',
                             dim=2,
-                            nb_grid_pts=(len(self._x_dim), len(self._y_dim)),
+                            nb_grid_pts=(nx, ny),
                             physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
                             info=self._info)]
@@ -156,12 +183,12 @@ plt.show()
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
-            return Topography(self._heights_var, physical_sizes,
+            return Topography(self._heights_var[...], physical_sizes,
                               periodic=self._periodic
                               if periodic is None else periodic,
                               info=_info)
         else:
-            return Topography(self._heights_var, physical_sizes,
+            return Topography(self._heights_var[...], physical_sizes,
                               periodic=self._periodic
                               if periodic is None else periodic,
                               decomposition='domain',
@@ -191,13 +218,18 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
     format : str
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
-    from netCDF4 import Dataset
+    if topography.communicator is not None and topography.communicator.size > 1:
+        from netCDF4 import Dataset
+        kwargs = dict(format=format,
+                      parallel=topography.is_domain_decomposed,
+                      comm=topography.communicator)
+    else:
+        from scipy.io.netcdf import netcdf_file as Dataset
+        kwargs = dict(version=format_to_scipy_version[format])
     if not topography.is_domain_decomposed and \
             topography.communicator.rank > 1:
         return
-    with Dataset(filename, 'w', format=format,
-                 parallel=topography.is_domain_decomposed,
-                 comm=topography.communicator) as nc:
+    with Dataset(filename, 'w', **kwargs) as nc:
         nx, ny = topography.nb_grid_pts
         sx, sy = topography.physical_sizes
 
@@ -211,12 +243,14 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
         x_var.length = sx
         x_var.periodic = 1 if topography.is_periodic else 0
         if 'unit' in topography.info:
-            x_var.length_unit = topography.info['unit']
+            # scipy.io.netcdf_file does not support UTF-8
+            x_var.length_unit = no_uft8_height_unit(topography.info['unit'])
         x_var[...] = (np.arange(nx) + 0.5) * sx / nx
         y_var.length = sy
         y_var.periodic = 1 if topography.is_periodic else 0
         if 'unit' in topography.info:
-            y_var.length_unit = topography.info['unit']
+            # scipy.io.netcdf_file does not support UTF-8
+            y_var.length_unit = no_uft8_height_unit(topography.info['unit'])
         y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
         if topography.is_domain_decomposed:

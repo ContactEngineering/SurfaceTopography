@@ -11,7 +11,7 @@ curl -k https://parallel-netcdf.github.io/Release/pnetcdf-${PNETCDF_VERSION}.tar
   make install &&
   cd -
 
-curl -k https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
+curl -k https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.12/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz | tar -xzC ${BUILDDIR} &&
   cd ${BUILDDIR}/hdf5-${HDF5_VERSION} &&
   CC=mpicc CXX=mpicxx ./configure --enable-parallel --prefix=${PREFIX} &&
   make &&

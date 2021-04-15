@@ -23,10 +23,120 @@
 # SOFTWARE.
 #
 
-from SurfaceTopography.UniformLineScanAndTopography import \
-    DecoratedUniformTopography
-from SurfaceTopography.HeightContainer import UniformTopographyInterface
 import numpy as np
+from scipy.signal import get_window
+
+from ..FFTTricks import get_window_2D
+from ..HeightContainer import UniformTopographyInterface
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
+
+
+class WindowedUniformTopography(DecoratedUniformTopography):
+    """
+    Construct a topography with a window function applied to it.
+    """
+
+    name = 'windowed_topography'
+
+    def __init__(self, topography, window=None, direction=None, info={}):
+        """
+        window : str, optional
+            Window for eliminating edge effect. See scipy.signal.get_window.
+            (Default: no window for periodic Topographies, "hann" window for
+            nonperiodic Topographies)
+        direction : str, optional
+            Direction in which the window is applied. Possible options are
+            'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+            scans and 'radial' for topographies. (Default: None)
+        """
+        super().__init__(topography, info=info)
+
+        self._window_name = window
+        self._direction = direction
+
+        self._window_data = None
+
+    def _make_window(self):
+        self._window_data = None
+
+        n = self.parent_topography.nb_grid_pts
+
+        try:
+            nx, ny = n
+        except ValueError:
+            nx, = n
+
+        window_name = self._window_name
+        if not self.parent_topography.is_periodic and window_name is None:
+            window_name = "hann"
+
+        direction = self._direction
+        if direction is None:
+            direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+
+        # Construct window
+        if window_name is not None and window_name != 'None':
+            if direction == 'x':
+                # Get window from scipy.signal
+                win = get_window(window_name, nx)
+                # Normalize window
+                win *= np.sqrt(nx / (win ** 2).sum())
+            elif direction == 'y':
+                if self.parent_topography.dim == 1:
+                    raise ValueError("Direction 'y' does not make sense for line scans.")
+                # Get window from scipy.signal
+                win = get_window(window_name, ny)
+                # Normalize window
+                win *= np.sqrt(ny / (win ** 2).sum())
+            elif direction == 'radial':
+                if self.parent_topography.dim == 1:
+                    raise ValueError("Direction 'radial' does not make sense for line scans.")
+                win = get_window_2D(window_name, nx, ny,
+                                    self.parent_topography.physical_sizes)
+                # Normalize window
+                win *= np.sqrt(nx * ny / (win ** 2).sum())
+            else:
+                raise ValueError(f"Unknown direction '{self._direction}'.")
+
+            self._window_data = win
+
+    def __getstate__(self):
+        """ is called and the returned object is pickled as the contents for
+            the instance
+        """
+        state = super().__getstate__(), \
+            self._window_name, self._direction
+        return state
+
+    def __setstate__(self, state):
+        """ Upon unpickling, it is called with the unpickled state
+        Keyword Arguments:
+        state -- result of __getstate__
+        """
+        superstate, self._window_name, self._direction = state
+        super().__setstate__(superstate)
+
+    @property
+    def window_data(self):
+        if self._window_data is None:
+            self._make_window()
+        return self._window_data
+
+    def heights(self):
+        """ Computes the windowed topography.
+        """
+        if self.window_data is None:
+            return self.parent_topography.heights()
+        else:
+            direction = self._direction
+            if direction is None:
+                direction = 'x' if self.parent_topography.dim == 1 else 'radial'
+            if direction == 'x':
+                return (self.window_data * self.parent_topography.heights().T).T
+            elif direction == 'y' or direction == 'radial':
+                return self.window_data * self.parent_topography.heights()
+            else:
+                raise ValueError(f"Unknown direction '{self._direction}'.")
 
 
 class FilteredUniformTopography(DecoratedUniformTopography):
@@ -315,6 +425,8 @@ class LongCutTopography(FilteredUniformTopography):
         super().__setstate__(superstate)
 
 
+UniformTopographyInterface.register_function("window",
+                                             WindowedUniformTopography)
 UniformTopographyInterface.register_function("filter",
                                              FilteredUniformTopography)
 UniformTopographyInterface.register_function("shortcut", ShortCutTopography)

@@ -25,11 +25,11 @@
 #
 
 import numpy as np
-from io import TextIOBase
 
 from igor.binarywave import load as loadibw
 
 from .. import Topography
+from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
 
@@ -46,29 +46,8 @@ on the physical size of the topography map as well as its units.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
-
-        # depending from where this function is called, file_path might already
-        # be a filestream
-        already_open = False
-        if not hasattr(file_path, 'read'):
-            f = open(file_path, "rb")
-        else:
-            already_open = True
-            if isinstance(file_path, TextIOBase):
-                # file was opened without the 'b' option, so read its buffer to
-                # get the binary data
-                f = file_path.buffer
-            else:
-                f = file_path
-
-        # This catches and closes on its own
-        try:
+        with OpenFromAny(file_path, 'rb') as f:
             file = loadibw(f)
-        except Exception:
-            if not f.closed:
-                if not already_open:
-                    f.close()
-            raise RuntimeError('Invalid file format.')
 
         if file['version'] != 5:
             raise RuntimeError('Only IBW version 5 supported!')

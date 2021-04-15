@@ -166,7 +166,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
 
     @property
     def pixel_size(self):
-        return (s / r for s, r in zip(self.physical_sizes, self.nb_grid_pts))
+        return tuple(s / r for s, r in zip(self.physical_sizes, self.nb_grid_pts))
 
     @property
     def area_per_pt(self):

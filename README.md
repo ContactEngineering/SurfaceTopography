@@ -14,12 +14,12 @@ Build status
 
 The following badge should say _build passing_. This means that all automated tests completed successfully for the master branch.
 
-[![Build Status](https://travis-ci.org/ComputationalMechanics/SurfaceTopography.svg?branch=master)](https://travis-ci.org/github/ComputationalMechanics/SurfaceTopography)
+[![Build Status](https://travis-ci.org/ContactEngineering/SurfaceTopography.svg?branch=master)](https://travis-ci.org/github/ContactEngineering/SurfaceTopography)
 
 Documentation
 -------------
 
-This README file contains a brief introduction into the code. The full documentation can be found at https://computationalmechanics.github.io/SurfaceTopography/.
+This README file contains a brief introduction into the code. The full documentation can be found at https://contactengineering.github.io/SurfaceTopography/.
 
 Funding
 -------

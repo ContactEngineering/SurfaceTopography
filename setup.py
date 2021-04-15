@@ -141,5 +141,6 @@ setup(
         'netCDF4>=1.5.0',
         'igor',
         'h5py',
+        'defusedxml'
     ]
 )
