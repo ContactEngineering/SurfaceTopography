@@ -173,7 +173,7 @@ def test_wrapped_bicubic_vs_fourier(sx, sy):
     np.random.seed(0)
     topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
                                    short_cutoff=hc, long_cutoff=hc + 1e-9, )
-    topography = topography.scale(1 / topography.rms_height())
+    topography = topography.scale(1 / topography.rms_height_from_area())
     interp = topography.interpolate_bicubic()
 
     fine_topography = topography.interpolate_fourier((4 * nx, 4 * ny))
@@ -183,7 +183,7 @@ def test_wrapped_bicubic_vs_fourier(sx, sy):
     np.testing.assert_allclose(interp_height, fine_topography.heights(),
                                atol=1e-2)
     derx, dery = fine_topography.fourier_derivative()
-    rms_slope = topography.rms_slope()
+    rms_slope = topography.rms_gradient()
     np.testing.assert_allclose(interp_slopex, derx, atol=1e-1 * rms_slope)
     np.testing.assert_allclose(interp_slopey, dery, atol=1e-1 * rms_slope)
 

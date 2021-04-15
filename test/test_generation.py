@@ -47,11 +47,11 @@ def test_fourier_synthesis(n):
                                    long_cutoff=s / 4,
                                    short_cutoff=4 * s / n)
 
-    qx, psdx = topography.power_spectrum_1D()
-    qy, psdy = topography.transpose().power_spectrum_1D()
+    qx, psdx = topography.power_spectrum_from_profile()
+    qy, psdy = topography.transpose().power_spectrum_from_profile()
 
     assert psdy[-1] < 10 * psdx[-1]  # assert psdy is not much bigger
-    assert abs(topography.rms_slope() - rms_slope) / rms_slope < 1e-1
+    assert abs(topography.rms_gradient() - rms_slope) / rms_slope < 1e-1
 
 
 def test_fourier_synthesis_rms_height_more_wavevectors(comm_self):
@@ -78,7 +78,7 @@ def test_fourier_synthesis_rms_height_more_wavevectors(comm_self):
             # amplitude_distribution=lambda n: np.ones(n)
         )
 
-        realised_rms_heights.append(topography.rms_height())
+        realised_rms_heights.append(topography.rms_height_from_area())
     # print(abs(np.mean(realised_rms_heights) - rms_height) / rms_height)
     # TODO: this is not very accurate !
     assert abs(np.mean(
@@ -101,7 +101,7 @@ def test_fourier_synthesis_rms_height():
             short_cutoff=4 * s / n,
             # amplitude_distribution=lambda n: np.ones(n)
         )
-        realised_rms_heights.append(topography.rms_height())
+        realised_rms_heights.append(topography.rms_height_from_area())
     # TODO: this is not very accurate !
     assert abs(np.mean(
         realised_rms_heights) - rms_height) / rms_height < 0.5
@@ -124,11 +124,11 @@ def test_fourier_synthesis_c0():
                                    amplitude_distribution=lambda n: np.ones(n)
                                    )
     ref_slope = np.sqrt(1 / (4 * np.pi) * c0 / (1 - H) * qs ** (2 - 2 * H))
-    assert abs(topography.rms_slope() - ref_slope) / ref_slope < 1e-1
+    assert abs(topography.rms_gradient() - ref_slope) / ref_slope < 1e-1
 
     if False:
         import matplotlib.pyplot as plt
-        q, psd = topography.power_spectrum_2D()
+        q, psd = topography.power_spectrum_from_area()
 
         fig, ax = plt.subplots()
         ax.loglog(q, psd, label="generated data")
@@ -140,7 +140,7 @@ def test_fourier_synthesis_c0():
         ax.set_ylim(bottom=1)
         plt.show(block=True)
 
-        q, psd = topography.power_spectrum_1D()
+        q, psd = topography.power_spectrum_from_profile()
         fig, ax = plt.subplots()
         ax.loglog(q, psd, label="generated data")
         ax.loglog(q, c0 / np.pi * q ** (-1 - 2 * H), "--",
@@ -191,7 +191,7 @@ def test_fourier_synthesis_linescan_c0(n):
 
     if False:
         import matplotlib.pyplot as plt
-        q, psd = t.power_spectrum_1D()
+        q, psd = t.power_spectrum_from_profile()
 
         fig, ax = plt.subplots()
         ax.plot(q, psd)
@@ -204,7 +204,7 @@ def test_fourier_synthesis_linescan_c0(n):
         fig.show()
 
     ref_slope = np.sqrt(1 / (2 * np.pi) * c0 / (1 - H) * qs ** (2 - 2 * H))
-    assert abs(t.rms_slope() - ref_slope) / ref_slope < 1e-1
+    assert abs(t.rms_slope_from_profile() - ref_slope) / ref_slope < 1e-1
 
 
 def test_fourier_synthesis_linescan_hprms():
@@ -223,7 +223,7 @@ def test_fourier_synthesis_linescan_hprms():
                               long_cutoff=s / 2,
                               short_cutoff=ls,
                               )
-        realised_rms_slopes.append(t.rms_slope())
+        realised_rms_slopes.append(t.rms_slope_from_profile())
     ref_slope = hprms
     assert abs(np.mean(realised_rms_slopes) - ref_slope) / ref_slope < 1e-1
 
@@ -250,7 +250,7 @@ def test_fourier_synthesis_linescan_hrms_more_wavevectors():
                               long_cutoff=s / 8,
                               short_cutoff=ls,
                               )
-        realised_rms_heights.append(t.rms_height())
+        realised_rms_heights.append(t.rms_height_from_profile())
     realised_rms_heights = np.array(realised_rms_heights)
     ref_height = hrms
     # print(np.sqrt(np.mean(

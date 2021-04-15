@@ -44,7 +44,7 @@ static PyMethodDef PyCo_methods[] = {
   {"correlation_function", correlation_function, METH_VARARGS},
   {"closest_patch_map", closest_patch_map, METH_VARARGS},
   {"distance_map", distance_map, METH_VARARGS},
-  {"nonuniform_autocorrelation_1D", nonuniform_autocorrelation_1D, METH_VARARGS},
+  {"nonuniform_autocorrelation", nonuniform_autocorrelation, METH_VARARGS},
   {"perimeter_length", perimeter_length, METH_VARARGS},
   {"shortest_distance", shortest_distance, METH_VARARGS},
   {NULL, NULL, 0, NULL}     /* Sentinel - marks the end of this structure */

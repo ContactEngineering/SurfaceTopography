@@ -37,7 +37,7 @@ SOFTWARE.
 extern "C" {
 #endif
 
-PyObject *nonuniform_autocorrelation_1D(PyObject *self, PyObject *args);
+PyObject *nonuniform_autocorrelation(PyObject *self, PyObject *args);
 
 #ifdef __cplusplus
 }

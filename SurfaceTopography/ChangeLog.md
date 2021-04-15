@@ -5,6 +5,8 @@ Change log for SurfaceTopography
 v0.93.0 (not yet released)
 --------------------------
 
+- API: Replace `_1D` suffix with `_from_profile` and `_2D` suffix with
+  `_from_area`
 - API: `save` is now called `to_matrix`
 - ENH: Reader for Keyence ZON files
 - ENH: Derivative can be computed for different scales

@@ -61,7 +61,7 @@ def scale_dependent_slope_1D(topography, **kwargs):
     slope : array
         Slope. (Units: dimensionless)
     """  # noqa: E501
-    r, A = topography.autocorrelation_1D(**kwargs)
+    r, A = topography.autocorrelation_from_profile(**kwargs)
     return r[1:], np.sqrt(2 * A[1:]) / r[1:]
 
 
@@ -94,7 +94,7 @@ def scale_dependent_slope_2D(topography, **kwargs):
     slope : array
         Slope. (Units: dimensionless)
     """  # noqa: E501
-    r, A = topography.autocorrelation_2D(**kwargs)
+    r, A = topography.autocorrelation_from_area(**kwargs)
     return r[1:], np.sqrt(2 * A[1:]) / r[1:]
 
 

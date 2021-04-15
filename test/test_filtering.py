@@ -39,7 +39,7 @@ def test_longcut():
     t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
 
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
-    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_2D()
+    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_from_area()
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
     # the cut is not clean because of the binning in the 2D PSD (Ciso)
 
@@ -49,7 +49,7 @@ def test_longcut():
         fig, ax = plt.subplots()
 
         ax.loglog(q, psd)
-        ax.loglog(*t.power_spectrum_2D())
+        ax.loglog(*t.power_spectrum_from_area())
         ax.axvline(cutoff_wavevector)
         fig.show()
 
@@ -61,7 +61,7 @@ def test_shortcut():
 
     cutoff_wavevector = 2 * np.pi / 13 * 0.4 * n
     q, psd = t.shortcut(cutoff_wavevector=cutoff_wavevector
-                        ).power_spectrum_2D()
+                        ).power_spectrum_from_area()
     assert (psd[q > 1.5 * cutoff_wavevector] < 1e-10).all()
 
     if False:
@@ -69,7 +69,7 @@ def test_shortcut():
 
         fig, ax = plt.subplots()
         ax.loglog(q, psd, label="filtered")
-        ax.loglog(*t.power_spectrum_2D(), label="original")
+        ax.loglog(*t.power_spectrum_from_area(), label="original")
         ax.legend()
         fig.show()
 
@@ -91,10 +91,10 @@ def test_shortcut_vs_isotropic_filter():
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots()
-        ax.loglog(*hc.power_spectrum_2D(), "+", label="shortcut")
-        ax.loglog(*fhc.power_spectrum_2D(), "x", label="filter")
+        ax.loglog(*hc.power_spectrum_from_area(), "+", label="shortcut")
+        ax.loglog(*fhc.power_spectrum_from_area(), "x", label="filter")
 
-        ax.loglog(*t.power_spectrum_2D(), label="original")
+        ax.loglog(*t.power_spectrum_from_area(), label="original")
         ax.legend()
         fig.show()
 
@@ -122,10 +122,10 @@ def test_shortcut_vs_square_filter():
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots()
-        ax.loglog(*hc.power_spectrum_2D(), "+", label="shortcut")
-        ax.loglog(*fhc.power_spectrum_2D(), "x", label="filter")
+        ax.loglog(*hc.power_spectrum_from_area(), "+", label="shortcut")
+        ax.loglog(*fhc.power_spectrum_from_area(), "x", label="filter")
 
-        ax.loglog(*t.power_spectrum_2D(), label="original")
+        ax.loglog(*t.power_spectrum_from_area(), label="original")
         ax.legend()
         fig.show()
 
@@ -139,7 +139,7 @@ def test_isotropic_1d():
 
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
     q, psd = t.filter(
-        filter_function=lambda q: q > cutoff_wavevector).power_spectrum_1D()
+        filter_function=lambda q: q > cutoff_wavevector).power_spectrum_from_profile()
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
 
 
