@@ -110,7 +110,7 @@ plt.show()
         else:
             # We need to check magic ourselves because netcdf_file closes the
             # stream
-            magic = self.fp.read(3)
+            magic = fobj.read(3)
             if not magic == b'CDF':
                 raise TypeError('File or stream is not a valid NetCDF 3 file')
             # We run serial I/O through scipy. This has several advantages:
