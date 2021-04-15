@@ -56,7 +56,7 @@ def test_uniform():
                     x = np.arange(n) * L / n
                     h = np.sin(2 * np.pi * k * x / L)
                     t = UniformLineScan(h, physical_sizes=L, periodic=periodic)
-                    q, C = t.power_spectrum_1D()
+                    q, C = t.power_spectrum_from_profile()
 
                     # The ms height of the sine is 1/2. The sum over the PSD
                     # (from -q to +q) is the ms height. Our PSD only contains
@@ -84,7 +84,7 @@ def test_invariance():
 
         x = np.array([-a, a])
         h = np.array([b, c])
-        _, C1 = NonuniformLineScan(x, h).power_spectrum_1D(
+        _, C1 = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
@@ -92,7 +92,7 @@ def test_invariance():
 
         x = np.array([-a, 0, a])
         h = np.array([b, (b + c) / 2, c])
-        _, C2 = NonuniformLineScan(x, h).power_spectrum_1D(
+        _, C2 = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
@@ -100,7 +100,7 @@ def test_invariance():
 
         x = np.array([-a, 0, a / 2, a])
         h = np.array([b, (b + c) / 2, (3 * c + b) / 4, c])
-        _, C3 = NonuniformLineScan(x, h).power_spectrum_1D(
+        _, C3 = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
@@ -117,7 +117,7 @@ def test_rectangle():
 
         q = np.linspace(0.01, 8 * np.pi / a, 101)
 
-        q, C = NonuniformLineScan(x, h).power_spectrum_1D(
+        q, C = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
@@ -136,7 +136,7 @@ def test_triangle():
 
         q = np.linspace(0.01, 8 * np.pi / a, 101)
 
-        _, C = NonuniformLineScan(x, h).power_spectrum_1D(
+        _, C = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
@@ -158,7 +158,7 @@ def test_rectangle_and_triangle():
 
         q = np.linspace(0.01, 8 * np.pi / (b - a), 101)
 
-        q, C = NonuniformLineScan(x, h).power_spectrum_1D(
+        q, C = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
             window='None')
@@ -190,16 +190,16 @@ def test_dsinc():
 
 def test_NaNs():
     surf = fourier_synthesis([1024, 512], [2, 1], 0.8, rms_slope=0.1)
-    q, C = surf.power_spectrum_2D(nbins=1000)
+    q, C = surf.power_spectrum_from_area(nbins=1000)
     assert np.isnan(C).sum() == 0
 
 
 def test_brute_force_vs_fft():
     t = read_topography(os.path.join(DATADIR, 'example.asc'))
-    q, A = t.detrend().power_spectrum_1D(window="None")
-    q2, A2 = t.detrend().power_spectrum_1D(algorithm='brute-force',
-                                           wavevectors=q, ninterpolate=5,
-                                           window="None")
+    q, A = t.detrend().power_spectrum_from_profile(window="None")
+    q2, A2 = t.detrend().power_spectrum_from_profile(algorithm='brute-force',
+                                                     wavevectors=q, ninterpolate=5,
+                                                     window="None")
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
@@ -207,9 +207,9 @@ def test_brute_force_vs_fft():
 
 def test_short_cutoff():
     t = read_topography(os.path.join(DATADIR, 'example.asc'))
-    q1, C1 = t.detrend().power_spectrum_1D()
-    q2, C2 = t.detrend().power_spectrum_1D(short_cutoff=np.min)
-    q3, C3 = t.detrend().power_spectrum_1D(short_cutoff=np.max)
+    q1, C1 = t.detrend().power_spectrum_from_profile()
+    q2, C2 = t.detrend().power_spectrum_from_profile(short_cutoff=np.min)
+    q3, C3 = t.detrend().power_spectrum_from_profile(short_cutoff=np.max)
 
     assert len(q3) < len(q1)
     assert len(q1) < len(q2)
@@ -234,7 +234,7 @@ def test_default_window_1D():
     if True:
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
-        ax.plot(*topography.power_spectrum_1D(), label="periodic=True")
+        ax.plot(*topography.power_spectrum_from_profile(), label="periodic=True")
         ax.set_xscale("log")
         ax.set_yscale("log")
 
@@ -243,7 +243,7 @@ def test_default_window_1D():
 
     if True:
         import matplotlib.pyplot as plt
-        ax.plot(*topography.power_spectrum_1D(), label="periodic=False")
+        ax.plot(*topography.power_spectrum_from_profile(), label="periodic=False")
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_ylim(bottom=1e-6)
@@ -262,8 +262,8 @@ def test_default_window_2D():
     if True:
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
-        ax.plot(*topography.power_spectrum_1D(), label="periodic=True")
-        ax.plot(*topography.power_spectrum_2D(nbins=20),
+        ax.plot(*topography.power_spectrum_from_profile(), label="periodic=True")
+        ax.plot(*topography.power_spectrum_from_area(nbins=20),
                 label="2D, periodic=True")
         ax.set_xscale("log")
         ax.set_yscale("log")
@@ -273,8 +273,8 @@ def test_default_window_2D():
 
     if True:
         import matplotlib.pyplot as plt
-        ax.plot(*topography.power_spectrum_1D(), label="periodic=False")
-        ax.plot(*topography.power_spectrum_2D(nbins=20),
+        ax.plot(*topography.power_spectrum_from_profile(), label="periodic=False")
+        ax.plot(*topography.power_spectrum_from_area(nbins=20),
                 label="2D, periodic=False")
         ax.set_xscale("log")
         ax.set_yscale("log")
@@ -285,8 +285,8 @@ def test_default_window_2D():
 
 def test_q0_1D():
     surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
-    rms_height = surf.rms_height(kind='Rq')  # Need to measure it since it can fluctuate wildly
-    q, C = surf.power_spectrum_1D()
+    rms_height = surf.rms_height_from_profile()  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_from_profile()
     ratio = rms_height**2 / (np.trapz(C, q)/np.pi)
     assert ratio > 0.2
     assert ratio < 5
@@ -294,8 +294,8 @@ def test_q0_1D():
 
 def test_q0_2D():
     surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
-    rms_height = surf.rms_height()  # Need to measure it since it can fluctuate wildly
-    q, C = surf.power_spectrum_2D(nbins=200, bin_edges='quadratic')
+    rms_height = surf.rms_height_from_area()  # Need to measure it since it can fluctuate wildly
+    q, C = surf.power_spectrum_from_area(nbins=200, bin_edges='quadratic')
     # This is really not quantitative, it's just checking whether it's the right ballpark.
     # Any bug in normalization would show up here as an order of magnitude
     ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
