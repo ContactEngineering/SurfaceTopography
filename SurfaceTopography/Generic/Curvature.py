@@ -61,7 +61,7 @@ def scale_dependent_curvature_1D(topography, **kwargs):
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501
-    r, A = topography.autocorrelation_1D(**kwargs)
+    r, A = topography.autocorrelation_from_profile(**kwargs)
     n = (len(r) + 1) // 2
     r = r[1:n]
     B = 8 * A[1:n] - 2 * A[2::2]
@@ -103,7 +103,7 @@ def scale_dependent_curvature_2D(topography, nbins=None):
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501
-    r, A = topography.autocorrelation_2D(nbins=nbins, bin_edges='linear')
+    r, A = topography.autocorrelation_from_area(nbins=nbins, bin_edges='linear')
     n = (len(r) + 1) // 2
     r = r[1:n]
     B = 8 * A[1:n] - 2 * A[2::2]

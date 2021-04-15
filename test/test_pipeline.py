@@ -55,10 +55,10 @@ def test_uniform_detrended_periodicity():
 
 
 def test_passing_of_docstring():
-    from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_1D
+    from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_from_profile
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
                             physical_sizes=(4., 3.), periodic=True)
-    assert topography.power_spectrum_1D.__doc__ == power_spectrum_1D.__doc__
+    assert topography.power_spectrum_from_profile.__doc__ == power_spectrum_from_profile.__doc__
 
 
 @pytest.mark.parametrize("periodic", (True, False))
@@ -133,8 +133,8 @@ def test_scaled_topography():
     surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
-        np.testing.assert_almost_equal(fac * surf.rms_height(kind='Rq'),
-                                       surf2.rms_height(kind='Rq'))
+        np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
+                                       surf2.rms_height_from_profile())
 
 
 def test_transposed_topography():
