@@ -52,24 +52,15 @@ def rms_height_from_profile(topography):
     rms_height : float
         Root mean square height value.
     """
+    if topography.is_domain_decomposed:
+        raise ValueError('`rms_height_from_profile` does not support decomposed topographies.')
+
     n = np.prod(topography.nb_grid_pts)
-    pnp = Reduction(topography._communicator)
     profile = topography.heights()
-
-    # Problem: when one of the processors holds the full data he isn't able
-    # to detect if any axis is MPI_Parallelized
-    # this problem is solved automatically if we do not support one axis
-    # to be zero
-    decomp_axis = [full != loc for full, loc in
-                   zip(np.array(topography.nb_grid_pts), profile.shape)]
-    temppnp = pnp if decomp_axis[0] else np
-    return np.sqrt(temppnp.sum(
-        (profile - temppnp.sum(profile, axis=0)
-         / topography.nb_grid_pts[0]) ** 2
-    ) / n)
+    return np.sqrt(np.sum((profile - np.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2) / n)
 
 
-def rms_height_from_area(topography, kind='Sq'):
+def rms_height_from_area(topography):
     """
     Compute the root mean square height amplitude of a topography or
     line scan stored on a uniform grid from the whole areal data.
@@ -88,8 +79,7 @@ def rms_height_from_area(topography, kind='Sq'):
     n = np.prod(topography.nb_grid_pts)
     pnp = Reduction(topography._communicator)
     profile = topography.heights()
-    return np.sqrt(
-        pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
+    return np.sqrt(pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
 
 
 def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
