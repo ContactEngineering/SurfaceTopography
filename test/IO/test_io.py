@@ -312,6 +312,20 @@ class IOTest(unittest.TestCase):
                 if channel.physical_sizes is not None:
                     assert channel.physical_sizes == topography.physical_sizes
 
+    def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
+        file_list = self.text_example_file_list + self.binary_example_file_list
+
+        for fn in file_list:
+            r = open_topography(fn)
+            self.assertTrue(isinstance(r.default_channel.nb_grid_pts, tuple),
+                            msg=f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}')
+            if r.default_channel.physical_sizes is not None:
+                self.assertTrue(isinstance(r.default_channel.physical_sizes, tuple),
+                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
+                # If it is a tuple, it cannot contains None's
+                self.assertTrue(np.all([p is not None for p in r.default_channel.physical_sizes]),
+                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
+
 
 @pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_to_netcdf(fn):

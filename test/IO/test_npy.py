@@ -93,7 +93,7 @@ def test_save_and_load_np(comm_self, file_format_examples):
 
 @pytest.fixture
 def examplefile(comm):
-    fn = DATADIR + "/worflowtest.npy"
+    fn = DATADIR + "/workflowtest.npy"
     res = (128, 64)
     np.random.seed(1)
     data = np.random.random(res)
@@ -109,7 +109,7 @@ def examplefile(comm):
 def test_reader(comm, loader, examplefile):
     fn, res, data = examplefile
 
-    # Read metadata from the file and returns a UniformTopgraphy Object
+    # Read metadata from the file and returns a UniformTopography Object
     fileReader = loader(fn, communicator=comm)
     fileReader.nb_grid_pts = fileReader.channels[0].nb_grid_pts
 
