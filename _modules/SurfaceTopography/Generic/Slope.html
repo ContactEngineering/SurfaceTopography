@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic.Slope &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Generic.Slope &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -228,7 +228,7 @@
 <span class="sd">    slope : array</span>
 <span class="sd">        Slope. (Units: dimensionless)</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_1D</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
 
 
@@ -261,7 +261,7 @@
 <span class="sd">    slope : array</span>
 <span class="sd">        Slope. (Units: dimensionless)</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_2D</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">autocorrelation_from_area</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
 
 

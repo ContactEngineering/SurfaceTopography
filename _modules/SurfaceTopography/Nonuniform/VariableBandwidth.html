@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.VariableBandwidth &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Nonuniform.VariableBandwidth &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -309,10 +309,9 @@
         <span class="n">magnifications</span> <span class="o">+=</span> <span class="p">[</span><span class="n">magnification</span><span class="p">]</span>
         <span class="n">bandwidths</span> <span class="o">+=</span> <span class="p">[</span><span class="n">subdivided_line_scans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="n">rms_heights</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">rms_height</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">subdivided_line_scans</span><span class="p">])]</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">line</span><span class="o">.</span><span class="n">rms_height_from_profile</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">subdivided_line_scans</span><span class="p">])]</span>
         <span class="n">magnification</span> <span class="o">*=</span> <span class="mi">2</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">magnifications</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bandwidths</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="n">rms_heights</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">magnifications</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bandwidths</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rms_heights</span><span class="p">)</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>

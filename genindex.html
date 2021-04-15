@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>Index &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -218,9 +218,9 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_1D">autocorrelation_1D() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">autocorrelation_from_area() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_2D">autocorrelation_2D() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile">autocorrelation_from_profile() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -482,9 +482,9 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.has_undefined_data">(SurfaceTopography.UniformLineScanAndTopography.UniformLineScan property)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation_1D">height_difference_autocorrelation_1D() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">height_difference_autocorrelation() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation_1D">height_height_autocorrelation_1D() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">height_height_autocorrelation() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Converters.UniformlyInterpolatedLineScan.heights">heights() (SurfaceTopography.Converters.UniformlyInterpolatedLineScan method)</a>
 
@@ -919,13 +919,11 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.positions_and_heights">(SurfaceTopography.UniformLineScanAndTopography.Topography method)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D">power_spectrum_1D() (in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
-
-      <ul>
-        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_1D">(in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">power_spectrum() (in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
 </li>
-      </ul></li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_2D">power_spectrum_2D() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area">power_spectrum_from_area() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">power_spectrum_from_profile() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.process_header">process_header() (SurfaceTopography.IO.MI.MIReader method)</a>
 </li>
@@ -965,10 +963,10 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_quantunit_content">read_quantunit_content() (in module SurfaceTopography.IO.OPDx)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_structured">read_structured() (in module SurfaceTopography.IO.OPDx)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.read_topography">read_topography() (in module SurfaceTopography.IO)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_varlen">read_varlen() (in module SurfaceTopography.IO.OPDx)</a>
@@ -986,25 +984,23 @@
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.TopographyInterface.register_function">register_function() (SurfaceTopography.HeightContainer.TopographyInterface class method)</a>
 </li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature">rms_curvature() (in module SurfaceTopography.Nonuniform.ScalarParameters)</a>
-
-      <ul>
-        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature">(in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
-      </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area">rms_curvature_from_area() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_gradient">rms_gradient() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_height">rms_height() (in module SurfaceTopography.Nonuniform.ScalarParameters)</a>
-
-      <ul>
-        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height">(in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
-      </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area">rms_height_from_area() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile">rms_height_from_profile() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">rms_laplacian() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope">rms_slope() (in module SurfaceTopography.Nonuniform.ScalarParameters)</a>
-
-      <ul>
-        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope">(in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
-      </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">rms_slope_from_profile() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
   </ul></td>
 </tr></table>
 

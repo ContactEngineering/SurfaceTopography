@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.ScalarParameters &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Nonuniform.ScalarParameters &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -200,7 +200,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
 
 
-<div class="viewcode-block" id="rms_height"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_height">[docs]</a><span class="k">def</span> <span class="nf">rms_height</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;Rq&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<div class="viewcode-block" id="rms_height"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_height">[docs]</a><span class="k">def</span> <span class="nf">rms_height</span><span class="p">(</span><span class="n">topography</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes root-mean square height fluctuation of the line scan:</span>
 
@@ -222,21 +222,12 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`NonuniformLineScan`</span>
 <span class="sd">        SurfaceTopography object containing height information.</span>
-<span class="sd">    kind : str</span>
-<span class="sd">        For compatibility with uniform topographies that have different ways</span>
-<span class="sd">        of computing the rms height. Only &#39;Rq&#39; is supported here.</span>
-<span class="sd">        (Default: &#39;Rq&#39;)</span>
-<span class="sd">    tol : float</span>
-<span class="sd">        Tolerance for searching for existing data points at domain boundaries.</span>
-<span class="sd">        (Default: 1e-6)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    rms_height : float or array</span>
 <span class="sd">        Root-mean square height.</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="k">if</span> <span class="n">kind</span> <span class="o">!=</span> <span class="s1">&#39;Rq&#39;</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported rms height kind &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
     <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
@@ -302,9 +293,9 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_height&#39;</span><span class="p">,</span> <span class="n">rms_height</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_slope&#39;</span><span class="p">,</span> <span class="n">rms_slope</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_curvature&#39;</span><span class="p">,</span> <span class="n">rms_curvature</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_height_from_profile&#39;</span><span class="p">,</span> <span class="n">rms_height</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_slope_from_profile&#39;</span><span class="p">,</span> <span class="n">rms_slope</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_curvature_from_profile&#39;</span><span class="p">,</span> <span class="n">rms_curvature</span><span class="p">)</span>
 </pre></div>
 
            </div>

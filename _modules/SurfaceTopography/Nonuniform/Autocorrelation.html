@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Nonuniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -201,7 +201,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
 
 
-<div class="viewcode-block" id="height_height_autocorrelation_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation_1D">[docs]</a><span class="k">def</span> <span class="nf">height_height_autocorrelation_1D</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="height_height_autocorrelation"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">[docs]</a><span class="k">def</span> <span class="nf">height_height_autocorrelation</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional height-height autocorrelation function</span>
 <span class="sd">    (ACF).</span>
@@ -267,8 +267,8 @@
     <span class="k">return</span> <span class="n">distances</span><span class="p">,</span> <span class="n">A</span></div>
 
 
-<div class="viewcode-block" id="height_difference_autocorrelation_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation_1D">[docs]</a><span class="k">def</span> <span class="nf">height_difference_autocorrelation_1D</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span>
-                                         <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="height_difference_autocorrelation"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">[docs]</a><span class="k">def</span> <span class="nf">height_difference_autocorrelation</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span>
+                                      <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional height-difference autocorrelation function</span>
 <span class="sd">    (ACF).</span>
@@ -314,10 +314,9 @@
         <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Positions not sorted.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span><span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span>
-                                    <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">autocorrelation_1D</span><span class="p">()</span>
+                                    <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;brute-force&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_SurfaceTopography</span><span class="o">.</span><span class="n">nonuniform_autocorrelation_1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span>
-                                                                <span class="n">distances</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_SurfaceTopography</span><span class="o">.</span><span class="n">nonuniform_autocorrelation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown algorithm &#39;</span><span class="si">{}</span><span class="s2">&#39; specified.&quot;</span>
                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span></div>
@@ -325,7 +324,7 @@
 
 <span class="c1"># Register analysis functions from this module</span>
 <span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
-    <span class="s1">&#39;autocorrelation_1D&#39;</span><span class="p">,</span> <span class="n">height_difference_autocorrelation_1D</span><span class="p">)</span>
+    <span class="s1">&#39;autocorrelation_from_profile&#39;</span><span class="p">,</span> <span class="n">height_difference_autocorrelation</span><span class="p">)</span>
 </pre></div>
 
            </div>

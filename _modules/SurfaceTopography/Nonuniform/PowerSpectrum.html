@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Nonuniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -262,8 +262,8 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown window </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="power_spectrum_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum_1D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_1D</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span> <span class="n">wavevectors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="power_spectrum"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span> <span class="n">wavevectors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute power-spectral density (PSD) for a nonuniform topography. The</span>
 <span class="sd">    topography is assumed to be given by a series of points connected by</span>
@@ -322,7 +322,7 @@
         <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Positions not sorted.&#39;</span><span class="p">)</span>
         <span class="n">wavevectors</span><span class="p">,</span> <span class="n">psd</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span>
-            <span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">power_spectrum_1D</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+            <span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">power_spectrum_from_profile</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;brute-force&#39;</span><span class="p">:</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">apply_window</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -354,8 +354,8 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_1D&#39;</span><span class="p">,</span>
-                                              <span class="n">power_spectrum_1D</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_from_profile&#39;</span><span class="p">,</span>
+                                              <span class="n">power_spectrum</span><span class="p">)</span>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Uniform.PowerSpectrum &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -201,8 +201,8 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 
-<div class="viewcode-block" id="power_spectrum_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_1D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
-                      <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="power_spectrum_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                                <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute power spectrum from 1D FFT(s) of a topography or line scan</span>
 <span class="sd">    stored on a uniform grid.</span>
@@ -255,10 +255,10 @@
         <span class="k">return</span> <span class="n">q</span><span class="p">,</span> <span class="n">C_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="power_spectrum_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_2D">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
-                      <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
-                      <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_window</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="power_spectrum_from_area"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area">[docs]</a><span class="k">def</span> <span class="nf">power_spectrum_from_area</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># pylint: disable=invalid-name</span>
+                             <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
+                             <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_window</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                             <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute power spectrum from 2D FFT and radial average of a topography</span>
 <span class="sd">    stored on a uniform grid.</span>
@@ -316,10 +316,10 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_1D&#39;</span><span class="p">,</span>
-                                             <span class="n">power_spectrum_1D</span><span class="p">)</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_2D&#39;</span><span class="p">,</span>
-                                             <span class="n">power_spectrum_2D</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_from_profile&#39;</span><span class="p">,</span>
+                                             <span class="n">power_spectrum_from_profile</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;power_spectrum_from_area&#39;</span><span class="p">,</span>
+                                             <span class="n">power_spectrum_from_area</span><span class="p">)</span>
 </pre></div>
 
            </div>

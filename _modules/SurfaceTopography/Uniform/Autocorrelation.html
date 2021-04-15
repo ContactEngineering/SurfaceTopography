@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev63+g21e578b documentation</title>
+  <title>SurfaceTopography.Uniform.Autocorrelation &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev63+g21e578b
+                0.92.1.dev70+gd1a4685
               </div>
             
           
@@ -201,7 +201,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
 
-<div class="viewcode-block" id="autocorrelation_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_1D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="autocorrelation_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional height-difference autocorrelation function</span>
 <span class="sd">    (ACF).</span>
@@ -295,7 +295,7 @@
         <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">A</span></div>
 
 
-<div class="viewcode-block" id="autocorrelation_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_2D">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="autocorrelation_from_area"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">[docs]</a><span class="k">def</span> <span class="nf">autocorrelation_from_area</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bin_edges</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">return_map</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute height-difference autocorrelation function and radial average.</span>
 
@@ -377,10 +377,10 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;autocorrelation_1D&#39;</span><span class="p">,</span>
-                                             <span class="n">autocorrelation_1D</span><span class="p">)</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;autocorrelation_2D&#39;</span><span class="p">,</span>
-                                             <span class="n">autocorrelation_2D</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;autocorrelation_from_profile&#39;</span><span class="p">,</span>
+                                             <span class="n">autocorrelation_from_profile</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;autocorrelation_from_area&#39;</span><span class="p">,</span>
+                                             <span class="n">autocorrelation_from_area</span><span class="p">)</span>
 </pre></div>
 
            </div>
