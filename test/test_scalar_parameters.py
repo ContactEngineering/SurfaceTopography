@@ -142,7 +142,7 @@ def test_rms_curvature_paraboloid_uniform_2D():
 @unittest.skipIf(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-class SinewaveTestNonuniform(unittest.TestCase):
+class SinewaveTest(unittest.TestCase):
     def setUp(self):
         n = 256
 
@@ -158,17 +158,29 @@ class SinewaveTestNonuniform(unittest.TestCase):
     #    analytical = np.sqrt(16 * np.pi ** 4 * self.hm ** 2 / self.L ** 4)
     #    self.assertAlmostEqual(numerical, analytical, self.precision)
 
-    def test_rms_slope(self):
+    def test_rms_slope_nonuniform(self):
         numerical = NonuniformLineScan(self.X, self.sinsurf).rms_slope_from_profile()
         analytical = np.sqrt(2 * np.pi ** 2 * self.hm ** 2 / self.L ** 2)
         # print(numerical-analytical)
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
-    def test_rms_height(self):
+    def test_rms_height_nonuniform(self):
         numerical = NonuniformLineScan(self.X, self.sinsurf).rms_height_from_profile()
         analytical = np.sqrt(self.hm ** 2 / 2)
         # numerical = np.sqrt(np.trapz(self.sinsurf**2, self.X))
 
+        self.assertAlmostEqual(numerical, analytical, self.precision)
+
+    def test_rms_slope_uniform(self):
+        numerical = UniformLineScan(self.sinsurf[:-1], self.L).rms_slope_from_profile()
+        analytical = np.sqrt(2 * np.pi ** 2 * self.hm ** 2 / self.L ** 2)
+        # print(numerical-analytical)
+        self.assertAlmostEqual(numerical, analytical, self.precision)
+
+    def test_rms_slope_uniform_topography(self):
+        numerical = Topography(np.transpose([self.sinsurf[:-1]]*5), (self.L, 1)).rms_slope_from_profile()
+        analytical = np.sqrt(2 * np.pi ** 2 * self.hm ** 2 / self.L ** 2)
+        # print(numerical-analytical)
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
