@@ -85,6 +85,9 @@ class AbstractHeightContainer(object):
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
 
+    def __eq__(self, other):
+        return self._info == other._info
+
     def __getstate__(self):
         """
         Upon pickling, it is called and the returned object is pickled as the
@@ -167,6 +170,9 @@ class DecoratedTopography(AbstractHeightContainer):
         assert isinstance(topography, AbstractHeightContainer)
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
+
+    def __eq__(self, other):
+        return super.__eq__(self, other) and self.parent_topography == other.parent_topography
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for

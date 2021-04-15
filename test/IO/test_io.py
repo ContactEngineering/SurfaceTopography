@@ -169,8 +169,7 @@ class IOTest(unittest.TestCase):
                 open_topography(f)
                 self.assertFalse(
                     f.closed,
-                    msg="text memory stream for '{}' was closed".format(
-                        datastr))
+                    msg="text memory stream for '{}' was closed".format(datastr))
 
             # Doing the same when but only giving a binary stream
             with io.BytesIO(datastr.encode(encoding='utf-8')) as f:
@@ -314,6 +313,18 @@ class IOTest(unittest.TestCase):
 
                 if channel.physical_sizes is not None:
                     assert channel.physical_sizes == topography.physical_sizes
+
+    def test_to_netcdf(self):
+        """Test that files can be stored as NetCDF and that reading then gives
+        an identical topography object"""
+        for fn in self.text_example_file_list + self.binary_example_file_list:
+            t = read_topography(fn)
+            with tempfile.TemporaryDirectory() as d:
+                tmpfn = f'{d}/netcdf_representation.nc'
+                t.to_netcdf(tmpfn)
+                t2 = read_topography(tmpfn)
+                self.assertEqual(t, t2)
+
 
 
 class UnknownFileFormatGivenTest(unittest.TestCase):

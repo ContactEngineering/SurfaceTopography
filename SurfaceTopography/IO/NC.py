@@ -25,9 +25,9 @@
 
 import numpy as np
 
-from .. import Topography
+from .. import Topography, UniformLineScan, NonuniformLineScan
 from .common import mangle_height_unit, no_uft8_height_unit
-from ..HeightContainer import UniformTopographyInterface
+from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 
 from .Reader import ReaderBase, ChannelInfo
 
@@ -118,9 +118,11 @@ plt.show()
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
             self._nc = netcdf_file(fobj, 'r')
+
         self._communicator = communicator
-        self._x_dim = self._nc.dimensions['x']
-        self._y_dim = self._nc.dimensions['y']
+        self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
+        self._x_dim = self._nc.dimensions['x'] if 'x' in self._nc.dimensions else None
+        self._y_dim = self._nc.dimensions['y'] if 'y' in self._nc.dimensions else None
         self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
         self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
@@ -129,44 +131,79 @@ plt.show()
         self._physical_sizes = None
         self._periodic = False
         self._info = {}
-        if self._x_var is not None:
+        if self._n_dim is not None:
+            # This is a nonuniform topography
+            pass
+        else:
+            # This is a uniform topography...
             if self._y_var is not None:
-                self._physical_sizes = (self._x_var.length, self._y_var.length)
+                # ...and it is 2D
+                try:
+                    self._physical_sizes = (self._x_var.length, self._y_var.length)
+                except AttributeError:
+                    pass
+            else:
+                # ...and it is 1D (a line scan)
+                try:
+                    self._physical_sizes = (self._x_var.length)
+                except AttributeError:
+                    pass
             try:
                 self._periodic = self._x_var.periodic != 0
             except AttributeError:
                 pass
-            try:
-                self._info['unit'] = mangle_height_unit(self._x_var.length_unit)
-            except AttributeError:
-                pass
+        try:
+            self._info['unit'] = mangle_height_unit(self._x_var.length_unit)
+        except AttributeError:
+            pass
 
     def __del__(self):
         self.close()
 
     def close(self):
         if self._nc is not None:
+            if self._x_var is not None:
+                del self._x_var
+            if self._y_var is not None:
+                del self._y_var
+            if self._heights_var is not None:
+                del self._heights_var
             self._nc.close()
             self._nc = None
 
     @property
     def channels(self):
-        try:
-            # netCDF4
-            nx = self._x_dim.size
-        except AttributeError:
-            # scipy.io.netcdf_file
-            nx = self._x_dim
-        try:
-            # netCDF4
-            ny = self._y_dim.size
-        except AttributeError:
-            # scipy.io.netcdf_file
-            ny = self._y_dim
+        if self._x_dim is not None:
+            # This is a uniform topography
+            try:
+                # netCDF4
+                nx = self._x_dim.size
+            except AttributeError:
+                # scipy.io.netcdf_file
+                nx = self._x_dim
+            nb_grid_pts = (nx,)
+            if self._y_dim is not None:
+                # This is a 2D topography
+                try:
+                    # netCDF4
+                    ny = self._y_dim.size
+                except AttributeError:
+                    # scipy.io.netcdf_file
+                    ny = self._y_dim
+                nb_grid_pts = (nx, ny)
+        else:
+            # This is a nonuniform line scan
+            try:
+                # netCDF4
+                nx = self._x_dim.size
+            except AttributeError:
+                # scipy.io.netcdf_file
+                nx = self._x_dim
+            nb_grid_pts = (nx,)
         return [ChannelInfo(self, 0,
                             name='Default',
-                            dim=2,
-                            nb_grid_pts=(nx, ny),
+                            dim=len(nb_grid_pts),
+                            nb_grid_pts=nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
                             info=self._info)]
@@ -175,22 +212,43 @@ plt.show()
                    height_scale_factor=None, info={},
                    periodic=None,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
-        if channel_index is None:
-            channel_index = self._default_channel_index
+        if channel_index is not None and channel_index != 0:
+            raise ValueError('`channel_index` must be None or 0.')
 
-        physical_sizes = self._check_physical_sizes(physical_sizes,
-                                                    self._physical_sizes)
         _info = self._info.copy()
         _info.update(info)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
-            return Topography(self._heights_var[...], physical_sizes,
-                              periodic=self._periodic
-                              if periodic is None else periodic,
-                              info=_info)
+            if self._x_dim is not None:
+                physical_sizes = self._check_physical_sizes(physical_sizes,
+                                                            self._physical_sizes)
+
+                # This is a uniform topography...
+                if self._y_dim is not None:
+                    # ...and it is 2D
+                    return Topography(self._heights_var[...], physical_sizes,
+                                      periodic=self._periodic if periodic is None else periodic,
+                                      info=_info)
+                else:
+                    return UniformLineScan(self._heights_var[...], physical_sizes,
+                                           periodic=self._periodic if periodic is None else periodic,
+                                           info=_info)
+            else:
+                if physical_sizes is not None:
+                    raise ValueError('You cannot specify physical sizes for a nonuniform topography.')
+
+                # This is a nonuniform line scan
+                return NonuniformLineScan(self._x_var[...], self._heights_var[...],
+                                          periodic=self._periodic if periodic is None else periodic,
+                                          info=_info)
         else:
+            if self._y_dim is None:
+                raise ValueError('Parallel reading only works for topographies, not line scans.')
+
+            physical_sizes = self._check_physical_sizes(physical_sizes,
+                                                        self._physical_sizes)
+
             return Topography(self._heights_var[...], physical_sizes,
-                              periodic=self._periodic
-                              if periodic is None else periodic,
+                              periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,
@@ -205,7 +263,7 @@ plt.show()
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
+def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
     """
     Write topography into a NetCDF file.
 
@@ -230,15 +288,23 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             topography.communicator.rank > 1:
         return
     with Dataset(filename, 'w', **kwargs) as nc:
-        nx, ny = topography.nb_grid_pts
-        sx, sy = topography.physical_sizes
+        try:
+            nx, ny = topography.nb_grid_pts
+            sx, sy = topography.physical_sizes
+        except ValueError:
+            nx, = topography.nb_grid_pts
+            sx, = topography.physical_sizes
 
         nc.createDimension('x', nx)
-        nc.createDimension('y', ny)
+        if topography.dim > 1:
+            nc.createDimension('y', ny)
 
         x_var = nc.createVariable('x', 'f8', ('x',))
-        y_var = nc.createVariable('y', 'f8', ('y',))
-        heights_var = nc.createVariable('heights', 'f8', ('x', 'y',))
+        heights_dim = ['x']
+        if topography.dim > 1:
+            y_var = nc.createVariable('y', 'f8', ('y',))
+            heights_dim += ['y']
+        heights_var = nc.createVariable('heights', 'f8', tuple(heights_dim))
 
         x_var.length = sx
         x_var.periodic = 1 if topography.is_periodic else 0
@@ -246,17 +312,54 @@ def write_nc(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             # scipy.io.netcdf_file does not support UTF-8
             x_var.length_unit = no_uft8_height_unit(topography.info['unit'])
         x_var[...] = (np.arange(nx) + 0.5) * sx / nx
-        y_var.length = sy
-        y_var.periodic = 1 if topography.is_periodic else 0
-        if 'unit' in topography.info:
-            # scipy.io.netcdf_file does not support UTF-8
-            y_var.length_unit = no_uft8_height_unit(topography.info['unit'])
-        y_var[...] = (np.arange(ny) + 0.5) * sy / ny
+        if topography.dim > 1:
+            y_var.length = sy
+            y_var.periodic = 1 if topography.is_periodic else 0
+            if 'unit' in topography.info:
+                # scipy.io.netcdf_file does not support UTF-8
+                y_var.length_unit = no_uft8_height_unit(topography.info['unit'])
+            y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
-        heights_var[topography.subdomain_slices] = topography.heights()
+            heights_var[topography.subdomain_slices] = topography.heights()
+        else:
+            heights_var[...] = topography.heights()
+
+
+def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
+    """
+    Write nonuniform line scan into a NetCDF file.
+
+    Parameters
+    ----------
+    line_scan : :obj:`SurfaceTopography`
+        The topography to write to disk.
+    filename : str
+        Name of the NetCDF file
+    format : str
+        NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
+    """
+    if line_scan.communicator is not None and line_scan.communicator.size > 1:
+        raise RuntimeError('Parallel writing is not supported for nonuniform line scans')
+
+    from scipy.io.netcdf import netcdf_file
+
+    with netcdf_file(filename, 'w', version=format_to_scipy_version[format]) as nc:
+        nx, = line_scan.nb_grid_pts
+
+        nc.createDimension('n', nx)
+
+        x_var = nc.createVariable('x', 'f8', ('n',))
+        heights_var = nc.createVariable('heights', 'f8', ('n',))
+
+        x_var[...] = line_scan.positions()
+        if 'unit' in line_scan.info:
+            # scipy.io.netcdf_file does not support UTF-8
+            x_var.length_unit = no_uft8_height_unit(line_scan.info['unit'])
+        heights_var[...] = line_scan.heights()
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('to_netcdf', write_nc)
+UniformTopographyInterface.register_function('to_netcdf', write_nc_uniform)
+NonuniformLineScanInterface.register_function('to_netcdf', write_nc_nonuniform)
