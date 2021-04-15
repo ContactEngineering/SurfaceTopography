@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
+  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev70+gd1a4685
+                0.92.1.dev75+g37c70a4
               </div>
             
           
@@ -256,6 +256,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span>
 
     <span class="nd">@physical_sizes</span><span class="o">.</span><span class="n">setter</span>

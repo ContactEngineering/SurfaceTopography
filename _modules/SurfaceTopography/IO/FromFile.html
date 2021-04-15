@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.92.1.dev70+gd1a4685 documentation</title>
+  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev70+gd1a4685
+                0.92.1.dev75+g37c70a4
               </div>
             
           
@@ -262,8 +262,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_file_position</span> <span class="o">=</span> <span class="n">fobj</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span> <span class="o">=</span> <span class="n">reader_func</span><span class="p">(</span><span class="n">fobj</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">CHANNEL_NAME_INFO_KEY</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_channel_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span>
-                    <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_channel_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">]</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_channel_name</span> <span class="o">=</span> <span class="s2">&quot;Default&quot;</span>
