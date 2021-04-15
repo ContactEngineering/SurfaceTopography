@@ -313,7 +313,7 @@ class IOTest(unittest.TestCase):
                     assert channel.physical_sizes == topography.physical_sizes
 
     def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
-        file_list = self.text_example_file_list + self.binary_example_file_list
+        file_list = text_example_file_list + binary_example_file_list
 
         for fn in file_list:
             r = open_topography(fn)
