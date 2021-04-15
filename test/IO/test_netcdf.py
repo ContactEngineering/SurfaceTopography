@@ -130,7 +130,7 @@ def test_load_no_physical_sizes(comm_self):
     os.remove('no_physical_sizes.nc')
 
 
-def test_save_and_load_line_scan(comm):
+def test_save_and_load_line_scan(comm_self):
     nb_grid_pts = (128,)
     size = (3,)
 
