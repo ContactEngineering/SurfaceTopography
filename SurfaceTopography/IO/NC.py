@@ -108,11 +108,12 @@ plt.show()
             from netCDF4 import Dataset
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
         else:
-            # We need to check magic ourselves because netcdf_file closes the
-            # stream
-            magic = self.fp.read(3)
-            if not magic == b'CDF':
-                raise TypeError('File or stream is not a valid NetCDF 3 file')
+            # We need to check magic ourselves if this is a stream because
+            # netcdf_file closes the stream
+            if hasattr('seek', fobj):
+                magic = fobj.read(3)
+                if not magic == b'CDF':
+                    raise TypeError('File or stream is not a valid NetCDF 3 file')
             # We run serial I/O through scipy. This has several advantages:
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
