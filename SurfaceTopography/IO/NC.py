@@ -23,10 +23,14 @@
 # SOFTWARE.
 #
 
+import json
+
 import numpy as np
 
+from numpyencoder import NumpyEncoder
+
 from .. import Topography, UniformLineScan, NonuniformLineScan
-from .common import mangle_height_unit, no_uft8_height_unit
+from .common import mangle_length_unit_utf8, mangle_length_unit_ascii
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 
 from .Reader import ReaderBase, ChannelInfo
@@ -131,6 +135,14 @@ plt.show()
         self._physical_sizes = None
         self._periodic = False
         self._info = {}
+
+        # Deserialize info dictionary, if present
+        try:
+            self._info = json.loads(self._nc.json)
+        except AttributeError:
+            pass
+
+        # Determine physical sizes of topography
         if self._n_dim is not None:
             # This is a nonuniform topography
             pass
@@ -148,12 +160,15 @@ plt.show()
                     self._physical_sizes = (self._x_var.length)
                 except AttributeError:
                     pass
-            try:
-                self._periodic = self._x_var.periodic != 0
-            except AttributeError:
-                pass
+
         try:
-            self._info['unit'] = mangle_height_unit(self._x_var.length_unit)
+            self._periodic = self._heights_var.periodic != 0
+        except AttributeError:
+            pass
+
+        # Determine unit of topography
+        try:
+            self._info['unit'] = mangle_length_unit_utf8(self._x_var.length_unit)
         except AttributeError:
             pass
 
@@ -288,37 +303,54 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             topography.communicator.rank > 1:
         return
     with Dataset(filename, 'w', **kwargs) as nc:
+        # Serialize info dictionary as JSON and write to NetCDF file
+        info = topography.info.copy()
+        try:
+            # We store the unit information separately
+            del info['unit']
+        except KeyError:
+            pass
+        nc.json = json.dumps(info, ensure_ascii=True, cls=NumpyEncoder)
+
+        # Create dimensions and heights variable
         try:
             nx, ny = topography.nb_grid_pts
-            sx, sy = topography.physical_sizes
         except ValueError:
             nx, = topography.nb_grid_pts
-            sx, = topography.physical_sizes
 
         nc.createDimension('x', nx)
         if topography.dim > 1:
             nc.createDimension('y', ny)
+            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'))
+        else:
+            heights_var = nc.createVariable('heights', 'f8', ('x',))
 
-        x_var = nc.createVariable('x', 'f8', ('x',))
-        heights_dim = ['x']
-        if topography.dim > 1:
-            y_var = nc.createVariable('y', 'f8', ('y',))
-            heights_dim += ['y']
-        heights_var = nc.createVariable('heights', 'f8', tuple(heights_dim))
+        # Create variables for x- and y-positions, but only if physical_sizes
+        # exist. (physical_sizes should always exist, but who knows...)
+        if topography.physical_sizes is not None:
+            try:
+                sx, sy = topography.physical_sizes
+            except ValueError:
+                sx, = topography.physical_sizes
 
-        x_var.length = sx
-        x_var.periodic = 1 if topography.is_periodic else 0
-        if 'unit' in topography.info:
-            # scipy.io.netcdf_file does not support UTF-8
-            x_var.length_unit = no_uft8_height_unit(topography.info['unit'])
-        x_var[...] = (np.arange(nx) + 0.5) * sx / nx
-        if topography.dim > 1:
-            y_var.length = sy
-            y_var.periodic = 1 if topography.is_periodic else 0
+            x_var = nc.createVariable('x', 'f8', ('x',))
+            x_var.length = sx
+
+            x_var.periodic = 1 if topography.is_periodic else 0
             if 'unit' in topography.info:
                 # scipy.io.netcdf_file does not support UTF-8
-                y_var.length_unit = no_uft8_height_unit(topography.info['unit'])
-            y_var[...] = (np.arange(ny) + 0.5) * sy / ny
+                x_var.length_unit = mangle_length_unit_ascii(topography.info['unit'])
+            x_var[...] = (np.arange(nx) + 0.5) * sx / nx
+
+            if topography.dim > 1:
+                y_var = nc.createVariable('y', 'f8', ('y',))
+
+                y_var.length = sy
+                y_var.periodic = 1 if topography.is_periodic else 0
+                if 'unit' in topography.info:
+                    # scipy.io.netcdf_file does not support UTF-8
+                    y_var.length_unit = mangle_length_unit_ascii(topography.info['unit'])
+                y_var[...] = (np.arange(ny) + 0.5) * sy / ny
 
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
@@ -346,6 +378,15 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
     from scipy.io.netcdf import netcdf_file
 
     with netcdf_file(filename, 'w', version=format_to_scipy_version[format]) as nc:
+        # Serialize info dictionary as JSON and write to NetCDF file
+        info = line_scan.info.copy()
+        try:
+            # We store the unit information separately
+            del info['unit']
+        except KeyError:
+            pass
+        nc.json = json.dumps(info)
+
         nx, = line_scan.nb_grid_pts
 
         nc.createDimension('n', nx)
@@ -356,7 +397,7 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
         x_var[...] = line_scan.positions()
         if 'unit' in line_scan.info:
             # scipy.io.netcdf_file does not support UTF-8
-            x_var.length_unit = no_uft8_height_unit(line_scan.info['unit'])
+            x_var.length_unit = mangle_length_unit_ascii(line_scan.info['unit'])
         heights_var[...] = line_scan.heights()
 
 

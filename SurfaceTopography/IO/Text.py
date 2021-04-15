@@ -26,7 +26,7 @@ import re
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_height_unit, text
+from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
 from .FromFile import make_wrapped_reader
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
@@ -144,24 +144,24 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 xsiz = float(match.group('value'))
                 x = match.group('unit')
                 if x:
-                    xunit = mangle_height_unit(x)
+                    xunit = mangle_length_unit_utf8(x)
             elif key == 'ysiz':
                 ysiz = float(match.group('value'))
                 y = match.group('unit')
                 if y:
-                    yunit = mangle_height_unit(y)
+                    yunit = mangle_length_unit_utf8(y)
             elif key == 'xunit':
-                xunit = mangle_height_unit(match.group(1))
+                xunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'yunit':
-                yunit = mangle_height_unit(match.group(1))
+                yunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'zunit':
-                zunit = mangle_height_unit(match.group(1))
+                zunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'xfac':
                 xfac = float(match.group('value'))
-                xunit = mangle_height_unit(match.group('unit'))
+                xunit = mangle_length_unit_utf8(match.group('unit'))
             elif key == 'zfac':
                 zfac = float(match.group('value'))
-                zunit = mangle_height_unit(match.group('unit'))
+                zunit = mangle_length_unit_utf8(match.group('unit'))
             elif key == 'channel_name':
                 channel_name = match.group(1).strip()
 

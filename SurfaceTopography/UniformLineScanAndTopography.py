@@ -72,10 +72,6 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         self._size = np.asarray(physical_sizes).item()
         self._periodic = periodic
 
-    def __eq__(self, other):
-        return super.__eq__(self, other) and np.allclose(self._heights, other._heights) and \
-               np.allclose(self._size, other._size) and self._periodic == other._periodic
-
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic
         return state
@@ -292,10 +288,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
 
         self._size = physical_sizes
         self._periodic = periodic
-
-    def __eq__(self, other):
-        return super.__eq__(self, other) and np.allclose(self._heights, other._heights) and \
-               self._size == other._size and self._periodic == other._periodic
 
     def __getstate__(self):
         state = super().__getstate__(), self._heights, self._size, self._periodic, self._subdomain_locations, \

@@ -46,10 +46,6 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         self._h = np.asarray(y)
         self._periodic = periodic
 
-    def __eq__(self, other):
-        return super.__eq__(self, other) and np.allclose(self._x, other._x) and \
-               np.allclose(self._h, other._h) and self._periodic == other._periodic
-
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance

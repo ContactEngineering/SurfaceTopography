@@ -30,6 +30,8 @@ Base class for geometric topogography descriptions
 
 import abc
 
+import numpy as np
+
 from NuMPI import MPI
 
 # Standardized entries for the info dictionary
@@ -86,7 +88,7 @@ class AbstractHeightContainer(object):
         return sorted(super().__dir__() + [*self._functions])
 
     def __eq__(self, other):
-        return self._info == other._info
+        return self.info == other.info and self.is_periodic == other.is_periodic
 
     def __getstate__(self):
         """
@@ -170,9 +172,6 @@ class DecoratedTopography(AbstractHeightContainer):
         assert isinstance(topography, AbstractHeightContainer)
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
-
-    def __eq__(self, other):
-        return super.__eq__(self, other) and self.parent_topography == other.parent_topography
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -271,6 +270,9 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
         except ValueError:
             return p, h
 
+    def __eq__(self, other):
+        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
+
     def __getitem__(self, i):
         return self.heights()[i]
 
@@ -316,6 +318,9 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     def is_MPI(self):
         return False
+
+    def __eq__(self, other):
+        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]
