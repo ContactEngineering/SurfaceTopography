@@ -36,8 +36,7 @@ import numpy as np
 
 from SurfaceTopography import Topography
 
-from .FromFile import get_unit_conversion_factor, height_units, \
-    mangle_height_unit
+from .common import get_unit_conversion_factor, height_units, mangle_height_unit
 from .Reader import ReaderBase, ChannelInfo
 
 

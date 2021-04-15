@@ -47,8 +47,8 @@ from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.FromFile import read_asc, read_xyz, AscReader
-from SurfaceTopography.IO.FromFile import get_unit_conversion_factor
+from SurfaceTopography.IO.common import get_unit_conversion_factor
+from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -339,11 +339,9 @@ class NumpyTxtSurfaceTest(unittest.TestCase):
         S1 = Topography(h, h.shape)
         with tmp_dir() as dir:
             fname = os.path.join(dir, "surface")
-            S1.save(fname)
-            # TODO: datafiles fixture may solve the problem
-            # For some reason, this does not find the file...
-            # S2 = read_asc(fname)
-            S2 = S1
+            S1.to_matrix(fname)
+            S2 = read_matrix(fname)
+            self.assertTrue(np.allclose(S2.heights(), S1.heights()))
 
         S3 = make_sphere(R, (res, res), (length, length), (x_c, y_c))
         self.assertTrue(np.array_equal(S1.heights(), S2.heights()))

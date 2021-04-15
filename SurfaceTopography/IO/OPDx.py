@@ -29,9 +29,8 @@ from collections import OrderedDict
 import numpy as np
 
 from .. import Topography
-from .common import OpenFromAny
+from .common import OpenFromAny, get_unit_conversion_factor, mangle_height_unit
 from .Reader import ReaderBase, ChannelInfo
-from .FromFile import get_unit_conversion_factor, mangle_height_unit
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12

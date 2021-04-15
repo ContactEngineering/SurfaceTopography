@@ -377,16 +377,6 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         x, y = self.positions()
         return x, y, self.heights()
 
-    def save(self, fname, compress=True):
-        """
-        saves the topography as a NumpyTxtTopography. Warning: This only saves
-        the heights; the physical_sizes is not contained in the file
-        """
-        if compress:
-            if not fname.endswith('.gz'):
-                fname = fname + ".gz"
-        np.savetxt(fname, self.heights())
-
     @property
     def communicator(self):
         return self._communicator
