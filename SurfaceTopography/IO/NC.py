@@ -253,10 +253,12 @@ plt.show()
                 if physical_sizes is not None:
                     raise ValueError('You cannot specify physical sizes for a nonuniform topography.')
 
+                if self._periodic:
+                    raise ValueError('NetCDF file indicates periodicity, but this is a nonuniform line scan which '
+                                     'cannot be periodic.')
+
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]),
-                                          periodic=self._periodic if periodic is None else periodic,
-                                          info=_info)
+                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]), info=_info)
         else:
             if self._y_dim is None:
                 raise ValueError('Parallel reading only works for topographies, not line scans.')

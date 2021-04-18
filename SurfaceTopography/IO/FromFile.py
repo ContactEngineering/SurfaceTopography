@@ -121,9 +121,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
             if channel_index != 0:
                 raise RuntimeError('Reader supports only a single channel 0.')
 
-            print(physical_sizes, self._topography.physical_sizes)
             physical_sizes = self._check_physical_sizes(physical_sizes, self._topography.physical_sizes)
-            print(physical_sizes)
 
             # Rewind to position where the data is. Otherwise this method
             # cannot be called twice.

@@ -92,7 +92,6 @@ binary_example_file_list = _convert_filelist([
 ])
 
 text_example_file_list = _convert_filelist([
-    'example.asc',
     'example1.txt',
     'example2.txt',
     'example3.txt',
@@ -100,11 +99,15 @@ text_example_file_list = _convert_filelist([
     'example5.txt',
     'example8.txt',
     # example8: from the reader's docstring, with extra newline at end
-    'line_scan_1_minimal_spaces.asc',
     'opdx1.txt',
     'opdx2.txt',
     # Not yet working
     # 'example6.txt',
+])
+
+text_example_without_size_file_list = _convert_filelist([
+    'example.asc',
+    'line_scan_1_minimal_spaces.asc',
 ])
 
 explicit_physical_sizes = _convert_filelist([
@@ -112,6 +115,7 @@ explicit_physical_sizes = _convert_filelist([
     'example1.mat',
     'example-2d.npy'
 ])
+
 
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
@@ -155,7 +159,7 @@ class IOTest(unittest.TestCase):
         ]
 
     def test_keep_file_open(self):
-        for fn in text_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list:
             # Text file can be opened as binary or text
             with open(fn, 'rb') as f:
                 open_topography(f)
@@ -198,7 +202,7 @@ class IOTest(unittest.TestCase):
             is_binary_stream(io.StringIO("11111")))  # some bytes in memory
 
     def test_can_be_pickled(self):
-        file_list = text_example_file_list + binary_example_file_list
+        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
 
         for fn in file_list:
             reader = open_topography(fn)
@@ -232,28 +236,12 @@ class IOTest(unittest.TestCase):
                         assert_array_equal(x.positions(), y.positions())
                         assert_array_equal(x.heights(), y.heights())
 
-    def test_periodic_flag(self):
-        file_list = text_example_file_list + binary_example_file_list
-        for fn in file_list:
-            reader = open_topography(fn)
-            physical_sizes = None
-            if reader.default_channel.dim != 1:
-                physical_sizes = reader.default_channel.physical_sizes \
-                    if reader.default_channel.physical_sizes is not None \
-                    else [1., ] * reader.default_channel.dim
-            t = reader.topography(physical_sizes=physical_sizes, periodic=True)
-            assert t.is_periodic, fn
-
-            t = reader.topography(physical_sizes=physical_sizes,
-                                  periodic=False)
-            assert not t.is_periodic, fn
-
     def test_reader_arguments(self):
         """Check whether all readers have channel, physical_sizes and
         height_scale_factor arguments. Also check whether we can execute
         `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
-        for fn in text_example_file_list + binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             # Test open -> topography
             r = open_topography(fn)
             physical_sizes = None if r.channels[0].dim == 1 \
@@ -280,7 +268,7 @@ class IOTest(unittest.TestCase):
         height_scale_factor arguments. Also check whether we can execute
         `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
-        for fn in text_example_file_list + binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             # Test open -> topography
             r = open_topography(open(fn, mode='rb'))
             physical_sizes = None if r.channels[0].dim == 1 \
@@ -302,7 +290,7 @@ class IOTest(unittest.TestCase):
         the  same in the ChannelInfo and the loaded topography
         """
 
-        for fn in text_example_file_list + binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             reader = open_topography(fn)
 
             for channel in reader.channels:
@@ -318,7 +306,7 @@ class IOTest(unittest.TestCase):
                     assert channel.physical_sizes == topography.physical_sizes
 
     def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
-        file_list = text_example_file_list + binary_example_file_list
+        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
 
         for fn in file_list:
             r = open_topography(fn)
@@ -333,6 +321,22 @@ class IOTest(unittest.TestCase):
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
+def test_periodic_flag(fn):
+    reader = open_topography(fn)
+    physical_sizes = None
+    if reader.default_channel.dim != 1:
+        physical_sizes = reader.default_channel.physical_sizes \
+            if reader.default_channel.physical_sizes is not None \
+            else [1., ] * reader.default_channel.dim
+    t = reader.topography(physical_sizes=physical_sizes, periodic=True)
+    assert t.is_periodic, fn
+
+    t = reader.topography(physical_sizes=physical_sizes,
+                          periodic=False)
+    assert not t.is_periodic, fn
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_to_netcdf(fn):
     """Test that files can be stored as NetCDF and that reading then gives
     an identical topography object"""
