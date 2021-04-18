@@ -88,18 +88,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io.netcdf import netcdf_file
 
-with netcdf_file('test_nc_file.nc') as nc:
-    heights = np.array(nc.variables['heights'][...])
-    length_x = nc.variables['x'].length
-    length_y = nc.variables['y'].length
-    unit = nc.variables['x'].unit
+nc = netcdf_file('test.nc')
+heights = np.array(nc.variables['heights'][...])
+x = np.array(nc.variables['x'][...])
+y = np.array(nc.variables['y'][...])
+unit = nc.variables['x'].unit
 
 plt.figure()
 plt.subplot(aspect=1)
-
-nx, ny = heights.shape
-x = (np.arange(nx)+0.5)*length_x/nx
-y = (np.arange(ny)+0.5)*length_y/ny
 plt.pcolormesh(x, y, heights.T)
 
 plt.show()
@@ -333,8 +329,10 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
         # Create variables for x- and y-positions, but only if physical_sizes
         # exist. (physical_sizes should always exist, but who knows...)
         if topography.physical_sizes is not None:
+            x = topography.positions()
             try:
                 sx, sy = topography.physical_sizes
+                x, y = x
             except ValueError:
                 sx, = topography.physical_sizes
 
@@ -345,7 +343,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             if 'unit' in topography.info:
                 # scipy.io.netcdf_file does not support UTF-8
                 x_var.unit = mangle_length_unit_ascii(topography.info['unit'])
-            x_var[...] = (np.arange(nx) + 0.5) * sx / nx
+            x_var[...] = x[:, 0]
 
             if topography.dim > 1:
                 y_var = nc.createVariable('y', 'f8', ('y',))
@@ -355,7 +353,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                 if 'unit' in topography.info:
                     # scipy.io.netcdf_file does not support UTF-8
                     y_var.unit = mangle_length_unit_ascii(topography.info['unit'])
-                y_var[...] = (np.arange(ny) + 0.5) * sy / ny
+                y_var[...] = y[0, :]
 
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
