@@ -292,8 +292,6 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     ----------
     fobj : str or file object
          File name or stream.
-    unit : str
-         Physical unit.
     tol : float
          Tolerance for detecting uniform grids
 
@@ -314,10 +312,12 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
-            t = UniformLineScan(z, physical_sizes, info=info,
-                                periodic=periodic)
+            t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
         else:
-            t = NonuniformLineScan(x, z, info=info, periodic=periodic)
+            if periodic:
+                raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
+                                 'Nonuniform line scans cannot be periodic.')
+            t = NonuniformLineScan(x, z, info=info)
             if physical_sizes is not None:
                 if not np.allclose(t.physical_sizes, physical_sizes):
                     raise ValueError(
