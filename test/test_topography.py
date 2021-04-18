@@ -423,7 +423,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
     def test_example6(self):
         topography_file = open_topography(
             os.path.join(DATADIR, 'example6.txt'))
-        surf = topography_file.topography()
+        surf = topography_file.topography(physical_sizes=(1,))
         self.assertTrue(isinstance(surf, UniformLineScan))
         np.testing.assert_allclose(surf.heights(), [1, 2, 3, 4, 5, 6, 7, 8, 9])
 

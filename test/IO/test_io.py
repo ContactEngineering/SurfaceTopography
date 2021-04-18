@@ -107,6 +107,11 @@ text_example_file_list = _convert_filelist([
     # 'example6.txt',
 ])
 
+explicit_physical_sizes = _convert_filelist([
+    'example5.txt',
+    'example1.mat',
+    'example-2d.npy'
+])
 
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
@@ -331,7 +336,10 @@ class IOTest(unittest.TestCase):
 def test_to_netcdf(fn):
     """Test that files can be stored as NetCDF and that reading then gives
     an identical topography object"""
-    t = read_topography(fn)
+    if fn in explicit_physical_sizes:
+        t = read_topography(fn, physical_sizes=(1, 1))
+    else:
+        t = read_topography(fn)
     with tempfile.TemporaryDirectory() as d:
         tmpfn = f'{d}/netcdf_representation.nc'
         t.to_netcdf(tmpfn)

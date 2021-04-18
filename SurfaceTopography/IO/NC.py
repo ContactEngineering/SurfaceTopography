@@ -158,7 +158,7 @@ plt.show()
             else:
                 # ...and it is 1D (a line scan)
                 try:
-                    self._physical_sizes = (self._x_var.length)
+                    self._physical_sizes = (self._x_var.length,)
                 except AttributeError:
                     pass
 

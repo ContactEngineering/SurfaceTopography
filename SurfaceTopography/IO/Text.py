@@ -317,12 +317,13 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
             t = UniformLineScan(z, physical_sizes, info=info,
                                 periodic=periodic)
         else:
-            if physical_sizes is not None:
-                raise ValueError(
-                    'XYZ reader found nonuniform data. Manually setting the'
-                    'physical size is not possible for this type of data.')
-
             t = NonuniformLineScan(x, z, info=info, periodic=periodic)
+            if physical_sizes is not None:
+                if not np.allclose(t.physical_sizes, physical_sizes):
+                    raise ValueError(
+                        'XYZ reader found nonuniform data. Manually setting the '
+                        'physical size is not possible for this type of data.')
+
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
