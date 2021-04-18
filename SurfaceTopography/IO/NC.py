@@ -343,9 +343,10 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             if 'unit' in topography.info:
                 # scipy.io.netcdf_file does not support UTF-8
                 x_var.unit = mangle_length_unit_ascii(topography.info['unit'])
-            x_var[...] = x[:, 0]
 
             if topography.dim > 1:
+                x_var[...] = x[:, 0]
+
                 y_var = nc.createVariable('y', 'f8', ('y',))
 
                 y_var.length = sy
@@ -354,6 +355,8 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                     # scipy.io.netcdf_file does not support UTF-8
                     y_var.unit = mangle_length_unit_ascii(topography.info['unit'])
                 y_var[...] = y[0, :]
+            else:
+                x_var[...] = x
 
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
