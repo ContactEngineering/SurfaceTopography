@@ -35,7 +35,6 @@ from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInte
 
 from .Reader import ReaderBase, ChannelInfo
 
-
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,
     'NETCDF3_64BIT_OFFSET': 2
@@ -345,7 +344,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                 x_var.unit = mangle_length_unit_ascii(topography.info['unit'])
 
             if topography.dim > 1:
-                x_var[...] = x[:, 0]
+                x_var[...] = np.arange(nx) / nx * sx
 
                 y_var = nc.createVariable('y', 'f8', ('y',))
 
@@ -354,9 +353,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                 if 'unit' in topography.info:
                     # scipy.io.netcdf_file does not support UTF-8
                     y_var.unit = mangle_length_unit_ascii(topography.info['unit'])
-                y_var[...] = y[0, :]
-            else:
-                x_var[...] = x
+                y_var[...] = np.arange(ny) / ny * sy
 
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
