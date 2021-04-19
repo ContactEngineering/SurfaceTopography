@@ -34,13 +34,13 @@ from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
 from .HeightContainer import (
-    AbstractHeightContainer,
+    AbstractTopography,
     UniformTopographyInterface, DecoratedTopography
 )
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 
 
-class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
+class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     """
     Line scan that lives on a uniform one-dimensional grid.
     """
@@ -145,7 +145,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         np.savetxt(fname, self.heights())
 
 
-class Topography(AbstractHeightContainer, UniformTopographyInterface):
+class Topography(AbstractTopography, UniformTopographyInterface):
     """
     SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a
     topography map.

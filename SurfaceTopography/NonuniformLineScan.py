@@ -30,12 +30,12 @@ Support for nonuniform topogography descriptions
 
 import numpy as np
 
-from .HeightContainer import AbstractHeightContainer, DecoratedTopography, \
+from .HeightContainer import AbstractTopography, DecoratedTopography, \
     NonuniformLineScanInterface
 from .Nonuniform.Detrending import polyfit
 
 
-class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
+class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     """
     Nonuniform topography with point list consisting of static numpy arrays.
     """
