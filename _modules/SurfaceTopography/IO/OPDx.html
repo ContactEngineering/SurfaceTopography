@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -198,7 +198,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span><span class="p">,</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_height_unit</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span><span class="p">,</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
 
 <span class="n">MAGIC</span> <span class="o">=</span> <span class="s2">&quot;VCA DATA</span><span class="se">\x01\x00\x00\x55</span><span class="s2">&quot;</span>
@@ -293,13 +293,13 @@
                 <span class="c1"># find out physical sizes in a  common unit</span>
                 <span class="c1"># without touching the meta data, scale heights accordingly</span>
                 <span class="c1">#</span>
-                <span class="n">unit_x</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Width_unit&#39;</span><span class="p">])</span>
+                <span class="n">unit_x</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Width_unit&#39;</span><span class="p">])</span>
                 <span class="n">size_x</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Width_value&#39;</span><span class="p">]</span>
 
-                <span class="n">unit_y</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Height_unit&#39;</span><span class="p">])</span>
+                <span class="n">unit_y</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Height_unit&#39;</span><span class="p">])</span>
                 <span class="n">size_y</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Height_value&#39;</span><span class="p">]</span>
 
-                <span class="n">unit_z</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">])</span>
+                <span class="n">unit_z</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">])</span>
 
                 <span class="c1"># we want value in unit_x units</span>
                 <span class="n">unit_factor_y</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit_y</span><span class="p">,</span>

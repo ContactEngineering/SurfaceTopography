@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.Text &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.Text &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -195,7 +195,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_height_unit</span><span class="p">,</span> <span class="n">text</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">text</span>
 <span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">make_wrapped_reader</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
@@ -313,24 +313,24 @@
                 <span class="n">xsiz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">x</span><span class="p">:</span>
-                    <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;ysiz&#39;</span><span class="p">:</span>
                 <span class="n">ysiz</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">y</span><span class="p">:</span>
-                    <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xunit&#39;</span><span class="p">:</span>
-                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;yunit&#39;</span><span class="p">:</span>
-                <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">yunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;zunit&#39;</span><span class="p">:</span>
-                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;xfac&#39;</span><span class="p">:</span>
                 <span class="n">xfac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
-                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
+                <span class="n">xunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;zfac&#39;</span><span class="p">:</span>
                 <span class="n">zfac</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">))</span>
-                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
+                <span class="n">zunit</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;channel_name&#39;</span><span class="p">:</span>
                 <span class="n">channel_name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
@@ -461,8 +461,6 @@
 <span class="sd">    ----------</span>
 <span class="sd">    fobj : str or file object</span>
 <span class="sd">         File name or stream.</span>
-<span class="sd">    unit : str</span>
-<span class="sd">         Physical unit.</span>
 <span class="sd">    tol : float</span>
 <span class="sd">         Tolerance for detecting uniform grids</span>
 
@@ -483,15 +481,18 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">d_uniform</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">d_uniform</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;XYZ reader found nonuniform data, and the user specified that it is periodic. &#39;</span>
+                                 <span class="s1">&#39;Nonuniform line scans cannot be periodic.&#39;</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s1">&#39;XYZ reader found nonuniform data. Manually setting the&#39;</span>
-                    <span class="s1">&#39;physical size is not possible for this type of data.&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;XYZ reader found nonuniform data. Manually setting the &#39;</span>
+                        <span class="s1">&#39;physical size is not possible for this type of data.&#39;</span><span class="p">)</span>
 
-            <span class="n">t</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
         <span class="c1"># This is a topography map.</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">data</span>

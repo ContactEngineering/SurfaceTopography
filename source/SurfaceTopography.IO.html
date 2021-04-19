@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -798,8 +798,23 @@ MPI process.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt id="SurfaceTopography.IO.NC.write_nc">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NC.</span></code><code class="sig-name descname"><span class="pre">write_nc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NETCDF3_64BIT_OFFSET'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/NC.html#write_nc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.NC.write_nc" title="Permalink to this definition">¶</a></dt>
+<dt id="SurfaceTopography.IO.NC.write_nc_nonuniform">
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NC.</span></code><code class="sig-name descname"><span class="pre">write_nc_nonuniform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NETCDF3_64BIT_OFFSET'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/NC.html#write_nc_nonuniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.NC.write_nc_nonuniform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write nonuniform line scan into a NetCDF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line_scan</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – The topography to write to disk.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Name of the NetCDF file</p></li>
+<li><p><strong>format</strong> (<em>str</em>) – NetCDF file format. Default is ‘NETCDF3_64BIT_OFFSET’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="SurfaceTopography.IO.NC.write_nc_uniform">
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NC.</span></code><code class="sig-name descname"><span class="pre">write_nc_uniform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NETCDF3_64BIT_OFFSET'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/NC.html#write_nc_uniform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.NC.write_nc_uniform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write topography into a NetCDF file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1525,13 +1540,13 @@ incompatible.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="SurfaceTopography.IO.common.mangle_height_unit">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></code><code class="sig-name descname"><span class="pre">mangle_height_unit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/common.html#mangle_height_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.common.mangle_height_unit" title="Permalink to this definition">¶</a></dt>
+<dt id="SurfaceTopography.IO.common.mangle_length_unit_ascii">
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></code><code class="sig-name descname"><span class="pre">mangle_length_unit_ascii</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/common.html#mangle_length_unit_ascii"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.common.mangle_length_unit_ascii" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="SurfaceTopography.IO.common.no_uft8_height_unit">
-<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></code><code class="sig-name descname"><span class="pre">no_uft8_height_unit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/common.html#no_uft8_height_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.common.no_uft8_height_unit" title="Permalink to this definition">¶</a></dt>
+<dt id="SurfaceTopography.IO.common.mangle_length_unit_utf8">
+<code class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></code><code class="sig-name descname"><span class="pre">mangle_length_unit_utf8</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/common.html#mangle_length_unit_utf8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.common.mangle_length_unit_utf8" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">

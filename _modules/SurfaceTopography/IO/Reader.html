@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.Reader &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.Reader &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -466,14 +466,15 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_check_physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">physical_sizes_from_arg</span><span class="p">,</span>
                               <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle overriding of `physical_sizes` arguments and make sure,</span>
+<span class="sd">        that return value is not `None`.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;physical_sizes could not be extracted from &quot;</span>
-                                 <span class="s2">&quot;file, you should provide it&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`physical_sizes` could not be extracted from file, you must provide it.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">physical_sizes_from_arg</span> <span class="o">=</span> <span class="n">physical_sizes</span>
-            <span class="k">elif</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes_from_arg</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes_from_arg</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">):</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                     <span class="s2">&quot;A physical size different from the value specified when &quot;</span>
                     <span class="s2">&quot;calling the reader was present in the file. We will &quot;</span>

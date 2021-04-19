@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -192,14 +192,17 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
+<span class="kn">import</span> <span class="nn">json</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_height_unit</span><span class="p">,</span> <span class="n">no_uft8_height_unit</span>
-<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
+<span class="kn">from</span> <span class="nn">numpyencoder</span> <span class="k">import</span> <span class="n">NumpyEncoder</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span><span class="p">,</span> <span class="n">NonuniformLineScan</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">mangle_length_unit_ascii</span>
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">NonuniformLineScanInterface</span>
 
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
-
 
 <span class="n">format_to_scipy_version</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;NETCDF3_CLASSIC&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -235,14 +238,15 @@
 <span class="s1">    y = 128 ;</span>
 <span class="s1">variables:</span>
 <span class="s1">    double x(x) ;</span>
-<span class="s1">        x:length = 3LL ;</span>
-<span class="s1">        x:periodic = 1LL ;</span>
-<span class="s1">        x:length_unit = &quot;μm&quot; ;</span>
+<span class="s1">        x:length = 3 ;</span>
+<span class="s1">        x:periodic = 1 ;</span>
+<span class="s1">        x:unit = &quot;um&quot; ;</span>
 <span class="s1">    double y(y) ;</span>
-<span class="s1">        y:length = 3LL ;</span>
-<span class="s1">        y:periodic = 1LL ;</span>
-<span class="s1">        y:length_unit = &quot;μm&quot; ;</span>
+<span class="s1">        y:length = 3 ;</span>
+<span class="s1">        y:periodic = 1 ;</span>
+<span class="s1">        y:unit = &quot;um&quot; ;</span>
 <span class="s1">    double heights(x, y) ;</span>
+<span class="s1">        heights:unit = &quot;um&quot; ;</span>
 <span class="s1">}</span>
 <span class="s1">```</span>
 <span class="s1">The following code snippets reads the file and displays the topography data as</span>
@@ -250,21 +254,17 @@
 <span class="s1">```python</span>
 <span class="s1">import numpy as np</span>
 <span class="s1">import matplotlib.pyplot as plt</span>
-<span class="s1">from netCDF4 import Dataset</span>
+<span class="s1">from scipy.io.netcdf import netcdf_file</span>
 
-<span class="s1">with Dataset(&#39;parallel_save_test.nc&#39;) as nc:</span>
-<span class="s1">    heights = np.array(nc.variables[&#39;heights&#39;])</span>
-<span class="s1">    length_x = nc.variables[&#39;x&#39;].length</span>
-<span class="s1">    length_y = nc.variables[&#39;y&#39;].length</span>
-<span class="s1">    unit = nc.variables[&#39;x&#39;].length_unit</span>
+<span class="s1">nc = netcdf_file(&#39;test.nc&#39;)</span>
+<span class="s1">heights = np.array(nc.variables[&#39;heights&#39;][...])</span>
+<span class="s1">x = np.array(nc.variables[&#39;x&#39;][...])</span>
+<span class="s1">y = np.array(nc.variables[&#39;y&#39;][...])</span>
+<span class="s1">unit = nc.variables[&#39;x&#39;].unit</span>
 
 <span class="s1">plt.figure()</span>
 <span class="s1">plt.subplot(aspect=1)</span>
-
-<span class="s1">nx, ny = heights.shape</span>
-<span class="s1">x = (np.arange(nx)+0.5)*length_x/nx</span>
-<span class="s1">y = (np.arange(ny)+0.5)*length_y/ny</span>
-<span class="s1">plt.pcolormesh(x, y, heights)</span>
+<span class="s1">plt.pcolormesh(x, y, heights.T)</span>
 
 <span class="s1">plt.show()</span>
 <span class="s1">```</span>
@@ -287,9 +287,11 @@
             <span class="c1"># 1) lightweight, 2) can handle streams</span>
             <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">netcdf_file</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">communicator</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;n&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;x&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;y&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;heights&#39;</span><span class="p">]</span>
@@ -298,44 +300,91 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># Deserialize info dictionary, if present</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">json</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Determine physical sizes of topography</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># This is a nonuniform topography</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This is a uniform topography...</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">!=</span> <span class="mi">0</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">pass</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mangle_height_unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length_unit</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">pass</span>
+                <span class="c1"># ...and it is 2D</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># ...and it is 1D (a line scan)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">length</span><span class="p">,)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+        <span class="c1"># Determine if the topography is periodic</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Determine unit of topography</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mangle_length_unit_utf8</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <div class="viewcode-block" id="NCReader.close"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_var</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="kc">None</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># netCDF4</span>
-            <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span><span class="o">.</span><span class="n">size</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="c1"># scipy.io.netcdf_file</span>
-            <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># netCDF4</span>
-            <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span><span class="o">.</span><span class="n">size</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="c1"># scipy.io.netcdf_file</span>
-            <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># This is a uniform topography</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># netCDF4</span>
+                <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="c1"># scipy.io.netcdf_file</span>
+                <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span>
+            <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># This is a 2D topography</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># netCDF4</span>
+                    <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span><span class="o">.</span><span class="n">size</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="c1"># scipy.io.netcdf_file</span>
+                    <span class="n">ny</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span>
+                <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This is a nonuniform line scan</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># netCDF4</span>
+                <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="c1"># scipy.io.netcdf_file</span>
+                <span class="n">nx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span>
+            <span class="n">nb_grid_pts</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
                             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Default&#39;</span><span class="p">,</span>
-                            <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span>
+                            <span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">),</span>
+                            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="n">nb_grid_pts</span><span class="p">,</span>
                             <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">,</span>
                             <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">,</span>
                             <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">)]</span>
@@ -344,22 +393,45 @@
                    <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
                    <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_index</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`channel_index` must be None or 0.&#39;</span><span class="p">)</span>
 
-        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span>
         <span class="n">_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">physical_sizes</span><span class="p">,</span>
-                              <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
-                              <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
-                              <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span>
+
+                <span class="c1"># This is a uniform topography...</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># ...and it is 2D</span>
+                    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                                      <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
+                                      <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                                           <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
+                                           <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You cannot specify physical sizes for a nonuniform topography.&#39;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;NetCDF file indicates periodicity, but this is a nonuniform line scan which &#39;</span>
+                                     <span class="s1">&#39;cannot be periodic.&#39;</span><span class="p">)</span>
+
+                <span class="c1"># This is a nonuniform line scan</span>
+                <span class="k">return</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span> <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">physical_sizes</span><span class="p">,</span>
-                              <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span>
-                              <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Parallel reading only works for topographies, not line scans.&#39;</span><span class="p">)</span>
+
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                              <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                               <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span>
                               <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
                               <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">,</span>
@@ -374,7 +446,7 @@
     <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
 
 
-<div class="viewcode-block" id="write_nc"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc">[docs]</a><span class="k">def</span> <span class="nf">write_nc</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="write_nc_uniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_uniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_uniform</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write topography into a NetCDF file.</span>
 
@@ -399,36 +471,114 @@
             <span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
-        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
-        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="c1"># Serialize info dictionary as JSON and write to NetCDF file</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># We store the unit information separately</span>
+            <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">info</span> <span class="o">!=</span> <span class="p">{}:</span>
+            <span class="n">nc</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">NumpyEncoder</span><span class="p">)</span>
+
+        <span class="c1"># Create dimensions and heights variable</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">nx</span><span class="p">,</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
 
         <span class="n">nc</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
-        <span class="n">nc</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">nc</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+            <span class="n">heights_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;heights&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">heights_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;heights&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,))</span>
 
-        <span class="n">x_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,))</span>
-        <span class="n">y_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,))</span>
-        <span class="n">heights_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;heights&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,))</span>
+        <span class="c1"># Create variables for x- and y-positions, but only if physical_sizes</span>
+        <span class="c1"># exist. (physical_sizes should always exist, but who knows...)</span>
+        <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">sx</span><span class="p">,</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">physical_sizes</span>
 
-        <span class="n">x_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sx</span>
-        <span class="n">x_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
-            <span class="n">x_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">no_uft8_height_unit</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
-        <span class="n">x_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span>
-        <span class="n">y_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sy</span>
-        <span class="n">y_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
-            <span class="n">y_var</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">=</span> <span class="n">no_uft8_height_unit</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
-        <span class="n">y_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span>
+            <span class="n">x_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,))</span>
+            <span class="n">x_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sx</span>
+
+            <span class="n">x_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+                <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
+                <span class="n">x_var</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">x_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">)</span> <span class="o">/</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">sx</span>
+
+                <span class="n">y_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,))</span>
+
+                <span class="n">y_var</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">sy</span>
+                <span class="n">y_var</span><span class="o">.</span><span class="n">periodic</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_periodic</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+                    <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
+                    <span class="n">y_var</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+                <span class="n">y_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">)</span> <span class="o">/</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">sy</span>
 
         <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
             <span class="n">heights_var</span><span class="o">.</span><span class="n">set_collective</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">heights_var</span><span class="p">[</span><span class="n">topography</span><span class="o">.</span><span class="n">subdomain_slices</span><span class="p">]</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div>
+            <span class="n">heights_var</span><span class="p">[</span><span class="n">topography</span><span class="o">.</span><span class="n">subdomain_slices</span><span class="p">]</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="n">heights_var</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="write_nc_nonuniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_nonuniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_nonuniform</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write nonuniform line scan into a NetCDF file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    line_scan : :obj:`SurfaceTopography`</span>
+<span class="sd">        The topography to write to disk.</span>
+<span class="sd">    filename : str</span>
+<span class="sd">        Name of the NetCDF file</span>
+<span class="sd">    format : str</span>
+<span class="sd">        NetCDF file format. Default is &#39;NETCDF3_64BIT_OFFSET&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Parallel writing is not supported for nonuniform line scans&#39;</span><span class="p">)</span>
+
+    <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
+
+    <span class="k">with</span> <span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">format_to_scipy_version</span><span class="p">[</span><span class="nb">format</span><span class="p">])</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+        <span class="c1"># Serialize info dictionary as JSON and write to NetCDF file</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># We store the unit information separately</span>
+            <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">info</span> <span class="o">!=</span> <span class="p">{}:</span>
+            <span class="n">nc</span><span class="o">.</span><span class="n">json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="n">nx</span><span class="p">,</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">nb_grid_pts</span>
+
+        <span class="n">nc</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
+
+        <span class="n">x_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,))</span>
+        <span class="n">heights_var</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;heights&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,))</span>
+
+        <span class="n">x_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
+            <span class="c1"># scipy.io.netcdf_file does not support UTF-8</span>
+            <span class="n">x_var</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">line_scan</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+        <span class="n">heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_netcdf&#39;</span><span class="p">,</span> <span class="n">write_nc</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_netcdf&#39;</span><span class="p">,</span> <span class="n">write_nc_uniform</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_netcdf&#39;</span><span class="p">,</span> <span class="n">write_nc_nonuniform</span><span class="p">)</span>
 </pre></div>
 
            </div>

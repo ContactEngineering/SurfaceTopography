@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -227,7 +227,7 @@
     <span class="k">return</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit1_str</span><span class="p">]</span> <span class="o">/</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit2_str</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="mangle_height_unit"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_height_unit">[docs]</a><span class="k">def</span> <span class="nf">mangle_height_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+<div class="viewcode-block" id="mangle_length_unit_utf8"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_length_unit_utf8">[docs]</a><span class="k">def</span> <span class="nf">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
@@ -242,7 +242,7 @@
         <span class="k">return</span> <span class="n">unit</span></div>
 
 
-<div class="viewcode-block" id="no_uft8_height_unit"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.no_uft8_height_unit">[docs]</a><span class="k">def</span> <span class="nf">no_uft8_height_unit</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+<div class="viewcode-block" id="mangle_length_unit_ascii"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_length_unit_ascii">[docs]</a><span class="k">def</span> <span class="nf">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
     <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>

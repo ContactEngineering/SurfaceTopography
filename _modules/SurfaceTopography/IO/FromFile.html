@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.92.1.dev75+g37c70a4 documentation</title>
+  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.92.1.dev95+g9d667b2c documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.92.1.dev75+g37c70a4
+                0.92.1.dev95+g9d667b2c
               </div>
             
           
@@ -283,18 +283,22 @@
             <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
 
-            <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
-                    <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                     <span class="s1">&#39;This reader does not support MPI parallelization.&#39;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">channel_index</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Reader supports only a single channel 0.&#39;</span><span class="p">)</span>
 
+            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
+
             <span class="c1"># Rewind to position where the data is. Otherwise this method</span>
             <span class="c1"># cannot be called twice.</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_position</span><span class="p">)</span>
+
+            <span class="c1"># Read again, but this time with physical_sizes set (if not</span>
+            <span class="c1"># specified in file)</span>
             <span class="k">return</span> <span class="n">reader_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
                                <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
                                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
