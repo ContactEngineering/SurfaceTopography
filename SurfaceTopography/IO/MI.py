@@ -28,7 +28,7 @@
 import numpy as np
 
 from .. import Topography
-from .common import OpenFromAny, mangle_height_unit
+from .common import OpenFromAny, mangle_length_unit_utf8
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
 
 image_head = b'fileType      Image\n'
@@ -105,7 +105,7 @@ topography map as well as its units.
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = mangle_height_unit(
+                buf.meta['unit'] = mangle_length_unit_utf8(
                     buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')

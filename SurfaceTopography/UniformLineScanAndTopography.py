@@ -73,8 +73,7 @@ class UniformLineScan(AbstractHeightContainer, UniformTopographyInterface):
         self._periodic = periodic
 
     def __getstate__(self):
-        state = super().__getstate__(), self._heights, self._size, \
-                self._periodic
+        state = super().__getstate__(), self._heights, self._size, self._periodic
         return state
 
     def __setstate__(self, state):
@@ -293,8 +292,8 @@ class Topography(AbstractHeightContainer, UniformTopographyInterface):
         self._periodic = periodic
 
     def __getstate__(self):
-        state = super().__getstate__(), self._heights, self._size, \
-                self._periodic, self._subdomain_locations, self._nb_grid_pts
+        state = super().__getstate__(), self._heights, self._size, self._periodic, self._subdomain_locations, \
+                self._nb_grid_pts
         return state
 
     def __setstate__(self, state):

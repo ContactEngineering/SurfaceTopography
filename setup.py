@@ -138,9 +138,9 @@ setup(
         'numpy>=1.11.0',
         'NuMPI>=0.1.4',
         'muFFT>=0.12.0',
-        'netCDF4>=1.5.0',
         'igor',
         'h5py',
-        'defusedxml'
+        'defusedxml',
+        'numpyencoder'
     ]
 )

@@ -114,18 +114,22 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
             if channel_index is None:
                 channel_index = self._default_channel_index
 
-            if subdomain_locations is not None or \
-                    nb_subdomain_grid_pts is not None:
+            if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
                 raise RuntimeError(
                     'This reader does not support MPI parallelization.')
 
             if channel_index != 0:
                 raise RuntimeError('Reader supports only a single channel 0.')
 
+            physical_sizes = self._check_physical_sizes(physical_sizes, self._topography.physical_sizes)
+
             # Rewind to position where the data is. Otherwise this method
             # cannot be called twice.
             if hasattr(self._fobj, 'seek'):
                 self._fobj.seek(self._file_position)
+
+            # Read again, but this time with physical_sizes set (if not
+            # specified in file)
             return reader_func(self._fobj, physical_sizes=physical_sizes,
                                height_scale_factor=height_scale_factor,
                                info=info.copy(), periodic=periodic)

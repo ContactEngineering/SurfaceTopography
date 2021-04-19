@@ -24,6 +24,7 @@
 #
 
 import unittest
+import tempfile
 
 import numpy as np
 import os
@@ -44,22 +45,19 @@ DATADIR = os.path.dirname(os.path.realpath(__file__))
 def test_save_and_load(comm_self, file_format_examples):
     # sometimes the surface isn't transposed the same way when
     topography = open_topography(
-        os.path.join(file_format_examples, 'di4.di'),
-        format="di").topography()
+        os.path.join(file_format_examples, 'di4.di'), format="di").topography()
 
-    npyfile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                           "test_save_and_load.npy")
-    save_npy(npyfile, topography)
+    with tempfile.TemporaryDirectory() as d:
+        npyfile = os.path.join(d, 'test_save_and_load.npy')
+        save_npy(npyfile, topography)
 
-    loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
-        # nb_subdomain_grid_pts=topography.nb_grid_pts,
-        # subdomain_locations=(0,0),
-        physical_sizes=(1., 1.))
+        loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
+            # nb_subdomain_grid_pts=topography.nb_grid_pts,
+            # subdomain_locations=(0,0),
+            physical_sizes=(1., 1.))
 
-    np.testing.assert_allclose(loaded_topography.heights(),
-                               topography.heights())
-
-    os.remove(npyfile)
+        np.testing.assert_allclose(loaded_topography.heights(),
+                                   topography.heights())
 
 
 @pytest.mark.skipif(
@@ -82,16 +80,15 @@ def test_save_and_load_np(comm_self, file_format_examples):
         os.path.join(file_format_examples, 'di4.di'),
         format="di").topography()
 
-    npyfile = "test_save_and_load_np.npy"
-    np.save(npyfile, topography.heights())
+    with tempfile.TemporaryDirectory() as d:
+        npyfile = os.path.join(d, 'test_save_and_load_np.npy')
+        np.save(npyfile, topography.heights())
 
-    loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
-        physical_sizes=(1., 1.))
+        loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
+            physical_sizes=(1., 1.))
 
-    np.testing.assert_allclose(loaded_topography.heights(),
-                               topography.heights())
-
-    os.remove(npyfile)
+        np.testing.assert_allclose(loaded_topography.heights(),
+                                   topography.heights())
 
 
 @pytest.fixture
@@ -153,7 +150,8 @@ def test_reader(comm, loader, examplefile):
 
 class npySurfaceTest(unittest.TestCase):
     def setUp(self):
-        self.fn = "example{}.npy".format(MPI.COMM_WORLD.Get_rank())
+        self.d = tempfile.TemporaryDirectory()
+        self.fn = os.path.join(self.d.name, "example{}.npy".format(MPI.COMM_WORLD.Get_rank()))
         self.res = (128, 64)
         np.random.seed(1)
         self.data = np.random.random(self.res)
@@ -171,6 +169,3 @@ class npySurfaceTest(unittest.TestCase):
 
         # self.assertEqual(topo.info, loader.info)
         self.assertEqual(topo.physical_sizes, size)
-
-    def tearDown(self):
-        os.remove(self.fn)

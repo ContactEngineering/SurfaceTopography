@@ -56,6 +56,67 @@ DATADIR = os.path.join(
     'file_format_examples')
 
 
+def _convert_filelist(filelist):
+    """
+    Parameters
+    ----------
+    filelist
+        list of strings with filenames withput path
+
+    Returns
+    -------
+    List of filenames prepended with DATADIR
+    """
+    return [os.path.join(DATADIR, fn) for fn in filelist]
+
+
+binary_example_file_list = _convert_filelist([
+    'di1.di',
+    'di2.di',
+    'di3.di',
+    'di4.di',
+    'example.ibw',
+    'spot_1-1000nm.ibw',
+    # 'surface.2048x2048.h5',
+    '10x10-one_channel_without_name.ibw',
+    'example1.mat',
+    'example.opd',
+    'example.x3p',
+    'example2.x3p',
+    'opdx1.OPDx',
+    'opdx2.OPDx',
+    'mi1.mi',
+    'N46E013.hgt',
+    'example-2d.npy',
+    'example.zon',
+])
+
+text_example_file_list = _convert_filelist([
+    'example1.txt',
+    'example2.txt',
+    'example3.txt',
+    'example4.txt',
+    'example5.txt',
+    'example8.txt',
+    # example8: from the reader's docstring, with extra newline at end
+    'opdx1.txt',
+    'opdx2.txt',
+    # Not yet working
+    # 'example6.txt',
+])
+
+text_example_without_size_file_list = _convert_filelist([
+    'example.asc',
+    'line_scan_1_minimal_spaces.asc',
+])
+
+explicit_physical_sizes = _convert_filelist([
+    'example5.txt',
+    'example1.mat',
+    'example-2d.npy'
+])
+
+
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
     """
@@ -87,61 +148,7 @@ def test_cannot_detect_file_format_on_txt():
 
 
 class IOTest(unittest.TestCase):
-
-    @staticmethod
-    def _convert_filelist(filelist):
-        """
-        Parameters
-        ----------
-        filelist
-            list of strings with filenames withput path
-
-        Returns
-        -------
-        List of filenames prepended with DATADIR
-        """
-        return [os.path.join(DATADIR, fn) for fn in filelist]
-
     def setUp(self):
-        binary_examples = [
-            'di1.di',
-            'di2.di',
-            'di3.di',
-            'di4.di',
-            'example.ibw',
-            'spot_1-1000nm.ibw',
-            # 'surface.2048x2048.h5',
-            '10x10-one_channel_without_name.ibw',
-            'example1.mat',
-            'example.opd',
-            'example.x3p',
-            'example2.x3p',
-            'opdx1.OPDx',
-            'opdx2.OPDx',
-            'mi1.mi',
-            'N46E013.hgt',
-            'example-2d.npy',
-            'example.zon',
-        ]
-
-        text_examples = [
-            'example.asc',
-            'example1.txt',
-            'example2.txt',
-            'example3.txt',
-            'example4.txt',
-            'example5.txt',
-            'example6.txt',
-            'example7.txt',
-            'example8.txt',
-            # example8: from the reader's docstring, with extra newline at end
-            'line_scan_1_minimal_spaces.asc',
-            'opdx1.txt',
-            'opdx2.txt',
-        ]
-
-        self.binary_example_file_list = self._convert_filelist(binary_examples)
-        self.text_example_file_list = self._convert_filelist(text_examples)
         self.text_example_memory_list = [
             """
             0 0
@@ -152,7 +159,7 @@ class IOTest(unittest.TestCase):
         ]
 
     def test_keep_file_open(self):
-        for fn in self.text_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list:
             # Text file can be opened as binary or text
             with open(fn, 'rb') as f:
                 open_topography(f)
@@ -160,7 +167,7 @@ class IOTest(unittest.TestCase):
             with open(fn, 'r') as f:
                 open_topography(f)
                 self.assertFalse(f.closed, msg=fn)
-        for fn in self.binary_example_file_list:
+        for fn in binary_example_file_list:
             with open(fn, 'rb') as f:
                 open_topography(f)
                 self.assertFalse(f.closed, msg=fn)
@@ -169,8 +176,7 @@ class IOTest(unittest.TestCase):
                 open_topography(f)
                 self.assertFalse(
                     f.closed,
-                    msg="text memory stream for '{}' was closed".format(
-                        datastr))
+                    msg="text memory stream for '{}' was closed".format(datastr))
 
             # Doing the same when but only giving a binary stream
             with io.BytesIO(datastr.encode(encoding='utf-8')) as f:
@@ -183,7 +189,7 @@ class IOTest(unittest.TestCase):
     def test_is_binary_stream(self):
 
         # just grep a random existing file here
-        fn = self.text_example_file_list[0]
+        fn = text_example_file_list[0]
 
         self.assertTrue(is_binary_stream(open(fn, mode='rb')))
         self.assertFalse(
@@ -196,7 +202,7 @@ class IOTest(unittest.TestCase):
             is_binary_stream(io.StringIO("11111")))  # some bytes in memory
 
     def test_can_be_pickled(self):
-        file_list = self.text_example_file_list + self.binary_example_file_list
+        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
 
         for fn in file_list:
             reader = open_topography(fn)
@@ -230,28 +236,12 @@ class IOTest(unittest.TestCase):
                         assert_array_equal(x.positions(), y.positions())
                         assert_array_equal(x.heights(), y.heights())
 
-    def test_periodic_flag(self):
-        file_list = self.text_example_file_list + self.binary_example_file_list
-        for fn in file_list:
-            reader = open_topography(fn)
-            physical_sizes = None
-            if reader.default_channel.dim != 1:
-                physical_sizes = reader.default_channel.physical_sizes \
-                    if reader.default_channel.physical_sizes is not None \
-                    else [1., ] * reader.default_channel.dim
-            t = reader.topography(physical_sizes=physical_sizes, periodic=True)
-            assert t.is_periodic, fn
-
-            t = reader.topography(physical_sizes=physical_sizes,
-                                  periodic=False)
-            assert not t.is_periodic, fn
-
     def test_reader_arguments(self):
         """Check whether all readers have channel, physical_sizes and
         height_scale_factor arguments. Also check whether we can execute
         `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
-        for fn in self.text_example_file_list + self.binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             # Test open -> topography
             r = open_topography(fn)
             physical_sizes = None if r.channels[0].dim == 1 \
@@ -278,7 +268,7 @@ class IOTest(unittest.TestCase):
         height_scale_factor arguments. Also check whether we can execute
         `topography` multiple times for all readers"""
         physical_sizes0 = (1.2, 1.3)
-        for fn in self.text_example_file_list + self.binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             # Test open -> topography
             r = open_topography(open(fn, mode='rb'))
             physical_sizes = None if r.channels[0].dim == 1 \
@@ -300,7 +290,7 @@ class IOTest(unittest.TestCase):
         the  same in the ChannelInfo and the loaded topography
         """
 
-        for fn in self.text_example_file_list + self.binary_example_file_list:
+        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
             reader = open_topography(fn)
 
             for channel in reader.channels:
@@ -316,7 +306,7 @@ class IOTest(unittest.TestCase):
                     assert channel.physical_sizes == topography.physical_sizes
 
     def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
-        file_list = self.text_example_file_list + self.binary_example_file_list
+        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
 
         for fn in file_list:
             r = open_topography(fn)
@@ -328,6 +318,37 @@ class IOTest(unittest.TestCase):
                 # If it is a tuple, it cannot contains None's
                 self.assertTrue(np.all([p is not None for p in r.default_channel.physical_sizes]),
                                 msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
+def test_periodic_flag(fn):
+    reader = open_topography(fn)
+    physical_sizes = None
+    if reader.default_channel.dim != 1:
+        physical_sizes = reader.default_channel.physical_sizes \
+            if reader.default_channel.physical_sizes is not None \
+            else [1., ] * reader.default_channel.dim
+    t = reader.topography(physical_sizes=physical_sizes, periodic=True)
+    assert t.is_periodic, fn
+
+    t = reader.topography(physical_sizes=physical_sizes,
+                          periodic=False)
+    assert not t.is_periodic, fn
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_to_netcdf(fn):
+    """Test that files can be stored as NetCDF and that reading then gives
+    an identical topography object"""
+    if fn in explicit_physical_sizes:
+        t = read_topography(fn, physical_sizes=(1, 1))
+    else:
+        t = read_topography(fn)
+    with tempfile.TemporaryDirectory() as d:
+        tmpfn = f'{d}/netcdf_representation.nc'
+        t.to_netcdf(tmpfn)
+        t2 = read_topography(tmpfn)
+        assert t == t2
 
 
 class UnknownFileFormatGivenTest(unittest.TestCase):
@@ -375,8 +396,7 @@ def test_readers_have_name(reader):
 
 def test_di_date():
     t = read_topography(os.path.join(DATADIR, 'di1.di'))
-    assert t.info['acquisition_time'] == datetime.datetime(2016, 1, 12, 9, 57,
-                                                           48)
+    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
 
 
 # yes, the German version still has "Value units"

@@ -297,14 +297,15 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @classmethod
     def _check_physical_sizes(self, physical_sizes_from_arg,
                               physical_sizes=None):
+        """Handle overriding of `physical_sizes` arguments and make sure,
+        that return value is not `None`."""
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
-                raise ValueError("physical_sizes could not be extracted from "
-                                 "file, you should provide it")
+                raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
         else:
             if physical_sizes_from_arg is None:
                 physical_sizes_from_arg = physical_sizes
-            elif tuple(physical_sizes_from_arg) != tuple(physical_sizes):
+            if tuple(physical_sizes_from_arg) != tuple(physical_sizes):
                 warnings.warn(
                     "A physical size different from the value specified when "
                     "calling the reader was present in the file. We will "

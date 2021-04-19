@@ -30,6 +30,8 @@ Base class for geometric topogography descriptions
 
 import abc
 
+import numpy as np
+
 from NuMPI import MPI
 
 # Standardized entries for the info dictionary
@@ -84,6 +86,9 @@ class AbstractHeightContainer(object):
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
+
+    def __eq__(self, other):
+        return self.info == other.info and self.is_periodic == other.is_periodic
 
     def __getstate__(self):
         """
@@ -265,6 +270,9 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
         except ValueError:
             return p, h
 
+    def __eq__(self, other):
+        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
+
     def __getitem__(self, i):
         return self.heights()[i]
 
@@ -310,6 +318,9 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     def is_MPI(self):
         return False
+
+    def __eq__(self, other):
+        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]

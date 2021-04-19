@@ -24,6 +24,7 @@
 #
 
 import os
+import tempfile
 
 import numpy as np
 from scipy.io.netcdf import netcdf_file
@@ -127,6 +128,26 @@ def test_load_no_physical_sizes(comm_self):
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
     os.remove('no_physical_sizes.nc')
+
+
+def test_save_and_load_line_scan(comm_self):
+    nb_grid_pts = (128,)
+    size = (3,)
+
+    np.random.seed(1)
+    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
+    t.info['unit'] = 'µm'
+
+    with tempfile.TemporaryDirectory() as d:
+        tmpfn = f'{d}/line_scan.nc'
+
+        # Save file
+        t.to_netcdf(tmpfn)
+
+        # Read file
+        t2 = read_topography(tmpfn)
+
+        assert t == t2
 
 
 if __name__ == '__main__':
