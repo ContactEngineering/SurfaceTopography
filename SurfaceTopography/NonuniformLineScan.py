@@ -40,17 +40,16 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     Nonuniform topography with point list consisting of static numpy arrays.
     """
 
-    def __init__(self, x, y, info={}, periodic=False):
+    def __init__(self, x, y, info={}):
         super().__init__(info=info)
         self._x = np.asarray(x)
         self._h = np.asarray(y)
-        self._periodic = periodic
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._x, self._h, self._periodic
+        state = super().__getstate__(), self._x, self._h
         return state
 
     def __setstate__(self, state):
@@ -58,7 +57,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._x, self._h, self._periodic = state
+        superstate, self._x, self._h = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -76,7 +75,7 @@ class NonuniformLineScan(AbstractHeightContainer, NonuniformLineScanInterface):
     def is_periodic(self):
         """Return whether the topography is periodically repeated at the
         boundaries."""
-        return self._periodic
+        return False
 
     @property
     def is_uniform(self):

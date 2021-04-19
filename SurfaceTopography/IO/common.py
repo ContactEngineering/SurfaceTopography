@@ -58,7 +58,7 @@ def get_unit_conversion_factor(unit1_str, unit2_str):
     return unit_scales[unit1_str] / unit_scales[unit2_str]
 
 
-def mangle_height_unit(unit):
+def mangle_length_unit_utf8(unit):
     if isinstance(unit, str):
         unit = unit.strip()
     else:
@@ -73,7 +73,7 @@ def mangle_height_unit(unit):
         return unit
 
 
-def no_uft8_height_unit(unit):
+def mangle_length_unit_ascii(unit):
     unit = unit.strip()
     if unit == '':
         return None

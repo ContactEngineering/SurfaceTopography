@@ -29,7 +29,7 @@ from collections import OrderedDict
 import numpy as np
 
 from .. import Topography
-from .common import OpenFromAny, get_unit_conversion_factor, mangle_height_unit
+from .common import OpenFromAny, get_unit_conversion_factor, mangle_length_unit_utf8
 from .Reader import ReaderBase, ChannelInfo
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
@@ -124,13 +124,13 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                 # find out physical sizes in a  common unit
                 # without touching the meta data, scale heights accordingly
                 #
-                unit_x = mangle_height_unit(metadata['Width_unit'])
+                unit_x = mangle_length_unit_utf8(metadata['Width_unit'])
                 size_x = metadata['Width_value']
 
-                unit_y = mangle_height_unit(metadata['Height_unit'])
+                unit_y = mangle_length_unit_utf8(metadata['Height_unit'])
                 size_y = metadata['Height_value']
 
-                unit_z = mangle_height_unit(metadata['z_unit'])
+                unit_z = mangle_length_unit_utf8(metadata['z_unit'])
 
                 # we want value in unit_x units
                 unit_factor_y = get_unit_conversion_factor(unit_y,

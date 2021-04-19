@@ -34,8 +34,8 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def power_spectrum_1D(topography,  # pylint: disable=invalid-name
-                      window=None):
+def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
+                                window=None):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan
     stored on a uniform grid.
@@ -88,10 +88,10 @@ def power_spectrum_1D(topography,  # pylint: disable=invalid-name
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_2D(topography, nbins=None,  # pylint: disable=invalid-name
-                      bin_edges='log',
-                      window=None, normalize_window=True,
-                      return_map=False):
+def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-name
+                             bin_edges='log',
+                             window=None, normalize_window=True,
+                             return_map=False):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
@@ -149,7 +149,7 @@ def power_spectrum_2D(topography, nbins=None,  # pylint: disable=invalid-name
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('power_spectrum_1D',
-                                             power_spectrum_1D)
-UniformTopographyInterface.register_function('power_spectrum_2D',
-                                             power_spectrum_2D)
+UniformTopographyInterface.register_function('power_spectrum_from_profile',
+                                             power_spectrum_from_profile)
+UniformTopographyInterface.register_function('power_spectrum_from_area',
+                                             power_spectrum_from_area)

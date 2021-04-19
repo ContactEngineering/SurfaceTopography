@@ -95,8 +95,8 @@ def apply_window(x, y, window=None):
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
-                      ninterpolate=5, short_cutoff=np.mean, window=None):
+def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
+                   ninterpolate=5, short_cutoff=np.mean, window=None):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -155,7 +155,7 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
         wavevectors, psd = line_scan.to_uniform(
-            ninterpolate * int(s / min_dist), 0).power_spectrum_1D(window=window)
+            ninterpolate * int(s / min_dist), 0).power_spectrum_from_profile(window=window)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
@@ -187,5 +187,5 @@ def power_spectrum_1D(line_scan, algorithm='fft', wavevectors=None,
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('power_spectrum_1D',
-                                              power_spectrum_1D)
+NonuniformLineScanInterface.register_function('power_spectrum_from_profile',
+                                              power_spectrum)

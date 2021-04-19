@@ -36,7 +36,7 @@ import numpy as np
 
 from SurfaceTopography import Topography
 
-from .common import get_unit_conversion_factor, height_units, mangle_height_unit
+from .common import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
 from .Reader import ReaderBase, ChannelInfo
 
 
@@ -111,9 +111,7 @@ supports V4.3 and later version of the format.
             for n, p in parameters:
                 if n == 'file list':
                     if 'date' in p:
-                        info['acquisition_time'] = \
-                            datetime.strptime(p['date'],
-                                              '%I:%M:%S %p %a %b %d %Y')
+                        info['acquisition_time'] = str(datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y'))
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'ciao image list':
@@ -127,7 +125,7 @@ supports V4.3 and later version of the format.
                     sx = float(s[0])
                     sy = float(s[1])
 
-                    xy_unit = mangle_height_unit(s[2])
+                    xy_unit = mangle_length_unit_utf8(s[2])
                     offset = int(p['data offset'])
                     self._offsets.append(offset)
 
@@ -169,7 +167,7 @@ supports V4.3 and later version of the format.
                                                          soft_unit,
                                                          image_data_key))
                     if height_unit in height_units:
-                        height_unit = mangle_height_unit(height_unit)
+                        height_unit = mangle_length_unit_utf8(height_unit)
                         if xy_unit != height_unit:
                             fac = get_unit_conversion_factor(xy_unit,
                                                              height_unit)

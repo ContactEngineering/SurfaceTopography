@@ -58,7 +58,7 @@ def test_fourier_derivative(plot=False):
     lc = 0.5
     topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
                                    short_cutoff=lc, long_cutoff=lc + 1e-9)
-    topography = topography.scale(1 / topography.rms_height())
+    topography = topography.scale(1 / topography.rms_height_from_area())
 
     # Fourier derivative
     dx, dy = topography.fourier_derivative(imtol=1e-12)
@@ -67,8 +67,8 @@ def test_fourier_derivative(plot=False):
     # derivative at the same point as the Fourier derivative
     dx_num, dy_num = topography.derivative(1, operator=Stencils2D.central)
 
-    np.testing.assert_allclose(dx, dx_num, atol=topography.rms_slope() * 1e-1)
-    np.testing.assert_allclose(dy, dy_num, atol=topography.rms_slope() * 1e-1)
+    np.testing.assert_allclose(dx, dx_num, atol=topography.rms_gradient() * 1e-1)
+    np.testing.assert_allclose(dy, dy_num, atol=topography.rms_gradient() * 1e-1)
 
     if plot:
         import matplotlib.pyplot as plt

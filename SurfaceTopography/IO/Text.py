@@ -26,7 +26,7 @@ import re
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_height_unit, text
+from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
 from .FromFile import make_wrapped_reader
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
@@ -144,24 +144,24 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 xsiz = float(match.group('value'))
                 x = match.group('unit')
                 if x:
-                    xunit = mangle_height_unit(x)
+                    xunit = mangle_length_unit_utf8(x)
             elif key == 'ysiz':
                 ysiz = float(match.group('value'))
                 y = match.group('unit')
                 if y:
-                    yunit = mangle_height_unit(y)
+                    yunit = mangle_length_unit_utf8(y)
             elif key == 'xunit':
-                xunit = mangle_height_unit(match.group(1))
+                xunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'yunit':
-                yunit = mangle_height_unit(match.group(1))
+                yunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'zunit':
-                zunit = mangle_height_unit(match.group(1))
+                zunit = mangle_length_unit_utf8(match.group(1))
             elif key == 'xfac':
                 xfac = float(match.group('value'))
-                xunit = mangle_height_unit(match.group('unit'))
+                xunit = mangle_length_unit_utf8(match.group('unit'))
             elif key == 'zfac':
                 zfac = float(match.group('value'))
-                zunit = mangle_height_unit(match.group('unit'))
+                zunit = mangle_length_unit_utf8(match.group('unit'))
             elif key == 'channel_name':
                 channel_name = match.group(1).strip()
 
@@ -292,8 +292,6 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
     ----------
     fobj : str or file object
          File name or stream.
-    unit : str
-         Physical unit.
     tol : float
          Tolerance for detecting uniform grids
 
@@ -314,15 +312,18 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
-            t = UniformLineScan(z, physical_sizes, info=info,
-                                periodic=periodic)
+            t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
         else:
+            if periodic:
+                raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
+                                 'Nonuniform line scans cannot be periodic.')
+            t = NonuniformLineScan(x, z, info=info)
             if physical_sizes is not None:
-                raise ValueError(
-                    'XYZ reader found nonuniform data. Manually setting the'
-                    'physical size is not possible for this type of data.')
+                if not np.allclose(t.physical_sizes, physical_sizes):
+                    raise ValueError(
+                        'XYZ reader found nonuniform data. Manually setting the '
+                        'physical size is not possible for this type of data.')
 
-            t = NonuniformLineScan(x, z, info=info, periodic=periodic)
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
