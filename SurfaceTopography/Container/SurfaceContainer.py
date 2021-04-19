@@ -35,6 +35,26 @@ class SurfaceContainer(object):
     def __getitem__(self, item):
         return self._topographies[item]
 
+    def apply(self, name, *args, **kwargs):
+        self._functions[name](self, *args, **kwargs)
+
+    def __getattr__(self, name):
+        if name in self._functions:
+            def func(*args, **kwargs):
+                return self._functions[name](self, *args, **kwargs)
+
+            func.__doc__ = self._functions[name].__doc__
+            return func
+        else:
+            raise AttributeError(
+                "Unkown attribute '{}' and no analysis or pipeline function "
+                "of this name registered (class {}). Available functions: {}"
+                    .format(name, self.__class__.__name__,
+                            ', '.join(self._functions.keys())))
+
+    def __dir__(self):
+        return sorted(super().__dir__() + [*self._functions])
+
     @classmethod
     def register_function(cls, name, function):
         cls._functions.update({name: function})
