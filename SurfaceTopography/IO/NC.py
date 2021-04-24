@@ -110,7 +110,7 @@ plt.show()
         else:
             # We need to check magic ourselves if this is a stream because
             # netcdf_file closes the stream
-            if hasattr('seek', fobj):
+            if hasattr(fobj, 'seek'):
                 magic = fobj.read(3)
                 if not magic == b'CDF':
                     raise TypeError('File or stream is not a valid NetCDF 3 file')
