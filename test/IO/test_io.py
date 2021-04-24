@@ -89,6 +89,7 @@ binary_example_file_list = _convert_filelist([
     'N46E013.hgt',
     'example-2d.npy',
     'example.zon',
+    'example.nc',
 ])
 
 text_example_file_list = _convert_filelist([
