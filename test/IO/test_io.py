@@ -117,6 +117,15 @@ explicit_physical_sizes = _convert_filelist([
     'example-2d.npy'
 ])
 
+text_example_memory_list = [
+            """
+            0 0
+            1 2
+            2 4
+            3 6
+            """
+]
+
 
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
@@ -126,9 +135,9 @@ def test_closes_file_on_failure(reader):
     fn = os.path.join(DATADIR, "wrongnpyfile.npy")
     with warnings.catch_warnings(record=True) as w:
         # Cause all warnings to always be triggered.
-        warnings.simplefilter(
-            "always")  # deactivate hiding of ResourceWarnings
+        warnings.simplefilter("always")  # deactivate hiding of ResourceWarnings
 
+        # noinspection PyBroadException
         try:
             reader(fn)
         except Exception:
@@ -148,177 +157,173 @@ def test_cannot_detect_file_format_on_txt():
         read_topography(os.path.join(DATADIR, 'nonsense_txt_file.txt'))
 
 
-class IOTest(unittest.TestCase):
-    def setUp(self):
-        self.text_example_memory_list = [
-            """
-            0 0
-            1 2
-            2 4
-            3 6
-            """
-        ]
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list)
+def test_keep_text_file_open(fn):
 
-    def test_keep_file_open(self):
-        for fn in text_example_file_list + text_example_without_size_file_list:
-            # Text file can be opened as binary or text
-            with open(fn, 'rb') as f:
-                open_topography(f)
-                self.assertFalse(f.closed, msg=fn)
-            with open(fn, 'r') as f:
-                open_topography(f)
-                self.assertFalse(f.closed, msg=fn)
-        for fn in binary_example_file_list:
-            with open(fn, 'rb') as f:
-                open_topography(f)
-                self.assertFalse(f.closed, msg=fn)
-        for datastr in self.text_example_memory_list:
-            with io.StringIO(datastr) as f:
-                open_topography(f)
-                self.assertFalse(
-                    f.closed,
-                    msg="text memory stream for '{}' was closed".format(datastr))
+    # Text file can be opened as binary or text
+    with open(fn, 'rb') as f:
+        open_topography(f)
+        assert not f.closed, f"Text file {fn} was opened as binary file and is closed, but should not"
+    with open(fn, 'r') as f:
+        open_topography(f)
+        assert not f.closed, f"Text file {fn} was opened as text file and is closed, but should not"
 
-            # Doing the same when but only giving a binary stream
-            with io.BytesIO(datastr.encode(encoding='utf-8')) as f:
-                open_topography(f)
-                self.assertFalse(
-                    f.closed,
-                    msg="binary memory stream for '{}' was closed".format(
-                        datastr))
 
-    def test_is_binary_stream(self):
+@pytest.mark.parametrize('fn', binary_example_file_list)
+def test_keep_binary_file_open(fn):
 
-        # just grep a random existing file here
-        fn = text_example_file_list[0]
+    with open(fn, 'rb') as f:
+        open_topography(f)
+        assert not f.closed, f"Binary file {fn} was opened as binary file and is closed, but should not"
 
-        self.assertTrue(is_binary_stream(open(fn, mode='rb')))
-        self.assertFalse(
-            is_binary_stream(open(fn, mode='r')))  # opened as text file
 
-        # should also work with streams in memory
-        self.assertTrue(
-            is_binary_stream(io.BytesIO(b"11111")))  # some bytes in memory
-        self.assertFalse(
-            is_binary_stream(io.StringIO("11111")))  # some bytes in memory
+@pytest.mark.parametrize('datastr', text_example_memory_list)
+def test_keep_stream_from_memory_open(datastr):
+    with io.StringIO(datastr) as f:
+        open_topography(f)
+        assert not f.closed, "text memory stream for '{}' was closed".format(datastr)
 
-    def test_can_be_pickled(self):
-        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
+    # Doing the same when but only giving a binary stream
+    with io.BytesIO(datastr.encode(encoding='utf-8')) as f:
+        open_topography(f)
+        assert not f.closed, "binary memory stream for '{}' was closed".format(datastr)
 
-        for fn in file_list:
-            reader = open_topography(fn)
-            physical_sizes = None
-            if reader.default_channel.dim != 1:
-                physical_sizes = reader.default_channel.physical_sizes \
-                    if reader.default_channel.physical_sizes is not None \
-                    else (1.,) * reader.default_channel.dim
 
-            topography = reader.topography(physical_sizes=physical_sizes)
-            topographies = [topography]
-            if hasattr(topography, 'to_uniform'):
-                topographies += [topography.to_uniform(100, 0)]
-            for t in topographies:
-                s = pickle.dumps(t)
-                pickled_t = pickle.loads(s)
+def test_is_binary_stream():
+    # just grep a random existing file here
+    fn = text_example_file_list[0]
 
-                #
-                # Compare some attributes after unpickling
-                #
-                # sometimes the result is a list of topographies
-                multiple = isinstance(t, list)
-                if not multiple:
-                    t = [t]
-                    pickled_t = [pickled_t]
+    assert is_binary_stream(open(fn, mode='rb'))
+    assert not is_binary_stream(open(fn, mode='r'))  # opened as text file
 
-                for x, y in zip(t, pickled_t):
-                    for attr in ['dim', 'physical_sizes', 'is_periodic']:
-                        assert getattr(x, attr) == getattr(y, attr)
-                    if x.physical_sizes is not None:
-                        assert_array_equal(x.positions(), y.positions())
-                        assert_array_equal(x.heights(), y.heights())
+    # should also work with streams in memory
+    assert is_binary_stream(io.BytesIO(b"11111"))  # some bytes in memory
+    assert not is_binary_stream(io.StringIO("11111"))  # some bytes in memory
 
-    def test_reader_arguments(self):
-        """Check whether all readers have channel, physical_sizes and
-        height_scale_factor arguments. Also check whether we can execute
-        `topography` multiple times for all readers"""
-        physical_sizes0 = (1.2, 1.3)
-        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
-            # Test open -> topography
-            r = open_topography(fn)
-            physical_sizes = None if r.channels[0].dim == 1 \
-                else physical_sizes0
-            t = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                             height_scale_factor=None)
-            if physical_sizes is not None:
-                self.assertEqual(t.physical_sizes, physical_sizes)
-            # Second call to topography
-            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                              height_scale_factor=None)
-            if physical_sizes is not None:
-                self.assertEqual(t2.physical_sizes, physical_sizes)
-            assert_array_equal(t.heights(), t2.heights())
-            # Test read_topography
-            t = read_topography(fn, channel_index=0,
-                                physical_sizes=physical_sizes,
-                                height_scale_factor=None)
-            if physical_sizes is not None:
-                self.assertEqual(t.physical_sizes, physical_sizes)
 
-    def test_readers_with_binary_file_object(self):
-        """Check whether all readers have channel, physical_sizes and
-        height_scale_factor arguments. Also check whether we can execute
-        `topography` multiple times for all readers"""
-        physical_sizes0 = (1.2, 1.3)
-        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
-            # Test open -> topography
-            r = open_topography(open(fn, mode='rb'))
-            physical_sizes = None if r.channels[0].dim == 1 \
-                else physical_sizes0
-            t = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                             height_scale_factor=None)
-            if physical_sizes is not None:
-                self.assertEqual(t.physical_sizes, physical_sizes)
-            # Second call to topography
-            t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                              height_scale_factor=None)
-            if physical_sizes is not None:
-                self.assertEqual(t2.physical_sizes, physical_sizes)
-            assert_array_equal(t.heights(), t2.heights(), err_msg=fn)
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_can_be_pickled(fn):
+        reader = open_topography(fn)
+        physical_sizes = None
+        if reader.default_channel.dim != 1:
+            physical_sizes = reader.default_channel.physical_sizes \
+                if reader.default_channel.physical_sizes is not None \
+                else (1.,) * reader.default_channel.dim
 
-    def test_reader_topography_same(self):
-        """
-        Tests that properties like physical sizes, units and nb_grid_pts are
-        the  same in the ChannelInfo and the loaded topography
-        """
+        topography = reader.topography(physical_sizes=physical_sizes)
+        topographies = [topography]
+        if hasattr(topography, 'to_uniform'):
+            topographies += [topography.to_uniform(100, 0)]
+        for t in topographies:
+            s = pickle.dumps(t)
+            pickled_t = pickle.loads(s)
 
-        for fn in text_example_file_list + text_example_without_size_file_list + binary_example_file_list:
-            reader = open_topography(fn)
+            #
+            # Compare some attributes after unpickling
+            #
+            # sometimes the result is a list of topographies
+            multiple = isinstance(t, list)
+            if not multiple:
+                t = [t]
+                pickled_t = [pickled_t]
 
-            for channel in reader.channels:
-                topography = channel.topography(
-                    physical_sizes=(1, 1) if channel.physical_sizes is None
-                    else None)
-                assert channel.nb_grid_pts == topography.nb_grid_pts
-                if "unit" in channel.info.keys() or \
-                        "unit" in topography.info.keys():
-                    assert channel.info["unit"] == topography.info["unit"]
+            for x, y in zip(t, pickled_t):
+                for attr in ['dim', 'physical_sizes', 'is_periodic']:
+                    assert getattr(x, attr) == getattr(y, attr)
+                if x.physical_sizes is not None:
+                    assert_array_equal(x.positions(), y.positions())
+                    assert_array_equal(x.heights(), y.heights())
 
-                if channel.physical_sizes is not None:
-                    assert channel.physical_sizes == topography.physical_sizes
 
-    def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(self):
-        file_list = text_example_file_list + text_example_without_size_file_list + binary_example_file_list
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_reader_arguments(fn):
+    """Check whether all readers have channel, physical_sizes and
+    height_scale_factor arguments. Also check whether we can execute
+    `topography` multiple times for all readers"""
+    physical_sizes0 = (1.2, 1.3)
 
-        for fn in file_list:
-            r = open_topography(fn)
-            self.assertTrue(isinstance(r.default_channel.nb_grid_pts, tuple),
-                            msg=f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}')
-            if r.default_channel.physical_sizes is not None:
-                self.assertTrue(isinstance(r.default_channel.physical_sizes, tuple),
-                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
-                # If it is a tuple, it cannot contains None's
-                self.assertTrue(np.all([p is not None for p in r.default_channel.physical_sizes]),
-                                msg=f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}')
+    # Test open -> topography
+    r = open_topography(fn)
+    physical_sizes = None if r.channels[0].dim == 1 \
+        else physical_sizes0
+    t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                     height_scale_factor=None)
+    if physical_sizes is not None:
+        assert t.physical_sizes == physical_sizes
+    # Second call to topography
+    t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                      height_scale_factor=None)
+    if physical_sizes is not None:
+        assert t2.physical_sizes == physical_sizes
+    assert_array_equal(t.heights(), t2.heights())
+    # Test read_topography
+    t = read_topography(fn, channel_index=0,
+                        physical_sizes=physical_sizes,
+                        height_scale_factor=None)
+    if physical_sizes is not None:
+        assert t.physical_sizes == physical_sizes
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_readers_with_binary_file_object(fn):
+    """Check whether all readers have channel, physical_sizes and
+    height_scale_factor arguments. Also check whether we can execute
+    `topography` multiple times for all readers"""
+    physical_sizes0 = (1.2, 1.3)
+
+    # Test open -> topography
+    r = open_topography(open(fn, mode='rb'))
+    physical_sizes = None if r.channels[0].dim == 1 \
+        else physical_sizes0
+    t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                     height_scale_factor=None)
+    if physical_sizes is not None:
+        assert t.physical_sizes == physical_sizes
+    # Second call to topography
+    t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                      height_scale_factor=None)
+    if physical_sizes is not None:
+        assert t2.physical_sizes == physical_sizes
+    assert_array_equal(t.heights(), t2.heights(), err_msg=fn)
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
+    r = open_topography(fn)
+    assert isinstance(r.default_channel.nb_grid_pts, tuple), f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}'
+    if r.default_channel.physical_sizes is not None:
+        assert isinstance(r.default_channel.physical_sizes, tuple),\
+            f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
+        # If it is a tuple, it cannot contains None's
+        assert np.all([p is not None for p in r.default_channel.physical_sizes]),\
+            f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_reader_topography_same(fn):
+    """
+    Tests that properties like physical sizes, units and nb_grid_pts are
+    the  same in the ChannelInfo and the loaded topography
+    """
+
+    reader = open_topography(fn)
+
+    for channel in reader.channels:
+        foo_str = reader.format()+"-%d" % (channel.index,)  # unique for each channel
+        topography = channel.topography(
+            physical_sizes=(1, 1) if channel.physical_sizes is None
+            else None,
+            info=dict(foo=foo_str))
+        assert channel.nb_grid_pts == topography.nb_grid_pts
+
+        # some checks on info dict in channel and topography
+        assert topography.info['foo'] == foo_str
+        if "unit" in channel.info.keys() or \
+                "unit" in topography.info.keys():
+            assert channel.info["unit"] == topography.info["unit"]
+
+        if channel.physical_sizes is not None:
+            assert channel.physical_sizes == topography.physical_sizes
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
