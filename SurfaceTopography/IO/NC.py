@@ -121,11 +121,6 @@ plt.show()
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
 
-            # self._nc is closed in this class in method .close(),
-            # but only if it is no file stream
-            close_nc_on_close = not hasattr(fobj, 'seek')
-            self._close_nc_on_close = close_nc_on_close
-
             # we subclass the netcdf_file class such it
             # is not closed by garbage collector in case of file streams
 
@@ -200,8 +195,7 @@ plt.show()
             if self._heights_var is not None:
                 del self._heights_var
 
-            if self._close_nc_on_close:
-                self._nc.close()
+            del self._nc
             self._nc = None
 
     @property
