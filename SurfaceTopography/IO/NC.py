@@ -109,15 +109,28 @@ plt.show()
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
         else:
             # We need to check magic ourselves if this is a stream because
-            # netcdf_file closes the stream
+            # netcdf_file may close the stream in case of error, probably
+            # because of garbage collection
             if hasattr(fobj, 'seek'):
                 magic = fobj.read(3)
                 if not magic == b'CDF':
                     raise TypeError('File or stream is not a valid NetCDF 3 file')
+                # we must rewind the file
+                fobj.seek(0)
             # We run serial I/O through scipy. This has several advantages:
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
-            self._nc = netcdf_file(fobj, 'r')
+
+            # we subclass the netcdf_file class such it
+            # is not closed by garbage collector
+            class netcdf_file_without_close_on_del(netcdf_file):
+                def __del__(self):
+                    pass  # just pass, we want to disable calling the 'close' method in original code
+
+            self._nc = netcdf_file_without_close_on_del(fobj, 'r')
+            self._close_nc_on_close = not hasattr(fobj, 'seek')
+            # instead, self._nc is closed in this class in method .close(),
+            # but only if it is no file stream
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
@@ -180,7 +193,9 @@ plt.show()
                 del self._y_var
             if self._heights_var is not None:
                 del self._heights_var
-            self._nc.close()
+
+            if self._close_nc_on_close:
+                self._nc.close()
             self._nc = None
 
     @property
