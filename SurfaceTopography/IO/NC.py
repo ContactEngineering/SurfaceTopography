@@ -121,16 +121,22 @@ plt.show()
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
 
-            # we subclass the netcdf_file class such it
-            # is not closed by garbage collector
-            class netcdf_file_without_close_on_del(netcdf_file):
-                def __del__(self):
-                    pass  # just pass, we want to disable calling the 'close' method in original code
-
-            self._nc = netcdf_file_without_close_on_del(fobj, 'r')
-            self._close_nc_on_close = not hasattr(fobj, 'seek')
-            # instead, self._nc is closed in this class in method .close(),
+            # self._nc is closed in this class in method .close(),
             # but only if it is no file stream
+            close_nc_on_close = not hasattr(fobj, 'seek')
+            self._close_nc_on_close = close_nc_on_close
+
+            # we subclass the netcdf_file class such it
+            # is not closed by garbage collector in case of file streams
+
+            class SpecialNetCDFFile(netcdf_file):
+                def __del__(self):
+                    if not hasattr(self.fp, 'seek'):
+                        self.close()
+                    # we want to disable calling the 'close' method in original code
+                    # in case of file streams
+
+            self._nc = SpecialNetCDFFile(fobj, 'r')
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
