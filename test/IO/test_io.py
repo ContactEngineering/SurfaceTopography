@@ -121,7 +121,7 @@ explicit_physical_sizes = _convert_filelist([
 @pytest.mark.parametrize("reader", readers)
 def test_closes_file_on_failure(reader):
     """
-    Tests for each reader class that it doesn't raise a Resourcewarning
+    Tests for each reader class that it doesn't raise a ResourceWarning
     """
     fn = os.path.join(DATADIR, "wrongnpyfile.npy")
     with warnings.catch_warnings(record=True) as w:
