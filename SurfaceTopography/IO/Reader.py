@@ -214,7 +214,7 @@ class ChannelInfo:
     def info(self):
         """
         A dictionary containing additional information (metadata) not used by
-        PyCo itself, but required by third-party application.
+        SurfaceTopography itself, but required by third-party application.
 
         Presently, the following entries have been standardized:
         'unit':
@@ -341,7 +341,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
