@@ -131,7 +131,7 @@ plt.show()
 
             class SpecialNetCDFFile(netcdf_file):
                 def __del__(self):
-                    if not hasattr(self.fp, 'seek'):
+                    if self.filename != 'None':
                         self.close()
                     # we want to disable calling the 'close' method in original code
                     # in case of file streams
