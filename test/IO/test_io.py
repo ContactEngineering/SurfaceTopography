@@ -128,7 +128,7 @@ text_example_memory_list = [
 
 
 @pytest.mark.parametrize("reader", readers)
-def test_closes_file_on_failure(reader):
+def test_no_resource_warning_on_failure(reader):
     """
     Tests for each reader class that it doesn't raise a ResourceWarning
     """
