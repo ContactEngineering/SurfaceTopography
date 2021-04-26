@@ -258,11 +258,11 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(np.array(self._heights_var[...]), physical_sizes,
+                    return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       info=_info)
                 else:
-                    return UniformLineScan(np.array(self._heights_var[...]), physical_sizes,
+                    return UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            info=_info)
             else:
@@ -274,7 +274,9 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]), info=_info)
+                return NonuniformLineScan(np.array(self._x_var[...], copy=True),
+                                          np.array(self._heights_var[...], copy=True),
+                                          info=_info)
         else:
             if self._y_dim is None:
                 raise ValueError('Parallel reading only works for topographies, not line scans.')
@@ -282,7 +284,7 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(np.array(self._heights_var[...]), physical_sizes,
+            return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
