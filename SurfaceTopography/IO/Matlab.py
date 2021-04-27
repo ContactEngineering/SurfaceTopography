@@ -95,11 +95,13 @@ These need to be manually provided by the user.
             raise RuntimeError(
                 'This reader does not support MPI parallelization.')
 
+        info = info.copy()
+        info['data_source'] = self.channels[channel_index].name
+
         return Topography(self._height_data[channel_index],
                           physical_sizes=self._check_physical_sizes(
                               physical_sizes),
-                          info=dict(
-                              data_source=self.channels[channel_index].name),
+                          info=info,
                           periodic=periodic)
 
     channels.__doc__ = ReaderBase.channels.__doc__

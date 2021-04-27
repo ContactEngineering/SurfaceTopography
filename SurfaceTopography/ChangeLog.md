@@ -12,6 +12,9 @@ v0.93.0 (not yet released)
 - ENH: Derivative can be computed for different scales
 - ENH: Scale-dependent slope and curvature
 - ENH: Pipeline function for windowing
+- ENH: Reader for NetCDF can read from streams
+- BUG: Fixes that info dict was not always taken when topography
+  was initialized from a reader's channel
 
 v0.92.0 (15Mar21)
 -----------------
