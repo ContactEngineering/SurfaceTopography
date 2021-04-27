@@ -2,8 +2,8 @@
 Change log for SurfaceTopography
 =============================
 
-v0.93.0 (not yet released)
---------------------------
+v0.93.0 (27Apr21)
+-----------------
 
 - API: Replace `_1D` suffix with `_from_profile` and `_2D` suffix with
   `_from_area`
