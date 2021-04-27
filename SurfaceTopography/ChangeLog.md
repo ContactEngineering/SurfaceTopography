@@ -12,6 +12,7 @@ v0.93.0 (not yet released)
 - ENH: Derivative can be computed for different scales
 - ENH: Scale-dependent slope and curvature
 - ENH: Pipeline function for windowing
+- ENH: Reader for NetCDF can read from streams
 
 v0.92.0 (15Mar21)
 -----------------
