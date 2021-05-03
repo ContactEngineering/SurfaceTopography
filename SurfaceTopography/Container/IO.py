@@ -25,7 +25,7 @@
 import yaml
 from zipfile import ZipFile
 
-from .. import read_topography
+from ..IO import read_topography
 from .SurfaceContainer import SurfaceContainer
 
 
