@@ -29,11 +29,24 @@ from ..IO import read_topography
 from .SurfaceContainer import SurfaceContainer
 
 
-def read_container(fn):
+def read_container(fn, datafile_key='datafile'):
     """
     Read all surface in a container file and associated metadata. The
     container is a ZIP file with raw data files and a YAML file meta.yml
     that contains all metadata not contained in the raw data files.
+
+    Parameters
+    ----------
+    fn : str or stream
+        File or stream that contains the ZIP-container
+    datafile_key : str, optional
+        Key in 'meta.yml' that contains the name of the datafile to open.
+        (Default: 'datafile')
+
+    Returns
+    -------
+    surface_containers : list of :obj:`SurfaceContainer`s
+        List of all surfaces contained in this container file.
     """
 
     surfaces = []
@@ -45,7 +58,7 @@ def read_container(fn):
         for surf_meta in meta['surfaces']:
             for topo_meta in surf_meta['topographies']:
                 t = read_topography(
-                    z.open(topo_meta['datafile']),
+                    z.open(topo_meta[datafile_key]),
                     physical_sizes=topo_meta['size'],
                     info=dict(
                         unit=topo_meta['unit'],
