@@ -10,7 +10,7 @@ From: ubuntu:18.04 # Ubuntu 20 funktioniert nich
     export DEBIAN_FRONTEND=noninteractive
     export DEBCONF_NONINTERACTIVE_SEEN=true
 
-    # INSTALL C dependencies (mostly for muFFT) and python3
+    # INSTALL C dependencies (mostly for muFFT) and python3 # Execute the code under the root permission # You need to wait patiently for a long time
     apt-get -qq update && apt-get -y -qq install \
     clang \
     cmake \
