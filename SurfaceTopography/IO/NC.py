@@ -109,15 +109,29 @@ plt.show()
             self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
         else:
             # We need to check magic ourselves if this is a stream because
-            # netcdf_file closes the stream
-            if hasattr('seek', fobj):
+            # netcdf_file may close the stream in case of error, probably
+            # because of garbage collection
+            if hasattr(fobj, 'seek'):
                 magic = fobj.read(3)
                 if not magic == b'CDF':
                     raise TypeError('File or stream is not a valid NetCDF 3 file')
+                # we must rewind the file
+                fobj.seek(0)
             # We run serial I/O through scipy. This has several advantages:
             # 1) lightweight, 2) can handle streams
             from scipy.io.netcdf import netcdf_file
-            self._nc = netcdf_file(fobj, 'r')
+
+            # we subclass the netcdf_file class such it
+            # is not closed by garbage collector in case of file streams
+
+            class SpecialNetCDFFile(netcdf_file):
+                def __del__(self):
+                    if self.filename != 'None':
+                        self.close()
+                    # we want to disable calling the 'close' method in original code
+                    # in case of file streams
+
+            self._nc = SpecialNetCDFFile(fobj, 'r')
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
@@ -180,7 +194,8 @@ plt.show()
                 del self._y_var
             if self._heights_var is not None:
                 del self._heights_var
-            self._nc.close()
+
+            del self._nc
             self._nc = None
 
     @property
@@ -237,11 +252,11 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(np.array(self._heights_var[...]), physical_sizes,
+                    return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       info=_info)
                 else:
-                    return UniformLineScan(np.array(self._heights_var[...]), physical_sizes,
+                    return UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            info=_info)
             else:
@@ -253,7 +268,9 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]), info=_info)
+                return NonuniformLineScan(np.array(self._x_var[...], copy=True),
+                                          np.array(self._heights_var[...], copy=True),
+                                          info=_info)
         else:
             if self._y_dim is None:
                 raise ValueError('Parallel reading only works for topographies, not line scans.')
@@ -261,7 +278,7 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(np.array(self._heights_var[...]), physical_sizes,
+            return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,

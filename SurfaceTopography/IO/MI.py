@@ -164,6 +164,8 @@ topography map as well as its units.
             pass  # TODO
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
+        info = info.copy()
+        info.update(joined_meta)
 
         # Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T), except that the y axis
@@ -172,7 +174,7 @@ topography map as well as its units.
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(
                            physical_sizes, self._physical_sizes),
-                       info=joined_meta, periodic=periodic)
+                       info=info, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
         return t
