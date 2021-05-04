@@ -156,16 +156,16 @@ def write_containers(containers, fn):
         This archive contains {len(containers)} surface(s). Each surface is a
         collection of individual topography measurements.
         In total {sum(len(x) for x in containers)} topography measurements are included.
-    
+
         The meta data for the surfaces and the individual topographies
         can be found in the auxiliary file 'meta.yml' and within
         the NetCDF topographies themselves. 'meta.yml' is formatted
         as a [YAML](https://yaml.org/) file. The NetCDF topographies
         contain metadata as [JSON](https://www.json.org/).
-    
+
         Version information
         ===================
-    
+
         SurfaceTopography: {__version__}
         """)
 
