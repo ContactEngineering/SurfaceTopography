@@ -27,7 +27,15 @@ import textwrap
 import yaml
 from datetime import datetime
 from zipfile import ZipFile
-from importlib.metadata import version
+
+try:
+    from importlib.metadata import version
+
+    __version__ = version('SurfaceTopography')
+except ImportError:
+    from pkg_resources import get_distribution
+
+    __version__ = get_distribution('SurfaceTopography').version
 
 from ..IO import read_topography
 from .SurfaceContainer import SurfaceContainer
@@ -96,8 +104,6 @@ def write_containers(containers, fn):
 
     # This is adapted from TopoBank
 
-    version_str = version('SurfaceTopography')
-
     surfaces_dicts = []
     counter = 0
 
@@ -134,7 +140,7 @@ def write_containers(containers, fn):
         # Add metadata file
         #
         metadata = dict(
-            versions=dict(SurfaceTopography=version_str),
+            versions=dict(SurfaceTopography=__version__),
             surfaces=surfaces_dicts,
             creation_time=str(datetime.now()),
         )
@@ -160,7 +166,7 @@ def write_containers(containers, fn):
         Version information
         ===================
     
-        SurfaceTopography: {version_str}
+        SurfaceTopography: {__version__}
         """)
 
         zf.writestr("README.txt", textwrap.dedent(readme_txt))
