@@ -22,5 +22,5 @@
 # SOFTWARE.
 #
 
-from .IO import read_container
-from .SurfaceContainer import SurfaceContainer
+from .IO import read_container  # noqa: F401
+from .SurfaceContainer import SurfaceContainer  # noqa: F401
