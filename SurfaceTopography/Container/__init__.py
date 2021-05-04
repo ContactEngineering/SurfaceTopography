@@ -23,3 +23,4 @@
 #
 
 from .IO import read_container
+from .SurfaceContainer import SurfaceContainer

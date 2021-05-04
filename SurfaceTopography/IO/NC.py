@@ -36,10 +36,27 @@ from .common import mangle_length_unit_utf8, mangle_length_unit_ascii
 
 from .Reader import ReaderBase, ChannelInfo
 
+# We run serial I/O through scipy. This has several advantages:
+# 1) lightweight, 2) can handle streams
+from scipy.io.netcdf import netcdf_file
+
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,
     'NETCDF3_64BIT_OFFSET': 2
 }
+
+
+# we subclass the netcdf_file class such it
+# is not closed by garbage collector in case of file streams
+class _SpecialNetCDFFile(netcdf_file):
+    def close(self):
+        if self.filename != 'None':
+            super().close()
+        else:
+            self.flush()
+        # we want to disable calling closing the file
+        # in case of file streams
+    __del__ = close
 
 
 class NCReader(ReaderBase):
@@ -118,21 +135,8 @@ plt.show()
                     raise TypeError('File or stream is not a valid NetCDF 3 file')
                 # we must rewind the file
                 fobj.seek(0)
-            # We run serial I/O through scipy. This has several advantages:
-            # 1) lightweight, 2) can handle streams
-            from scipy.io.netcdf import netcdf_file
 
-            # we subclass the netcdf_file class such it
-            # is not closed by garbage collector in case of file streams
-
-            class SpecialNetCDFFile(netcdf_file):
-                def __del__(self):
-                    if self.filename != 'None':
-                        self.close()
-                    # we want to disable calling the 'close' method in original code
-                    # in case of file streams
-
-            self._nc = SpecialNetCDFFile(fobj, 'r')
+            self._nc = _SpecialNetCDFFile(fobj, 'r')
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
@@ -295,7 +299,7 @@ plt.show()
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
+def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
     """
     Write topography into a NetCDF file.
 
@@ -303,8 +307,8 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
     ----------
     topography : :obj:`SurfaceTopography`
         The topography to write to disk.
-    filename : str
-        Name of the NetCDF file
+    fobj : str or stream
+        Name of the NetCDF file or file stream
     format : str
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
@@ -314,12 +318,12 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                       parallel=topography.is_domain_decomposed,
                       comm=topography.communicator)
     else:
-        from scipy.io.netcdf import netcdf_file as Dataset
+        Dataset = _SpecialNetCDFFile
         kwargs = dict(version=format_to_scipy_version[format])
     if not topography.is_domain_decomposed and \
             topography.communicator.rank > 1:
         return
-    with Dataset(filename, 'w', **kwargs) as nc:
+    with Dataset(fobj, 'w', **kwargs) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = topography.info.copy()
         try:
@@ -382,7 +386,7 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             heights_var.unit = mangle_length_unit_ascii(topography.info['unit'])
 
 
-def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
+def write_nc_nonuniform(line_scan, fobj, format='NETCDF3_64BIT_OFFSET'):
     """
     Write nonuniform line scan into a NetCDF file.
 
@@ -390,17 +394,15 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
     ----------
     line_scan : :obj:`SurfaceTopography`
         The topography to write to disk.
-    filename : str
-        Name of the NetCDF file
+    fobj : str or stream
+        Name of the NetCDF file or file stream
     format : str
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
     if line_scan.communicator is not None and line_scan.communicator.size > 1:
         raise RuntimeError('Parallel writing is not supported for nonuniform line scans')
 
-    from scipy.io.netcdf import netcdf_file
-
-    with netcdf_file(filename, 'w', version=format_to_scipy_version[format]) as nc:
+    with _SpecialNetCDFFile(fobj, 'w', version=format_to_scipy_version[format]) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = line_scan.info.copy()
         try:

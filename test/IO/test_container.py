@@ -22,7 +22,11 @@
 # SOFTWARE.
 #
 
-from SurfaceTopography.Container import read_container
+import tempfile
+
+from numpy.testing import assert_allclose
+
+from SurfaceTopography import SurfaceContainer, read_container, read_topography
 
 
 def test_read(file_format_examples):
@@ -41,3 +45,30 @@ def test_read(file_format_examples):
     assert c[0].info['unit'] == 'µm'
     assert c[1].info['unit'] == 'µm'
     assert c[2].info['unit'] == 'µm'
+
+
+def test_write(file_format_examples):
+    t1 = read_topography(f'{file_format_examples}/di1.di')
+    t2 = read_topography(f'{file_format_examples}/example.opd')
+    t3 = read_topography(f'{file_format_examples}/example2.txt')
+
+    c = SurfaceContainer([t1, t2, t3])
+
+    with tempfile.TemporaryFile() as fobj:
+        c.to_zip(fobj)
+
+        c2, = read_container(fobj)
+
+        assert len(c2) == 3
+
+        assert c2[0].nb_grid_pts == t1.nb_grid_pts
+        assert c2[1].nb_grid_pts == t2.nb_grid_pts
+        assert c2[2].nb_grid_pts == t3.nb_grid_pts
+
+        assert_allclose(c2[0].physical_sizes, t1.physical_sizes)
+        assert_allclose(c2[1].physical_sizes, t2.physical_sizes)
+        assert_allclose(c2[2].physical_sizes, t3.physical_sizes)
+
+        assert c2[0].info['unit'] == t1.info['unit']
+        assert c2[1].info['unit'] == t2.info['unit']
+        assert c2[2].info['unit'] == t3.info['unit']
