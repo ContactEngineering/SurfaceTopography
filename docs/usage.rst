@@ -9,7 +9,7 @@ The code is documented via Python's documentation strings that can be accesses v
 Handling topographies
 ---------------------
 
-Handling of topography data, either two-dimensional topography maps or line scan, is handled by the :mod:`PyCo.Topography` module. There are three basic topography classes implemented in this module:
+`SurfaceTopography` is designed for handling topography data, either two-dimensional topography maps or line scan. There are three basic topography classes implemented in this module:
 
 - :class:`Topography` is a representation of a two-dimensional topography map that lives on a uniform grid.
 - :class:`UniformLineScan` is a representation of a one-dimensional line-scan that lives on a uniform grid.
@@ -18,7 +18,7 @@ Handling of topography data, either two-dimensional topography maps or line scan
 Nonuniform line-scans are therefore always interpreted as a set of points connected by straight lines
 (linear interpolation). No interpolation is carried out for topography maps and uniform line scans.
 
-Topographies can be read from a file through a reader returned by :func:`PyCo.Topography.open_topography`.
+Topographies can be read from a file through a reader returned by :func:`SurfaceTopography.open_topography`.
 Each reader provides an interface to one or more channels in the file.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:
@@ -62,7 +62,7 @@ e.g. a detrended one, from the current topography. Both are described in the sec
 Data Orientation
 ++++++++++++++++
 
-When working with 2D topographies it is useful to know, how the data in PyCo is oriented,
+When working with 2D topographies it is useful to know, how the data in `SurfaceTopography` is oriented,
 also when compared against the expected image.
 
 After loading a topography, e.g. by
