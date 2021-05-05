@@ -41,7 +41,7 @@ from ..IO import read_topography
 from .SurfaceContainer import SurfaceContainer
 
 
-def read_container(fn, datafile_key='datafile'):
+def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
     """
     Read all surface in a container file and associated metadata. The
     container is a ZIP file with raw data files and a YAML file meta.yml
@@ -51,9 +51,12 @@ def read_container(fn, datafile_key='datafile'):
     ----------
     fn : str or stream
         File or stream that contains the ZIP-container.
-    datafile_key : str, optional
-        Key in 'meta.yml' that contains the name of the datafile to open.
-        (Default: 'datafile')
+    datafile_keys : list of str, optional
+        List of possible keys in 'meta.yml' that contains the name of the
+        datafile to open. Code will try they keys in order. If a key
+        starts with 'squeezed', the pipeline is not constructed from
+        the metadata.
+        (Default: ['original', 'squeezed-netcdf'])
 
     Returns
     -------
@@ -74,15 +77,22 @@ def read_container(fn, datafile_key='datafile'):
                 if 'size' in info:
                     physical_sizes = info['size']
                     del info['size']
+                datafile_key = None
+                datafiles = topo_meta['datafile']
+                for key in datafiles:
+                    datafile_key = key
+                if datafile_key is None:
+                    raise ValueError('Could not detect data file.')
                 t = read_topography(
-                    z.open(topo_meta[datafile_key]),
+                    z.open(datafiles[datafile_key]),
                     physical_sizes=physical_sizes,
                     info=info
                 )
-                if 'height_scale' in topo_meta:
-                    t = t.scale(topo_meta['height_scale'])
-                if 'detrend_mode' in topo_meta:
-                    t = t.detrend(topo_meta['detrend_mode'])
+                if not datafile_key.startswith('squeezed'):
+                    if 'height_scale' in topo_meta:
+                        t = t.scale(topo_meta['height_scale'])
+                    if 'detrend_mode' in topo_meta:
+                        t = t.detrend(topo_meta['detrend_mode'])
                 topographies += [t]
 
             surfaces += [SurfaceContainer(topographies)]
@@ -121,9 +131,11 @@ def write_containers(containers, fn):
 
                 # We do not write the info dictionary into the YAML metadata as it is already container in the NetCDF
                 # file (serialized as JSON)
-                topo_meta = dict(
-                    datafile=topofile_name
-                )
+                topo_meta = {
+                    'datafile': {
+                        'squeezed-netcdf': topofile_name
+                    }
+                }
 
                 # Add topography file as NetCDF to the ZIP archive
                 with tempfile.TemporaryFile() as f:
@@ -133,17 +145,17 @@ def write_containers(containers, fn):
 
                 topography_dicts.append(topo_meta)
 
-            surface_dict = dict(topographies=topography_dicts)
+            surface_dict = {'topographies': topography_dicts}
             surfaces_dicts.append(surface_dict)
 
         #
         # Add metadata file
         #
-        metadata = dict(
-            versions=dict(SurfaceTopography=__version__),
-            surfaces=surfaces_dicts,
-            creation_time=str(datetime.now()),
-        )
+        metadata = {
+            'versions': {'SurfaceTopography': __version__},
+            'surfaces': surfaces_dicts,
+            'creation_time': str(datetime.now()),
+        }
 
         zf.writestr("meta.yml", yaml.dump(metadata))
 
