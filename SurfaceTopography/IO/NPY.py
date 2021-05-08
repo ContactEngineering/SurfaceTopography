@@ -34,7 +34,7 @@ In MPI Parallelized programs:
     - load the relevant subdomain on each processor in Reader.topography()
 """
 
-from .. import Topography
+from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, FileFormatMismatch, ChannelInfo
 
 from NuMPI import MPI

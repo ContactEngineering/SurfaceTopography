@@ -141,6 +141,7 @@ setup(
         'igor',
         'h5py',
         'defusedxml',
-        'numpyencoder'
+        'numpyencoder',
+        'pyyaml'
     ]
 )

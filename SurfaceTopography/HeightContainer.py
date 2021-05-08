@@ -44,17 +44,17 @@ INFO_UNIT = 'unit'
 INFO_ACQUISITION_TIME = 'acquisition_time'
 
 
-class AbstractHeightContainer(object):
+class AbstractTopography(object):
     """
-    Base class for all containers storing height information.
+    Base class for all classes storing height information.
 
     The member dictionary `_functions` contains a list of functions that
-    can be executed on this specific container.
+    can be executed on this specific class.
 
     The dictionary itself is owned by the interface,
     `UniformTopographyInterface` and `NonuniformLineScanInterface`. This is
     because the functions are determined by the type of topography that is
-    represented, not by the pipeline hierarchy. For example, convertes that
+    represented, not by the pipeline hierarchy. For example, converters that
     convert uniform to nonuniform and vice versa need to have the respective
     interface of the format they are converting to.
     """
@@ -152,7 +152,7 @@ class AbstractHeightContainer(object):
         return [self]
 
 
-class DecoratedTopography(AbstractHeightContainer):
+class DecoratedTopography(AbstractTopography):
     """
     Base class of topographies with parent. Having a parent means that the
     data is owned by the parent, but the present class performs
@@ -169,7 +169,7 @@ class DecoratedTopography(AbstractHeightContainer):
             The parent topography.
         """
         super().__init__(info=info)
-        assert isinstance(topography, AbstractHeightContainer)
+        assert isinstance(topography, AbstractTopography)
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
 

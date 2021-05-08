@@ -23,7 +23,7 @@
 # SOFTWARE.
 #
 
-from .. import Topography
+from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, ChannelInfo
 
 
