@@ -53,7 +53,7 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
         File or stream that contains the ZIP-container.
     datafile_keys : list of str, optional
         List of possible keys in 'meta.yml' that contains the name of the
-        datafile to open. Code will try they keys in order. If a key
+        datafile to open. Code will try these keys in order. If a key
         starts with 'squeezed', the pipeline is not constructed from
         the metadata.
         (Default: ['original', 'squeezed-netcdf'])
