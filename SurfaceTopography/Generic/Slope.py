@@ -32,7 +32,7 @@ from ..HeightContainer import UniformTopographyInterface
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def scale_dependent_slope_1D(topography, **kwargs):
+def scale_dependent_from_profile(topography, **kwargs):
     r"""
     Compute the one-dimensional scale-dependent slope.
 
@@ -65,7 +65,7 @@ def scale_dependent_slope_1D(topography, **kwargs):
     return r[1:], np.sqrt(2 * A[1:]) / r[1:]
 
 
-def scale_dependent_slope_2D(topography, **kwargs):
+def scale_dependent_slope_from_area(topography, **kwargs):
     r"""
     Compute the two-dimensional, radially averaged scale-dependent slope.
 
@@ -99,11 +99,11 @@ def scale_dependent_slope_2D(topography, **kwargs):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('scale_dependent_slope_1D',
-                                             scale_dependent_slope_1D)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_1D',
-                                              scale_dependent_slope_1D)
-UniformTopographyInterface.register_function('scale_dependent_slope_2D',
-                                             scale_dependent_slope_2D)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_2D',
-                                              scale_dependent_slope_2D)
+UniformTopographyInterface.register_function('scale_dependent_from_profile',
+                                             scale_dependent_from_profile)
+NonuniformLineScanInterface.register_function('scale_dependent_from_profile',
+                                              scale_dependent_from_profile)
+UniformTopographyInterface.register_function('scale_dependent_slope_from_area',
+                                             scale_dependent_slope_from_area)
+NonuniformLineScanInterface.register_function('scale_dependent_slope_from_area',
+                                              scale_dependent_slope_from_area)
