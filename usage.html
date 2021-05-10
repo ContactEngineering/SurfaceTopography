@@ -4,15 +4,18 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Usage &mdash; SurfaceTopography 0.93.0 documentation</title>
+  <title>Usage &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -63,7 +67,7 @@
             
             
               <div class="version">
-                0.93.0
+                0.93.1.dev19+g3afe0711
               </div>
             
           
@@ -176,16 +180,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="usage">
+  <section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
 <p>The code is documented via Python’s documentation strings that can be accesses via the <cite>help</cite> command or by appending a questions mark <cite>?</cite> in ipython/jupyter. There are two command line tools available that may be a good starting point. They are in the <cite>commandline</cite> subdirectory:</p>
 <ul class="simple">
 <li><p><cite>hard_wall.py</cite>: Command line front end for calculations with hard, impenetrable walls between rigid and elastic flat. This front end exclusively uses Polonsky &amp; Keer’s constrained conjugate gradient solver to find the deformation of the substrate under the additional contact constraints. Run <cite>hard_wall.py –help</cite> to get a list of command line options.</p></li>
 <li><p><cite>soft_wall.py</cite>: Command line front end for calculations with soft (possibly adhesive) interactions between rigid and elastic flat. This is a stub rather than a fully featured command line tool that can be used as a starting point for modified script. The present implementation is set up for a solution of Martin Müser’s contact mechanics challenge.</p></li>
 </ul>
-<div class="section" id="handling-topographies">
+<section id="handling-topographies">
 <h2>Handling topographies<a class="headerlink" href="#handling-topographies" title="Permalink to this headline">¶</a></h2>
-<p>Handling of topography data, either two-dimensional topography maps or line scan, is handled by the <code class="xref py py-mod docutils literal notranslate"><span class="pre">PyCo.Topography</span></code> module. There are three basic topography classes implemented in this module:</p>
+<p><cite>SurfaceTopography</cite> is designed for handling topography data, either two-dimensional topography maps or line scan. There are three basic topography classes implemented in this module:</p>
 <ul class="simple">
 <li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Topography</span></code> is a representation of a two-dimensional topography map that lives on a uniform grid.</p></li>
 <li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformLineScan</span></code> is a representation of a one-dimensional line-scan that lives on a uniform grid.</p></li>
@@ -193,7 +197,7 @@
 </ul>
 <p>Nonuniform line-scans are therefore always interpreted as a set of points connected by straight lines
 (linear interpolation). No interpolation is carried out for topography maps and uniform line scans.</p>
-<p>Topographies can be read from a file through a reader returned by <code class="xref py py-func docutils literal notranslate"><span class="pre">PyCo.Topography.open_topography()</span></code>.
+<p>Topographies can be read from a file through a reader returned by <code class="xref py py-func docutils literal notranslate"><span class="pre">SurfaceTopography.open_topography()</span></code>.
 Each reader provides an interface to one or more channels in the file.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:</p>
@@ -220,7 +224,7 @@ The classes expose a homogeneous interface for handling topographies. Example:</
 
 <span class="c1"># each topography has a rich set of methods and properties for meta data and analysis</span>
 <span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimension</span>
-<span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>  <span class="c1"># Root mean square of heights</span>
+<span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>  <span class="c1"># Root mean square of heights</span>
 <span class="n">h</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>  <span class="c1"># access to the heights array</span>
 </pre></div>
 </div>
@@ -230,9 +234,9 @@ For uniform topographies, these positions are uniformly spaced but for nonunifor
 <p>Operations on topographies can be analysis functions that compute some value or property,
 such as the root mean square height of the topography, or pipeline functions that compute a new topography,
 e.g. a detrended one, from the current topography. Both are described in the section <a class="reference internal" href="#analysis-functions"><span class="std std-ref">Analysis functions</span></a> below.</p>
-<div class="section" id="data-orientation">
+<section id="data-orientation">
 <h3>Data Orientation<a class="headerlink" href="#data-orientation" title="Permalink to this headline">¶</a></h3>
-<p>When working with 2D topographies it is useful to know, how the data in PyCo is oriented,
+<p>When working with 2D topographies it is useful to know, how the data in <cite>SurfaceTopography</cite> is oriented,
 also when compared against the expected image.</p>
 <p>After loading a topography, e.g. by</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">open_topography</span>
@@ -261,28 +265,31 @@ of other software as e.g. Gwyddion, use</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="analysis-functions">
+</section>
+<section id="analysis-functions">
 <span id="id1"></span><h3>Analysis functions<a class="headerlink" href="#analysis-functions" title="Permalink to this headline">¶</a></h3>
 <p>All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.</p>
 <ul class="simple">
 <li><p><cite>mean</cite>: Compute the mean value.</p></li>
-<li><p><cite>rms_height</cite>: Computes the root mean square height of the topography.</p></li>
-<li><p><cite>rms_slope</cite>: Computes the root mean square slope.</p></li>
-<li><p><cite>rms_curvature</cite>: Computes the root mean square curvature.</p></li>
+<li><p><cite>rms_height_from_area</cite>: Computes the root mean square height of the topography by integrating over the area. (This is the value known as ‘Sq’.)</p></li>
+<li><p><cite>rms_height_from_profile</cite>: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as ‘Rq’.)</p></li>
+<li><p><cite>rms_gradient</cite>: Computes the root mean square gradient.</p></li>
+<li><p><cite>rms_slope_from_profile</cite>: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.</p></li>
+<li><p><cite>rms_curvature_from_area</cite>: Computes the root mean square curvature by integrating over the area.</p></li>
+<li><p><cite>rms_curvature_from_profile</cite>: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.</p></li>
 <li><p><cite>power_spectrum_1D</cite>: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
 <li><p><cite>power_spectrum_2D</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
 </ul>
 <p>Example::</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms slope =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_slope</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms curvature =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_curvature</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height (Sq) =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms gradient =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_gradient</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms curvature =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_curvature_from_area</span><span class="p">())</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="pipelines">
+</section>
+<section id="pipelines">
 <h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h3>
 <p>Pipeline functions return a new topography.
 This topography does not own the original data but executes the full pipeline everytime <cite>heights</cite> is executed.
@@ -297,15 +304,15 @@ Pipelines can be concatenated together.</p>
 <p>Example::</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending and rescaling =&#39;</span><span class="p">,</span>
-      <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height</span><span class="p">())</span>
+      <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

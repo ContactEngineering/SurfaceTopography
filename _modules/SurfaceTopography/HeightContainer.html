@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.HeightContainer &mdash; SurfaceTopography 0.93.0 documentation</title>
+  <title>SurfaceTopography.HeightContainer &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                0.93.0
+                0.93.1.dev19+g3afe0711
               </div>
             
           
@@ -211,22 +214,22 @@
 <span class="n">INFO_ACQUISITION_TIME</span> <span class="o">=</span> <span class="s1">&#39;acquisition_time&#39;</span>
 
 
-<div class="viewcode-block" id="AbstractHeightContainer"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractHeightContainer">[docs]</a><span class="k">class</span> <span class="nc">AbstractHeightContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography">[docs]</a><span class="k">class</span> <span class="nc">AbstractTopography</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Base class for all containers storing height information.</span>
+<span class="sd">    Base class for all classes storing height information.</span>
 
 <span class="sd">    The member dictionary `_functions` contains a list of functions that</span>
-<span class="sd">    can be executed on this specific container.</span>
+<span class="sd">    can be executed on this specific class.</span>
 
 <span class="sd">    The dictionary itself is owned by the interface,</span>
 <span class="sd">    `UniformTopographyInterface` and `NonuniformLineScanInterface`. This is</span>
 <span class="sd">    because the functions are determined by the type of topography that is</span>
-<span class="sd">    represented, not by the pipeline hierarchy. For example, convertes that</span>
+<span class="sd">    represented, not by the pipeline hierarchy. For example, converters that</span>
 <span class="sd">    convert uniform to nonuniform and vice versa need to have the respective</span>
 <span class="sd">    interface of the format they are converting to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="AbstractHeightContainer.Error"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractHeightContainer.Error">[docs]</a>    <span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractTopography.Error"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.Error">[docs]</a>    <span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
         <span class="c1"># pylint: disable=missing-docstring</span>
         <span class="k">pass</span></div>
 
@@ -234,7 +237,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">communicator</span>
 
-<div class="viewcode-block" id="AbstractHeightContainer.apply"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractHeightContainer.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractTopography.apply"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -315,11 +318,11 @@
         <span class="sd">&quot;&quot;&quot;Return the MPI communicator object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span>
 
-<div class="viewcode-block" id="AbstractHeightContainer.pipeline"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractHeightContainer.pipeline">[docs]</a>    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractTopography.pipeline"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.pipeline">[docs]</a>    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span></div></div>
 
 
-<div class="viewcode-block" id="DecoratedTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.DecoratedTopography">[docs]</a><span class="k">class</span> <span class="nc">DecoratedTopography</span><span class="p">(</span><span class="n">AbstractHeightContainer</span><span class="p">):</span>
+<div class="viewcode-block" id="DecoratedTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.DecoratedTopography">[docs]</a><span class="k">class</span> <span class="nc">DecoratedTopography</span><span class="p">(</span><span class="n">AbstractTopography</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class of topographies with parent. Having a parent means that the</span>
 <span class="sd">    data is owned by the parent, but the present class performs</span>
@@ -336,7 +339,7 @@
 <span class="sd">            The parent topography.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">AbstractHeightContainer</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">AbstractTopography</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span> <span class="o">=</span> <span class="n">topography</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">communicator</span>
 

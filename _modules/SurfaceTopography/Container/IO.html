@@ -1,0 +1,403 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SurfaceTopography.Container.IO &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> SurfaceTopography
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.93.1.dev19+g3afe0711
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SurfaceTopography</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>SurfaceTopography.Container.IO</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for SurfaceTopography.Container.IO</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright 2021 Lars Pastewka</span>
+<span class="c1">#</span>
+<span class="c1"># ### MIT license</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c1"># SOFTWARE.</span>
+<span class="c1">#</span>
+
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">zipfile</span> <span class="k">import</span> <span class="n">ZipFile</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">importlib.metadata</span> <span class="k">import</span> <span class="n">version</span>
+
+    <span class="n">__version__</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s1">&#39;SurfaceTopography&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">get_distribution</span>
+
+    <span class="n">__version__</span> <span class="o">=</span> <span class="n">get_distribution</span><span class="p">(</span><span class="s1">&#39;SurfaceTopography&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
+
+<span class="kn">from</span> <span class="nn">..IO</span> <span class="k">import</span> <span class="n">read_topography</span>
+<span class="kn">from</span> <span class="nn">.SurfaceContainer</span> <span class="k">import</span> <span class="n">SurfaceContainer</span>
+
+
+<div class="viewcode-block" id="read_container"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.IO.read_container">[docs]</a><span class="k">def</span> <span class="nf">read_container</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">datafile_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;original&#39;</span><span class="p">,</span> <span class="s1">&#39;squeezed-netcdf&#39;</span><span class="p">]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read all surface in a container file and associated metadata. The</span>
+<span class="sd">    container is a ZIP file with raw data files and a YAML file meta.yml</span>
+<span class="sd">    that contains all metadata not contained in the raw data files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str or stream</span>
+<span class="sd">        File or stream that contains the ZIP-container.</span>
+<span class="sd">    datafile_keys : list of str, optional</span>
+<span class="sd">        List of possible keys in &#39;meta.yml&#39; that contains the name of the</span>
+<span class="sd">        datafile to open. Code will try these keys in order. If a key</span>
+<span class="sd">        starts with &#39;squeezed&#39;, the pipeline is not constructed from</span>
+<span class="sd">        the metadata.</span>
+<span class="sd">        (Default: [&#39;original&#39;, &#39;squeezed-netcdf&#39;])</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    surface_containers : list of :obj:`SurfaceContainer`s</span>
+<span class="sd">        List of all surfaces contained in this container file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">surfaces</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;meta.yml&#39;</span><span class="p">))</span>
+
+        <span class="n">topographies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">surf_meta</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">topo_meta</span> <span class="ow">in</span> <span class="n">surf_meta</span><span class="p">[</span><span class="s1">&#39;topographies&#39;</span><span class="p">]:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">topo_meta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">physical_sizes</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="s1">&#39;size&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+                    <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
+                <span class="n">datafile_key</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">datafiles</span> <span class="o">=</span> <span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;datafile&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">datafiles</span><span class="p">:</span>
+                    <span class="n">datafile_key</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="k">if</span> <span class="n">datafile_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not detect data file.&#39;</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span>
+                    <span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">datafiles</span><span class="p">[</span><span class="n">datafile_key</span><span class="p">]),</span>
+                    <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+                    <span class="n">info</span><span class="o">=</span><span class="n">info</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">datafile_key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;squeezed&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="s1">&#39;height_scale&#39;</span> <span class="ow">in</span> <span class="n">topo_meta</span><span class="p">:</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;height_scale&#39;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="s1">&#39;detrend_mode&#39;</span> <span class="ow">in</span> <span class="n">topo_meta</span><span class="p">:</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;detrend_mode&#39;</span><span class="p">])</span>
+                <span class="n">topographies</span> <span class="o">+=</span> <span class="p">[</span><span class="n">t</span><span class="p">]</span>
+
+            <span class="n">surfaces</span> <span class="o">+=</span> <span class="p">[</span><span class="n">SurfaceContainer</span><span class="p">(</span><span class="n">topographies</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">surfaces</span></div>
+
+
+<div class="viewcode-block" id="write_containers"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.IO.write_containers">[docs]</a><span class="k">def</span> <span class="nf">write_containers</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write multiple surface containers into a ZIP file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    containers : list of :obj:`SurfaceContainer`s</span>
+<span class="sd">        Containers to be written to the ZIP file.</span>
+<span class="sd">    fn : str or stream</span>
+<span class="sd">        File or stream to write the ZIP-container to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># This is adapted from TopoBank</span>
+
+    <span class="n">surfaces_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zf</span><span class="p">:</span>
+        <span class="c1">#</span>
+        <span class="c1"># Add meta data and topography files for all given surfaces</span>
+        <span class="c1">#</span>
+        <span class="k">for</span> <span class="n">surface_container</span> <span class="ow">in</span> <span class="n">containers</span><span class="p">:</span>
+            <span class="n">topography_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">topography</span> <span class="ow">in</span> <span class="n">surface_container</span><span class="p">:</span>
+                <span class="c1"># Create unique file names for the data files by simply appending a counter</span>
+                <span class="n">topofile_name</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;topography</span><span class="si">{counter}</span><span class="s1">.nc&#39;</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                <span class="c1"># We do not write the info dictionary into the YAML metadata as it is already container in the NetCDF</span>
+                <span class="c1"># file (serialized as JSON)</span>
+                <span class="n">topo_meta</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;datafile&#39;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">&#39;squeezed-netcdf&#39;</span><span class="p">:</span> <span class="n">topofile_name</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+
+                <span class="c1"># Add topography file as NetCDF to the ZIP archive</span>
+                <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryFile</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">topography</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">zf</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">topofile_name</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+                <span class="n">topography_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topo_meta</span><span class="p">)</span>
+
+            <span class="n">surface_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;topographies&#39;</span><span class="p">:</span> <span class="n">topography_dicts</span><span class="p">}</span>
+            <span class="n">surfaces_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surface_dict</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add metadata file</span>
+        <span class="c1">#</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;versions&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;SurfaceTopography&#39;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">},</span>
+            <span class="s1">&#39;surfaces&#39;</span><span class="p">:</span> <span class="n">surfaces_dicts</span><span class="p">,</span>
+            <span class="s1">&#39;creation_time&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()),</span>
+        <span class="p">}</span>
+
+        <span class="n">zf</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="s2">&quot;meta.yml&quot;</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">))</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Add a Readme file</span>
+        <span class="c1">#</span>
+        <span class="n">readme_txt</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Contents of this ZIP archive</span>
+<span class="s2">        ============================</span>
+<span class="s2">        This archive contains {len(containers)} surface(s). Each surface is a</span>
+<span class="s2">        collection of individual topography measurements.</span>
+<span class="s2">        In total {sum(len(x) for x in containers)} topography measurements are included.</span>
+
+<span class="s2">        The meta data for the surfaces and the individual topographies</span>
+<span class="s2">        can be found in the auxiliary file &#39;meta.yml&#39; and within</span>
+<span class="s2">        the NetCDF topographies themselves. &#39;meta.yml&#39; is formatted</span>
+<span class="s2">        as a [YAML](https://yaml.org/) file. The NetCDF topographies</span>
+<span class="s2">        contain metadata as [JSON](https://www.json.org/).</span>
+
+<span class="s2">        Version information</span>
+<span class="s2">        ===================</span>
+
+<span class="s2">        SurfaceTopography: </span><span class="si">{__version__}</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">zf</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="s2">&quot;README.txt&quot;</span><span class="p">,</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="n">readme_txt</span><span class="p">))</span></div>
+
+
+<span class="n">SurfaceContainer</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_zip&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">container</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">write_containers</span><span class="p">([</span><span class="n">container</span><span class="p">],</span> <span class="n">fn</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2015-2020 The Authors.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

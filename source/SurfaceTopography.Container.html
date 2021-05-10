@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SurfaceTopography.Generic package" href="SurfaceTopography.Generic.html" />
+    <link rel="prev" title="SurfaceTopography package" href="SurfaceTopography.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SurfaceTopography
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.93.1.dev19+g3afe0711
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Interpolation">SurfaceTopography.Interpolation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.common">SurfaceTopography.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SurfaceTopography</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="SurfaceTopography.html">SurfaceTopography package</a> &raquo;</li>
+        
+      <li>SurfaceTopography.Container package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/source/SurfaceTopography.Container.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="surfacetopography-container-package">
+<h1>SurfaceTopography.Container package<a class="headerlink" href="#surfacetopography-container-package" title="Permalink to this headline">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-SurfaceTopography.Container.IO">
+<span id="surfacetopography-container-io-module"></span><h2>SurfaceTopography.Container.IO module<a class="headerlink" href="#module-SurfaceTopography.Container.IO" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.read_container">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">read_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/IO.html#read_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.IO.read_container" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all surface in a container file and associated metadata. The
+container is a ZIP file with raw data files and a YAML file meta.yml
+that contains all metadata not contained in the raw data files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream that contains the ZIP-container.</p></li>
+<li><p><strong>datafile_keys</strong> (<em>list of str</em><em>, </em><em>optional</em>) – List of possible keys in ‘meta.yml’ that contains the name of the
+datafile to open. Code will try these keys in order. If a key
+starts with ‘squeezed’, the pipeline is not constructed from
+the metadata.
+(Default: [‘original’, ‘squeezed-netcdf’])</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>surface_containers</strong> – List of all surfaces contained in this container file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>SurfaceContainer`s</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.write_containers">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/IO.html#write_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.IO.write_containers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write multiple surface containers into a ZIP file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>containers</strong> (list of :obj:<a href="#id3"><span class="problematic" id="id4">`</span></a>SurfaceContainer`s) – Containers to be written to the ZIP file.</p></li>
+<li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream to write the ZIP-container to.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Container.SurfaceContainer">
+<span id="surfacetopography-container-surfacecontainer-module"></span><h2>SurfaceTopography.Container.SurfaceContainer module<a class="headerlink" href="#module-SurfaceTopography.Container.SurfaceContainer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">SurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/SurfaceContainer.html#SurfaceContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/SurfaceContainer.html#SurfaceContainer.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">register_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/SurfaceContainer.html#SurfaceContainer.register_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Container">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Container" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="SurfaceTopography.Generic.html" class="btn btn-neutral float-right" title="SurfaceTopography.Generic package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="SurfaceTopography.html" class="btn btn-neutral float-left" title="SurfaceTopography package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2015-2020 The Authors.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

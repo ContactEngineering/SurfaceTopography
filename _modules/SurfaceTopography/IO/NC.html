@@ -7,12 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.93.0 documentation</title>
+  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
   
 
   
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                0.93.0
+                0.93.1.dev19+g3afe0711
               </div>
             
           
@@ -198,16 +201,34 @@
 
 <span class="kn">from</span> <span class="nn">numpyencoder</span> <span class="k">import</span> <span class="n">NumpyEncoder</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span><span class="p">,</span> <span class="n">NonuniformLineScan</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">mangle_length_unit_ascii</span>
+<span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span>
+<span class="kn">from</span> <span class="nn">..NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">NonuniformLineScanInterface</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">mangle_length_unit_ascii</span>
 
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+
+<span class="c1"># We run serial I/O through scipy. This has several advantages:</span>
+<span class="c1"># 1) lightweight, 2) can handle streams</span>
+<span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
 
 <span class="n">format_to_scipy_version</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;NETCDF3_CLASSIC&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
     <span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">:</span> <span class="mi">2</span>
 <span class="p">}</span>
+
+
+<span class="c1"># we subclass the netcdf_file class such it</span>
+<span class="c1"># is not closed by garbage collector in case of file streams</span>
+<span class="k">class</span> <span class="nc">_SpecialNetCDFFile</span><span class="p">(</span><span class="n">netcdf_file</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1"># we want to disable calling closing the file</span>
+        <span class="c1"># in case of file streams</span>
+    <span class="fm">__del__</span> <span class="o">=</span> <span class="n">close</span>
 
 
 <div class="viewcode-block" id="NCReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader">[docs]</a><span class="k">class</span> <span class="nc">NCReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
@@ -286,21 +307,8 @@
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;File or stream is not a valid NetCDF 3 file&#39;</span><span class="p">)</span>
                 <span class="c1"># we must rewind the file</span>
                 <span class="n">fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-            <span class="c1"># We run serial I/O through scipy. This has several advantages:</span>
-            <span class="c1"># 1) lightweight, 2) can handle streams</span>
-            <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
 
-            <span class="c1"># we subclass the netcdf_file class such it</span>
-            <span class="c1"># is not closed by garbage collector in case of file streams</span>
-
-            <span class="k">class</span> <span class="nc">SpecialNetCDFFile</span><span class="p">(</span><span class="n">netcdf_file</span><span class="p">):</span>
-                <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">!=</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                    <span class="c1"># we want to disable calling the &#39;close&#39; method in original code</span>
-                    <span class="c1"># in case of file streams</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">SpecialNetCDFFile</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span> <span class="o">=</span> <span class="n">_SpecialNetCDFFile</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">communicator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;n&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">else</span> <span class="kc">None</span>
@@ -463,7 +471,7 @@
     <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>
 
 
-<div class="viewcode-block" id="write_nc_uniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_uniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_uniform</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="write_nc_uniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_uniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_uniform</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write topography into a NetCDF file.</span>
 
@@ -471,8 +479,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topography : :obj:`SurfaceTopography`</span>
 <span class="sd">        The topography to write to disk.</span>
-<span class="sd">    filename : str</span>
-<span class="sd">        Name of the NetCDF file</span>
+<span class="sd">    fobj : str or stream</span>
+<span class="sd">        Name of the NetCDF file or file stream</span>
 <span class="sd">    format : str</span>
 <span class="sd">        NetCDF file format. Default is &#39;NETCDF3_64BIT_OFFSET&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -482,12 +490,12 @@
                       <span class="n">parallel</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">,</span>
                       <span class="n">comm</span><span class="o">=</span><span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span> <span class="k">as</span> <span class="n">Dataset</span>
+        <span class="n">Dataset</span> <span class="o">=</span> <span class="n">_SpecialNetCDFFile</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">format_to_scipy_version</span><span class="p">[</span><span class="nb">format</span><span class="p">])</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span> <span class="ow">and</span> \
             <span class="n">topography</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span>
-    <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
         <span class="c1"># Serialize info dictionary as JSON and write to NetCDF file</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
@@ -550,7 +558,7 @@
             <span class="n">heights_var</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="write_nc_nonuniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_nonuniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_nonuniform</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="write_nc_nonuniform"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_nonuniform">[docs]</a><span class="k">def</span> <span class="nf">write_nc_nonuniform</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">fobj</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_64BIT_OFFSET&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write nonuniform line scan into a NetCDF file.</span>
 
@@ -558,17 +566,15 @@
 <span class="sd">    ----------</span>
 <span class="sd">    line_scan : :obj:`SurfaceTopography`</span>
 <span class="sd">        The topography to write to disk.</span>
-<span class="sd">    filename : str</span>
-<span class="sd">        Name of the NetCDF file</span>
+<span class="sd">    fobj : str or stream</span>
+<span class="sd">        Name of the NetCDF file or file stream</span>
 <span class="sd">    format : str</span>
 <span class="sd">        NetCDF file format. Default is &#39;NETCDF3_64BIT_OFFSET&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">communicator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">communicator</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Parallel writing is not supported for nonuniform line scans&#39;</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">scipy.io.netcdf</span> <span class="k">import</span> <span class="n">netcdf_file</span>
-
-    <span class="k">with</span> <span class="n">netcdf_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">format_to_scipy_version</span><span class="p">[</span><span class="nb">format</span><span class="p">])</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">_SpecialNetCDFFile</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">format_to_scipy_version</span><span class="p">[</span><span class="nb">format</span><span class="p">])</span> <span class="k">as</span> <span class="n">nc</span><span class="p">:</span>
         <span class="c1"># Serialize info dictionary as JSON and write to NetCDF file</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>

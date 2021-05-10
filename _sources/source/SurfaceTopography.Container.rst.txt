@@ -1,0 +1,29 @@
+SurfaceTopography.Container package
+===================================
+
+Submodules
+----------
+
+SurfaceTopography.Container.IO module
+-------------------------------------
+
+.. automodule:: SurfaceTopography.Container.IO
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Container.SurfaceContainer module
+---------------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.SurfaceContainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Container
+   :members:
+   :undoc-members:
+   :show-inheritance:
