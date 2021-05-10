@@ -36,7 +36,7 @@ from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 
-from .. import Topography
+from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 

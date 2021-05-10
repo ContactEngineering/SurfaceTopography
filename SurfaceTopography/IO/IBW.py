@@ -28,7 +28,7 @@ import numpy as np
 
 from igor.binarywave import load as loadibw
 
-from .. import Topography
+from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 

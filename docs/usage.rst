@@ -9,7 +9,7 @@ The code is documented via Python's documentation strings that can be accesses v
 Handling topographies
 ---------------------
 
-Handling of topography data, either two-dimensional topography maps or line scan, is handled by the :mod:`PyCo.Topography` module. There are three basic topography classes implemented in this module:
+`SurfaceTopography` is designed for handling topography data, either two-dimensional topography maps or line scan. There are three basic topography classes implemented in this module:
 
 - :class:`Topography` is a representation of a two-dimensional topography map that lives on a uniform grid.
 - :class:`UniformLineScan` is a representation of a one-dimensional line-scan that lives on a uniform grid.
@@ -18,7 +18,7 @@ Handling of topography data, either two-dimensional topography maps or line scan
 Nonuniform line-scans are therefore always interpreted as a set of points connected by straight lines
 (linear interpolation). No interpolation is carried out for topography maps and uniform line scans.
 
-Topographies can be read from a file through a reader returned by :func:`PyCo.Topography.open_topography`.
+Topographies can be read from a file through a reader returned by :func:`SurfaceTopography.open_topography`.
 Each reader provides an interface to one or more channels in the file.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:
@@ -48,7 +48,7 @@ The classes expose a homogeneous interface for handling topographies. Example:
 
     # each topography has a rich set of methods and properties for meta data and analysis
     print(topo.physical_sizes)  # lateral dimension
-    print(topo.rms_height())  # Root mean square of heights
+    print(topo.rms_height_from_area())  # Root mean square of heights
     h = topo.heights()  # access to the heights array
 
 The raw data can be accesses via the `heights` method that return a one- or two-dimensional array containing height information.
@@ -62,7 +62,7 @@ e.g. a detrended one, from the current topography. Both are described in the sec
 Data Orientation
 ++++++++++++++++
 
-When working with 2D topographies it is useful to know, how the data in PyCo is oriented,
+When working with 2D topographies it is useful to know, how the data in `SurfaceTopography` is oriented,
 also when compared against the expected image.
 
 After loading a topography, e.g. by
@@ -115,9 +115,12 @@ Analysis functions
 All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.
 
 - `mean`: Compute the mean value.
-- `rms_height`: Computes the root mean square height of the topography.
-- `rms_slope`: Computes the root mean square slope.
-- `rms_curvature`: Computes the root mean square curvature.
+- `rms_height_from_area`: Computes the root mean square height of the topography by integrating over the area. (This is the value known as 'Sq'.)
+- `rms_height_from_profile`: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as 'Rq'.)
+- `rms_gradient`: Computes the root mean square gradient.
+- `rms_slope_from_profile`: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.
+- `rms_curvature_from_area`: Computes the root mean square curvature by integrating over the area.
+- `rms_curvature_from_profile`: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.
 - `power_spectrum_1D`: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
 - `power_spectrum_2D`: Only two-dimensional maps: Computes the radially averaged PSD.
 
@@ -125,9 +128,9 @@ Example:::
 
     from SurfaceTopography import read_topography
     topo = read_topography('my_surface.opd')
-    print('rms height =', topo.rms_height())
-    print('rms slope =', topo.rms_slope())
-    print('rms curvature =', topo.rms_curvature())
+    print('rms height (Sq) =', topo.rms_height_from_area())
+    print('rms gradient =', topo.rms_gradient())
+    print('rms curvature =', topo.rms_curvature_from_area())
 
 Pipelines
 +++++++++
@@ -146,7 +149,7 @@ Example:::
 
     from SurfaceTopography import read_topography
     topo = read_topography('my_surface.opd')
-    print('rms height before detrending =', topo.rms_height())
-    print('rms height after detrending =', topo.detrend(detrend_mode='curvature').rms_height())
+    print('rms height before detrending =', topo.rms_height_from_area())
+    print('rms height after detrending =', topo.detrend(detrend_mode='curvature').rms_height_from_area())
     print('rms height after detrending and rescaling =',
-          topo.detrend(detrend_mode='curvature').scale(2.0).rms_height())
+          topo.detrend(detrend_mode='curvature').scale(2.0).rms_height_from_area())
