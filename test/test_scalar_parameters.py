@@ -184,7 +184,7 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-def test_rms_slope_1d():
+def test_rms_slope_from_profile():
     r = 4096
     res = (r,)
     for H in [0.3, 0.8]:
@@ -206,7 +206,7 @@ def test_rms_slope_1d():
                 last_rms_slope = rms_slope
 
 
-def test_rms_slope_2d():
+def test_rms_slope_from_area():
     r = 2048
     res = [r, r]
     for H in [0.3, 0.8]:
