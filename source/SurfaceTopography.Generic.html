@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.93.1.dev25+g6487a85d documentation</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.93.1.dev19+g3afe0711
+                0.93.1.dev25+g6487a85d
               </div>
             
           
@@ -211,36 +211,8 @@
 <span id="surfacetopography-generic-curvature-module"></span><h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#module-SurfaceTopography.Generic.Curvature" title="Permalink to this headline">¶</a></h2>
 <p>Scale-dependent slope</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_1D">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Curvature.html#scale_dependent_curvature_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_1D" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the one-dimensional scale-dependent curvature.</p>
-<p>The scale-dependent curvature is given by</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\begin{equation}
-h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
-\end{equation}</div></div></blockquote>
-<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>curvature</strong> (<em>array</em>) – Curvature. (Units: 1/length)</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_2D">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Curvature.html#scale_dependent_curvature_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_2D" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Curvature.html#scale_dependent_curvature_from_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent curvature.</p>
 <p>The scale-dependent curvature is given by</p>
 <blockquote>
@@ -268,19 +240,15 @@ bins without data points are discarded. (Default: None)</p></li>
 </dl>
 </dd></dl>
 
-</section>
-<section id="module-SurfaceTopography.Generic.Slope">
-<span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline">¶</a></h2>
-<p>Scale-dependent slope</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_1D">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Slope.html#scale_dependent_slope_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_1D" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the one-dimensional scale-dependent slope.</p>
-<p>The scale-dependent slope is given by</p>
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Curvature.html#scale_dependent_curvature_from_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the one-dimensional scale-dependent curvature.</p>
+<p>The scale-dependent curvature is given by</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \begin{equation}
-h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
+h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
 \end{equation}</div></div></blockquote>
 <p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
 <dl class="field-list simple">
@@ -293,16 +261,20 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>slope</strong> (<em>array</em>) – Slope. (Units: dimensionless)</p></li>
+<li><p><strong>curvature</strong> (<em>array</em>) – Curvature. (Units: 1/length)</p></li>
 </ul>
 </p>
 </dd>
 </dl>
 </dd></dl>
 
+</section>
+<section id="module-SurfaceTopography.Generic.Slope">
+<span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline">¶</a></h2>
+<p>Scale-dependent slope</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_2D">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Slope.html#scale_dependent_slope_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_2D" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Slope.html#scale_dependent_slope_from_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent slope.</p>
 <p>The scale-dependent slope is given by</p>
 <blockquote>
@@ -316,6 +288,34 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_2D</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>slope</strong> (<em>array</em>) – Slope. (Units: dimensionless)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/Slope.html#scale_dependent_slope_from_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the one-dimensional scale-dependent slope.</p>
+<p>The scale-dependent slope is given by</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\begin{equation}
+h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
+\end{equation}</div></div></blockquote>
+<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

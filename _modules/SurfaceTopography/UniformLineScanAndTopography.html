@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
+  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.93.1.dev25+g6487a85d documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev19+g3afe0711
+                0.93.1.dev25+g6487a85d
               </div>
             
           
@@ -317,7 +317,7 @@
 
 <div class="viewcode-block" id="Topography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography">[docs]</a><span class="k">class</span> <span class="nc">Topography</span><span class="p">(</span><span class="n">AbstractTopography</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a</span>
+<span class="sd">    Topography that lives on a uniform two-dimensional grid, i.e. a</span>
 <span class="sd">    topography map.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -364,14 +364,14 @@
 <span class="sd">        Examples for initialisation:</span>
 <span class="sd">        ----------------------------</span>
 <span class="sd">        1. Serial code</span>
-<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic, info])</span>
+<span class="sd">        &gt;&gt;&gt;Topography(heights, physical_sizes, [periodic, info])</span>
 <span class="sd">        2. Parallel code, providing local data</span>
-<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic],</span>
+<span class="sd">        &gt;&gt;&gt;Topography(heights, physical_sizes, [periodic],</span>
 <span class="sd">                      decomposition=&#39;subdomain&#39;,</span>
 <span class="sd">                      subdomain_locations, nb_grid_pts, comm,</span>
 <span class="sd">                      [info])</span>
 <span class="sd">        3. Parallel code, providing full data</span>
-<span class="sd">        &gt;&gt;&gt;SurfaceTopography(heights, physical_sizes, [periodic],</span>
+<span class="sd">        &gt;&gt;&gt;Topography(heights, physical_sizes, [periodic],</span>
 <span class="sd">                      decomposition=&#39;domain&#39;,</span>
 <span class="sd">                      subdomain_locations, nb_subdomain_grid_pts, comm,</span>
 <span class="sd">                      [info])</span>

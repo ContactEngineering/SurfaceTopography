@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic.Slope &mdash; SurfaceTopography 0.93.1.dev19+g3afe0711 documentation</title>
+  <title>SurfaceTopography.Generic.Slope &mdash; SurfaceTopography 0.93.1.dev25+g6487a85d documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev19+g3afe0711
+                0.93.1.dev25+g6487a85d
               </div>
             
           
@@ -202,7 +202,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
 
 
-<div class="viewcode-block" id="scale_dependent_slope_1D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_1D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_1D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="scale_dependent_slope_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional scale-dependent slope.</span>
 
@@ -235,7 +235,7 @@
     <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
 
 
-<div class="viewcode-block" id="scale_dependent_slope_2D"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_2D">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_2D</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="scale_dependent_slope_from_area"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_slope_from_area</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the two-dimensional, radially averaged scale-dependent slope.</span>
 
@@ -269,14 +269,14 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_1D&#39;</span><span class="p">,</span>
-                                             <span class="n">scale_dependent_slope_1D</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_1D&#39;</span><span class="p">,</span>
-                                              <span class="n">scale_dependent_slope_1D</span><span class="p">)</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_2D&#39;</span><span class="p">,</span>
-                                             <span class="n">scale_dependent_slope_2D</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_2D&#39;</span><span class="p">,</span>
-                                              <span class="n">scale_dependent_slope_2D</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_from_profile&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_slope_from_profile</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_from_profile&#39;</span><span class="p">,</span>
+                                              <span class="n">scale_dependent_slope_from_profile</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_from_area&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_slope_from_area</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_slope_from_area&#39;</span><span class="p">,</span>
+                                              <span class="n">scale_dependent_slope_from_area</span><span class="p">)</span>
 </pre></div>
 
            </div>
