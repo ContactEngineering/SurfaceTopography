@@ -107,7 +107,7 @@ text_example_file_list = _convert_filelist([
 ])
 
 text_example_without_size_file_list = _convert_filelist([
-    'example.asc',
+    'example.xyz',
     'line_scan_1_minimal_spaces.asc',
 ])
 
@@ -467,7 +467,7 @@ def test_gwyddion_txt_import(lang_filename_infix):
     np.testing.assert_allclose(topo.heights(), expected_heights)
 
 
-def test_detect_dormat():
+def test_detect_format():
     assert detect_format(os.path.join(DATADIR, 'di1.di')) == 'di'
     assert detect_format(os.path.join(DATADIR, 'di2.di')) == 'di'
     assert detect_format(os.path.join(DATADIR, 'example.ibw')) == 'ibw'

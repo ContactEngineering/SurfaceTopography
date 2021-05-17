@@ -35,7 +35,7 @@ DATADIR = os.path.join(
 
 
 def test_read():
-    surface = read_xyz(os.path.join(DATADIR, 'example.asc'))
+    surface = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0

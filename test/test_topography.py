@@ -312,7 +312,7 @@ class NonuniformLineScanTest(unittest.TestCase):
         # TODO add check for values
 
     def test_detrend(self):
-        t = read_xyz(os.path.join(DATADIR, 'example.asc'))
+        t = read_xyz(os.path.join(DATADIR, 'example.xyz'))
         self.assertFalse(t.detrend('center').is_periodic)
         self.assertFalse(t.detrend('height').is_periodic)
 
@@ -600,7 +600,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertTrue(untilt1.rms_gradient() > untilt2.rms_gradient())
 
     def test_nonuniform(self):
-        surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
+        surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
         self.assertFalse(surf.is_uniform)
         self.assertEqual(surf.dim, 1)
 
