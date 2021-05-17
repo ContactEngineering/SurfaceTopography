@@ -2,6 +2,12 @@
 Change log for SurfaceTopography
 =============================
 
+v0.94.0 (not published yet)
+---------------------------
+
+- BUG: Fixes loading of 2D measurements from xyz data (#93)
+
+
 v0.93.0 (27Apr21)
 -----------------
 
