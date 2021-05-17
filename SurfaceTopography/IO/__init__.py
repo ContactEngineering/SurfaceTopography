@@ -46,13 +46,14 @@ from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
     FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
 
 readers = [
+    # XYZ must come before ASC, because 2D XYZ is a specialized ASC
+    XYZReader,
     AscReader,
     DIReader,
     MatReader,
     OPDReader,
     OPDxReader,
     X3PReader,
-    XYZReader,
     IBWReader,
     MIReader,
     NCReader,

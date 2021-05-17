@@ -328,6 +328,12 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         # This is a topography map.
         x, y, z = data
 
+        # Sort values, first x than y
+        indices = np.lexsort((x, y))
+        x = x[indices]
+        y = y[indices]
+        z = z[indices]
+
         # Sort x-values into bins. Assume points on surface are equally spaced.
         dx = x[1] - x[0]
         binx = np.array(x / dx + 0.5, dtype=int)
