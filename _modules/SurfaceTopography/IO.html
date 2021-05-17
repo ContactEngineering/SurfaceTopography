@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.93.1.dev25+g6487a85d documentation</title>
+  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.93.1.dev29+gad6d5aff documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev25+g6487a85d
+                0.93.1.dev29+gad6d5aff
               </div>
             
           
@@ -216,13 +216,14 @@
     <span class="n">FileFormatMismatch</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ReaderBase</span>  <span class="c1"># noqa: F401</span>
 
 <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># XYZ must come before ASC, because 2D XYZ is a specialized ASC</span>
+    <span class="n">XYZReader</span><span class="p">,</span>
     <span class="n">AscReader</span><span class="p">,</span>
     <span class="n">DIReader</span><span class="p">,</span>
     <span class="n">MatReader</span><span class="p">,</span>
     <span class="n">OPDReader</span><span class="p">,</span>
     <span class="n">OPDxReader</span><span class="p">,</span>
     <span class="n">X3PReader</span><span class="p">,</span>
-    <span class="n">XYZReader</span><span class="p">,</span>
     <span class="n">IBWReader</span><span class="p">,</span>
     <span class="n">MIReader</span><span class="p">,</span>
     <span class="n">NCReader</span><span class="p">,</span>
