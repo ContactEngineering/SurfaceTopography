@@ -32,7 +32,7 @@ from ..HeightContainer import UniformTopographyInterface
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def scale_dependent_curvature_1D(topography, **kwargs):
+def scale_dependent_curvature_from_profile(topography, **kwargs):
     r"""
     Compute the one-dimensional scale-dependent curvature.
 
@@ -72,7 +72,7 @@ def scale_dependent_curvature_1D(topography, **kwargs):
     return r[:n], np.sqrt(B[:n]) / r[:n] ** 2
 
 
-def scale_dependent_curvature_2D(topography, nbins=None):
+def scale_dependent_curvature_from_area(topography, nbins=None):
     r"""
     Compute the two-dimensional, radially averaged scale-dependent curvature.
 
@@ -115,9 +115,9 @@ def scale_dependent_curvature_2D(topography, nbins=None):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('scale_dependent_curvature_1D',
-                                             scale_dependent_curvature_1D)
-NonuniformLineScanInterface.register_function('scale_dependent_curvature_1D',
-                                              scale_dependent_curvature_1D)
-UniformTopographyInterface.register_function('scale_dependent_curvature_2D',
-                                             scale_dependent_curvature_2D)
+UniformTopographyInterface.register_function('scale_dependent_curvature_from_profile',
+                                             scale_dependent_curvature_from_profile)
+NonuniformLineScanInterface.register_function('scale_dependent_curvature_from_profile',
+                                              scale_dependent_curvature_from_profile)
+UniformTopographyInterface.register_function('scale_dependent_curvature_from_area',
+                                             scale_dependent_curvature_from_area)

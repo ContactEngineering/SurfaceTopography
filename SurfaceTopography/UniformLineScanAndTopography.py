@@ -147,7 +147,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
 
 class Topography(AbstractTopography, UniformTopographyInterface):
     """
-    SurfaceTopography that lives on a uniform two-dimensional grid, i.e. a
+    Topography that lives on a uniform two-dimensional grid, i.e. a
     topography map.
     """
 
@@ -194,14 +194,14 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         Examples for initialisation:
         ----------------------------
         1. Serial code
-        >>>SurfaceTopography(heights, physical_sizes, [periodic, info])
+        >>>Topography(heights, physical_sizes, [periodic, info])
         2. Parallel code, providing local data
-        >>>SurfaceTopography(heights, physical_sizes, [periodic],
+        >>>Topography(heights, physical_sizes, [periodic],
                       decomposition='subdomain',
                       subdomain_locations, nb_grid_pts, comm,
                       [info])
         3. Parallel code, providing full data
-        >>>SurfaceTopography(heights, physical_sizes, [periodic],
+        >>>Topography(heights, physical_sizes, [periodic],
                       decomposition='domain',
                       subdomain_locations, nb_subdomain_grid_pts, comm,
                       [info])

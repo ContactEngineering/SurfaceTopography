@@ -102,12 +102,13 @@ text_example_file_list = _convert_filelist([
     # example8: from the reader's docstring, with extra newline at end
     'opdx1.txt',
     'opdx2.txt',
+    'example-2d.xyz',
     # Not yet working
     # 'example6.txt',
 ])
 
 text_example_without_size_file_list = _convert_filelist([
-    'example.asc',
+    'example.xyz',
     'line_scan_1_minimal_spaces.asc',
 ])
 
@@ -467,14 +468,15 @@ def test_gwyddion_txt_import(lang_filename_infix):
     np.testing.assert_allclose(topo.heights(), expected_heights)
 
 
-def test_detect_dormat():
+def test_detect_format():
     assert detect_format(os.path.join(DATADIR, 'di1.di')) == 'di'
     assert detect_format(os.path.join(DATADIR, 'di2.di')) == 'di'
     assert detect_format(os.path.join(DATADIR, 'example.ibw')) == 'ibw'
     assert detect_format(os.path.join(DATADIR, 'example.opd')) == 'opd'
     assert detect_format(os.path.join(DATADIR, 'example.x3p')) == 'x3p'
     assert detect_format(os.path.join(DATADIR, 'example1.mat')) == 'mat'
-    assert detect_format(os.path.join(DATADIR, 'example.asc')) == 'xyz'
+    assert detect_format(os.path.join(DATADIR, 'example.xyz')) == 'xyz'
+    assert detect_format(os.path.join(DATADIR, 'example-2d.xyz')) == 'xyz'
     assert detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
     assert detect_format(os.path.join(DATADIR, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(DATADIR, 'surface.2048x2048.h5')) == 'h5'

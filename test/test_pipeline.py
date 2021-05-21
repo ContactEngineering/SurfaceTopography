@@ -130,7 +130,7 @@ def test_fill_undefined_data_parallel(comm):
 
 
 def test_scaled_topography():
-    surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
+    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
         np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
