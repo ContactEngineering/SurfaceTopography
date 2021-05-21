@@ -39,20 +39,21 @@ from SurfaceTopography.IO import NPYReader  # noqa: F401
 
 # These imports are required to register the analysis functions!
 import SurfaceTopography.Converters  # noqa: F401
-import SurfaceTopography.Uniform.common  # noqa: F401
-import SurfaceTopography.Uniform.Interpolation  # noqa: F401
-import SurfaceTopography.Uniform.Filtering  # noqa: F401
-import SurfaceTopography.Uniform.Autocorrelation  # noqa: F401
-import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
-import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
-import SurfaceTopography.Uniform.VariableBandwidth  # noqa: F401
+import SurfaceTopography.Generic.Curvature  # noqa: F401
+import SurfaceTopography.Generic.Slope  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
 import SurfaceTopography.Nonuniform.ScalarParameters  # noqa: F401
 import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.VariableBandwidth  # noqa: F401
-import SurfaceTopography.Generic.Curvature  # noqa: F401
-import SurfaceTopography.Generic.Slope  # noqa: F401
+import SurfaceTopography.Uniform.common  # noqa: F401
+import SurfaceTopography.Uniform.Interpolation  # noqa: F401
+import SurfaceTopography.Uniform.Filtering  # noqa: F401
+import SurfaceTopography.Uniform.Autocorrelation  # noqa: F401
+import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
+import SurfaceTopography.Uniform.ScaleDependentStatistics  # noqa: F401
+import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
+import SurfaceTopography.Uniform.VariableBandwidth  # noqa: F401
 
 try:
     from importlib.metadata import version
