@@ -67,7 +67,7 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
     surfaces = []
 
     with ZipFile(fn, 'r') as z:
-        meta = yaml.load(z.open('meta.yml'))
+        meta = yaml.load(z.open('meta.yml', Loader=yaml.SafeLoader))
 
         topographies = []
         for surf_meta in meta['surfaces']:
