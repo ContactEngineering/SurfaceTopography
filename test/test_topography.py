@@ -96,9 +96,9 @@ class UniformLineScanTest(unittest.TestCase):
         t = UniformLineScan(h, 4)
 
         with self.assertRaises(AttributeError):
-            t.scale_factor
+            t.heights_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t.scale(1).scale_factor, 1)
+        self.assertEqual(t.scale(1).heights_scale_factor, 1)
 
         #
         # This should also work after the topography has been pickled
@@ -107,9 +107,9 @@ class UniformLineScanTest(unittest.TestCase):
         t2 = pickle.loads(pt)
 
         with self.assertRaises(AttributeError):
-            t2.scale_factor
+            t2.heights_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t2.scale(1).scale_factor, 1)
+        self.assertEqual(t2.scale(1).heights_scale_factor, 1)
 
     def test_setting_info_dict(self):
 
@@ -393,9 +393,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.info['unit'], 'm')
 
         # test setting the physical_sizes
-        surf.physical_sizes = 1, 2
-        self.assertAlmostEqual(surf.physical_sizes[0], 1)
-        self.assertAlmostEqual(surf.physical_sizes[1], 2)
+        with self.assertRaises(AttributeError):
+            surf.physical_sizes = 1, 2
 
     def test_example5(self):
         surf = read_asc(os.path.join(DATADIR, 'example5.txt'))
@@ -1088,7 +1087,7 @@ def test_attribute_error():
 
     st = t.scale(1)
 
-    assert st.scale_factor == 1
+    assert st.heights_scale_factor == 1
 
     #
     # only detrended topographies have detrend_mode
@@ -1105,11 +1104,11 @@ def test_attribute_error():
     t2 = pickle.loads(pickle.dumps(t))
 
     with pytest.raises(AttributeError):
-        t2.scale_factor
+        t2.heights_scale_factor
 
     st2 = t2.scale(1)
 
-    assert st2.scale_factor == 1
+    assert st2.heights_scale_factor == 1
 
     with pytest.raises(AttributeError):
         st2.detrend_mode

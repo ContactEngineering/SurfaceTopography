@@ -129,3 +129,4 @@ def test_scale_factor():
     assert dx2.shape[1] == ny - 1
     assert dy2.shape[0] == nx - 2
     assert dy2.shape[1] == ny - 2
+

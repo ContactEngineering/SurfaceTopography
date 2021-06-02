@@ -132,20 +132,21 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     """ used when geometries are scaled
     """
 
-    def __init__(self, topography, scale_factor, info={}):
+    def __init__(self, topography, heights_scale_factor, positions_scale_factor=1, info={}):
         """
         Keyword Arguments:
         topography  -- SurfaceTopography to scale
         coeff -- Scaling factor
         """
         super().__init__(topography, info=info)
-        self._scale_factor = float(scale_factor)
+        self._heights_scale_factor = float(heights_scale_factor)
+        self._positions_scale_factor = float(positions_scale_factor)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._scale_factor
+        state = super().__getstate__(), self._heights_scale_factor, self._positions_scale_factor
         return state
 
     def __setstate__(self, state):
@@ -153,17 +154,31 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._scale_factor = state
+        superstate, self._heights_scale_factor, self._positions_scale_factor = state
         super().__setstate__(superstate)
 
     @property
-    def scale_factor(self):
-        return self._scale_factor
+    def heights_scale_factor(self):
+        return self._heights_scale_factor
+    scale_factor = heights_scale_factor
+
+    @property
+    def positions_scale_factor(self):
+        return self._positions_scale_factor
+
+    @property
+    def physical_sizes(self):
+        """Compute rescaled physical sizes."""
+        return tuple(self._positions_scale_factor * s for s in super().physical_sizes)
+
+    def positions(self):
+        """Compute the rescaled positions."""
+        return self._positions_scale_factor * super().positions()
 
     def heights(self):
         """ Computes the rescaled profile.
         """
-        return self._scale_factor * self.parent_topography.heights()
+        return self._heights_scale_factor * self.parent_topography.heights()
 
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
