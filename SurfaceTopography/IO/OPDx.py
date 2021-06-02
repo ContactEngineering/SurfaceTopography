@@ -29,7 +29,8 @@ from collections import OrderedDict
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny, get_unit_conversion_factor, mangle_length_unit_utf8
+from ..UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"

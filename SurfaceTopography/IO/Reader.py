@@ -38,32 +38,31 @@ class ChannelInfo:
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
-                 physical_sizes=None, periodic=None,
-                 info={}):
+                 physical_sizes=None, periodic=None, info={}):
         """
         Initialize the channel. Use as many information from the file as
         possible by passing it in the keyword arguments.
 
         Arguments
         ---------
-        reader: ReaderBase
+        reader : ReaderBase
             Reader instance this channel is coming from.
-        index: int
+        index : int
             Index of channel in the file, where zero is the first channel.
-        name: str
+        name : str
             Name of the channel. If no name is given, "channel <index>" will
             be used, where "<index>" is replaced with the index.
-        dim: int
+        dim : int
             Number of dimensions.
-        nb_grid_pts: tuple of ints
+        nb_grid_pts : tuple of ints
             Number grid points in each dimension.
-        physical_sizes: tuple of floats
+        physical_sizes : tuple of floats
             Physical dimensions.
-        periodic: bool
+        periodic : bool
             Wether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
-        info: dict
+        info : dict
             Meta data found in the file.
         """
         self._reader = reader
@@ -78,9 +77,7 @@ class ChannelInfo:
         self._periodic = periodic
         self._info = info.copy()
 
-    def topography(self, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
+    def topography(self, physical_sizes=None, height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
@@ -99,7 +96,7 @@ class ChannelInfo:
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
-        periodic: bool
+        periodic : bool
             Wether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
@@ -203,7 +200,7 @@ class ChannelInfo:
         """
         The area per point is returned as the product over the pixel size
         tuple. If `pixel_size` returns None, than also `area_per_pt` returns
-        None.s
+        None.
         """
         if self.pixel_size is None:
             return None

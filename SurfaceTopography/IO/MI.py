@@ -28,7 +28,8 @@
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny, mangle_length_unit_utf8
+from ..UnitConversion import mangle_length_unit_utf8
+from .common import OpenFromAny
 from .Reader import ReaderBase, CorruptFile, ChannelInfo
 
 image_head = b'fileType      Image\n'

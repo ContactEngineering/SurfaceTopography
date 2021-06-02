@@ -22,8 +22,6 @@
 # SOFTWARE.
 #
 
-import numpy as np
-
 from ..HeightContainer import UniformTopographyInterface
 
 

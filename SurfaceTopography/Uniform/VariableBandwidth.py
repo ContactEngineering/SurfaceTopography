@@ -32,7 +32,31 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 
 
-def checkerboard_detrend(topography, subdivisions):
+def checkerboard_detrend_1D(topography, region_index, order=1, return_plane=False):
+    x, h = topography.heights_and_positions()
+    b = [np.bincount(region_index, h * (x ** i)) for i in range(order)]
+    C = [[np.bincount(region_index, x ** (k + i)) for i in range(order)] for k in range(order)]
+    a = np.linalg.solve(C, b)
+
+    detrended_h = h - np.sum([a[i] * x ** i for i in range(order)], axis=0)
+
+    if return_plane:
+        return detrended_h
+    else:
+        return detrended_h, a
+
+
+
+def checkerboard_detrend_2D(topography, region_index, order=1, return_plane=False):
+    x, h = topography.heights_and_positions()
+    b = [(h * (x ** i)).sum() for i in range(order)]
+    C = [[(x ** (k + i)).sum() for i in range(order)] for k in range(order)]
+    a = np.linalg.solve(C, b)
+
+    return h - np.sum([a[i] * x ** i for i in range(order)], axis=0)
+
+
+def checkerboard_detrend(topography, subdivisions, order=1, return_plane=False):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -49,12 +73,22 @@ def checkerboard_detrend(topography, subdivisions):
     subdivisions : tuple
         Number of subdivision per dimension, i.e. physical_sizes of the
         checkerboard.
+    order : int, optional
+        Order of the polynomial used for detrending. 0 = subtract mean,
+        1 = remove mean and tilt, 2 = remove curvature. (Default: 1)
+    return_plane : bool, optional
+        Return parameters of the detrending plane. (Default: False)
 
     Returns
     -------
-    arr : array
+    arr : np.ndarray
         Array with height information, tilt-corrected within each
         checkerboard.
+
+    if return_plane == True:
+    parameters : np.ndarray
+        Array of leading order `subdivisions` containing the fit
+        parameters.
     """
     arr = topography.heights().copy()
     nb_dim = topography.dim

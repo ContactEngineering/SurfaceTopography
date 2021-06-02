@@ -35,8 +35,7 @@ from datetime import datetime
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
-
-from .common import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
+from ..UnitConversion import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
 from .Reader import ReaderBase, ChannelInfo
 
 

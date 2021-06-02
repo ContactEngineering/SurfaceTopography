@@ -29,10 +29,10 @@ import numpy as np
 
 from numpyencoder import NumpyEncoder
 
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..NonuniformLineScan import NonuniformLineScan
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
-from .common import mangle_length_unit_utf8, mangle_length_unit_ascii
+from ..NonuniformLineScan import NonuniformLineScan
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
 from .Reader import ReaderBase, ChannelInfo
 

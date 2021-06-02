@@ -26,11 +26,12 @@ import re
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
-from .FromFile import make_wrapped_reader
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..UnitConversion import height_units, mangle_length_unit_utf8
+from .common import CHANNEL_NAME_INFO_KEY, text
+from .FromFile import make_wrapped_reader
 
 ###
 
