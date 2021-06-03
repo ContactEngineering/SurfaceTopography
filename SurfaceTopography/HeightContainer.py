@@ -29,6 +29,7 @@ Base class for geometric topogography descriptions
 """
 
 import abc
+from deprecated import deprecated
 
 import numpy as np
 
@@ -125,6 +126,14 @@ class AbstractTopography(object):
         raise NotImplementedError
 
     @property
+    def unit(self):
+        """Return the length unit of the topography."""
+        try:
+            return self.info['unit']
+        except KeyError:
+            return None
+
+    @property
     def info(self, ):
         """
         Return the info dictionary. The info dictionary contains auxiliary data
@@ -138,7 +147,7 @@ class AbstractTopography(object):
             Unit of the topography. The unit information applies to the lateral
             units (the physical size) as well as to heights units. Examples:
             'µm', 'nm'.
-        datetime : :obj:`datetime`
+        acquisition_time : :obj:`datetime`
             Date and time of the measurement.
         """
         return self._info

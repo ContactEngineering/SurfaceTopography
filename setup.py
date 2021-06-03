@@ -142,6 +142,7 @@ setup(
         'h5py',
         'defusedxml',
         'numpyencoder',
-        'pyyaml'
+        'pyyaml',
+        'deprecated'
     ]
 )

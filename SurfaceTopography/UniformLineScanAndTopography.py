@@ -29,6 +29,7 @@ Support for uniform topogography descriptions
 """
 
 import numpy as np
+from deprecated import deprecated
 
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
@@ -482,8 +483,12 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     @property
     def heights_scale_factor(self):
         return self._heights_scale_factor
+
     # For backwards compatibility
-    scale_factor = heights_scale_factor
+    @property
+    @deprecated(version='0.94.0', reason='Use heights_scale_factor')
+    def scale_factor(self):
+        return self.heights_scale_factor
 
     @property
     def positions_scale_factor(self):

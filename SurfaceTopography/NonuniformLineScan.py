@@ -29,6 +29,7 @@ Support for nonuniform topogography descriptions
 """
 
 import numpy as np
+from deprecated import deprecated
 
 from .HeightContainer import AbstractTopography, DecoratedTopography, \
     NonuniformLineScanInterface
@@ -160,7 +161,12 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     @property
     def heights_scale_factor(self):
         return self._heights_scale_factor
-    scale_factor = heights_scale_factor
+
+    # For backwards compatibility
+    @property
+    @deprecated(version='0.94.0', reason='Use heights_scale_factor')
+    def scale_factor(self):
+        return self.heights_scale_factor
 
     @property
     def positions_scale_factor(self):
