@@ -306,6 +306,6 @@ UniformTopographyInterface.register_function('rms_height_from_profile', rms_heig
 UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
 UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
-UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_area)
+UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_profile)
 UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)
 UniformTopographyInterface.register_function('rms_curvature_from_area', rms_curvature_from_area)
