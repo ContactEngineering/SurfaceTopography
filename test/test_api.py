@@ -22,6 +22,7 @@ common_attributes = [
 ]
 
 uniform_attributes = [
+    "area_per_pt",
     "has_undefined_data",
     "is_domain_decomposed",
     "pixel_size",
@@ -31,16 +32,34 @@ nonuniform_attributes = [
     "x_range",
 ]
 
+common_functions = [
+    "detrend",
+]
+
+uniform_functions = [
+    "filter",
+    "interpolate_bicubic",
+    "interpolate_fourier",
+    "longcut",
+    "mirror_stitch",
+    "shortcut",
+    "window",
+]
+
+nonuniform_functions = [
+
+]
+
 profile_functions = [
     "rms_height_from_profile",
     "rms_slope_from_profile",
     "rms_curvature_from_profile",
+    "autocorrelation_from_profile",
     "power_spectrum_from_profile",
     "variable_bandwidth",
 ]
 
 area_functions = [
-    "area_per_pt",
     "rms_height_from_area",
     "rms_gradient",
     "rms_curvature_from_area",
@@ -131,13 +150,14 @@ def uniform_2d_topography(request):
     return apply_param(topography, request.param)
 
 
-
 #######################################################################
 # Tests
 #######################################################################
 
 
-@pytest.mark.parametrize('expected_attribute', common_attributes + uniform_attributes + profile_functions)
+@pytest.mark.parametrize('expected_attribute',
+                         common_attributes + common_functions + uniform_attributes + uniform_functions +
+                         profile_functions)
 def test_api_uniform_line_scan(uniform_line_scan, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 
@@ -150,7 +170,9 @@ def test_api_uniform_line_scan(uniform_line_scan, expected_attribute):
     assert hasattr(uniform_line_scan, expected_attribute)
 
 
-@pytest.mark.parametrize('expected_attribute', common_attributes + nonuniform_attributes + profile_functions)
+@pytest.mark.parametrize('expected_attribute',
+                         common_attributes + common_functions + nonuniform_attributes + nonuniform_functions +
+                         profile_functions)
 def test_api_nonuniform_line_scan(nonuniform_line_scan, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 
@@ -164,7 +186,8 @@ def test_api_nonuniform_line_scan(nonuniform_line_scan, expected_attribute):
 
 
 @pytest.mark.parametrize('expected_attribute',
-                         common_attributes + uniform_attributes + profile_functions + area_functions)
+                         common_attributes + common_functions + uniform_attributes + uniform_functions +
+                         profile_functions + area_functions)
 def test_api_uniform_2d_topography(uniform_2d_topography, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 

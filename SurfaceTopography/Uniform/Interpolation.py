@@ -195,8 +195,6 @@ class MirrorStichedTopography(DecoratedUniformTopography):
             indexing='ij')
 
 
-Topography.register_function("mirror_stitch",
-                             MirrorStichedTopography)
+Topography.register_function("mirror_stitch", MirrorStichedTopography)
 Topography.register_function("interpolate_bicubic", bicubic_interpolator)
-UniformTopographyInterface.register_function('interpolate_fourier',
-                                             interpolate_fourier)
+UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)

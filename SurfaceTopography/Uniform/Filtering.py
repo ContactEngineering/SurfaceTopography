@@ -425,9 +425,7 @@ class LongCutTopography(FilteredUniformTopography):
         super().__setstate__(superstate)
 
 
-UniformTopographyInterface.register_function("window",
-                                             WindowedUniformTopography)
-UniformTopographyInterface.register_function("filter",
-                                             FilteredUniformTopography)
+UniformTopographyInterface.register_function("window", WindowedUniformTopography)
+UniformTopographyInterface.register_function("filter", FilteredUniformTopography)
 UniformTopographyInterface.register_function("shortcut", ShortCutTopography)
 UniformTopographyInterface.register_function("longcut", LongCutTopography)
