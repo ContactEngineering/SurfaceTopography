@@ -119,7 +119,7 @@ explicit_physical_sizes = _convert_filelist([
 ])
 
 text_example_memory_list = [
-            """
+    """
             0 0
             1 2
             2 4
@@ -160,7 +160,6 @@ def test_cannot_detect_file_format_on_txt():
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list)
 def test_keep_text_file_open(fn):
-
     # Text file can be opened as binary or text
     with open(fn, 'rb') as f:
         open_topography(f)
@@ -172,7 +171,6 @@ def test_keep_text_file_open(fn):
 
 @pytest.mark.parametrize('fn', binary_example_file_list)
 def test_keep_binary_file_open(fn):
-
     with open(fn, 'rb') as f:
         open_topography(f)
         assert not f.closed, f"Binary file {fn} was opened as binary file and is closed, but should not"
@@ -293,10 +291,10 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
     r = open_topography(fn)
     assert isinstance(r.default_channel.nb_grid_pts, tuple), f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}'
     if r.default_channel.physical_sizes is not None:
-        assert isinstance(r.default_channel.physical_sizes, tuple),\
+        assert isinstance(r.default_channel.physical_sizes, tuple), \
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
         # If it is a tuple, it cannot contains None's
-        assert np.all([p is not None for p in r.default_channel.physical_sizes]),\
+        assert np.all([p is not None for p in r.default_channel.physical_sizes]), \
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
 
 
@@ -310,7 +308,7 @@ def test_reader_topography_same(fn):
     reader = open_topography(fn)
 
     for channel in reader.channels:
-        foo_str = reader.format()+"-%d" % (channel.index,)  # unique for each channel
+        foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
             else None,
@@ -345,7 +343,11 @@ def test_periodic_flag(fn):
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_reader_height_scale_factor_arg(fn):
-    """Test whether height_scale_factor can be given to .topography() and is effective."""
+    """Test whether height_scale_factor can be given to .topography() and is effective.
+
+    Also checking whether the reader has .height_scale_factor attribute and
+    whether it is equal to the scaling factor known from topography.
+    """
     scale_factor = 2
 
     reader = open_topography(fn)
@@ -355,10 +357,18 @@ def test_reader_height_scale_factor_arg(fn):
             if reader.default_channel.physical_sizes is not None \
             else [1., ] * reader.default_channel.dim
 
+    scale_from_channel = reader.default_channel.height_scale_factor
+
     t_without_scale_given = reader.topography(physical_sizes=physical_sizes)
 
     try:
         orig_scale_factor = t_without_scale_given.scale_factor
+        # if the topography is scaled by default like here, there should
+        # also be a scale factor in the channel and it should be equal
+        # to the one used for the topography
+        assert scale_from_channel is not None, "No height scale factor in channel"
+        assert pytest.approx(scale_from_channel, orig_scale_factor), "Difference in height scale"
+
     except AttributeError:
         orig_scale_factor = 1.
 
@@ -368,15 +378,8 @@ def test_reader_height_scale_factor_arg(fn):
     # test first height value and check whether it is properly scaled
     #
     assert pytest.approx(t_with_scale_given.heights().flatten()[0] / scale_factor) == \
-           t_without_scale_given.heights().flatten()[0] / orig_scale_factor
-
-
-
-
-
-
-
-
+           t_without_scale_given.heights().flatten()[0] / orig_scale_factor, \
+            "Ineffective height scale factor when given to .topography()"
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
