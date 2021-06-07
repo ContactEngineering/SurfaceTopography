@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.ScalarParameters &mdash; SurfaceTopography 0.93.1.dev29+gad6d5aff documentation</title>
+  <title>SurfaceTopography.Uniform.ScalarParameters &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev29+gad6d5aff
+                0.93.1.dev46+gf114f9cf
               </div>
             
           
@@ -246,17 +246,23 @@
 <span class="sd">    rms_height : float</span>
 <span class="sd">        Root mean square height value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>
-    <span class="n">pnp</span> <span class="o">=</span> <span class="n">Reduction</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">_communicator</span><span class="p">)</span>
-    <span class="n">profile</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pnp</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">profile</span> <span class="o">-</span> <span class="n">pnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Areal rms height can only be computed for topographies, not line scans.&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>
+        <span class="n">pnp</span> <span class="o">=</span> <span class="n">Reduction</span><span class="p">(</span><span class="n">topography</span><span class="o">.</span><span class="n">_communicator</span><span class="p">)</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pnp</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">profile</span> <span class="o">-</span> <span class="n">pnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot handle topographies of dimension </span><span class="si">{topography.dim}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="rms_gradient"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_gradient">[docs]</a><span class="k">def</span> <span class="nf">rms_gradient</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the root mean square amplitude of the height gradient of a</span>
-<span class="sd">    topography or line scan stored on a uniform grid.</span>
+<span class="sd">    topography stored on a uniform grid. The topography must be</span>
+<span class="sd">    two-dimensional (i.e. a topography map).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -299,8 +305,10 @@
 <div class="viewcode-block" id="rms_slope_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">[docs]</a><span class="k">def</span> <span class="nf">rms_slope_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                            <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the root mean square amplitude of the height gradient of a</span>
-<span class="sd">    topography or line scan stored on a uniform grid.</span>
+<span class="sd">    Compute the root mean square amplitude of the height derivative of a</span>
+<span class="sd">    topography or line scan stored on a uniform grid. If the topography is two</span>
+<span class="sd">    dimensional (i.e. a topography map), the derivative is computed in the</span>
+<span class="sd">    x-direction.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -333,17 +341,64 @@
         <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">dx</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot handle topographies of dimension </span><span class="si">{topography.dim}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="rms_curvature_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_profile">[docs]</a><span class="k">def</span> <span class="nf">rms_curvature_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the root mean square amplitude of the second derivative (i.e. the</span>
+<span class="sd">    curvature) of a topography or line scan stored on a uniform grid. If the</span>
+<span class="sd">    topography is two-dimensional (i.e. a topography map), then the rms curvature</span>
+<span class="sd">    is computed only along the x-direction.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
+<span class="sd">        SurfaceTopography object containing height information.</span>
+<span class="sd">    short_wavelength_cutoff : float</span>
+<span class="sd">        All wavelengths below this cutoff will be set to zero amplitude.</span>
+<span class="sd">    window : str, optional</span>
+<span class="sd">        Window for eliminating edge effect. See scipy.signal.get_window.</span>
+<span class="sd">        Only used if short wavelength cutoff is set.</span>
+<span class="sd">        (Default: no window for periodic Topographies, &quot;hann&quot; window for</span>
+<span class="sd">        nonperiodic Topographies)</span>
+<span class="sd">    direction : str, optional</span>
+<span class="sd">        Direction in which the window is applied. Possible options are</span>
+<span class="sd">        &#39;x&#39;, &#39;y&#39; and &#39;radial&#39;. If set to None, it chooses &#39;x&#39; for line</span>
+<span class="sd">        scans and &#39;radial&#39; for topographies. Only used if short wavelength</span>
+<span class="sd">        cutoff is set. (Default: None)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rms_curvature : float</span>
+<span class="sd">        Root mean square curvature value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`rms_curvature_from_profile` does not support MPI-decomposed topographies.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
+    <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
+        <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">d2x</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">d2x</span><span class="p">,</span> <span class="n">d2y</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot handle topographies of dimension </span><span class="si">{topography.dim}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d2x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="rms_laplacian"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">[docs]</a><span class="k">def</span> <span class="nf">rms_laplacian</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the root mean square Laplacian of the height gradient of a</span>
-<span class="sd">    topography or line scan stored on a uniform grid. The rms curvature</span>
-<span class="sd">    is half of the value returned here.</span>
+<span class="sd">    Compute the root mean square amplitude of the Laplacian (i.e. the sum of</span>
+<span class="sd">    second derivatives in x- and y-directions) of a topography on a uniform</span>
+<span class="sd">    grid. The topography must be two-dimensional (i.e. a topography map).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -372,10 +427,7 @@
     <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
-            <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="n">curv</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_function</span><span class="o">=</span><span class="n">mask_function</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">curv</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;RMS Laplacian can only be computed for topographies, not line scans.&#39;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">mask_function</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">short_wavelength_cutoff</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> \
             <span class="k">lambda</span> <span class="n">frequency</span><span class="p">:</span> <span class="p">(</span><span class="n">frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">frequency</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">short_wavelength_cutoff</span> <span class="o">**</span> <span class="mi">2</span>
@@ -388,12 +440,10 @@
 <div class="viewcode-block" id="rms_curvature_from_area"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area">[docs]</a><span class="k">def</span> <span class="nf">rms_curvature_from_area</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the root mean square curvature of the height gradient of a</span>
-<span class="sd">    topography or line scan stored on a uniform grid.</span>
-
-<span class="sd">    For 2D Data the rms Laplacian is twice of the value returned here.</span>
-
-<span class="sd">    For 1D Data they are identical</span>
+<span class="sd">    Compute the root mean square amplitude of the curvature of a</span>
+<span class="sd">    topography stored on a uniform grid. The topography must be</span>
+<span class="sd">    two-dimensional (i.e. a topography map). This function returns</span>
+<span class="sd">    half the Laplacian.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -417,17 +467,8 @@
 <span class="sd">    rms_curvature : float</span>
 <span class="sd">        Root mean square curvature value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">is_domain_decomposed</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`rms_curvature` does not support MPI-decomposed topographies.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">fac</span> <span class="o">=</span> <span class="mf">1.</span>
-    <span class="k">elif</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">fac</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mi">2</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot handle topographies of dimension </span><span class="si">{topography.dim}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">fac</span> <span class="o">*</span> <span class="n">rms_laplacian</span><span class="p">(</span>
-        <span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="n">short_wavelength_cutoff</span><span class="p">,</span>
-        <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">rms_laplacian</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">short_wavelength_cutoff</span><span class="o">=</span><span class="n">short_wavelength_cutoff</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">,</span>
+                         <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>
@@ -435,6 +476,7 @@
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_height_from_area&#39;</span><span class="p">,</span> <span class="n">rms_height_from_area</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_gradient&#39;</span><span class="p">,</span> <span class="n">rms_gradient</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_slope_from_profile&#39;</span><span class="p">,</span> <span class="n">rms_slope_from_profile</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_curvature_from_profile&#39;</span><span class="p">,</span> <span class="n">rms_curvature_from_profile</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_laplacian&#39;</span><span class="p">,</span> <span class="n">rms_laplacian</span><span class="p">)</span>
 <span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;rms_curvature_from_area&#39;</span><span class="p">,</span> <span class="n">rms_curvature_from_area</span><span class="p">)</span>
 </pre></div>

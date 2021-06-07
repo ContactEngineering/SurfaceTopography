@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.93.1.dev29+gad6d5aff documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.93.1.dev29+gad6d5aff
+                0.93.1.dev46+gf114f9cf
               </div>
             
           
@@ -606,10 +606,41 @@ nonperiodic Topographies</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/ScalarParameters.html#rms_curvature_from_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square curvature of the height gradient of a
-topography or line scan stored on a uniform grid.</p>
-<p>For 2D Data the rms Laplacian is twice of the value returned here.</p>
-<p>For 1D Data they are identical</p>
+<dd><p>Compute the root mean square amplitude of the curvature of a
+topography stored on a uniform grid. The topography must be
+two-dimensional (i.e. a topography map). This function returns
+half the Laplacian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
+<li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
+Only used if short wavelength cutoff is set.
+(Default: no window for periodic Topographies, “hann” window for
+nonperiodic Topographies)</p></li>
+<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Direction in which the window is applied. Possible options are
+‘x’, ‘y’ and ‘radial’. If set to None, it chooses ‘x’ for line
+scans and ‘radial’ for topographies. Only used if short wavelength
+cutoff is set. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rms_curvature</strong> – Root mean square curvature value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/ScalarParameters.html#rms_curvature_from_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square amplitude of the second derivative (i.e. the
+curvature) of a topography or line scan stored on a uniform grid. If the
+topography is two-dimensional (i.e. a topography map), then the rms curvature
+is computed only along the x-direction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -638,7 +669,8 @@ cutoff is set. (Default: None)</p></li>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_gradient">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/ScalarParameters.html#rms_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_gradient" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the root mean square amplitude of the height gradient of a
-topography or line scan stored on a uniform grid.</p>
+topography stored on a uniform grid. The topography must be
+two-dimensional (i.e. a topography map).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -704,9 +736,9 @@ line scan stored on a uniform grid from individual profiles.
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/ScalarParameters.html#rms_laplacian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square Laplacian of the height gradient of a
-topography or line scan stored on a uniform grid. The rms curvature
-is half of the value returned here.</p>
+<dd><p>Compute the root mean square amplitude of the Laplacian (i.e. the sum of
+second derivatives in x- and y-directions) of a topography on a uniform
+grid. The topography must be two-dimensional (i.e. a topography map).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -734,8 +766,10 @@ cutoff is set. (Default: None)</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Uniform/ScalarParameters.html#rms_slope_from_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square amplitude of the height gradient of a
-topography or line scan stored on a uniform grid.</p>
+<dd><p>Compute the root mean square amplitude of the height derivative of a
+topography or line scan stored on a uniform grid. If the topography is two
+dimensional (i.e. a topography map), the derivative is computed in the
+x-direction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.93.1.dev29+gad6d5aff documentation</title>
+  <title>SurfaceTopography.UniformLineScanAndTopography &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev29+gad6d5aff
+                0.93.1.dev46+gf114f9cf
               </div>
             
           
@@ -312,7 +312,10 @@
         <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">):</span>
                 <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div></div>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">heights</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="UniformLineScan.squeeze"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.squeeze">[docs]</a>    <span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
 
 
 <div class="viewcode-block" id="Topography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography">[docs]</a><span class="k">class</span> <span class="nc">Topography</span><span class="p">(</span><span class="n">AbstractTopography</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span><span class="p">):</span>
