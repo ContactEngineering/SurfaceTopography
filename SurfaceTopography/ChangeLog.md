@@ -6,8 +6,7 @@ v0.94.0 (not published yet)
 ---------------------------
 
 - BUG: Fixes loading of 2D measurements from xyz data (#93)
-- BUG: Fixes missing height_scale_factor in info dict
-  for OPD files (#98)
+
 
 v0.93.0 (27Apr21)
 -----------------
