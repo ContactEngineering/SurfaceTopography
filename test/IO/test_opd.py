@@ -48,7 +48,10 @@ class opdSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(sx, 0.125909140)
         self.assertAlmostEqual(sy, 0.094431855)
         self.assertTrue(surface.is_uniform)
+        self.assertEqual(surface.info['unit'], 'mm')
+        self.assertAlmostEqual(surface.info['height_scale_factor'], 0.0005772949829101563)
 
     def test_undefined_points(self):
         t = read_opd(os.path.join(DATADIR, 'example2.opd'))
         self.assertTrue(t.has_undefined_data)
+

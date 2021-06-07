@@ -315,12 +315,14 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     # Height are in nm, width in mm
     if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
-    surface = Topography(np.fliplr(data), physical_sizes,
-                         info={**info, **dict(unit='mm')}, periodic=periodic)
     if height_scale_factor is None:
-        surface = surface.scale(wavelength / mult * 1e-6)
-    else:
-        surface = surface.scale(height_scale_factor)
+        height_scale_factor = wavelength / mult * 1e-6
+
+    surface = Topography(np.fliplr(data), physical_sizes,
+                         info={**info, **dict(unit='mm', height_scale_factor=height_scale_factor)},
+                         periodic=periodic)
+
+    surface = surface.scale(height_scale_factor)
     return surface
 
 
