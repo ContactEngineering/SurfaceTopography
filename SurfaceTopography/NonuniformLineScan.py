@@ -100,6 +100,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     def squeeze(self):
         return self
 
+
 class DecoratedNonuniformTopography(DecoratedTopography,
                                     NonuniformLineScanInterface):
     @property
