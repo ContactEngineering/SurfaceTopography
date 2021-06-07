@@ -11,7 +11,6 @@ common_properties = [
     "is_periodic",
     "nb_grid_pts",
     "physical_sizes",
-    "squeeze",
 ]
 
 uniform_properties = [
@@ -25,6 +24,8 @@ nonuniform_properties = [
     "x_range",
 ]
 
+properties = common_properties + uniform_properties + nonuniform_properties
+
 common_functions = [
     "bandwidth",
     "detrend",
@@ -35,6 +36,7 @@ common_functions = [
     "min",
     "positions",
     "positions_and_heights",
+    "squeeze",
 ]
 
 uniform_functions = [
@@ -68,6 +70,8 @@ area_functions = [
     "power_spectrum_from_area",
     "power_spectrum_from_profile",
 ]
+
+functions = common_functions + uniform_functions + nonuniform_functions + profile_functions + area_functions
 
 
 #######################################################################
@@ -156,6 +160,13 @@ def uniform_2d_topography(request):
 # Tests
 #######################################################################
 
+def checkattr(obj, attr):
+    assert hasattr(obj, attr)
+    if attr in properties:
+        assert isinstance(getattr(type(obj), attr), property)
+    if attr in functions:
+        assert callable(getattr(obj, attr))
+
 
 @pytest.mark.parametrize('expected_attribute',
                          common_properties + common_functions + uniform_properties + uniform_functions +
@@ -169,7 +180,7 @@ def test_api_uniform_line_scan(uniform_line_scan, expected_attribute):
     expected_attribute: str
         name of the attribute which we check
     """
-    assert hasattr(uniform_line_scan, expected_attribute)
+    checkattr(uniform_line_scan, expected_attribute)
 
 
 @pytest.mark.parametrize('expected_attribute',
@@ -184,7 +195,7 @@ def test_api_nonuniform_line_scan(nonuniform_line_scan, expected_attribute):
     expected_attribute: str
         name of the attribute which we check
     """
-    assert hasattr(nonuniform_line_scan, expected_attribute)
+    checkattr(nonuniform_line_scan, expected_attribute)
 
 
 @pytest.mark.parametrize('expected_attribute',
@@ -199,4 +210,4 @@ def test_api_uniform_2d_topography(uniform_2d_topography, expected_attribute):
     expected_attribute: str
         name of the attribute which we check
     """
-    assert hasattr(uniform_2d_topography, expected_attribute)
+    checkattr(uniform_2d_topography, expected_attribute)
