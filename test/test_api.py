@@ -38,6 +38,16 @@ def id_topography_modifiers(fixture_value):
     return s
 
 
+def apply_param(topography, param):
+    use_scale, use_detrend = param
+    if use_scale:
+        topography = topography.scale(2)
+        assert hasattr(topography, 'scale_factor')
+    if use_detrend:
+        topography = topography.detrend('height')
+    return topography
+
+
 @pytest.fixture(params=[(True, True), (True, False), (False, True), (False, False)],
                 ids=id_topography_modifiers)
 def uniform_line_scan(request):
@@ -52,12 +62,7 @@ def uniform_line_scan(request):
     x = np.linspace(0, 4 * np.pi, 11)
     h = np.sin(x)
     uniform_line_scan = UniformLineScan(h, 4 * np.pi)
-    use_scale, use_detrend = request.param
-    if use_scale:
-        uniform_line_scan = uniform_line_scan.scale(2)
-    if use_detrend:
-        uniform_line_scan = uniform_line_scan.detrend('height')
-    return uniform_line_scan
+    return apply_param(uniform_line_scan, request.param)
 
 
 @pytest.fixture(params=[(True, True), (True, False), (False, True), (False, False)],
@@ -74,12 +79,7 @@ def nonuniform_line_scan(request):
     x = np.array((0, 0.1, 0.2, 0.4, 0.5))
     h = np.sin(x)
     nonuniform_line_scan = NonuniformLineScan(x, h)
-    use_scale, use_detrend = request.param
-    if use_scale:
-        nonuniform_line_scan = nonuniform_line_scan.scale(2)
-    if use_detrend:
-        nonuniform_line_scan = nonuniform_line_scan.detrend('height')
-    return nonuniform_line_scan
+    return apply_param(nonuniform_line_scan, request.param)
 
 
 @pytest.fixture(params=[(True, True), (True, False), (False, True), (False, False)],
@@ -97,12 +97,8 @@ def uniform_2d_topography(request):
     x = np.arange(5).reshape((-1, 1))
     arr = -2 * y + 0 * x  # only slope in y direction
     topography = Topography(arr, (5, 10)).detrend('center')
-    use_scale, use_detrend = request.param
-    if use_scale:
-        topography = topography.scale(2)
-    if use_detrend:
-        topography = topography.detrend('height')
-    return topography
+    return apply_param(topography, request.param)
+
 
 #######################################################################
 # Tests
