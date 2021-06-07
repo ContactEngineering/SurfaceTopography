@@ -3,10 +3,9 @@ import numpy as np
 
 from SurfaceTopography import UniformLineScan, NonuniformLineScan, Topography
 
-
 common_attributes = [
-    "physical_sizes",
-    "nb_grid_pts",
+    "communicator",
+    "derivative",
     "dim",
     "info",
     "is_uniform",
@@ -15,9 +14,39 @@ common_attributes = [
     "positions",
     "positions_and_heights",
     "mean",
-    "derivative",
+    "min",
+    "max",
+    "nb_grid_pts",
+    "physical_sizes",
     "squeeze",
 ]
+
+uniform_attributes = [
+    "has_undefined_data",
+    "is_domain_decomposed",
+    "pixel_size",
+]
+
+nonuniform_attributes = [
+]
+
+profile_functions = [
+    "rms_height_from_profile",
+    "rms_slope_from_profile",
+    "rms_curvature_from_profile",
+    "power_spectrum_from_profile",
+    "variable_bandwidth",
+]
+
+area_functions = [
+    "area_per_pt",
+    "rms_height_from_area",
+    "rms_gradient",
+    "rms_curvature_from_area",
+    "power_spectrum_from_area",
+    "power_spectrum_from_profile",
+]
+
 
 #######################################################################
 # Fixtures
@@ -104,19 +133,13 @@ def uniform_2d_topography(request):
         topography = topography.detrend('height')
     return topography
 
+
 #######################################################################
 # Tests
 #######################################################################
 
 
-@pytest.mark.parametrize('expected_attribute', common_attributes + [
-    "rms_height_from_profile",
-    "rms_slope_from_profile",
-    "rms_gradient",
-    "rms_curvature_from_profile",
-    "power_spectrum_from_profile",
-    "variable_bandwidth",
-])
+@pytest.mark.parametrize('expected_attribute', common_attributes + uniform_attributes + profile_functions)
 def test_api_uniform_line_scan(uniform_line_scan, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 
@@ -129,14 +152,7 @@ def test_api_uniform_line_scan(uniform_line_scan, expected_attribute):
     assert hasattr(uniform_line_scan, expected_attribute)
 
 
-@pytest.mark.parametrize('expected_attribute', common_attributes + [
-    "rms_height_from_profile",
-    "rms_slope_from_profile",
-    "rms_gradient",
-    "rms_curvature_from_profile",
-    "power_spectrum_from_profile",
-    "variable_bandwidth",
-])
+@pytest.mark.parametrize('expected_attribute', common_attributes + nonuniform_attributes + profile_functions)
 def test_api_nonuniform_line_scan(nonuniform_line_scan, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 
@@ -149,18 +165,8 @@ def test_api_nonuniform_line_scan(nonuniform_line_scan, expected_attribute):
     assert hasattr(nonuniform_line_scan, expected_attribute)
 
 
-@pytest.mark.parametrize('expected_attribute', common_attributes + [
-    "area_per_pt",
-    "rms_height_from_area",
-    "rms_height_from_profile",
-    "rms_slope_from_profile",
-    "rms_gradient",
-    "rms_curvature_from_area",
-    "rms_curvature_from_profile",
-    "power_spectrum_from_area",
-    "power_spectrum_from_profile",
-    "variable_bandwidth",
-])
+@pytest.mark.parametrize('expected_attribute',
+                         common_attributes + uniform_attributes + profile_functions + area_functions)
 def test_api_uniform_2d_topography(uniform_2d_topography, expected_attribute):
     """Just check whether an expected subset of pipeline functions can be executed.
 

@@ -97,6 +97,8 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     def heights(self):
         return self._h
 
+    def squeeze(self):
+        return self
 
 class DecoratedNonuniformTopography(DecoratedTopography,
                                     NonuniformLineScanInterface):

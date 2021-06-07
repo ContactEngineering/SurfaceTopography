@@ -76,17 +76,23 @@ def rms_height_from_area(topography):
     rms_height : float
         Root mean square height value.
     """
-    n = np.prod(topography.nb_grid_pts)
-    pnp = Reduction(topography._communicator)
-    profile = topography.heights()
-    return np.sqrt(pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
+    if topography.dim <= 1:
+        raise ValueError('Areal rms height can only be computed for topographies, not line scans.')
+    elif topography.dim == 2:
+        n = np.prod(topography.nb_grid_pts)
+        pnp = Reduction(topography._communicator)
+        profile = topography.heights()
+        return np.sqrt(pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
+    else:
+        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
 
 def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
                  direction=None):
     """
     Compute the root mean square amplitude of the height gradient of a
-    topography or line scan stored on a uniform grid.
+    topography stored on a uniform grid. The topography must be
+    two-dimensional (i.e. a topography map).
 
     Parameters
     ----------
@@ -129,8 +135,10 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
 def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None,
                            direction=None):
     """
-    Compute the root mean square amplitude of the height gradient of a
-    topography or line scan stored on a uniform grid.
+    Compute the root mean square amplitude of the height derivative of a
+    topography or line scan stored on a uniform grid. If the topography is two
+    dimensional (i.e. a topography map), the derivative is computed in the
+    x-direction.
 
     Parameters
     ----------
@@ -163,17 +171,64 @@ def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None
         lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
     if topography.dim == 1:
         dx = topography.derivative(1, mask_function=mask_function)
-    else:
+    elif topography.dim == 2:
         dx, dy = topography.derivative(1, mask_function=mask_function)
+    else:
+        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
     return np.sqrt(np.mean(dx ** 2))
+
+
+def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=None,
+                               direction=None):
+    """
+    Compute the root mean square amplitude of the second derivative (i.e. the
+    curvature) of a topography or line scan stored on a uniform grid. If the
+    topography is two-dimensional (i.e. a topography map), then the rms curvature
+    is computed only along the x-direction.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        SurfaceTopography object containing height information.
+    short_wavelength_cutoff : float
+        All wavelengths below this cutoff will be set to zero amplitude.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        Only used if short wavelength cutoff is set.
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
+    direction : str, optional
+        Direction in which the window is applied. Possible options are
+        'x', 'y' and 'radial'. If set to None, it chooses 'x' for line
+        scans and 'radial' for topographies. Only used if short wavelength
+        cutoff is set. (Default: None)
+
+    Returns
+    -------
+    rms_curvature : float
+        Root mean square curvature value.
+    """
+    if topography.is_domain_decomposed:
+        raise NotImplementedError("`rms_curvature_from_profile` does not support MPI-decomposed topographies.")
+    if short_wavelength_cutoff is not None:
+        topography = topography.window(window=window, direction=direction)
+    mask_function = None if short_wavelength_cutoff is None else \
+        lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
+    if topography.dim == 1:
+        d2x = topography.derivative(2, mask_function=mask_function)
+    elif topography.dim == 2:
+        d2x, d2y = topography.derivative(2, mask_function=mask_function)
+    else:
+        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+    return np.sqrt(np.mean(d2x ** 2))
 
 
 def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
                   direction=None):
     """
-    Compute the root mean square Laplacian of the height gradient of a
-    topography or line scan stored on a uniform grid. The rms curvature
-    is half of the value returned here.
+    Compute the root mean square amplitude of the Laplacian (i.e. the sum of
+    second derivatives in x- and y-directions) of a topography on a uniform
+    grid. The topography must be two-dimensional (i.e. a topography map).
 
     Parameters
     ----------
@@ -202,10 +257,7 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
-        mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
-        curv = topography.derivative(2, mask_function=mask_function)
-        return np.sqrt((curv ** 2).mean())
+        raise ValueError('RMS Laplacian can only be computed for topographies, not line scans.')
     elif topography.dim == 2:
         mask_function = None if short_wavelength_cutoff is None else \
             lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
@@ -218,12 +270,10 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
 def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=None,
                             direction=None):
     """
-    Compute the root mean square curvature of the height gradient of a
-    topography or line scan stored on a uniform grid.
-
-    For 2D Data the rms Laplacian is twice of the value returned here.
-
-    For 1D Data they are identical
+    Compute the root mean square amplitude of the curvature of a
+    topography stored on a uniform grid. The topography must be
+    two-dimensional (i.e. a topography map). This function returns
+    half the Laplacian.
 
     Parameters
     ----------
@@ -247,17 +297,8 @@ def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=Non
     rms_curvature : float
         Root mean square curvature value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_curvature` does not support MPI-decomposed topographies.")
-    if topography.dim == 1:
-        fac = 1.
-    elif topography.dim == 2:
-        fac = 1. / 2
-    else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
-    return fac * rms_laplacian(
-        topography, short_wavelength_cutoff=short_wavelength_cutoff,
-        window=window, direction=direction)
+    return rms_laplacian(topography, short_wavelength_cutoff=short_wavelength_cutoff, window=window,
+                         direction=direction) / 2
 
 
 # Register analysis functions from this module
@@ -265,5 +306,6 @@ UniformTopographyInterface.register_function('rms_height_from_profile', rms_heig
 UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
 UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
+UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_area)
 UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)
 UniformTopographyInterface.register_function('rms_curvature_from_area', rms_curvature_from_area)
