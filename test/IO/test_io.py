@@ -344,6 +344,42 @@ def test_periodic_flag(fn):
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_reader_height_scale_factor_arg(fn):
+    """Test whether height_scale_factor can be given to .topography() and is effective."""
+    scale_factor = 2
+
+    reader = open_topography(fn)
+    physical_sizes = None
+    if reader.default_channel.dim != 1:
+        physical_sizes = reader.default_channel.physical_sizes \
+            if reader.default_channel.physical_sizes is not None \
+            else [1., ] * reader.default_channel.dim
+
+    t_without_scale_given = reader.topography(physical_sizes=physical_sizes)
+
+    try:
+        orig_scale_factor = t_without_scale_given.scale_factor
+    except AttributeError:
+        orig_scale_factor = 1.
+
+    t_with_scale_given = reader.topography(physical_sizes=physical_sizes, height_scale_factor=scale_factor)
+
+    #
+    # test first height value and check whether it is properly scaled
+    #
+    assert pytest.approx(t_with_scale_given.heights().flatten()[0] / scale_factor) == \
+           t_without_scale_given.heights().flatten()[0] / orig_scale_factor
+
+
+
+
+
+
+
+
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_to_netcdf(fn):
     """Test that files can be stored as NetCDF and that reading then gives
     an identical topography object"""
