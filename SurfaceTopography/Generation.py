@@ -158,10 +158,9 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
 def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                       rms_height=None, rms_slope=None, c0=None,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
-                      amplitude_distribution=lambda n: np.random.normal(
-                          size=n),
+                      amplitude_distribution=lambda n: np.random.normal(size=n),
                       periodic=True, rfn=None, kfn=None,
-                      progress_callback=None):
+                      progress_callback=None, info={}):
     r"""
     Create a self-affine, randomly rough surface using a Fourier filtering
     algorithm. The algorithm is described in:
@@ -207,6 +206,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
         useful for creating very large topography maps. (Default: None)
     progress_callback : function(i, n)
         Function that is called to report progress.
+    info : dict
+        Initial info dictionary.
 
     Returns
     -------
@@ -297,8 +298,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                 karr[0, iy] = np.real(karr[0, iy])
                 karr[1:nx // 2 + 1, iy] = karr[-1:nx // 2:-1, iy].conj()
         _irfft2(karr, rarr, progress_callback)
-        return Topography(rarr, physical_sizes, periodic=periodic)
+        return Topography(rarr, physical_sizes, periodic=periodic, info=info)
     else:
         karr[0] = np.real(karr[0])
         rarr[:] = np.fft.irfft(karr)
-        return UniformLineScan(rarr, sy, periodic=periodic)
+        return UniformLineScan(rarr, sy, periodic=periodic, info=info)

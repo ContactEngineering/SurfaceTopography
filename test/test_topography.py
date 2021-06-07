@@ -98,7 +98,7 @@ class UniformLineScanTest(unittest.TestCase):
         with self.assertRaises(AttributeError):
             t.heights_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t.scale(1).heights_scale_factor, 1)
+        self.assertEqual(t.scale(1).height_scale_factor, 1)
 
         #
         # This should also work after the topography has been pickled
@@ -107,9 +107,9 @@ class UniformLineScanTest(unittest.TestCase):
         t2 = pickle.loads(pt)
 
         with self.assertRaises(AttributeError):
-            t2.heights_scale_factor
+            t2.height_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t2.scale(1).heights_scale_factor, 1)
+        self.assertEqual(t2.scale(1).height_scale_factor, 1)
 
     def test_setting_info_dict(self):
 
@@ -1087,7 +1087,7 @@ def test_attribute_error():
 
     st = t.scale(1)
 
-    assert st.heights_scale_factor == 1
+    assert st.height_scale_factor == 1
 
     #
     # only detrended topographies have detrend_mode
@@ -1104,11 +1104,11 @@ def test_attribute_error():
     t2 = pickle.loads(pickle.dumps(t))
 
     with pytest.raises(AttributeError):
-        t2.heights_scale_factor
+        t2.height_scale_factor
 
     st2 = t2.scale(1)
 
-    assert st2.heights_scale_factor == 1
+    assert st2.height_scale_factor == 1
 
     with pytest.raises(AttributeError):
         st2.detrend_mode

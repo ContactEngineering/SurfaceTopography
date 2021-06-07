@@ -156,6 +156,22 @@ def test_uniform_scaled_topography():
         np.testing.assert_almost_equal(2 * fac * y, y2)
 
 
+def test_uniform_unit_conversion():
+    surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1, info=dict(unit='um'))
+    assert surf.unit == 'um'
+
+    surf2 = surf.scale(unit='mm')
+    assert surf2.info['unit'] == 'mm'
+    assert surf2.unit == 'mm'
+
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.pixel_size), surf2.pixel_size)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.rms_height_from_area() / 1000, surf2.rms_height_from_area())
+    np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
+    np.testing.assert_almost_equal(surf.rms_curvature() * 1000, surf2.rms_curvature())
+
+
 def test_nonuniform_scaled_topography():
     surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     sx, = surf.physical_sizes
