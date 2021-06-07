@@ -122,7 +122,7 @@ def test_rms_curvature_paraboloid_uniform_1D():
     surf = UniformLineScan(heights, physical_sizes=(n,),
                            periodic=False)
     # central finite differences are second order and so exact for the parabola
-    assert abs((surf.rms_curvature_from_area() - curvature) / curvature) < 1e-14
+    assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
 
 @pytest.mark.skipif(

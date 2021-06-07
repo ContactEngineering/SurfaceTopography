@@ -473,16 +473,16 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.mean(), 0)
         self.assertAlmostEqual(surf.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
+            surf.rms_height_from_profile() < UniformLineScan(arr, arr.shape).rms_height_from_profile())
 
         surf2 = UniformLineScan(arr, (1,)).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 1)
         self.assertTrue(surf2.is_uniform)
         self.assertAlmostEqual(surf2.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf2.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
+            surf2.rms_height_from_profile() < UniformLineScan(arr, arr.shape).rms_height_from_profile())
 
-        self.assertAlmostEqual(surf.rms_height_from_area(), surf2.rms_height_from_area())
+        self.assertAlmostEqual(surf.rms_height_from_profile(), surf2.rms_height_from_profile())
 
         x, z = surf2.positions_and_heights()
         self.assertAlmostEqual(np.mean(np.diff(x)),
@@ -547,8 +547,8 @@ class DetrendedSurfaceTest(unittest.TestCase):
                                    detrended.rms_slope_from_profile(),
                                    msg=mode)
             else:
-                self.assertGreater(t.rms_height_from_area(),
-                                   detrended.rms_height_from_area(),
+                self.assertGreater(t.rms_height_from_profile(),
+                                   detrended.rms_height_from_profile(),
                                    msg=mode)
 
     def test_smooth_without_size(self):
