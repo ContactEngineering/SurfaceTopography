@@ -5,8 +5,11 @@ Change log for SurfaceTopography
 v0.94.0 (not published yet)
 ---------------------------
 
+- ENH: Added API tests for checking existence of functions
+  and properties for different kinds of topographies (#100)
+- BUG: Fixes missing function for RMS curvature for uniform
+  line scans (#95)
 - BUG: Fixes loading of 2D measurements from xyz data (#93)
-
 
 v0.93.0 (27Apr21)
 -----------------

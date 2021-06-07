@@ -144,6 +144,9 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
                 fname = fname + ".gz"
         np.savetxt(fname, self.heights())
 
+    def squeeze(self):
+        return self
+
 
 class Topography(AbstractTopography, UniformTopographyInterface):
     """
