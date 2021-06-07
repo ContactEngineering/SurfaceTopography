@@ -75,6 +75,7 @@ class ChannelInfo:
             if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None \
             if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        self._height_scale_factor = None  # must be set when reading file or by user
         self._periodic = periodic
         self._info = info.copy()
 
@@ -100,7 +101,7 @@ class ChannelInfo:
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
@@ -131,10 +132,10 @@ class ChannelInfo:
 
     @property
     def name(self):
-        '''
+        """
         Name of the channel.
         Can be used in a UI for identifying a channel.
-        '''
+        """
         return self._name
 
     @property
@@ -167,6 +168,21 @@ class ChannelInfo:
         `topography` method that returns the topography object.
         """
         return self._physical_sizes
+
+    @property
+    def height_scale_factor(self):
+        """
+        If a height scale factor can be determined from the file, a float is
+        returned.
+
+        If no height scale factor can be determined from the file, then
+        None is returned.
+
+        Note that the height scale factor obtained from the file can be
+        overwritten by passing a `height_scale_factor` argument to the
+        `topography` method that returns the topography object.
+        """
+        return self._height_scale_factor
 
     @property
     def is_periodic(self):
@@ -203,7 +219,7 @@ class ChannelInfo:
         """
         The area per point is returned as the product over the pixel size
         tuple. If `pixel_size` returns None, than also `area_per_pt` returns
-        None.s
+        None.
         """
         if self.pixel_size is None:
             return None
@@ -330,7 +346,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         channel_index : int
             Index of the channel to load. See also `channels` method.
             (Default: None, which load the default channel)
-        physical_si""zes : tuple of floats
+        physical_sizes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
             physical size, then this parameter will override the physical
