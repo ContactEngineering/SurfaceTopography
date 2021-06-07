@@ -28,6 +28,7 @@ uniform_attributes = [
 ]
 
 nonuniform_attributes = [
+    "x_range",
 ]
 
 profile_functions = [
