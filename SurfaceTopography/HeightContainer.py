@@ -149,8 +149,8 @@ class AbstractTopography(object):
             Date and time of the measurement.
         """
         info = self._info.copy()
-        if self._unit is not None:
-            info.update(dict(unit=self._unit))
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
         return info
 
     @property
@@ -203,8 +203,8 @@ class DecoratedTopography(AbstractTopography):
         """ Return info dictionary """
         info = self.parent_topography._info.copy()
         info.update(self._info)
-        if self._unit is not None:
-            info['unit'] = self._unit
+        if self.unit is not None:
+            info['unit'] = self.unit
         return info
 
     def pipeline(self):

@@ -386,8 +386,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 2.773965e-05)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.00011280791)
         self.assertAlmostEqual(surf.rms_height_from_area(), 1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_height_from_profile(),
-                               1.1745891510991089e-07)
+        self.assertAlmostEqual(surf.rms_height_from_profile(), 1.1745891510991089e-07)
         self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
