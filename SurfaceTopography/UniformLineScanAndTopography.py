@@ -329,10 +329,6 @@ class Topography(AbstractTopography, UniformTopographyInterface):
     def physical_sizes(self):
         return self._size
 
-    @physical_sizes.setter
-    def physical_sizes(self, new_size):
-        self._size = new_size
-
     @property
     def nb_grid_pts(self):
         return self._nb_grid_pts
@@ -434,16 +430,12 @@ class DecoratedUniformTopography(DecoratedTopography,
     def physical_sizes(self):
         return self.parent_topography.physical_sizes
 
-    @physical_sizes.setter
-    def physical_sizes(self, new_size):
-        self.parent_topography.physical_sizes = new_size
-
     @property
     def nb_grid_pts(self):
         return self.parent_topography.nb_grid_pts
 
     @property
-    def nb_subdomain_grid_pts(self, ):
+    def nb_subdomain_grid_pts(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
@@ -677,11 +669,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         super().__setstate__(superstate)
 
     @property
-    def coeffs(self, ):
+    def coeffs(self):
         return self._coeffs
 
     @property
-    def detrend_mode(self, ):
+    def detrend_mode(self):
         return self._detrend_mode
 
     @detrend_mode.setter
@@ -768,7 +760,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                     'Unknown physical_sizes of coefficients tuple.')
 
     @property
-    def curvatures(self, ):
+    def curvatures(self):
         """
         convenience function that computes the curvatures
         :math:`\rho = \frac{1}{R}` of the fitted plane
@@ -822,7 +814,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         super().__init__(topography, info=info)
 
     @property
-    def nb_grid_pts(self, ):
+    def nb_grid_pts(self):
         """ Return number of points """
         if self.dim == 1:
             return self.parent_topography.nb_grid_pts
@@ -831,7 +823,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
             return ny, nx
 
     @property
-    def physical_sizes(self, ):
+    def physical_sizes(self):
         """ Return physical physical_sizes """
         if self.dim == 1:
             return self.parent_topography.physical_sizes
@@ -865,7 +857,7 @@ class TranslatedTopography(DecoratedUniformTopography):
         self._offset = offset
 
     @property
-    def offset(self, ):
+    def offset(self):
         return self._offset
 
     @offset.setter

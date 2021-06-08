@@ -94,14 +94,14 @@ class AbstractTopography(object):
         Upon pickling, it is called and the returned object is pickled as the
         contents for the instance.
         """
-        return self._info
+        return self._unit, self._info
 
     def __setstate__(self, state):
         """
         Upon unpickling, it is called with the unpickled state.
         The argument `state` is the result of `__getstate__`.
         """
-        self._info = state
+        self._unit, self._info = state__setstate__
         self._communicator = MPI.COMM_WORLD
 
     @property
