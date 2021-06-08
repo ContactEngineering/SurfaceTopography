@@ -5,10 +5,13 @@ Change log for SurfaceTopography
 v0.94.0 (not published yet)
 ---------------------------
 
-- ENH: Added API tests for checking existence of functions
-  and properties for different kinds of topographies (#100)
-- BUG: Fixes missing function for RMS curvature for uniform
-  line scans (#95)
+- ENH: `scale` pipeline function is now able to rescale lateral dimensions
+  (positions) and can do direct unit conversion
+- ENH: Added analysis function for scale-dependent statistical properties of
+  containers
+- ENH: Added API tests for checking existence of functions and properties for
+  different kinds of topographies (#100)
+- BUG: Fixes missing function for RMS curvature for uniform line scans (#95)
 - BUG: Fixes loading of 2D measurements from xyz data (#93)
 
 v0.93.0 (27Apr21)
