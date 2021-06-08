@@ -73,10 +73,17 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
         for surf_meta in meta['surfaces']:
             for topo_meta in surf_meta['topographies']:
                 info = topo_meta.copy()
-                physical_sizes = None
-                if 'size' in info:
+
+                try:
                     physical_sizes = info['size']
                     del info['size']
+                except KeyError:
+                    physical_sizes = None
+                try:
+                    unit = info['unit']
+                    del info['unit']
+                except KeyError:
+                    unit = None
                 datafile_key = None
                 datafiles = topo_meta['datafile']
                 for key in datafiles:
@@ -86,6 +93,7 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
                 t = read_topography(
                     z.open(datafiles[datafile_key]),
                     physical_sizes=physical_sizes,
+                    unit=unit,
                     info=info
                 )
                 if not datafile_key.startswith('squeezed'):

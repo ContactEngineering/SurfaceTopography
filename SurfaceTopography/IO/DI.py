@@ -200,7 +200,7 @@ supports V4.3 and later version of the format.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -217,6 +217,11 @@ supports V4.3 and later version of the format.
             fobj = self._fobj
 
         channel = self._channels[channel_index]
+
+        if unit is not None:
+            raise ValueError(f'A unit of {channel.info["unit"]} is already given by the data file, it cannot be '
+                             f'overidden')
+
         sx, sy = self._check_physical_sizes(physical_sizes,
                                             channel.physical_sizes)
 
@@ -233,7 +238,7 @@ supports V4.3 and later version of the format.
                                      dtype=dtype).reshape(nx, ny)
 
         # internal information from file
-        _info = dict(unit=channel.info["unit"], data_source=channel.name)
+        _info = dict(data_source=channel.name)
         _info.update(info)
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
@@ -242,7 +247,7 @@ supports V4.3 and later version of the format.
         # the image of gwyddion when plotted with imshow(t.heights().T)
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
-        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), info=_info,
+        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), unit=channel.info['unit'], info=_info,
                              periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]

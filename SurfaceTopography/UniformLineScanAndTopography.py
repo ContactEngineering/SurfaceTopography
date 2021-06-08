@@ -416,6 +416,21 @@ class DecoratedUniformTopography(DecoratedTopography,
         return self.parent_topography.pixel_size
 
     @property
+    def unit(self):
+        if self._unit is None:
+            return self.parent_topography.unit
+        else:
+            return self._unit
+
+    @property
+    def info(self):
+        info = self.parent_topography.info
+        info.update(self._info)
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
+
+    @property
     def physical_sizes(self):
         return self.parent_topography.physical_sizes
 
@@ -536,14 +551,6 @@ class ScaledUniformTopography(DecoratedUniformTopography):
                 return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
         else:
             return self._position_scale_factor
-
-    @property
-    def unit(self):
-        """Return the length unit of the topography."""
-        if self._unit is None:
-            return self.parent_topography.unit
-        else:
-            return self._unit
 
     @property
     def pixel_size(self):

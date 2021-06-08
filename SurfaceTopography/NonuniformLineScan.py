@@ -133,6 +133,21 @@ class DecoratedNonuniformTopography(DecoratedTopography,
         return self.parent_topography.nb_grid_pts
 
     @property
+    def unit(self):
+        if self._unit is None:
+            return self.parent_topography.unit
+        else:
+            return self._unit
+
+    @property
+    def info(self):
+        info = self.parent_topography.info
+        info.update(self._info)
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
+
+    @property
     def physical_sizes(self):
         return self.parent_topography.physical_sizes
 

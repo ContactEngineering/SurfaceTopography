@@ -124,7 +124,7 @@ This reader open ZON files that are written by some Keyence instruments.
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -138,14 +138,19 @@ This reader open ZON files that are written by some Keyence instruments.
 
         info.update(channel_info.info)
 
+        if unit is not None:
+            raise ValueError(f'A unit of {info["unit"]} is already given by the data file, it cannot be '
+                             f'overidden')
+        unit = info['unit']
+        del info['unit']
+
         with OpenFromAny(self._file_path, 'rb') as f:
             # Read image data
-            nx, ny = channel_info.nb_grid_pts
             with ZipFile(f, 'r') as z:
                 with z.open(channel_info.info['data_uuid']) as f:
                     height_data = _read_array(f)
 
-        topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
+        topo = Topography(height_data, physical_sizes, unit=unit, info=info, periodic=periodic)
 
         meter_per_unit = channel_info.info['meter_per_unit']
         if height_scale_factor is not None:

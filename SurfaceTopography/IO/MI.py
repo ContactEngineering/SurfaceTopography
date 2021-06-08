@@ -115,7 +115,7 @@ topography map as well as its units.
             self._nb_grid_pts = int(self.mifile.meta['xPixels']), int(self.mifile.meta['yPixels'])
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -168,6 +168,12 @@ topography map as well as its units.
         info = info.copy()
         info.update(joined_meta)
 
+        if unit is not None:
+            raise ValueError(f'A unit of {info["unit"]} is already given by the data file, it cannot be '
+                             f'overidden')
+        unit = info['unit']
+        del info['unit']
+
         # Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T), except that the y axis
         # is flipped because the origin is in lower left with pcolormesh;
@@ -175,7 +181,7 @@ topography map as well as its units.
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(
                            physical_sizes, self._physical_sizes),
-                       info=info, periodic=periodic)
+                       unit=unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
         return t
