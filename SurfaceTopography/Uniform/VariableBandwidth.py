@@ -196,7 +196,5 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('checkerboard_detrend',
-                                             checkerboard_detrend)
-UniformTopographyInterface.register_function('variable_bandwidth',
-                                             variable_bandwidth)
+UniformTopographyInterface.register_function('checkerboard_detrend', checkerboard_detrend)
+UniformTopographyInterface.register_function('variable_bandwidth', variable_bandwidth)
