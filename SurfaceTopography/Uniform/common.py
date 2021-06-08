@@ -241,7 +241,7 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
             try:
                 # If s is a tuple, the scale factor is per direction
                 s = s[i]
-            except:
+            except TypeError:
                 pass
             fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)

@@ -33,5 +33,6 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factors=No
         dx, dy = d
         return [func(dx, dy) for dx, dy in zip(*d)]
 
+
 UniformTopographyInterface.register_function('scale_dependent_statistical_property',
                                              scale_dependent_statistical_property)

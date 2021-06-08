@@ -46,7 +46,6 @@ def checkerboard_detrend_1D(topography, region_index, order=1, return_plane=Fals
         return detrended_h, a
 
 
-
 def checkerboard_detrend_2D(topography, region_index, order=1, return_plane=False):
     x, h = topography.heights_and_positions()
     b = [(h * (x ** i)).sum() for i in range(order)]
