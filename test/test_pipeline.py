@@ -169,7 +169,7 @@ def test_uniform_unit_conversion():
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
     np.testing.assert_almost_equal(surf.rms_height_from_area() / 1000, surf2.rms_height_from_area())
     np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
-    np.testing.assert_almost_equal(surf.rms_curvature() * 1000, surf2.rms_curvature())
+    np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
 
 
 def test_nonuniform_scaled_topography():

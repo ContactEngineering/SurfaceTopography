@@ -520,9 +520,17 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     @property
     def position_scale_factor(self):
         if self._position_scale_factor is None:
-            return get_unit_conversion_factor(super().info['unit'], self.unit)
+            if 'unit' in super().info:
+                return get_unit_conversion_factor(super().info['unit'], self.unit)
+            else:
+                return 1
         else:
             return self._position_scale_factor
+
+    @property
+    def pixel_size(self):
+        """Compute rescaled pixel sizes."""
+        return tuple(self.position_scale_factor * s for s in super().pixel_size)
 
     @property
     def physical_sizes(self):
