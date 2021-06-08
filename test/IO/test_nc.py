@@ -42,8 +42,7 @@ def test_save_and_load(comm):
     size = (3, 3)
 
     np.random.seed(1)
-    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
-    t.info['unit'] = 'µm'
+    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
     fft = FFT(nb_grid_pts, communicator=comm, fft="mpi")
     fft.create_plan(1)
@@ -51,6 +50,7 @@ def test_save_and_load(comm):
                             fft.nb_subdomain_grid_pts,
                             communicator=comm)
     assert t.info['unit'] == 'µm'
+    assert dt.info['unit'] == 'µm'
     if comm.size > 1:
         assert dt.is_domain_decomposed
 
@@ -61,6 +61,7 @@ def test_save_and_load(comm):
     t2 = read_topography('parallel_save_test.nc')
 
     assert t.physical_sizes == t2.physical_sizes
+    assert t.unit == t2.unit
     assert t.info['unit'] == t2.info['unit']
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 

@@ -64,7 +64,8 @@ class AbstractTopography(object):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self, info={}, communicator=MPI.COMM_WORLD):
+    def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
+        self._unit = unit
         self._info = info.copy()
         self._communicator = communicator
 
@@ -128,13 +129,10 @@ class AbstractTopography(object):
     @property
     def unit(self):
         """Return the length unit of the topography."""
-        try:
-            return self.info['unit']
-        except KeyError:
-            return None
+        return self._unit
 
     @property
-    def info(self, ):
+    def info(self):
         """
         Return the info dictionary. The info dictionary contains auxiliary data
         found in the topography data file but not directly used by PyCo.
@@ -150,7 +148,10 @@ class AbstractTopography(object):
         acquisition_time : :obj:`datetime`
             Date and time of the measurement.
         """
-        return self._info
+        info = self._info.copy()
+        if self._unit is not None:
+            info.update(dict(unit=self._unit))
+        return info
 
     @property
     def communicator(self):
@@ -200,8 +201,10 @@ class DecoratedTopography(AbstractTopography):
     @property
     def info(self):
         """ Return info dictionary """
-        info = self.parent_topography.info.copy()
+        info = self.parent_topography._info.copy()
         info.update(self._info)
+        if self._unit is not None:
+            info['unit'] = self._unit
         return info
 
     def pipeline(self):

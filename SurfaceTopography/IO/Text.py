@@ -37,7 +37,7 @@ from .FromFile import make_wrapped_reader
 
 
 @text
-def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
+def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
     """
     Reads a surface profile from a text file and presents in in a
     SurfaceTopography-conformant manner. No additional parsing of
@@ -51,8 +51,8 @@ def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
         surface = Topography(arr, arr.shape, periodic=periodic)
     else:
         surface = Topography(arr, physical_sizes, periodic=periodic)
-    if factor is not None:
-        surface = surface.scale(factor)
+    if height_scale_factor is not None:
+        surface = surface.scale(height_scale_factor)
     return surface
 
 
@@ -63,7 +63,7 @@ MatrixReader = make_wrapped_reader(
 
 @text
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
-             z_factor=None, info={}, periodic=False):
+             z_factor=None, unit=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile (topography) from an generic asc file and presents
@@ -81,8 +81,6 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     x_factor -- multiplication factor for physical_sizes
     z_factor -- multiplication factor for height
     """
-    unit = info['unit'] if 'unit' in info else None
-
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
     checks = list()
@@ -229,7 +227,6 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 zfac = height_units[zunit] / height_units[unit]
             else:
                 zfac *= height_units[zunit] / height_units[unit]
-        info['unit'] = unit
 
     # handle channel name
     # we use the info dict here to transfer the channel name
@@ -241,11 +238,9 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[0, :], physical_sizes, info=info,
-                                  periodic=periodic)
+        surface = UniformLineScan(data[0, :], physical_sizes, unit=unit, info=info, periodic=periodic)
     else:
-        surface = Topography(data, physical_sizes, info=info,
-                             periodic=periodic)
+        surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:

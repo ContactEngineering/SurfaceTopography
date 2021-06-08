@@ -160,7 +160,7 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                       short_cutoff=None, long_cutoff=None, rolloff=1.0,
                       amplitude_distribution=lambda n: np.random.normal(size=n),
                       periodic=True, rfn=None, kfn=None,
-                      progress_callback=None, info={}):
+                      progress_callback=None, unit=None, info={}):
     r"""
     Create a self-affine, randomly rough surface using a Fourier filtering
     algorithm. The algorithm is described in:
@@ -206,7 +206,9 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
         useful for creating very large topography maps. (Default: None)
     progress_callback : function(i, n)
         Function that is called to report progress.
-    info : dict
+    unit : str, optional
+        Length unit.
+    info : dict, optional
         Initial info dictionary.
 
     Returns
@@ -298,8 +300,8 @@ def fourier_synthesis(nb_grid_pts, physical_sizes, hurst,
                 karr[0, iy] = np.real(karr[0, iy])
                 karr[1:nx // 2 + 1, iy] = karr[-1:nx // 2:-1, iy].conj()
         _irfft2(karr, rarr, progress_callback)
-        return Topography(rarr, physical_sizes, periodic=periodic, info=info)
+        return Topography(rarr, physical_sizes, periodic=periodic, unit=unit, info=info)
     else:
         karr[0] = np.real(karr[0])
         rarr[:] = np.fft.irfft(karr)
-        return UniformLineScan(rarr, sy, periodic=periodic, info=info)
+        return UniformLineScan(rarr, sy, periodic=periodic, unit=unit, info=info)

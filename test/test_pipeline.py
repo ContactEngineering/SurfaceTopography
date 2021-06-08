@@ -157,7 +157,7 @@ def test_uniform_scaled_topography():
 
 
 def test_uniform_unit_conversion():
-    surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1, info=dict(unit='um'))
+    surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1, unit='um')
     assert surf.unit == 'um'
 
     surf2 = surf.scale(unit='mm')

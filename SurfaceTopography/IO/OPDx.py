@@ -173,7 +173,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                     xres_yres_start_stop_q)  # needed for building heights
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
+                   height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
         if channel_index is None:
@@ -195,6 +195,9 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         if 'unit' in channel_info.info:
             common_unit = channel_info.info['unit']
 
+            if unit is not None:
+                raise ValueError(f'A unit of {common_unit} is already given by the data file, it cannot be overidden')
+
             if (common_unit is not None) and (unit_z != common_unit):
                 # There is a common unit, but the z-unit in the file differs
                 # from that common unit. So we need to scale the data
@@ -208,6 +211,10 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                             common_unit, unit_z))
                 data *= unit_factor_z
 
+            del channel_info.info['unit']
+        else:
+            common_unit = unit
+
         physical_sizes = self._check_physical_sizes(
             physical_sizes, channel_info.physical_sizes)
 
@@ -215,7 +222,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info.update(channel_info.info)
 
         return Topography(heights=data, physical_sizes=physical_sizes,
-                          info=info, periodic=periodic)
+                          unit=common_unit, info=info, periodic=periodic)
 
     @property
     def channels(self):

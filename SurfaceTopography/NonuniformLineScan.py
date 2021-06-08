@@ -41,8 +41,23 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     Nonuniform topography with point list consisting of static numpy arrays.
     """
 
-    def __init__(self, x, y, info={}):
-        super().__init__(info=info)
+    def __init__(self, x, y, unit=None, info={}):
+        """
+        Constructor.
+
+        Arguments
+        ---------
+        x : array_like
+            x-positions of the data points that sample the line scan.
+        y : array_like
+            y-positions of the data points that sample the line scan.
+        unit : str, optional
+            The length unit.
+        info : dict, optional
+            The info dictionary containing auxiliary data. This data is never
+            used by SurfaceTopography but can be used by third-party codes.
+        """
+        super().__init__(unit=unit, info=info)
         self._x = np.asarray(x)
         self._h = np.asarray(y)
 

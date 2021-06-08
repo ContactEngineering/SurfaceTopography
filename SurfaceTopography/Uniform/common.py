@@ -358,6 +358,7 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
                                 subdomain_locations=subdomain_locations,
                                 nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                                 communicator=communicator,
+                                unit=topography.unit,
                                 info=topography.info)
 
 
@@ -387,8 +388,8 @@ def plot(topography, subplot_location=111):
     plt.colorbar(mesh, ax=ax)
     ax.set_xlim(0, sx)
     ax.set_ylim(0, sy)
-    if 'unit' in topography.info:
-        unit = topography.info['unit']
+    if topography.unit is not None:
+        unit = topography.unit
     else:
         unit = 'a.u.'
     ax.set_xlabel('Position $x$ ({})'.format(unit))
