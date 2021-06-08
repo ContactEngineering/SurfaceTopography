@@ -109,7 +109,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
                 physical_sizes=self._topography.physical_sizes)]
 
         def topography(self, channel_index=None, physical_sizes=None,
-                       height_scale_factor=None, info={}, periodic=False,
+                       height_scale_factor=None, unit=None, info={}, periodic=False,
                        subdomain_locations=None, nb_subdomain_grid_pts=None):
             if channel_index is None:
                 channel_index = self._default_channel_index
@@ -132,7 +132,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
             # specified in file)
             return reader_func(self._fobj, physical_sizes=physical_sizes,
                                height_scale_factor=height_scale_factor,
-                               info=info.copy(), periodic=periodic)
+                               unit=unit, info=info.copy(), periodic=periodic)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__
@@ -141,7 +141,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
     return WrappedReader
 
 
-def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Load x3p-file.
@@ -213,11 +213,10 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={},
         binfn = data_link.find('PointDataLink').text
 
         rawdata = x3p.open(binfn).read(nx * ny * dtype.itemsize)
-        data = np.frombuffer(rawdata, count=nx * ny * nz,
-                             dtype=dtype).reshape(nx, ny).T
+        data = np.frombuffer(rawdata, count=nx * ny * nz, dtype=dtype).reshape(nx, ny).T
     if physical_sizes is None:
         physical_sizes = (xinc * nx, yinc * ny)
-    t = Topography(data, physical_sizes, info=info, periodic=periodic)
+    t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
@@ -235,7 +234,7 @@ data. The full specification of the format can be found
 
 
 @binary
-def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_opd(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Load Wyko Vision OPD file.
@@ -245,6 +244,9 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     Keyword Arguments:
     fobj -- filename or file object
     """
+
+    if unit is not None:
+        raise ValueError('Cannot specify unit for OPD files.')
 
     BLOCK_SIZE = 24
 
@@ -316,7 +318,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     if physical_sizes is None:
         physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
     surface = Topography(np.fliplr(data), physical_sizes,
-                         info={**info, **dict(unit='mm')}, periodic=periodic)
+                         unit='mm', info=info, periodic=periodic)
     if height_scale_factor is None:
         surface = surface.scale(wavelength / mult * 1e-6)
     else:
@@ -332,7 +334,7 @@ interferometer.
 
 
 @binary
-def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Read Shuttle Radar SurfaceTopography Mission (SRTM) topography data
@@ -354,11 +356,9 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={},
                        count=dim * dim).reshape((dim, dim))
 
     if physical_sizes is None:
-        topography = Topography(data, physical_sizes=data.shape, info=info,
-                                periodic=periodic)
+        topography = Topography(data, physical_sizes=data.shape, unit=unit, info=info, periodic=periodic)
     else:
-        topography = Topography(data, physical_sizes=physical_sizes, info=info,
-                                periodic=periodic)
+        topography = Topography(data, physical_sizes=physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         topography = topography.scale(height_scale_factor)
     return topography

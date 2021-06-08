@@ -197,6 +197,21 @@ def test_nonuniform_scaled_topography():
         np.testing.assert_almost_equal(2 * fac * x, x2)
 
 
+def test_nonuniform_unit_conversion():
+    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'), unit='um')
+    assert surf.unit == 'um'
+
+    surf2 = surf.scale(unit='mm')
+    assert surf2.info['unit'] == 'mm'
+    assert surf2.unit == 'mm'
+
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.rms_height_from_profile() / 1000, surf2.rms_height_from_profile())
+    np.testing.assert_almost_equal(surf.rms_slope_from_profile(), surf2.rms_slope_from_profile())
+    np.testing.assert_almost_equal(surf.rms_curvature_from_profile() * 1000, surf2.rms_curvature_from_profile())
+
+
 def test_transposed_topography():
     surf = fourier_synthesis([124, 368], [6, 3], 0.8, rms_slope=0.1)
     nx, ny = surf.nb_grid_pts

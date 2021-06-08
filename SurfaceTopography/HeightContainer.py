@@ -171,14 +171,14 @@ class DecoratedTopography(AbstractTopography):
     own physical_sizes etc. but pass this information through to the parent.
     """
 
-    def __init__(self, topography, info={}):
+    def __init__(self, topography, unit=None, info={}):
         """
         Arguments
         ---------
         topography : SurfaceTopography
             The parent topography.
         """
-        super().__init__(info=info)
+        super().__init__(unit=unit, info=info)
         assert isinstance(topography, AbstractTopography)
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator

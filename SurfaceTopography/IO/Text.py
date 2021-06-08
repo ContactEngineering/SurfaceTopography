@@ -48,9 +48,9 @@ def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, 
     """
     arr = np.loadtxt(fobj)
     if physical_sizes is None:
-        surface = Topography(arr, arr.shape, periodic=periodic)
+        surface = Topography(arr, arr.shape, periodic=periodic, unit=unit)
     else:
-        surface = Topography(arr, physical_sizes, periodic=periodic)
+        surface = Topography(arr, physical_sizes, periodic=periodic, unit=unit)
     if height_scale_factor is not None:
         surface = surface.scale(height_scale_factor)
     return surface
@@ -278,8 +278,7 @@ When writing your own ASCII files, we recommend to prepent the header with a
 
 
 @text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
-             periodic=False, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of
     (x,y)-positions.
@@ -308,12 +307,12 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
-            t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
+            t = UniformLineScan(z, physical_sizes, unit=unit, info=info, periodic=periodic)
         else:
             if periodic:
                 raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
                                  'Nonuniform line scans cannot be periodic.')
-            t = NonuniformLineScan(x, z, info=info)
+            t = NonuniformLineScan(x, z, unit=unit, info=info)
             if physical_sizes is not None:
                 if not np.allclose(t.physical_sizes, physical_sizes):
                     raise ValueError(
@@ -355,7 +354,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
 
         if physical_sizes is None:
             physical_sizes = (dx * nx, dy * ny)
-        t = Topography(data, physical_sizes, info=info, periodic=periodic)
+        t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     else:
         raise Exception(
             'Expected two or three columns for topography that is a list of '

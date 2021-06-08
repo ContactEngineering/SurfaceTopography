@@ -493,10 +493,9 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         info : dict
             Updated entries to the info dictionary.
         """
-        super().__init__(topography, info=info)
+        super().__init__(topography, unit=unit, info=info)
         self._height_scale_factor = None if height_scale_factor is None else float(height_scale_factor)
         self._position_scale_factor = None if position_scale_factor is None else float(position_scale_factor)
-        self._unit = unit
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
