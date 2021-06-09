@@ -87,7 +87,7 @@ class AbstractTopography(object):
         return sorted(super().__dir__() + [*self._functions])
 
     def __eq__(self, other):
-        return self.info == other.info and self.is_periodic == other.is_periodic
+        return self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic
 
     def __getstate__(self):
         """
