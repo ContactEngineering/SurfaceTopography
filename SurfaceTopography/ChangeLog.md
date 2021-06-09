@@ -14,6 +14,8 @@ v0.94.0 (not published yet)
 - API: Topographies now have a `unit` property. For backwards compatibility,
   this information is still returned in the `info` dictionary but this
   behavior will be deprecated in version 1.0. (#83)
+- API: `physical_sizes` can no longer be set after the topography has been
+  created.
 - ENH: `scale` pipeline function is now able to rescale lateral dimensions
   (positions) and can do direct unit conversion
 - ENH: `SurfaceContainer` class including pipeline functions for collections

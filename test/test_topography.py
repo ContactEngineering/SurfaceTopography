@@ -407,7 +407,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertFalse('unit' in surf.info)
 
         # test setting the physical_sizes
-        surf.physical_sizes = 1, 2
+        surf = read_asc(os.path.join(DATADIR, 'example5.txt'), physical_sizes=(1, 2))
         self.assertAlmostEqual(surf.physical_sizes[0], 1)
         self.assertAlmostEqual(surf.physical_sizes[1], 2)
 
