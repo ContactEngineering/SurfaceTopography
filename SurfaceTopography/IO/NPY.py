@@ -95,10 +95,8 @@ manually provided by the user.
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
 
@@ -114,6 +112,7 @@ manually provided by the user.
                     nb_subdomain_grid_pts=nb_subdomain_grid_pts),
                 physical_sizes=physical_sizes,
                 periodic=periodic,
+                unit=unit,
                 info=info
             )
 
@@ -127,6 +126,7 @@ manually provided by the user.
             communicator=self.mpi_file.comm,
             physical_sizes=physical_sizes,
             periodic=periodic,
+            unit=unit,
             info=info)
 
     channels.__doc__ = ReaderBase.channels.__doc__

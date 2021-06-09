@@ -106,8 +106,7 @@ topography map as well as its units.
             # Reformat the metadata
             for buf in self.mifile.channels:
                 buf.meta['name'] = buf.name
-                buf.meta['unit'] = mangle_length_unit_utf8(
-                    buf.meta.pop('bufferUnit'))
+                buf.unit = mangle_length_unit_utf8(buf.meta.pop('bufferUnit'))
                 buf.meta['range'] = buf.meta.pop('bufferRange')
                 buf.meta['label'] = buf.meta.pop('bufferLabel')
 
@@ -169,10 +168,8 @@ topography map as well as its units.
         info.update(joined_meta)
 
         if unit is not None:
-            raise ValueError(f'A unit of {info["unit"]} is already given by the data file, it cannot be '
+            raise ValueError(f'A unit of {output_channel.unit} is already given by the data file, it cannot be '
                              f'overidden')
-        unit = info['unit']
-        del info['unit']
 
         # Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T), except that the y axis
@@ -181,7 +178,7 @@ topography map as well as its units.
         t = Topography(heights=out.T,
                        physical_sizes=self._check_physical_sizes(
                            physical_sizes, self._physical_sizes),
-                       unit=unit, info=info, periodic=periodic)
+                       unit=output_channel.unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t.scale(height_scale_factor)
         return t
@@ -192,6 +189,7 @@ topography map as well as its units.
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
+                            unit=channel.unit,
                             info=channel.meta)
                 for i, channel in enumerate(self.mifile.channels)]
 
@@ -270,11 +268,12 @@ class Channel:
     directly).
     """
 
-    def __init__(self, name=None, meta=None):
+    def __init__(self, name=None, unit=None, meta=None):
         if meta is None:
             meta = dict()
 
         self.name = name
+        self.unit = unit
         self.meta = meta
 
 

@@ -115,8 +115,8 @@ This reader open ZON files that are written by some Keyence instruments.
                                 nb_grid_pts=(width, height),
                                 physical_sizes=(width * meter_per_pixel,
                                                 height * meter_per_pixel),
-                                info={'unit': 'm',
-                                      'data_uuid': HEIGHT_DATA_UUID,
+                                unit='m',
+                                info={'data_uuid': HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 
@@ -139,10 +139,9 @@ This reader open ZON files that are written by some Keyence instruments.
         info.update(channel_info.info)
 
         if unit is not None:
-            raise ValueError(f'A unit of {info["unit"]} is already given by the data file, it cannot be '
+            raise ValueError(f'A unit of {channel_info.unit} is already given by the data file, it cannot be '
                              f'overidden')
-        unit = info['unit']
-        del info['unit']
+        unit = channel_info.unit
 
         with OpenFromAny(self._file_path, 'rb') as f:
             # Read image data

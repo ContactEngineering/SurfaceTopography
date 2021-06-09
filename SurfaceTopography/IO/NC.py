@@ -239,12 +239,11 @@ plt.show()
                             nb_grid_pts=nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
+                            unit=self._unit,
                             info=self._info)]
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={},
-                   periodic=None,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=None, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is not None and channel_index != 0:
             raise ValueError('`channel_index` must be None or 0.')
 

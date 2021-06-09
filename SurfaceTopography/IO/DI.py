@@ -179,7 +179,6 @@ supports V4.3 and later version of the format.
 
                     channel_info = info.copy()
                     channel_info.update(dict(
-                        unit=unit,
                         height_scale_factor=hard_scale * hard_to_soft *
                         soft_scale))
                     channel = ChannelInfo(self,
@@ -189,6 +188,7 @@ supports V4.3 and later version of the format.
                                           nb_grid_pts=(nx, ny),
                                           physical_sizes=(sx, sy),
                                           periodic=False,
+                                          unit=unit,
                                           info=channel_info)
                     self._channels.append(channel)
         finally:
@@ -247,8 +247,7 @@ supports V4.3 and later version of the format.
         # the image of gwyddion when plotted with imshow(t.heights().T)
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
-        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), unit=channel.info['unit'], info=_info,
-                             periodic=periodic)
+        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), unit=channel.unit, info=_info, periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.info["height_scale_factor"]
         surface = surface.scale(height_scale_factor)

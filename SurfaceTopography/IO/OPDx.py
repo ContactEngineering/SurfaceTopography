@@ -149,6 +149,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                         del metadata['unit']
                     except KeyError:
                         pass
+                    unit = None
                 else:
                     # we want value in unit_x units
                     unit_factor_z = get_unit_conversion_factor(unit_z,
@@ -159,13 +160,14 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                             'are incompatible.'.format(unit_x, unit_y))
 
                     # we have converted everything to this unit
-                    metadata['unit'] = unit_x
+                    unit = unit_x
 
                 ch_info = ChannelInfo(self, channel_index,
                                       name=metadata['Name'], dim=2,
                                       nb_grid_pts=(metadata['ImageWidth'],
                                                    metadata['ImageHeight']),
                                       physical_sizes=(size_x, size_y),
+                                      unit=unit,
                                       info=metadata)
 
                 self._channels.append(ch_info)
@@ -192,8 +194,8 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         unit_z = channel_info.info['z_unit']
 
-        if 'unit' in channel_info.info:
-            common_unit = channel_info.info['unit']
+        if channel_info.unit is not None:
+            common_unit = channel_info.unit
 
             if unit is not None:
                 raise ValueError(f'A unit of {common_unit} is already given by the data file, it cannot be overidden')
@@ -210,8 +212,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                         'and data units ("{}") are incompatible.'.format(
                             common_unit, unit_z))
                 data *= unit_factor_z
-
-            del channel_info.info['unit']
         else:
             common_unit = unit
 
