@@ -36,7 +36,7 @@ import numpy as np
 import numpy.ma as ma
 
 from .common import CHANNEL_NAME_INFO_KEY
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyDefined
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
 
@@ -228,10 +228,9 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={},
         data = np.frombuffer(rawdata, count=nx * ny * nz,
                              dtype=dtype).reshape(nx, ny).T
 
-    physical_sizes_from_file = (xinc * nx, yinc * ny)
     if physical_sizes is not None:
-        raise MetadataAlreadyDefined('physical_sizes', physical_sizes_from_file, physical_sizes)
-    t = Topography(data, physical_sizes_from_file, info=info, periodic=periodic)
+        raise MetadataAlreadyFixedByFile('physical_sizes')
+    t = Topography(data, (xinc * nx, yinc * ny), info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
@@ -327,14 +326,14 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     data.shape = (nx, ny)
 
     # Height are in nm, width in mm
-    physical_sizes_from_file = (nx * pixel_size, ny * pixel_size * aspect)
     if physical_sizes is not None:
-        raise MetadataAlreadyDefined('physical_sizes', physical_sizes_from_file, physical_sizes)
-    surface = Topography(np.fliplr(data), physical_sizes_from_file,
+        raise MetadataAlreadyFixedByFile('physical_sizes')
+    surface = Topography(np.fliplr(data),
+                         (nx * pixel_size, ny * pixel_size * aspect),
                          info={**info, **dict(unit='mm')}, periodic=periodic)
     height_scale_factor_from_file = wavelength / mult * 1e-6
     if height_scale_factor is not None:
-        raise MetadataAlreadyDefined('height_scale_factor', height_scale_factor_from_file, height_scale_factor)
+        raise MetadataAlreadyFixedByFile('height_scale_factor')
     surface = surface.scale(height_scale_factor_from_file)
     return surface
 

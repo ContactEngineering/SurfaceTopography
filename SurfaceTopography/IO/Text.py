@@ -28,7 +28,7 @@ import numpy as np
 
 from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
 from .FromFile import make_wrapped_reader
-from .Reader import MetadataAlreadyDefined
+from .Reader import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
@@ -185,7 +185,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     if (height_scale_factor is not None) and (zfac is not None):
         # it should not be allowed to override a height scale factor if
         # there is one already in the file
-        raise MetadataAlreadyDefined('height_scale_factor', zfac, height_scale_factor)
+        raise MetadataAlreadyFixedByFile('height_scale_factor')
 
     data = np.array(data).T
     nx, ny = data.shape
@@ -249,11 +249,10 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
 
     # calculate physical sizes and generate topography
     if xsiz is not None and ysiz is not None:
-        physical_sizes_in_file = (x_factor * xsiz, x_factor * ysiz)
         if physical_sizes is None:
-            physical_sizes = physical_sizes_in_file
+            physical_sizes = (x_factor * xsiz, x_factor * ysiz)
         else:
-            raise MetadataAlreadyDefined('physical_sizes', physical_sizes_in_file, physical_sizes)
+            raise MetadataAlreadyFixedByFile('physical_sizes')
     if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
@@ -331,7 +330,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
             else:
-                raise MetadataAlreadyDefined('physical_sizes', d_uniform * len(x), physical_sizes)
+                raise MetadataAlreadyFixedByFile('physical_sizes')
             t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
         else:
             if periodic:
@@ -339,7 +338,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
                                  'Nonuniform line scans cannot be periodic.')
             t = NonuniformLineScan(x, z, info=info)
             if physical_sizes is not None:
-                raise MetadataAlreadyDefined('physical_sizes', t.physical_sizes, physical_sizes)
+                raise MetadataAlreadyFixedByFile('physical_sizes')
 
     elif len(data) == 3:
         # This is a topography map.
@@ -377,7 +376,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if physical_sizes is None:
             physical_sizes = (dx * nx, dy * ny)
         else:
-            raise MetadataAlreadyDefined('physical_sizes', (dx * nx, dy * ny), physical_sizes)
+            raise MetadataAlreadyFixedByFile('physical_sizes')
         t = Topography(data, physical_sizes, info=info, periodic=periodic)
     else:
         raise Exception(

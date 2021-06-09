@@ -34,7 +34,7 @@ from ..NonuniformLineScan import NonuniformLineScan
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 from .common import mangle_length_unit_utf8, mangle_length_unit_ascii
 
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams
@@ -293,6 +293,11 @@ plt.show()
                               info=_info)
 
         if height_scale_factor is not None:
+            if 'unit' in _info:
+                raise MetadataAlreadyFixedByFile('height_scale_factor',
+                                                 'The height_scale_factor cannot be given for NC files '
+                                                 'if units are present in the file.')
+                # See https://github.com/ContactEngineering/SurfaceTopography/pull/99#discussion_r648364687
             topo = topo.scale(height_scale_factor)
 
         return topo

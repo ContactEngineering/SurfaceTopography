@@ -60,6 +60,7 @@ class ChannelInfo:
             Physical dimensions.
         height_scale_factor: float
             Number by which all heights have been multiplied.
+
         periodic: bool
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
@@ -330,7 +331,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
             eff_physical_sizes = physical_sizes_from_arg
         elif physical_sizes_from_arg is not None:
             # in general this should result in an exception now
-            raise MetadataAlreadyDefined('physical_sizes', physical_sizes, physical_sizes_from_arg)
+            raise MetadataAlreadyFixedByFile('physical_sizes')
         else:
             eff_physical_sizes = physical_sizes
 
@@ -421,27 +422,27 @@ class CorruptFile(ReadFileError):
     pass
 
 
-class MetadataAlreadyDefined(ReadFileError):
+class MetadataAlreadyFixedByFile(ReadFileError):
     """
     Raised when instantiating a topography from a reader,
-    given metadata which was already defined in the file
-    and which cannot be overridden.
+    given metadata which cannot be overridden, because
+    it is already fixed by the file contents.
     """
-    def __init__(self, kw, file_value, kw_value):
+    def __init__(self, kw, alt_msg=None):
         """
         Parameters
         ----------
         kw: str
             Name of the keyword argument to .topography().
-        file_value: object
-            Value which was found in the file.
-        kw_value: object
-            Value which was given to .topography().
+        alt_msg: str or None
+            If not None, use this as error message instead of
+            the default one.
         """
         self._kw = kw
-        self._file_value = file_value
-        self._kw_value = kw_value
+        self._alt_msg = alt_msg
 
     def __str__(self):
-        return f"Value for keyword '{self._kw}' given as {self._kw_value}, " + \
-               f"but was already defined as {self._file_value} in the file"
+        if self._alt_msg:
+            return self._alt_msg
+        else:
+            return f"Value for keyword '{self._kw}' is already fixed by file contents and cannot be overridden"

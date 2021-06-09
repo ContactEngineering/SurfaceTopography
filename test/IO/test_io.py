@@ -41,7 +41,7 @@ from NuMPI import MPI
 
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat, MetadataAlreadyDefined
+from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat, MetadataAlreadyFixedByFile
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
 from SurfaceTopography.UniformLineScanAndTopography import Topography
@@ -338,11 +338,11 @@ def test_reader_args_doesnt_overwrite_data_from_file(fn):
     physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
 
     if ch.physical_sizes is not None:
-        with pytest.raises(MetadataAlreadyDefined):
+        with pytest.raises(MetadataAlreadyFixedByFile):
             reader.topography(physical_sizes=physical_sizes_arg_if_missing_in_file)
 
     if ch.height_scale_factor is not None:
-        with pytest.raises(MetadataAlreadyDefined):
+        with pytest.raises(MetadataAlreadyFixedByFile):
             if ch.physical_sizes is None:
                 reader.topography(physical_sizes=physical_sizes_arg, height_scale_factor=10)
             else:

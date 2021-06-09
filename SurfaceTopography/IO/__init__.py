@@ -42,7 +42,7 @@ from .NPY import NPYReader
 from .OPDx import OPDxReader
 from .ZON import ZONReader
 
-from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, MetadataAlreadyDefined,\
+from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, MetadataAlreadyFixedByFile,\
     FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
 
 readers = [

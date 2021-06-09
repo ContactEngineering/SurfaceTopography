@@ -37,7 +37,7 @@ import numpy as np
 from ..UniformLineScanAndTopography import Topography
 
 from .common import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyDefined
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 
 ###
@@ -241,23 +241,22 @@ supports V4.3 and later version of the format.
             _info['acquisition_time'] = channel.info['acquisition_time']
 
         # it is not allowed to provide extra `physical_sizes` here:
-        physical_sizes_from_file = (sx, sy)
         if physical_sizes is not None:
-            raise MetadataAlreadyDefined('physical_sizes', physical_sizes_from_file, physical_sizes)
+            raise MetadataAlreadyFixedByFile('physical_sizes')
 
         # the orientation of the heights is modified in order to match
         # the image of gwyddion when plotted with imshow(t.heights().T)
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
 
-        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=physical_sizes_from_file,
+        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy),
                              info=_info,
                              periodic=periodic)
 
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:
-            raise MetadataAlreadyDefined('height_scale_factor', channel.height_scale_factor, height_scale_factor)
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
         if height_scale_factor is not None:
             surface = surface.scale(height_scale_factor)
 

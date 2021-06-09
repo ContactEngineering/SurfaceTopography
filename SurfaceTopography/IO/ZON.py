@@ -38,7 +38,7 @@ import defusedxml.ElementTree as ElementTree
 
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyDefined
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 # The files within ZON (zip) files are named using UUIDs. Some of these
 # UUIDs are fixed and contain the same information in each of these files.
@@ -150,6 +150,6 @@ This reader open ZON files that are written by some Keyence instruments.
         topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
 
         if height_scale_factor is not None:
-            raise MetadataAlreadyDefined('height_scale_factor', self._orig_height_scale_factor, height_scale_factor)
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
 
         return topo.scale(self._orig_height_scale_factor)
