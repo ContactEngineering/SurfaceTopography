@@ -236,7 +236,10 @@ class ChannelInfo:
             can be voltages or some other quantity actually acquired in the
             measurement technique) to heights with the given 'unit'.
         """
-        return self._info
+        info = self._info.copy()
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
 
 
 class ReaderBase(metaclass=abc.ABCMeta):

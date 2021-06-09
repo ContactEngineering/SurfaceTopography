@@ -321,6 +321,8 @@ def test_reader_topography_same(fn):
         assert topography.info['foo'] == foo_str
         if channel.unit is not None or topography.unit is not None:
             assert channel.unit == topography.unit
+            assert channel.info['unit'] == topography.unit
+            assert channel.unit == topography.info['unit']
 
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
