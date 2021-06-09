@@ -38,7 +38,7 @@ class ChannelInfo:
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
-                 physical_sizes=None, periodic=None,
+                 physical_sizes=None, height_scale_factor=None, periodic=None,
                  info={}):
         """
         Initialize the channel. Use as many information from the file as
@@ -59,8 +59,10 @@ class ChannelInfo:
             Number grid points in each dimension.
         physical_sizes: tuple of floats
             Physical dimensions.
+        height_scale_factor: float
+            Number by which all heights have been multiplied.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
         info: dict
@@ -75,7 +77,7 @@ class ChannelInfo:
             if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None \
             if physical_sizes is None else tuple(np.ravel(physical_sizes))
-        self._height_scale_factor = None  # must be set when reading file or by user
+        self._height_scale_factor = height_scale_factor
         self._periodic = periodic
         self._info = info.copy()
 
@@ -311,25 +313,29 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(self, physical_sizes_from_arg,
+    def _check_physical_sizes(cls, physical_sizes_from_arg,
                               physical_sizes=None):
         """Handle overriding of `physical_sizes` arguments and make sure,
-        that return value is not `None`."""
+        that return value is not `None`.
+
+        Parameters
+        ----------
+        physical_sizes_from_arg: tuple or float or None
+            physical sizes given as argument when instantiating a topography from a reader
+        physical_sizes: tuple or float or None
+            physical sizes which were present in the file
+        """
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
                 raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
+            eff_physical_sizes = physical_sizes_from_arg
+        elif physical_sizes_from_arg is not None:
+            # in general this should result in an exception now
+            raise MetadataAlreadyDefined('physical_sizes', physical_sizes, physical_sizes_from_arg)
         else:
-            if physical_sizes_from_arg is None:
-                physical_sizes_from_arg = physical_sizes
-            if tuple(physical_sizes_from_arg) != tuple(physical_sizes):
-                warnings.warn(
-                    "A physical size different from the value specified when "
-                    "calling the reader was present in the file. We will "
-                    "ignore the value given in the file. Specified values: "
-                    "{}; Values from file: {}".format(
-                        physical_sizes,
-                        physical_sizes_from_arg))
-        return physical_sizes_from_arg
+            eff_physical_sizes = physical_sizes
+
+        return eff_physical_sizes
 
     @abc.abstractmethod
     def topography(self, channel_index=None, physical_sizes=None,
@@ -339,7 +345,11 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. The method allows to override data
-        found in the data file.
+        found in the data file by giving appropriate arguments.
+
+        For some of the given arguments it is checked whether they
+        have already been defined in the file, e.g. the height
+        scale factor, and if yes, an exception is raised (see below).
 
         Arguments
         ---------
@@ -359,7 +369,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         periodic: bool
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing)
+            calculations (windowing).
         subdomain_locations : tuple of ints
             Origin (location) of the subdomain handled by the present MPI
             process.
@@ -371,6 +381,12 @@ class ReaderBase(metaclass=abc.ABCMeta):
         -------
         topography : subclass of :obj:`HeightContainer`
             The object containing the actual topography data.
+
+        Raises
+        ------
+        MetadataAlreadyDefined
+            Raised if `physical_sizes` or `height_scale_factor` have already
+            been defined in the file, because they should not be overridden.
         """
         raise NotImplementedError
 
@@ -404,3 +420,29 @@ class CorruptFile(ReadFileError):
     but there is a mistake, for example the number of points doesn't match
     """
     pass
+
+
+class MetadataAlreadyDefined(ReadFileError):
+    """
+    Raised when instantiating a topography from a reader,
+    given metadata which was already defined in the file
+    and which cannot be overridden.
+    """
+    def __init__(self, kw, file_value, kw_value):
+        """
+        Parameters
+        ----------
+        kw: str
+            Name of the keyword argument to .topography().
+        file_value: object
+            Value which was found in the file.
+        kw_value: object
+            Value which was given to .topography().
+        """
+        self._kw = kw
+        self._file_value = file_value
+        self._kw_value = kw_value
+
+    def __str__(self):
+        return f"Value for keyword '{self._kw}' given as {self._kw_value}, "+\
+               f"but was already defined as {self._file_value} in the file"

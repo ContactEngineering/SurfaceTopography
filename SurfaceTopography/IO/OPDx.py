@@ -213,8 +213,11 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info = info.copy()
         info.update(channel_info.info)
 
-        return Topography(heights=data, physical_sizes=physical_sizes,
-                          info=info, periodic=periodic)
+        topography = Topography(heights=data, physical_sizes=physical_sizes,
+                                info=info, periodic=periodic)
+        if height_scale_factor is not None:
+            topography = topography.scale(height_scale_factor)
+        return topography
 
     @property
     def channels(self):

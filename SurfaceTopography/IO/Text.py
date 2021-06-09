@@ -28,6 +28,7 @@ import numpy as np
 
 from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
 from .FromFile import make_wrapped_reader
+from .Reader import MetadataAlreadyDefined
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
@@ -74,11 +75,18 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     - "unit": a common unit for the data, for dimensions and heights
     - "channel_name": the name of the channel (if unknown "Default" is used")
 
-    Keyword Arguments:
-    fobj_in -- filename or file object
-    unit -- name of surface units, one of m, mm, μm/um, nm, A
-    x_factor -- multiplication factor for physical_sizes
-    z_factor -- multiplication factor for height
+    Parameters
+    ----------
+
+    fobj: filename or file object
+    physical_sizes: tuple or None
+    height_scale_factor: float or None
+    x_factor: float
+        multiplication factor for physical_sizes
+    z_factor: float or None
+        multiplication factor for height
+    info: dict
+    periodic: bool
     """
     unit = info['unit'] if 'unit' in info else None
 
@@ -127,7 +135,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     channel_name = "Default"
 
     def process_comment(line):
-        "Find and interpret known comments in the header of the asc file"
+        """Find and interpret known comments in the header of the asc file"""
         nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
         nonlocal zfac
         nonlocal channel_name
@@ -173,6 +181,11 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 data += [[float(strval) for strval in line_elements]]
             except ValueError:
                 process_comment(line)
+
+    if (height_scale_factor is not None) and (zfac is not None):
+        # it should not be allowed to override a height scale factor if
+        # there is one already in the file
+        raise MetadataAlreadyDefined('height_scale_factor', zfac, height_scale_factor)
 
     data = np.array(data).T
     nx, ny = data.shape
@@ -235,8 +248,12 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     info[CHANNEL_NAME_INFO_KEY] = channel_name
 
     # calculate physical sizes and generate topography
-    if xsiz is not None and ysiz is not None and physical_sizes is None:
-        physical_sizes = (x_factor * xsiz, x_factor * ysiz)
+    if xsiz is not None and ysiz is not None:
+        physical_sizes_in_file = (x_factor * xsiz, x_factor * ysiz)
+        if physical_sizes is None:
+            physical_sizes = physical_sizes_in_file
+        else:
+            raise MetadataAlreadyDefined('physical_sizes', physical_sizes_in_file, physical_sizes)
     if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
@@ -245,6 +262,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     else:
         surface = Topography(data, physical_sizes, info=info,
                              periodic=periodic)
+
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
@@ -297,7 +315,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
 
     Returns
     -------
-    topography : Topography
+    topography : Topography or UniformLineScan or NonuniformLineScan
         SurfaceTopography object.
     """
     # pylint: disable=invalid-name
@@ -312,6 +330,8 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
+            else:
+                raise MetadataAlreadyDefined('physical_sizes', d_uniform * len(x), physical_sizes)
             t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
         else:
             if periodic:
@@ -319,10 +339,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
                                  'Nonuniform line scans cannot be periodic.')
             t = NonuniformLineScan(x, z, info=info)
             if physical_sizes is not None:
-                if not np.allclose(t.physical_sizes, physical_sizes):
-                    raise ValueError(
-                        'XYZ reader found nonuniform data. Manually setting the '
-                        'physical size is not possible for this type of data.')
+                raise MetadataAlreadyDefined('physical_sizes', t.physical_sizes, physical_sizes)
 
     elif len(data) == 3:
         # This is a topography map.
@@ -359,6 +376,8 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
 
         if physical_sizes is None:
             physical_sizes = (dx * nx, dy * ny)
+        else:
+            raise MetadataAlreadyDefined('physical_sizes', (dx * nx, dy * ny), physical_sizes)
         t = Topography(data, physical_sizes, info=info, periodic=periodic)
     else:
         raise Exception(

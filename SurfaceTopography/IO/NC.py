@@ -257,11 +257,12 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       info=_info)
                 else:
-                    return UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    # .. and it is 1D
+                    topo = UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            info=_info)
             else:
@@ -273,7 +274,7 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...], copy=True),
+                topo = NonuniformLineScan(np.array(self._x_var[...], copy=True),
                                           np.array(self._heights_var[...], copy=True),
                                           info=_info)
         else:
@@ -283,13 +284,18 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+            topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                               communicator=self.communicator,
                               info=_info)
+
+        if height_scale_factor is not None:
+            topo = topo.scale(height_scale_factor)
+
+        return topo
 
     @property
     def communicator(self):

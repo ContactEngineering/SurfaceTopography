@@ -38,7 +38,7 @@ import defusedxml.ElementTree as ElementTree
 
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyDefined
 
 # The files within ZON (zip) files are named using UUIDs. Some of these
 # UUIDs are fixed and contain the same information in each of these files.
@@ -106,6 +106,8 @@ This reader open ZON files that are written by some Keyence instruments.
                 meter_per_pixel = float(root.find('XYCalibration').find('MeterPerPixel').text)
                 meter_per_unit = float(root.find('ZCalibration').find('MeterPerUnit').text)
 
+                self._orig_height_scale_factor = meter_per_unit
+
                 # Parse height data information
                 # Header consists of four int32, followed by image data
                 width, height, element_size = unpack('iii', z.open(HEIGHT_DATA_UUID).read(12))
@@ -115,6 +117,7 @@ This reader open ZON files that are written by some Keyence instruments.
                                 nb_grid_pts=(width, height),
                                 physical_sizes=(width * meter_per_pixel,
                                                 height * meter_per_pixel),
+                                height_scale_factor=self._orig_height_scale_factor,
                                 info={'unit': 'm',
                                       'data_uuid': HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
@@ -133,8 +136,7 @@ This reader open ZON files that are written by some Keyence instruments.
             raise RuntimeError('This reader does not support MPI parallelization.')
 
         channel_info = self._channels[channel_index]
-        if physical_sizes is None:
-            physical_sizes = channel_info.physical_sizes
+        physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
 
         info.update(channel_info.info)
 
@@ -147,10 +149,7 @@ This reader open ZON files that are written by some Keyence instruments.
 
         topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
 
-        meter_per_unit = channel_info.info['meter_per_unit']
         if height_scale_factor is not None:
-            return topo.scale(height_scale_factor * meter_per_unit)
-        else:
-            return topo.scale(meter_per_unit)
+            raise MetadataAlreadyDefined('height_scale_factor', self._orig_height_scale_factor, height_scale_factor)
 
-        return topo
+        return topo.scale(self._orig_height_scale_factor)
