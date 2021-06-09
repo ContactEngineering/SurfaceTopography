@@ -26,7 +26,6 @@
 #
 
 import abc
-import warnings
 
 import numpy as np
 
@@ -444,5 +443,5 @@ class MetadataAlreadyDefined(ReadFileError):
         self._kw_value = kw_value
 
     def __str__(self):
-        return f"Value for keyword '{self._kw}' given as {self._kw_value}, "+\
+        return f"Value for keyword '{self._kw}' given as {self._kw_value}, " + \
                f"but was already defined as {self._file_value} in the file"
