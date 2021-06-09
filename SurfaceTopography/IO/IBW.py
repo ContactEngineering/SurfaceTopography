@@ -50,7 +50,7 @@ on the physical size of the topography map as well as its units.
             file = loadibw(f)
 
         if file['version'] != 5:
-            raise RuntimeError('Only IBW version 5 supported!')
+            raise RuntimeError('Only IBW version 5 is supported!')
 
         self.data = file['wave']
 
@@ -100,7 +100,12 @@ on the physical size of the topography map as well as its units.
                                                                  x_unit,
                                                                  y_unit)
 
+        # An empty unit should be None
+        if data_unit == '':
+            data_unit = None
+
         self._data_unit = data_unit
+
         #
         # Decode sizes
         #
