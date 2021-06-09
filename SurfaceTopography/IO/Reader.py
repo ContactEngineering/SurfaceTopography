@@ -34,7 +34,8 @@ import numpy as np
 class ChannelInfo:
     """
     Information on topography channels contained within a file. The interface
-    is identical to :obj:`HeightContainer` and subclasses.
+    is identical to :obj:`HeightContainer` and subclasses, but `ChannelInfo`
+    stores only metadata not the actual height information.
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
