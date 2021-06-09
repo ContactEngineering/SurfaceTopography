@@ -2,12 +2,24 @@
 Change log for SurfaceTopography
 =============================
 
+Deprecations in version 1.0
+---------------------------
+
+- `unit` entry for the `info` dictionary will disappear
+- `scale_factor` property for scaled topographies  will disappear
+
 v0.94.0 (not published yet)
 ---------------------------
 
+- API: Topographies now have a `unit` property. For backwards compatibility,
+  this information is still returned in the `info` dictionary but this
+  behavior will be deprecated in version 1.0. (#83)
 - ENH: `scale` pipeline function is now able to rescale lateral dimensions
   (positions) and can do direct unit conversion
-- ENH: Added analysis function for scale-dependent statistical properties of
+- ENH: `SurfaceContainer` class including pipeline functions for collections
+  of topographies
+- ENH: Reading and writing of surface containers
+- ENH: Added analysis functions for scale-dependent statistical properties of
   containers
 - ENH: Added API tests for checking existence of functions and properties for
   different kinds of topographies (#100)
