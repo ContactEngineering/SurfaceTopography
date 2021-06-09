@@ -85,7 +85,7 @@ These need to be manually provided by the user.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -99,8 +99,8 @@ These need to be manually provided by the user.
         info['data_source'] = self.channels[channel_index].name
 
         return Topography(self._height_data[channel_index],
-                          physical_sizes=self._check_physical_sizes(
-                              physical_sizes),
+                          physical_sizes=self._check_physical_sizes(physical_sizes),
+                          unit=unit,
                           info=info,
                           periodic=periodic)
 

@@ -38,7 +38,7 @@ class ChannelInfo:
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
-                 physical_sizes=None, periodic=None, info={}):
+                 physical_sizes=None, periodic=None, unit=None, info={}):
         """
         Initialize the channel. Use as many information from the file as
         possible by passing it in the keyword arguments.
@@ -62,6 +62,8 @@ class ChannelInfo:
             Wether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
+        unit : str
+            Length unit of measurement.
         info : dict
             Meta data found in the file.
         """
@@ -75,9 +77,10 @@ class ChannelInfo:
         self._physical_sizes = None \
             if physical_sizes is None else tuple(np.ravel(physical_sizes))
         self._periodic = periodic
+        self._unit = unit
         self._info = info.copy()
 
-    def topography(self, physical_sizes=None, height_scale_factor=None, info={}, periodic=False,
+    def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
@@ -93,6 +96,8 @@ class ChannelInfo:
             size found in the data file.
         height_scale_factor : float
             Override height scale factor found in the data file.
+        unit : str
+            Length unit of measurement.
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
@@ -116,6 +121,7 @@ class ChannelInfo:
             channel_index=self._index,
             physical_sizes=physical_sizes,
             height_scale_factor=height_scale_factor,
+            unit=unit,
             info=info,
             periodic=periodic,
             subdomain_locations=subdomain_locations,
@@ -206,6 +212,13 @@ class ChannelInfo:
             return None
         else:
             return np.prod(self.pixel_size)
+
+    @property
+    def unit(self):
+        """
+        Length unit.
+        """
+        return self._unit
 
     @property
     def info(self):
@@ -313,10 +326,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return physical_sizes_from_arg
 
     @abc.abstractmethod
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. The method allows to override data
@@ -334,6 +345,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
             size found in the data file.
         height_scale_factor : float
             Override height scale factor found in the data file.
+        unit : str
+            Length unit.
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.

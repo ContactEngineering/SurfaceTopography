@@ -114,8 +114,8 @@ on the physical size of the topography map as well as its units.
         # Build channel information
         #
         self._channels = [
-            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny),
-                        physical_sizes=self._physical_sizes)
+            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny), physical_sizes=self._physical_sizes,
+                        unit=self._data_unit)
             for i, cn in enumerate(self._channel_names)]
 
         # Shall we use the channel names in order to assign a unit as Gwyddion
@@ -126,11 +126,17 @@ on the physical size of the topography map as well as its units.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
+                   height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
+
+        if unit is not None:
+            raise ValueError(f'A unit of {self._data_unit} is already given by the data file, it cannot be overidden')
+
+        if height_scale_factor is not None:
+            raise ValueError('The data file has fixed absolute units. You cannot specify an additional height scale.')
 
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:
@@ -143,13 +149,8 @@ on the physical size of the topography map as well as its units.
         if physical_sizes is None:
             physical_sizes = self._physical_sizes
 
-        topo = Topography(height_data, physical_sizes,
-                          info=info,
-                          periodic=periodic)
+        topo = Topography(height_data, physical_sizes, unit=self._data_unit, info=info, periodic=periodic)
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
-
-        if height_scale_factor is not None:
-            topo = topo.scale(height_scale_factor)
 
         return topo

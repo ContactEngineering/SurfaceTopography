@@ -319,9 +319,8 @@ def test_reader_topography_same(fn):
 
         # some checks on info dict in channel and topography
         assert topography.info['foo'] == foo_str
-        if "unit" in channel.info.keys() or \
-                "unit" in topography.info.keys():
-            assert channel.info["unit"] == topography.info["unit"]
+        if channel.unit is not None or topography.unit is not None:
+            assert channel.unit == topography.unit
 
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
@@ -422,7 +421,7 @@ def test_gwyddion_txt_import(lang_filename_infix):
     channel = reader.default_channel
 
     assert channel.name == "My Channel Name"
-    assert channel.info['unit'] == 'm'
+    assert channel.unit == 'm'
     assert pytest.approx(
         channel.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
     assert pytest.approx(
@@ -432,7 +431,7 @@ def test_gwyddion_txt_import(lang_filename_infix):
     # test metadata of topography
     #
     topo = reader.topography()
-    assert topo.info['unit'] == 'm'
+    assert topo.unit == 'm'
     assert pytest.approx(
         topo.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
     assert pytest.approx(

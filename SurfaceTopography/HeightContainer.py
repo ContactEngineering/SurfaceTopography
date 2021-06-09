@@ -101,7 +101,7 @@ class AbstractTopography(object):
         Upon unpickling, it is called with the unpickled state.
         The argument `state` is the result of `__getstate__`.
         """
-        self._unit, self._info = state__setstate__
+        self._unit, self._info = state
         self._communicator = MPI.COMM_WORLD
 
     @property

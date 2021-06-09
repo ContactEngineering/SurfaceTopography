@@ -104,6 +104,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
                 self, 0,
                 name=self._channel_name,
                 dim=self._topography.dim,
+                unit=self._topography.unit,
                 info=self._topography.info,
                 nb_grid_pts=self._topography.nb_grid_pts,
                 physical_sizes=self._topography.physical_sizes)]
@@ -128,7 +129,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
             if hasattr(self._fobj, 'seek'):
                 self._fobj.seek(self._file_position)
 
-            # Read again, but this time with physical_sizes set (if not
+            # Read again, but this time with physical_sizes and unit set (if not
             # specified in file)
             return reader_func(self._fobj, physical_sizes=physical_sizes,
                                height_scale_factor=height_scale_factor,
