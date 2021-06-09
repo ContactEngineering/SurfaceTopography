@@ -73,7 +73,8 @@ class MISurfaceTest(unittest.TestCase):
                           'direction': 'Trace',
                           'filter': '3rd_order',
                           'name': 'Topography',
-                          'trace': 'Trace'})
+                          'trace': 'Trace',
+                          'unit': 'µm'})
         self.assertEqual(loader.channels[0].unit, 'µm')
 
         self.assertEqual(loader.default_channel.index, 0)
