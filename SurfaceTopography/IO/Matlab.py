@@ -99,11 +99,9 @@ These need to be manually provided by the user.
         info = info.copy()
         info['data_source'] = self.channels[channel_index].name
 
-        topography = Topography(self._height_data[channel_index],
-                          physical_sizes=self._check_physical_sizes(physical_sizes),
-                          unit=unit,
-                                info=info,
-                                periodic=periodic)
+        topography = Topography(
+            self._height_data[channel_index], physical_sizes=self._check_physical_sizes(physical_sizes), unit=unit,
+            info=info, periodic=periodic)
 
         if height_scale_factor is not None:
             topography = topography.scale(height_scale_factor)

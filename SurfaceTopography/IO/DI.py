@@ -252,7 +252,8 @@ supports V4.3 and later version of the format.
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
 
-        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy), unit=channel.unit, info=_info, periodic=periodic)
+        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy), unit=channel.unit, info=_info,
+                             periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:

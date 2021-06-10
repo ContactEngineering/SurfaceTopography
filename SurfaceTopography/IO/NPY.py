@@ -128,7 +128,7 @@ manually provided by the user.
                 physical_sizes=physical_sizes,
                 periodic=periodic,
                 unit=unit,
-            info=info)
+                info=info)
 
         if height_scale_factor is not None:
             topography = topography.scale(height_scale_factor)
