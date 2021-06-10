@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -252,13 +252,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/DI.html#DIReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.DI.DIReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -267,7 +270,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -279,6 +282,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -306,13 +313,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.HGTReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -321,7 +331,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -333,6 +343,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -356,13 +370,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.OPDReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -371,7 +388,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -383,6 +400,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -406,13 +427,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.X3PReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -421,7 +445,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -433,6 +457,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -503,13 +531,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/H5.html#H5Reader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.H5.H5Reader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -518,7 +549,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -530,6 +561,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -555,13 +590,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/IBW.html#IBWReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.IBW.IBWReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -570,7 +608,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -582,6 +620,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -635,13 +677,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/MI.html#MIReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.MI.MIReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -650,7 +695,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -662,6 +707,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -707,13 +756,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/Matlab.html#MatReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.Matlab.MatReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -722,7 +774,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -734,6 +786,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -769,13 +825,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/NC.html#NCReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.NC.NCReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -784,7 +843,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -796,6 +855,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -869,13 +932,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/NPY.html#NPYReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.NPY.NPYReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -884,7 +950,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -896,6 +962,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -968,13 +1038,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/OPDx.html#OPDxReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -983,7 +1056,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -995,6 +1068,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1216,22 +1293,33 @@ primary_channel_name: The name of the primary channel.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ChannelInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/Reader.html#ChannelInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ChannelInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/Reader.html#ChannelInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Information on topography channels contained within a file. The interface
-is identical to <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> and subclasses.</p>
+<p>Information on topography channels contained within a file.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.area_per_pt">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">area_per_pt</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.area_per_pt" title="Permalink to this definition">¶</a></dt>
 <dd><p>The area per point is returned as the product over the pixel size
 tuple. If <cite>pixel_size</cite> returns None, than also <cite>area_per_pt</cite> returns
-None.s</p>
+None.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.dim">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>1 for line scans and 2 for topography maps.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.height_scale_factor">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">height_scale_factor</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.height_scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a height scale factor can be determined from the file, a float is
+returned.</p>
+<p>If no height scale factor can be determined from the file, then
+None is returned.</p>
+<p>Note that the height scale factor obtained from the file can be
+overwritten by passing a <cite>height_scale_factor</cite> argument to the
+<cite>topography</cite> method that returns the topography object.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1321,10 +1409,12 @@ found in the data file.</p>
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
-<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Override height scale factor found in the data file.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Factor by which the heights should be multiplied.
+This parameter is only available for file formats that do not provide
+metadata information about units and associated length scales.</p></li>
 <li><p><strong>info</strong> (<em>dict</em>) – This dictionary will be appended to the info dictionary returned
 by the reader.</p></li>
-<li><p><strong>periodic</strong> (<em>bool</em>) – Wether the SurfaceTopography should be interpreted as one period of
+<li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing)</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
@@ -1358,6 +1448,15 @@ but there is a mistake, for example the number of points doesn’t match</p>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
 <p>Raised when the reader cannot interpret the file at all
 (obvious for txt vs binary, but holds also for a header)</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">MetadataAlreadyFixedByFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/Reader.html#MetadataAlreadyFixedByFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
+<p>Raised when instantiating a topography from a reader,
+given metadata which cannot be overridden, because
+it is already fixed by the file contents.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1417,13 +1516,16 @@ is typically equal to the file extension of this format.</p>
 <em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/Reader.html#ReaderBase.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReaderBase.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1432,7 +1534,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -1444,6 +1546,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1486,13 +1592,16 @@ channels.</p>
 <span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/IO/ZON.html#ZONReader.topography"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.topography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. The method allows to override data
-found in the data file.</p>
+found in the data file by giving appropriate arguments.</p>
+<p>For some of the given arguments it is checked whether they
+have already been defined in the file, e.g. the height
+scale factor, and if yes, an exception is raised (see below).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_si&quot;&quot;zes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1501,7 +1610,7 @@ size found in the data file.</p></li>
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
-calculations (windowing)</p></li>
+calculations (windowing).</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
 <li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
@@ -1513,6 +1622,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
+    been defined in the file, because they should not be overridden.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1662,9 +1775,9 @@ documentation of the respective reader on this.</p>
 <li><p><strong>channel</strong> (<em>int</em>) – Number of the channel to load. See also <cite>channels</cite> method.</p></li>
 <li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
-physical size, then this parameter will override the physical
-size found in the data file.</p></li>
-<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Override height scale factor found in the data file.</p></li>
+physical size in the file, then specifying this parameter will raise
+an exception.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Can be used to set height scale factor if not found in the data file.</p></li>
 <li><p><strong>info</strong> (<em>dict</em>) – This dictionary will be appended to the info dictionary returned
 by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Wether the SurfaceTopography should be interpreted as one period of a
@@ -1680,6 +1793,10 @@ MPI process.</p></li>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if given arguments for <cite>physical_sizes</cite> or <cite>height_scale_factor</cite>
+    although it’s already given in the file.</p>
 </dd>
 </dl>
 </dd></dl>

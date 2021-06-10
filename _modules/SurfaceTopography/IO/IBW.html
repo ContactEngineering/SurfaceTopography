@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -202,7 +202,7 @@
 
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
 
 <div class="viewcode-block" id="IBWReader"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader">[docs]</a><span class="k">class</span> <span class="nc">IBWReader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
@@ -314,12 +314,20 @@
 
         <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
 
         <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">height_data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
                           <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
                           <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
         <span class="c1"># we could pass the data units here, but they dont seem to be always</span>
         <span class="c1"># correct for all channels?!</span>
+
+        <span class="n">channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
+            <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">height_scale_factor</span>
 
         <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">topo</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>

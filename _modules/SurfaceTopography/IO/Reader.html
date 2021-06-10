@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.Reader &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.Reader &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -198,19 +198,17 @@
 <span class="c1">#</span>
 
 <span class="kn">import</span> <span class="nn">abc</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="ChannelInfo"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo">[docs]</a><span class="k">class</span> <span class="nc">ChannelInfo</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Information on topography channels contained within a file. The interface</span>
-<span class="sd">    is identical to :obj:`HeightContainer` and subclasses.</span>
+<span class="sd">    Information on topography channels contained within a file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the channel. Use as many information from the file as</span>
@@ -231,8 +229,10 @@
 <span class="sd">            Number grid points in each dimension.</span>
 <span class="sd">        physical_sizes: tuple of floats</span>
 <span class="sd">            Physical dimensions.</span>
+<span class="sd">        height_scale_factor: float</span>
+<span class="sd">            Number by which all heights have been multiplied.</span>
 <span class="sd">        periodic: bool</span>
-<span class="sd">            Wether the SurfaceTopography should be interpreted as one period of</span>
+<span class="sd">            Whether the SurfaceTopography should be interpreted as one period of</span>
 <span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
 <span class="sd">            calculations (windowing).</span>
 <span class="sd">        info: dict</span>
@@ -247,6 +247,7 @@
             <span class="k">if</span> <span class="n">nb_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span> <span class="o">=</span> <span class="kc">None</span> \
             <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span> <span class="o">=</span> <span class="n">height_scale_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="o">=</span> <span class="n">periodic</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -267,12 +268,14 @@
 <span class="sd">            physical size, then this parameter will override the physical</span>
 <span class="sd">            size found in the data file.</span>
 <span class="sd">        height_scale_factor : float</span>
-<span class="sd">            Override height scale factor found in the data file.</span>
+<span class="sd">            Factor by which the heights should be multiplied.</span>
+<span class="sd">            This parameter is only available for file formats that do not provide</span>
+<span class="sd">            metadata information about units and associated length scales.</span>
 <span class="sd">        info : dict</span>
 <span class="sd">            This dictionary will be appended to the info dictionary returned</span>
 <span class="sd">            by the reader.</span>
 <span class="sd">        periodic: bool</span>
-<span class="sd">            Wether the SurfaceTopography should be interpreted as one period of</span>
+<span class="sd">            Whether the SurfaceTopography should be interpreted as one period of</span>
 <span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
 <span class="sd">            calculations (windowing)</span>
 <span class="sd">        subdomain_locations : tuple of ints</span>
@@ -303,10 +306,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Name of the channel.</span>
 <span class="sd">        Can be used in a UI for identifying a channel.</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 
     <span class="nd">@property</span>
@@ -339,6 +342,21 @@
 <span class="sd">        `topography` method that returns the topography object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">height_scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If a height scale factor can be determined from the file, a float is</span>
+<span class="sd">        returned.</span>
+
+<span class="sd">        If no height scale factor can be determined from the file, then</span>
+<span class="sd">        None is returned.</span>
+
+<span class="sd">        Note that the height scale factor obtained from the file can be</span>
+<span class="sd">        overwritten by passing a `height_scale_factor` argument to the</span>
+<span class="sd">        `topography` method that returns the topography object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -375,7 +393,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The area per point is returned as the product over the pixel size</span>
 <span class="sd">        tuple. If `pixel_size` returns None, than also `area_per_pt` returns</span>
-<span class="sd">        None.s</span>
+<span class="sd">        None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -467,25 +485,29 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span><span class="p">]</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_check_physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">physical_sizes_from_arg</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">_check_physical_sizes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">physical_sizes_from_arg</span><span class="p">,</span>
                               <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Handle overriding of `physical_sizes` arguments and make sure,</span>
-<span class="sd">        that return value is not `None`.&quot;&quot;&quot;</span>
+<span class="sd">        that return value is not `None`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        physical_sizes_from_arg: tuple or float or None</span>
+<span class="sd">            physical sizes given as argument when instantiating a topography from a reader</span>
+<span class="sd">        physical_sizes: tuple or float or None</span>
+<span class="sd">            physical sizes which were present in the file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`physical_sizes` could not be extracted from file, you must provide it.&quot;</span><span class="p">)</span>
+            <span class="n">eff_physical_sizes</span> <span class="o">=</span> <span class="n">physical_sizes_from_arg</span>
+        <span class="k">elif</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># in general this should result in an exception now</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">physical_sizes_from_arg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">physical_sizes_from_arg</span> <span class="o">=</span> <span class="n">physical_sizes</span>
-            <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes_from_arg</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">):</span>
-                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;A physical size different from the value specified when &quot;</span>
-                    <span class="s2">&quot;calling the reader was present in the file. We will &quot;</span>
-                    <span class="s2">&quot;ignore the value given in the file. Specified values: &quot;</span>
-                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">; Values from file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">physical_sizes</span><span class="p">,</span>
-                        <span class="n">physical_sizes_from_arg</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">physical_sizes_from_arg</span>
+            <span class="n">eff_physical_sizes</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+
+        <span class="k">return</span> <span class="n">eff_physical_sizes</span>
 
 <div class="viewcode-block" id="ReaderBase.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.topography">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -495,14 +517,18 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns an instance of a subclass of :obj:`HeightContainer` that</span>
 <span class="sd">        contains the topography data. The method allows to override data</span>
-<span class="sd">        found in the data file.</span>
+<span class="sd">        found in the data file by giving appropriate arguments.</span>
+
+<span class="sd">        For some of the given arguments it is checked whether they</span>
+<span class="sd">        have already been defined in the file, e.g. the height</span>
+<span class="sd">        scale factor, and if yes, an exception is raised (see below).</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        channel_index : int</span>
 <span class="sd">            Index of the channel to load. See also `channels` method.</span>
 <span class="sd">            (Default: None, which load the default channel)</span>
-<span class="sd">        physical_si&quot;&quot;zes : tuple of floats</span>
+<span class="sd">        physical_sizes : tuple of floats</span>
 <span class="sd">            Physical size of the topography. It is necessary to specify this</span>
 <span class="sd">            if no physical size is found in the data file. If there is a</span>
 <span class="sd">            physical size, then this parameter will override the physical</span>
@@ -515,7 +541,7 @@
 <span class="sd">        periodic: bool</span>
 <span class="sd">            Whether the SurfaceTopography should be interpreted as one period of</span>
 <span class="sd">            a periodic surface. This will affect the PSD and autocorrelation</span>
-<span class="sd">            calculations (windowing)</span>
+<span class="sd">            calculations (windowing).</span>
 <span class="sd">        subdomain_locations : tuple of ints</span>
 <span class="sd">            Origin (location) of the subdomain handled by the present MPI</span>
 <span class="sd">            process.</span>
@@ -527,6 +553,12 @@
 <span class="sd">        -------</span>
 <span class="sd">        topography : subclass of :obj:`HeightContainer`</span>
 <span class="sd">            The object containing the actual topography data.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        MetadataAlreadyDefined</span>
+<span class="sd">            Raised if `physical_sizes` or `height_scale_factor` have already</span>
+<span class="sd">            been defined in the file, because they should not be overridden.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
@@ -560,6 +592,32 @@
 <span class="sd">    but there is a mistake, for example the number of points doesn&#39;t match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="MetadataAlreadyFixedByFile"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile">[docs]</a><span class="k">class</span> <span class="nc">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="n">ReadFileError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when instantiating a topography from a reader,</span>
+<span class="sd">    given metadata which cannot be overridden, because</span>
+<span class="sd">    it is already fixed by the file contents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kw</span><span class="p">,</span> <span class="n">alt_msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kw: str</span>
+<span class="sd">            Name of the keyword argument to .topography().</span>
+<span class="sd">        alt_msg: str or None</span>
+<span class="sd">            If not None, use this as error message instead of</span>
+<span class="sd">            the default one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kw</span> <span class="o">=</span> <span class="n">kw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alt_msg</span> <span class="o">=</span> <span class="n">alt_msg</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_msg</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alt_msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;Value for keyword &#39;</span><span class="si">{self._kw}</span><span class="s2">&#39; is already fixed by file contents and cannot be overridden&quot;</span></div>
 </pre></div>
 
            </div>

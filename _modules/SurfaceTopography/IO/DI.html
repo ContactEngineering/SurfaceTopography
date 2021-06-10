@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.DI &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.DI &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -209,7 +209,7 @@
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
 
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span>
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
 
 <span class="c1">###</span>
@@ -350,17 +350,17 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">unit</span> <span class="o">=</span> <span class="p">(</span><span class="n">xy_unit</span><span class="p">,</span> <span class="n">height_unit</span><span class="p">)</span>
 
+                    <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="n">hard_scale</span> <span class="o">*</span> <span class="n">hard_to_soft</span> <span class="o">*</span> <span class="n">soft_scale</span>
+
                     <span class="n">channel_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                    <span class="n">channel_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
-                        <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
-                        <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">hard_scale</span> <span class="o">*</span> <span class="n">hard_to_soft</span> <span class="o">*</span>
-                        <span class="n">soft_scale</span><span class="p">))</span>
+                    <span class="n">channel_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">))</span>
                     <span class="n">channel</span> <span class="o">=</span> <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                           <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="p">),</span>
                                           <span class="n">name</span><span class="o">=</span><span class="n">image_data_key</span><span class="p">,</span>
                                           <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                                           <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span>
                                           <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span>
+                                          <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
                                           <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                           <span class="n">info</span><span class="o">=</span><span class="n">channel_info</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
@@ -375,6 +375,7 @@
 <div class="viewcode-block" id="DIReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
         <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
 
@@ -411,15 +412,25 @@
         <span class="k">if</span> <span class="s1">&#39;acquisition_time&#39;</span> <span class="ow">in</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
             <span class="n">_info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;acquisition_time&#39;</span><span class="p">]</span>
 
+        <span class="c1"># it is not allowed to provide extra `physical_sizes` here:</span>
+        <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
+
         <span class="c1"># the orientation of the heights is modified in order to match</span>
         <span class="c1"># the image of gwyddion when plotted with imshow(t.heights().T)</span>
         <span class="c1"># or pcolormesh(t.heights().T) for origin in lower left and</span>
         <span class="c1"># with inverted y axis (cartesian coordinate system)</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">unscaleddata</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">,</span>
+
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">unscaleddata</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span>
+                             <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">,</span>
                              <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;height_scale_factor&quot;</span><span class="p">]</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+            <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">height_scale_factor</span>
+        <span class="k">elif</span> <span class="n">channel</span><span class="o">.</span><span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">close_file</span><span class="p">:</span>
             <span class="n">fobj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>

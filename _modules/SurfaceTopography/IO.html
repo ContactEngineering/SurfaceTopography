@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -212,7 +212,7 @@
 <span class="kn">from</span> <span class="nn">.OPDx</span> <span class="k">import</span> <span class="n">OPDxReader</span>
 <span class="kn">from</span> <span class="nn">.ZON</span> <span class="k">import</span> <span class="n">ZONReader</span>
 
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">UnknownFileFormatGiven</span><span class="p">,</span> <span class="n">CannotDetectFileFormat</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">UnknownFileFormatGiven</span><span class="p">,</span> <span class="n">CannotDetectFileFormat</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">,</span>\
     <span class="n">FileFormatMismatch</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ReaderBase</span>  <span class="c1"># noqa: F401</span>
 
 <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span>
@@ -387,10 +387,10 @@
 <span class="sd">    physical_sizes : tuple of floats</span>
 <span class="sd">        Physical size of the topography. It is necessary to specify this</span>
 <span class="sd">        if no physical size is found in the data file. If there is a</span>
-<span class="sd">        physical size, then this parameter will override the physical</span>
-<span class="sd">        size found in the data file.</span>
+<span class="sd">        physical size in the file, then specifying this parameter will raise</span>
+<span class="sd">        an exception.</span>
 <span class="sd">    height_scale_factor : float</span>
-<span class="sd">        Override height scale factor found in the data file.</span>
+<span class="sd">        Can be used to set height scale factor if not found in the data file.</span>
 <span class="sd">    info : dict</span>
 <span class="sd">        This dictionary will be appended to the info dictionary returned</span>
 <span class="sd">        by the reader.</span>
@@ -408,6 +408,12 @@
 <span class="sd">    -------</span>
 <span class="sd">    topography : subclass of :obj:`HeightContainer`</span>
 <span class="sd">        The object containing the actual topography data.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    MetadataAlreadyDefined</span>
+<span class="sd">        Raised if given arguments for `physical_sizes` or `height_scale_factor`</span>
+<span class="sd">        although it&#39;s already given in the file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">open_topography</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span>
                          <span class="n">communicator</span><span class="o">=</span><span class="n">communicator</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>

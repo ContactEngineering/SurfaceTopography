@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.NC &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -206,7 +206,7 @@
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">NonuniformLineScanInterface</span>
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">mangle_length_unit_ascii</span>
 
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
 <span class="c1"># We run serial I/O through scipy. This has several advantages:</span>
 <span class="c1"># 1) lightweight, 2) can handle streams</span>
@@ -429,11 +429,12 @@
                 <span class="c1"># This is a uniform topography...</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># ...and it is 2D</span>
-                    <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                    <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
                                       <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                                       <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+                    <span class="c1"># .. and it is 1D</span>
+                    <span class="n">topo</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
                                            <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                                            <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -445,7 +446,7 @@
                                      <span class="s1">&#39;cannot be periodic.&#39;</span><span class="p">)</span>
 
                 <span class="c1"># This is a nonuniform line scan</span>
-                <span class="k">return</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="n">topo</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                                           <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                                           <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -455,13 +456,23 @@
             <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">,</span>
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+            <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heights_var</span><span class="p">[</span><span class="o">...</span><span class="p">],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
                               <span class="n">periodic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_periodic</span> <span class="k">if</span> <span class="n">periodic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">periodic</span><span class="p">,</span>
                               <span class="n">decomposition</span><span class="o">=</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span>
                               <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
                               <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">,</span>
                               <span class="n">communicator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">communicator</span><span class="p">,</span>
-                              <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span></div>
+                              <span class="n">info</span><span class="o">=</span><span class="n">_info</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">_info</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">,</span>
+                                                 <span class="s1">&#39;The height_scale_factor cannot be given for NC files &#39;</span>
+                                                 <span class="s1">&#39;if units are present in the file.&#39;</span><span class="p">)</span>
+                <span class="c1"># See https://github.com/ContactEngineering/SurfaceTopography/pull/99#discussion_r648364687</span>
+            <span class="n">topo</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">topo</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">communicator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

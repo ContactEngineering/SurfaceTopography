@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.NPY &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.NPY &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -271,8 +271,9 @@
                    <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
                    <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_index</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;`channel_index` must be None or 0.&#39;</span><span class="p">)</span>
 
         <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -280,7 +281,7 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This is a parallel run, you should provide &quot;</span>
                                  <span class="s2">&quot;subdomain location and number of grid &quot;</span>
                                  <span class="s2">&quot;points&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span>
+            <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span>
                 <span class="n">heights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
                     <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
                     <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
@@ -288,18 +289,23 @@
                 <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
                 <span class="n">info</span><span class="o">=</span><span class="n">info</span>
             <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span>
-            <span class="n">heights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span>
+                <span class="n">heights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
+                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
+                    <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
+                <span class="n">decomposition</span><span class="o">=</span><span class="s2">&quot;subdomain&quot;</span><span class="p">,</span>
                 <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
-                <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="n">nb_subdomain_grid_pts</span><span class="p">),</span>
-            <span class="n">decomposition</span><span class="o">=</span><span class="s2">&quot;subdomain&quot;</span><span class="p">,</span>
-            <span class="n">subdomain_locations</span><span class="o">=</span><span class="n">subdomain_locations</span><span class="p">,</span>
-            <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">,</span>
-            <span class="n">communicator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span>
-            <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
-            <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
-            <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span></div>
+                <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_grid_pts</span><span class="p">,</span>
+                <span class="n">communicator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mpi_file</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span>
+                <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span>
+                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">topography</span></div>
 
     <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span></div>

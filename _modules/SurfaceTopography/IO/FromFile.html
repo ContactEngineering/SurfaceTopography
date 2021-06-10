@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.93.1.dev46+gf114f9cf documentation</title>
+  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.93.1.dev63+g7c816b40 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.93.1.dev46+gf114f9cf
+                0.93.1.dev63+g7c816b40
               </div>
             
           
@@ -208,7 +208,7 @@
 <span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
 
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span>
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
 
 
@@ -272,13 +272,20 @@
 
         <span class="nd">@property</span>
         <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">scale_factor</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># None means: Not available in file</span>
+
             <span class="k">return</span> <span class="p">[</span><span class="n">ChannelInfo</span><span class="p">(</span>
                 <span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_name</span><span class="p">,</span>
                 <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span>
                 <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">,</span>
                 <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span>
-                <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)]</span>
+                <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
+                <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">)]</span>
 
         <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                        <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -302,9 +309,14 @@
 
             <span class="c1"># Read again, but this time with physical_sizes set (if not</span>
             <span class="c1"># specified in file)</span>
-            <span class="k">return</span> <span class="n">reader_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
-                               <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
-                               <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+            <span class="n">reader_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
+                                 <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># file does not have physical sizes</span>
+                <span class="n">reader_kwargs</span><span class="p">[</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">physical_sizes</span>
+                <span class="c1"># otherwise we won&#39;t add the argument, because that is not allowed any more</span>
+
+            <span class="k">return</span> <span class="n">reader_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="o">**</span><span class="n">reader_kwargs</span><span class="p">)</span>
 
         <span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="vm">__doc__</span>
         <span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">ReaderBase</span><span class="o">.</span><span class="n">topography</span><span class="o">.</span><span class="vm">__doc__</span>
@@ -387,9 +399,10 @@
         <span class="n">rawdata</span> <span class="o">=</span> <span class="n">x3p</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">binfn</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">nz</span><span class="p">,</span>
                              <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">xinc</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">yinc</span> <span class="o">*</span> <span class="n">ny</span><span class="p">)</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">xinc</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">yinc</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">t</span></div>
@@ -485,14 +498,15 @@
     <span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
 
     <span class="c1"># Height are in nm, width in mm</span>
-    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">pixel_size</span><span class="p">,</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">pixel_size</span> <span class="o">*</span> <span class="n">aspect</span><span class="p">)</span>
-    <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="p">,</span>
+    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">pixel_size</span><span class="p">,</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">pixel_size</span> <span class="o">*</span> <span class="n">aspect</span><span class="p">),</span>
                          <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="n">info</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mm&#39;</span><span class="p">)},</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">wavelength</span> <span class="o">/</span> <span class="n">mult</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+    <span class="n">height_scale_factor_from_file</span> <span class="o">=</span> <span class="n">wavelength</span> <span class="o">/</span> <span class="n">mult</span> <span class="o">*</span> <span class="mf">1e-6</span>
+    <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor_from_file</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">surface</span></div>
 
 
