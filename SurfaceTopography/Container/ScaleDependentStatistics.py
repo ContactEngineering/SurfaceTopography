@@ -28,11 +28,11 @@ from .SurfaceContainer import SurfaceContainer
 def scale_dependent_statistical_property(container, func, n, distance, unit):
     for topography in container:
         topography = topography.scale(unit=unit)
-        d = topography.derivative(n=n, distance=distance)
+        derivatives = topography.derivative(n=n, distance=distance)
         if topography.dim == 1:
-            return [func(_d) for _d in d]
+            return [func(dx) for dx in derivatives]
         else:
-            return [func(dx, dy) for dx, dy in zip(*d)]
+            return [func(dx, dy) for dx, dy in zip(*derivatives)]
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)
