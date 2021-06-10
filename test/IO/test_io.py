@@ -41,7 +41,7 @@ from NuMPI import MPI
 
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat
+from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat, MetadataAlreadyFixedByFile
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
 from SurfaceTopography.UniformLineScanAndTopography import Topography
@@ -119,7 +119,7 @@ explicit_physical_sizes = _convert_filelist([
 ])
 
 text_example_memory_list = [
-            """
+    """
             0 0
             1 2
             2 4
@@ -160,7 +160,6 @@ def test_cannot_detect_file_format_on_txt():
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list)
 def test_keep_text_file_open(fn):
-
     # Text file can be opened as binary or text
     with open(fn, 'rb') as f:
         open_topography(f)
@@ -172,7 +171,6 @@ def test_keep_text_file_open(fn):
 
 @pytest.mark.parametrize('fn', binary_example_file_list)
 def test_keep_binary_file_open(fn):
-
     with open(fn, 'rb') as f:
         open_topography(f)
         assert not f.closed, f"Binary file {fn} was opened as binary file and is closed, but should not"
@@ -206,10 +204,8 @@ def test_is_binary_stream():
 def test_can_be_pickled(fn):
     reader = open_topography(fn)
     physical_sizes = None
-    if reader.default_channel.dim != 1:
-        physical_sizes = reader.default_channel.physical_sizes \
-            if reader.default_channel.physical_sizes is not None \
-            else (1.,) * reader.default_channel.dim
+    if reader.default_channel.physical_sizes is None:
+        physical_sizes = (1.,) * reader.default_channel.dim
 
     topography = reader.topography(physical_sizes=physical_sizes)
     topographies = [topography]
@@ -245,8 +241,8 @@ def test_reader_arguments(fn):
 
     # Test open -> topography
     r = open_topography(fn)
-    physical_sizes = None if r.channels[0].dim == 1 \
-        else physical_sizes0
+    physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
+
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=None)
     if physical_sizes is not None:
@@ -274,8 +270,7 @@ def test_readers_with_binary_file_object(fn):
 
     # Test open -> topography
     r = open_topography(open(fn, mode='rb'))
-    physical_sizes = None if r.channels[0].dim == 1 \
-        else physical_sizes0
+    physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=None)
     if physical_sizes is not None:
@@ -293,10 +288,10 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
     r = open_topography(fn)
     assert isinstance(r.default_channel.nb_grid_pts, tuple), f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}'
     if r.default_channel.physical_sizes is not None:
-        assert isinstance(r.default_channel.physical_sizes, tuple),\
+        assert isinstance(r.default_channel.physical_sizes, tuple), \
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
         # If it is a tuple, it cannot contains None's
-        assert np.all([p is not None for p in r.default_channel.physical_sizes]),\
+        assert np.all([p is not None for p in r.default_channel.physical_sizes]), \
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
 
 
@@ -304,13 +299,13 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
 def test_reader_topography_same(fn):
     """
     Tests that properties like physical sizes, units and nb_grid_pts are
-    the  same in the ChannelInfo and the loaded topography
+    the same in the ChannelInfo and the loaded topography.
     """
 
     reader = open_topography(fn)
 
     for channel in reader.channels:
-        foo_str = reader.format()+"-%d" % (channel.index,)  # unique for each channel
+        foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
             else None,
@@ -326,21 +321,98 @@ def test_reader_topography_same(fn):
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
 
+        if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
+            assert channel.height_scale_factor == topography.scale_factor
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_reader_args_doesnt_overwrite_data_from_file(fn):
+    """
+    Tests that if some properties like `physical_sizes and `height_scale_factor`
+    are given in the file, they cannot be overridden by given arguments to
+    the .topography() method.
+    """
+    reader = open_topography(fn)
+    ch = reader.default_channel
+    physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
+    physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
+
+    if ch.physical_sizes is not None:
+        with pytest.raises(MetadataAlreadyFixedByFile):
+            reader.topography(physical_sizes=physical_sizes_arg_if_missing_in_file)
+
+    if ch.height_scale_factor is not None:
+        with pytest.raises(MetadataAlreadyFixedByFile):
+            if ch.physical_sizes is None:
+                reader.topography(physical_sizes=physical_sizes_arg, height_scale_factor=10)
+            else:
+                # if an exception happens, we want it because of height scale factor
+                reader.topography(height_scale_factor=10)
+
+    # A small problem with this test is maybe that there are a few input
+    # files which pass this test without any assert, so it looks like
+    # a passed test, but it has no meaning. Since this are only three files
+    # by now, I think this is okay, sorting this out would be difficult.
+
 
 @pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_periodic_flag(fn):
     reader = open_topography(fn)
-    physical_sizes = None
-    if reader.default_channel.dim != 1:
-        physical_sizes = reader.default_channel.physical_sizes \
-            if reader.default_channel.physical_sizes is not None \
-            else [1., ] * reader.default_channel.dim
-    t = reader.topography(physical_sizes=physical_sizes, periodic=True)
+    ch = reader.default_channel
+    physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
+    physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
+
+    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
     assert t.is_periodic, fn
 
-    t = reader.topography(physical_sizes=physical_sizes,
-                          periodic=False)
+    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
     assert not t.is_periodic, fn
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_reader_height_scale_factor_arg_for_topography(fn):
+    """Test whether height_scale_factor can be given to .topography() and is effective.
+
+    Also checking whether the reader channels have .height_scale_factor attribute and
+    whether it is equal to the scaling factor known from topography.
+
+    Also tests that info dict of channel and topography have no height_scale_factor,
+    because this should be a channel property now.
+    """
+    reader = open_topography(fn)
+    ch = reader.default_channel
+
+    assert hasattr(ch, 'height_scale_factor')
+    assert 'height_scale_factor' not in ch.info
+
+    height_scale_factor_if_missing_in_file = 2  # just some number
+
+    # calculate argument for .topography()
+    height_scale_factor_arg = height_scale_factor_if_missing_in_file if ch.height_scale_factor is None else None
+
+    # which factor we expect at the end
+    exp_height_scale_factor = height_scale_factor_if_missing_in_file if ch.height_scale_factor is None \
+        else ch.height_scale_factor
+
+    # in order to call .topography(), we also need valid physical_sizes
+    physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
+    physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
+
+    # The check whether an exception is raised if meta data like `physical_sizes`
+    # and `height_scale_factor` has already been defined in the file and
+    # one tries to override it, is done in another test.
+    #
+    # (only do this if not an NC file with units, since this is special: height_scale_factor
+    # should only be choosable then.)
+    if reader.format != 'nc' and 'unit' not in ch.info:
+        topography = reader.topography(physical_sizes=physical_sizes_arg, height_scale_factor=height_scale_factor_arg)
+        if hasattr(topography, 'scale_factor'):
+            # sometimes we use height_scale_factor = 1 in the channel info in order
+            # to denote that the height scale factor cannot be changed later.
+            # This does not mean that the topography also really has been scaled, so
+            # we compare the scale factor here only of it is available
+            assert pytest.approx(exp_height_scale_factor) == topography.scale_factor, \
+                "Difference in height scale factor between channel/argument and resulting topography"
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)

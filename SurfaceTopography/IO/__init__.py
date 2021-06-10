@@ -42,7 +42,7 @@ from .NPY import NPYReader
 from .OPDx import OPDxReader
 from .ZON import ZONReader
 
-from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, \
+from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, MetadataAlreadyFixedByFile,\
     FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
 
 readers = [
@@ -217,10 +217,10 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
     physical_sizes : tuple of floats
         Physical size of the topography. It is necessary to specify this
         if no physical size is found in the data file. If there is a
-        physical size, then this parameter will override the physical
-        size found in the data file.
+        physical size in the file, then specifying this parameter will raise
+        an exception.
     height_scale_factor : float
-        Override height scale factor found in the data file.
+        Can be used to set height scale factor if not found in the data file.
     info : dict
         This dictionary will be appended to the info dictionary returned
         by the reader.
@@ -238,6 +238,12 @@ def read_topography(fn, format=None, communicator=None, **kwargs):
     -------
     topography : subclass of :obj:`HeightContainer`
         The object containing the actual topography data.
+
+    Raises
+    ------
+    MetadataAlreadyDefined
+        Raised if given arguments for `physical_sizes` or `height_scale_factor`
+        although it's already given in the file.
     """
     with open_topography(fn, format=format,
                          communicator=communicator) as reader:
