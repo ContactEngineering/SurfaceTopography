@@ -26,25 +26,27 @@ import tempfile
 
 from numpy.testing import assert_allclose
 
-from SurfaceTopography import SurfaceContainer, read_container, read_topography
+from SurfaceTopography import SurfaceContainer, read_container, read_published_container, read_topography
 
 
 def test_read(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    for c, in [
+        read_container(f'{file_format_examples}/container1.zip'),
+        read_published_container('https://contact.engineering/go/867nv/')  # Same a container1.zip
+    ]:
+        assert len(c) == 3
 
-    assert len(c) == 3
+        assert c[0].nb_grid_pts == (500, 500)
+        assert c[1].nb_grid_pts == (500, 500)
+        assert c[2].nb_grid_pts == (500, 500)
 
-    assert c[0].nb_grid_pts == (500, 500)
-    assert c[1].nb_grid_pts == (500, 500)
-    assert c[2].nb_grid_pts == (500, 500)
+        assert c[0].physical_sizes == (100, 100)
+        assert c[1].physical_sizes == (10, 10)
+        assert c[2].physical_sizes == (1, 1)
 
-    assert c[0].physical_sizes == (100, 100)
-    assert c[1].physical_sizes == (10, 10)
-    assert c[2].physical_sizes == (1, 1)
-
-    assert c[0].info['unit'] == 'µm'
-    assert c[1].info['unit'] == 'µm'
-    assert c[2].info['unit'] == 'µm'
+        assert c[0].info['unit'] == 'µm'
+        assert c[1].info['unit'] == 'µm'
+        assert c[2].info['unit'] == 'µm'
 
 
 def test_write(file_format_examples):

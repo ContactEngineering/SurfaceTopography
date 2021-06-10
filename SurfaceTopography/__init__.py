@@ -28,7 +28,7 @@
 defines all surface types used in SurfaceTopography
 """
 
-from .Container import SurfaceContainer, read_container  # noqa: F401
+from .Container import SurfaceContainer, read_container, read_published_container  # noqa: F401
 from .HeightContainer import UniformTopographyInterface  # noqa: F401
 from .IO import open_topography, read_topography  # noqa: F401
 from .NonuniformLineScan import NonuniformLineScan  # noqa: F401

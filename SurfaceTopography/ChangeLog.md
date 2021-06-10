@@ -21,6 +21,7 @@ v0.95.0 (not yet published)
 - ENH: `SurfaceContainer` class including pipeline functions for collections
   of topographies
 - ENH: Reading and writing of surface containers
+- ENH: Retrieving surface containers from https://contact.engineering
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
 
