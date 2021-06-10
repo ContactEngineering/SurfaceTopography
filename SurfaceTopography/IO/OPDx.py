@@ -165,6 +165,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                       nb_grid_pts=(metadata['ImageWidth'],
                                                    metadata['ImageHeight']),
                                       physical_sizes=(size_x, size_y),
+                                      height_scale_factor=1,  # means that this factor is fixed by file contents
                                       info=metadata)
 
                 self._channels.append(ch_info)

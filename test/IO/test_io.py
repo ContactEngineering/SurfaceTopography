@@ -321,7 +321,7 @@ def test_reader_topography_same(fn):
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
 
-        if channel.height_scale_factor is not None:
+        if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
             assert channel.height_scale_factor == topography.scale_factor
 
 
@@ -401,10 +401,18 @@ def test_reader_height_scale_factor_arg_for_topography(fn):
     # The check whether an exception is raised if meta data like `physical_sizes`
     # and `height_scale_factor` has already been defined in the file and
     # one tries to override it, is done in another test.
-
-    topography = reader.topography(physical_sizes=physical_sizes_arg, height_scale_factor=height_scale_factor_arg)
-    assert pytest.approx(exp_height_scale_factor) == topography.scale_factor, \
-        "Difference in height scale factor between channel/argument and resulting topography"
+    #
+    # (only do this if not an NC file with units, since this is special: height_scale_factor
+    # should only be choosable then.)
+    if reader.format != 'nc' and 'unit' not in ch.info:
+        topography = reader.topography(physical_sizes=physical_sizes_arg, height_scale_factor=height_scale_factor_arg)
+        if hasattr(topography, 'scale_factor'):
+            # sometimes we use height_scale_factor = 1 in the channel info in order
+            # to denote that the height scale factor cannot be changed later.
+            # This does not mean that the topography also really has been scaled, so
+            # we compare the scale factor here only of it is available
+            assert pytest.approx(exp_height_scale_factor) == topography.scale_factor, \
+                "Difference in height scale factor between channel/argument and resulting topography"
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
