@@ -30,7 +30,7 @@ from igor.binarywave import load as loadibw
 
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 
 class IBWReader(ReaderBase):
@@ -153,9 +153,20 @@ on the physical size of the topography map as well as its units.
 
         if physical_sizes is None:
             physical_sizes = self._physical_sizes
+        else:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
 
         topo = Topography(height_data, physical_sizes, unit=self._data_unit, info=info, periodic=periodic)
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
+
+        channel = self._channels[channel_index]
+        if channel.height_scale_factor is not None:
+            if height_scale_factor is not None:
+                raise MetadataAlreadyFixedByFile('height_scale_factor')
+            height_scale_factor = channel.height_scale_factor
+
+        if height_scale_factor is not None:
+            topo = topo.scale(height_scale_factor)
 
         return topo

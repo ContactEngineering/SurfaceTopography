@@ -180,7 +180,7 @@ topography map as well as its units.
                            physical_sizes, self._physical_sizes),
                        unit=output_channel.unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
-            t.scale(height_scale_factor)
+            t = t.scale(height_scale_factor)
         return t
 
     @property

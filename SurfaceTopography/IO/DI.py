@@ -36,7 +36,7 @@ import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
 from ..UnitConversion import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 
 ###
@@ -177,19 +177,18 @@ supports V4.3 and later version of the format.
                     else:
                         unit = (xy_unit, height_unit)
 
-                    channel_info = info.copy()
-                    channel_info.update(dict(
-                        height_scale_factor=hard_scale * hard_to_soft *
-                        soft_scale))
+                    height_scale_factor = hard_scale * hard_to_soft * soft_scale
+
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
                                           dim=2,
                                           nb_grid_pts=(nx, ny),
                                           physical_sizes=(sx, sy),
+                                          height_scale_factor=height_scale_factor,
                                           periodic=False,
                                           unit=unit,
-                                          info=channel_info)
+                                          info=info)
                     self._channels.append(channel)
         finally:
             if close_file:
@@ -200,8 +199,9 @@ supports V4.3 and later version of the format.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={}, periodic=False,
+                   height_scale_factor=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
+
         if channel_index is None:
             channel_index = self._default_channel_index
 
@@ -243,14 +243,22 @@ supports V4.3 and later version of the format.
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
 
+        # it is not allowed to provide extra `physical_sizes` here:
+        if physical_sizes is not None:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+
         # the orientation of the heights is modified in order to match
         # the image of gwyddion when plotted with imshow(t.heights().T)
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
-        surface = Topography(np.fliplr(unscaleddata.T), (sx, sy), unit=channel.unit, info=_info, periodic=periodic)
+
+        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy), unit=channel.unit, info=_info, periodic=periodic)
         if height_scale_factor is None:
-            height_scale_factor = channel.info["height_scale_factor"]
-        surface = surface.scale(height_scale_factor)
+            height_scale_factor = channel.height_scale_factor
+        elif channel.height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        if height_scale_factor is not None:
+            surface = surface.scale(height_scale_factor)
 
         if close_file:
             fobj.close()

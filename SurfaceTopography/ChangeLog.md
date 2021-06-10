@@ -8,7 +8,7 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies  will disappear
 
-v0.94.0 (not published yet)
+v0.95.0 (not yet published)
 ---------------------------
 
 - API: Topographies now have a `unit` property. For backwards compatibility,
@@ -23,10 +23,19 @@ v0.94.0 (not published yet)
 - ENH: Reading and writing of surface containers
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
-- ENH: Added API tests for checking existence of functions and properties for
-  different kinds of topographies (#100)
-- BUG: Fixes missing function for RMS curvature for uniform line scans (#95)
-- BUG: Fixes loading of 2D measurements from xyz data (#93)
+
+v0.94.0 (10Jun21)
+-----------------
+
+- ENH: Added API tests for checking existence of functions
+  and properties for different kinds of topographies (#100)
+- ENH: Added height_scale_factor to reader channels (#98)
+- ENH: Disallow to provide physical_sizes or height_scale_factor
+  as argument to .topography() if fixed by file contents  
+- BUG: Fixed missing function for RMS curvature for uniform
+  line scans (#95)
+- BUG: Make sure that .topography(height_scale_factor=..) is effective  
+- BUG: Fixed loading of 2D measurements from xyz data (#93)
 
 v0.93.0 (27Apr21)
 -----------------

@@ -34,7 +34,7 @@ from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams
@@ -263,11 +263,12 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       unit=unit, info=_info)
                 else:
-                    return UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    # .. and it is 1D
+                    topo = UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            unit=unit, info=_info)
             else:
@@ -279,7 +280,7 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...], copy=True),
+                topo = NonuniformLineScan(np.array(self._x_var[...], copy=True),
                                           np.array(self._heights_var[...], copy=True),
                                           unit=unit, info=_info)
         else:
@@ -289,7 +290,7 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+            topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
@@ -297,6 +298,16 @@ plt.show()
                               communicator=self.communicator,
                               unit=unit,
                               info=_info)
+
+        if height_scale_factor is not None:
+            if 'unit' in _info:
+                raise MetadataAlreadyFixedByFile('height_scale_factor',
+                                                 'The height_scale_factor cannot be given for NC files '
+                                                 'if units are present in the file.')
+                # See https://github.com/ContactEngineering/SurfaceTopography/pull/99#discussion_r648364687
+            topo = topo.scale(height_scale_factor)
+
+        return topo
 
     @property
     def communicator(self):

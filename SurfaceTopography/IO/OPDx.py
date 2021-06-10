@@ -31,7 +31,7 @@ import numpy as np
 from ..UniformLineScanAndTopography import Topography
 from ..UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
@@ -168,6 +168,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                                    metadata['ImageHeight']),
                                       physical_sizes=(size_x, size_y),
                                       unit=unit,
+                                      height_scale_factor=1,  # means that this factor is fixed by file contents
                                       info=metadata)
 
                 self._channels.append(ch_info)
@@ -221,8 +222,10 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info = info.copy()
         info.update(channel_info.info)
 
-        return Topography(heights=data, physical_sizes=physical_sizes,
-                          unit=common_unit, info=info, periodic=periodic)
+        topography = Topography(heights=data, physical_sizes=physical_sizes,
+                                unit=common_unit, info=info, periodic=periodic)if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        return topography
 
     @property
     def channels(self):
