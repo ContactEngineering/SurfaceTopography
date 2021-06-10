@@ -59,7 +59,6 @@ class ChannelInfo:
             Physical dimensions.
         height_scale_factor: float
             Number by which all heights have been multiplied.
-
         periodic: bool
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
@@ -97,7 +96,9 @@ class ChannelInfo:
             physical size, then this parameter will override the physical
             size found in the data file.
         height_scale_factor : float
-            Override height scale factor found in the data file.
+            Factor by which the heights should be multiplied.
+            This parameter is only available for file formats that do not provide
+            metadata information about units and associated length scales.
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
