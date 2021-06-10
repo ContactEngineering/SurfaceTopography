@@ -249,7 +249,7 @@ plt.show()
 
         if unit is not None:
             if self._unit is not None:
-                raise ValueError(f'A unit of {self._unit} is already given by the data file, it cannot be overidden')
+                raise MetadataAlreadyFixedByFile('unit')
         else:
             unit = self._unit
 

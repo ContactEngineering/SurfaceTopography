@@ -36,6 +36,7 @@ import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
 from ..UnitConversion import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
+
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 
@@ -199,7 +200,7 @@ supports V4.3 and later version of the format.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
 
         if channel_index is None:
@@ -219,8 +220,7 @@ supports V4.3 and later version of the format.
         channel = self._channels[channel_index]
 
         if unit is not None:
-            raise ValueError(f'A unit of {channel.info["unit"]} is already given by the data file, it cannot be '
-                             f'overidden')
+            raise MetadataAlreadyFixedByFile('unit')
 
         sx, sy = self._check_physical_sizes(physical_sizes,
                                             channel.physical_sizes)

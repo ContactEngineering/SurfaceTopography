@@ -37,6 +37,7 @@ from zipfile import ZipFile
 import defusedxml.ElementTree as ElementTree
 
 from ..UniformLineScanAndTopography import Topography
+
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
@@ -118,9 +119,7 @@ This reader open ZON files that are written by some Keyence instruments.
                                 physical_sizes=(width * meter_per_pixel,
                                                 height * meter_per_pixel),
                                 height_scale_factor=self._orig_height_scale_factor,
-                                info={'unit': 'm',
-                                      'data_uuid': HEIGHT_DATA_UUID,
-                                unit='m',
+                                unit = 'm',
                                 info={'data_uuid': HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
@@ -143,8 +142,7 @@ This reader open ZON files that are written by some Keyence instruments.
         info.update(channel_info.info)
 
         if unit is not None:
-            raise ValueError(f'A unit of {channel_info.unit} is already given by the data file, it cannot be '
-                             f'overidden')
+            raise MetadataAlreadyFixedByFile('unit')
         unit = channel_info.unit
 
         with OpenFromAny(self._file_path, 'rb') as f:

@@ -29,8 +29,9 @@ import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
 from ..UnitConversion import mangle_length_unit_utf8
+
 from .common import OpenFromAny
-from .Reader import ReaderBase, CorruptFile, ChannelInfo
+from .Reader import ReaderBase, CorruptFile, ChannelInfo, MetadataAlreadyFixedByFile
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
@@ -168,8 +169,7 @@ topography map as well as its units.
         info.update(joined_meta)
 
         if unit is not None:
-            raise ValueError(f'A unit of {output_channel.unit} is already given by the data file, it cannot be '
-                             f'overidden')
+            raise MetadataAlreadyFixedByFile('unit')
 
         # Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T), except that the y axis

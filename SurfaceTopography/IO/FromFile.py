@@ -260,7 +260,7 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
     """
 
     if unit is not None:
-        raise ValueError('Cannot specify unit for OPD files.')
+        raise MetadataAlreadyFixedByFile('unit')
 
     BLOCK_SIZE = 24
 

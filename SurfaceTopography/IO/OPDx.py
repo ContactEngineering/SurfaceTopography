@@ -199,7 +199,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             common_unit = channel_info.unit
 
             if unit is not None:
-                raise ValueError(f'A unit of {common_unit} is already given by the data file, it cannot be overidden')
+                raise MetadataAlreadyFixedByFile('unit')
 
             if (common_unit is not None) and (unit_z != common_unit):
                 # There is a common unit, but the z-unit in the file differs
@@ -223,7 +223,8 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info.update(channel_info.info)
 
         topography = Topography(heights=data, physical_sizes=physical_sizes,
-                                unit=common_unit, info=info, periodic=periodic)if height_scale_factor is not None:
+                                unit=common_unit, info=info, periodic=periodic)
+        if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile('height_scale_factor')
         return topography
 

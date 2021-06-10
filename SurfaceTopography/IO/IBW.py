@@ -29,6 +29,7 @@ import numpy as np
 from igor.binarywave import load as loadibw
 
 from ..UniformLineScanAndTopography import Topography
+
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
@@ -120,7 +121,7 @@ on the physical size of the topography map as well as its units.
         #
         self._channels = [
             ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny), physical_sizes=self._physical_sizes,
-                        unit=self._data_unit)
+                        unit=self._data_unit, height_scale_factor=1)
             for i, cn in enumerate(self._channel_names)]
 
         # Shall we use the channel names in order to assign a unit as Gwyddion
@@ -138,10 +139,10 @@ on the physical size of the topography map as well as its units.
             channel_index = self._default_channel_index
 
         if unit is not None:
-            raise ValueError(f'A unit of {self._data_unit} is already given by the data file, it cannot be overidden')
+            raise MetadataAlreadyFixedByFile('unit')
 
         if height_scale_factor is not None:
-            raise ValueError('The data file has fixed absolute units. You cannot specify an additional height scale.')
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
 
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:
