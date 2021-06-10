@@ -74,6 +74,8 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
             for topo_meta in surf_meta['topographies']:
                 info = topo_meta.copy()
 
+                # Check whether the metadata contains sizes and unit. If not
+                # this information comes from the data file.
                 try:
                     physical_sizes = info['size']
                     del info['size']
@@ -86,16 +88,29 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
                     unit = None
                 datafile_key = None
                 datafiles = topo_meta['datafile']
-                for key in datafiles:
-                    datafile_key = key
+
+                # Pick first of the provided possible data file keys that
+                # exists in the container
+                for key in datafile_keys:
+                    if key in datafiles:
+                        datafile_key = key
+                        break
+
+                # There may be none, complain
                 if datafile_key is None:
                     raise ValueError('Could not detect data file.')
+
+                # Read the topography from the preferred data file
                 t = read_topography(
                     z.open(datafiles[datafile_key]),
                     physical_sizes=physical_sizes,
                     unit=unit,
                     info=info
                 )
+
+                # We need to reconstruct the pipeline if the data file does
+                # not contain squeezed data, currently indicate by a
+                # 'squeezed' prefix to the data file key
                 if not datafile_key.startswith('squeezed'):
                     if 'height_scale' in topo_meta:
                         t = t.scale(topo_meta['height_scale'])
