@@ -35,8 +35,6 @@ from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
 from .Special import make_sphere, PlasticTopography  # noqa: F401
 from .UniformLineScanAndTopography import Topography, UniformLineScan  # noqa: F401
 
-from SurfaceTopography.IO import NPYReader  # noqa: F401
-
 # These imports are required to register the analysis functions!
 import SurfaceTopography.Converters  # noqa: F401
 import SurfaceTopography.Generic.Curvature  # noqa: F401

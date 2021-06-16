@@ -134,7 +134,7 @@ def _trim_nonperiodic(arr, scale_factor, op):
         r = -scale_factor * max(0, r - 1)
         if r == 0:
             r = None
-        trimmed_slice += [slice(L, r)]
+        trimmed_slice += [slice(int(L), int(r))]
 
     return arr[tuple(trimmed_slice)]
 
@@ -211,9 +211,14 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
                 scale_factor = [d/dx for d in toiter(distance)]
             else:
                 dx, dy = grid_spacing
-                scale_factor = [(d/dx, d/dy) for d in toiter(distance)]
+                scale_factor = np.array([(d/dx, d/dy) for d in toiter(distance)])
+
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
+
+    if np.any(scale_factor < 1.0):
+        raise ValueError('`scale_factor` cannot be smaller than unity. If you specified a specific `distance`, than '
+                         'this distance is smaller than the lower bound of the bandwidth of the surface.')
 
     is_periodic = topography.is_periodic if periodic is None else periodic
 
