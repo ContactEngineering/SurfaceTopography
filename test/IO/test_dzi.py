@@ -22,9 +22,24 @@
 # SOFTWARE.
 #
 
+import os
+import tempfile
+import xml.etree.cElementTree as ET
+
 from SurfaceTopography.Generation import fourier_synthesis
 
 
 def test_write():
-    t = fourier_synthesis((1997, 2156), (1, 1), 0.8, rms_slope=0.1)
-    t.to_dzi('synthetic')
+    nx, ny = 1782, 1302
+    t = fourier_synthesis((nx, ny), (1, 1), 0.8, rms_slope=0.1)
+    with tempfile.TemporaryDirectory() as d:
+        t.to_dzi('synthetic', d)
+        assert os.path.exists(f'{d}/synthetic_files')
+        for i in range(12):
+            assert os.path.exists(f'{d}/synthetic_files/{i}')
+        root = ET.parse(open(f'{d}/synthetic.xml')).getroot()
+        assert root.attrib['TileSize'] == '256'
+        assert root.attrib['Overlap'] == '1'
+        assert root.attrib['Format'] == 'jpg'
+        assert root[0].attrib['Width'] == f'{nx}'
+        assert root[0].attrib['Height'] == f'{ny}'
