@@ -39,11 +39,36 @@ from PIL import Image
 from ..HeightContainer import UniformTopographyInterface
 
 
-def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='png', cmap=None):
+def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None):
+    """
+    Write topography to a Deep Zoom Image file. This can for example be used
+    to create a zoomable topography with OpenSeadragon
+    (https://openseadragon.github.io/).
+
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        Topogaphy to export
+    name : str
+        Name of the exported file. This is used as a prefix. Output filter
+        create the file `name`.xml that contains the metadata and a directory
+        `name`_files that contains the rendered image files at different levels.
+    root_directory : str
+        Root directory where to place `name`.xml and `name`_files.
+    tile_size : int, optional
+        Size of individual tiles. (Default: 256)
+    overlap : int, optional
+        Overlap of tiles. (Default: 1)
+    format : str, optional
+        Image format. Note that PNG files have seems at the boundary between
+        tiles. (Default: jpg)
+    cmap : str or colormap, optional
+        Color map for rendering the topography. (Default: None)
+    """
     cmap = cm.get_cmap(cmap)
 
     # Image size
-    width, height = self.nb_grid_pts
+    full_width, full_height = width, height = self.nb_grid_pts
 
     # Get heights and rescale to interval 0, 1
     heights = self.heights()
@@ -54,6 +79,7 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
     root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
                       xmlns='http://schemas.microsoft.com/deepzoom/2008')
     ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
+    os.makedirs(root_directory, exist_ok=True)
     ET.ElementTree(root).write(os.path.join(root_directory, name + '.xml'), encoding='utf-8', xml_declaration=True)
 
     # Determine number of levels
@@ -87,9 +113,15 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                     left = 0
                 if bottom < 0:
                     bottom = 0
+                if right > full_width - 1:
+                    right = full_width - 1
+                if top > full_height - 1:
+                    top = full_height - 1
 
                 # Convert to image and save
-                Image.fromarray((cmap(heights[left:right:step, bottom:top:step]) * 255).astype(np.uint8)).save(fn)
+                colors = (cmap(heights[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
+                # Remove alpha channel before writing
+                Image.fromarray(colors[:, :, :3]).save(fn)
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
