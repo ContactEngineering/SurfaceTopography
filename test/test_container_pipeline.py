@@ -2,9 +2,6 @@
 Tests of the pipeline for topography containers
 """
 
-import os
-import pytest
-
 import numpy as np
 
 from SurfaceTopography import read_container
