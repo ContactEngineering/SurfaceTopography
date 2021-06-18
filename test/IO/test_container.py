@@ -26,7 +26,7 @@ import tempfile
 
 from numpy.testing import assert_allclose
 
-from SurfaceTopography import SurfaceContainer, read_container, read_published_container, read_topography
+from SurfaceTopography import SurfaceContainer, read_container, read_topography  # , read_published_container
 
 
 def test_read(file_format_examples):
