@@ -97,7 +97,7 @@ def test_scale_factor():
     topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=True)
 
     d1 = topography.derivative(1, scale_factor=1)
-    d2 = topography.derivative(1, scale_factor=2)
+    d2 = topography.derivative(1, scale_factor=np.uint32(2))
     d3 = topography1.derivative(1, scale_factor=1)
     d4 = topography2.derivative(1, scale_factor=1)
 

@@ -216,7 +216,7 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
 
-    if np.any(scale_factor < 1.0):
+    if np.any(np.asarray(scale_factor) < 1.0):
         raise ValueError('`scale_factor` cannot be smaller than unity. If you specified a specific `distance`, than '
                          'this distance is smaller than the lower bound of the bandwidth of the surface.')
 
@@ -243,10 +243,11 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
     for i, op in enumerate(toiter(operator)):
         der = []
         for s in toiter(scale_factor):
+            print(s, type(s))
             try:
                 # If s is a tuple, the scale factor is per direction
                 s = s[i]
-            except TypeError:
+            except (TypeError, IndexError):  # Python types raise TypeError, numpy types IndexError
                 pass
             fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)
