@@ -243,7 +243,6 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
     for i, op in enumerate(toiter(operator)):
         der = []
         for s in toiter(scale_factor):
-            print(s, type(s))
             try:
                 # If s is a tuple, the scale factor is per direction
                 s = s[i]
