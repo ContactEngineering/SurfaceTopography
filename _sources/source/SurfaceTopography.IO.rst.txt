@@ -12,6 +12,14 @@ SurfaceTopography.IO.DI module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.DZI module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.DZI
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.FromFile module
 ------------------------------------
 

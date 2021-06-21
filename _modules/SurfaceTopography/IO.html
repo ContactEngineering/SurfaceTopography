@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.94.0 documentation</title>
+  <title>SurfaceTopography.IO &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.0
+                0.94.1.dev5+ge2835b32
               </div>
             
           
@@ -211,6 +211,9 @@
 <span class="kn">from</span> <span class="nn">.NPY</span> <span class="k">import</span> <span class="n">NPYReader</span>
 <span class="kn">from</span> <span class="nn">.OPDx</span> <span class="k">import</span> <span class="n">OPDxReader</span>
 <span class="kn">from</span> <span class="nn">.ZON</span> <span class="k">import</span> <span class="n">ZONReader</span>
+
+<span class="c1"># Only writers</span>
+<span class="kn">import</span> <span class="nn">SurfaceTopography.IO.DZI</span>  <span class="c1"># noqa: F401</span>
 
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">UnknownFileFormatGiven</span><span class="p">,</span> <span class="n">CannotDetectFileFormat</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">,</span>\
     <span class="n">FileFormatMismatch</span><span class="p">,</span> <span class="n">CorruptFile</span><span class="p">,</span> <span class="n">ReaderBase</span>  <span class="c1"># noqa: F401</span>
