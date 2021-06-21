@@ -29,7 +29,7 @@ from numpy.testing import assert_allclose
 from SurfaceTopography import SurfaceContainer, read_container, read_topography  # , read_published_container
 
 
-def test_read(file_format_examples):
+def test_read_just_uniform(file_format_examples):
     for c, in [
         read_container(f'{file_format_examples}/container1.zip'),
         # read_published_container('https://contact.engineering/go/867nv/')  # Same a container1.zip
@@ -48,6 +48,12 @@ def test_read(file_format_examples):
         assert c[0].info['unit'] == 'µm'
         assert c[1].info['unit'] == 'µm'
         assert c[2].info['unit'] == 'µm'
+
+
+def test_read_mixed(file_format_examples):
+    c, = read_container(f'{file_format_examples}/container2.zip')
+
+    assert len(c) == 3
 
 
 def test_write(file_format_examples):
