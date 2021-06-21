@@ -2,8 +2,13 @@
 Change log for SurfaceTopography
 =============================
 
+v0.95.0 (not yet released)
+--------------------------
+
+- ENH: Writing Deep Zoom Image (DZI) files
+
 v0.94.0 (10Jun21)
----------------------------
+-----------------
 
 - ENH: Added API tests for checking existence of functions
   and properties for different kinds of topographies (#100)
