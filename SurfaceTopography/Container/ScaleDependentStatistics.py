@@ -98,12 +98,9 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
 
         # Are there any distances left?
         if len(existing_distances) > 0:
-            # Yes! Let's compute the derivative at these scales
-            derivatives = topography.derivative(n=n, distance=existing_distances)
-            if topography.dim == 1:
-                stat = [func(dx) for dx in derivatives]
-            else:
-                stat = [func(dx, dy) for dx, dy in zip(*derivatives)]
+            # Yes! Let's compute the statistical properties at these scales
+            stat = topography.scale_dependent_statistical_property(func, n=n, distance=existing_distances)
+            # Append results to our return values
             for e, s in zip(existing_distances, stat):
                 if e in retvals:
                     retvals[e] += [s]

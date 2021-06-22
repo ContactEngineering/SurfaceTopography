@@ -114,6 +114,10 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         return len(self._heights),
 
     @property
+    def nb_subdomain_grid_pts(self):
+        return self.nb_grid_pts
+
+    @property
     def is_domain_decomposed(self):
         return False
 

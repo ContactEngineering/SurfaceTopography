@@ -41,6 +41,7 @@ import SurfaceTopography.Generic.Curvature  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
+import SurfaceTopography.Nonuniform.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Nonuniform.ScalarParameters  # noqa: F401
 import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.VariableBandwidth  # noqa: F401

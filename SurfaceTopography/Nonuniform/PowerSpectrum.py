@@ -96,7 +96,7 @@ def apply_window(x, y, window=None):
 
 
 def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
-                   ninterpolate=5, short_cutoff=np.mean, window=None):
+                   nb_interpolate=5, short_cutoff=np.mean, window=None):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -118,7 +118,7 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
         equally spaced with a spacing that corresponds to :math:`2\pi/\lambda`
         where :math:`\lambda` is the shortest distance between two points in
         the `x`-array. (Default: None)
-    ninterpolate : int, optional
+    nb_interpolate : int, optional
         Number of grid points to put between closest points on surface. Only
         used for 'fft' algorithm. (Default: 5)
     short_cutoff : function, optional
@@ -154,8 +154,7 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
-        wavevectors, psd = line_scan.to_uniform(
-            ninterpolate * int(s / min_dist), 0).power_spectrum_from_profile(window=window)
+        wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate).power_spectrum_from_profile(window=window)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]

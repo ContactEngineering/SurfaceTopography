@@ -388,7 +388,5 @@ NonuniformLineScanInterface.register_function(
     'max', lambda this: this.heights().max())
 
 # Register pipeline functions from this module
-NonuniformLineScanInterface.register_function(
-    'scale', ScaledNonuniformTopography)
-NonuniformLineScanInterface.register_function(
-    'detrend', DetrendedNonuniformTopography)
+NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)

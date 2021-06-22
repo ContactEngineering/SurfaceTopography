@@ -37,6 +37,7 @@ common_functions = [
     "positions",
     "positions_and_heights",
     "squeeze",
+    "scale_dependent_statistical_property",
 ]
 
 uniform_functions = [

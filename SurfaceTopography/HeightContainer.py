@@ -204,6 +204,10 @@ class DecoratedTopography(AbstractTopography):
             info['unit'] = self.unit
         return info
 
+    @property
+    def nb_subdomain_grid_pts(self):
+        return self.parent_topography.nb_subdomain_grid_pts
+
     def pipeline(self):
         return self.parent_topography.pipeline() + [self]
 
@@ -235,6 +239,11 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def nb_grid_pts(self):
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def nb_subdomain_grid_pts(self):
         raise NotImplementedError
 
     @property

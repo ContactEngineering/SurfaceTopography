@@ -24,6 +24,9 @@ v0.95.0 (not yet published)
 - ENH: Retrieving surface containers from https://contact.engineering
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
+- API: Renamed `ninterpolate` keyword argument to `nb_interpolate`
+- API: `to_uniform` for nonuniform line scans now accepts an `nb_interpolate`
+  argument specifying the number of grid points put between closest points.
 
 v0.94.0 (10Jun21)
 -----------------
