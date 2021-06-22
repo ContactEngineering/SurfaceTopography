@@ -134,7 +134,7 @@ def _trim_nonperiodic(arr, scale_factor, op):
         r = -scale_factor * max(0, r - 1)
         if r == 0:
             r = None
-        trimmed_slice += [slice(int(L), int(r))]
+        trimmed_slice += [slice(int(L), None if r is None else int(r))]
 
     return arr[tuple(trimmed_slice)]
 
