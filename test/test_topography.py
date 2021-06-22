@@ -266,7 +266,9 @@ class NonuniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        t = NonuniformLineScan(x, h, info=dict(unit='A'))
+        with self.assertRaises(ValueError):
+            t = NonuniformLineScan(x, h, info=dict(unit='A'))
+        t = NonuniformLineScan(x, h, unit='A')
         assert t.info['unit'] == 'A'
 
         #
@@ -278,7 +280,9 @@ class NonuniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        st = t.scale(2, info=dict(unit='B'))
+        with self.assertRaises(ValueError):
+            st = t.scale(2, info=dict(unit='B'))
+        st = t.scale(2, unit='B')
         assert st.info['unit'] == 'B'
 
         #
@@ -288,10 +292,10 @@ class NonuniformLineScanTest(unittest.TestCase):
         assert dt.info['unit'] == 'B'
 
         #
-        # Alternatively, it can be changed
+        # It can no longer be changed in detrend (you need to use scale)
         #
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
-        assert dt.info['unit'] == 'C'
+        with self.assertRaises(ValueError):
+            dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):
         # initialize with lists instead of arrays

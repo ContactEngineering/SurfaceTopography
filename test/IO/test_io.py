@@ -557,11 +557,10 @@ def test_detect_format():
 
 
 def test_to_matrix():
-    info = dict(unit='nm')
     y = np.arange(10).reshape((1, -1))
     x = np.arange(5).reshape((-1, 1))
     arr = -2 * y + 0 * x
-    t = Topography(arr, (5, 10), info=info)
+    t = Topography(arr, (5, 10), unit='nm')
     # Check that we can export downstream the pipeline
     with tempfile.TemporaryDirectory() as d:
         t.to_matrix(f"{d}/topo.txt")
