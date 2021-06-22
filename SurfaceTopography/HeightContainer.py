@@ -64,6 +64,11 @@ class AbstractTopography(object):
         pass
 
     def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
+        if 'unit' in info:
+            if unit is None:
+                raise ValueError('Please pass units via the `unit` keyword parameter, not the info dictionary.')
+            elif unit != info['unit']:
+                raise ValueError('Unit was passed via the `unit` keyword parameter and within the info dictionary.')
         self._unit = unit
         self._info = info.copy()
         self._communicator = communicator
