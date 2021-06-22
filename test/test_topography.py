@@ -96,7 +96,7 @@ class UniformLineScanTest(unittest.TestCase):
         t = UniformLineScan(h, 4)
 
         with self.assertRaises(AttributeError):
-            t.heights_scale_factor
+            t.height_scale_factor
         # a scaled line scan has a scale_factor
         self.assertEqual(t.scale(1).height_scale_factor, 1)
 
@@ -134,7 +134,7 @@ class UniformLineScanTest(unittest.TestCase):
         #
         with self.assertRaises(ValueError):
             st = t.scale(2, info=dict(unit='B'))
-        st = t.scale(2, unit='B')
+        st = t.scale(2, 2, unit='B')
         assert st.info['unit'] == 'B'
 
         #
@@ -282,7 +282,7 @@ class NonuniformLineScanTest(unittest.TestCase):
         #
         with self.assertRaises(ValueError):
             st = t.scale(2, info=dict(unit='B'))
-        st = t.scale(2, unit='B')
+        st = t.scale(2, 1, unit='B')
         assert st.info['unit'] == 'B'
 
         #
