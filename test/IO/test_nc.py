@@ -49,6 +49,8 @@ def test_save_and_load(comm):
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
                             communicator=comm)
+    assert t.unit == 'µm'
+    assert dt.unit == 'µm'
     assert t.info['unit'] == 'µm'
     assert dt.info['unit'] == 'µm'
     if comm.size > 1:
@@ -74,6 +76,7 @@ def test_save_and_load(comm):
                       nb_subdomain_grid_pts=fft.nb_subdomain_grid_pts)
 
     assert t.physical_sizes == t3.physical_sizes
+    assert t.unit == t3.unit
     assert t.info['unit'] == t3.info['unit']
     np.testing.assert_array_almost_equal(dt.heights(), t3.heights())
 
