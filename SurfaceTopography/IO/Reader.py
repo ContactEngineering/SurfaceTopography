@@ -224,7 +224,7 @@ class ChannelInfo:
         """
         The area per point is returned as the product over the pixel size
         tuple. If `pixel_size` returns None, than also `area_per_pt` returns
-        None.s
+        None.
         """
         if self.pixel_size is None:
             return None
