@@ -118,7 +118,9 @@ class UniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        t = UniformLineScan(h, 4, info=dict(unit='A'))
+        with self.assertRaises(ValueError):
+            t = UniformLineScan(h, 4, info=dict(unit='A'))
+        t = UniformLineScan(h, 4, unit='A')
         assert t.info['unit'] == 'A'
 
         #
@@ -130,7 +132,9 @@ class UniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        st = t.scale(2, info=dict(unit='B'))
+        with self.assertRaises(ValueError):
+            st = t.scale(2, info=dict(unit='B'))
+        st = t.scale(2, unit='B')
         assert st.info['unit'] == 'B'
 
         #
@@ -140,10 +144,10 @@ class UniformLineScanTest(unittest.TestCase):
         assert dt.info['unit'] == 'B'
 
         #
-        # Alternatively, it can be changed
+        # It can no longer be changed in detrend (you need to use scale)
         #
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
-        assert dt.info['unit'] == 'C'
+        with self.assertRaises(ValueError):
+            dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):
 
