@@ -196,6 +196,14 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         self._height_scale_factor = None if height_scale_factor is None else float(height_scale_factor)
         self._position_scale_factor = None if position_scale_factor is None else float(position_scale_factor)
 
+        # Check whether conversion is actually possible
+        if self._position_scale_factor is None:
+            if self.parent_topography.unit is None:
+                if self.unit is not None:
+                    raise ValueError("The parent topography has no unit, but you requested conversion to a unit "
+                                     "'f{self.unit}'. Conversion is on possible if the unit of the source and target "
+                                     "are known.")
+
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
@@ -229,7 +237,9 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         if self._position_scale_factor is None:
             if self.parent_topography.unit is None:
                 if self.unit is not None:
-                    raise ValueError('You are trying to rescale a unitless topography to a topography with a unit')
+                    raise ValueError("The parent topography has no unit, but you requested conversion to a unit "
+                                     "'f{self.unit}'. Conversion is on possible if the unit of the source and target "
+                                     "are known.")
                 return 1
             else:
                 return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
