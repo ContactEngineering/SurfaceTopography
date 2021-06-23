@@ -32,22 +32,31 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 
 
-def checkerboard_detrend_1D(topography, region_index, order=1, return_plane=False):
-    x, h = topography.heights_and_positions()
-    b = [np.bincount(region_index, h * (x ** i)) for i in range(order)]
-    C = [[np.bincount(region_index, x ** (k + i)) for i in range(order)] for k in range(order)]
-    a = np.linalg.solve(C, b)
+def checkerboard_detrend_line_scan(topography, region_index, order, return_plane):
+    x, h = topography.positions_and_heights()
+    print(x, h)
+    b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
+    C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
+    print(region_index)
+    print(b.shape)
+    print('b =', b[:, 0])
+    print(C.shape)
+    print('C =', C[:, :, 0])
+    a = np.linalg.solve(C.T, b.T).T
+    print(a.shape)
+    print('a =', a[:, 0])
 
-    detrended_h = h - np.sum([a[i] * x ** i for i in range(order)], axis=0)
+    detrended_h = h - np.sum([a[i, region_index] * x ** i for i in range(order + 1)], axis=0)
+    print(detrended_h)
 
     if return_plane:
-        return detrended_h
-    else:
         return detrended_h, a
+    else:
+        return detrended_h
 
 
-def checkerboard_detrend_2D(topography, region_index, order=1, return_plane=False):
-    x, h = topography.heights_and_positions()
+def checkerboard_detrend_topography(topography, region_index, order, return_plane):
+    x, h = topography.positions_and_heights()
     b = [(h * (x ** i)).sum() for i in range(order)]
     C = [[(x ** (k + i)).sum() for i in range(order)] for k in range(order)]
     a = np.linalg.solve(C, b)
@@ -112,43 +121,10 @@ def checkerboard_detrend(topography, subdivisions, order=1, return_plane=False):
         raise ValueError(
             'Cannot handle {}-dimensional topographies.'.format(nb_dim))
 
-    region_index.shape = (-1,)
-    x.shape = (-1,)
-    arr.shape = (-1,)
-    sum_1 = np.bincount(region_index)
-    sum_x = np.bincount(region_index, x)
-    sum_xx = np.bincount(region_index, x * x)
-    sum_h = np.bincount(region_index, arr)
-    sum_xh = np.bincount(region_index, x * arr)
-    if nb_dim == 2:
-        y.shape = (-1,)
-        sum_y = np.bincount(region_index, y)
-        sum_yy = np.bincount(region_index, y * y)
-        sum_xy = np.bincount(region_index, x * y)
-        sum_yh = np.bincount(region_index, y * arr)
-
     if nb_dim == 1:
-        # Calculated detrended plane. Detrended plane is given by h0 + mx*x.
-        A = np.array([[sum_1, sum_x],
-                      [sum_x, sum_xx]])
-        b = np.array([sum_h, sum_xh])
-        h0, mx = np.linalg.solve(A.T, b.T).T
-
-        arr -= h0[region_index] + mx[region_index] * x
+        return checkerboard_detrend_line_scan(topography, region_index, order, return_plane)
     else:
-        # Calculated detrended plane. Detrended plane is given by
-        # h0 + mx*x + my*y.
-        A = np.array([[sum_1, sum_x, sum_y],
-                      [sum_x, sum_xx, sum_xy],
-                      [sum_y, sum_xy, sum_yy]])
-        b = np.array([sum_h, sum_xh, sum_yh])
-        h0, mx, my = np.linalg.solve(A.T, b.T).T
-
-        arr -= h0[region_index] + mx[region_index] * x + my[region_index] * y
-
-    arr.shape = shape
-
-    return arr
+        return checkerboard_detrend_topography(topography, region_index, order, return_plane)
 
 
 def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
