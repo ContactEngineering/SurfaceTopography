@@ -154,7 +154,8 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('Positions not sorted.')
-        wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate).power_spectrum_from_profile(window=window)
+        wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
+            .power_spectrum_from_profile(window=window)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
