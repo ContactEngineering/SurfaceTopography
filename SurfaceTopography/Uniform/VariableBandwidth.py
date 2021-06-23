@@ -34,20 +34,11 @@ from ..HeightContainer import UniformTopographyInterface
 
 def checkerboard_detrend_line_scan(topography, region_index, order, return_plane):
     x, h = topography.positions_and_heights()
-    print(x, h)
     b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
     C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
-    print(region_index)
-    print(b.shape)
-    print('b =', b[:, 0])
-    print(C.shape)
-    print('C =', C[:, :, 0])
     a = np.linalg.solve(C.T, b.T).T
-    print(a.shape)
-    print('a =', a[:, 0])
 
     detrended_h = h - np.sum([a[i, region_index] * x ** i for i in range(order + 1)], axis=0)
-    print(detrended_h)
 
     if return_plane:
         return detrended_h, a
@@ -111,15 +102,6 @@ def checkerboard_detrend(topography, subdivisions, order=1, return_plane=False):
     region_index = region_coord[0]
     for i in range(1, nb_dim):
         region_index = subdivisions[i] * region_index + region_coord[i]
-
-    # compute x- and y-coordinate
-    if nb_dim == 1:
-        x = np.arange(shape[0])
-    elif nb_dim == 2:
-        x, y = np.meshgrid(*(np.arange(n) for n in shape), indexing='ij')
-    else:
-        raise ValueError(
-            'Cannot handle {}-dimensional topographies.'.format(nb_dim))
 
     if nb_dim == 1:
         return checkerboard_detrend_line_scan(topography, region_index, order, return_plane)

@@ -51,7 +51,7 @@ def test_checkerboard_detrend_1d():
     np.testing.assert_allclose(outarr, np.zeros([6]), atol=1e-12)
 
 
-def test_checkerboard_detrend_order_2_1d():
+def test_checkerboard_detrend_order2_1d():
     arr = np.zeros([6])
     arr[:3] = 1.0
     outarr = UniformLineScan(arr, arr.shape).checkerboard_detrend((2,), order=2)
@@ -65,7 +65,7 @@ def test_checkerboard_detrend_order_2_1d():
     outarr = UniformLineScan(arr, arr.shape).checkerboard_detrend((2,), order=2)
     np.testing.assert_allclose(outarr, np.zeros([6]), atol=1e-12)
 
-    # Order 1 (linear) cannot detrend this topography
+    # Order 1 (linear) cannot detrend this topography to zeros
     arr[1] = 1.5
     outarr = UniformLineScan(arr, arr.shape).checkerboard_detrend((2,), order=1)
     np.testing.assert_allclose(outarr, [-0.5, 1.0, -0.5, 0.0, 0.0, 0.0], atol=1e-12)
