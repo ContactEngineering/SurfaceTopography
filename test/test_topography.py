@@ -170,8 +170,7 @@ class UniformLineScanTest(unittest.TestCase):
 
         detrended = t.detrend(detrend_mode="curvature")
 
-        assert abs(detrended.coeffs[-1] / detrended.physical_sizes[
-            0] ** 2 - 1 / R) < 1e-12
+        assert abs(detrended.coeffs[-1] / detrended.physical_sizes[0] ** 2 - 1 / R) < 1e-12
 
     def test_detrend_same_positions(self):
         """asserts that the detrended topography has the same x

@@ -47,12 +47,41 @@ def checkerboard_detrend_line_scan(topography, region_index, order, return_plane
 
 
 def checkerboard_detrend_topography(topography, region_index, order, return_plane):
-    x, h = topography.positions_and_heights()
-    b = [(h * (x ** i)).sum() for i in range(order)]
-    C = [[(x ** (k + i)).sum() for i in range(order)] for k in range(order)]
-    a = np.linalg.solve(C, b)
+    # Number of polynomial coefficents
+    nb_coeff = (order + 1) * (order + 2) // 2
 
-    return h - np.sum([a[i] * x ** i for i in range(order)], axis=0)
+    # Build list of possible exponents
+    ij = []
+    i = j = 0
+    k = nb_coeff
+    while k > 0:
+        ij += [(i, j)]
+        i += 1
+        if i + j > order:
+            i = 0
+            j += 1
+        k -= 1
+
+    assert len(ij) == nb_coeff
+
+    x, y, h = topography.positions_and_heights()
+    shape = h.shape
+    h = h.reshape(-1)
+    x = x.reshape(-1)
+    y = y.reshape(-1)
+    region_index = region_index.reshape(-1)
+
+    b = np.array([np.bincount(region_index, h * (x ** i) * (y ** j)) for i, j in ij])
+    C = np.array([[np.bincount(region_index, x ** (k + i) * y ** (l + j)) for i, j in ij] for k, l in ij])
+    a = np.linalg.solve(C.T, b.T).T
+
+    detrended_h = h - np.sum([a[k, region_index] * (x ** i) * (y ** j) for k, (i, j) in enumerate(ij)], axis=0)
+    detrended_h.shape = shape
+
+    if return_plane:
+        return detrended_h, a
+    else:
+        return detrended_h
 
 
 def checkerboard_detrend(topography, subdivisions, order=1, return_plane=False):
