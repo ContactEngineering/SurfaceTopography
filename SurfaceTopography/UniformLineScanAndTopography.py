@@ -533,7 +533,7 @@ class ScaledUniformTopography(DecoratedUniformTopography):
 class StaticallyScaledUniformTopography(ScaledUniformTopography):
     """Scale heights, positions or both."""
 
-    def __init__(self, topography, height_scale_factor=1, position_scale_factor=1, unit=None, info={}):
+    def __init__(self, topography, height_scale_factor, position_scale_factor=1, unit=None, info={}):
         """
         This topography wraps a parent topography and rescales x, y and z
         coordinates according to certain rules.
@@ -542,8 +542,8 @@ class StaticallyScaledUniformTopography(ScaledUniformTopography):
         ---------
         topography : :obj:`UniformTopographyInterface`
             Parent topography
-        height_scale_factor : float, optional
-            Factor to scale heights with. (Default: 1)
+        height_scale_factor : float
+            Factor to scale heights with.
         position_scale_factor : float, optional
             Factor to scale lateral positions (`physical_sizes`, etc.) with.
             (Default: 1)

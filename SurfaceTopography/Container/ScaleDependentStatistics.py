@@ -89,7 +89,7 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
     retvals = {}
     distance = np.array(distance)
     for topography in container:
-        topography = topography.scale(unit=unit)
+        topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography
         l, u = topography.bandwidth()
