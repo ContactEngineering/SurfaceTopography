@@ -11,6 +11,14 @@ Deprecations in version 1.0
 v0.95.0 (not yet published)
 ---------------------------
 
+- API: `variable_bandwidth` is now `variable_bandwidth_from_area` and an
+  additional `variable_bandwidth_from_profile` was added for a line-by-line
+  analysis.
+- API: `checkerboard_detrend` is now `checkerboard_detrend_area` and an
+  additional `checkerboard_detrend_profile` was added for a line-by-line
+  analysis.
+- ENH: Checkerboard detrending can now be carried out to arbitrary polynomial
+  order.
 - API: Topographies now have a `unit` property. For backwards compatibility,
   this information is still returned in the `info` dictionary but this
   behavior will be deprecated in version 1.0. (#83)

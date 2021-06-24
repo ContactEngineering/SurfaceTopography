@@ -32,8 +32,45 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 
 
-def checkerboard_detrend_line_scan(topography, region_index, order, return_plane):
-    x, h = topography.positions_and_heights()
+def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane=False):
+    """
+    Perform tilt correction (and substract mean value) in each individual
+    line section of a checkerboard decomposition of a profile. For topography
+    maps, each horizontal slice is interpreted as a profile and this
+    decomposition is carried out for each slice.
+
+    The main application of this function is to carry out a variable
+    bandwidth analysis of the surface.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        Container storing the uniform topography map
+    subdivisions : int
+        Number of subdivision, i.e. physical_sizes of the
+        checkerboard.
+    order : int, optional
+        Maximum order of the polynomial used for detrending. (Default: 1)
+    return_plane : bool, optional
+        Return parameters of the detrending plane. (Default: False)
+
+    Returns
+    -------
+    arr : np.ndarray
+        Array with height information, tilt-corrected within each
+        checkerboard.
+
+    if return_plane == True:
+    parameters : np.ndarray
+        Array of leading order `subdivisions` containing the fit
+        parameters.
+    """
+    # compute unique consecutive index for each subdivided region
+    region_index = np.arange(topography.nb_grid_pts[0]) * subdivisions // topography.nb_grid_pts[0]
+
+    ph = topography.positions_and_heights()
+    x, h = ph
+
     b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
     C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
     a = np.linalg.solve(C.T, b.T).T
@@ -46,7 +83,49 @@ def checkerboard_detrend_line_scan(topography, region_index, order, return_plane
         return detrended_h
 
 
-def checkerboard_detrend_topography(topography, region_index, order, return_plane):
+def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=False):
+    """
+    Perform tilt correction (and substract mean value) in each individual
+    rectangle of a checkerboard decomposition of the surface. This is
+    identical to subdividing the surface into individual, nonoverlapping
+    rectangles and performing individual tilt corrections on them.
+
+    The main application of this function is to carry out a variable
+    bandwidth analysis of the surface.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+        Container storing the uniform topography map
+    subdivisions : tuple
+        Number of subdivision per dimension, i.e. physical_sizes of the
+        checkerboard.
+    order : int, optional
+        Maximum order of the polynomial used for detrending. (Default: 1)
+    return_plane : bool, optional
+        Return parameters of the detrending plane. (Default: False)
+
+    Returns
+    -------
+    arr : np.ndarray
+        Array with height information, tilt-corrected within each
+        checkerboard.
+
+    if return_plane == True:
+    parameters : np.ndarray
+        Array of leading order `subdivisions` containing the fit
+        parameters.
+    """
+    if topography.dim != 2:
+        raise ValueError('Areal checkerboard tilt correction can only performend on topography maps, not on profiles.')
+
+    # compute unique consecutive index for each subdivided region
+    region_coord = [np.arange(n) * s // n for n, s in zip(topography.nb_grid_pts, subdivisions)]
+    region_coord = np.meshgrid(*region_coord, indexing='ij')
+    region_index = region_coord[0]
+    for i in range(1, topography.dim):
+        region_index = subdivisions[i] * region_index + region_coord[i]
+
     # Number of polynomial coefficents
     nb_coeff = (order + 1) * (order + 2) // 2
 
@@ -84,61 +163,50 @@ def checkerboard_detrend_topography(topography, region_index, order, return_plan
         return detrended_h
 
 
-def checkerboard_detrend(topography, subdivisions, order=1, return_plane=False):
+def variable_bandwidth_from_profile(topography, nb_grid_pts_cutoff=4):
     """
-    Perform tilt correction (and substract mean value) in each individual
-    rectangle of a checkerboard decomposition of the surface. This is
-    identical to subdividing the surface into individual, nonoverlapping
-    rectangles and performing individual tilt corrections on them.
-
-    The main application of this function is to carry out a variable
-    bandwidth analysis of the surface.
+    Perform a variable bandwidth analysis by computing the mean
+    root-mean-square height within increasingly finer subdivisions of the
+    profiles (line scans).
 
     Parameters
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        Container storing the uniform topography map
-    subdivisions : tuple
-        Number of subdivision per dimension, i.e. physical_sizes of the
-        checkerboard.
-    order : int, optional
-        Order of the polynomial used for detrending. 0 = subtract mean,
-        1 = remove mean and tilt, 2 = remove curvature. (Default: 1)
-    return_plane : bool, optional
-        Return parameters of the detrending plane. (Default: False)
+        Container storing the uniform topography map or line scan.
+    nb_grid_pts_cutoff : int, optional
+        Minimum nb_grid_pts to allow for subdivision. The analysis will
+        automatically analyze subdivision down to this nb_grid_pts.
+        (Default: 4)
 
     Returns
     -------
-    arr : np.ndarray
-        Array with height information, tilt-corrected within each
-        checkerboard.
-
-    if return_plane == True:
-    parameters : np.ndarray
-        Array of leading order `subdivisions` containing the fit
-        parameters.
+    magnifications : array
+        Array containing the magnifications.
+    bandwidths : array
+        Array containing the bandwidths, here the physical sizes of the
+        subdivided topography. For 2D topography maps, this is the mean of the
+        two physical sizes of the subdivided section of the topography.
+    rms_heights : array
+        Array containing the rms height corresponding to the respective
+        magnification.
     """
-    arr = topography.heights().copy()
-    nb_dim = topography.dim
-
-    shape = arr.shape
-
-    # compute unique consecutive index for each subdivided region
-    region_coord = [np.arange(shape[i]) * subdivisions[i] // shape[i] for i in
-                    range(nb_dim)]
-    if nb_dim > 1:
-        region_coord = np.meshgrid(*region_coord, indexing='ij')
-    region_index = region_coord[0]
-    for i in range(1, nb_dim):
-        region_index = subdivisions[i] * region_index + region_coord[i]
-
-    if nb_dim == 1:
-        return checkerboard_detrend_line_scan(topography, region_index, order, return_plane)
-    else:
-        return checkerboard_detrend_topography(topography, region_index, order, return_plane)
+    magnification = 1
+    subdivisions = 1
+    sx = topography.physical_sizes[0]
+    nx = int(topography.nb_grid_pts[0])
+    magnifications = []
+    bandwidths = []
+    rms_heights = []
+    while nx // subdivisions >= nb_grid_pts_cutoff:
+        magnifications += [magnification]
+        bandwidths += [sx / subdivisions]
+        rms_heights += [np.std(topography.checkerboard_detrend_profile(subdivisions))]
+        magnification *= 2
+        subdivisions *= 2
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
-def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_area(topography, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -147,10 +215,11 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
     Parameters
     ----------
     topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        Container storing the uniform topography map
-    nb_grid_pts_cutoff : int
+        Container storing the uniform topography map.
+    nb_grid_pts_cutoff : int, optional
         Minimum nb_grid_pts to allow for subdivision. The analysis will
         automatically analyze subdivision down to this nb_grid_pts.
+        (Default: 4)
 
     Returns
     -------
@@ -175,13 +244,14 @@ def variable_bandwidth(topography, nb_grid_pts_cutoff=4):
     while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
         bandwidths += [np.mean(physical_sizes / subdivisions)]
-        rms_heights += [np.std(topography.checkerboard_detrend(subdivisions))]
+        rms_heights += [np.std(topography.checkerboard_detrend_area(subdivisions))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(
-        rms_heights)
+    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('checkerboard_detrend', checkerboard_detrend)
-UniformTopographyInterface.register_function('variable_bandwidth', variable_bandwidth)
+UniformTopographyInterface.register_function('checkerboard_detrend_profile', checkerboard_detrend_profile)
+UniformTopographyInterface.register_function('checkerboard_detrend_area', checkerboard_detrend_area)
+UniformTopographyInterface.register_function('variable_bandwidth_from_profile', variable_bandwidth_from_profile)
+UniformTopographyInterface.register_function('variable_bandwidth_from_area', variable_bandwidth_from_area)
