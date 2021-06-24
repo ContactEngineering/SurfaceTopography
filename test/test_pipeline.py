@@ -160,7 +160,7 @@ def test_uniform_unit_conversion():
     surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1, unit='um')
     assert surf.unit == 'um'
 
-    surf2 = surf.scale(unit='mm')
+    surf2 = surf.to_unit('mm')
     assert surf2.info['unit'] == 'mm'
     assert surf2.unit == 'mm'
 
@@ -201,7 +201,7 @@ def test_nonuniform_unit_conversion():
     surf = read_xyz(os.path.join(DATADIR, 'example.xyz'), unit='um')
     assert surf.unit == 'um'
 
-    surf2 = surf.scale(unit='mm')
+    surf2 = surf.to_unit('mm')
     assert surf2.info['unit'] == 'mm'
     assert surf2.unit == 'mm'
 

@@ -25,7 +25,8 @@ v0.95.0 (not yet published)
 - API: `physical_sizes` can no longer be set after the topography has been
   created.
 - ENH: `scale` pipeline function is now able to rescale lateral dimensions
-  (positions) and can do direct unit conversion
+  (positions)
+- ENH: Add `to_unit` pipeline function for unit conversion
 - ENH: `SurfaceContainer` class including pipeline functions for collections
   of topographies
 - ENH: Reading and writing of surface containers

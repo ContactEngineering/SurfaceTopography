@@ -166,7 +166,7 @@ class DecoratedNonuniformTopography(DecoratedTopography,
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     """Scale heights, positions, or both."""
 
-    def __init__(self, topography, height_scale_factor=None, position_scale_factor=None, unit=None, info={}):
+    def __init__(self, topography, unit, info={}):
         """
         This topography wraps a parent topography and rescales x and z
         coordinates according to certain rules.
@@ -175,34 +175,68 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
         ---------
         topography : :obj:`NonuniformTopographyInterface`
             Parent topography
-        height_scale_factor : float
-            Factor to scale heights with. If None, scale factor will be
-            autodetermined from the given unit. (Default: None)
-        position_scale_factor : float
-            Factor to scale lateral positions (`physical_sizes`, etc.) with.
-            If None, scale factor will be autodetermined from the given unit.
-            (Default: None)
         unit : str
-            Target unit. Ignored if None. If it is given, then
-            `heights_scale_factor` and `positions_scale_factor` are determined
-            from the unit, if they are None. The `info` dictionary is updated
-            with this unit information. If scale factors are given, they
-            override the autodetection, i.e. if both scale factors are given
-            the unit will just update the `info` dictionary.
-        info : dict
-            Updated entries to the info dictionary.
+            Target unit.
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
+        """
+        super().__init__(topography, unit=unit, info=info)
+
+    @property
+    def height_scale_factor(self):
+        return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
+
+    # For backwards compatibility
+    @property
+    @deprecated(version='0.94.0', reason='Use heights_scale_factor')
+    def scale_factor(self):
+        return self.height_scale_factor
+
+    @property
+    def position_scale_factor(self):
+        return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
+
+    @property
+    def physical_sizes(self):
+        """Compute rescaled physical sizes."""
+        return self.position_scale_factor * super().physical_sizes[0],
+
+    def positions(self):
+        """Compute the rescaled positions."""
+        return self.position_scale_factor * super().positions()
+
+    def heights(self):
+        """ Computes the rescaled profile.
+        """
+        return self.height_scale_factor * self.parent_topography.heights()
+
+
+class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
+    """Scale heights, positions, or both."""
+
+    def __init__(self, topography, height_scale_factor=1, position_scale_factor=1, unit=None, info={}):
+        """
+        This topography wraps a parent topography and rescales x and z
+        coordinates according to certain rules.
+
+        Arguments
+        ---------
+        topography : :obj:`NonuniformTopographyInterface`
+            Parent topography
+        height_scale_factor : float, optional
+            Factor to scale heights with. (Default: 1)
+        position_scale_factor : float, optional
+            Factor to scale lateral positions (`physical_sizes`, etc.) with.
+            (Default: 1)
+        unit : str, optional
+            Target unit. This is simply used to update the metadata, not for
+            determining scale factors. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, unit=unit, info=info)
         self._height_scale_factor = None if height_scale_factor is None else float(height_scale_factor)
         self._position_scale_factor = None if position_scale_factor is None else float(position_scale_factor)
-
-        # Check whether conversion is actually possible
-        if self._position_scale_factor is None:
-            if self.parent_topography.unit is None:
-                if self.unit is not None:
-                    raise ValueError("The parent topography has no unit, but you requested conversion to a unit "
-                                     "'f{self.unit}'. Conversion is on possible if the unit of the source and target "
-                                     "are known.")
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -221,10 +255,7 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
 
     @property
     def height_scale_factor(self):
-        if self._height_scale_factor is None:
-            return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
-        else:
-            return self._height_scale_factor
+        return self._height_scale_factor
 
     # For backwards compatibility
     @property
@@ -234,31 +265,7 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
 
     @property
     def position_scale_factor(self):
-        if self._position_scale_factor is None:
-            if self.parent_topography.unit is None:
-                if self.unit is not None:
-                    raise ValueError("The parent topography has no unit, but you requested conversion to a unit "
-                                     "'f{self.unit}'. Conversion is on possible if the unit of the source and target "
-                                     "are known.")
-                return 1
-            else:
-                return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
-        else:
-            return self._position_scale_factor
-
-    @property
-    def physical_sizes(self):
-        """Compute rescaled physical sizes."""
-        return self.position_scale_factor * super().physical_sizes[0],
-
-    def positions(self):
-        """Compute the rescaled positions."""
-        return self.position_scale_factor * super().positions()
-
-    def heights(self):
-        """ Computes the rescaled profile.
-        """
-        return self.height_scale_factor * self.parent_topography.heights()
+        return self._position_scale_factor
 
 
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
@@ -302,7 +309,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         else:
             raise ValueError(
                 "Unsupported detrend mode '{}' for line scans."
-                .format(self._detrend_mode))
+                    .format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -398,5 +405,6 @@ NonuniformLineScanInterface.register_function(
     'max', lambda this: this.heights().max())
 
 # Register pipeline functions from this module
-NonuniformLineScanInterface.register_function('scale', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('to_unit', ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function('scale', StaticallyScaledNonuniformTopography)
 NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)

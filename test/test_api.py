@@ -36,8 +36,10 @@ common_functions = [
     "min",
     "positions",
     "positions_and_heights",
+    "scale",
     "squeeze",
     "scale_dependent_statistical_property",
+    "to_unit",
 ]
 
 uniform_functions = [
@@ -51,25 +53,28 @@ uniform_functions = [
 ]
 
 nonuniform_functions = [
-    "checkerboard_detrend",
-    "variable_bandwidth",
+    "to_uniform",
 ]
 
 profile_functions = [
+    "autocorrelation_from_profile",
+    "checkerboard_detrend_profile",
+    "power_spectrum_from_profile",
     "rms_height_from_profile",
     "rms_slope_from_profile",
     "rms_curvature_from_profile",
-    "autocorrelation_from_profile",
-    "power_spectrum_from_profile",
+    "variable_bandwidth_from_profile",
 ]
 
 area_functions = [
+    "checkerboard_detrend_area",
+    "power_spectrum_from_area",
+    "power_spectrum_from_profile",
     "rms_height_from_area",
     "rms_gradient",
     "rms_laplacian",
     "rms_curvature_from_area",
-    "power_spectrum_from_area",
-    "power_spectrum_from_profile",
+    "variable_bandwidth_from_area",
 ]
 
 functions = common_functions + uniform_functions + nonuniform_functions + profile_functions + area_functions

@@ -34,8 +34,7 @@ units = dict(height=height_units, voltage=voltage_units)
 
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
-    Compute factor for conversion from unit1 to unit2. Return None if units are
-    incompatible.
+    Compute factor for conversion from unit1 to unit2.
     """
     if unit1_str is None:
         raise ValueError('Cannot convert from None unit')
