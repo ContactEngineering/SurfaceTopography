@@ -84,6 +84,22 @@ def test_checkerboard_detrend_2d():
     np.testing.assert_allclose(outarr, np.zeros([4, 4]), atol=1e-12)
 
 
+def test_checkerboard_detrend_profile_2d():
+    arr = np.zeros([4, 4])
+    arr[:2, :2] = 1.0
+    outarr = Topography(arr, arr.shape).checkerboard_detrend_profile(2)
+    np.testing.assert_allclose(outarr, np.zeros([4, 4]), atol=1e-12)
+
+    arr = np.zeros([4, 4])
+    arr[:2, :2] = 1.0
+    arr[:2, 1] = 2.0
+    arr[:, 1] += 1  # offsets do not matter since all profile are independently tilt corrected
+    arr[:, 2] += 1.5
+    arr[:, 3] += 0.7
+    outarr = Topography(arr, arr.shape).checkerboard_detrend_profile(2)
+    np.testing.assert_allclose(outarr, np.zeros([4, 4]), atol=1e-12)
+
+
 def test_checkerboard_detrend_order2_2d():
     arr = np.zeros([6, 6])
     arr[:3, :3] = 1.0
@@ -102,6 +118,7 @@ def test_checkerboard_detrend_order2_2d():
     arr[:3, 2] = -0.5
     outarr = Topography(arr, arr.shape).checkerboard_detrend_area((2, 2), order=2)
     np.testing.assert_allclose(outarr, np.zeros([6, 6]), atol=1e-12)
+
 
 def test_checkerboard_detrend_with_no_subdivisions():
     r = 32

@@ -68,14 +68,26 @@ def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane
     # compute unique consecutive index for each subdivided region
     region_index = np.arange(topography.nb_grid_pts[0]) * subdivisions // topography.nb_grid_pts[0]
 
-    ph = topography.positions_and_heights()
-    x, h = ph
+    if topography.dim == 1:
+        x, h = topography.positions_and_heights()
+    elif topography.dim == 2:
+        nx, ny = topography.nb_grid_pts
+        x, y, h = topography.positions_and_heights()
+        region_index = np.array([[region_index + i * subdivisions] for i in range(ny)]).T
+    else:
+        raise ValueError(f'Cannot perform checkerboard detrend on topographies of dimension {topography.dim}')
+
+    shape = h.shape
+    h = h.reshape(-1)
+    x = x.reshape(-1)
+    region_index = region_index.reshape(-1)
 
     b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
     C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
     a = np.linalg.solve(C.T, b.T).T
 
     detrended_h = h - np.sum([a[i, region_index] * x ** i for i in range(order + 1)], axis=0)
+    detrended_h.shape = shape
 
     if return_plane:
         return detrended_h, a
