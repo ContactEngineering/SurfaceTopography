@@ -85,6 +85,7 @@ third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
 
 third_2d = (third_2d_x, third_2d_y)
 
+
 def bandwidth(topography):
     """Computes lower and upper bound of bandwidth.
 

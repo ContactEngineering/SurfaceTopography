@@ -10,6 +10,7 @@ from SurfaceTopography import UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Uniform.common import third_2d
 
+
 def test_uniform_vs_nonuniform():
     t1 = fourier_synthesis([12], [6], 0.8, rms_slope=0.1, periodic=False)
     t2 = t1.to_nonuniform()
