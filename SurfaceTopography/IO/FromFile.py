@@ -36,7 +36,7 @@ import numpy as np
 import numpy.ma as ma
 
 from .common import CHANNEL_NAME_INFO_KEY
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
 
@@ -100,16 +100,24 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
 
         @property
         def channels(self):
+            try:
+                height_scale_factor = self._topography.scale_factor
+            except AttributeError:
+                height_scale_factor = None
+                # None means: Not available in file
+
             return [ChannelInfo(
                 self, 0,
                 name=self._channel_name,
                 dim=self._topography.dim,
+                unit=self._topography.unit,
                 info=self._topography.info,
                 nb_grid_pts=self._topography.nb_grid_pts,
-                physical_sizes=self._topography.physical_sizes)]
+                physical_sizes=self._topography.physical_sizes,
+                height_scale_factor=height_scale_factor)]
 
         def topography(self, channel_index=None, physical_sizes=None,
-                       height_scale_factor=None, info={}, periodic=False,
+                       height_scale_factor=None, unit=None, info={}, periodic=False,
                        subdomain_locations=None, nb_subdomain_grid_pts=None):
             if channel_index is None:
                 channel_index = self._default_channel_index
@@ -128,11 +136,16 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
             if hasattr(self._fobj, 'seek'):
                 self._fobj.seek(self._file_position)
 
-            # Read again, but this time with physical_sizes set (if not
+            # Read again, but this time with physical_sizes and unit set (if not
             # specified in file)
-            return reader_func(self._fobj, physical_sizes=physical_sizes,
-                               height_scale_factor=height_scale_factor,
-                               info=info.copy(), periodic=periodic)
+            reader_kwargs = dict(height_scale_factor=height_scale_factor,
+                                 unit=unit, info=info.copy(), periodic=periodic)
+            if self._topography.physical_sizes is None:
+                # file does not have physical sizes
+                reader_kwargs['physical_sizes'] = physical_sizes
+                # otherwise we won't add the argument, because that is not allowed any more
+
+            return reader_func(self._fobj, **reader_kwargs)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__
@@ -141,7 +154,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
     return WrappedReader
 
 
-def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Load x3p-file.
@@ -213,11 +226,11 @@ def read_x3p(fobj, physical_sizes=None, height_scale_factor=None, info={},
         binfn = data_link.find('PointDataLink').text
 
         rawdata = x3p.open(binfn).read(nx * ny * dtype.itemsize)
-        data = np.frombuffer(rawdata, count=nx * ny * nz,
-                             dtype=dtype).reshape(nx, ny).T
-    if physical_sizes is None:
-        physical_sizes = (xinc * nx, yinc * ny)
-    t = Topography(data, physical_sizes, info=info, periodic=periodic)
+        data = np.frombuffer(rawdata, count=nx * ny * nz, dtype=dtype).reshape(nx, ny).T
+
+    if physical_sizes is not None:
+        raise MetadataAlreadyFixedByFile('physical_sizes')
+    t = Topography(data, (xinc * nx, yinc * ny), unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)
     return t
@@ -235,7 +248,7 @@ data. The full specification of the format can be found
 
 
 @binary
-def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_opd(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Load Wyko Vision OPD file.
@@ -245,6 +258,9 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     Keyword Arguments:
     fobj -- filename or file object
     """
+
+    if unit is not None:
+        raise MetadataAlreadyFixedByFile('unit')
 
     BLOCK_SIZE = 24
 
@@ -313,14 +329,15 @@ def read_opd(fobj, physical_sizes=None, height_scale_factor=None, info={},
     data.shape = (nx, ny)
 
     # Height are in nm, width in mm
-    if physical_sizes is None:
-        physical_sizes = (nx * pixel_size, ny * pixel_size * aspect)
-    surface = Topography(np.fliplr(data), physical_sizes,
-                         info={**info, **dict(unit='mm')}, periodic=periodic)
-    if height_scale_factor is None:
-        surface = surface.scale(wavelength / mult * 1e-6)
-    else:
-        surface = surface.scale(height_scale_factor)
+    if physical_sizes is not None:
+        raise MetadataAlreadyFixedByFile('physical_sizes')
+    surface = Topography(np.fliplr(data),
+                         (nx * pixel_size, ny * pixel_size * aspect),
+                         unit='mm', info=info, periodic=periodic)
+    height_scale_factor_from_file = wavelength / mult * 1e-6
+    if height_scale_factor is not None:
+        raise MetadataAlreadyFixedByFile('height_scale_factor')
+    surface = surface.scale(height_scale_factor_from_file)
     return surface
 
 
@@ -332,7 +349,7 @@ interferometer.
 
 
 @binary
-def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={},
+def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={},
              periodic=False):
     """
     Read Shuttle Radar SurfaceTopography Mission (SRTM) topography data
@@ -354,11 +371,9 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, info={},
                        count=dim * dim).reshape((dim, dim))
 
     if physical_sizes is None:
-        topography = Topography(data, physical_sizes=data.shape, info=info,
-                                periodic=periodic)
+        topography = Topography(data, physical_sizes=data.shape, unit=unit, info=info, periodic=periodic)
     else:
-        topography = Topography(data, physical_sizes=physical_sizes, info=info,
-                                periodic=periodic)
+        topography = Topography(data, physical_sizes=physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         topography = topography.scale(height_scale_factor)
     return topography

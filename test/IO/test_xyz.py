@@ -23,8 +23,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
+import pytest
 import os
+from numpy.testing import assert_allclose
 
 from SurfaceTopography.IO.Text import read_xyz
 
@@ -34,8 +35,8 @@ DATADIR = os.path.join(
     'file_format_examples')
 
 
-def test_read():
-    surface = read_xyz(os.path.join(DATADIR, 'example.asc'))
+def test_read_1d():
+    surface = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -43,3 +44,23 @@ def test_read():
     assert not surface.is_uniform
     assert surface.dim == 1
     assert not surface.is_periodic
+
+
+@pytest.mark.parametrize("filename", ['example-2d.xyz', 'example-2d-different-order.xyz'])
+def test_read_2d(filename):
+    """
+    Here the order of points in the input file shouldn't matter.
+    """
+    surface = read_xyz(os.path.join(DATADIR, filename))
+    assert surface.is_uniform
+    x, y, z = surface.positions_and_heights()
+    assert x.shape == (4, 4)
+    assert y.shape == (4, 4)
+    assert z.shape == (4, 4)
+    assert surface.dim == 2
+    assert not surface.is_periodic
+    assert_allclose(z,
+                    [[1., 1., 1., 1.],
+                     [1., 2., 2., 1.],
+                     [1., 1., 1., 1.],
+                     [1., 1., 1., 1.]])

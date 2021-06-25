@@ -95,12 +95,11 @@ manually provided by the user.
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts)]
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
-        if channel_index is None:
-            channel_index = self._default_channel_index
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+
+        if channel_index is not None and channel_index != 0:
+            raise ValueError('`channel_index` must be None or 0.')
 
         physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
@@ -108,26 +107,33 @@ manually provided by the user.
                 raise ValueError("This is a parallel run, you should provide "
                                  "subdomain location and number of grid "
                                  "points")
-            return Topography(
+            topography = Topography(
                 heights=self.mpi_file.read(
                     subdomain_locations=subdomain_locations,
                     nb_subdomain_grid_pts=nb_subdomain_grid_pts),
                 physical_sizes=physical_sizes,
                 periodic=periodic,
+                unit=unit,
                 info=info
             )
-
-        return Topography(
-            heights=self.mpi_file.read(
+        else:
+            topography = Topography(
+                heights=self.mpi_file.read(
+                    subdomain_locations=subdomain_locations,
+                    nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+                decomposition="subdomain",
                 subdomain_locations=subdomain_locations,
-                nb_subdomain_grid_pts=nb_subdomain_grid_pts),
-            decomposition="subdomain",
-            subdomain_locations=subdomain_locations,
-            nb_grid_pts=self._nb_grid_pts,
-            communicator=self.mpi_file.comm,
-            physical_sizes=physical_sizes,
-            periodic=periodic,
-            info=info)
+                nb_grid_pts=self._nb_grid_pts,
+                communicator=self.mpi_file.comm,
+                physical_sizes=physical_sizes,
+                periodic=periodic,
+                unit=unit,
+                info=info)
+
+        if height_scale_factor is not None:
+            topography = topography.scale(height_scale_factor)
+
+        return topography
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__

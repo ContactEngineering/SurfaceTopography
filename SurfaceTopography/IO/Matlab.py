@@ -61,20 +61,21 @@ These need to be manually provided by the user.
             self._channels = []
             self._height_data = []
             for key, value in data.items():
-                is_2darray = False
+                is_2d_array = False
                 try:
                     nx, ny = value.shape
-                    is_2darray = True
+                    is_2d_array = True
                 except (AttributeError, ValueError):
                     pass
-                if is_2darray:
-                    channelinfo = ChannelInfo(self,
-                                              len(self._channels),
-                                              name=key,
-                                              dim=len(value.shape),
-                                              nb_grid_pts=value.shape)
+                if is_2d_array:
+                    channel_info = ChannelInfo(self,
+                                               len(self._channels),
+                                               name=key,
+                                               dim=len(value.shape),
+                                               nb_grid_pts=value.shape)
+                    # no height scale factor given in mat file
 
-                    self._channels.append(channelinfo)
+                    self._channels.append(channel_info)
                     self._height_data.append(value)
         finally:
             if close_file:
@@ -85,7 +86,7 @@ These need to be manually provided by the user.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -98,11 +99,14 @@ These need to be manually provided by the user.
         info = info.copy()
         info['data_source'] = self.channels[channel_index].name
 
-        return Topography(self._height_data[channel_index],
-                          physical_sizes=self._check_physical_sizes(
-                              physical_sizes),
-                          info=info,
-                          periodic=periodic)
+        topography = Topography(
+            self._height_data[channel_index], physical_sizes=self._check_physical_sizes(physical_sizes), unit=unit,
+            info=info, periodic=periodic)
+
+        if height_scale_factor is not None:
+            topography = topography.scale(height_scale_factor)
+
+        return topography
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__

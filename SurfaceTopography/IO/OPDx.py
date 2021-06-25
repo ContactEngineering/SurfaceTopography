@@ -29,8 +29,9 @@ from collections import OrderedDict
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
-from .common import OpenFromAny, get_unit_conversion_factor, mangle_length_unit_utf8
-from .Reader import ReaderBase, ChannelInfo
+from ..UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from .common import OpenFromAny
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 MAGIC = "VCA DATA\x01\x00\x00\x55"
 MAGIC_SIZE = 12
@@ -148,6 +149,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                         del metadata['unit']
                     except KeyError:
                         pass
+                    unit = None
                 else:
                     # we want value in unit_x units
                     unit_factor_z = get_unit_conversion_factor(unit_z,
@@ -158,13 +160,15 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                             'are incompatible.'.format(unit_x, unit_y))
 
                     # we have converted everything to this unit
-                    metadata['unit'] = unit_x
+                    unit = unit_x
 
                 ch_info = ChannelInfo(self, channel_index,
                                       name=metadata['Name'], dim=2,
                                       nb_grid_pts=(metadata['ImageWidth'],
                                                    metadata['ImageHeight']),
                                       physical_sizes=(size_x, size_y),
+                                      unit=unit,
+                                      height_scale_factor=1,  # means that this factor is fixed by file contents
                                       info=metadata)
 
                 self._channels.append(ch_info)
@@ -172,7 +176,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                     xres_yres_start_stop_q)  # needed for building heights
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
+                   height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
         if channel_index is None:
@@ -191,8 +195,11 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         unit_z = channel_info.info['z_unit']
 
-        if 'unit' in channel_info.info:
-            common_unit = channel_info.info['unit']
+        if channel_info.unit is not None:
+            common_unit = channel_info.unit
+
+            if unit is not None:
+                raise MetadataAlreadyFixedByFile('unit')
 
             if (common_unit is not None) and (unit_z != common_unit):
                 # There is a common unit, but the z-unit in the file differs
@@ -206,6 +213,8 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                         'and data units ("{}") are incompatible.'.format(
                             common_unit, unit_z))
                 data *= unit_factor_z
+        else:
+            common_unit = unit
 
         physical_sizes = self._check_physical_sizes(
             physical_sizes, channel_info.physical_sizes)
@@ -213,8 +222,11 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info = info.copy()
         info.update(channel_info.info)
 
-        return Topography(heights=data, physical_sizes=physical_sizes,
-                          info=info, periodic=periodic)
+        topography = Topography(heights=data, physical_sizes=physical_sizes,
+                                unit=common_unit, info=info, periodic=periodic)
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        return topography
 
     @property
     def channels(self):

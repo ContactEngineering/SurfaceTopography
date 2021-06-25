@@ -47,7 +47,7 @@ from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.common import get_unit_conversion_factor
+from SurfaceTopography.UnitConversion import get_unit_conversion_factor
 from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
 
 pytestmark = pytest.mark.skipif(
@@ -96,9 +96,9 @@ class UniformLineScanTest(unittest.TestCase):
         t = UniformLineScan(h, 4)
 
         with self.assertRaises(AttributeError):
-            t.scale_factor
+            t.height_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t.scale(1).scale_factor, 1)
+        self.assertEqual(t.scale(1).height_scale_factor, 1)
 
         #
         # This should also work after the topography has been pickled
@@ -107,9 +107,9 @@ class UniformLineScanTest(unittest.TestCase):
         t2 = pickle.loads(pt)
 
         with self.assertRaises(AttributeError):
-            t2.scale_factor
+            t2.height_scale_factor
         # a scaled line scan has a scale_factor
-        self.assertEqual(t2.scale(1).scale_factor, 1)
+        self.assertEqual(t2.scale(1).height_scale_factor, 1)
 
     def test_setting_info_dict(self):
 
@@ -118,7 +118,9 @@ class UniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        t = UniformLineScan(h, 4, info=dict(unit='A'))
+        with self.assertRaises(ValueError):
+            t = UniformLineScan(h, 4, info=dict(unit='A'))
+        t = UniformLineScan(h, 4, unit='A')
         assert t.info['unit'] == 'A'
 
         #
@@ -130,7 +132,9 @@ class UniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        st = t.scale(2, info=dict(unit='B'))
+        with self.assertRaises(ValueError):
+            st = t.scale(2, info=dict(unit='B'))
+        st = t.scale(2, 2, unit='B')
         assert st.info['unit'] == 'B'
 
         #
@@ -140,10 +144,10 @@ class UniformLineScanTest(unittest.TestCase):
         assert dt.info['unit'] == 'B'
 
         #
-        # Alternatively, it can be changed
+        # It can no longer be changed in detrend (you need to use scale)
         #
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
-        assert dt.info['unit'] == 'C'
+        with self.assertRaises(ValueError):
+            dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):
 
@@ -166,8 +170,7 @@ class UniformLineScanTest(unittest.TestCase):
 
         detrended = t.detrend(detrend_mode="curvature")
 
-        assert abs(detrended.coeffs[-1] / detrended.physical_sizes[
-            0] ** 2 - 1 / R) < 1e-12
+        assert abs(detrended.coeffs[-1] / detrended.physical_sizes[0] ** 2 - 1 / R) < 1e-12
 
     def test_detrend_same_positions(self):
         """asserts that the detrended topography has the same x
@@ -262,7 +265,9 @@ class NonuniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        t = NonuniformLineScan(x, h, info=dict(unit='A'))
+        with self.assertRaises(ValueError):
+            t = NonuniformLineScan(x, h, info=dict(unit='A'))
+        t = NonuniformLineScan(x, h, unit='A')
         assert t.info['unit'] == 'A'
 
         #
@@ -274,7 +279,9 @@ class NonuniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        st = t.scale(2, info=dict(unit='B'))
+        with self.assertRaises(ValueError):
+            st = t.scale(2, info=dict(unit='B'))
+        st = t.scale(2, 1, unit='B')
         assert st.info['unit'] == 'B'
 
         #
@@ -284,10 +291,10 @@ class NonuniformLineScanTest(unittest.TestCase):
         assert dt.info['unit'] == 'B'
 
         #
-        # Alternatively, it can be changed
+        # It can no longer be changed in detrend (you need to use scale)
         #
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
-        assert dt.info['unit'] == 'C'
+        with self.assertRaises(ValueError):
+            dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):
         # initialize with lists instead of arrays
@@ -312,7 +319,7 @@ class NonuniformLineScanTest(unittest.TestCase):
         # TODO add check for values
 
     def test_detrend(self):
-        t = read_xyz(os.path.join(DATADIR, 'example.asc'))
+        t = read_xyz(os.path.join(DATADIR, 'example.xyz'))
         self.assertFalse(t.detrend('center').is_periodic)
         self.assertFalse(t.detrend('height').is_periodic)
 
@@ -386,16 +393,14 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.physical_sizes[0], 2.773965e-05)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.00011280791)
         self.assertAlmostEqual(surf.rms_height_from_area(), 1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_height_from_profile(),
-                               1.1745891510991089e-07)
+        self.assertAlmostEqual(surf.rms_height_from_profile(), 1.1745891510991089e-07)
         self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertEqual(surf.info['unit'], 'm')
 
         # test setting the physical_sizes
-        surf.physical_sizes = 1, 2
-        self.assertAlmostEqual(surf.physical_sizes[0], 1)
-        self.assertAlmostEqual(surf.physical_sizes[1], 2)
+        with self.assertRaises(AttributeError):
+            surf.physical_sizes = 1, 2
 
     def test_example5(self):
         surf = read_asc(os.path.join(DATADIR, 'example5.txt'))
@@ -409,7 +414,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertFalse('unit' in surf.info)
 
         # test setting the physical_sizes
-        surf.physical_sizes = 1, 2
+        surf = read_asc(os.path.join(DATADIR, 'example5.txt'), physical_sizes=(1, 2))
         self.assertAlmostEqual(surf.physical_sizes[0], 1)
         self.assertAlmostEqual(surf.physical_sizes[1], 2)
 
@@ -474,16 +479,16 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.mean(), 0)
         self.assertAlmostEqual(surf.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
+            surf.rms_height_from_profile() < UniformLineScan(arr, arr.shape).rms_height_from_profile())
 
         surf2 = UniformLineScan(arr, (1,)).detrend(detrend_mode='height')
         self.assertEqual(surf.dim, 1)
         self.assertTrue(surf2.is_uniform)
         self.assertAlmostEqual(surf2.rms_slope_from_profile(), 0)
         self.assertTrue(
-            surf2.rms_height_from_area() < UniformLineScan(arr, arr.shape).rms_height_from_area())
+            surf2.rms_height_from_profile() < UniformLineScan(arr, arr.shape).rms_height_from_profile())
 
-        self.assertAlmostEqual(surf.rms_height_from_area(), surf2.rms_height_from_area())
+        self.assertAlmostEqual(surf.rms_height_from_profile(), surf2.rms_height_from_profile())
 
         x, z = surf2.positions_and_heights()
         self.assertAlmostEqual(np.mean(np.diff(x)),
@@ -548,8 +553,8 @@ class DetrendedSurfaceTest(unittest.TestCase):
                                    detrended.rms_slope_from_profile(),
                                    msg=mode)
             else:
-                self.assertGreater(t.rms_height_from_area(),
-                                   detrended.rms_height_from_area(),
+                self.assertGreater(t.rms_height_from_profile(),
+                                   detrended.rms_height_from_profile(),
                                    msg=mode)
 
     def test_smooth_without_size(self):
@@ -600,7 +605,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertTrue(untilt1.rms_gradient() > untilt2.rms_gradient())
 
     def test_nonuniform(self):
-        surf = read_xyz(os.path.join(DATADIR, 'example.asc'))
+        surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
         self.assertFalse(surf.is_uniform)
         self.assertEqual(surf.dim, 1)
 
@@ -1088,7 +1093,7 @@ def test_attribute_error():
 
     st = t.scale(1)
 
-    assert st.scale_factor == 1
+    assert st.height_scale_factor == 1
 
     #
     # only detrended topographies have detrend_mode
@@ -1105,11 +1110,11 @@ def test_attribute_error():
     t2 = pickle.loads(pickle.dumps(t))
 
     with pytest.raises(AttributeError):
-        t2.scale_factor
+        t2.height_scale_factor
 
     st2 = t2.scale(1)
 
-    assert st2.scale_factor == 1
+    assert st2.height_scale_factor == 1
 
     with pytest.raises(AttributeError):
         st2.detrend_mode
