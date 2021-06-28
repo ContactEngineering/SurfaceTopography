@@ -144,5 +144,6 @@ setup(
         'numpyencoder',
         'pyyaml',
         'deprecated'
+        'Pillow',
     ]
 )

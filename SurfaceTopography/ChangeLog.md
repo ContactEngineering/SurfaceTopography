@@ -11,6 +11,7 @@ Deprecations in version 1.0
 v0.95.0 (not yet published)
 ---------------------------
 
+- ENH: Writing Deep Zoom Image (DZI) files
 - API: `variable_bandwidth` is now `variable_bandwidth_from_area` and an
   additional `variable_bandwidth_from_profile` was added for a line-by-line
   analysis.
