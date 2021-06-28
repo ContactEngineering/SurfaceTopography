@@ -276,8 +276,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     "This is a parallel run with 'domain' decomposition but "
                     "`nb_grid_pts` (= {}) does not equal the shape of the "
-                    "`heights` (= {}) array."
-                        .format(nb_grid_pts, heights.shape))
+                    "`heights` (= {}) array.".format(nb_grid_pts, heights.shape))
             if subdomain_locations is None:
                 raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
             if nb_subdomain_grid_pts is None:
@@ -307,8 +306,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         return state
 
     def __setstate__(self, state):
-        superstate, self._heights, self._size, self._periodic, \
-        self._subdomain_locations, self._nb_grid_pts = state
+        superstate, self._heights, self._size, self._periodic, self._subdomain_locations, self._nb_grid_pts = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -645,9 +643,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                     x / self.parent_topography.physical_sizes, y, 2)
                 self._coeffs = a0, a1, a2
             else:
-                raise ValueError(
-                    "Unsupported detrend mode '{}' for line scans."
-                        .format(self._detrend_mode))
+                raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
         else:  # self.dim == 2
             if self._detrend_mode is None or self._detrend_mode == 'center':
                 self._coeffs = [self.parent_topography.mean()]
