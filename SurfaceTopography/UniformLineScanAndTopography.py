@@ -720,26 +720,20 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 return self.parent_topography.heights() - a0 - a1 * x
             elif len(self._coeffs) == 3:
                 a0, a1, a2 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1 * x - \
-                       a2 * x * x
+                return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
             else:
-                raise RuntimeError(
-                    'Unknown physical_sizes of coefficients tuple for line '
-                    'scans.')
+                raise RuntimeError('Unknown physical_sizes of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
-                               indexing='ij')
+            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts), indexing='ij')
             if len(self._coeffs) == 3:
                 a1x, a1y, a0 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1x * x - \
-                       a1y * y
+                return self.parent_topography.heights() - a0 - a1x * x - a1y * y
             elif len(self._coeffs) == 6:
                 m, n, mm, nn, mn, h0 = self._coeffs
                 xx = x * x
                 yy = y * y
                 xy = x * y
-                return self.parent_topography.heights() - h0 - m * x - \
-                       n * y - mm * xx - nn * yy - mn * xy
+                return self.parent_topography.heights() - h0 - m * x - n * y - mm * xx - nn * yy - mn * xy
             else:
                 raise RuntimeError('Unknown physical_sizes of coefficients '
                                    'tuple for 2D topographies.')
