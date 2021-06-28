@@ -143,7 +143,7 @@ setup(
         'defusedxml',
         'numpyencoder',
         'pyyaml',
-        'deprecated'
+        'deprecated',
         'Pillow',
     ]
 )
