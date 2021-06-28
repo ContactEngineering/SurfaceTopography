@@ -153,6 +153,13 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         Integer factor that scales the stencil difference, i.e.
         specifying 2 will compute the derivative over a distance of
         2 * dx. Either `scale_factor` or `distance` can be specified.
+        - Single int: Returns a single derivative scaled in all directions
+          with this value
+        - List of ints: Returns multiple derivatives, each scaled in all
+          direction with the respective value from the list
+        - List of tuples of ints: Each tuple contains a scale factor in
+          the two Cartesian (x- and y-) directions. Return multiple
+          derivatives, scaled with different factors in both directions.
         (Default: None)
     distance : float or list of floats, optional
         Expicit distance scale for computation of the derivative. Either
