@@ -44,21 +44,47 @@ from ..UniformLineScanAndTopography import DecoratedUniformTopography
 # First order upwind differences
 first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
 
-# Fourth order central differences of the second derivative
+# second order central differences of the second derivative
 second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
+
+# first order upwind differences of the third derivative
+third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
+
+# second order central differences of the third derivative
+third_central_1d = muFFT.DiscreteDerivative([-2], [-1/2, 1, 0, -1, 1/2])
 
 # First order upwind differences
 first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
 first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
 first_2d = (first_2d_x, first_2d_y)
 
-# Fourth order central differences of the second derivative
-second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
-second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
+# second order central differences of the second derivative
+second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
+                                                  [0, -2, 0],
+                                                  [0, 1, 0]])
+second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0],
+                                                  [1, -2, 1],
+                                                  [0, 0, 0]])
 second_2d = (second_2d_x, second_2d_y)
 
+# first order upwind differences of the third derivative
+third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, -1, 0, 0],
+                                                 [0, 3, 0, 0],
+                                                 [0, -3, 0, 0],
+                                                 [0, 1, 0, 0]])
+third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0, 0],
+                                                 [-1, 3, -3, 1],
+                                                 [0, 0, 0, 0],
+                                                 [0, 0, 0, 0]])
 
-###
+third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1],
+                                                 [3],
+                                                 [-3],
+                                                 [1]])
+third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
+
+third_2d = (third_2d_x, third_2d_y)
+
 
 def bandwidth(topography):
     """Computes lower and upper bound of bandwidth.

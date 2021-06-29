@@ -8,6 +8,7 @@ import muFFT.Stencils2D as Stencils2D
 
 from SurfaceTopography import UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Uniform.common import third_2d
 
 
 def test_uniform_vs_nonuniform():
@@ -85,6 +86,51 @@ def test_fourier_derivative(plot=False):
         ax.plot(y[-1, :], topography.heights()[-1, :])
         ax.plot(y[-1, :], dy[-1, :])
         ax.plot(y[-1, :], dy_num[-1, :])
+        fig.show()
+
+
+def test_third_derivatives_fourier_vs_finite_differences(plot=False):
+    nx, ny = [512] * 2
+    sx, sy = [1.] * 2
+
+    lc = 0.5
+    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
+                                   short_cutoff=lc, long_cutoff=lc + 1e-9)
+    topography = topography.scale(1 / topography.rms_height_from_area())
+
+    # Fourier derivative
+    dx3_topography = topography.filter(lambda qx, qy: (1j * qx) ** 3, isotropic=False)
+    dx3 = dx3_topography.heights()
+    dy3 = topography.filter(lambda qx, qy: (1j * qy) ** 3, isotropic=False).heights()
+
+    # Finite-differences. We use central differences because this produces the
+    # derivative at the same point as the Fourier derivative
+    dx3_num, dy3_num = topography.derivative(3, operator=third_2d)
+
+    np.testing.assert_allclose(dx3, dx3_num, atol=dx3_topography.rms_height_from_area() * 1e-1)
+    np.testing.assert_allclose(dy3, dy3_num, atol=dx3_topography.rms_height_from_area() * 1e-1)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        x, y = topography.positions()
+
+        ax.plot(x[:, 0], topography.heights()[:, 0], label="height")
+        ax.plot(x[:, 0], dx3[:, 0], label="fourier der")
+        ax.plot(x[:, 0], dx3_num[:, 0], label="FD")
+        ax.set_title("x")
+        ax.legend()
+
+        fig.show()
+
+        fig, ax = plt.subplots()
+        ax.set_title("y")
+        x, y = topography.positions()
+        ax.plot(y[-1, :], topography.heights()[-1, :], label="height")
+        ax.plot(y[-1, :], dy3[-1, :], label="fourier der")
+        ax.plot(y[-1, :], dy3_num[-1, :], label="FD")
+        ax.legend()
+
         fig.show()
 
 
