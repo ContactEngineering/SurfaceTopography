@@ -106,7 +106,7 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
                     retvals[e] += [s]
                 else:
                     retvals[e] = [s]
-    return [np.mean(retvals[d], axis=0) for d in distance]
+    return [np.mean(retvals[d], axis=0) if d in retvals else None for d in distance]
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)
