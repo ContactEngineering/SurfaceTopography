@@ -101,7 +101,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
         @property
         def channels(self):
             try:
-                height_scale_factor = self._topography.scale_factor
+                height_scale_factor = self._topography.height_scale_factor
             except AttributeError:
                 height_scale_factor = None
                 # None means: Not available in file
