@@ -3,7 +3,7 @@
 sudo apt-get update
 sudo apt-get install libfftw3-dev libopenblas-dev
 if [ "$WITH_MPI" == "yes" ]; then
-  sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev
+  sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libnetcdf-mpi-dev
 fi
 #wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 #bash miniconda.sh -b -p $HOME/miniconda3
@@ -17,5 +17,5 @@ fi
 python -m pip install $(grep numpy requirements.txt)
 if [ "$WITH_MPI" == "yes" ]; then
   python -m pip install --no-binary mpi4py mpi4py==${MPI4PY_VERSION}
-  BUILDDIR=/tmp PREFIX=$HOME/.local source .install_parallel_netcdf.sh
+  #BUILDDIR=/tmp PREFIX=$HOME/.local source .install_parallel_netcdf.sh
 fi
