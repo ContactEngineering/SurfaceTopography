@@ -124,7 +124,7 @@ plt.show()
         if communicator is not None and communicator.size > 1:
             # For parallel I/O we need netCDF4
             from netCDF4 import Dataset
-            self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
+            self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator, format='NETCDF3_64BIT_OFFSET')
         else:
             # We need to check magic ourselves if this is a stream because
             # netcdf_file may close the stream in case of error, probably
