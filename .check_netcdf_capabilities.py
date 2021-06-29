@@ -14,5 +14,5 @@ assert netCDF4.__has_cdf5_format__
 
 if mpi_required:
     # Make sure that we have the parallel version running
-    assert netCDF4.__has_parallel4_support__
+    #assert netCDF4.__has_parallel4_support__
     assert netCDF4.__has_pnetcdf_support__
