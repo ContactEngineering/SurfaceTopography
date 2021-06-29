@@ -236,8 +236,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
                 raise ValueError(
                     'This is a serial run but `nb_grid_pts` (= {}) does not '
-                    'equal the shape of the `heights` (= {}) array.'
-                        .format(nb_grid_pts, heights.shape))
+                    'equal the shape of the `heights` (= {}) array.'.format(nb_grid_pts, heights.shape))
             if subdomain_locations is not None and tuple(
                     subdomain_locations) != (0, 0):
                 raise ValueError(
@@ -248,8 +247,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     'This is a serial run but `nb_subdomain_grid_pts` '
                     '(= {}) does not equal the shape '
-                    'of the `heights` (= {}) array.'
-                        .format(nb_subdomain_grid_pts, heights.shape))
+                    'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
             self._heights = np.asanyarray(heights)
@@ -268,8 +266,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     "This is a parallel run with 'subdomain' decomposition "
                     "but `nb_subdomain_grid_pts` (= {}) does not equal the "
-                    "shape of the `heights` (= {}) array."
-                        .format(nb_subdomain_grid_pts, heights.shape))
+                    "shape of the `heights` (= {}) array.".format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(heights)
@@ -279,11 +276,9 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     "This is a parallel run with 'domain' decomposition but "
                     "`nb_grid_pts` (= {}) does not equal the shape of the "
-                    "`heights` (= {}) array."
-                        .format(nb_grid_pts, heights.shape))
+                    "`heights` (= {}) array.".format(nb_grid_pts, heights.shape))
             if subdomain_locations is None:
-                raise ValueError('This is a parallel run; please specify '
-                                 '`subdomain_locations`.')
+                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
             if nb_subdomain_grid_pts is None:
                 raise ValueError(
                     "This is a parallel run with 'domain' decomposition; "
@@ -311,8 +306,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         return state
 
     def __setstate__(self, state):
-        superstate, self._heights, self._size, self._periodic, \
-        self._subdomain_locations, self._nb_grid_pts = state
+        superstate, self._heights, self._size, self._periodic, self._subdomain_locations, self._nb_grid_pts = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -649,9 +643,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                     x / self.parent_topography.physical_sizes, y, 2)
                 self._coeffs = a0, a1, a2
             else:
-                raise ValueError(
-                    "Unsupported detrend mode '{}' for line scans."
-                        .format(self._detrend_mode))
+                raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
         else:  # self.dim == 2
             if self._detrend_mode is None or self._detrend_mode == 'center':
                 self._coeffs = [self.parent_topography.mean()]
@@ -670,9 +662,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             elif self._detrend_mode == 'curvature':
                 self._coeffs = [s for s in tilt_and_curvature(self.parent_topography)]
             else:
-                raise ValueError(
-                    "Unsupported detrend mode '{}' for 2D topographies."
-                        .format(self._detrend_mode))
+                raise ValueError("Unsupported detrend mode '{}' for 2D topographies.".format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -726,26 +716,20 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 return self.parent_topography.heights() - a0 - a1 * x
             elif len(self._coeffs) == 3:
                 a0, a1, a2 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1 * x - \
-                       a2 * x * x
+                return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
             else:
-                raise RuntimeError(
-                    'Unknown physical_sizes of coefficients tuple for line '
-                    'scans.')
+                raise RuntimeError('Unknown physical_sizes of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
-                               indexing='ij')
+            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts), indexing='ij')
             if len(self._coeffs) == 3:
                 a1x, a1y, a0 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1x * x - \
-                       a1y * y
+                return self.parent_topography.heights() - a0 - a1x * x - a1y * y
             elif len(self._coeffs) == 6:
                 m, n, mm, nn, mn, h0 = self._coeffs
                 xx = x * x
                 yy = y * y
                 xy = x * y
-                return self.parent_topography.heights() - h0 - m * x - \
-                       n * y - mm * xx - nn * yy - mn * xy
+                return self.parent_topography.heights() - h0 - m * x - n * y - mm * xx - nn * yy - mn * xy
             else:
                 raise RuntimeError('Unknown physical_sizes of coefficients '
                                    'tuple for 2D topographies.')

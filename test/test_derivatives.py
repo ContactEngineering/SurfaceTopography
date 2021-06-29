@@ -167,11 +167,29 @@ def test_scale_factor():
     sy = 0.8
     topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1., periodic=False)
 
-    d1, d2 = topography.derivative(1, scale_factor=[1, 2])
-    dx1, dy1 = d1
-    dx2, dy2 = d2
+    dx, dy = topography.derivative(1, scale_factor=[1, 2, 4])
+    dx1, dx2, dx4 = dx
+    dy1, dy2, dy4 = dy
 
-    assert dx2.shape[0] == nx - 1
-    assert dx2.shape[1] == ny - 1
+    assert dx1.shape[0] == nx - 1
+    assert dx1.shape[1] == ny - 1
+    assert dy1.shape[0] == nx - 1
+    assert dy1.shape[1] == ny - 1
+    assert dx2.shape[0] == nx - 2
+    assert dx2.shape[1] == ny - 2
     assert dy2.shape[0] == nx - 2
     assert dy2.shape[1] == ny - 2
+    assert dx4.shape[0] == nx - 4
+    assert dx4.shape[1] == ny - 4
+    assert dy4.shape[0] == nx - 4
+    assert dy4.shape[1] == ny - 4
+
+    dx, dy = topography.derivative(1, scale_factor=[(1, 4), (2, 1), (4, 2)])
+    dxn1, dxn2, dxn4 = dx
+    dyn4, dyn1, dyn2 = dy
+    np.testing.assert_allclose(dxn1, dx1)
+    np.testing.assert_allclose(dyn1, dy1)
+    np.testing.assert_allclose(dxn2, dx2)
+    np.testing.assert_allclose(dyn2, dy2)
+    np.testing.assert_allclose(dxn4, dx4)
+    np.testing.assert_allclose(dyn4, dy4)

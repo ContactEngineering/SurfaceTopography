@@ -20,3 +20,4 @@ defusedxml
 numpyencoder
 pyyaml
 deprecated
+Pillow

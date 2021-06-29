@@ -40,6 +40,7 @@ common_functions = [
     "squeeze",
     "scale_dependent_statistical_property",
     "to_unit",
+    "to_netcdf",
 ]
 
 uniform_functions = [
@@ -75,6 +76,9 @@ area_functions = [
     "rms_laplacian",
     "rms_curvature_from_area",
     "variable_bandwidth_from_area",
+    "power_spectrum_from_area",
+    "power_spectrum_from_profile",
+    "to_dzi",
 ]
 
 functions = common_functions + uniform_functions + nonuniform_functions + profile_functions + area_functions

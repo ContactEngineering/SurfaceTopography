@@ -307,9 +307,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 2)
         else:
-            raise ValueError(
-                "Unsupported detrend mode '{}' for line scans."
-                    .format(self._detrend_mode))
+            raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
