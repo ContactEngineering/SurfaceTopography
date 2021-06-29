@@ -3,7 +3,7 @@
 sudo apt-get update
 sudo apt-get install libfftw3-dev libopenblas-dev python3-numpy python3-scipy
 if [ "$WITH_MPI" == "yes" ]; then
-  sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libnetcdf-mpi-dev
+  sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libnetcdf-mpi-dev
 fi
 #wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 #bash miniconda.sh -b -p $HOME/miniconda3
