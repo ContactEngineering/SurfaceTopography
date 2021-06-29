@@ -11,7 +11,7 @@ env:
 before_install:
   - sudo apt-get update
   - sudo apt-get install libfftw3-dev libopenblas-dev
-  - if [ "$WITH_MPI" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libnetcdf-pnetcdf-dev; fi
+  - if [ "$WITH_MPI" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
 install:
   - if [ "$WITH_MPI" == "yes" ]; then CC=mpicc python -m pip install -v --force-reinstall --no-binary mpi4py mpi4py==${MPI4PY_VERSION}; fi
   - python -m pip install -r requirements.txt --no-binary setuptools_scm
