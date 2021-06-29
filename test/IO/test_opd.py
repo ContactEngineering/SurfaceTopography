@@ -46,7 +46,7 @@ def test_read_opd():
     assert sx == approx(0.125909140)
     assert sy == approx(0.094431855)
     assert surface.is_uniform
-    assert surface.scale_factor == approx(0.0005772949829101563)
+    assert surface.height_scale_factor == approx(0.0005772949829101563)
 
 
 def test_undefined_points():
