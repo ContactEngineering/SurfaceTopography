@@ -75,7 +75,9 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
     statistical_fingerprint : np.ndarray or list of np.ndarray
         Array containing the result of `func`, average over all topographies
         and line scans. If multiple distances are provided, then this is a
-        list of arrays that contains results for each distance.
+        list of arrays that contains results for each distance. If no data
+        exists for a certain distance, then None is returned for that
+        distance.
 
     Examples
     --------
