@@ -19,5 +19,4 @@ runtests>=0.0.28
 defusedxml
 numpyencoder
 pyyaml
-deprecated
 Pillow
