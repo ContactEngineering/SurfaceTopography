@@ -1,4 +1,3 @@
-
 Change log for SurfaceTopography
 =============================
 
@@ -11,20 +10,23 @@ Deprecations in version 1.0
 v0.95.0 (not yet published)
 ---------------------------
 
-- ENH: Writing Deep Zoom Image (DZI) files
 - API: `variable_bandwidth` is now `variable_bandwidth_from_area` and an
   additional `variable_bandwidth_from_profile` was added for a line-by-line
   analysis.
 - API: `checkerboard_detrend` is now `checkerboard_detrend_area` and an
   additional `checkerboard_detrend_profile` was added for a line-by-line
   analysis.
-- ENH: Checkerboard detrending can now be carried out to arbitrary polynomial
-  order.
 - API: Topographies now have a `unit` property. For backwards compatibility,
   this information is still returned in the `info` dictionary but this
   behavior will be deprecated in version 1.0. (#83)
 - API: `physical_sizes` can no longer be set after the topography has been
   created.
+- API: Renamed `ninterpolate` keyword argument to `nb_interpolate`
+- API: `to_uniform` for nonuniform line scans now accepts an `nb_interpolate`
+  argument specifying the number of grid points put between closest points.
+- ENH: Writing Deep Zoom Image (DZI) files
+- ENH: Checkerboard detrending can now be carried out to arbitrary polynomial
+  order.
 - ENH: `scale` pipeline function is now able to rescale lateral dimensions
   (positions)
 - ENH: Add `to_unit` pipeline function for unit conversion
@@ -34,9 +36,6 @@ v0.95.0 (not yet published)
 - ENH: Retrieving surface containers from https://contact.engineering
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
-- API: Renamed `ninterpolate` keyword argument to `nb_interpolate`
-- API: `to_uniform` for nonuniform line scans now accepts an `nb_interpolate`
-  argument specifying the number of grid points put between closest points.
 
 v0.94.0 (10Jun21)
 -----------------
