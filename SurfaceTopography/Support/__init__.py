@@ -22,4 +22,4 @@
 # SOFTWARE.
 #
 
-from .Deprecation import deprecated  # noqa: F401
+from .Deprecation import deprecated, DeprecatedDictionary  # noqa: F401

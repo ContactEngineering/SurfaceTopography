@@ -121,13 +121,15 @@ class UniformLineScanTest(unittest.TestCase):
         with pytest.deprecated_call():
             t = UniformLineScan(h, 4, info=dict(unit='A'))
         t = UniformLineScan(h, 4, unit='A')
-        assert t.info['unit'] == 'A'
+        with pytest.deprecated_call():
+            assert t.info['unit'] == 'A'
 
         #
         # This info should be inherited in the pipeline
         #
         st = t.scale(2)
-        assert st.info['unit'] == 'A'
+        with pytest.deprecated_call():
+            assert st.info['unit'] == 'A'
 
         #
         # It should be also possible to set the info
@@ -135,13 +137,15 @@ class UniformLineScanTest(unittest.TestCase):
         with pytest.deprecated_call():
             st = t.scale(2, info=dict(unit='B'))
         st = t.scale(2, 2, unit='B')
-        assert st.info['unit'] == 'B'
+        with pytest.deprecated_call():
+            assert st.info['unit'] == 'B'
 
         #
         # Again the info should be passed
         #
         dt = st.detrend(detrend_mode='center')
-        assert dt.info['unit'] == 'B'
+        with pytest.deprecated_call():
+            assert dt.info['unit'] == 'B'
 
         #
         # It can no longer be changed in detrend (you need to use scale)
@@ -268,13 +272,15 @@ class NonuniformLineScanTest(unittest.TestCase):
         with pytest.deprecated_call():
             t = NonuniformLineScan(x, h, info=dict(unit='A'))
         t = NonuniformLineScan(x, h, unit='A')
-        assert t.info['unit'] == 'A'
+        with pytest.deprecated_call():
+            assert t.info['unit'] == 'A'
 
         #
         # This info should be inherited in the pipeline
         #
         st = t.scale(2)
-        assert st.info['unit'] == 'A'
+        with pytest.deprecated_call():
+            assert st.info['unit'] == 'A'
 
         #
         # It should be also possible to set the info
@@ -282,13 +288,15 @@ class NonuniformLineScanTest(unittest.TestCase):
         with pytest.deprecated_call():
             st = t.scale(2, info=dict(unit='B'))
         st = t.scale(2, 1, unit='B')
-        assert st.info['unit'] == 'B'
+        with pytest.deprecated_call():
+            assert st.info['unit'] == 'B'
 
         #
         # Again the info should be passed
         #
         dt = st.detrend(detrend_mode='center')
-        assert dt.info['unit'] == 'B'
+        with pytest.deprecated_call():
+            assert dt.info['unit'] == 'B'
 
         #
         # It can no longer be changed in detrend (you need to use scale)
@@ -365,7 +373,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_height_from_area(), 17.22950485567042)
         self.assertAlmostEqual(surf.rms_gradient(), 0.4560243831362324)
         self.assertTrue(surf.is_uniform)
-        self.assertEqual(surf.info['unit'], 'nm')
+        with pytest.deprecated_call():
+            self.assertEqual(surf.info['unit'], 'nm')
 
     def test_example2(self):
         surf = read_asc(os.path.join(DATADIR, 'example2.txt'))
@@ -375,7 +384,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_height_from_area(), 2.7722350402740072e-07)
         self.assertAlmostEqual(surf.rms_gradient(), 0.35152685030417763)
         self.assertTrue(surf.is_uniform)
-        self.assertEqual(surf.info['unit'], 'm')
+        with pytest.deprecated_call():
+            self.assertEqual(surf.info['unit'], 'm')
 
     def test_example3(self):
         surf = read_asc(os.path.join(DATADIR, 'example3.txt'))
@@ -385,7 +395,8 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_height_from_area(), 3.5222918750198742e-08)
         self.assertAlmostEqual(surf.rms_gradient(), 0.19235602282848963)
         self.assertTrue(surf.is_uniform)
-        self.assertEqual(surf.info['unit'], 'm')
+        with pytest.deprecated_call():
+            self.assertEqual(surf.info['unit'], 'm')
 
     def test_example4(self):
         surf = read_asc(os.path.join(DATADIR, 'example4.txt'))
@@ -823,7 +834,8 @@ def test_di_orientation():
 
     di_t = read_topography(di_fn)
 
-    assert di_t.info['unit'] == 'nm'
+    with pytest.deprecated_call():
+        assert di_t.info['unit'] == 'nm'
 
     #
     # Check values in 4 corners, this should fix orientation

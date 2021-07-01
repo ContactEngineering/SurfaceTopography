@@ -35,6 +35,8 @@ import numpy as np
 
 from NuMPI import MPI
 
+from .Support import DeprecatedDictionary
+
 # Standardized entries for the info dictionary
 
 # Length unit of the measurement. The unit applies to both lateral and heights.
@@ -155,7 +157,7 @@ class AbstractTopography(object):
         acquisition_time : :obj:`datetime`
             Date and time of the measurement.
         """
-        info = self._info.copy()
+        info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
         if self.unit is not None:
             info.update(dict(unit=self.unit))
         return info
@@ -208,7 +210,7 @@ class DecoratedTopography(AbstractTopography):
     @property
     def info(self):
         """ Return info dictionary """
-        info = self.parent_topography._info.copy()
+        info = DeprecatedDictionary(self.parent_topography._info, deprecated_keys=['unit'])
         info.update(self._info)
         if self.unit is not None:
             info['unit'] = self.unit

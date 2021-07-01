@@ -23,6 +23,7 @@
 #
 
 import warnings
+from collections.abc import MutableMapping
 from functools import wraps
 
 
@@ -44,3 +45,21 @@ def deprecated(version=None, alternative=None):
         return deprecated_func
 
     return deprecated_decorator
+
+
+class DeprecatedDictionary(dict):
+    """A dictionary that raises a deprecation warning when accessing certain keys."""
+
+    def __init__(self, *args, **kwargs):
+        self._deprecated_keys = kwargs['deprecated_keys']
+        del kwargs['deprecated_keys']
+        super().__init__(*args, **kwargs)
+
+    def __getitem__(self, key):
+        print(key, self._deprecated_keys, key in self._deprecated_keys)
+        if key in self._deprecated_keys:
+            warnings.warn(f"Dictionary key '{key}' has been deprecated.", DeprecationWarning)
+        return super().__getitem__(key)
+
+    def copy(self):
+        return DeprecatedDictionary(self, deprecated_keys=self._deprecated_keys)
