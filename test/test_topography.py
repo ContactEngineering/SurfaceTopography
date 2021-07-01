@@ -118,7 +118,7 @@ class UniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             t = UniformLineScan(h, 4, info=dict(unit='A'))
         t = UniformLineScan(h, 4, unit='A')
         assert t.info['unit'] == 'A'
@@ -132,7 +132,7 @@ class UniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             st = t.scale(2, info=dict(unit='B'))
         st = t.scale(2, 2, unit='B')
         assert st.info['unit'] == 'B'
@@ -146,7 +146,7 @@ class UniformLineScanTest(unittest.TestCase):
         #
         # It can no longer be changed in detrend (you need to use scale)
         #
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):
@@ -265,7 +265,7 @@ class NonuniformLineScanTest(unittest.TestCase):
 
         assert t.info == {}
 
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             t = NonuniformLineScan(x, h, info=dict(unit='A'))
         t = NonuniformLineScan(x, h, unit='A')
         assert t.info['unit'] == 'A'
@@ -279,7 +279,7 @@ class NonuniformLineScanTest(unittest.TestCase):
         #
         # It should be also possible to set the info
         #
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             st = t.scale(2, info=dict(unit='B'))
         st = t.scale(2, 1, unit='B')
         assert st.info['unit'] == 'B'
@@ -293,7 +293,7 @@ class NonuniformLineScanTest(unittest.TestCase):
         #
         # It can no longer be changed in detrend (you need to use scale)
         #
-        with self.assertRaises(ValueError):
+        with pytest.deprecated_call():
             dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
     def test_init_with_lists_calling_scale_and_detrend(self):

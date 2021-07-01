@@ -29,6 +29,7 @@ Base class for geometric topogography descriptions
 """
 
 import abc
+import warnings
 
 import numpy as np
 
@@ -66,7 +67,11 @@ class AbstractTopography(object):
     def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
         if 'unit' in info:
             if unit is None:
-                raise ValueError('Please pass units via the `unit` keyword parameter, not the info dictionary.')
+                warnings.warn('Please pass units via the `unit` keyword parameter, not the info dictionary.',
+                              DeprecationWarning)
+                unit = info['unit']
+                info = info.copy()
+                del info['unit']
             elif unit != info['unit']:
                 raise ValueError('Unit was passed via the `unit` keyword parameter and within the info dictionary.')
         self._unit = unit
