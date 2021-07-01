@@ -9,13 +9,11 @@ import numpy as np
 
 from NuMPI.Tools import Reduction
 
+from SurfaceTopography import read_topography
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO.Text import read_xyz
-
-DATADIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
 
 
 def test_translate(comm_self):
@@ -172,8 +170,8 @@ def test_uniform_unit_conversion():
     np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
 
 
-def test_nonuniform_scaled_topography():
-    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+def test_nonuniform_scaled_topography(file_format_examples):
+    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
     sx, = surf.physical_sizes
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
@@ -197,8 +195,8 @@ def test_nonuniform_scaled_topography():
         np.testing.assert_almost_equal(2 * fac * x, x2)
 
 
-def test_nonuniform_unit_conversion():
-    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'), unit='um')
+def test_nonuniform_unit_conversion(file_format_examples):
+    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'), unit='um')
     assert surf.unit == 'um'
 
     surf2 = surf.to_unit('mm')
@@ -224,3 +222,8 @@ def test_transposed_topography():
     assert sx == sy2
     assert sy == sx2
     assert (surf.heights() == surf2.heights().T).all()
+
+
+def test_scanning_probe_reliability_cutoff(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+    np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 91.79698634551458)

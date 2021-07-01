@@ -28,8 +28,7 @@ Scale-dependent slope
 
 import numpy as np
 
-from ..HeightContainer import UniformTopographyInterface
-from ..HeightContainer import NonuniformLineScanInterface
+from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
 def scale_dependent_curvature_from_profile(topography, **kwargs):
@@ -111,7 +110,7 @@ def scale_dependent_curvature_from_area(topography, nbins=None):
     if len(nz) > 0:
         n = nz[0]
     # Important: The following expression relies on the fact that r is equally spaced!
-    return r[:n], np.sqrt(B[:n]) / r[:n] ** 2
+    return 2 * r[:n], np.sqrt(B[:n]) / r[:n] ** 2
 
 
 # Register analysis functions from this module

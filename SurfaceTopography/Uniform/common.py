@@ -51,7 +51,7 @@ second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
 third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
-third_central_1d = muFFT.DiscreteDerivative([-2], [-1/2, 1, 0, -1, 1/2])
+third_central_1d = muFFT.DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
 
 # First order upwind differences
 first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
@@ -241,10 +241,10 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
             # Convert distance to scale factor
             if topography.dim == 1:
                 dx, = grid_spacing
-                scale_factor = [d/dx for d in toiter(distance)]
+                scale_factor = [d / (n * dx) for d in toiter(distance)]
             else:
                 dx, dy = grid_spacing
-                scale_factor = np.array([(d/dx, d/dy) for d in toiter(distance)])
+                scale_factor = np.array([(d / (n * dx), d / (n * dy)) for d in toiter(distance)])
 
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
@@ -419,8 +419,8 @@ def plot(topography, subplot_location=111):
     nx, ny = topography.nb_grid_pts
 
     ax = plt.subplot(subplot_location, aspect=sx / sy)
-    Y, X = np.meshgrid(np.arange(ny+1) * sy / ny,
-                       np.arange(nx+1) * sx / nx)
+    Y, X = np.meshgrid(np.arange(ny + 1) * sy / ny,
+                       np.arange(nx + 1) * sx / nx)
     Z = topography[...]
     mesh = ax.pcolormesh(X, Y, Z)
     plt.colorbar(mesh, ax=ax)
