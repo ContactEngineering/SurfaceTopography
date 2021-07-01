@@ -23,7 +23,6 @@
 #
 
 import warnings
-from collections.abc import MutableMapping
 from functools import wraps
 
 
