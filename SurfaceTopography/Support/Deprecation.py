@@ -30,16 +30,24 @@ def deprecated(version=None, alternative=None):
     """Emit a deprecation warning for a function."""
 
     def deprecated_decorator(func):
+
+        def _get_warn_str(version=version, alternative=alternative):
+            if version is None:
+                warn_str = f'Function/property `{func.__name__}` is deprecated.'
+            else:
+                warn_str = f'Function/property `{func.__name__}` was deprecated in SurfaceTopography {version}.'
+            if alternative is not None:
+                warn_str += f' The function/property `{alternative}` provides this functionality now.'
+            return warn_str
+
         @wraps(func)
         def deprecated_func(*args, **kwargs):
-            if version is None:
-                warn_str = f'Function/property `{func.__name__}` was deprecated in SurfaceTopography {version}.'
-            else:
-                warn_str = f'Function/property `{func.__name__}` is deprecated.'
-            if alternative is None:
-                warn_str += f' The function/property `{alternative}` provides this functionality now.'
-            warnings.warn(warn_str, DeprecationWarning)
+            warnings.warn(_get_warn_str(version, alternative), DeprecationWarning)
             return func(*args, **kwargs)
+
+        docstring = deprecated_func.__doc__ or ""
+        docstring += "\n\n" + _get_warn_str(version, alternative)
+        deprecated_func.__doc__ = docstring
 
         return deprecated_func
 
