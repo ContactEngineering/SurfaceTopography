@@ -36,6 +36,9 @@ v0.95.0 (not yet published)
 - ENH: Retrieving surface containers from https://contact.engineering
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
+- ENH: Added `scanning_probe_reliability_cutoff` pipeline function to estimate
+  a lateral length scale below which scanning probe data become unreliable
+  because of tip artifacts (see arXiv:2106.16013)
 
 v0.94.0 (10Jun21)
 -----------------
