@@ -32,7 +32,7 @@ import scipy
 from SurfaceTopography.HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
-def scanning_probe_reliability_cutoff(self, tip_radius, fudge_factor=1 / 2):
+def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     """
     Estimate a length scale below which tip radius artifacts affect the
     measured data. See: https://arxiv.org/abs/2106.16103
@@ -43,7 +43,7 @@ def scanning_probe_reliability_cutoff(self, tip_radius, fudge_factor=1 / 2):
         Topogaphy or line scan.
     tip_radius : float
         Tip radius.
-    fudge_factor : float, optional
+    safety_factor : float, optional
         Tip radius artifacts are expected to play a role when for scales below
         which the minimum scale-dependent curvature drops below
         -fudge_factor/radius. The `fudge_factor` should be on the order of 1.
@@ -55,7 +55,7 @@ def scanning_probe_reliability_cutoff(self, tip_radius, fudge_factor=1 / 2):
     reliability_cutoff : float
         Length scale below which data is affected by tip radius artifacts.
     """
-    target_curvature = fudge_factor / tip_radius
+    target_curvature = safety_factor / tip_radius
 
     if self.dim == 1:
         sx, = self.physical_sizes
