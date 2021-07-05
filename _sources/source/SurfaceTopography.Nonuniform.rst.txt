@@ -36,6 +36,14 @@ SurfaceTopography.Nonuniform.ScalarParameters module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Nonuniform.ScaleDependentStatistics module
+------------------------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.ScaleDependentStatistics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Nonuniform.VariableBandwidth module
 -----------------------------------------------------
 

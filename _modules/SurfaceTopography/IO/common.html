@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.common &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -198,63 +198,7 @@
 
 <span class="c1">###</span>
 
-<span class="n">height_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s1">&#39;µm&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;nm&#39;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span> <span class="s1">&#39;Å&#39;</span><span class="p">:</span> <span class="mf">1e-10</span><span class="p">}</span>
-<span class="n">voltage_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;kV&#39;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;mV&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s1">&#39;µV&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="s1">&#39;nV&#39;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">}</span>
-
-<span class="n">units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="n">height_units</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="n">voltage_units</span><span class="p">)</span>
-
 <span class="n">CHANNEL_NAME_INFO_KEY</span> <span class="o">=</span> <span class="s1">&#39;channel_name&#39;</span>
-
-<span class="c1">###</span>
-
-
-<div class="viewcode-block" id="get_unit_conversion_factor"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.get_unit_conversion_factor">[docs]</a><span class="k">def</span> <span class="nf">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit1_str</span><span class="p">,</span> <span class="n">unit2_str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute factor for conversion from unit1 to unit2. Return None if units are</span>
-<span class="sd">    incompatible.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">unit1_str</span> <span class="o">==</span> <span class="n">unit2_str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="n">unit1_kind</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">unit2_kind</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">unit_scales</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">units</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">unit1_str</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-            <span class="n">unit1_kind</span> <span class="o">=</span> <span class="n">key</span>
-            <span class="n">unit_scales</span> <span class="o">=</span> <span class="n">values</span>
-        <span class="k">if</span> <span class="n">unit2_str</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-            <span class="n">unit2_kind</span> <span class="o">=</span> <span class="n">key</span>
-            <span class="n">unit_scales</span> <span class="o">=</span> <span class="n">values</span>
-    <span class="k">if</span> <span class="n">unit1_kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit2_kind</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">unit1_kind</span> <span class="o">!=</span> <span class="n">unit2_kind</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit1_str</span><span class="p">]</span> <span class="o">/</span> <span class="n">unit_scales</span><span class="p">[</span><span class="n">unit2_str</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="mangle_length_unit_utf8"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_length_unit_utf8">[docs]</a><span class="k">def</span> <span class="nf">mangle_length_unit_utf8</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;Å&#39;</span>
-    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;μm&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;um&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;~m&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;µm&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">unit</span></div>
-
-
-<div class="viewcode-block" id="mangle_length_unit_ascii"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.mangle_length_unit_ascii">[docs]</a><span class="k">def</span> <span class="nf">mangle_length_unit_ascii</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
-    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;Å&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;A&#39;</span>
-    <span class="k">elif</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;μm&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;µm&#39;</span> <span class="ow">or</span> <span class="n">unit</span> <span class="o">==</span> <span class="s1">&#39;~m&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;um&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">unit</span></div>
 
 
 <span class="c1">###</span>

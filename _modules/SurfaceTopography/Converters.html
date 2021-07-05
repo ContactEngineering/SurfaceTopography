@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Converters &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Converters &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -200,14 +200,12 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="n">DecoratedTopography</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span><span class="p">,</span> \
-    <span class="n">NonuniformLineScanInterface</span>
-<span class="kn">from</span> <span class="nn">.NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
-<span class="kn">from</span> <span class="nn">.UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">UniformLineScan</span>
+<span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span><span class="p">,</span> <span class="n">NonuniformLineScanInterface</span>
+<span class="kn">from</span> <span class="nn">.NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span><span class="p">,</span> <span class="n">DecoratedNonuniformTopography</span>
+<span class="kn">from</span> <span class="nn">.UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">UniformLineScan</span><span class="p">,</span> <span class="n">DecoratedUniformTopography</span>
 
 
-<div class="viewcode-block" id="WrapAsNonuniformLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.WrapAsNonuniformLineScan">[docs]</a><span class="k">class</span> <span class="nc">WrapAsNonuniformLineScan</span><span class="p">(</span><span class="n">DecoratedTopography</span><span class="p">,</span>
-                               <span class="n">NonuniformLineScanInterface</span><span class="p">):</span>
+<div class="viewcode-block" id="WrapAsNonuniformLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.WrapAsNonuniformLineScan">[docs]</a><span class="k">class</span> <span class="nc">WrapAsNonuniformLineScan</span><span class="p">(</span><span class="n">DecoratedNonuniformTopography</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrap a uniform topography into a nonuniform one.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -268,36 +266,64 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="UniformlyInterpolatedLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.UniformlyInterpolatedLineScan">[docs]</a><span class="k">class</span> <span class="nc">UniformlyInterpolatedLineScan</span><span class="p">(</span><span class="n">DecoratedTopography</span><span class="p">,</span>
-                                    <span class="n">UniformTopographyInterface</span><span class="p">):</span>
+<div class="viewcode-block" id="UniformlyInterpolatedLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.UniformlyInterpolatedLineScan">[docs]</a><span class="k">class</span> <span class="nc">UniformlyInterpolatedLineScan</span><span class="p">(</span><span class="n">DecoratedUniformTopography</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a topography onto a uniform grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">nb_points</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">nb_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nb_interpolate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a nonuniform line scan to a uniform line scan by explicit</span>
+<span class="sd">        linear interpolation between the discrete coordinates of the</span>
+<span class="sd">        nonuniform scan.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`</span>
 <span class="sd">            SurfaceTopography to interpolate.</span>
-<span class="sd">        nb_points : int</span>
-<span class="sd">            Number of equidistant grid points.</span>
-<span class="sd">        padding : int</span>
+<span class="sd">        nb_points : int, optional</span>
+<span class="sd">            Number of equidistant grid points. Number of points will be</span>
+<span class="sd">            automatically computed from the mean grid spacing and</span>
+<span class="sd">            `nb_interpolate` if set to None. (Default: None)</span>
+<span class="sd">        padding : int, optional</span>
 <span class="sd">            Number of padding grid points, zeros appended to the data.</span>
+<span class="sd">            (Default: 0)</span>
+<span class="sd">        nb_interpolate : int</span>
+<span class="sd">            Number of grid points to between closest points on surface.</span>
+<span class="sd">            (Default: None)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span> <span class="o">=</span> <span class="n">nb_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span> <span class="o">=</span> <span class="n">nb_interpolate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_nb_points</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
 
         <span class="c1"># This is populated with functions from the nonuniform topography, but</span>
         <span class="c1"># this is a uniform topography</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="o">.</span><span class="n">_functions</span>
 
+    <span class="k">def</span> <span class="nf">_update_nb_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Automatically compute nb_points if it is None&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You need to specify either `nb_points` or `nb_interpolate`.&#39;</span><span class="p">)</span>
+            <span class="n">s</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span>
+            <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;This is a reentrant nonuniform line scan. Reentrant line scans cannot be converted &#39;</span>
+                                   <span class="s1">&#39;to uniform line scans.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You cannot specify both, `nb_points` and `nb_interpolate`.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span>
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
 <span class="sd">            the instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span>
         <span class="k">return</span> <span class="n">state</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
@@ -305,7 +331,8 @@
 <span class="sd">        Keyword Arguments:</span>
 <span class="sd">        state -- result of __getstate__</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_interpolate</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_nb_points</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
 
     <span class="c1"># Implement abstract methods of AbstractHeightContainer</span>
@@ -317,7 +344,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
-        <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span><span class="p">,</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_periodic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -332,7 +359,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return nb_grid_pts, i.e. number of pixels, of the topography.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pixel_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -349,9 +376,9 @@
 <div class="viewcode-block" id="UniformlyInterpolatedLineScan.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.UniformlyInterpolatedLineScan.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">x_range</span>
         <span class="n">size</span> <span class="o">=</span> <span class="n">right</span> <span class="o">-</span> <span class="n">left</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">),</span>
-                           <span class="n">right</span> <span class="o">+</span> <span class="n">size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span><span class="p">),</span>
-                           <span class="bp">self</span><span class="o">.</span><span class="n">nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span><span class="p">),</span>
+                           <span class="n">right</span> <span class="o">+</span> <span class="n">size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span><span class="p">),</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_nb_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UniformlyInterpolatedLineScan.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Converters.UniformlyInterpolatedLineScan.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Computes the rescaled profile.</span>
@@ -361,10 +388,8 @@
 
 
 <span class="c1"># Register pipeline functions from this module</span>
-<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_nonuniform&#39;</span><span class="p">,</span>
-                                             <span class="n">WrapAsNonuniformLineScan</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_uniform&#39;</span><span class="p">,</span>
-                                              <span class="n">UniformlyInterpolatedLineScan</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_nonuniform&#39;</span><span class="p">,</span> <span class="n">WrapAsNonuniformLineScan</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_uniform&#39;</span><span class="p">,</span> <span class="n">UniformlyInterpolatedLineScan</span><span class="p">)</span>
 </pre></div>
 
            </div>

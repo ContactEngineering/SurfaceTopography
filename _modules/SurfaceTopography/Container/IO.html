@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Container.IO &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Container.IO &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -192,9 +192,12 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">zipfile</span> <span class="k">import</span> <span class="n">ZipFile</span>
 
@@ -207,7 +210,7 @@
 
     <span class="n">__version__</span> <span class="o">=</span> <span class="n">get_distribution</span><span class="p">(</span><span class="s1">&#39;SurfaceTopography&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
 
-<span class="kn">from</span> <span class="nn">..IO</span> <span class="k">import</span> <span class="n">read_topography</span>
+<span class="kn">from</span> <span class="nn">..IO</span> <span class="k">import</span> <span class="n">open_topography</span>
 <span class="kn">from</span> <span class="nn">.SurfaceContainer</span> <span class="k">import</span> <span class="n">SurfaceContainer</span>
 
 
@@ -237,27 +240,83 @@
     <span class="n">surfaces</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;meta.yml&#39;</span><span class="p">))</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;meta.yml&#39;</span><span class="p">),</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
 
         <span class="n">topographies</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">surf_meta</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">topo_meta</span> <span class="ow">in</span> <span class="n">surf_meta</span><span class="p">[</span><span class="s1">&#39;topographies&#39;</span><span class="p">]:</span>
                 <span class="n">info</span> <span class="o">=</span> <span class="n">topo_meta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                <span class="n">physical_sizes</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="s1">&#39;size&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+
+                <span class="c1"># Check whether the metadata contains sizes and unit. If not</span>
+                <span class="c1"># this information comes from the data file.</span>
+                <span class="k">try</span><span class="p">:</span>
                     <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
                     <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">physical_sizes</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                    <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">datafile_key</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">datafiles</span> <span class="o">=</span> <span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;datafile&#39;</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">datafiles</span><span class="p">:</span>
-                    <span class="n">datafile_key</span> <span class="o">=</span> <span class="n">key</span>
+
+                <span class="c1"># Pick first of the provided possible data file keys that</span>
+                <span class="c1"># exists in the container</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">datafile_keys</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">datafiles</span><span class="p">:</span>
+                        <span class="n">datafile_key</span> <span class="o">=</span> <span class="n">key</span>
+                        <span class="k">break</span>
+
+                <span class="c1"># There may be none, complain</span>
                 <span class="k">if</span> <span class="n">datafile_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not detect data file.&#39;</span><span class="p">)</span>
-                <span class="n">t</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span>
-                    <span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">datafiles</span><span class="p">[</span><span class="n">datafile_key</span><span class="p">]),</span>
+
+                <span class="c1"># Inspect topography file</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">datafiles</span><span class="p">[</span><span class="n">datafile_key</span><span class="p">]))</span>
+
+                <span class="c1"># Channel to load</span>
+                <span class="k">if</span> <span class="s1">&#39;data_source&#39;</span> <span class="ow">in</span> <span class="n">topo_meta</span><span class="p">:</span>
+                    <span class="n">data_source</span> <span class="o">=</span> <span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;data_source&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data_source</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">default_channel</span><span class="o">.</span><span class="n">index</span>
+
+                <span class="c1"># Check consistency between data file and meta.yml</span>
+                <span class="n">physical_sizes_from_file</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">data_source</span><span class="p">]</span><span class="o">.</span><span class="n">physical_sizes</span>
+                <span class="k">if</span> <span class="n">physical_sizes_from_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">physical_sizes_from_file</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+                            <span class="c1"># Need to set this to None to avoid collision</span>
+                            <span class="n">physical_sizes</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Physical sizes from data file (=</span><span class="si">{physical_sizes_from_file}</span><span class="s1"> and from &#39;</span>
+                                             <span class="n">f</span><span class="s1">&#39;meta.yml (=</span><span class="si">{physical_sizes}</span><span class="s1">) differ for topography &#39;</span>
+                                             <span class="n">f</span><span class="s1">&#39;</span><span class="si">{datafiles[datafile_key]}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="n">unit_from_file</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">data_source</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span>
+                <span class="k">if</span> <span class="n">unit_from_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">unit_from_file</span> <span class="o">==</span> <span class="n">unit</span><span class="p">:</span>
+                            <span class="c1"># Need to set this to None to avoid collision</span>
+                            <span class="n">unit</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Unit from data file (=</span><span class="si">{unit_from_file}</span><span class="s1">) and from meta.yml &#39;</span>
+                                             <span class="n">f</span><span class="s1">&#39;(=</span><span class="si">{unit}</span><span class="s1">) differ for topography </span><span class="si">{datafiles[datafile_key]}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+                <span class="c1"># Read the topography from the preferred data file</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span>
                     <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
+                    <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
                     <span class="n">info</span><span class="o">=</span><span class="n">info</span>
                 <span class="p">)</span>
+
+                <span class="c1"># Close reader</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                <span class="c1"># We need to reconstruct the pipeline if the data file does</span>
+                <span class="c1"># not contain squeezed data, currently indicate by a</span>
+                <span class="c1"># &#39;squeezed&#39; prefix to the data file key</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">datafile_key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;squeezed&#39;</span><span class="p">):</span>
                     <span class="k">if</span> <span class="s1">&#39;height_scale&#39;</span> <span class="ow">in</span> <span class="n">topo_meta</span><span class="p">:</span>
                         <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">topo_meta</span><span class="p">[</span><span class="s1">&#39;height_scale&#39;</span><span class="p">])</span>
@@ -268,6 +327,18 @@
             <span class="n">surfaces</span> <span class="o">+=</span> <span class="p">[</span><span class="n">SurfaceContainer</span><span class="p">(</span><span class="n">topographies</span><span class="p">)]</span>
 
     <span class="k">return</span> <span class="n">surfaces</span></div>
+
+
+<div class="viewcode-block" id="read_published_container"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.IO.read_published_container">[docs]</a><span class="k">def</span> <span class="nf">read_published_container</span><span class="p">(</span><span class="n">publication_url</span><span class="p">):</span>
+    <span class="c1"># First get the page for the publication in order</span>
+    <span class="c1"># to get the download URL</span>
+    <span class="n">publication_response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">publication_url</span><span class="p">)</span>
+    <span class="n">download_url</span> <span class="o">=</span> <span class="n">publication_response</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="s2">&quot;download/&quot;</span>
+
+    <span class="c1"># Then download and read container</span>
+    <span class="n">container_response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">)</span>
+    <span class="n">container_file</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">container_response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">read_container</span><span class="p">(</span><span class="n">container_file</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="write_containers"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.IO.write_containers">[docs]</a><span class="k">def</span> <span class="nf">write_containers</span><span class="p">(</span><span class="n">containers</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>

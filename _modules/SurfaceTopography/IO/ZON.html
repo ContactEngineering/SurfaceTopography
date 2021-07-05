@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.ZON &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.ZON &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -209,6 +209,7 @@
 <span class="kn">import</span> <span class="nn">defusedxml.ElementTree</span> <span class="k">as</span> <span class="nn">ElementTree</span>
 
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
@@ -285,13 +286,10 @@
                 <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">element_size</span> <span class="o">=</span> <span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;iii&#39;</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">HEIGHT_DATA_UUID</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
                 <span class="k">assert</span> <span class="n">element_size</span> <span class="o">==</span> <span class="mi">4</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">+=</span> <span class="p">[</span>
-                    <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                                <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span>
-                                <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">meter_per_pixel</span><span class="p">,</span>
-                                                <span class="n">height</span> <span class="o">*</span> <span class="n">meter_per_pixel</span><span class="p">),</span>
-                                <span class="n">height_scale_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_orig_height_scale_factor</span><span class="p">,</span>
-                                <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
-                                      <span class="s1">&#39;data_uuid&#39;</span><span class="p">:</span> <span class="n">HEIGHT_DATA_UUID</span><span class="p">,</span>
+                    <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span>
+                                <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">meter_per_pixel</span><span class="p">,</span> <span class="n">height</span> <span class="o">*</span> <span class="n">meter_per_pixel</span><span class="p">),</span>
+                                <span class="n">height_scale_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_orig_height_scale_factor</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                                <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;data_uuid&#39;</span><span class="p">:</span> <span class="n">HEIGHT_DATA_UUID</span><span class="p">,</span>
                                       <span class="s1">&#39;meter_per_pixel&#39;</span><span class="p">:</span> <span class="n">meter_per_pixel</span><span class="p">,</span>
                                       <span class="s1">&#39;meter_per_unit&#39;</span><span class="p">:</span> <span class="n">meter_per_unit</span><span class="p">})]</span>
 
@@ -299,7 +297,7 @@
     <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span>
 
-<div class="viewcode-block" id="ZONReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+<div class="viewcode-block" id="ZONReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
                    <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
@@ -312,14 +310,17 @@
 
         <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">unit</span>
+
         <span class="k">with</span> <span class="n">OpenFromAny</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="c1"># Read image data</span>
-            <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">nb_grid_pts</span>
             <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">z</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;data_uuid&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">height_data</span> <span class="o">=</span> <span class="n">_read_array</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-        <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">height_data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">height_data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>

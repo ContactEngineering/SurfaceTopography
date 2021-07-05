@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.Autocorrelation &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Nonuniform.Autocorrelation &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -271,7 +271,7 @@
 
 
 <div class="viewcode-block" id="height_difference_autocorrelation"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">[docs]</a><span class="k">def</span> <span class="nf">height_difference_autocorrelation</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span>
-                                      <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ninterpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+                                      <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_interpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute the one-dimensional height-difference autocorrelation function</span>
 <span class="sd">    (ACF).</span>
@@ -296,7 +296,7 @@
 <span class="sd">        is given, the function will automatically construct an array with</span>
 <span class="sd">        equally spaced distances. Can be used only if &#39;brute-force&#39;</span>
 <span class="sd">        algorithm is used. (Default: None)</span>
-<span class="sd">    ninterpolate : int</span>
+<span class="sd">    nb_interpolate : int</span>
 <span class="sd">        Number of grid points to put between closest points on surface. Only</span>
 <span class="sd">        used for &#39;fft&#39; algorithm. (Default: 5)</span>
 
@@ -313,11 +313,7 @@
         <span class="k">if</span> <span class="n">distances</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;`distances` can only be used with &#39;brute-force&#39; algorithm.&quot;</span><span class="p">)</span>
-        <span class="n">min_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">min_dist</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Positions not sorted.&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span><span class="n">ninterpolate</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">/</span> <span class="n">min_dist</span><span class="p">),</span>
-                                    <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span><span class="n">nb_interpolate</span><span class="o">=</span><span class="n">nb_interpolate</span><span class="p">)</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;brute-force&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_SurfaceTopography</span><span class="o">.</span><span class="n">nonuniform_autocorrelation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>

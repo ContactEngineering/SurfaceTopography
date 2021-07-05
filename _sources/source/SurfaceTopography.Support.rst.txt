@@ -1,0 +1,21 @@
+SurfaceTopography.Support package
+=================================
+
+Submodules
+----------
+
+SurfaceTopography.Support.Deprecation module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Support.Deprecation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Support
+   :members:
+   :undoc-members:
+   :show-inheritance:

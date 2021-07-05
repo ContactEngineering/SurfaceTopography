@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.Text &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.Text &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -198,18 +198,19 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">,</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span><span class="p">,</span> <span class="n">text</span>
-<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">make_wrapped_reader</span>
-<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">MetadataAlreadyFixedByFile</span>
 <span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 <span class="kn">from</span> <span class="nn">..NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span><span class="p">,</span> <span class="n">UniformLineScan</span>
+<span class="kn">from</span> <span class="nn">..UnitConversion</span> <span class="k">import</span> <span class="n">height_units</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">CHANNEL_NAME_INFO_KEY</span><span class="p">,</span> <span class="n">text</span>
+<span class="kn">from</span> <span class="nn">.FromFile</span> <span class="k">import</span> <span class="n">make_wrapped_reader</span>
+<span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
 <span class="c1">###</span>
 
 
 <span class="nd">@text</span>
-<span class="k">def</span> <span class="nf">read_matrix</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">read_matrix</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads a surface profile from a text file and presents in in a</span>
 <span class="sd">    SurfaceTopography-conformant manner. No additional parsing of</span>
@@ -220,11 +221,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fobj</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">surface</span>
 
 
@@ -235,7 +236,7 @@
 
 <span class="nd">@text</span>
 <span class="k">def</span> <span class="nf">read_asc</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-             <span class="n">z_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+             <span class="n">z_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1"># pylint: disable=too-many-branches,too-many-statements,invalid-name</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads a surface profile (topography) from an generic asc file and presents</span>
@@ -260,8 +261,6 @@
 <span class="sd">    info: dict</span>
 <span class="sd">    periodic: bool</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">unit</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">info</span> <span class="k">else</span> <span class="kc">None</span>
-
     <span class="n">_float_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?&#39;</span>
 
     <span class="n">checks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
@@ -428,12 +427,9 @@
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                                  <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                             <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
-
+        <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">zfac</span> <span class="o">=</span> <span class="n">height_scale_factor</span>
     <span class="k">if</span> <span class="n">zfac</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">zfac</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -471,8 +467,7 @@
 
 
 <span class="nd">@text</span>
-<span class="k">def</span> <span class="nf">read_xyz</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
-             <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">read_xyz</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load xyz-file. These files contain line scan information in terms of</span>
 <span class="sd">    (x,y)-positions.</span>
@@ -503,12 +498,12 @@
                 <span class="n">physical_sizes</span> <span class="o">=</span> <span class="n">d_uniform</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;XYZ reader found nonuniform data, and the user specified that it is periodic. &#39;</span>
                                  <span class="s1">&#39;Nonuniform line scans cannot be periodic.&#39;</span><span class="p">)</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">NonuniformLineScan</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
 
@@ -549,7 +544,7 @@
             <span class="n">physical_sizes</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">ny</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
             <span class="s1">&#39;Expected two or three columns for topography that is a list of &#39;</span>

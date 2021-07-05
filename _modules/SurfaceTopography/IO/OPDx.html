@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.OPDx &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -201,7 +201,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
-<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span><span class="p">,</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span>
+<span class="kn">from</span> <span class="nn">..UnitConversion</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span><span class="p">,</span> <span class="n">mangle_length_unit_utf8</span>
+<span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
 <span class="n">MAGIC</span> <span class="o">=</span> <span class="s2">&quot;VCA DATA</span><span class="se">\x01\x00\x00\x55</span><span class="s2">&quot;</span>
@@ -320,6 +321,7 @@
                         <span class="k">del</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
                     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                         <span class="k">pass</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># we want value in unit_x units</span>
                     <span class="n">unit_factor_z</span> <span class="o">=</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="n">unit_z</span><span class="p">,</span>
@@ -330,13 +332,14 @@
                             <span class="s1">&#39;are incompatible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit_x</span><span class="p">,</span> <span class="n">unit_y</span><span class="p">))</span>
 
                     <span class="c1"># we have converted everything to this unit</span>
-                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit_x</span>
+                    <span class="n">unit</span> <span class="o">=</span> <span class="n">unit_x</span>
 
                 <span class="n">ch_info</span> <span class="o">=</span> <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="p">,</span>
                                       <span class="n">name</span><span class="o">=</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                                       <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ImageWidth&#39;</span><span class="p">],</span>
                                                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;ImageHeight&#39;</span><span class="p">]),</span>
                                       <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="n">size_x</span><span class="p">,</span> <span class="n">size_y</span><span class="p">),</span>
+                                      <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
                                       <span class="n">height_scale_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># means that this factor is fixed by file contents</span>
                                       <span class="n">info</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
 
@@ -345,7 +348,7 @@
                     <span class="n">xres_yres_start_stop_q</span><span class="p">)</span>  <span class="c1"># needed for building heights</span>
 
 <div class="viewcode-block" id="OPDxReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
                    <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -364,8 +367,11 @@
 
         <span class="n">unit_z</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;z_unit&#39;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">:</span>
-            <span class="n">common_unit</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">common_unit</span> <span class="o">=</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">unit</span>
+
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="n">common_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">unit_z</span> <span class="o">!=</span> <span class="n">common_unit</span><span class="p">):</span>
                 <span class="c1"># There is a common unit, but the z-unit in the file differs</span>
@@ -379,6 +385,8 @@
                         <span class="s1">&#39;and data units (&quot;</span><span class="si">{}</span><span class="s1">&quot;) are incompatible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                             <span class="n">common_unit</span><span class="p">,</span> <span class="n">unit_z</span><span class="p">))</span>
                 <span class="n">data</span> <span class="o">*=</span> <span class="n">unit_factor_z</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">common_unit</span> <span class="o">=</span> <span class="n">unit</span>
 
         <span class="n">physical_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span>
             <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">channel_info</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>
@@ -387,7 +395,7 @@
         <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">channel_info</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>
 
         <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">heights</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span>
-                                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+                                <span class="n">unit</span><span class="o">=</span><span class="n">common_unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">topography</span></div>

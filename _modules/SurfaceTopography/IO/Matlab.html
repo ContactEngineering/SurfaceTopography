@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.Matlab &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.Matlab &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -258,7 +258,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span>
 
 <div class="viewcode-block" id="MatReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                    <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
@@ -271,11 +271,9 @@
         <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">info</span><span class="p">[</span><span class="s1">&#39;data_source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="n">channel_index</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
 
-        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_height_data</span><span class="p">[</span><span class="n">channel_index</span><span class="p">],</span>
-                                <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span>
-                                    <span class="n">physical_sizes</span><span class="p">),</span>
-                                <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_height_data</span><span class="p">[</span><span class="n">channel_index</span><span class="p">],</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_check_physical_sizes</span><span class="p">(</span><span class="n">physical_sizes</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+            <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>

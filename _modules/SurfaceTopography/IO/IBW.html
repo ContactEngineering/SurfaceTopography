@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.IBW &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -201,6 +201,7 @@
 <span class="kn">from</span> <span class="nn">igor.binarywave</span> <span class="k">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">loadibw</span>
 
 <span class="kn">from</span> <span class="nn">..UniformLineScanAndTopography</span> <span class="k">import</span> <span class="n">Topography</span>
+
 <span class="kn">from</span> <span class="nn">.common</span> <span class="k">import</span> <span class="n">OpenFromAny</span>
 <span class="kn">from</span> <span class="nn">.Reader</span> <span class="k">import</span> <span class="n">ReaderBase</span><span class="p">,</span> <span class="n">ChannelInfo</span><span class="p">,</span> <span class="n">MetadataAlreadyFixedByFile</span>
 
@@ -222,7 +223,7 @@
             <span class="n">file</span> <span class="o">=</span> <span class="n">loadibw</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Only IBW version 5 supported!&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Only IBW version 5 is supported!&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;wave&#39;</span><span class="p">]</span>
 
@@ -272,7 +273,12 @@
                                                                  <span class="n">x_unit</span><span class="p">,</span>
                                                                  <span class="n">y_unit</span><span class="p">)</span>
 
+        <span class="c1"># An empty unit should be None</span>
+        <span class="k">if</span> <span class="n">data_unit</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">data_unit</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_unit</span> <span class="o">=</span> <span class="n">data_unit</span>
+
         <span class="c1">#</span>
         <span class="c1"># Decode sizes</span>
         <span class="c1">#</span>
@@ -286,8 +292,8 @@
         <span class="c1"># Build channel information</span>
         <span class="c1">#</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">cn</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span>
-                        <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">)</span>
+            <span class="n">ChannelInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">cn</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nb_grid_pts</span><span class="o">=</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_physical_sizes</span><span class="p">,</span>
+                        <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_unit</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_names</span><span class="p">)]</span>
 
         <span class="c1"># Shall we use the channel names in order to assign a unit as Gwyddion</span>
@@ -298,11 +304,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span>
 
 <div class="viewcode-block" id="IBWReader.topography"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader.topography">[docs]</a>    <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+                   <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
                    <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                    <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
+
+        <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">subdomain_locations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
                 <span class="n">nb_subdomain_grid_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -317,9 +329,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
 
-        <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">height_data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span>
-                          <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                          <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">topo</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">height_data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
         <span class="c1"># we could pass the data units here, but they dont seem to be always</span>
         <span class="c1"># correct for all channels?!</span>
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.VariableBandwidth &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Nonuniform.VariableBandwidth &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -204,7 +204,7 @@
 <span class="kn">from</span> <span class="nn">..NonuniformLineScan</span> <span class="k">import</span> <span class="n">NonuniformLineScan</span>
 
 
-<div class="viewcode-block" id="checkerboard_detrend"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.checkerboard_detrend">[docs]</a><span class="k">def</span> <span class="nf">checkerboard_detrend</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">subdivisions</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<div class="viewcode-block" id="checkerboard_detrend_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.checkerboard_detrend_profile">[docs]</a><span class="k">def</span> <span class="nf">checkerboard_detrend_profile</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">subdivisions</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform tilt correction (and substract mean value) in each individual</span>
 <span class="sd">    rectangle of a checkerboard decomposition of the surface. This is</span>
@@ -275,7 +275,7 @@
     <span class="k">return</span> <span class="n">subdivided_line_scans</span></div>
 
 
-<div class="viewcode-block" id="variable_bandwidth"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.variable_bandwidth">[docs]</a><span class="k">def</span> <span class="nf">variable_bandwidth</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">nb_grid_pts_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+<div class="viewcode-block" id="variable_bandwidth_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.variable_bandwidth_from_profile">[docs]</a><span class="k">def</span> <span class="nf">variable_bandwidth_from_profile</span><span class="p">(</span><span class="n">line_scan</span><span class="p">,</span> <span class="n">nb_grid_pts_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Perform a variable bandwidth analysis by computing the mean</span>
 <span class="sd">    root-mean-square height within increasingly finer subdivisions of the</span>
@@ -306,7 +306,7 @@
     <span class="n">bandwidths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">rms_heights</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">while</span> <span class="n">min_nb_grid_pts</span> <span class="o">&gt;=</span> <span class="n">nb_grid_pts_cutoff</span><span class="p">:</span>
-        <span class="n">subdivided_line_scans</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">checkerboard_detrend</span><span class="p">(</span><span class="n">magnification</span><span class="p">)</span>
+        <span class="n">subdivided_line_scans</span> <span class="o">=</span> <span class="n">line_scan</span><span class="o">.</span><span class="n">checkerboard_detrend_profile</span><span class="p">(</span><span class="n">magnification</span><span class="p">)</span>
         <span class="n">min_nb_grid_pts</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
             <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">subdivided_line_scans</span><span class="p">])</span>
         <span class="n">magnifications</span> <span class="o">+=</span> <span class="p">[</span><span class="n">magnification</span><span class="p">]</span>
@@ -318,10 +318,8 @@
 
 
 <span class="c1"># Register analysis functions from this module</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;checkerboard_detrend&#39;</span><span class="p">,</span>
-                                              <span class="n">checkerboard_detrend</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;variable_bandwidth&#39;</span><span class="p">,</span>
-                                              <span class="n">variable_bandwidth</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;checkerboard_detrend_profile&#39;</span><span class="p">,</span> <span class="n">checkerboard_detrend_profile</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;variable_bandwidth_from_profile&#39;</span><span class="p">,</span> <span class="n">variable_bandwidth_from_profile</span><span class="p">)</span>
 </pre></div>
 
            </div>

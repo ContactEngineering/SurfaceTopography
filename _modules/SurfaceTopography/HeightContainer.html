@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.HeightContainer &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.HeightContainer &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -199,10 +199,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">NuMPI</span> <span class="k">import</span> <span class="n">MPI</span>
+
+<span class="kn">from</span> <span class="nn">.Support</span> <span class="k">import</span> <span class="n">DeprecatedDictionary</span>
 
 <span class="c1"># Standardized entries for the info dictionary</span>
 
@@ -233,7 +236,17 @@
         <span class="c1"># pylint: disable=missing-docstring</span>
         <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">communicator</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">communicator</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;unit&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Please pass units via the `unit` keyword parameter, not the info dictionary.&#39;</span><span class="p">,</span>
+                              <span class="ne">DeprecationWarning</span><span class="p">)</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">del</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">unit</span> <span class="o">!=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unit was passed via the `unit` keyword parameter and within the info dictionary.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">unit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">communicator</span>
 
@@ -249,30 +262,28 @@
             <span class="k">return</span> <span class="n">func</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                <span class="s2">&quot;Unkown attribute &#39;</span><span class="si">{}</span><span class="s2">&#39; and no analysis or pipeline function &quot;</span>
-                <span class="s2">&quot;of this name registered (class </span><span class="si">{}</span><span class="s2">). Available functions: </span><span class="si">{}</span><span class="s2">&quot;</span>
-                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                        <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+                <span class="s2">&quot;Unkown attribute &#39;</span><span class="si">{}</span><span class="s2">&#39; and no analysis or pipeline function of this name registered (class </span><span class="si">{}</span><span class="s2">). &quot;</span>
+                <span class="s2">&quot;Available functions: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
     <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">info</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_periodic</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">is_periodic</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">unit</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">info</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_periodic</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">is_periodic</span>
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Upon pickling, it is called and the returned object is pickled as the</span>
 <span class="sd">        contents for the instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Upon unpickling, it is called with the unpickled state.</span>
 <span class="sd">        The argument `state` is the result of `__getstate__`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span> <span class="o">=</span> <span class="n">state</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 
     <span class="nd">@property</span>
@@ -295,7 +306,12 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the length unit of the topography.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the info dictionary. The info dictionary contains auxiliary data</span>
 <span class="sd">        found in the topography data file but not directly used by PyCo.</span>
@@ -308,10 +324,13 @@
 <span class="sd">            Unit of the topography. The unit information applies to the lateral</span>
 <span class="sd">            units (the physical size) as well as to heights units. Examples:</span>
 <span class="sd">            &#39;µm&#39;, &#39;nm&#39;.</span>
-<span class="sd">        datetime : :obj:`datetime`</span>
+<span class="sd">        acquisition_time : :obj:`datetime`</span>
 <span class="sd">            Date and time of the measurement.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">DeprecatedDictionary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">,</span> <span class="n">deprecated_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">info</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">communicator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -331,14 +350,14 @@
 <span class="sd">    own physical_sizes etc. but pass this information through to the parent.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
 <span class="sd">        topography : SurfaceTopography</span>
 <span class="sd">            The parent topography.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">AbstractTopography</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span> <span class="o">=</span> <span class="n">topography</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_communicator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">communicator</span>
@@ -361,9 +380,15 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return info dictionary &quot;&quot;&quot;</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">DeprecatedDictionary</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">_info</span><span class="p">,</span> <span class="n">deprecated_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
         <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span>
         <span class="k">return</span> <span class="n">info</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nb_subdomain_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_subdomain_grid_pts</span>
 
 <div class="viewcode-block" id="DecoratedTopography.pipeline"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.HeightContainer.DecoratedTopography.pipeline">[docs]</a>    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">pipeline</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span></div></div>
@@ -396,6 +421,11 @@
     <span class="nd">@property</span>
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span> <span class="nf">nb_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">nb_subdomain_grid_pts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@property</span>

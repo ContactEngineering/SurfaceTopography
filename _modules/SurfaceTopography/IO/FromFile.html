@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.IO.FromFile &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -273,7 +273,7 @@
         <span class="nd">@property</span>
         <span class="k">def</span> <span class="nf">channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">scale_factor</span>
+                <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">height_scale_factor</span>
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
                 <span class="n">height_scale_factor</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="c1"># None means: Not available in file</span>
@@ -282,13 +282,14 @@
                 <span class="bp">self</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_name</span><span class="p">,</span>
                 <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
                 <span class="n">info</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">info</span><span class="p">,</span>
                 <span class="n">nb_grid_pts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">,</span>
                 <span class="n">physical_sizes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">,</span>
                 <span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">)]</span>
 
         <span class="k">def</span> <span class="nf">topography</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                       <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">subdomain_locations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_subdomain_grid_pts</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">channel_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">channel_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_channel_index</span>
@@ -307,10 +308,10 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="p">,</span> <span class="s1">&#39;seek&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_fobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_position</span><span class="p">)</span>
 
-            <span class="c1"># Read again, but this time with physical_sizes set (if not</span>
+            <span class="c1"># Read again, but this time with physical_sizes and unit set (if not</span>
             <span class="c1"># specified in file)</span>
             <span class="n">reader_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="o">=</span><span class="n">height_scale_factor</span><span class="p">,</span>
-                                 <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+                                 <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topography</span><span class="o">.</span><span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># file does not have physical sizes</span>
                 <span class="n">reader_kwargs</span><span class="p">[</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">physical_sizes</span>
@@ -325,7 +326,7 @@
     <span class="k">return</span> <span class="n">WrappedReader</span></div>
 
 
-<div class="viewcode-block" id="read_x3p"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_x3p">[docs]</a><span class="k">def</span> <span class="nf">read_x3p</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+<div class="viewcode-block" id="read_x3p"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_x3p">[docs]</a><span class="k">def</span> <span class="nf">read_x3p</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
              <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load x3p-file.</span>
@@ -397,12 +398,11 @@
         <span class="n">binfn</span> <span class="o">=</span> <span class="n">data_link</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;PointDataLink&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
 
         <span class="n">rawdata</span> <span class="o">=</span> <span class="n">x3p</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">binfn</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">nz</span><span class="p">,</span>
-                             <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">rawdata</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="n">nx</span> <span class="o">*</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">nz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
 
     <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">xinc</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">yinc</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">xinc</span> <span class="o">*</span> <span class="n">nx</span><span class="p">,</span> <span class="n">yinc</span> <span class="o">*</span> <span class="n">ny</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">t</span></div>
@@ -420,7 +420,7 @@
 
 
 <div class="viewcode-block" id="read_opd"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_opd">[docs]</a><span class="nd">@binary</span>
-<span class="k">def</span> <span class="nf">read_opd</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+<span class="k">def</span> <span class="nf">read_opd</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
              <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Load Wyko Vision OPD file.</span>
@@ -430,6 +430,9 @@
 <span class="sd">    Keyword Arguments:</span>
 <span class="sd">    fobj -- filename or file object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
 
     <span class="n">BLOCK_SIZE</span> <span class="o">=</span> <span class="mi">24</span>
 
@@ -502,7 +505,7 @@
         <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;physical_sizes&#39;</span><span class="p">)</span>
     <span class="n">surface</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
                          <span class="p">(</span><span class="n">nx</span> <span class="o">*</span> <span class="n">pixel_size</span><span class="p">,</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">pixel_size</span> <span class="o">*</span> <span class="n">aspect</span><span class="p">),</span>
-                         <span class="n">info</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="n">info</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mm&#39;</span><span class="p">)},</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+                         <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="n">height_scale_factor_from_file</span> <span class="o">=</span> <span class="n">wavelength</span> <span class="o">/</span> <span class="n">mult</span> <span class="o">*</span> <span class="mf">1e-6</span>
     <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">MetadataAlreadyFixedByFile</span><span class="p">(</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
@@ -518,7 +521,7 @@
 
 
 <div class="viewcode-block" id="read_hgt"><a class="viewcode-back" href="../../../source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_hgt">[docs]</a><span class="nd">@binary</span>
-<span class="k">def</span> <span class="nf">read_hgt</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
+<span class="k">def</span> <span class="nf">read_hgt</span><span class="p">(</span><span class="n">fobj</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{},</span>
              <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Read Shuttle Radar SurfaceTopography Mission (SRTM) topography data</span>
@@ -540,11 +543,9 @@
                        <span class="n">count</span><span class="o">=</span><span class="n">dim</span> <span class="o">*</span> <span class="n">dim</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">physical_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span>
-                                <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="n">topography</span> <span class="o">=</span> <span class="n">Topography</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="n">physical_sizes</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">topography</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">topography</span></div>

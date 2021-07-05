@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generation &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Generation &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -328,10 +328,9 @@
 <div class="viewcode-block" id="fourier_synthesis"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.Generation.fourier_synthesis">[docs]</a><span class="k">def</span> <span class="nf">fourier_synthesis</span><span class="p">(</span><span class="n">nb_grid_pts</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">hurst</span><span class="p">,</span>
                       <span class="n">rms_height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rms_slope</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">c0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">short_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                      <span class="n">amplitude_distribution</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
-                          <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
+                      <span class="n">amplitude_distribution</span><span class="o">=</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">),</span>
                       <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rfn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kfn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a self-affine, randomly rough surface using a Fourier filtering</span>
 <span class="sd">    algorithm. The algorithm is described in:</span>
@@ -377,6 +376,10 @@
 <span class="sd">        useful for creating very large topography maps. (Default: None)</span>
 <span class="sd">    progress_callback : function(i, n)</span>
 <span class="sd">        Function that is called to report progress.</span>
+<span class="sd">    unit : str, optional</span>
+<span class="sd">        Length unit.</span>
+<span class="sd">    info : dict, optional</span>
+<span class="sd">        Initial info dictionary.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -467,11 +470,11 @@
                 <span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iy</span><span class="p">])</span>
                 <span class="n">karr</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span> <span class="o">=</span> <span class="n">karr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">nx</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">iy</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
         <span class="n">_irfft2</span><span class="p">(</span><span class="n">karr</span><span class="p">,</span> <span class="n">rarr</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Topography</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">karr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">rarr</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">karr</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">UniformLineScan</span><span class="p">(</span><span class="n">rarr</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="n">periodic</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

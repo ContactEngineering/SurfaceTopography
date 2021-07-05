@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -106,6 +106,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container">Module contents</a></li>
 </ul>
@@ -113,6 +114,7 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 </li>
@@ -125,6 +127,7 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UnitConversion">SurfaceTopography.UnitConversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.common">SurfaceTopography.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
@@ -235,6 +238,11 @@ the metadata.
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.read_published_container">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">read_published_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">publication_url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/IO.html#read_published_container"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.IO.read_published_container" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.write_containers">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/IO.html#write_containers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.IO.write_containers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write multiple surface containers into a ZIP file.</p>
@@ -246,6 +254,69 @@ the metadata.
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Container.ScaleDependentStatistics">
+<span id="surfacetopography-container-scaledependentstatistics-module"></span><h2>SurfaceTopography.Container.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Container.ScaleDependentStatistics" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Container/ScaleDependentStatistics.html#scale_dependent_statistical_property"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute statistical properties of a topography container (i.e. of a set of
+topographies and line scans) at specific scales. These properties are
+statistics of derivatives carried out at specific scales, as computed
+using the <cite>derivative</cite> pipeline function of the topography and/or line
+scan.</p>
+<p>The specific statistical properties is computed by the <cite>func</cite> argument.
+The output of <cite>func</cite> needs to be homogeneous, i.e. if an array is returned,
+this array must have the same size independent of the derivative data that
+is fed into <cite>func</cite>. The results of <cite>func</cite> are averaged over all topographies
+and/or line scans with each topography/line scan weighted equally. (The
+underlying assumption is that a topography/line scan represents a
+statistically independent dataset.)</p>
+<p>All topographies/line scans are converted to the same unit given by the
+<cite>unit</cite> argument before analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>container</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
+<li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(dx,</span> <span class="pre">dy=None)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+<p>A function taking the derivative in x-direction and optionally the
+derivative in y-direction (only for topographies, i.e. maps). The
+function needs to be able to ignore the second argument as a container
+can be a mixture of topographies and line scans. The function can
+return a scalar value or an array, but the array size must be fixed.</p>
+</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Order of derivative.</p></li>
+<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. If
+this is an array, then the statistical property is computed at each
+of these distances.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
+unit before the derivative is computed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite>, average over all topographies
+and line scans. If multiple distances are provided, then this is a
+list of arrays that contains results for each distance. If no data
+exists for a certain distance, then None is returned for that
+distance.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This example yields the the height-difference autocorrelation function in
+the x-direction, i.e. it should give a result identical to the average of
+<cite>autocorrelation_from_profile</cite> executed for all topographies/line scans in
+the container.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;um&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

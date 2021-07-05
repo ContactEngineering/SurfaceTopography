@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Container.SurfaceContainer &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
+  <title>SurfaceTopography.Uniform.ScaleDependentStatistics &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -152,7 +152,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>SurfaceTopography.Container.SurfaceContainer</li>
+      <li>SurfaceTopography.Uniform.ScaleDependentStatistics</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,7 +167,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for SurfaceTopography.Container.SurfaceContainer</h1><div class="highlight"><pre>
+  <h1>Source code for SurfaceTopography.Uniform.ScaleDependentStatistics</h1><div class="highlight"><pre>
 <span></span><span class="c1">#</span>
 <span class="c1"># Copyright 2021 Lars Pastewka</span>
 <span class="c1">#</span>
@@ -192,40 +192,74 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
 
-<div class="viewcode-block" id="SurfaceContainer"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer">[docs]</a><span class="k">class</span> <span class="nc">SurfaceContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">_functions</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topographies</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_topographies</span> <span class="o">=</span> <span class="n">topographies</span>
+<div class="viewcode-block" id="scale_dependent_statistical_property"><a class="viewcode-back" href="../../../source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScaleDependentStatistics.scale_dependent_statistical_property">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_statistical_property</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute statistical properties of a uniform topography at specific scales.</span>
+<span class="sd">    The scale is specified either by `scale_factors` or `distance`. These</span>
+<span class="sd">    properties are statistics of derivatives carried out at specific scales,</span>
+<span class="sd">    as computed using the `derivative` pipeline function.</span>
 
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_topographies</span><span class="p">)</span>
+<span class="sd">    The specific statistical properties is computed by the `func` argument.</span>
+<span class="sd">    The output of `func` needs to be homogeneous, i.e. if an array is returned,</span>
+<span class="sd">    this array must have the same size independent of the derivative data that</span>
+<span class="sd">    is fed into `func`.</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_topographies</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topography : Topography or UniformLineScan</span>
+<span class="sd">        Topogaphy or line scan.</span>
+<span class="sd">    func : callable</span>
+<span class="sd">        The function that computes the statistical properties:</span>
 
-<div class="viewcode-block" id="SurfaceContainer.apply"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<span class="sd">            ``func(dx, dy=None) -&gt; np.ndarray``</span>
 
-    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">[</span><span class="n">name</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="sd">        A function taking the derivative in x-direction and optionally the</span>
+<span class="sd">        derivative in y-direction (only for topographies, i.e. maps). The</span>
+<span class="sd">        function needs to be able to ignore the second argument as a container</span>
+<span class="sd">        can be a mixture of topographies and line scans. The function can</span>
+<span class="sd">        return a scalar value or an array, but the array size must be fixed.</span>
+<span class="sd">    n : int, optional</span>
+<span class="sd">        Order of derivative. (Default: 1)</span>
+<span class="sd">    scale_factor : float or np.ndarray</span>
+<span class="sd">        Scale factor for rescaling the finite differences stencil. A scale</span>
+<span class="sd">        factor of unity means the derivative is computed at the size of the</span>
+<span class="sd">        individual pixel.</span>
+<span class="sd">    distance : float or np.ndarray</span>
+<span class="sd">        Characteristic distances at which the derivatives are computed. If</span>
+<span class="sd">        this is an array, then the statistical property is computed at each</span>
+<span class="sd">        of these distances.</span>
+<span class="sd">    unit : str</span>
+<span class="sd">        Unit of the distance array. All topographies are converted to this</span>
+<span class="sd">        unit before the derivative is computed.</span>
 
-            <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="vm">__doc__</span>
-            <span class="k">return</span> <span class="n">func</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Unkown attribute &#39;</span><span class="si">{}</span><span class="s2">&#39; and no analysis or pipeline function of this name registered&quot;</span>
-                                 <span class="s2">&quot;(class </span><span class="si">{}</span><span class="s2">). Available functions: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                                                                              <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    statistical_fingerprint : np.ndarray or list of np.ndarray</span>
+<span class="sd">        Array containing the result of `func`</span>
 
-    <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_functions</span><span class="p">])</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    This example yields the the height-difference autocorrelation function in</span>
+<span class="sd">    the x-direction:</span>
 
-<div class="viewcode-block" id="SurfaceContainer.register_function"><a class="viewcode-back" href="../../../source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">register_function</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_functions</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">function</span><span class="p">})</span></div></div>
+<span class="sd">    &gt;&gt;&gt; distances, A = t.autocorrelation_from_profile()</span>
+<span class="sd">    &gt;&gt;&gt;&gt; s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])</span>
+
+<span class="sd">    `A` and `s` are identical.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">_d</span><span class="p">)</span> <span class="k">for</span> <span class="n">_d</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">d</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">d</span><span class="p">)]</span></div>
+
+
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_statistical_property&#39;</span><span class="p">,</span>
+                                             <span class="n">scale_dependent_statistical_property</span><span class="p">)</span>
 </pre></div>
 
            </div>

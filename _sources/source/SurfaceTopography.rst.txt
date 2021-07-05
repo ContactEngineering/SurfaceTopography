@@ -11,6 +11,7 @@ Subpackages
    SurfaceTopography.Generic
    SurfaceTopography.IO
    SurfaceTopography.Nonuniform
+   SurfaceTopography.Support
    SurfaceTopography.Uniform
 
 Submodules
@@ -76,6 +77,14 @@ SurfaceTopography.UniformLineScanAndTopography module
 -----------------------------------------------------
 
 .. automodule:: SurfaceTopography.UniformLineScanAndTopography
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.UnitConversion module
+---------------------------------------
+
+.. automodule:: SurfaceTopography.UnitConversion
    :members:
    :undoc-members:
    :show-inheritance:

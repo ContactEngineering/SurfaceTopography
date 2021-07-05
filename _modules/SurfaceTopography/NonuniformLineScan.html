@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.NonuniformLineScan &mdash; SurfaceTopography 0.94.1.dev5+ge2835b32 documentation</title>
+  <title>SurfaceTopography.NonuniformLineScan &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev5+ge2835b32
+                0.94.1.dev120+gde4aa054
               </div>
             
           
@@ -203,6 +203,8 @@
 <span class="kn">from</span> <span class="nn">.HeightContainer</span> <span class="k">import</span> <span class="n">AbstractTopography</span><span class="p">,</span> <span class="n">DecoratedTopography</span><span class="p">,</span> \
     <span class="n">NonuniformLineScanInterface</span>
 <span class="kn">from</span> <span class="nn">.Nonuniform.Detrending</span> <span class="k">import</span> <span class="n">polyfit</span>
+<span class="kn">from</span> <span class="nn">.Support</span> <span class="k">import</span> <span class="n">deprecated</span>
+<span class="kn">from</span> <span class="nn">.UnitConversion</span> <span class="k">import</span> <span class="n">get_unit_conversion_factor</span>
 
 
 <div class="viewcode-block" id="NonuniformLineScan"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan">[docs]</a><span class="k">class</span> <span class="nc">NonuniformLineScan</span><span class="p">(</span><span class="n">AbstractTopography</span><span class="p">,</span> <span class="n">NonuniformLineScanInterface</span><span class="p">):</span>
@@ -210,8 +212,23 @@
 <span class="sd">    Nonuniform topography with point list consisting of static numpy arrays.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        x : array_like</span>
+<span class="sd">            x-positions of the data points that sample the line scan.</span>
+<span class="sd">        y : array_like</span>
+<span class="sd">            y-positions of the data points that sample the line scan.</span>
+<span class="sd">        unit : str, optional</span>
+<span class="sd">            The length unit.</span>
+<span class="sd">        info : dict, optional</span>
+<span class="sd">            The info dictionary containing auxiliary data. This data is never</span>
+<span class="sd">            used by SurfaceTopography but can be used by third-party codes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
@@ -286,6 +303,21 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">info</span>
+        <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">unit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">info</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">physical_sizes</span>
 
@@ -302,23 +334,85 @@
 
 
 <div class="viewcode-block" id="ScaledNonuniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography">[docs]</a><span class="k">class</span> <span class="nc">ScaledNonuniformTopography</span><span class="p">(</span><span class="n">DecoratedNonuniformTopography</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; used when geometries are scaled</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Scale heights, positions, or both.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Keyword Arguments:</span>
-<span class="sd">        topography  -- SurfaceTopography to scale</span>
-<span class="sd">        coeff -- Scaling factor</span>
+<span class="sd">        This topography wraps a parent topography and rescales x and z</span>
+<span class="sd">        coordinates according to certain rules.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        topography : :obj:`NonuniformTopographyInterface`</span>
+<span class="sd">            Parent topography</span>
+<span class="sd">        unit : str</span>
+<span class="sd">            Target unit.</span>
+<span class="sd">        info : dict, optional</span>
+<span class="sd">            Updated entries to the info dictionary. (Default: {})</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">height_scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="c1"># For backwards compatibility</span>
+    <span class="nd">@property</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.94.0&#39;</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">height_scale_factor</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">position_scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">get_unit_conversion_factor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">physical_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute rescaled physical sizes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_scale_factor</span> <span class="o">*</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+
+<div class="viewcode-block" id="ScaledNonuniformTopography.positions"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the rescaled positions.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_scale_factor</span> <span class="o">*</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">positions</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ScaledNonuniformTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the rescaled profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">height_scale_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="StaticallyScaledNonuniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography">[docs]</a><span class="k">class</span> <span class="nc">StaticallyScaledNonuniformTopography</span><span class="p">(</span><span class="n">ScaledNonuniformTopography</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Scale heights, positions, or both.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topography</span><span class="p">,</span> <span class="n">height_scale_factor</span><span class="p">,</span> <span class="n">position_scale_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This topography wraps a parent topography and rescales x and z</span>
+<span class="sd">        coordinates according to certain rules.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        topography : :obj:`NonuniformTopographyInterface`</span>
+<span class="sd">            Parent topography</span>
+<span class="sd">        height_scale_factor : float</span>
+<span class="sd">            Factor to scale heights with.</span>
+<span class="sd">        position_scale_factor : float, optional</span>
+<span class="sd">            Factor to scale lateral positions (`physical_sizes`, etc.) with.</span>
+<span class="sd">            (Default: 1)</span>
+<span class="sd">        unit : str, optional</span>
+<span class="sd">            Target unit. This is simply used to update the metadata, not for</span>
+<span class="sd">            determining scale factors. (Default: None)</span>
+<span class="sd">        info : dict, optional</span>
+<span class="sd">            Updated entries to the info dictionary. (Default: {})</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">height_scale_factor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">height_scale_factor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_position_scale_factor</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">position_scale_factor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">position_scale_factor</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
 <span class="sd">            the instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position_scale_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span>
         <span class="k">return</span> <span class="n">state</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
@@ -326,17 +420,22 @@
 <span class="sd">        Keyword Arguments:</span>
 <span class="sd">        state -- result of __getstate__</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="n">superstate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position_scale_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span> <span class="o">=</span> <span class="n">state</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">superstate</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span>
+    <span class="k">def</span> <span class="nf">height_scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height_scale_factor</span>
 
-<div class="viewcode-block" id="ScaledNonuniformTopography.heights"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.heights">[docs]</a>    <span class="k">def</span> <span class="nf">heights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Computes the rescaled profile.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span></div></div>
+    <span class="c1"># For backwards compatibility</span>
+    <span class="nd">@property</span>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.95.0&#39;</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;height_scale_factor&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">height_scale_factor</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">position_scale_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position_scale_factor</span></div>
 
 
 <div class="viewcode-block" id="DetrendedNonuniformTopography"><a class="viewcode-back" href="../../source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography">[docs]</a><span class="k">class</span> <span class="nc">DetrendedNonuniformTopography</span><span class="p">(</span><span class="n">DecoratedNonuniformTopography</span><span class="p">):</span>
@@ -378,9 +477,7 @@
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_topography</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">polyfit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Unsupported detrend mode &#39;</span><span class="si">{}</span><span class="s2">&#39; for line scans.&quot;</span>
-                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported detrend mode &#39;</span><span class="si">{}</span><span class="s2">&#39; for line scans.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_detrend_mode</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; is called and the returned object is pickled as the contents for</span>
@@ -476,10 +573,9 @@
     <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">this</span><span class="p">:</span> <span class="n">this</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
 
 <span class="c1"># Register pipeline functions from this module</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
-    <span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="n">ScaledNonuniformTopography</span><span class="p">)</span>
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span>
-    <span class="s1">&#39;detrend&#39;</span><span class="p">,</span> <span class="n">DetrendedNonuniformTopography</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;to_unit&#39;</span><span class="p">,</span> <span class="n">ScaledNonuniformTopography</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="n">StaticallyScaledNonuniformTopography</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;detrend&#39;</span><span class="p">,</span> <span class="n">DetrendedNonuniformTopography</span><span class="p">)</span>
 </pre></div>
 
            </div>

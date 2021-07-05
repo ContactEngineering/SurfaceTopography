@@ -12,6 +12,14 @@ SurfaceTopography.Container.IO module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Container.ScaleDependentStatistics module
+-----------------------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.ScaleDependentStatistics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Container.SurfaceContainer module
 ---------------------------------------------------
 
