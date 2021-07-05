@@ -494,7 +494,7 @@ class ScaledUniformTopography(DecoratedUniformTopography):
 
     # For backwards compatibility
     @property
-    @deprecated(version='0.95.0', alternative='heights_scale_factor')
+    @deprecated(version='0.95.0', alternative='height_scale_factor')
     def scale_factor(self):
         return self.height_scale_factor
 
@@ -572,7 +572,7 @@ class StaticallyScaledUniformTopography(ScaledUniformTopography):
 
     # For backwards compatibility
     @property
-    @deprecated(version='0.95.0', alternative='heights_scale_factor')
+    @deprecated(version='0.95.0', alternative='height_scale_factor')
     def scale_factor(self):
         return self.height_scale_factor
 
