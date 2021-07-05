@@ -37,6 +37,7 @@ from zipfile import ZipFile
 import defusedxml.ElementTree as ElementTree
 
 from ..UniformLineScanAndTopography import Topography
+
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
@@ -113,13 +114,10 @@ This reader open ZON files that are written by some Keyence instruments.
                 width, height, element_size = unpack('iii', z.open(HEIGHT_DATA_UUID).read(12))
                 assert element_size == 4
                 self._channels += [
-                    ChannelInfo(self, 0, name='default', dim=2,
-                                nb_grid_pts=(width, height),
-                                physical_sizes=(width * meter_per_pixel,
-                                                height * meter_per_pixel),
-                                height_scale_factor=self._orig_height_scale_factor,
-                                info={'unit': 'm',
-                                      'data_uuid': HEIGHT_DATA_UUID,
+                    ChannelInfo(self, 0, name='default', dim=2, nb_grid_pts=(width, height),
+                                physical_sizes=(width * meter_per_pixel, height * meter_per_pixel),
+                                height_scale_factor=self._orig_height_scale_factor, unit='m',
+                                info={'data_uuid': HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 
@@ -127,7 +125,7 @@ This reader open ZON files that are written by some Keyence instruments.
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, info={},
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
@@ -140,14 +138,17 @@ This reader open ZON files that are written by some Keyence instruments.
 
         info.update(channel_info.info)
 
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+        unit = channel_info.unit
+
         with OpenFromAny(self._file_path, 'rb') as f:
             # Read image data
-            nx, ny = channel_info.nb_grid_pts
             with ZipFile(f, 'r') as z:
                 with z.open(channel_info.info['data_uuid']) as f:
                     height_data = _read_array(f)
 
-        topo = Topography(height_data, physical_sizes, info=info, periodic=periodic)
+        topo = Topography(height_data, physical_sizes, unit=unit, info=info, periodic=periodic)
 
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile('height_scale_factor')

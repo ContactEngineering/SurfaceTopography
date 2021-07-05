@@ -198,7 +198,7 @@ def test_brute_force_vs_fft():
     t = read_topography(os.path.join(DATADIR, 'example.xyz'))
     q, A = t.detrend().power_spectrum_from_profile(window="None")
     q2, A2 = t.detrend().power_spectrum_from_profile(algorithm='brute-force',
-                                                     wavevectors=q, ninterpolate=5,
+                                                     wavevectors=q, nb_interpolate=5,
                                                      window="None")
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]

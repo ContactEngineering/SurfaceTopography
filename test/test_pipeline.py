@@ -129,12 +129,87 @@ def test_fill_undefined_data_parallel(comm):
     assert not filled_topography.has_undefined_data
 
 
-def test_scaled_topography():
-    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+def test_uniform_scaled_topography():
+    surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1)
+    sx, sy = surf.physical_sizes
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
         np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
                                        surf2.rms_height_from_profile())
+        np.testing.assert_almost_equal(surf.positions(), surf2.positions())
+
+        surf2 = surf.scale(fac, 2 * fac)
+        np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
+                                       surf2.rms_height_from_profile())
+
+        sx2, sy2 = surf2.physical_sizes
+        np.testing.assert_almost_equal(2 * fac * sx, sx2)
+        np.testing.assert_almost_equal(2 * fac * sy, sy2)
+
+        x, y = surf.positions()
+        x2, y2 = surf2.positions()
+        np.testing.assert_almost_equal(2 * fac * x, x2)
+        np.testing.assert_almost_equal(2 * fac * y, y2)
+
+        x2, y2, h2 = surf2.positions_and_heights()
+        np.testing.assert_almost_equal(2 * fac * x, x2)
+        np.testing.assert_almost_equal(2 * fac * y, y2)
+
+
+def test_uniform_unit_conversion():
+    surf = fourier_synthesis((5, 7), (1.2, 1.1), 0.8, rms_height=1, unit='um')
+    assert surf.unit == 'um'
+
+    surf2 = surf.to_unit('mm')
+    assert surf2.info['unit'] == 'mm'
+    assert surf2.unit == 'mm'
+
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.pixel_size), surf2.pixel_size)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.rms_height_from_area() / 1000, surf2.rms_height_from_area())
+    np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
+    np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
+
+
+def test_nonuniform_scaled_topography():
+    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+    sx, = surf.physical_sizes
+    for fac in [1.0, 2.0, np.pi]:
+        surf2 = surf.scale(fac)
+        np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
+                                       surf2.rms_height_from_profile())
+        np.testing.assert_almost_equal(surf.positions(), surf2.positions())
+
+        surf2 = surf.scale(fac, 2*fac)
+        np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
+                                       surf2.rms_height_from_profile())
+        np.testing.assert_almost_equal(2 * fac * surf.positions(), surf2.positions())
+
+        sx2, = surf2.physical_sizes
+        np.testing.assert_almost_equal(2 * fac * sx, sx2)
+
+        x = surf.positions()
+        x2 = surf2.positions()
+        np.testing.assert_almost_equal(2 * fac * x, x2)
+
+        x2, h2 = surf2.positions_and_heights()
+        np.testing.assert_almost_equal(2 * fac * x, x2)
+
+
+def test_nonuniform_unit_conversion():
+    surf = read_xyz(os.path.join(DATADIR, 'example.xyz'), unit='um')
+    assert surf.unit == 'um'
+
+    surf2 = surf.to_unit('mm')
+    assert surf2.info['unit'] == 'mm'
+    assert surf2.unit == 'mm'
+
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
+    np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.rms_height_from_profile() / 1000, surf2.rms_height_from_profile())
+    np.testing.assert_almost_equal(surf.rms_slope_from_profile(), surf2.rms_slope_from_profile())
+    np.testing.assert_almost_equal(surf.rms_curvature_from_profile() * 1000, surf2.rms_curvature_from_profile())
 
 
 def test_transposed_topography():

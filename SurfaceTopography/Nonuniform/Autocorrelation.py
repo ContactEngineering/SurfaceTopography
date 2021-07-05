@@ -101,7 +101,7 @@ def height_height_autocorrelation(line_scan, distances=None):
 
 
 def height_difference_autocorrelation(line_scan, algorithm='fft',
-                                      distances=None, ninterpolate=5):
+                                      distances=None, nb_interpolate=5):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -126,7 +126,7 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
         is given, the function will automatically construct an array with
         equally spaced distances. Can be used only if 'brute-force'
         algorithm is used. (Default: None)
-    ninterpolate : int
+    nb_interpolate : int
         Number of grid points to put between closest points on surface. Only
         used for 'fft' algorithm. (Default: 5)
 
@@ -143,11 +143,7 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
         if distances is not None:
             raise ValueError(
                 "`distances` can only be used with 'brute-force' algorithm.")
-        min_dist = np.min(np.diff(x))
-        if min_dist <= 0:
-            raise RuntimeError('Positions not sorted.')
-        return line_scan.to_uniform(ninterpolate * int(s / min_dist),
-                                    0).autocorrelation_from_profile()
+        return line_scan.to_uniform(nb_interpolate=nb_interpolate).autocorrelation_from_profile()
     elif algorithm == 'brute-force':
         return _SurfaceTopography.nonuniform_autocorrelation(x, h, s, distances)
     else:

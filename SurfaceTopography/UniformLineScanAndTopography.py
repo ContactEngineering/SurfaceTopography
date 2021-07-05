@@ -37,7 +37,9 @@ from .HeightContainer import (
     AbstractTopography,
     UniformTopographyInterface, DecoratedTopography
 )
+from .Support import deprecated
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
+from .UnitConversion import get_unit_conversion_factor
 
 
 class UniformLineScan(AbstractTopography, UniformTopographyInterface):
@@ -45,7 +47,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    def __init__(self, heights, physical_sizes, periodic=False, info={}):
+    def __init__(self, heights, physical_sizes, periodic=False, unit=None, info={}):
         """
         Parameters
         ----------
@@ -54,15 +56,20 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             one-dimensional array.
         physical_sizes : tuple of floats
             Physical physical_sizes of the topography map
-        periodic : bool
+        periodic : bool, optional
             Flag setting the periodicity of the surface
+        unit : str, optional
+            The length unit.
+        info : dict, optional
+            The info dictionary containing auxiliary data. This data is never
+            used by SurfaceTopography but can be used by third-party codes.
         """
         heights = np.asarray(heights)
 
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 
-        super().__init__(info=info)
+        super().__init__(unit=unit, info=info)
 
         # Automatically turn this into a masked array if there is data missing
         if np.sum(np.logical_not(np.isfinite(heights))) > 0:
@@ -92,10 +99,6 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             return None
         return self._size,
 
-    @physical_sizes.setter
-    def physical_sizes(self, new_size):
-        self._size = new_size
-
     @property
     def is_periodic(self):
         return self._periodic
@@ -109,6 +112,10 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     @property
     def nb_grid_pts(self):
         return len(self._heights),
+
+    @property
+    def nb_subdomain_grid_pts(self):
+        return self.nb_grid_pts
 
     @property
     def is_domain_decomposed(self):
@@ -155,10 +162,12 @@ class Topography(AbstractTopography, UniformTopographyInterface):
     """
 
     def __init__(self, heights, physical_sizes, periodic=False,
-                 decomposition='serial',
                  nb_grid_pts=None, subdomain_locations=None,
                  nb_subdomain_grid_pts=None,
-                 communicator=MPI.COMM_SELF, info={}):
+                 unit=None, info={},
+                 decomposition='serial',
+                 communicator=MPI.COMM_SELF):
+
         """
         Parameters
         ----------
@@ -167,32 +176,34 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             two-dimensional array.
         physical_sizes : tuple of floats
             Physical physical_sizes of the topography map
-        periodic : bool
+        periodic : bool, optional
             The topography is periodic. (Default: False)
-        decomposition : str
+        nb_grid_pts : tuple of ints, optional
+            Number of grid points for the full topography. This is only
+            required if decomposition is set to 'subdomain'.
+        subdomain_locations : tuple of ints, optional
+            Origin (location) of the subdomain handled by the present MPI
+            process.
+        nb_subdomain_grid_pts : tuple of ints, optional
+            Number of grid points within the subdomain handled by the present
+            MPI process. This is only required if decomposition is set to
+            'domain'.
+        unit : str, optional
+            The length unit.
+        info : dict, optional
+            The info dictionary containing auxiliary data. This data is never
+            used by SurfaceTopography but can be used by third-party codes.
+        decomposition : str, optional
             Specification of the data decomposition of the heights array. If
             set to 'subdomain', the heights array contains only the part of
             the full topography local to the present MPI process. If set to
             'domain', the heights array contains the global array.
             Default: 'serial', which fails for parallel runs.
-        nb_grid_pts : tuple of ints
-            Number of grid points for the full topography. This is only
-            required if decomposition is set to 'subdomain'.
-        subdomain_locations : tuple of ints
-            Origin (location) of the subdomain handled by the present MPI
-            process.
-        nb_subdomain_grid_pts : tuple of ints
-            Number of grid points within the subdomain handled by the present
-            MPI process. This is only required if decomposition is set to
-            'domain'.
-        communicator : mpi4py communicator or NuMPI stub communicator
+        communicator : mpi4py communicator or NuMPI stub communicator, optional
             The MPI communicator object.
             default value is COMM_SELF because sometimes NON-MPI readers that
             do not set the communicator value are used in MPI Programs.
             See discussion in issue #166
-        info : dict
-            The info dictionary containing auxiliary data. This data is never
-            used by PyCo but can be used by third-party codes.
 
         Examples for initialisation:
         ----------------------------
@@ -212,7 +223,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
 
-        super().__init__(info=info, communicator=communicator)
+        super().__init__(unit=unit, info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
         if not isinstance(heights, np.ma.core.MaskedArray):
@@ -225,8 +236,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
                 raise ValueError(
                     'This is a serial run but `nb_grid_pts` (= {}) does not '
-                    'equal the shape of the `heights` (= {}) array.'
-                    .format(nb_grid_pts, heights.shape))
+                    'equal the shape of the `heights` (= {}) array.'.format(nb_grid_pts, heights.shape))
             if subdomain_locations is not None and tuple(
                     subdomain_locations) != (0, 0):
                 raise ValueError(
@@ -237,8 +247,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     'This is a serial run but `nb_subdomain_grid_pts` '
                     '(= {}) does not equal the shape '
-                    'of the `heights` (= {}) array.'
-                    .format(nb_subdomain_grid_pts, heights.shape))
+                    'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
             self._heights = np.asanyarray(heights)
@@ -257,8 +266,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     "This is a parallel run with 'subdomain' decomposition "
                     "but `nb_subdomain_grid_pts` (= {}) does not equal the "
-                    "shape of the `heights` (= {}) array."
-                    .format(nb_subdomain_grid_pts, heights.shape))
+                    "shape of the `heights` (= {}) array.".format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
             self._heights = np.asanyarray(heights)
@@ -268,11 +276,9 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 raise ValueError(
                     "This is a parallel run with 'domain' decomposition but "
                     "`nb_grid_pts` (= {}) does not equal the shape of the "
-                    "`heights` (= {}) array."
-                    .format(nb_grid_pts, heights.shape))
+                    "`heights` (= {}) array.".format(nb_grid_pts, heights.shape))
             if subdomain_locations is None:
-                raise ValueError('This is a parallel run; please specify '
-                                 '`subdomain_locations`.')
+                raise ValueError('This is a parallel run; please specify `subdomain_locations`.')
             if nb_subdomain_grid_pts is None:
                 raise ValueError(
                     "This is a parallel run with 'domain' decomposition; "
@@ -300,8 +306,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         return state
 
     def __setstate__(self, state):
-        superstate, self._heights, self._size, self._periodic, \
-            self._subdomain_locations, self._nb_grid_pts = state
+        superstate, self._heights, self._size, self._periodic, self._subdomain_locations, self._nb_grid_pts = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -321,10 +326,6 @@ class Topography(AbstractTopography, UniformTopographyInterface):
     @property
     def physical_sizes(self):
         return self._size
-
-    @physical_sizes.setter
-    def physical_sizes(self, new_size):
-        self._size = new_size
 
     @property
     def nb_grid_pts(self):
@@ -409,19 +410,30 @@ class DecoratedUniformTopography(DecoratedTopography,
         return self.parent_topography.pixel_size
 
     @property
+    def unit(self):
+        if self._unit is None:
+            return self.parent_topography.unit
+        else:
+            return self._unit
+
+    @property
+    def info(self):
+        info = self.parent_topography.info
+        info.update(self._info)
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
+
+    @property
     def physical_sizes(self):
         return self.parent_topography.physical_sizes
-
-    @physical_sizes.setter
-    def physical_sizes(self, new_size):
-        self.parent_topography.physical_sizes = new_size
 
     @property
     def nb_grid_pts(self):
         return self.parent_topography.nb_grid_pts
 
     @property
-    def nb_subdomain_grid_pts(self, ):
+    def nb_subdomain_grid_pts(self):
         """ needs to be testable to make sure that geometry and halfspace are
             compatible
         """
@@ -458,23 +470,92 @@ class DecoratedUniformTopography(DecoratedTopography,
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):
-    """ used when geometries are scaled
-    """
+    """Scale heights, positions or both."""
 
-    def __init__(self, topography, scale_factor, info={}):
+    def __init__(self, topography, unit=None, info={}):
         """
-        Keyword Arguments:
-        topography  -- SurfaceTopography to scale
-        coeff -- Scaling factor
+        This topography wraps a parent topography and rescales x, y and z
+        coordinates according to certain rules.
+
+        Arguments
+        ---------
+        topography : :obj:`UniformTopographyInterface`
+            Parent topography
+        unit : str
+            Target unit.
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
         """
-        super().__init__(topography, info=info)
-        self._scale_factor = float(scale_factor)
+        super().__init__(topography, unit=unit, info=info)
+
+    @property
+    def height_scale_factor(self):
+        return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
+
+    # For backwards compatibility
+    @property
+    @deprecated(version='0.95.0', alternative='height_scale_factor')
+    def scale_factor(self):
+        return self.height_scale_factor
+
+    @property
+    def position_scale_factor(self):
+        return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
+
+    @property
+    def pixel_size(self):
+        """Compute rescaled pixel sizes."""
+        return tuple(self.position_scale_factor * s for s in super().pixel_size)
+
+    @property
+    def physical_sizes(self):
+        """Compute rescaled physical sizes."""
+        return tuple(self.position_scale_factor * s for s in super().physical_sizes)
+
+    def positions(self):
+        """Compute the rescaled positions."""
+        if self.dim == 1:
+            return self.position_scale_factor * super().positions()
+        else:
+            return tuple(self.position_scale_factor * p for p in super().positions())
+
+    def heights(self):
+        """Computes the rescaled profile."""
+        return self.height_scale_factor * self.parent_topography.heights()
+
+
+class StaticallyScaledUniformTopography(ScaledUniformTopography):
+    """Scale heights, positions or both."""
+
+    def __init__(self, topography, height_scale_factor, position_scale_factor=1, unit=None, info={}):
+        """
+        This topography wraps a parent topography and rescales x, y and z
+        coordinates according to certain rules.
+
+        Arguments
+        ---------
+        topography : :obj:`UniformTopographyInterface`
+            Parent topography
+        height_scale_factor : float
+            Factor to scale heights with.
+        position_scale_factor : float, optional
+            Factor to scale lateral positions (`physical_sizes`, etc.) with.
+            (Default: 1)
+        unit : str, optional
+            Target unit. This is simply used to update the metadata, not for
+            determining scale factors. (Default: None)
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
+        """
+        super().__init__(topography, unit=unit, info=info)
+        self._height_scale_factor = height_scale_factor
+        self._position_scale_factor = position_scale_factor
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._scale_factor
+        state = super().__getstate__(), self._height_scale_factor, self._position_scale_factor
         return state
 
     def __setstate__(self, state):
@@ -482,17 +563,22 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._scale_factor = state
+        superstate, self._height_scale_factor, self._position_scale_factor = state
         super().__setstate__(superstate)
 
     @property
-    def scale_factor(self):
-        return self._scale_factor
+    def height_scale_factor(self):
+        return self._height_scale_factor
 
-    def heights(self):
-        """ Computes the rescaled profile.
-        """
-        return self._scale_factor * self.parent_topography.heights()
+    # For backwards compatibility
+    @property
+    @deprecated(version='0.95.0', alternative='height_scale_factor')
+    def scale_factor(self):
+        return self.height_scale_factor
+
+    @property
+    def position_scale_factor(self):
+        return self._position_scale_factor
 
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
@@ -543,51 +629,40 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 self._coeffs = (self.parent_topography.mean(),)
             elif self._detrend_mode == 'height':
                 x, y = self.parent_topography.positions_and_heights()
-                a1, a0 = np.polyfit(x / self.parent_topography.physical_sizes,
-                                    y, 1)
+                a1, a0 = np.polyfit(x / self.parent_topography.physical_sizes, y, 1)
                 self._coeffs = a0, a1
             elif self._detrend_mode == 'slope':
-                sl = self.parent_topography.derivative(1,
-                                                       periodic=False).mean()
+                sl = self.parent_topography.derivative(1, periodic=False).mean()
                 n, = self.nb_grid_pts
                 s, = self.physical_sizes
                 grad = sl * s
-                self._coeffs = [
-                    self.parent_topography.mean() - grad * (n - 1) / (2 * n),
-                    grad]
+                self._coeffs = [self.parent_topography.mean() - grad * (n - 1) / (2 * n), grad]
             elif self._detrend_mode == 'curvature':
                 x, y = self.parent_topography.positions_and_heights()
                 a2, a1, a0 = np.polyfit(
                     x / self.parent_topography.physical_sizes, y, 2)
                 self._coeffs = a0, a1, a2
             else:
-                raise ValueError(
-                    "Unsupported detrend mode '{}' for line scans."
-                    .format(self._detrend_mode))
+                raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
         else:  # self.dim == 2
             if self._detrend_mode is None or self._detrend_mode == 'center':
                 self._coeffs = [self.parent_topography.mean()]
             elif self._detrend_mode == 'height':
-                self._coeffs = [s for s in
-                                tilt_from_height(self.parent_topography)]
+                self._coeffs = [s for s in tilt_from_height(self.parent_topography)]
             elif self._detrend_mode == 'slope':
                 slx, sly = self.parent_topography.derivative(1, periodic=False)
                 slx = slx.mean()
                 sly = sly.mean()
                 nx, ny = self.nb_grid_pts
                 sx, sy = self.physical_sizes
-                self._coeffs = [slx * sx, sly * sy,
-                                self.parent_topography.mean() - slx * sx * (
-                                            nx - 1) / (2 * nx) - sly * sy * (
-                                            ny - 1) / (
-                                        2 * ny)]
+                self._coeffs = [
+                    slx * sx, sly * sy,
+                    self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny)
+                ]
             elif self._detrend_mode == 'curvature':
-                self._coeffs = [s for s in
-                                tilt_and_curvature(self.parent_topography)]
+                self._coeffs = [s for s in tilt_and_curvature(self.parent_topography)]
             else:
-                raise ValueError(
-                    "Unsupported detrend mode '{}' for 2D topographies."
-                    .format(self._detrend_mode))
+                raise ValueError("Unsupported detrend mode '{}' for 2D topographies.".format(self._detrend_mode))
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -605,11 +680,11 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         super().__setstate__(superstate)
 
     @property
-    def coeffs(self, ):
+    def coeffs(self):
         return self._coeffs
 
     @property
-    def detrend_mode(self, ):
+    def detrend_mode(self):
         return self._detrend_mode
 
     @detrend_mode.setter
@@ -641,26 +716,20 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 return self.parent_topography.heights() - a0 - a1 * x
             elif len(self._coeffs) == 3:
                 a0, a1, a2 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1 * x - \
-                    a2 * x * x
+                return self.parent_topography.heights() - a0 - a1 * x - a2 * x * x
             else:
-                raise RuntimeError(
-                    'Unknown physical_sizes of coefficients tuple for line '
-                    'scans.')
+                raise RuntimeError('Unknown physical_sizes of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
-                               indexing='ij')
+            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts), indexing='ij')
             if len(self._coeffs) == 3:
                 a1x, a1y, a0 = self._coeffs
-                return self.parent_topography.heights() - a0 - a1x * x - \
-                    a1y * y
+                return self.parent_topography.heights() - a0 - a1x * x - a1y * y
             elif len(self._coeffs) == 6:
                 m, n, mm, nn, mn, h0 = self._coeffs
                 xx = x * x
                 yy = y * y
                 xy = x * y
-                return self.parent_topography.heights() - h0 - m * x - \
-                    n * y - mm * xx - nn * yy - mn * xy
+                return self.parent_topography.heights() - h0 - m * x - n * y - mm * xx - nn * yy - mn * xy
             else:
                 raise RuntimeError('Unknown physical_sizes of coefficients '
                                    'tuple for 2D topographies.')
@@ -696,7 +765,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                     'Unknown physical_sizes of coefficients tuple.')
 
     @property
-    def curvatures(self, ):
+    def curvatures(self):
         """
         convenience function that computes the curvatures
         :math:`\rho = \frac{1}{R}` of the fitted plane
@@ -724,8 +793,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             if len(self._coeffs) == 6:
                 sx, sy = self.physical_sizes
                 return (2 * self._coeffs[2]) / sx ** 2, (
-                            2 * self._coeffs[3]) / sy ** 2, (
-                                   2 * self._coeffs[4]) / (sx * sy)
+                        2 * self._coeffs[3]) / sy ** 2, (
+                               2 * self._coeffs[4]) / (sx * sy)
             elif len(self._coeffs) in {1, 3}:
                 return 0, 0, 0
             else:
@@ -750,7 +819,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         super().__init__(topography, info=info)
 
     @property
-    def nb_grid_pts(self, ):
+    def nb_grid_pts(self):
         """ Return number of points """
         if self.dim == 1:
             return self.parent_topography.nb_grid_pts
@@ -759,7 +828,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
             return ny, nx
 
     @property
-    def physical_sizes(self, ):
+    def physical_sizes(self):
         """ Return physical physical_sizes """
         if self.dim == 1:
             return self.parent_topography.physical_sizes
@@ -793,7 +862,7 @@ class TranslatedTopography(DecoratedUniformTopography):
         self._offset = offset
 
     @property
-    def offset(self, ):
+    def offset(self):
         return self._offset
 
     @offset.setter
@@ -863,19 +932,13 @@ class CompoundTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function(
-    'mean', lambda this: this.heights().mean())
-UniformTopographyInterface.register_function(
-    'min', lambda this: this.heights().min())
-UniformTopographyInterface.register_function(
-    'max', lambda this: this.heights().max())
+UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
+UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
+UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
 
 # Register pipeline functions from this module
-UniformTopographyInterface.register_function(
-    'scale', ScaledUniformTopography)
-UniformTopographyInterface.register_function(
-    'detrend', DetrendedUniformTopography)
-UniformTopographyInterface.register_function(
-    'transpose', TransposedUniformTopography)
-UniformTopographyInterface.register_function(
-    'translate', TranslatedTopography)
+UniformTopographyInterface.register_function('to_unit', ScaledUniformTopography)
+UniformTopographyInterface.register_function('scale', StaticallyScaledUniformTopography)
+UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
+UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)
+UniformTopographyInterface.register_function('translate', TranslatedTopography)

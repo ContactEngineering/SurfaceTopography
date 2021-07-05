@@ -217,6 +217,8 @@ def test_rms_slope_from_area():
                                   amplitude_distribution=lambda n: 1.0)
             last_rms_slope = t.rms_gradient()
             np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
+            np.testing.assert_almost_equal(last_rms_slope, t.scale(1.3).rms_gradient() / 1.3)
+            np.testing.assert_almost_equal(last_rms_slope, t.scale(1.3, 1.3).rms_gradient())
             # rms slope should not depend on filter for these cutoffs...
             for cutoff in [4]:
                 rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0]/r*cutoff)

@@ -34,7 +34,7 @@ from ..HeightContainer import NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 
 
-def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
+def checkerboard_detrend_profile(line_scan, subdivisions, tol=1e-6):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -105,7 +105,7 @@ def checkerboard_detrend(line_scan, subdivisions, tol=1e-6):
     return subdivided_line_scans
 
 
-def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_profile(line_scan, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -136,7 +136,7 @@ def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
     bandwidths = []
     rms_heights = []
     while min_nb_grid_pts >= nb_grid_pts_cutoff:
-        subdivided_line_scans = line_scan.checkerboard_detrend(magnification)
+        subdivided_line_scans = line_scan.checkerboard_detrend_profile(magnification)
         min_nb_grid_pts = min(
             [line.nb_grid_pts[0] for line in subdivided_line_scans])
         magnifications += [magnification]
@@ -148,7 +148,5 @@ def variable_bandwidth(line_scan, nb_grid_pts_cutoff=4):
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('checkerboard_detrend',
-                                              checkerboard_detrend)
-NonuniformLineScanInterface.register_function('variable_bandwidth',
-                                              variable_bandwidth)
+NonuniformLineScanInterface.register_function('checkerboard_detrend_profile', checkerboard_detrend_profile)
+NonuniformLineScanInterface.register_function('variable_bandwidth_from_profile', variable_bandwidth_from_profile)

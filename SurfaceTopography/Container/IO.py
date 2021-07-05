@@ -22,9 +22,12 @@
 # SOFTWARE.
 #
 
+import io
+import requests
 import tempfile
 import textwrap
 import yaml
+import numpy as np
 from datetime import datetime
 from zipfile import ZipFile
 
@@ -37,7 +40,7 @@ except ImportError:
 
     __version__ = get_distribution('SurfaceTopography').version
 
-from ..IO import read_topography
+from ..IO import open_topography
 from .SurfaceContainer import SurfaceContainer
 
 
@@ -67,27 +70,83 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
     surfaces = []
 
     with ZipFile(fn, 'r') as z:
-        meta = yaml.load(z.open('meta.yml'))
+        meta = yaml.load(z.open('meta.yml'), Loader=yaml.FullLoader)
 
         topographies = []
         for surf_meta in meta['surfaces']:
             for topo_meta in surf_meta['topographies']:
                 info = topo_meta.copy()
-                physical_sizes = None
-                if 'size' in info:
+
+                # Check whether the metadata contains sizes and unit. If not
+                # this information comes from the data file.
+                try:
                     physical_sizes = info['size']
                     del info['size']
+                except KeyError:
+                    physical_sizes = None
+                try:
+                    unit = info['unit']
+                    del info['unit']
+                except KeyError:
+                    unit = None
                 datafile_key = None
                 datafiles = topo_meta['datafile']
-                for key in datafiles:
-                    datafile_key = key
+
+                # Pick first of the provided possible data file keys that
+                # exists in the container
+                for key in datafile_keys:
+                    if key in datafiles:
+                        datafile_key = key
+                        break
+
+                # There may be none, complain
                 if datafile_key is None:
                     raise ValueError('Could not detect data file.')
-                t = read_topography(
-                    z.open(datafiles[datafile_key]),
+
+                # Inspect topography file
+                r = open_topography(z.open(datafiles[datafile_key]))
+
+                # Channel to load
+                if 'data_source' in topo_meta:
+                    data_source = topo_meta['data_source']
+                else:
+                    data_source = r.default_channel.index
+
+                # Check consistency between data file and meta.yml
+                physical_sizes_from_file = r.channels[data_source].physical_sizes
+                if physical_sizes_from_file is not None:
+                    if physical_sizes is not None:
+                        if np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
+                            # Need to set this to None to avoid collision
+                            physical_sizes = None
+                        else:
+                            raise ValueError(f'Physical sizes from data file (={physical_sizes_from_file} and from '
+                                             f'meta.yml (={physical_sizes}) differ for topography '
+                                             f'{datafiles[datafile_key]}')
+
+                unit_from_file = r.channels[data_source].unit
+                if unit_from_file is not None:
+                    if unit is not None:
+                        if unit_from_file == unit:
+                            # Need to set this to None to avoid collision
+                            unit = None
+                        else:
+                            raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
+                                             f'(={unit}) differ for topography {datafiles[datafile_key]}')
+
+                # Read the topography from the preferred data file
+                t = r.topography(
                     physical_sizes=physical_sizes,
+                    unit=unit,
                     info=info
                 )
+
+                # Close reader
+                r.close()
+
+                # We need to reconstruct the pipeline if the data file does
+                # not contain squeezed data, currently indicate by a
+                # 'squeezed' prefix to the data file key
                 if not datafile_key.startswith('squeezed'):
                     if 'height_scale' in topo_meta:
                         t = t.scale(topo_meta['height_scale'])
@@ -98,6 +157,18 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
             surfaces += [SurfaceContainer(topographies)]
 
     return surfaces
+
+
+def read_published_container(publication_url):
+    # First get the page for the publication in order
+    # to get the download URL
+    publication_response = requests.get(publication_url)
+    download_url = publication_response.url + "download/"
+
+    # Then download and read container
+    container_response = requests.get(download_url)
+    container_file = io.BytesIO(container_response.content)
+    return read_container(container_file)
 
 
 def write_containers(containers, fn):

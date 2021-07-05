@@ -35,8 +35,8 @@ from datetime import datetime
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
+from ..UnitConversion import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
 
-from .common import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 
@@ -180,8 +180,6 @@ supports V4.3 and later version of the format.
 
                     height_scale_factor = hard_scale * hard_to_soft * soft_scale
 
-                    channel_info = info.copy()
-                    channel_info.update(dict(unit=unit))
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
@@ -190,7 +188,8 @@ supports V4.3 and later version of the format.
                                           physical_sizes=(sx, sy),
                                           height_scale_factor=height_scale_factor,
                                           periodic=False,
-                                          info=channel_info)
+                                          unit=unit,
+                                          info=info)
                     self._channels.append(channel)
         finally:
             if close_file:
@@ -201,7 +200,7 @@ supports V4.3 and later version of the format.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
+                   height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
 
         if channel_index is None:
@@ -219,6 +218,10 @@ supports V4.3 and later version of the format.
             fobj = self._fobj
 
         channel = self._channels[channel_index]
+
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
         sx, sy = self._check_physical_sizes(physical_sizes,
                                             channel.physical_sizes)
 
@@ -235,7 +238,7 @@ supports V4.3 and later version of the format.
                                      dtype=dtype).reshape(nx, ny)
 
         # internal information from file
-        _info = dict(unit=channel.info["unit"], data_source=channel.name)
+        _info = dict(data_source=channel.name)
         _info.update(info)
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
@@ -249,10 +252,8 @@ supports V4.3 and later version of the format.
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
 
-        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy),
-                             info=_info,
+        surface = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy), unit=channel.unit, info=_info,
                              periodic=periodic)
-
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:

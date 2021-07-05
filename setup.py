@@ -144,5 +144,6 @@ setup(
         'numpyencoder',
         'pyyaml',
         'Pillow',
+        'requests',
     ]
 )

@@ -29,6 +29,7 @@ import numpy as np
 from igor.binarywave import load as loadibw
 
 from ..UniformLineScanAndTopography import Topography
+
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
@@ -50,7 +51,7 @@ on the physical size of the topography map as well as its units.
             file = loadibw(f)
 
         if file['version'] != 5:
-            raise RuntimeError('Only IBW version 5 supported!')
+            raise RuntimeError('Only IBW version 5 is supported!')
 
         self.data = file['wave']
 
@@ -100,7 +101,12 @@ on the physical size of the topography map as well as its units.
                                                                  x_unit,
                                                                  y_unit)
 
+        # An empty unit should be None
+        if data_unit == '':
+            data_unit = None
+
         self._data_unit = data_unit
+
         #
         # Decode sizes
         #
@@ -114,8 +120,8 @@ on the physical size of the topography map as well as its units.
         # Build channel information
         #
         self._channels = [
-            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny),
-                        physical_sizes=self._physical_sizes)
+            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny), physical_sizes=self._physical_sizes,
+                        unit=self._data_unit, height_scale_factor=1)
             for i, cn in enumerate(self._channel_names)]
 
         # Shall we use the channel names in order to assign a unit as Gwyddion
@@ -126,11 +132,17 @@ on the physical size of the topography map as well as its units.
         return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
+                   height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
         if channel_index is None:
             channel_index = self._default_channel_index
+
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
 
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:
@@ -145,9 +157,7 @@ on the physical size of the topography map as well as its units.
         else:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        topo = Topography(height_data, physical_sizes,
-                          info=info,
-                          periodic=periodic)
+        topo = Topography(height_data, physical_sizes, unit=self._data_unit, info=info, periodic=periodic)
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
 

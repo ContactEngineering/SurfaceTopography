@@ -314,9 +314,10 @@ def test_reader_topography_same(fn):
 
         # some checks on info dict in channel and topography
         assert topography.info['foo'] == foo_str
-        if "unit" in channel.info.keys() or \
-                "unit" in topography.info.keys():
-            assert channel.info["unit"] == topography.info["unit"]
+        if channel.unit is not None or topography.unit is not None:
+            assert channel.unit == topography.unit
+            assert channel.info['unit'] == topography.unit
+            assert channel.unit == topography.info['unit']
 
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
@@ -494,7 +495,7 @@ def test_gwyddion_txt_import(lang_filename_infix):
     channel = reader.default_channel
 
     assert channel.name == "My Channel Name"
-    assert channel.info['unit'] == 'm'
+    assert channel.unit == 'm'
     assert pytest.approx(
         channel.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
     assert pytest.approx(
@@ -504,7 +505,7 @@ def test_gwyddion_txt_import(lang_filename_infix):
     # test metadata of topography
     #
     topo = reader.topography()
-    assert topo.info['unit'] == 'm'
+    assert topo.unit == 'm'
     assert pytest.approx(
         topo.physical_sizes[0]) == 12.34 * 1e-6  # was given as µm
     assert pytest.approx(
@@ -556,11 +557,10 @@ def test_detect_format():
 
 
 def test_to_matrix():
-    info = dict(unit='nm')
     y = np.arange(10).reshape((1, -1))
     x = np.arange(5).reshape((-1, 1))
     arr = -2 * y + 0 * x
-    t = Topography(arr, (5, 10), info=info)
+    t = Topography(arr, (5, 10), unit='nm')
     # Check that we can export downstream the pipeline
     with tempfile.TemporaryDirectory() as d:
         t.to_matrix(f"{d}/topo.txt")

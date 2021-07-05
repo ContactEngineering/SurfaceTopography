@@ -22,7 +22,16 @@
 # SOFTWARE.
 #
 
-from .IO import read_container, read_published_container  # noqa: F401
-from .SurfaceContainer import SurfaceContainer  # noqa: F401
+import numpy as np
 
-import SurfaceTopography.Container.ScaleDependentStatistics  # noqa: F401
+from SurfaceTopography.Generation import fourier_synthesis
+
+
+def test_scale_dependent_rms_slope_from_profile():
+    t = fourier_synthesis((1024, 1024), (1, 1), 0.8, rms_slope=0.1)
+
+    x, A = t.autocorrelation_from_profile()
+
+    s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=x[1::20])
+
+    np.testing.assert_allclose(2*A[1::20]/x[1::20]**2, s)
