@@ -12,6 +12,14 @@ SurfaceTopography.Generic.Curvature module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Generic.ScanningProbe module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.ScanningProbe
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generic.Slope module
 --------------------------------------
 

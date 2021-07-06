@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform.ScaleDependentStatistics &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
+  <title>SurfaceTopography.Generic.ScanningProbe &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
   
 
   
@@ -152,7 +152,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>SurfaceTopography.Nonuniform.ScaleDependentStatistics</li>
+      <li>SurfaceTopography.Generic.ScanningProbe</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,7 +167,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for SurfaceTopography.Nonuniform.ScaleDependentStatistics</h1><div class="highlight"><pre>
+  <h1>Source code for SurfaceTopography.Generic.ScanningProbe</h1><div class="highlight"><pre>
 <span></span><span class="c1">#</span>
 <span class="c1"># Copyright 2021 Lars Pastewka</span>
 <span class="c1">#</span>
@@ -192,73 +192,66 @@
 <span class="c1"># SOFTWARE.</span>
 <span class="c1">#</span>
 
-<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Analysis functions related to scanning-probe microscopy</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<span class="kn">from</span> <span class="nn">SurfaceTopography.HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span>
 
 
-<div class="viewcode-block" id="scale_dependent_statistical_property"><a class="viewcode-back" href="../../../source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScaleDependentStatistics.scale_dependent_statistical_property">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_statistical_property</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nb_interpolate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="scanning_probe_reliability_cutoff"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff">[docs]</a><span class="k">def</span> <span class="nf">scanning_probe_reliability_cutoff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tip_radius</span><span class="p">,</span> <span class="n">safety_factor</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute statistical properties of a uniform topography at specific scales.</span>
-<span class="sd">    The scale is specified either by `scale_factors` or `distance`. These</span>
-<span class="sd">    properties are statistics of derivatives carried out at specific scales,</span>
-<span class="sd">    as computed using the `derivative` pipeline function.</span>
-
-<span class="sd">    The specific statistical properties is computed by the `func` argument.</span>
-<span class="sd">    The output of `func` needs to be homogeneous, i.e. if an array is returned,</span>
-<span class="sd">    this array must have the same size independent of the derivative data that</span>
-<span class="sd">    is fed into `func`.</span>
+<span class="sd">    Estimate a length scale below which tip radius artifacts affect the</span>
+<span class="sd">    measured data. See: https://arxiv.org/abs/2106.16103</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    topography : Topography or UniformLineScan</span>
+<span class="sd">    self : Topography or UniformLineScan</span>
 <span class="sd">        Topogaphy or line scan.</span>
-<span class="sd">    func : callable</span>
-<span class="sd">        The function that computes the statistical properties:</span>
-
-<span class="sd">            ``func(dx, dy=None) -&gt; np.ndarray``</span>
-
-<span class="sd">        A function taking the derivative in x-direction and optionally the</span>
-<span class="sd">        derivative in y-direction (only for topographies, i.e. maps). The</span>
-<span class="sd">        function needs to be able to ignore the second argument as a container</span>
-<span class="sd">        can be a mixture of topographies and line scans. The function can</span>
-<span class="sd">        return a scalar value or an array, but the array size must be fixed.</span>
-<span class="sd">    n : int, optional</span>
-<span class="sd">        Order of derivative. (Default: 1)</span>
-<span class="sd">    scale_factor : float or np.ndarray</span>
-<span class="sd">        Scale factor for rescaling the finite differences stencil. A scale</span>
-<span class="sd">        factor of unity means the derivative is computed at the size of the</span>
-<span class="sd">        individual pixel.</span>
-<span class="sd">    distance : float or np.ndarray</span>
-<span class="sd">        Characteristic distances at which the derivatives are computed. If</span>
-<span class="sd">        this is an array, then the statistical property is computed at each</span>
-<span class="sd">        of these distances.</span>
-<span class="sd">    unit : str</span>
-<span class="sd">        Unit of the distance array. All topographies are converted to this</span>
-<span class="sd">        unit before the derivative is computed.</span>
-<span class="sd">    nb_interpolate : int</span>
-<span class="sd">        Number of grid points to put between closest points on surface. Only</span>
-<span class="sd">        used for &#39;fft&#39; algorithm. (Default: 5)</span>
+<span class="sd">    tip_radius : float</span>
+<span class="sd">        Tip radius.</span>
+<span class="sd">    safety_factor : float, optional</span>
+<span class="sd">        Tip radius artifacts are expected to play a role for scales below</span>
+<span class="sd">        which the minimum scale-dependent curvature drops below</span>
+<span class="sd">        -safety_factor/radius. The `safety_factor` should be on the order of 1.</span>
+<span class="sd">        In https://arxiv.org/abs/2106.16103 a factor of 1/2 is estimated based</span>
+<span class="sd">        on synthetic (simulated) data. (Default: 1/2)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    statistical_fingerprint : np.ndarray or list of np.ndarray</span>
-<span class="sd">        Array containing the result of `func`</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    This example yields the the height-difference autocorrelation function in</span>
-<span class="sd">    the x-direction:</span>
-
-<span class="sd">    &gt;&gt;&gt; distances, A = t.autocorrelation_from_profile()</span>
-<span class="sd">    &gt;&gt;&gt;&gt; s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])</span>
-
-<span class="sd">    `A` and `s` are identical.</span>
+<span class="sd">    reliability_cutoff : float</span>
+<span class="sd">        Length scale below which data is affected by tip radius artifacts.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">topography</span><span class="o">.</span><span class="n">to_uniform</span><span class="p">(</span><span class="n">nb_interpolate</span><span class="o">=</span><span class="n">nb_interpolate</span><span class="p">)</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span>
-        <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">)</span></div>
+    <span class="n">target_curvature</span> <span class="o">=</span> <span class="n">safety_factor</span> <span class="o">/</span> <span class="n">tip_radius</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="n">px</span><span class="p">,</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">physical_sizes</span>
+        <span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixel_size</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Don&#39;t know how to handle a topography of dimension </span><span class="si">{self.dim}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">negative_minimum</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">target_curvature</span> <span class="o">-</span> <span class="n">negative_minimum</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">))</span>
+
+    <span class="n">reliability_cutoff</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">brentq</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span>
+                                                   <span class="mi">1</span><span class="p">,</span> <span class="n">sx</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">/</span> <span class="n">px</span><span class="p">,</span>  <span class="c1"># bounds</span>
+                                                   <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-4</span>
+                                                   <span class="p">)</span> <span class="o">*</span> <span class="n">px</span>
+
+    <span class="k">return</span> <span class="n">reliability_cutoff</span></div>
 
 
-<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scale_dependent_statistical_property&#39;</span><span class="p">,</span>
-                                              <span class="n">scale_dependent_statistical_property</span><span class="p">)</span>
+<span class="n">UniformTopographyInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scanning_probe_reliability_cutoff&#39;</span><span class="p">,</span> <span class="n">scanning_probe_reliability_cutoff</span><span class="p">)</span>
+<span class="n">NonuniformLineScanInterface</span><span class="o">.</span><span class="n">register_function</span><span class="p">(</span><span class="s1">&#39;scanning_probe_reliability_cutoff&#39;</span><span class="p">,</span> <span class="n">scanning_probe_reliability_cutoff</span><span class="p">)</span>
 </pre></div>
 
            </div>

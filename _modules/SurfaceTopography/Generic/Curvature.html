@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic.Curvature &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
+  <title>SurfaceTopography.Generic.Curvature &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev120+gde4aa054
+                0.94.1.dev130+g27770d77
               </div>
             
           
@@ -198,8 +198,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">UniformTopographyInterface</span>
-<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span>
+<span class="kn">from</span> <span class="nn">..HeightContainer</span> <span class="k">import</span> <span class="n">NonuniformLineScanInterface</span><span class="p">,</span> <span class="n">UniformTopographyInterface</span>
 
 
 <div class="viewcode-block" id="scale_dependent_curvature_from_profile"><a class="viewcode-back" href="../../../source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">[docs]</a><span class="k">def</span> <span class="nf">scale_dependent_curvature_from_profile</span><span class="p">(</span><span class="n">topography</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -252,7 +251,7 @@
 <span class="sd">         :nowrap:</span>
 
 <span class="sd">         \begin{equation}</span>
-<span class="sd">         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2</span>
+<span class="sd">         h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2</span>
 <span class="sd">         \end{equation}</span>
 
 <span class="sd">    where :math:`A(\lambda)` is the autocorrelation function.</span>
@@ -281,7 +280,7 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">nz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c1"># Important: The following expression relies on the fact that r is equally spaced!</span>
-    <span class="k">return</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span></div>
+    <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">B</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span> <span class="o">/</span> <span class="n">r</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span></div>
 
 
 <span class="c1"># Register analysis functions from this module</span>

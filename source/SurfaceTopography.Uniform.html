@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.94.1.dev120+gde4aa054
+                0.94.1.dev130+g27770d77
               </div>
             
           
@@ -1026,7 +1026,7 @@ topographies.</p>
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
 <li><p><strong>n</strong> (<em>int</em>) – Order of the derivative.</p></li>
 <li><p><strong>scale_factor</strong> (<em>int</em><em> or </em><em>list of ints</em><em> or </em><em>list of tuples of ints</em><em>, </em><em>optional</em>) – <p>Integer factor that scales the stencil difference, i.e.
-specifying 2 will compute the derivative over a distance of
+specifying 2 will compute the derivative using a discrete step of
 2 * dx. Either <cite>scale_factor</cite> or <cite>distance</cite> can be specified.
 - Single int: Returns a single derivative scaled in all directions</p>
 <blockquote>
@@ -1041,8 +1041,12 @@ derivatives, scaled with different factors in both directions.</p></li>
 </ul>
 <p>(Default: None)</p>
 </p></li>
-<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>list of floats</em><em>, </em><em>optional</em>) – Expicit distance scale for computation of the derivative. Either
-<cite>scale_factor</cite> or <cite>distance</cite> can be specified.
+<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>list of floats</em><em>, </em><em>optional</em>) – Explicit distance scale for computation of the derivative. Either
+<cite>scale_factor</cite> or <cite>distance</cite> can be specified. Note that the distance
+specifies the overall length of the stencil of lowest truncation
+order, not the effective grid spacing used by this stencil. The scale
+factor is then given by distance / (n * dx) where n is the order of the
+derivative and dx the grid spacing.
 (Default: None)</p></li>
 <li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
 a simple upwind differences scheme will be applied to compute the

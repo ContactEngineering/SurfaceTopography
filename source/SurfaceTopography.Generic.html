@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.94.1.dev120+gde4aa054
+                0.94.1.dev130+g27770d77
               </div>
             
           
@@ -108,6 +108,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
 </ul>
@@ -220,7 +221,7 @@
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \begin{equation}
-h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
+h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2
 \end{equation}</div></div></blockquote>
 <p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
 <dl class="field-list simple">
@@ -266,6 +267,36 @@ h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{
 <li><p><strong>curvature</strong> (<em>array</em>) – Curvature. (Units: 1/length)</p></li>
 </ul>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Generic.ScanningProbe">
+<span id="surfacetopography-generic-scanningprobe-module"></span><h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScanningProbe" title="Permalink to this headline">¶</a></h2>
+<p>Analysis functions related to scanning-probe microscopy</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScanningProbe.</span></span><span class="sig-name descname"><span class="pre">scanning_probe_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/SurfaceTopography/Generic/ScanningProbe.html#scanning_probe_reliability_cutoff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate a length scale below which tip radius artifacts affect the
+measured data. See: <a class="reference external" href="https://arxiv.org/abs/2106.16103">https://arxiv.org/abs/2106.16103</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Topogaphy or line scan.</p></li>
+<li><p><strong>tip_radius</strong> (<em>float</em>) – Tip radius.</p></li>
+<li><p><strong>safety_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Tip radius artifacts are expected to play a role for scales below
+which the minimum scale-dependent curvature drops below
+-safety_factor/radius. The <cite>safety_factor</cite> should be on the order of 1.
+In <a class="reference external" href="https://arxiv.org/abs/2106.16103">https://arxiv.org/abs/2106.16103</a> a factor of 1/2 is estimated based
+on synthetic (simulated) data. (Default: 1/2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>reliability_cutoff</strong> – Length scale below which data is affected by tip radius artifacts.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>

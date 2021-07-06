@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.94.1.dev120+gde4aa054 documentation</title>
+  <title>SurfaceTopography.Uniform.common &mdash; SurfaceTopography 0.94.1.dev130+g27770d77 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.94.1.dev120+gde4aa054
+                0.94.1.dev130+g27770d77
               </div>
             
           
@@ -221,7 +221,7 @@
 <span class="n">third_1d</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 
 <span class="c1"># second order central differences of the third derivative</span>
-<span class="n">third_central_1d</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">third_central_1d</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">])</span>
 
 <span class="c1"># First order upwind differences</span>
 <span class="n">first_2d_x</span> <span class="o">=</span> <span class="n">muFFT</span><span class="o">.</span><span class="n">DiscreteDerivative</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
@@ -347,7 +347,7 @@
 <span class="sd">        Order of the derivative.</span>
 <span class="sd">    scale_factor : int or list of ints or list of tuples of ints, optional</span>
 <span class="sd">        Integer factor that scales the stencil difference, i.e.</span>
-<span class="sd">        specifying 2 will compute the derivative over a distance of</span>
+<span class="sd">        specifying 2 will compute the derivative using a discrete step of</span>
 <span class="sd">        2 * dx. Either `scale_factor` or `distance` can be specified.</span>
 <span class="sd">        - Single int: Returns a single derivative scaled in all directions</span>
 <span class="sd">          with this value</span>
@@ -358,8 +358,12 @@
 <span class="sd">          derivatives, scaled with different factors in both directions.</span>
 <span class="sd">        (Default: None)</span>
 <span class="sd">    distance : float or list of floats, optional</span>
-<span class="sd">        Expicit distance scale for computation of the derivative. Either</span>
-<span class="sd">        `scale_factor` or `distance` can be specified.</span>
+<span class="sd">        Explicit distance scale for computation of the derivative. Either</span>
+<span class="sd">        `scale_factor` or `distance` can be specified. Note that the distance</span>
+<span class="sd">        specifies the overall length of the stencil of lowest truncation</span>
+<span class="sd">        order, not the effective grid spacing used by this stencil. The scale</span>
+<span class="sd">        factor is then given by distance / (n * dx) where n is the order of the</span>
+<span class="sd">        derivative and dx the grid spacing.</span>
 <span class="sd">        (Default: None)</span>
 <span class="sd">    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional</span>
 <span class="sd">        Derivative operator used to compute the derivative. If unspecified,</span>
@@ -411,10 +415,10 @@
             <span class="c1"># Convert distance to scale factor</span>
             <span class="k">if</span> <span class="n">topography</span><span class="o">.</span><span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">dx</span><span class="p">,</span> <span class="o">=</span> <span class="n">grid_spacing</span>
-                <span class="n">scale_factor</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">/</span><span class="n">dx</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">toiter</span><span class="p">(</span><span class="n">distance</span><span class="p">)]</span>
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">toiter</span><span class="p">(</span><span class="n">distance</span><span class="p">)]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">grid_spacing</span>
-                <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">d</span><span class="o">/</span><span class="n">dx</span><span class="p">,</span> <span class="n">d</span><span class="o">/</span><span class="n">dy</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">toiter</span><span class="p">(</span><span class="n">distance</span><span class="p">)])</span>
+                <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">d</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">dx</span><span class="p">),</span> <span class="n">d</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">dy</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">toiter</span><span class="p">(</span><span class="n">distance</span><span class="p">)])</span>
 
     <span class="k">elif</span> <span class="n">distance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please specify either `scale_factor` or `distance`&#39;</span><span class="p">)</span>
@@ -589,8 +593,8 @@
     <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">topography</span><span class="o">.</span><span class="n">nb_grid_pts</span>
 
     <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">subplot_location</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">sx</span> <span class="o">/</span> <span class="n">sy</span><span class="p">)</span>
-    <span class="n">Y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">,</span>
-                       <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span>
+    <span class="n">Y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sy</span> <span class="o">/</span> <span class="n">ny</span><span class="p">,</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sx</span> <span class="o">/</span> <span class="n">nx</span><span class="p">)</span>
     <span class="n">Z</span> <span class="o">=</span> <span class="n">topography</span><span class="p">[</span><span class="o">...</span><span class="p">]</span>
     <span class="n">mesh</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
