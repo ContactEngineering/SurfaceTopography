@@ -44,21 +44,47 @@ from ..UniformLineScanAndTopography import DecoratedUniformTopography
 # First order upwind differences
 first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
 
-# Fourth order central differences of the second derivative
+# second order central differences of the second derivative
 second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
+
+# first order upwind differences of the third derivative
+third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
+
+# second order central differences of the third derivative
+third_central_1d = muFFT.DiscreteDerivative([-2], [-1/2, 1, 0, -1, 1/2])
 
 # First order upwind differences
 first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
 first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
 first_2d = (first_2d_x, first_2d_y)
 
-# Fourth order central differences of the second derivative
-second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
-second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
+# second order central differences of the second derivative
+second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
+                                                  [0, -2, 0],
+                                                  [0, 1, 0]])
+second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0],
+                                                  [1, -2, 1],
+                                                  [0, 0, 0]])
 second_2d = (second_2d_x, second_2d_y)
 
+# first order upwind differences of the third derivative
+third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, -1, 0, 0],
+                                                 [0, 3, 0, 0],
+                                                 [0, -3, 0, 0],
+                                                 [0, 1, 0, 0]])
+third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0, 0],
+                                                 [-1, 3, -3, 1],
+                                                 [0, 0, 0, 0],
+                                                 [0, 0, 0, 0]])
 
-###
+third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1],
+                                                 [3],
+                                                 [-3],
+                                                 [1]])
+third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
+
+third_2d = (third_2d_x, third_2d_y)
+
 
 def bandwidth(topography):
     """Computes lower and upper bound of bandwidth.
@@ -134,13 +160,12 @@ def _trim_nonperiodic(arr, scale_factor, op):
         r = -scale_factor * max(0, r - 1)
         if r == 0:
             r = None
-        trimmed_slice += [slice(L, r)]
+        trimmed_slice += [slice(int(L), None if r is None else int(r))]
 
     return arr[tuple(trimmed_slice)]
 
 
-def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
-               mask_function=None):
+def derivative(topography, n, scale_factor=None, distance=None, operator=None, periodic=None, mask_function=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
@@ -150,10 +175,22 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
         Surface topography object containing height information.
     n : int
         Order of the derivative.
-    scale_factor : int or list of ints, optional
+    scale_factor : int or list of ints or list of tuples of ints, optional
         Integer factor that scales the stencil difference, i.e.
-        specifying 2 will compute the derviative over a distance of
-        2 * dx. (Default: 1)
+        specifying 2 will compute the derivative over a distance of
+        2 * dx. Either `scale_factor` or `distance` can be specified.
+        - Single int: Returns a single derivative scaled in all directions
+          with this value
+        - List of ints: Returns multiple derivatives, each scaled in all
+          direction with the respective value from the list
+        - List of tuples of ints: Each tuple contains a scale factor in
+          the two Cartesian (x- and y-) directions. Return multiple
+          derivatives, scaled with different factors in both directions.
+        (Default: None)
+    distance : float or list of floats, optional
+        Expicit distance scale for computation of the derivative. Either
+        `scale_factor` or `distance` can be specified.
+        (Default: None)
     operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
@@ -186,7 +223,36 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
     if operator is None:
         operator = _get_default_derivative_operator(n, topography.dim)
 
+    def toiter(obj):
+        """If object is scalar, wrap it into a list"""
+        try:
+            iter(obj)
+            return obj
+        except TypeError:
+            return [obj]
+
     grid_spacing = np.array(topography.pixel_size)
+
+    if scale_factor is None:
+        if distance is None:
+            # This is the default behavior
+            scale_factor = 1
+        else:
+            # Convert distance to scale factor
+            if topography.dim == 1:
+                dx, = grid_spacing
+                scale_factor = [d/dx for d in toiter(distance)]
+            else:
+                dx, dy = grid_spacing
+                scale_factor = np.array([(d/dx, d/dy) for d in toiter(distance)])
+
+    elif distance is not None:
+        raise ValueError('Please specify either `scale_factor` or `distance`')
+
+    if np.any(np.asarray(scale_factor) < 1.0):
+        raise ValueError('`scale_factor` cannot be smaller than unity. If you specified a specific `distance`, than '
+                         'this distance is smaller than the lower bound of the bandwidth of the surface.')
+
     is_periodic = topography.is_periodic if periodic is None else periodic
 
     # Return FFT object (this will only be initialized once and reused in subsequent calls)
@@ -205,19 +271,16 @@ def derivative(topography, n, scale_factor=1, operator=None, periodic=None,
     fourier_array = np.array(fourier_field, copy=False)
     fourier_copy = fourier_array.copy()
 
-    def toiter(obj):
-        """If object is scalar, wrap it into a list"""
-        try:
-            iter(obj)
-            return obj
-        except TypeError:
-            return [obj]
-
     # Apply derivative operator in Fourier space
     derivatives = []
     for i, op in enumerate(toiter(operator)):
         der = []
         for s in toiter(scale_factor):
+            try:
+                # If s is a tuple, the scale factor is per direction
+                s = s[i]
+            except (TypeError, IndexError):  # Python types raise TypeError, numpy types IndexError
+                pass
             fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
             fft.ifft(fourier_field, real_field)
             _der = np.array(real_field, copy=False) * fft.normalisation / (s * grid_spacing[i]) ** n
@@ -333,6 +396,7 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
                                 subdomain_locations=subdomain_locations,
                                 nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                                 communicator=communicator,
+                                unit=topography.unit,
                                 info=topography.info)
 
 
@@ -355,15 +419,15 @@ def plot(topography, subplot_location=111):
     nx, ny = topography.nb_grid_pts
 
     ax = plt.subplot(subplot_location, aspect=sx / sy)
-    Y, X = np.meshgrid((np.arange(ny+1) + 0.5) * sy / ny,
-                       (np.arange(nx+1) + 0.5) * sx / nx)
+    Y, X = np.meshgrid(np.arange(ny+1) * sy / ny,
+                       np.arange(nx+1) * sx / nx)
     Z = topography[...]
     mesh = ax.pcolormesh(X, Y, Z)
     plt.colorbar(mesh, ax=ax)
     ax.set_xlim(0, sx)
     ax.set_ylim(0, sy)
-    if 'unit' in topography.info:
-        unit = topography.info['unit']
+    if topography.unit is not None:
+        unit = topography.unit
     else:
         unit = 'a.u.'
     ax.set_xlabel('Position $x$ ({})'.format(unit))

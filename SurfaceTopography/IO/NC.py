@@ -29,16 +29,34 @@ import numpy as np
 
 from numpyencoder import NumpyEncoder
 
-from .. import Topography, UniformLineScan, NonuniformLineScan
-from .common import mangle_length_unit_utf8, mangle_length_unit_ascii
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
+from ..NonuniformLineScan import NonuniformLineScan
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
+
+# We run serial I/O through scipy. This has several advantages:
+# 1) lightweight, 2) can handle streams
+from scipy.io.netcdf import netcdf_file
 
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,
     'NETCDF3_64BIT_OFFSET': 2
 }
+
+
+# we subclass the netcdf_file class such it
+# is not closed by garbage collector in case of file streams
+class _SpecialNetCDFFile(netcdf_file):
+    def close(self):
+        if self.filename != 'None':
+            super().close()
+        else:
+            self.flush()
+        # we want to disable calling closing the file
+        # in case of file streams
+    __del__ = close
 
 
 class NCReader(ReaderBase):
@@ -106,18 +124,19 @@ plt.show()
         if communicator is not None and communicator.size > 1:
             # For parallel I/O we need netCDF4
             from netCDF4 import Dataset
-            self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator)
+            self._nc = Dataset(fobj, 'r', parallel=True, comm=communicator, format='NETCDF3_64BIT_OFFSET')
         else:
             # We need to check magic ourselves if this is a stream because
-            # netcdf_file closes the stream
-            if hasattr('seek', fobj):
+            # netcdf_file may close the stream in case of error, probably
+            # because of garbage collection
+            if hasattr(fobj, 'seek'):
                 magic = fobj.read(3)
                 if not magic == b'CDF':
                     raise TypeError('File or stream is not a valid NetCDF 3 file')
-            # We run serial I/O through scipy. This has several advantages:
-            # 1) lightweight, 2) can handle streams
-            from scipy.io.netcdf import netcdf_file
-            self._nc = netcdf_file(fobj, 'r')
+                # we must rewind the file
+                fobj.seek(0)
+
+            self._nc = _SpecialNetCDFFile(fobj, 'r')
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
@@ -130,6 +149,7 @@ plt.show()
         # The following information may be missing from the NetCDF file
         self._physical_sizes = None
         self._periodic = False
+        self._unit = None
         self._info = {}
 
         # Deserialize info dictionary, if present
@@ -165,7 +185,7 @@ plt.show()
 
         # Determine unit of topography
         try:
-            self._info['unit'] = mangle_length_unit_utf8(self._x_var.unit)
+            self._unit = mangle_length_unit_utf8(self._x_var.unit)
         except AttributeError:
             pass
 
@@ -180,7 +200,8 @@ plt.show()
                 del self._y_var
             if self._heights_var is not None:
                 del self._heights_var
-            self._nc.close()
+
+            del self._nc
             self._nc = None
 
     @property
@@ -218,14 +239,19 @@ plt.show()
                             nb_grid_pts=nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
+                            unit=self._unit,
                             info=self._info)]
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=None,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=None, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if channel_index is not None and channel_index != 0:
             raise ValueError('`channel_index` must be None or 0.')
+
+        if unit is not None:
+            if self._unit is not None:
+                raise MetadataAlreadyFixedByFile('unit')
+        else:
+            unit = self._unit
 
         _info = self._info.copy()
         _info.update(info)
@@ -237,13 +263,14 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    return Topography(np.array(self._heights_var[...]), physical_sizes,
+                    topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
-                                      info=_info)
+                                      unit=unit, info=_info)
                 else:
-                    return UniformLineScan(np.array(self._heights_var[...]), physical_sizes,
+                    # .. and it is 1D
+                    topo = UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
-                                           info=_info)
+                                           unit=unit, info=_info)
             else:
                 if physical_sizes is not None:
                     raise ValueError('You cannot specify physical sizes for a nonuniform topography.')
@@ -253,7 +280,9 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                return NonuniformLineScan(np.array(self._x_var[...]), np.array(self._heights_var[...]), info=_info)
+                topo = NonuniformLineScan(np.array(self._x_var[...], copy=True),
+                                          np.array(self._heights_var[...], copy=True),
+                                          unit=unit, info=_info)
         else:
             if self._y_dim is None:
                 raise ValueError('Parallel reading only works for topographies, not line scans.')
@@ -261,13 +290,24 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            return Topography(np.array(self._heights_var[...]), physical_sizes,
+            topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
                               nb_subdomain_grid_pts=nb_subdomain_grid_pts,
                               communicator=self.communicator,
+                              unit=unit,
                               info=_info)
+
+        if height_scale_factor is not None:
+            if 'unit' in _info:
+                raise MetadataAlreadyFixedByFile('height_scale_factor',
+                                                 'The height_scale_factor cannot be given for NC files '
+                                                 'if units are present in the file.')
+                # See https://github.com/ContactEngineering/SurfaceTopography/pull/99#discussion_r648364687
+            topo = topo.scale(height_scale_factor)
+
+        return topo
 
     @property
     def communicator(self):
@@ -277,7 +317,7 @@ plt.show()
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
+def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
     """
     Write topography into a NetCDF file.
 
@@ -285,8 +325,8 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
     ----------
     topography : :obj:`SurfaceTopography`
         The topography to write to disk.
-    filename : str
-        Name of the NetCDF file
+    fobj : str or stream
+        Name of the NetCDF file or file stream
     format : str
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
@@ -296,12 +336,12 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
                       parallel=topography.is_domain_decomposed,
                       comm=topography.communicator)
     else:
-        from scipy.io.netcdf import netcdf_file as Dataset
+        Dataset = _SpecialNetCDFFile
         kwargs = dict(version=format_to_scipy_version[format])
     if not topography.is_domain_decomposed and \
             topography.communicator.rank > 1:
         return
-    with Dataset(filename, 'w', **kwargs) as nc:
+    with Dataset(fobj, 'w', **kwargs) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = topography.info.copy()
         try:
@@ -339,9 +379,9 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             x_var.length = sx
 
             x_var.periodic = 1 if topography.is_periodic else 0
-            if 'unit' in topography.info:
+            if topography.unit is not None:
                 # scipy.io.netcdf_file does not support UTF-8
-                x_var.unit = mangle_length_unit_ascii(topography.info['unit'])
+                x_var.unit = mangle_length_unit_ascii(topography.unit)
 
             if topography.dim > 1:
                 x_var[...] = np.arange(nx) / nx * sx
@@ -350,9 +390,9 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
 
                 y_var.length = sy
                 y_var.periodic = 1 if topography.is_periodic else 0
-                if 'unit' in topography.info:
+                if topography.unit is not None:
                     # scipy.io.netcdf_file does not support UTF-8
-                    y_var.unit = mangle_length_unit_ascii(topography.info['unit'])
+                    y_var.unit = mangle_length_unit_ascii(topography.unit)
                 y_var[...] = np.arange(ny) / ny * sy
 
         if topography.is_domain_decomposed:
@@ -360,11 +400,11 @@ def write_nc_uniform(topography, filename, format='NETCDF3_64BIT_OFFSET'):
             heights_var[topography.subdomain_slices] = topography.heights()
         else:
             heights_var[...] = topography.heights()
-        if 'unit' in topography.info:
-            heights_var.unit = mangle_length_unit_ascii(topography.info['unit'])
+        if topography.unit is not None:
+            heights_var.unit = mangle_length_unit_ascii(topography.unit)
 
 
-def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
+def write_nc_nonuniform(line_scan, fobj, format='NETCDF3_64BIT_OFFSET'):
     """
     Write nonuniform line scan into a NetCDF file.
 
@@ -372,17 +412,15 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
     ----------
     line_scan : :obj:`SurfaceTopography`
         The topography to write to disk.
-    filename : str
-        Name of the NetCDF file
+    fobj : str or stream
+        Name of the NetCDF file or file stream
     format : str
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
     if line_scan.communicator is not None and line_scan.communicator.size > 1:
         raise RuntimeError('Parallel writing is not supported for nonuniform line scans')
 
-    from scipy.io.netcdf import netcdf_file
-
-    with netcdf_file(filename, 'w', version=format_to_scipy_version[format]) as nc:
+    with _SpecialNetCDFFile(fobj, 'w', version=format_to_scipy_version[format]) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = line_scan.info.copy()
         try:
@@ -401,9 +439,9 @@ def write_nc_nonuniform(line_scan, filename, format='NETCDF3_64BIT_OFFSET'):
         heights_var = nc.createVariable('heights', 'f8', ('n',))
 
         x_var[...] = line_scan.positions()
-        if 'unit' in line_scan.info:
+        if line_scan.unit is not None:
             # scipy.io.netcdf_file does not support UTF-8
-            x_var.unit = mangle_length_unit_ascii(line_scan.info['unit'])
+            x_var.unit = mangle_length_unit_ascii(line_scan.unit)
         heights_var[...] = line_scan.heights()
 
 

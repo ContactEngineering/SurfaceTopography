@@ -26,17 +26,19 @@ import re
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY, height_units, mangle_length_unit_utf8, text
-from .FromFile import make_wrapped_reader
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from ..UnitConversion import height_units, mangle_length_unit_utf8
+from .common import CHANNEL_NAME_INFO_KEY, text
+from .FromFile import make_wrapped_reader
+from .Reader import MetadataAlreadyFixedByFile
 
 ###
 
 
 @text
-def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
+def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
     """
     Reads a surface profile from a text file and presents in in a
     SurfaceTopography-conformant manner. No additional parsing of
@@ -47,11 +49,11 @@ def read_matrix(fobj, physical_sizes=None, factor=None, periodic=False):
     """
     arr = np.loadtxt(fobj)
     if physical_sizes is None:
-        surface = Topography(arr, arr.shape, periodic=periodic)
+        surface = Topography(arr, arr.shape, periodic=periodic, unit=unit)
     else:
-        surface = Topography(arr, physical_sizes, periodic=periodic)
-    if factor is not None:
-        surface = surface.scale(factor)
+        surface = Topography(arr, physical_sizes, periodic=periodic, unit=unit)
+    if height_scale_factor is not None:
+        surface = surface.scale(height_scale_factor)
     return surface
 
 
@@ -62,7 +64,7 @@ MatrixReader = make_wrapped_reader(
 
 @text
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
-             z_factor=None, info={}, periodic=False):
+             z_factor=None, unit=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile (topography) from an generic asc file and presents
@@ -74,14 +76,19 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     - "unit": a common unit for the data, for dimensions and heights
     - "channel_name": the name of the channel (if unknown "Default" is used")
 
-    Keyword Arguments:
-    fobj_in -- filename or file object
-    unit -- name of surface units, one of m, mm, μm/um, nm, A
-    x_factor -- multiplication factor for physical_sizes
-    z_factor -- multiplication factor for height
-    """
-    unit = info['unit'] if 'unit' in info else None
+    Parameters
+    ----------
 
+    fobj: filename or file object
+    physical_sizes: tuple or None
+    height_scale_factor: float or None
+    x_factor: float
+        multiplication factor for physical_sizes
+    z_factor: float or None
+        multiplication factor for height
+    info: dict
+    periodic: bool
+    """
     _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
 
     checks = list()
@@ -127,7 +134,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     channel_name = "Default"
 
     def process_comment(line):
-        "Find and interpret known comments in the header of the asc file"
+        """Find and interpret known comments in the header of the asc file"""
         nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
         nonlocal zfac
         nonlocal channel_name
@@ -173,6 +180,11 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 data += [[float(strval) for strval in line_elements]]
             except ValueError:
                 process_comment(line)
+
+    if (height_scale_factor is not None) and (zfac is not None):
+        # it should not be allowed to override a height scale factor if
+        # there is one already in the file
+        raise MetadataAlreadyFixedByFile('height_scale_factor')
 
     data = np.array(data).T
     nx, ny = data.shape
@@ -235,16 +247,17 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     info[CHANNEL_NAME_INFO_KEY] = channel_name
 
     # calculate physical sizes and generate topography
-    if xsiz is not None and ysiz is not None and physical_sizes is None:
-        physical_sizes = (x_factor * xsiz, x_factor * ysiz)
+    if xsiz is not None and ysiz is not None:
+        if physical_sizes is None:
+            physical_sizes = (x_factor * xsiz, x_factor * ysiz)
+        else:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
     if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[0, :], physical_sizes, info=info,
-                                  periodic=periodic)
+        surface = UniformLineScan(data[0, :], physical_sizes, unit=unit, info=info, periodic=periodic)
     else:
-        surface = Topography(data, physical_sizes, info=info,
-                             periodic=periodic)
+        surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None and zfac != 1:
@@ -282,8 +295,7 @@ When writing your own ASCII files, we recommend to prepent the header with a
 
 
 @text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
-             periodic=False, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of
     (x,y)-positions.
@@ -297,7 +309,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
 
     Returns
     -------
-    topography : Topography
+    topography : Topography or UniformLineScan or NonuniformLineScan
         SurfaceTopography object.
     """
     # pylint: disable=invalid-name
@@ -312,21 +324,26 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
         if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
             if physical_sizes is None:
                 physical_sizes = d_uniform * len(x)
-            t = UniformLineScan(z, physical_sizes, info=info, periodic=periodic)
+            else:
+                raise MetadataAlreadyFixedByFile('physical_sizes')
+            t = UniformLineScan(z, physical_sizes, unit=unit, info=info, periodic=periodic)
         else:
             if periodic:
                 raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
                                  'Nonuniform line scans cannot be periodic.')
-            t = NonuniformLineScan(x, z, info=info)
+            t = NonuniformLineScan(x, z, unit=unit, info=info)
             if physical_sizes is not None:
-                if not np.allclose(t.physical_sizes, physical_sizes):
-                    raise ValueError(
-                        'XYZ reader found nonuniform data. Manually setting the '
-                        'physical size is not possible for this type of data.')
+                raise MetadataAlreadyFixedByFile('physical_sizes')
 
     elif len(data) == 3:
         # This is a topography map.
         x, y, z = data
+
+        # Sort values, first x than y
+        indices = np.lexsort((x, y))
+        x = x[indices]
+        y = y[indices]
+        z = z[indices]
 
         # Sort x-values into bins. Assume points on surface are equally spaced.
         dx = x[1] - x[0]
@@ -353,7 +370,9 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, info={},
 
         if physical_sizes is None:
             physical_sizes = (dx * nx, dy * ny)
-        t = Topography(data, physical_sizes, info=info, periodic=periodic)
+        else:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+        t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     else:
         raise Exception(
             'Expected two or three columns for topography that is a list of '

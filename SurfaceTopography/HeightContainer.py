@@ -29,10 +29,13 @@ Base class for geometric topogography descriptions
 """
 
 import abc
+import warnings
 
 import numpy as np
 
 from NuMPI import MPI
+
+from .Support import DeprecatedDictionary
 
 # Standardized entries for the info dictionary
 
@@ -44,17 +47,17 @@ INFO_UNIT = 'unit'
 INFO_ACQUISITION_TIME = 'acquisition_time'
 
 
-class AbstractHeightContainer(object):
+class AbstractTopography(object):
     """
-    Base class for all containers storing height information.
+    Base class for all classes storing height information.
 
     The member dictionary `_functions` contains a list of functions that
-    can be executed on this specific container.
+    can be executed on this specific class.
 
     The dictionary itself is owned by the interface,
     `UniformTopographyInterface` and `NonuniformLineScanInterface`. This is
     because the functions are determined by the type of topography that is
-    represented, not by the pipeline hierarchy. For example, convertes that
+    represented, not by the pipeline hierarchy. For example, converters that
     convert uniform to nonuniform and vice versa need to have the respective
     interface of the format they are converting to.
     """
@@ -63,7 +66,17 @@ class AbstractHeightContainer(object):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self, info={}, communicator=MPI.COMM_WORLD):
+    def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
+        if 'unit' in info:
+            if unit is None:
+                warnings.warn('Please pass units via the `unit` keyword parameter, not the info dictionary.',
+                              DeprecationWarning)
+                unit = info['unit']
+                info = info.copy()
+                del info['unit']
+            elif unit != info['unit']:
+                raise ValueError('Unit was passed via the `unit` keyword parameter and within the info dictionary.')
+        self._unit = unit
         self._info = info.copy()
         self._communicator = communicator
 
@@ -79,30 +92,28 @@ class AbstractHeightContainer(object):
             return func
         else:
             raise AttributeError(
-                "Unkown attribute '{}' and no analysis or pipeline function "
-                "of this name registered (class {}). Available functions: {}"
-                .format(name, self.__class__.__name__,
-                        ', '.join(self._functions.keys())))
+                "Unkown attribute '{}' and no analysis or pipeline function of this name registered (class {}). "
+                "Available functions: {}".format(name, self.__class__.__name__, ', '.join(self._functions.keys())))
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
 
     def __eq__(self, other):
-        return self.info == other.info and self.is_periodic == other.is_periodic
+        return self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic
 
     def __getstate__(self):
         """
         Upon pickling, it is called and the returned object is pickled as the
         contents for the instance.
         """
-        return self._info
+        return self._unit, self._info
 
     def __setstate__(self, state):
         """
         Upon unpickling, it is called with the unpickled state.
         The argument `state` is the result of `__getstate__`.
         """
-        self._info = state
+        self._unit, self._info = state
         self._communicator = MPI.COMM_WORLD
 
     @property
@@ -125,7 +136,12 @@ class AbstractHeightContainer(object):
         raise NotImplementedError
 
     @property
-    def info(self, ):
+    def unit(self):
+        """Return the length unit of the topography."""
+        return self._unit
+
+    @property
+    def info(self):
         """
         Return the info dictionary. The info dictionary contains auxiliary data
         found in the topography data file but not directly used by PyCo.
@@ -138,10 +154,13 @@ class AbstractHeightContainer(object):
             Unit of the topography. The unit information applies to the lateral
             units (the physical size) as well as to heights units. Examples:
             'µm', 'nm'.
-        datetime : :obj:`datetime`
+        acquisition_time : :obj:`datetime`
             Date and time of the measurement.
         """
-        return self._info
+        info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
 
     @property
     def communicator(self):
@@ -152,7 +171,7 @@ class AbstractHeightContainer(object):
         return [self]
 
 
-class DecoratedTopography(AbstractHeightContainer):
+class DecoratedTopography(AbstractTopography):
     """
     Base class of topographies with parent. Having a parent means that the
     data is owned by the parent, but the present class performs
@@ -161,15 +180,15 @@ class DecoratedTopography(AbstractHeightContainer):
     own physical_sizes etc. but pass this information through to the parent.
     """
 
-    def __init__(self, topography, info={}):
+    def __init__(self, topography, unit=None, info={}):
         """
         Arguments
         ---------
         topography : SurfaceTopography
             The parent topography.
         """
-        super().__init__(info=info)
-        assert isinstance(topography, AbstractHeightContainer)
+        super().__init__(unit=unit, info=info)
+        assert isinstance(topography, AbstractTopography)
         self.parent_topography = topography
         self._communicator = self.parent_topography.communicator
 
@@ -191,9 +210,15 @@ class DecoratedTopography(AbstractHeightContainer):
     @property
     def info(self):
         """ Return info dictionary """
-        info = self.parent_topography.info.copy()
+        info = DeprecatedDictionary(self.parent_topography._info, deprecated_keys=['unit'])
         info.update(self._info)
+        if self.unit is not None:
+            info['unit'] = self.unit
         return info
+
+    @property
+    def nb_subdomain_grid_pts(self):
+        return self.parent_topography.nb_subdomain_grid_pts
 
     def pipeline(self):
         return self.parent_topography.pipeline() + [self]
@@ -226,6 +251,11 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def nb_grid_pts(self):
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def nb_subdomain_grid_pts(self):
         raise NotImplementedError
 
     @property

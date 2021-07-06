@@ -26,44 +26,45 @@
 #
 
 import abc
-import warnings
 
 import numpy as np
 
 
 class ChannelInfo:
     """
-    Information on topography channels contained within a file. The interface
-    is identical to :obj:`HeightContainer` and subclasses.
+    Information on topography channels contained within a file.
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
-                 physical_sizes=None, periodic=None,
-                 info={}):
+                 physical_sizes=None, height_scale_factor=None, periodic=None, unit=None, info={}):
         """
         Initialize the channel. Use as many information from the file as
         possible by passing it in the keyword arguments.
 
         Arguments
         ---------
-        reader: ReaderBase
+        reader : ReaderBase
             Reader instance this channel is coming from.
-        index: int
+        index : int
             Index of channel in the file, where zero is the first channel.
-        name: str
+        name : str
             Name of the channel. If no name is given, "channel <index>" will
             be used, where "<index>" is replaced with the index.
-        dim: int
+        dim : int
             Number of dimensions.
-        nb_grid_pts: tuple of ints
+        nb_grid_pts : tuple of ints
             Number grid points in each dimension.
-        physical_sizes: tuple of floats
+        physical_sizes : tuple of floats
             Physical dimensions.
-        periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+        height_scale_factor: float
+            Number by which all heights have been multiplied.
+        periodic : bool
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
-        info: dict
+        unit : str
+            Length unit of measurement.
+        info : dict
             Meta data found in the file.
         """
         self._reader = reader
@@ -75,12 +76,12 @@ class ChannelInfo:
             if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
         self._physical_sizes = None \
             if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        self._height_scale_factor = height_scale_factor
         self._periodic = periodic
+        self._unit = unit
         self._info = info.copy()
 
-    def topography(self, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
+    def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
@@ -95,12 +96,16 @@ class ChannelInfo:
             physical size, then this parameter will override the physical
             size found in the data file.
         height_scale_factor : float
-            Override height scale factor found in the data file.
+            Factor by which the heights should be multiplied.
+            This parameter is only available for file formats that do not provide
+            metadata information about units and associated length scales.
+        unit : str
+            Length unit of measurement.
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
-        periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+        periodic : bool
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
         subdomain_locations : tuple of ints
@@ -119,6 +124,7 @@ class ChannelInfo:
             channel_index=self._index,
             physical_sizes=physical_sizes,
             height_scale_factor=height_scale_factor,
+            unit=unit,
             info=info,
             periodic=periodic,
             subdomain_locations=subdomain_locations,
@@ -131,10 +137,10 @@ class ChannelInfo:
 
     @property
     def name(self):
-        '''
+        """
         Name of the channel.
         Can be used in a UI for identifying a channel.
-        '''
+        """
         return self._name
 
     @property
@@ -167,6 +173,21 @@ class ChannelInfo:
         `topography` method that returns the topography object.
         """
         return self._physical_sizes
+
+    @property
+    def height_scale_factor(self):
+        """
+        If a height scale factor can be determined from the file, a float is
+        returned.
+
+        If no height scale factor can be determined from the file, then
+        None is returned.
+
+        Note that the height scale factor obtained from the file can be
+        overwritten by passing a `height_scale_factor` argument to the
+        `topography` method that returns the topography object.
+        """
+        return self._height_scale_factor
 
     @property
     def is_periodic(self):
@@ -203,7 +224,7 @@ class ChannelInfo:
         """
         The area per point is returned as the product over the pixel size
         tuple. If `pixel_size` returns None, than also `area_per_pt` returns
-        None.s
+        None.
         """
         if self.pixel_size is None:
             return None
@@ -211,10 +232,17 @@ class ChannelInfo:
             return np.prod(self.pixel_size)
 
     @property
+    def unit(self):
+        """
+        Length unit.
+        """
+        return self._unit
+
+    @property
     def info(self):
         """
         A dictionary containing additional information (metadata) not used by
-        PyCo itself, but required by third-party application.
+        SurfaceTopography itself, but required by third-party application.
 
         Presently, the following entries have been standardized:
         'unit':
@@ -225,7 +253,10 @@ class ChannelInfo:
             can be voltages or some other quantity actually acquired in the
             measurement technique) to heights with the given 'unit'.
         """
-        return self._info
+        info = self._info.copy()
+        if self.unit is not None:
+            info.update(dict(unit=self.unit))
+        return info
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
@@ -295,55 +326,63 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(self, physical_sizes_from_arg,
+    def _check_physical_sizes(cls, physical_sizes_from_arg,
                               physical_sizes=None):
         """Handle overriding of `physical_sizes` arguments and make sure,
-        that return value is not `None`."""
+        that return value is not `None`.
+
+        Parameters
+        ----------
+        physical_sizes_from_arg: tuple or float or None
+            physical sizes given as argument when instantiating a topography from a reader
+        physical_sizes: tuple or float or None
+            physical sizes which were present in the file
+        """
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
                 raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
+            eff_physical_sizes = physical_sizes_from_arg
+        elif physical_sizes_from_arg is not None:
+            # in general this should result in an exception now
+            raise MetadataAlreadyFixedByFile('physical_sizes')
         else:
-            if physical_sizes_from_arg is None:
-                physical_sizes_from_arg = physical_sizes
-            if tuple(physical_sizes_from_arg) != tuple(physical_sizes):
-                warnings.warn(
-                    "A physical size different from the value specified when "
-                    "calling the reader was present in the file. We will "
-                    "ignore the value given in the file. Specified values: "
-                    "{}; Values from file: {}".format(
-                        physical_sizes,
-                        physical_sizes_from_arg))
-        return physical_sizes_from_arg
+            eff_physical_sizes = physical_sizes
+
+        return eff_physical_sizes
 
     @abc.abstractmethod
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={},
-                   periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. The method allows to override data
-        found in the data file.
+        found in the data file by giving appropriate arguments.
+
+        For some of the given arguments it is checked whether they
+        have already been defined in the file, e.g. the height
+        scale factor, and if yes, an exception is raised (see below).
 
         Arguments
         ---------
         channel_index : int
             Index of the channel to load. See also `channels` method.
             (Default: None, which load the default channel)
-        physical_si""zes : tuple of floats
+        physical_sizes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
             physical size, then this parameter will override the physical
             size found in the data file.
         height_scale_factor : float
             Override height scale factor found in the data file.
+        unit : str
+            Length unit.
         info : dict
             This dictionary will be appended to the info dictionary returned
             by the reader.
         periodic: bool
-            Wether the SurfaceTopography should be interpreted as one period of
+            Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
-            calculations (windowing)
+            calculations (windowing).
         subdomain_locations : tuple of ints
             Origin (location) of the subdomain handled by the present MPI
             process.
@@ -355,6 +394,12 @@ class ReaderBase(metaclass=abc.ABCMeta):
         -------
         topography : subclass of :obj:`HeightContainer`
             The object containing the actual topography data.
+
+        Raises
+        ------
+        MetadataAlreadyDefined
+            Raised if `physical_sizes` or `height_scale_factor` have already
+            been defined in the file, because they should not be overridden.
         """
         raise NotImplementedError
 
@@ -388,3 +433,29 @@ class CorruptFile(ReadFileError):
     but there is a mistake, for example the number of points doesn't match
     """
     pass
+
+
+class MetadataAlreadyFixedByFile(ReadFileError):
+    """
+    Raised when instantiating a topography from a reader,
+    given metadata which cannot be overridden, because
+    it is already fixed by the file contents.
+    """
+    def __init__(self, kw, alt_msg=None):
+        """
+        Parameters
+        ----------
+        kw: str
+            Name of the keyword argument to .topography().
+        alt_msg: str or None
+            If not None, use this as error message instead of
+            the default one.
+        """
+        self._kw = kw
+        self._alt_msg = alt_msg
+
+    def __str__(self):
+        if self._alt_msg:
+            return self._alt_msg
+        else:
+            return f"Value for keyword '{self._kw}' is already fixed by file contents and cannot be overridden"

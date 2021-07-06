@@ -30,14 +30,12 @@ representations.
 
 import numpy as np
 
-from .HeightContainer import DecoratedTopography, UniformTopographyInterface, \
-    NonuniformLineScanInterface
-from .NonuniformLineScan import NonuniformLineScan
-from .UniformLineScanAndTopography import UniformLineScan
+from .HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
+from .NonuniformLineScan import NonuniformLineScan, DecoratedNonuniformTopography
+from .UniformLineScanAndTopography import UniformLineScan, DecoratedUniformTopography
 
 
-class WrapAsNonuniformLineScan(DecoratedTopography,
-                               NonuniformLineScanInterface):
+class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
     """
     Wrap a uniform topography into a nonuniform one.
     """
@@ -98,36 +96,64 @@ class WrapAsNonuniformLineScan(DecoratedTopography,
         return self.parent_topography.heights()
 
 
-class UniformlyInterpolatedLineScan(DecoratedTopography,
-                                    UniformTopographyInterface):
+class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
     """
     Interpolate a topography onto a uniform grid.
     """
 
-    def __init__(self, topography, nb_points, padding, info={}):
+    def __init__(self, topography, nb_points=None, padding=0, nb_interpolate=None, info={}):
         """
+        Convert a nonuniform line scan to a uniform line scan by explicit
+        linear interpolation between the discrete coordinates of the
+        nonuniform scan.
+
         Parameters
         ----------
         topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
             SurfaceTopography to interpolate.
-        nb_points : int
-            Number of equidistant grid points.
-        padding : int
+        nb_points : int, optional
+            Number of equidistant grid points. Number of points will be
+            automatically computed from the mean grid spacing and
+            `nb_interpolate` if set to None. (Default: None)
+        padding : int, optional
             Number of padding grid points, zeros appended to the data.
+            (Default: 0)
+        nb_interpolate : int
+            Number of grid points to between closest points on surface.
+            (Default: None)
         """
         super().__init__(topography, info=info)
         self.nb_points = nb_points
+        self.nb_interpolate = nb_interpolate
+        self._update_nb_points()
         self.padding = padding
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography
         self._functions = UniformLineScan._functions
 
+    def _update_nb_points(self):
+        """Automatically compute nb_points if it is None"""
+        if self.nb_points is None:
+            if self.nb_interpolate is None:
+                raise ValueError('You need to specify either `nb_points` or `nb_interpolate`.')
+            s, = self.parent_topography.physical_sizes
+            x = self.parent_topography.positions()
+            min_dist = np.min(np.diff(x))
+            if min_dist <= 0:
+                raise RuntimeError('This is a reentrant nonuniform line scan. Reentrant line scans cannot be converted '
+                                   'to uniform line scans.')
+            self._nb_points = self.nb_interpolate * int(s / min_dist)
+        else:
+            if self.nb_interpolate is not None:
+                raise ValueError('You cannot specify both, `nb_points` and `nb_interpolate`.')
+            self._nb_points = self.nb_points
+
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.nb_points, self.padding
+        state = super().__getstate__(), self.nb_points, self.padding, self.nb_interpolate
         return state
 
     def __setstate__(self, state):
@@ -135,7 +161,8 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.nb_points, self.padding = state
+        superstate, self.nb_points, self.padding, self.nb_interpolate = state
+        self._update_nb_points()
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -147,7 +174,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
     @property
     def physical_sizes(self):
         s, = self.parent_topography.physical_sizes
-        return s * (self.nb_points + self.padding) / self.nb_points,
+        return s * (self._nb_points + self.padding) / self._nb_points,
 
     @property
     def is_periodic(self):
@@ -162,7 +189,7 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
     @property
     def nb_grid_pts(self):
         """Return nb_grid_pts, i.e. number of pixels, of the topography."""
-        return self.nb_points + self.padding,
+        return self._nb_points + self.padding,
 
     @property
     def pixel_size(self):
@@ -179,9 +206,9 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
     def positions(self):
         left, right = self.parent_topography.x_range
         size = right - left
-        return np.linspace(left - size * self.padding / (2 * self.nb_points),
-                           right + size * self.padding / (2 * self.nb_points),
-                           self.nb_points + self.padding)
+        return np.linspace(left - size * self.padding / (2 * self._nb_points),
+                           right + size * self.padding / (2 * self._nb_points),
+                           self._nb_points + self.padding)
 
     def heights(self):
         """ Computes the rescaled profile.
@@ -191,7 +218,5 @@ class UniformlyInterpolatedLineScan(DecoratedTopography,
 
 
 # Register pipeline functions from this module
-UniformTopographyInterface.register_function('to_nonuniform',
-                                             WrapAsNonuniformLineScan)
-NonuniformLineScanInterface.register_function('to_uniform',
-                                              UniformlyInterpolatedLineScan)
+UniformTopographyInterface.register_function('to_nonuniform', WrapAsNonuniformLineScan)
+NonuniformLineScanInterface.register_function('to_uniform', UniformlyInterpolatedLineScan)

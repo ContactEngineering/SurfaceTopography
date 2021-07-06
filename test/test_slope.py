@@ -44,14 +44,14 @@ def test_limiting_values():
                           rms_slope=slope,
                           short_cutoff=0.1*np.mean(physical_sizes))
 
-    r, s = t.scale_dependent_slope_1D()
+    r, s = t.scale_dependent_slope_from_profile()
 
     px, py = t.pixel_size
 
     rms_slope = np.sqrt(np.mean(((np.roll(t.heights(), 1, 0) - t.heights())/px)**2))
     assert_almost_equal(s[0], rms_slope)
 
-    r2, s2 = t.scale_dependent_slope_2D()
+    r2, s2 = t.scale_dependent_slope_from_area()
 
     assert_almost_equal(s[0], s2[0])
 
@@ -62,5 +62,5 @@ def test_numeric_vs_analytical():
     qs = 2 * np.pi * 8 / L
     t1 = UniformLineScan(np.sin(np.arange(nx) * L * qs / nx), L, periodic=True)
 
-    x, y = t1.scale_dependent_slope_1D()
+    x, y = t1.scale_dependent_slope_from_profile()
     assert_array_almost_equal(y, np.sqrt(1-np.cos(qs * x))/x)

@@ -304,9 +304,9 @@ def test_self_affine_nonuniform_autocorrelation():
 
 
 def test_brute_force_vs_fft():
-    t = read_topography(os.path.join(DATADIR, 'example.asc'))
+    t = read_topography(os.path.join(DATADIR, 'example.xyz'))
     r, A = t.detrend().autocorrelation_from_profile()
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force',
-                                                      distances=r, ninterpolate=5)
+                                                      distances=r, nb_interpolate=5)
     x = A[1:] / A2[1:]
     assert np.alltrue(np.logical_and(x > 0.98, x < 1.01))

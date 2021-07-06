@@ -26,63 +26,7 @@ import io
 
 ###
 
-height_units = {'m': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
-voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
-
-units = dict(height=height_units, voltage=voltage_units)
-
 CHANNEL_NAME_INFO_KEY = 'channel_name'
-
-###
-
-
-def get_unit_conversion_factor(unit1_str, unit2_str):
-    """
-    Compute factor for conversion from unit1 to unit2. Return None if units are
-    incompatible.
-    """
-    if unit1_str == unit2_str:
-        return 1
-    unit1_kind = None
-    unit2_kind = None
-    unit_scales = None
-    for key, values in units.items():
-        if unit1_str in values:
-            unit1_kind = key
-            unit_scales = values
-        if unit2_str in values:
-            unit2_kind = key
-            unit_scales = values
-    if unit1_kind is None or unit2_kind is None or unit1_kind != unit2_kind:
-        return None
-    return unit_scales[unit1_str] / unit_scales[unit2_str]
-
-
-def mangle_length_unit_utf8(unit):
-    if isinstance(unit, str):
-        unit = unit.strip()
-    else:
-        unit = unit.decode('utf-8').strip()
-    if unit == '':
-        return None
-    elif unit == 'A':
-        return 'Å'
-    elif unit == 'μm' or unit == 'um' or unit == '~m':
-        return 'µm'
-    else:
-        return unit
-
-
-def mangle_length_unit_ascii(unit):
-    unit = unit.strip()
-    if unit == '':
-        return None
-    elif unit == 'Å':
-        return 'A'
-    elif unit == 'μm' or unit == 'µm' or unit == '~m':
-        return 'um'
-    else:
-        return unit
 
 
 ###
