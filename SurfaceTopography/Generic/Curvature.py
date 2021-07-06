@@ -81,7 +81,7 @@ def scale_dependent_curvature_from_area(topography, nbins=None):
          :nowrap:
 
          \begin{equation}
-         h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
+         h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]^{1/2}/\lambda^2
          \end{equation}
 
     where :math:`A(\lambda)` is the autocorrelation function.
