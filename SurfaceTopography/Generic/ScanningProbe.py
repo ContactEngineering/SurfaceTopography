@@ -44,9 +44,9 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     tip_radius : float
         Tip radius.
     safety_factor : float, optional
-        Tip radius artifacts are expected to play a role when for scales below
+        Tip radius artifacts are expected to play a role for scales below
         which the minimum scale-dependent curvature drops below
-        -fudge_factor/radius. The `fudge_factor` should be on the order of 1.
+        -safety_factor/radius. The `safety_factor` should be on the order of 1.
         In https://arxiv.org/abs/2106.16103 a factor of 1/2 is estimated based
         on synthetic (simulated) data. (Default: 1/2)
 
