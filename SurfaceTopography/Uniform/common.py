@@ -51,7 +51,7 @@ second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
 third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
-third_central_1d = muFFT.DiscreteDerivative([-2], [-1/2, 1, 0, -1, 1/2])
+third_central_1d = muFFT.DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
 
 # First order upwind differences
 first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
@@ -177,7 +177,7 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         Order of the derivative.
     scale_factor : int or list of ints or list of tuples of ints, optional
         Integer factor that scales the stencil difference, i.e.
-        specifying 2 will compute the derivative over a distance of
+        specifying 2 will compute the derivative using a discrete step of
         2 * dx. Either `scale_factor` or `distance` can be specified.
         - Single int: Returns a single derivative scaled in all directions
           with this value
@@ -188,8 +188,12 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
           derivatives, scaled with different factors in both directions.
         (Default: None)
     distance : float or list of floats, optional
-        Expicit distance scale for computation of the derivative. Either
-        `scale_factor` or `distance` can be specified.
+        Explicit distance scale for computation of the derivative. Either
+        `scale_factor` or `distance` can be specified. Note that the distance
+        specifies the overall length of the stencil of lowest truncation
+        order, not the effective grid spacing used by this stencil. The scale
+        factor is then given by distance / (n * dx) where n is the order of the
+        derivative and dx the grid spacing.
         (Default: None)
     operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
@@ -241,10 +245,10 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
             # Convert distance to scale factor
             if topography.dim == 1:
                 dx, = grid_spacing
-                scale_factor = [d/dx for d in toiter(distance)]
+                scale_factor = [d / (n * dx) for d in toiter(distance)]
             else:
                 dx, dy = grid_spacing
-                scale_factor = np.array([(d/dx, d/dy) for d in toiter(distance)])
+                scale_factor = np.array([(d / (n * dx), d / (n * dy)) for d in toiter(distance)])
 
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
@@ -419,8 +423,8 @@ def plot(topography, subplot_location=111):
     nx, ny = topography.nb_grid_pts
 
     ax = plt.subplot(subplot_location, aspect=sx / sy)
-    Y, X = np.meshgrid(np.arange(ny+1) * sy / ny,
-                       np.arange(nx+1) * sx / nx)
+    Y, X = np.meshgrid(np.arange(ny + 1) * sy / ny,
+                       np.arange(nx + 1) * sx / nx)
     Z = topography[...]
     mesh = ax.pcolormesh(X, Y, Z)
     plt.colorbar(mesh, ax=ax)

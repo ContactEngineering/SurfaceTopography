@@ -10,6 +10,10 @@ Deprecations in version 1.0
 v0.95.0 (not yet published)
 ---------------------------
 
+- API: Changed the meaning of `distance` in scale dependent derivative.
+  A distance is now the width of the stencil of lowest truncation order
+  of a certain derivative, i.e. n * dx where n is the order of the
+  derivative.
 - API: `variable_bandwidth` is now `variable_bandwidth_from_area` and an
   additional `variable_bandwidth_from_profile` was added for a line-by-line
   analysis.
@@ -36,6 +40,9 @@ v0.95.0 (not yet published)
 - ENH: Retrieving surface containers from https://contact.engineering
 - ENH: Added analysis functions for scale-dependent statistical properties of
   containers
+- ENH: Added `scanning_probe_reliability_cutoff` pipeline function to estimate
+  a lateral length scale below which scanning probe data become unreliable
+  because of tip artifacts (see arXiv:2106.16013)
 
 v0.94.0 (10Jun21)
 -----------------

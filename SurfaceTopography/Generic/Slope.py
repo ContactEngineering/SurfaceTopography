@@ -28,8 +28,7 @@ Scale-dependent slope
 
 import numpy as np
 
-from ..HeightContainer import UniformTopographyInterface
-from ..HeightContainer import NonuniformLineScanInterface
+from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
 def scale_dependent_slope_from_profile(topography, **kwargs):
