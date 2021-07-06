@@ -25,7 +25,6 @@
 # SOFTWARE.
 #
 
-import datetime
 import io
 import os
 import pickle
