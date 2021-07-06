@@ -63,7 +63,6 @@ class DeprecatedDictionary(dict):
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, key):
-        print(key, self._deprecated_keys, key in self._deprecated_keys)
         if key in self._deprecated_keys:
             warnings.warn(f"Dictionary key '{key}' has been deprecated.", DeprecationWarning)
         return super().__getitem__(key)

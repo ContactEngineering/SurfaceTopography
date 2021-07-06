@@ -75,6 +75,7 @@ binary_example_file_list = _convert_filelist([
     'di2.di',
     'di3.di',
     'di4.di',
+    'di5.di',
     'example.ibw',
     'spot_1-1000nm.ibw',
     # 'surface.2048x2048.h5',
@@ -472,11 +473,6 @@ class LineScanInFileWithMinimalSpacesTest(unittest.TestCase):
 @pytest.mark.parametrize("reader", readers)
 def test_readers_have_name(reader):
     reader.name()
-
-
-def test_di_date():
-    t = read_topography(os.path.join(DATADIR, 'di1.di'))
-    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
 
 
 # yes, the German version still has "Value units"
