@@ -11,6 +11,7 @@ common_properties = [
     "is_periodic",
     "nb_grid_pts",
     "physical_sizes",
+    "unit",
 ]
 
 uniform_properties = [

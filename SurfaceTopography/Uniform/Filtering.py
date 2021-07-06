@@ -201,7 +201,7 @@ class FilteredUniformTopography(DecoratedUniformTopography):
             sx, sy = self.parent_topography.physical_sizes
 
             qx = np.arange(0, nx, dtype=np.float64).reshape(-1, 1)
-            qx = np.where(qx <= nx // 2, qx / sx,  - (nx - qx) / sx)
+            qx = np.where(qx <= nx // 2, qx / sx,  (qx - nx) / sx)
             qx *= 2 * np.pi
 
             qy = np.arange(0, ny // 2 + 1, dtype=np.float64).reshape(1, -1)

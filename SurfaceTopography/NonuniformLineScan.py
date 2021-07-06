@@ -188,7 +188,7 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
 
     # For backwards compatibility
     @property
-    @deprecated(version='0.94.0', alternative='heights_scale_factor')
+    @deprecated(version='0.94.0', alternative='height_scale_factor')
     def scale_factor(self):
         return self.height_scale_factor
 
@@ -259,7 +259,7 @@ class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
 
     # For backwards compatibility
     @property
-    @deprecated(version='0.95.0', alternative='heights_scale_factor')
+    @deprecated(version='0.95.0', alternative='height_scale_factor')
     def scale_factor(self):
         return self.height_scale_factor
 
