@@ -177,7 +177,7 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         Order of the derivative.
     scale_factor : int or list of ints or list of tuples of ints, optional
         Integer factor that scales the stencil difference, i.e.
-        specifying 2 will compute the derivative over a distance of
+        specifying 2 will compute the derivative using a discrete step of
         2 * dx. Either `scale_factor` or `distance` can be specified.
         - Single int: Returns a single derivative scaled in all directions
           with this value
@@ -188,8 +188,12 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
           derivatives, scaled with different factors in both directions.
         (Default: None)
     distance : float or list of floats, optional
-        Expicit distance scale for computation of the derivative. Either
-        `scale_factor` or `distance` can be specified.
+        Explicit distance scale for computation of the derivative. Either
+        `scale_factor` or `distance` can be specified. Note that the distance
+        specifies the overall length of the stencil of lowest truncation
+        order, not the effective grid spacing used by this stencil. The scale
+        factor is then given by distance / (n * dx) where n is the order of the
+        derivative and dx the grid spacing.
         (Default: None)
     operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
