@@ -10,6 +10,10 @@ Deprecations in version 1.0
 v0.95.0 (not yet published)
 ---------------------------
 
+- API: Changed the meaning of `distance` in scale dependent derivative.
+  A distance is now the width of the stencil of lowest truncation order
+  of a certain derivative, i.e. n * dx where n is the order of the
+  derivative.
 - API: `variable_bandwidth` is now `variable_bandwidth_from_area` and an
   additional `variable_bandwidth_from_profile` was added for a line-by-line
   analysis.
