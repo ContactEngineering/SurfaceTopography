@@ -1,5 +1,6 @@
 #
 # Copyright 2021 Lars Pastewka
+#           2021 Michael Röttger
 #
 # ### MIT license
 #
