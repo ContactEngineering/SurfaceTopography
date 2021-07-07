@@ -62,25 +62,29 @@ def parse_git_log(log, authors):
 
 
 def pretty_years(years):
+    def add_to_year_string(s, pprev_year, prev_year):
+        if pprev_year == prev_year:
+            # It is a single year
+            if s is None:
+                return f'{prev_year}'
+            else:
+                return f'{s}, {prev_year}'
+        else:
+            # It is a range
+            if s is None:
+                return f'{pprev_year}-{prev_year}'
+            else:
+                return f'{s}, {pprev_year}-{prev_year}'
+
     years = sorted(years)
-    prev_year = prev_out = years[0]
-    s = '{}'.format(prev_year)
+    prev_year = pprev_year = years[0]
+    s = None
     for year in years[1:]:
         if year - prev_year > 1:
-            if year - prev_out > 1:
-                if prev_year == prev_out:
-                    s = '{}, {}'.format(s, year)
-                else:
-                    s = '{}-{}, {}'.format(s, prev_year, year)
-            else:
-                s = '{}, {}'.format(s, prev_year)
-            prev_out = year
+            s = add_to_year_string(s, pprev_year, prev_year)
+            pprev_year = year
         prev_year = year
-    if prev_year - prev_out == 1:
-        s = '{}-{}'.format(s, prev_year)
-    elif prev_year - prev_out > 1:
-        s = '{}, {}'.format(s, prev_year)
-    return s
+    return add_to_year_string(s, pprev_year, prev_year)
 
 
 authors = read_authors('{}/../AUTHORS'.format(root))
