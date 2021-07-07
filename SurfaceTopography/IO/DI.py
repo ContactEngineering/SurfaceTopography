@@ -95,9 +95,7 @@ supports V4.3 and later version of the format.
                         value = ''
                     section_dict[key.lower()] = value.strip()
                 else:
-                    raise IOError(
-                        "Header line '{}' does not start with a slash."
-                        .format(L))
+                    raise IOError(f"Header line '{L}' does not start with a slash.")
                 L = fobj.readline().decode('latin-1').strip()
             if section_name is None:
                 raise IOError('No sections found in header.')
@@ -131,14 +129,16 @@ supports V4.3 and later version of the format.
 
                     length = int(p['data length'])
                     elsize = int(p['bytes/pixel'])
-                    if elsize != 2:
-                        raise IOError(
-                            "Don't know how to handle {} bytes per pixel "
-                            "data.".format(elsize))
+                    binary_scale = 1
+                    info['bytes_per_pixel'] = elsize
+                    if elsize == 4:
+                        binary_scale = 1 / 65536  # Rescale 32-bit integer to a 16-bit range
+                    elif elsize != 2:
+                        raise IOError(f"Don't know how to handle {elsize} bytes per pixel data.")
                     if nx * ny * elsize != length:
-                        raise IOError(
-                            'Data block physical_sizes differs from extend '
-                            'of surface.')
+                        raise IOError(f'File reports a data block of length {length}, but computing the size of the '
+                                      f'data block from the number of grid points and the per-pixel storage yields '
+                                      f'a value of {nx * ny * elsize}.')
 
                     scale_re = re.match(
                         r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
@@ -178,7 +178,7 @@ supports V4.3 and later version of the format.
                     else:
                         unit = (xy_unit, height_unit)
 
-                    height_scale_factor = hard_scale * hard_to_soft * soft_scale
+                    height_scale_factor = hard_scale * hard_to_soft * soft_scale * binary_scale
 
                     channel = ChannelInfo(self,
                                           len(self._channels),
@@ -228,14 +228,18 @@ supports V4.3 and later version of the format.
         nx, ny = channel.nb_grid_pts
 
         offset = self._offsets[channel_index]
-        dtype = np.dtype('<i2')
+        if channel.info['bytes_per_pixel'] == 2:
+            dtype = np.dtype('<i2')
+        elif channel.info['bytes_per_pixel'] == 4:
+            dtype = np.dtype('<i4')
+        else:
+            raise IOError(f"Don't know how to handle {info['bytes_per_pixel']} bytes per pixel data.")
 
         ###################################
 
         fobj.seek(offset)
         rawdata = fobj.read(nx * ny * dtype.itemsize)
-        unscaleddata = np.frombuffer(rawdata, count=nx * ny,
-                                     dtype=dtype).reshape(nx, ny)
+        unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(nx, ny)
 
         # internal information from file
         _info = dict(data_source=channel.name)
