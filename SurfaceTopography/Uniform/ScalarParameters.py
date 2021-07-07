@@ -1,6 +1,6 @@
 #
 # Copyright 2019, 2021 Michael Röttger
-#           2015-2016, 2018, 2021 Lars Pastewka
+#           2015-2016, 2018-2021 Lars Pastewka
 #           2018-2019 Antoine Sanner
 #           2015-2016 Till Junge
 #
