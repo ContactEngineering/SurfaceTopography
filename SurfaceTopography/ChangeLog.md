@@ -7,8 +7,8 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies  will disappear
 
-v0.95.0 (not yet published)
----------------------------
+v0.95.0 (07Jul21)
+-----------------
 
 - API: Changed the meaning of `distance` in scale dependent derivative.
   A distance is now the width of the stencil of lowest truncation order
