@@ -136,7 +136,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'numpy>=1.11.0',
+        'numpy>=1.16.3',
         'NuMPI>=0.1.4',
         'muFFT>=0.12.0',
         'igor',
