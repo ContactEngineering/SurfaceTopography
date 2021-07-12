@@ -112,7 +112,7 @@ extensions = [
 
 setup(
     name="SurfaceTopography",
-    cmdclass={'build_ext': CustomBuildExtCommand},
+    cmdclass={'build_ext': CustomBuildExtCommand} if np else {},
     scripts=scripts,
     packages=find_packages(),
     package_data={'': ['ChangeLog.md']},
@@ -136,7 +136,7 @@ setup(
         'pytest',
     ],
     install_requires=[
-        'numpy>=1.11.0',
+        'numpy>=1.16.3',
         'NuMPI>=0.1.4',
         'muFFT>=0.12.0',
         'igor',
@@ -146,5 +146,6 @@ setup(
         'pyyaml',
         'Pillow',
         'requests',
+        'matplotlib>=1.0.0',
     ]
 )

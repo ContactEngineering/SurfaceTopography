@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies  will disappear
 
+v0.95.1 (12Jul21)
+-----------------
+
+- Fixed missing dependency for matplotlib in setup.py (#120)
+- Fixed building wheel when numpy is not installed yet (#119)
+
 v0.95.0 (07Jul21)
 -----------------
 
