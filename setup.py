@@ -146,5 +146,6 @@ setup(
         'pyyaml',
         'Pillow',
         'requests',
+        'matplotlib>=1.0.0',
     ]
 )
