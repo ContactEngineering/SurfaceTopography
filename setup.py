@@ -112,7 +112,7 @@ extensions = [
 
 setup(
     name="SurfaceTopography",
-    cmdclass={'build_ext': CustomBuildExtCommand},
+    cmdclass={'build_ext': CustomBuildExtCommand} if np else {},
     scripts=scripts,
     packages=find_packages(),
     package_data={'': ['ChangeLog.md']},
