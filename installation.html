@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installation &mdash; SurfaceTopography 0.95.1 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 0.95.2.dev2+g59fbe8ea documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.95.1
+                0.95.2.dev2+g59fbe8ea
               </div>
             
           
@@ -185,11 +185,27 @@ automatically by invoking</p>
 <section id="direct-installation-with-pip">
 <h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Permalink to this headline">¶</a></h2>
 <p>SurfaceTopography can be installed by invoking</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip  install <span class="o">[</span>--user<span class="o">]</span> SurfaceTopography
+</pre></div>
+</div>
+<p>Or if you want the latest unreleased version</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip  install <span class="o">[</span>--user<span class="o">]</span> git+https://github.com/ComputationalMechanics/SurfaceTopography.git
 </pre></div>
 </div>
 <p>The command will install other dependencies including <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a>, <a class="reference external" href="https://github.com/IMTEK-Simulation/NuMPI.git">NuMPI</a> and
 <a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
+<p>If you want to install all optional dependencies for full functionality:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
+<span class="c1"># I found the url to the requirements files using</span>
+<span class="c1"># https://api.github.com/repos/ContactEngineering/SurfaceTopography/contents/requirements.txt</span>
+python3 -m pip install <span class="o">[</span>--user<span class="o">]</span> -r requirements.txt
+rm requirements.txt
+</pre></div>
+</div>
+<p>Tip: to install FFTW3 and BLAS/LAPACK on ubuntu, you can for example use</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libfftw3-dev libopenblas-dev
+</pre></div>
+</div>
 <p>Note: Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
 You can specify the directory where you installed <a class="reference external" href="http://www.fftw.org/">FFTW3</a>
 by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.local</cite>).</p>

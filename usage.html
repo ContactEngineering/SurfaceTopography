@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Usage &mdash; SurfaceTopography 0.95.1 documentation</title>
+  <title>Usage &mdash; SurfaceTopography 0.95.2.dev2+g59fbe8ea documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.95.1
+                0.95.2.dev2+g59fbe8ea
               </div>
             
           
@@ -182,11 +182,7 @@
             
   <section id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
-<p>The code is documented via Python’s documentation strings that can be accesses via the <cite>help</cite> command or by appending a questions mark <cite>?</cite> in ipython/jupyter. There are two command line tools available that may be a good starting point. They are in the <cite>commandline</cite> subdirectory:</p>
-<ul class="simple">
-<li><p><cite>hard_wall.py</cite>: Command line front end for calculations with hard, impenetrable walls between rigid and elastic flat. This front end exclusively uses Polonsky &amp; Keer’s constrained conjugate gradient solver to find the deformation of the substrate under the additional contact constraints. Run <cite>hard_wall.py –help</cite> to get a list of command line options.</p></li>
-<li><p><cite>soft_wall.py</cite>: Command line front end for calculations with soft (possibly adhesive) interactions between rigid and elastic flat. This is a stub rather than a fully featured command line tool that can be used as a starting point for modified script. The present implementation is set up for a solution of Martin Müser’s contact mechanics challenge.</p></li>
-</ul>
+<p>The code is documented via Python’s documentation strings that can be accesses via the <cite>help</cite> command or by appending a questions mark <cite>?</cite> in ipython/jupyter.</p>
 <section id="handling-topographies">
 <h2>Handling topographies<a class="headerlink" href="#handling-topographies" title="Permalink to this headline">¶</a></h2>
 <p><cite>SurfaceTopography</cite> is designed for handling topography data, either two-dimensional topography maps or line scan. There are three basic topography classes implemented in this module:</p>
@@ -277,8 +273,12 @@ of other software as e.g. Gwyddion, use</p>
 <li><p><cite>rms_slope_from_profile</cite>: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.</p></li>
 <li><p><cite>rms_curvature_from_area</cite>: Computes the root mean square curvature by integrating over the area.</p></li>
 <li><p><cite>rms_curvature_from_profile</cite>: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.</p></li>
-<li><p><cite>power_spectrum_1D</cite>: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
-<li><p><cite>power_spectrum_2D</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
+<li><p><cite>power_spectrum_from_profile</cite>: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
+<li><p><cite>power_spectrum_from_area</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
+<li><p><cite>autocorrelation_from_profile</cite>: Computes the one-dimensional height difference autocorrelation function (ACF). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
+<li><p><cite>autocorrelation_from_area</cite>: Only two-dimensional maps: Computes the radially averaged height difference autocorrelation function.</p></li>
+<li><p><cite>variable_bandwidth_from_profile</cite>: Computes the one-dimentional scan-size dependent rms-height using the variable bandwidth method.</p></li>
+<li><p><cite>variable_bandwidth_from_area</cite>: Computes the two-dimentional scan-size dependent rms-height using the variable bandwidth method.</p></li>
 </ul>
 <p>Example::</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="k">import</span> <span class="n">read_topography</span>
