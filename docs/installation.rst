@@ -11,10 +11,34 @@ SurfaceTopography can be installed by invoking
 
 .. code-block:: bash
 
+    python3 -m pip  install [--user] SurfaceTopography
+
+Or if you want the latest unreleased version
+
+.. code-block:: bash
+
     python3 -m pip  install [--user] git+https://github.com/ComputationalMechanics/SurfaceTopography.git
+
 
 The command will install other dependencies including muFFT_, NuMPI_ and
 runtests_.
+
+If you want to install all optional dependencies for full functionality:
+
+.. code-block:: bash
+
+    wget https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
+    # I found the url to the requirements files using
+    # https://api.github.com/repos/ContactEngineering/SurfaceTopography/contents/requirements.txt
+    python3 -m pip install [--user] -r requirements.txt
+    rm requirements.txt
+
+Tip: to install FFTW3 and BLAS/LAPACK on ubuntu, you can for example use
+
+.. code-block:: bash
+
+    sudo apt-get install libfftw3-dev libopenblas-dev
+
 
 Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
 You can specify the directory where you installed FFTW3_
