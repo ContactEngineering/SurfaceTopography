@@ -1,10 +1,7 @@
 Usage
 =====
 
-The code is documented via Python's documentation strings that can be accesses via the `help` command or by appending a questions mark `?` in ipython/jupyter. There are two command line tools available that may be a good starting point. They are in the `commandline` subdirectory:
-
-- `hard_wall.py`: Command line front end for calculations with hard, impenetrable walls between rigid and elastic flat. This front end exclusively uses Polonsky & Keer's constrained conjugate gradient solver to find the deformation of the substrate under the additional contact constraints. Run `hard_wall.py --help` to get a list of command line options.
-- `soft_wall.py`: Command line front end for calculations with soft (possibly adhesive) interactions between rigid and elastic flat. This is a stub rather than a fully featured command line tool that can be used as a starting point for modified script. The present implementation is set up for a solution of Martin Müser's contact mechanics challenge.
+The code is documented via Python's documentation strings that can be accesses via the `help` command or by appending a questions mark `?` in ipython/jupyter.
 
 Handling topographies
 ---------------------
@@ -121,8 +118,13 @@ All topography classes implement the following analysis functions that can retur
 - `rms_slope_from_profile`: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.
 - `rms_curvature_from_area`: Computes the root mean square curvature by integrating over the area.
 - `rms_curvature_from_profile`: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.
-- `power_spectrum_1D`: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
-- `power_spectrum_2D`: Only two-dimensional maps: Computes the radially averaged PSD.
+- `power_spectrum_from_profile`: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
+- `power_spectrum_from_area`: Only two-dimensional maps: Computes the radially averaged PSD.
+- `autocorrelation_from_profile`: Computes the one-dimensional height difference autocorrelation function (ACF). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
+- `autocorrelation_from_area`: Only two-dimensional maps: Computes the radially averaged height difference autocorrelation function.
+- `variable_bandwidth_from_profile`: Computes the one-dimentional scan-size dependent rms-height using the variable bandwidth method.
+- `variable_bandwidth_from_area`: Computes the two-dimentional scan-size dependent rms-height using the variable bandwidth method.
+
 
 Example:::
 
