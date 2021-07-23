@@ -17,6 +17,8 @@ Nonuniform line-scans are therefore always interpreted as a set of points connec
 
 Topographies can be read from a file through a reader returned by :func:`SurfaceTopography.open_topography`.
 Each reader provides an interface to one or more channels in the file.
+Note that if your surface contains only one channel, you can simply use :func:`read_topography <SurfaceTopography.read_topography>`
+as a shortcut for `open_topography("file.txt").topography()`.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:
 
