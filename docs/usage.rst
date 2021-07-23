@@ -157,3 +157,16 @@ Example:::
     print('rms height after detrending =', topo.detrend(detrend_mode='curvature').rms_height_from_area())
     print('rms height after detrending and rescaling =',
           topo.detrend(detrend_mode='curvature').scale(2.0).rms_height_from_area())
+
+
+Save Topography
++++++++++++++++
+
+Netcdf output: fastest and most memory efficient
+- :func:`topograpgy.to_netcdf() <SurfaceTopography.IO.NC.write_nc_uniform>`
+- :func:`nonuniformlinescan.to_netcdf() <SurfaceTopography.IO.NC.write_nc_nonuniform>`
+
+Numpy txt format:
+- :func:`topograpgy.save() <SurfaceTopography.Topography.save>`
+- :func:`uniformlinescan.save() <SurfaceTopography.UniFormLineScan.save>`
+- :func:`nonuniformlinescan.save() <SurfaceTopography.NonUniFormLineScan.save>`
