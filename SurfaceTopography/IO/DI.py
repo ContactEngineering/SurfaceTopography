@@ -44,7 +44,7 @@ from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
 class DIReader(ReaderBase):
     _format = 'di'
-    _name = 'Veeco (Digital Instruments) Nanoscope'
+    _name = 'Bruker Dimension; Veeco/Digital Instruments Nanoscope'
     _description = '''
 Digitial Instruments Nanoscope files typically have a three-digit number as
 the file extension (.001, .002, .003, ...). This format contains information
@@ -105,6 +105,7 @@ supports V4.3 and later version of the format.
             self._offsets = []
 
             scanner = {}
+            equipment = {}
             info = {}
             for n, p in parameters:
                 if n == 'file list':
@@ -112,6 +113,8 @@ supports V4.3 and later version of the format.
                         info['acquisition_time'] = str(datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y'))
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
+                elif n == 'equipment list':
+                    equipment.update(p)
                 elif n == 'ciao image list':
                     image_data_key = re.match(r'^S \[(.*?)\] ',
                                               p['@2:image data']).group(1)
@@ -180,6 +183,11 @@ supports V4.3 and later version of the format.
 
                     height_scale_factor = hard_scale * hard_to_soft * soft_scale * binary_scale
 
+                    if 'microscope' in equipment:
+                        info['instrument_name'] = equipment['microscope']
+                    elif 'description' in equipment:
+                        info['instrument_name'] = equipment['description']
+
                     channel = ChannelInfo(self,
                                           len(self._channels),
                                           name=image_data_key,
@@ -246,6 +254,8 @@ supports V4.3 and later version of the format.
         _info.update(info)
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
+        if 'instrument_name' in channel.info:
+            _info['instrument_name'] = channel.info['instrument_name']
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:
