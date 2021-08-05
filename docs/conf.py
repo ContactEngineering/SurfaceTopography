@@ -21,6 +21,7 @@
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath('_ext'))
 sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
@@ -36,7 +37,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.napoleon',
-              'sphinx.ext.autosummary']
+              'sphinx.ext.autosummary',
+              'edit_on_github']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -172,5 +174,5 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
+edit_on_github_project = 'ContactEngineering/SurfaceTopography'
+edit_on_github_branch = 'master'
