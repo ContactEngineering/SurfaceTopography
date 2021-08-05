@@ -31,12 +31,12 @@ jobs:
         if [ "${{ matrix.mpi }}" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
         sudo pip3 install -r requirements.txt --no-binary setuptools_scm
         if [ "${{ matrix.mpi }}" == "yes" ]; then NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf CC=mpicc python -m pip install --force-reinstall -v --no-binary netCDF4 netCDF4==${NETCDF4_PYTHON_VERSION}; fi
-        python .check_netcdf_capabilities.py ${{ matrix.mpi }}
+        python3 .check_netcdf_capabilities.py ${{ matrix.mpi }}
 
     - name: Build extension module
       run: |
-        python setup.py sdist
-        python -m pip install dist/*.tar.gz
+        python3 setup.py sdist
+        python3 -m pip install dist/*.tar.gz
 
     - name: Test with pytest
       run: |
