@@ -14,23 +14,30 @@ jobs:
     strategy:
       matrix:
         mpi: ['yes', 'no']
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
-    - name: install_python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
       run: |
         sudo apt-get update -qy
         sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
         if [ "${{ matrix.mpi }}" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
         sudo pip3 install -r requirements.txt --no-binary setuptools_scm
         if [ "${{ matrix.mpi }}" == "yes" ]; then NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf CC=mpicc python -m pip install --force-reinstall -v --no-binary netCDF4 netCDF4==${NETCDF4_PYTHON_VERSION}; fi
-        python .check_netcdf_capabilities.py $WITH_MPI
-    - name: build_c
+        python .check_netcdf_capabilities.py ${{ matrix.mpi }}
+
+    - name: Build extension module
       run: |
         python setup.py sdist
         python -m pip install dist/*.tar.gz
 
-    - name: pytest
+    - name: Test with pytest
       run: |
         if [ "${{ matrix.mpi }}" == "yes" ]; then python run-tests.py --no-build --verbose --full-trace; else python -m pytest --flake8 --verbose --full-trace -s; fi
