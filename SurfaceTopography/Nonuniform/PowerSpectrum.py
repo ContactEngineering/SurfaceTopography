@@ -188,5 +188,4 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('power_spectrum_from_profile',
-                                              power_spectrum)
+NonuniformLineScanInterface.register_function('power_spectrum_from_profile', power_spectrum)
