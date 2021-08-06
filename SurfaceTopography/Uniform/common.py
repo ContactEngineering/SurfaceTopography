@@ -86,15 +86,20 @@ third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
 third_2d = (third_2d_x, third_2d_y)
 
 
-def bandwidth(topography):
-    """Computes lower and upper bound of bandwidth.
+def bandwidth(self):
+    """
+    Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
+    length scales occuring on a topography. The lower end of the bandwidth is
+    given by the pixel size, the upper end by the physical dimension. For
+    topographies with an aspect ratio that is not unity, this function returns
+    the mean value of the two Cartesian directions.
 
     Returns
     -------
     A 2-tuple (lower_bound, upper_bound) where the elements are floats.
     """
-    lower_bound = np.mean(topography.pixel_size)
-    upper_bound = np.mean(topography.physical_sizes)
+    lower_bound = np.mean(self.pixel_size)
+    upper_bound = np.mean(self.physical_sizes)
 
     return lower_bound, upper_bound
 
