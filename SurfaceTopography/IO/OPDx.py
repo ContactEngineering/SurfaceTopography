@@ -381,7 +381,7 @@ def find_2d_data(hash_table, buf):
         The filled hash table
     buf : bytes
         The raw hex data
-    
+
     Returns
     -------
     output : OrderedDict
@@ -458,7 +458,7 @@ def find_2d_data_matrix(name, item):
         The name (key) of a found item
     item : DektakItem
         The item itself
-    
+
     Returns
     -------
     name : str
@@ -484,7 +484,7 @@ def create_meta(hash_table):
     ----------
     hash_table : OrderedDict
         The hash table
-    
+
     Returns
     -------
     container : OrderedDict
@@ -701,7 +701,7 @@ def read_quantunit_content(buf, pos, is_unit):
         The position in the buffer
     is_unit : boot
         Whether or not it is a unit
-    
+
     Returns
     -------
     quantunit : DektakQuantUnit
@@ -738,7 +738,7 @@ def read_dimension2d_content(buf, pos, unit):
         Position in the buffer
     unit : str
         The unit
-    
+
     Returns
     -------
     unit : str
@@ -770,7 +770,7 @@ def build_matrix(xres, yres, data, q=1):
         The raw hex data
     q : float
         The scale of the data
-    
+
     Returns
     -------
     data : np.ndarray
@@ -798,7 +798,7 @@ def read_name(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     name : str
@@ -829,7 +829,7 @@ def read_structured(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     out : int
@@ -857,7 +857,7 @@ def read_named_struct(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     name : str
@@ -884,7 +884,7 @@ def read_varlen(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     out : int
@@ -919,7 +919,7 @@ def read_int64(buf, pos, signed=False):
         The current position
     signed : bool, optional
         Signed integer (Default: false)
-    
+
     Returns
     -------
     out : int
@@ -947,7 +947,7 @@ def read_int32(buf, pos, signed=False):
         The current position
     signed : bool, optional
         Signed integer (Default: false)
-    
+
     Returns
     -------
     out : int
@@ -975,7 +975,7 @@ def read_int16(buf, pos, signed=False):
         The current position
     signed : bool, optional
         Signed integer (Default: false)
-    
+
     Returns
     -------
     out : int
@@ -1001,7 +1001,7 @@ def read_double(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     out : float
@@ -1028,7 +1028,7 @@ def read_float(buf, pos):
         Input buffer
     pos : int
         The current position
-    
+
     Returns
     -------
     out : float
@@ -1057,7 +1057,7 @@ def read_with_check(buf, pos, nbytes):
         The current position
     nbytes : int
         Number of bytes to read in
-    
+
     Returns
     -------
     out : bytes

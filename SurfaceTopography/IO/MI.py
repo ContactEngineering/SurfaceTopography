@@ -266,7 +266,7 @@ def read_header_spect(header):
     ----------
     header : str
         The header.
-    
+
     Returns
     -------
     mifile : MIFile
