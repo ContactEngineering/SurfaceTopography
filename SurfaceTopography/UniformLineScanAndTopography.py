@@ -64,8 +64,6 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             The info dictionary containing auxiliary data. This data is never
             used by SurfaceTopography but can be used by third-party codes.
         """
-        heights = np.asarray(heights)
-
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 

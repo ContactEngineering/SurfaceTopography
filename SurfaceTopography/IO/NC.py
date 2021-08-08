@@ -137,7 +137,7 @@ plt.show()
                 # we must rewind the file
                 fobj.seek(0)
 
-            self._nc = _SpecialNetCDFFile(fobj, 'r')
+            self._nc = _SpecialNetCDFFile(fobj, 'r', maskandscale=True)
 
         self._communicator = communicator
         self._n_dim = self._nc.dimensions['n'] if 'n' in self._nc.dimensions else None
@@ -256,20 +256,25 @@ plt.show()
 
         _info = self._info.copy()
         _info.update(info)
+
+        heights = self._heights_var[...]
+        if not np.ma.is_masked(heights):
+            # If is it not masked, make sure it becomes a proper numpy array
+            heights = np.array(heights)
+
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self._x_dim is not None:
                 physical_sizes = self._check_physical_sizes(physical_sizes,
                                                             self._physical_sizes)
-
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    topo = Topography(heights.copy(), physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       unit=unit, info=_info)
                 else:
                     # .. and it is 1D
-                    topo = UniformLineScan(np.array(self._heights_var[...], copy=True), physical_sizes,
+                    topo = UniformLineScan(heights.copy(), physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            unit=unit, info=_info)
             else:
@@ -281,8 +286,7 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                topo = NonuniformLineScan(np.array(self._x_var[...], copy=True),
-                                          np.array(self._heights_var[...], copy=True),
+                topo = NonuniformLineScan(self._x_var[...].copy, heights,
                                           unit=unit, info=_info)
         else:
             if self._y_dim is None:
@@ -291,7 +295,7 @@ plt.show()
             physical_sizes = self._check_physical_sizes(physical_sizes,
                                                         self._physical_sizes)
 
-            topo = Topography(np.array(self._heights_var[...], copy=True), physical_sizes,
+            topo = Topography(heights, physical_sizes,
                               periodic=self._periodic if periodic is None else periodic,
                               decomposition='domain',
                               subdomain_locations=subdomain_locations,
@@ -338,7 +342,8 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
                       comm=topography.communicator)
     else:
         Dataset = _SpecialNetCDFFile
-        kwargs = dict(version=format_to_scipy_version[format])
+        kwargs = dict(version=format_to_scipy_version[format],
+                      maskandscale=True)
     if not topography.is_domain_decomposed and \
             topography.communicator.rank > 1:
         return
@@ -421,7 +426,7 @@ def write_nc_nonuniform(line_scan, fobj, format='NETCDF3_64BIT_OFFSET'):
     if line_scan.communicator is not None and line_scan.communicator.size > 1:
         raise RuntimeError('Parallel writing is not supported for nonuniform line scans')
 
-    with _SpecialNetCDFFile(fobj, 'w', version=format_to_scipy_version[format]) as nc:
+    with _SpecialNetCDFFile(fobj, 'w', version=format_to_scipy_version[format], maskandscale=True) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = line_scan.info.copy()
         try:
