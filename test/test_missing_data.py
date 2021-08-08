@@ -54,10 +54,10 @@ def make_topography_with_missing_data(file_format_examples):
     (1, False, 2, None),
     (1, False, None, 'center'),
     (1, False, 2, 'center'),
-#    (1, True, None, None),  # None means: do not apply
-#    (1, True, 2, None),
-#    (1, True, None, 'center'),
-#    (1, True, 2, 'center'),
+    # (1, True, None, None),  # None means: do not apply
+    # (1, True, 2, None),
+    # (1, True, None, 'center'),
+    # (1, True, 2, 'center'),
     (2, False, None, None),  # None means: do not apply
     (2, False, 2, None),
     (2, False, None, 'center'),
