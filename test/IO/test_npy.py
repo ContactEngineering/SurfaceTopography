@@ -37,6 +37,7 @@ from SurfaceTopography import open_topography
 from SurfaceTopography.IO.NPY import NPYReader
 from SurfaceTopography.IO.NPY import save_npy
 
+import NuMPI
 from NuMPI import MPI
 
 DATADIR = os.path.dirname(os.path.realpath(__file__))
@@ -61,11 +62,13 @@ def test_save_and_load(comm_self, file_format_examples):
 
 
 @pytest.mark.skipif(
+    NuMPI._has_mpi4py,
+    reason="NuMPI is using MPI I/O which does not support Python streams")
+@pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-def test_load_binary(comm_self, file_format_examples):
-    with open(os.path.join(file_format_examples, 'example-2d.npy'),
-              mode="rb") as f:
+def test_load_binary_stream(comm_self, file_format_examples):
+    with open(os.path.join(file_format_examples, 'example-2d.npy'), mode="rb") as f:
         loaded_topography = NPYReader(f, communicator=comm_self).topography(
             # nb_subdomain_grid_pts=topography.nb_grid_pts,
             # subdomain_locations=(0,0),
