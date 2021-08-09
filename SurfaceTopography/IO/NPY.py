@@ -69,15 +69,13 @@ manually provided by the user.
 
         Parameters
         ----------
-        fn: str
+        fn : str
             Name of the file
-        communicator: mpi4py MPI communicator or NuMPI stub communicator
+        communicator : mpi4py MPI communicator or NuMPI stub communicator
             MPI communicator object for parallel loads.
         """
         super().__init__()
 
-        # if comm is None:
-        #    raise ValueError("you should provide comm when running with MPI")
         try:
             self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator,
                                                         format="npy")
