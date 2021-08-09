@@ -36,7 +36,11 @@ from ..HeightContainer import NonuniformLineScanInterface
 
 
 def bandwidth(self):
-    """Computes lower and upper bound of bandwidth.
+    """
+    Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
+    length scales occuring on a topography. The lower end of the bandwidth is
+    given by the mean of the spacing of the individual points on the line
+    scan. The upper bound is given by the overall length of the line scan.
 
     Returns
     -------

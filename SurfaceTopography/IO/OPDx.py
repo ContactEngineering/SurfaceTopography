@@ -238,13 +238,22 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
 def reformat_dict(name, metadata):
     """
-    Reformat the metadata dict from c convention to a more readable format and
+    Reformat the metadata dict from C convention to a more readable format and
     remove artefacts. Also gets and returns the default channel.
-    :param name: The name of the current channel.
-    :param metadata: The metadata dict
-    :return:
-    new dict: The nicer dict
-    primary_channel_name: The name of the primary channel.
+
+    Parameters
+    ----------
+    name : str
+        The name of the current channel
+    metadata : OrderedDict
+        The metadata dict
+
+    Returns
+    -------
+    new dict : OrderedDict
+        The nicer dict
+    primary_channel_name : str
+        The name of the primary channel.
     """
     new_dict = OrderedDict()
 
@@ -352,6 +361,7 @@ class DektakBuf:
 
 def find_1d_data(hash_table, buf):
     """ THIS HAS NOT BEEN TESTED DUE TO NO FILES WITH 1D DATA AVAILABLE."""
+    raise NotImplementedError
 
     item = hash_table.pop("/MetaData/MeasurementSettings/SamplesToLog", None)
 
@@ -362,12 +372,20 @@ def find_1d_data(hash_table, buf):
 
 
 def find_2d_data(hash_table, buf):
-    """ Get all the 2d data channels out of the previously filled hash table.
+    """
+    Get all the 2d data channels out of the previously filled hash table.
 
-    :param hash_table: The filled hash table
-    :param buf: The raw hex data
-    :return: Dictionary with all names, data and metadata of the different
-    channels
+    Parameters
+    ----------
+    hash_table : OrderedDict
+        The filled hash table
+    buf : bytes
+        The raw hex data
+
+    Returns
+    -------
+    output : OrderedDict
+        Dictionary with all names, data and metadata of the different channels
     """
     output = OrderedDict()
     channels = []
@@ -431,10 +449,20 @@ def find_2d_data(hash_table, buf):
 
 
 def find_2d_data_matrix(name, item):
-    """ Checks if an item is a matrix and if it is, returns it's channel name.
-    :param name: The name (key) of a found item
-    :param item: The item itself
-    :return: The name of the matrix data channel
+    """
+    Checks if an item is a matrix and if it is, returns it's channel name.
+
+    Parameters
+    ----------
+    name : str
+        The name (key) of a found item
+    item : DektakItem
+        The item itself
+
+    Returns
+    -------
+    name : str
+        The name of the matrix data channel
     """
     if item.typeid != DEKTAK_MATRIX:
         return
@@ -451,8 +479,16 @@ def find_2d_data_matrix(name, item):
 def create_meta(hash_table):
     """
     Gets all the metadata out of a hash table.
-    :param hash_table: The hash table
-    :return: Hash table with all metadata names and values
+
+    Parameters
+    ----------
+    hash_table : OrderedDict
+        The hash table
+
+    Returns
+    -------
+    container : OrderedDict
+        Hash table with all metadata names and values
     """
     container = OrderedDict()
     for key in hash_table.keys():
@@ -492,14 +528,31 @@ def read_item(buf, pos, hash_table, path, abspos=0):
     """
     Reads in the next item out of the buffer and saves it in the hash table.
     May recursively call itself for containers.
-    :param buf: The raw data buffer
-    :param pos: Current position in the buffer
-    :param hash_table: The output hash table
-    :param path: Current name to save
-    :param abspos: Absolute position in buffer to keep track when calling
-    itself
-    :return:
-    Buffer, new position, hash table with new item in it, new path
+
+    Parameters
+    ----------
+    buf : bytes
+        The raw data buffer
+    pos : int
+        Current position in the buffer
+    hash_table : OrderedDict
+        The output hash table
+    path : str
+        Current name to save
+    abspos : int, optional
+        Absolute position in buffer to keep track when calling itself
+        (Default: 0)
+
+    Returns
+    -------
+    but : bytes,
+        Output buffer
+    newpos : int
+        New position
+    hash_table : OrderedDict
+        Hash table with new item in it
+    new_path : str
+        New path
     """
     orig_path_len = len(path)
     item = DektakItem()
@@ -639,10 +692,22 @@ def read_item(buf, pos, hash_table, path, abspos=0):
 def read_quantunit_content(buf, pos, is_unit):
     """
     Reads in a quantity unit: Value, name and symbol.
-    :param buf: The buffer
-    :param pos: The position in the buffer
-    :param is_unit: Whether or not it is a unit
-    :return: A quantunit item, filled with value, name and symbol
+
+    Parameters
+    ----------
+    buf : bytes
+        The input buffer
+    pos : integer
+        The position in the buffer
+    is_unit : boot
+        Whether or not it is a unit
+
+    Returns
+    -------
+    quantunit : DektakQuantUnit
+        A quantunit item, filled with value, name and symbol
+    new_pos : int
+        New position in input buffer
     """
     quantunit = DektakQuantUnit()
     quantunit.extra = []
@@ -664,10 +729,24 @@ def read_quantunit_content(buf, pos, is_unit):
 def read_dimension2d_content(buf, pos, unit):
     """
     Reads in information about a 2d dimension.
-    :param buf: The buffer
-    :param pos: The position in the buffer
-    :param unit: The unit
-    :return: The open_topography unit, divisor and new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        The input buffer
+    pos : integer
+        Position in the buffer
+    unit : str
+        The unit
+
+    Returns
+    -------
+    unit : str
+        The unit (is passed through)
+    divisor : float
+        Divisor
+    new_pos : int
+        New position in input buffer
     """
     unit.value, pos = read_double(buf, pos)
     unit.name, pos = read_name(buf, pos)
@@ -680,11 +759,22 @@ def read_dimension2d_content(buf, pos, unit):
 def build_matrix(xres, yres, data, q=1):
     """
     Reads a float matrix of given dimensions and multiplies with a scale.
-    :param xres: Resolution along x-axis
-    :param yres: Resolution along y-axis
-    :param data: The raw hex data
-    :param q: The scale of the data, a double
-    :return: A numpy array, now doubles aswell
+
+    Parameters
+    ----------
+    xres : int
+        Resolution along x-axis
+    yres : int
+        Resolution along y-axis
+    data : bytes
+        The raw hex data
+    q : float
+        The scale of the data
+
+    Returns
+    -------
+    data : np.ndarray
+        Matrix
     """
     data = ''.join(data)
 
@@ -701,10 +791,20 @@ def build_matrix(xres, yres, data, q=1):
 def read_name(buf, pos):
     """
     Reads a name.
-    :param buf: The buffer
-    :param pos: Position in buffer
-    :return:
-    name, new position in buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    name : str
+        Name
+    new_pos : int
+        New position in input buffer
     """
 
     # Names always have a physical_sizes of 4 bytes
@@ -722,10 +822,22 @@ def read_name(buf, pos):
 def read_structured(buf, pos):
     """
     Reads a length and returns a part of the buffer that long.
-    :param buf: The buffer
-    :param pos: Position in buffer
-    :return:
-    The slice of buffer, where it starts and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    out : int
+        Output buffer
+    start : int
+        Start position within input buffer
+    pos : int
+        New position in input buffer
     """
     length, pos = read_varlen(buf, pos)
     if len(buf) < length or pos > len(buf) - length:
@@ -737,12 +849,25 @@ def read_structured(buf, pos):
 
 def read_named_struct(buf, pos):
     """
-    Same as read_structured but there is a name to it.
-    :param buf: The buffer
-    :param pos: Position in buffer
-    :return:
-    Name of the buffer, that buffer, its start and the new position in the
-    buffer
+    Same as `read_structured` but there is a name to it.
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    name : str
+        Name of buffer
+    out : int
+        Output buffer
+    start : int
+        Start position within input buffer
+    pos : int
+        New position in input buffer
     """
     typename, pos = read_name(buf, pos)
     content, start, pos = read_structured(buf, pos)
@@ -752,10 +877,20 @@ def read_named_struct(buf, pos):
 def read_varlen(buf, pos):
     """
     Reads a length of variable length itself
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :return:
-    The open_topography length and new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    out : int
+        Length value
+    new_pos : int
+        New position in input buffer
     """
     lenlen, pos = read_with_check(buf, pos, 1)
     lenlen = np.frombuffer(str.encode(lenlen, "raw_unicode_escape"), "<u1")[0]
@@ -775,11 +910,22 @@ def read_varlen(buf, pos):
 def read_int64(buf, pos, signed=False):
     """
     Reads a 64bit int.
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :param signed: Whether of not the int is signed
-    :return:
-    The int and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+    signed : bool, optional
+        Signed integer (Default: false)
+
+    Returns
+    -------
+    out : int
+        Output value
+    new_pos : int
+        New position in input buffer
     """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
     out = ''.join(out)
@@ -792,11 +938,22 @@ def read_int64(buf, pos, signed=False):
 def read_int32(buf, pos, signed=False):
     """
     Reads a 32bit int.
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :param signed: Whether of not the int is signed
-    :return:
-    The int and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+    signed : bool, optional
+        Signed integer (Default: false)
+
+    Returns
+    -------
+    out : int
+        Output value
+    new_pos : int
+        New position in input buffer
     """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
     out = ''.join(out)
@@ -808,12 +965,23 @@ def read_int32(buf, pos, signed=False):
 
 def read_int16(buf, pos, signed=False):
     """
-    Reads a 16bit int.
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :param signed: Whether of not the int is signed
-    :return:
-    The int and the new position in the buffer
+    Reads a 16bit integer.
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+    signed : bool, optional
+        Signed integer (Default: false)
+
+    Returns
+    -------
+    out : int
+        Output value
+    new_pos : int
+        New position in input buffer
     """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=2)
     out = ''.join(out)
@@ -826,10 +994,20 @@ def read_int16(buf, pos, signed=False):
 def read_double(buf, pos):
     """
     Reads a double (64bit)
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :return:
-    The double and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    out : float
+        Output value
+    new_pos : int
+        New position in input buffer
     """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
     out = ''.join(out)
@@ -843,10 +1021,20 @@ def read_double(buf, pos):
 def read_float(buf, pos):
     """
     Reads a float (32bit)
-    :param buf: The buffer
-    :param pos: Position in the buffer
-    :return:
-    The float and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+
+    Returns
+    -------
+    out : float
+        Output value
+    new_pos : int
+        New position in input buffer
     """
     out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
     out = ''.join(out)
@@ -860,10 +1048,22 @@ def read_float(buf, pos):
 def read_with_check(buf, pos, nbytes):
     """
     Reads and returns n bytes.
-    :param buf: The input buffer
-    :param pos: The current position
-    :param nbytes: number of bytes to open_topography in
-    :return: The bytes and the new position in the buffer
+
+    Parameters
+    ----------
+    buf : bytes
+        Input buffer
+    pos : int
+        The current position
+    nbytes : int
+        Number of bytes to read in
+
+    Returns
+    -------
+    out : bytes
+        Output buffer
+    new_pos : int
+        New position in input buffer
     """
 
     if len(buf) < nbytes or len(buf) - nbytes < pos:

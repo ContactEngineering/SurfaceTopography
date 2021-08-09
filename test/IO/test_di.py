@@ -34,9 +34,11 @@ from SurfaceTopography.IO import DIReader
 def test_di_date(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, 'di1.di'))
     assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
+    assert t.info['instrument_name'] == 'Dimension V'
 
 
 def test_4byte_data(file_format_examples):
     r = DIReader(os.path.join(file_format_examples, 'di5.di'))
     t = r.topography()
     np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
+    assert t.info['instrument_name'] == 'Dimension Icon'

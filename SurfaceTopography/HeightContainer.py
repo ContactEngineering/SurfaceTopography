@@ -149,11 +149,10 @@ class AbstractTopography(object):
         The dictionary can contain any type of information. There are a few
         standardized keys, listed in the following.
 
-        Standardized keys:
-        unit : str
-            Unit of the topography. The unit information applies to the lateral
-            units (the physical size) as well as to heights units. Examples:
-            'µm', 'nm'.
+        Standardized keys
+        -----------------
+        instrument_name : str
+            Name of the instrument used to acquire the data.
         acquisition_time : :obj:`datetime`
             Date and time of the measurement.
         """

@@ -20,5 +20,8 @@ dist
 /notes/auto/biblio.el
 /helpers/.ipynb_checkpoints/
 *.pyc
-
-
+.eggs
+.idea
+.vscode
+build
+docs/_build
