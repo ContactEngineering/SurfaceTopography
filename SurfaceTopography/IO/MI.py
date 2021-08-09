@@ -195,7 +195,7 @@ topography map as well as its units.
 
     @property
     def info(self):
-        """ Return all the available metadata as a dict. """
+        """Return all the available metadata as a dict."""
         return self.mifile.meta
 
     channels.__doc__ = ReaderBase.channels.__doc__
@@ -206,10 +206,17 @@ def read_header_image(header):
     """
     Reads in global metadata and information about about included channels as
     well as their metadata.
-    :param header: The header as a line of text.
-    :return:
-    MIFile item containing the metadata, with the channels as a list of
-    'buffers'.
+
+    Parameters
+    ----------
+    header : str
+        The header as a line of text.
+
+    Returns
+    -------
+    mifile : MIFile
+        Data structure item containing the metadata, with the channels as a
+        list of 'buffers'.
     """
     # This object will store the file-wide metadata
     mifile = MIFile()
@@ -254,11 +261,18 @@ def read_header_image(header):
 def read_header_spect(header):
     """
     Reads in metadata out of the header.
-    :param header: The header.
-    :return:
-    MIFile item containing the metadata.
+
+    Parameters
+    ----------
+    header : str
+        The header.
+
+    Returns
+    -------
+    mifile : MIFile
+        Data structure item containing the metadata.
     """
-    pass
+    raise NotImplementedError
 
 
 class Channel:

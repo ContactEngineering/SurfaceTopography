@@ -24,4 +24,4 @@ dist
 .idea
 .vscode
 build
-
+docs/_build
