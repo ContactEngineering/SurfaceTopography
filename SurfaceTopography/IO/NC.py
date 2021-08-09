@@ -122,6 +122,7 @@ plt.show()
 
     def __init__(self, fobj, communicator=None):
         self._nc = None
+        self._var_kwargs = {}  # Keywords arguments to attach to variable creation
         if communicator is not None and communicator.size > 1:
             # For parallel I/O we need netCDF4
             from netCDF4 import Dataset
@@ -259,8 +260,11 @@ plt.show()
 
         heights = self._heights_var[...]
         if not np.ma.is_masked(heights):
+            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if not np.ma.is_masked(heights):
             # If is it not masked, make sure it becomes a proper numpy array
             heights = np.array(heights)
+        heights = heights.copy()
 
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self._x_dim is not None:
@@ -269,12 +273,12 @@ plt.show()
                 # This is a uniform topography...
                 if self._y_dim is not None:
                     # ...and it is 2D
-                    topo = Topography(heights.copy(), physical_sizes,
+                    topo = Topography(heights, physical_sizes,
                                       periodic=self._periodic if periodic is None else periodic,
                                       unit=unit, info=_info)
                 else:
                     # .. and it is 1D
-                    topo = UniformLineScan(heights.copy(), physical_sizes,
+                    topo = UniformLineScan(heights, physical_sizes,
                                            periodic=self._periodic if periodic is None else periodic,
                                            unit=unit, info=_info)
             else:
@@ -286,7 +290,7 @@ plt.show()
                                      'cannot be periodic.')
 
                 # This is a nonuniform line scan
-                topo = NonuniformLineScan(self._x_var[...].copy, heights,
+                topo = NonuniformLineScan(self._x_var[...].copy(), heights,
                                           unit=unit, info=_info)
         else:
             if self._y_dim is None:
@@ -336,14 +340,16 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
         NetCDF file format. Default is 'NETCDF3_64BIT_OFFSET'.
     """
     if topography.communicator is not None and topography.communicator.size > 1:
-        from netCDF4 import Dataset
+        from netCDF4 import Dataset, default_fillvals
         kwargs = dict(format=format,
                       parallel=topography.is_domain_decomposed,
                       comm=topography.communicator)
+        var_kwargs = {'fill_value': default_fillvals['f8']}
     else:
         Dataset = _SpecialNetCDFFile
         kwargs = dict(version=format_to_scipy_version[format],
                       maskandscale=True)
+        var_kwargs = {}
     if not topography.is_domain_decomposed and \
             topography.communicator.rank > 1:
         return
@@ -367,9 +373,9 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
         nc.createDimension('x', nx)
         if topography.dim > 1:
             nc.createDimension('y', ny)
-            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'))
+            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'), **var_kwargs)
         else:
-            heights_var = nc.createVariable('heights', 'f8', ('x',))
+            heights_var = nc.createVariable('heights', 'f8', ('x',), **var_kwargs)
 
         # Create variables for x- and y-positions, but only if physical_sizes
         # exist. (physical_sizes should always exist, but who knows...)
@@ -381,7 +387,7 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
             except ValueError:
                 sx, = topography.physical_sizes
 
-            x_var = nc.createVariable('x', 'f8', ('x',))
+            x_var = nc.createVariable('x', 'f8', ('x',), **var_kwargs)
             x_var.length = sx
 
             x_var.periodic = 1 if topography.is_periodic else 0
@@ -392,7 +398,7 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
             if topography.dim > 1:
                 x_var[...] = np.arange(nx) / nx * sx
 
-                y_var = nc.createVariable('y', 'f8', ('y',))
+                y_var = nc.createVariable('y', 'f8', ('y',), **var_kwargs)
 
                 y_var.length = sy
                 y_var.periodic = 1 if topography.is_periodic else 0
