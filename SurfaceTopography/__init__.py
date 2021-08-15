@@ -38,6 +38,7 @@ from .UniformLineScanAndTopography import Topography, UniformLineScan  # noqa: F
 # These imports are required to register the analysis functions!
 import SurfaceTopography.Converters  # noqa: F401
 import SurfaceTopography.Generic.Curvature  # noqa: F401
+import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
 import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401

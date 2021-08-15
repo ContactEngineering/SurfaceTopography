@@ -22,23 +22,29 @@
 # SOFTWARE.
 #
 
-import datetime
+"""
+Tests of the filter and modification pipeline
+"""
+
 import os
 
 import numpy as np
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import DIReader
 
 
-def test_di_date(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'di1.di'))
-    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
-    assert t.info['instrument']['name'] == 'Dimension V'
+def test_scanning_probe_reliability_cutoff(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+    np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 91.79698634551458)
 
 
-def test_4byte_data(file_format_examples):
-    r = DIReader(os.path.join(file_format_examples, 'di5.di'))
-    t = r.topography()
-    np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
-    assert t.info['instrument']['name'] == 'Dimension Icon'
+def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
+        'instrument': {
+            'tip_radius': {
+                'value': 40,
+                'unit': 'nm',
+                }
+            }
+        })
+    np.testing.assert_allclose(surf.short_reliability_cutoff(), 91.79698634551458)
