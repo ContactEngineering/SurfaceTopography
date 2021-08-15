@@ -301,3 +301,26 @@ def test_q0_2D():
     ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
     assert ratio > 0.2
     assert ratio < 5
+
+
+def test_reliability_cutoff():
+    surf = fourier_synthesis([1024, 512], [2.3, 2.4], 0.8, rms_height=0.87, unit='um', info={
+        'instrument': {
+            'tip_radius': {
+                'value': 0.001,
+                'unit': 'um'
+            }
+        }
+    })
+
+    # 1D
+    q1, C1 = surf.power_spectrum_from_profile(reliable=True)
+    q2, C2 = surf.power_spectrum_from_profile(reliable=False)
+    assert len(q1) < len(q2)
+    assert q1.max() < q2.max()
+
+    # 2D
+    q1, C1 = surf.power_spectrum_from_area(reliable=True)
+    q2, C2 = surf.power_spectrum_from_area(reliable=False)
+    assert len(q1) < len(q2)
+    assert q1.max() < q2.max()
