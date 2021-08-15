@@ -142,6 +142,14 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
+    qmax = 2 * np.pi * nx / (2 * sx)
+
+    if reliable:
+        # Update qmax
+        short_cutoff = topography.short_reliability_cutoff()
+        if short_cutoff is not None:
+            qmax = 2 * np.pi / short_cutoff
+
     h = topography.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
@@ -150,20 +158,12 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, rmax=2 * np.pi * nx / (2 * sx),
+        C_qk, rmax=qmax,
         nbins=nbins, bin_edges=bin_edges,
         physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
     q_val = q_val[n > 0]
     C_val = C_val[n > 0]
-
-    if reliable:
-        # Only keep reliable data
-        short_cutoff = topography.short_reliability_cutoff()
-        if short_cutoff is not None:
-            mask = q_val < 2 * np.pi / short_cutoff
-            q_val = q_val[mask]
-            C_val = C_val[mask]
 
     if return_map:
         return q_val, C_val, C_qk
