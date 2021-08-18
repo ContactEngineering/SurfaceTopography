@@ -21,6 +21,11 @@ Documentation
 
 This README file contains a brief introduction into the code. The full documentation can be found at https://contactengineering.github.io/SurfaceTopography/.
 
+Installation
+------------
+
+Quick install with: `python3 -m pip install SurfaceTopgography`
+
 Funding
 -------
 
