@@ -40,7 +40,7 @@ hc = 0.1 * sx
 
 topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
                                short_cutoff=hc, long_cutoff=hc + 1e-9, )
-topography = topography.scale(1 / topography.rms_height())
+topography = topography.scale(1 / topography.rms_height_from_area())
 dx, dy = topography.fourier_derivative()
 
 # %%
