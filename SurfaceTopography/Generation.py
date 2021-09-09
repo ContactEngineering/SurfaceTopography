@@ -320,5 +320,5 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
         return Topography(rarr, physical_sizes, periodic=periodic, unit=unit, info=info)
     else:
         karr[0] = np.real(karr[0])
-        rarr[:] = np.fft.irfft(karr)
+        rarr[:] = np.fft.irfft(karr, n=nx)
         return UniformLineScan(rarr, sy, periodic=periodic, unit=unit, info=info)
