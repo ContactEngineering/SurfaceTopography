@@ -59,6 +59,8 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
             used by SurfaceTopography but can be used by third-party codes.
         """
         super().__init__(unit=unit, info=info)
+        if np.ma.is_masked(x) or np.ma.is_masked(y):
+            raise ValueError('Storage arrays for nonuniform line scans cannot be masked.')
         self._x = np.asarray(x)
         self._h = np.asarray(y)
 

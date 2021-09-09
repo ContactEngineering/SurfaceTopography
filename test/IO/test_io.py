@@ -36,6 +36,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+import NuMPI
 from NuMPI import MPI
 
 import SurfaceTopography.IO
@@ -87,10 +88,9 @@ binary_example_file_list = _convert_filelist([
     'opdx2.OPDx',
     'mi1.mi',
     'N46E013.hgt',
-    'example-2d.npy',
     'example.zon',
     'example.nc',
-])
+] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
 
 text_example_file_list = _convert_filelist([
     'example1.txt',

@@ -7,6 +7,17 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies  will disappear
 
+v0.95.2 (9Sep21)
+----------------
+
+- ENH: Read instrument name from DI files (#124)
+- ENH: Specify PSD as a function in Fourier synthesis
+- BUG: Avoid loosing mask information when reading/writing NetCDF (#126)
+- DOC: Mention .spm file extension in doc string of DI reader (#123)
+- DOC: Clearer error message for reentrant topographies (#108)
+- DOC: Updated docstring of `bandwidth` (#109)
+- DOC: Converted docstrings to numpydoc (#5)
+
 v0.95.1 (12Jul21)
 -----------------
 

@@ -64,17 +64,18 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
             The info dictionary containing auxiliary data. This data is never
             used by SurfaceTopography but can be used by third-party codes.
         """
-        heights = np.asarray(heights)
+        if not hasattr(heights, 'ndim'):
+            heights = np.array(heights)
 
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 
         super().__init__(unit=unit, info=info)
 
-        # Automatically turn this into a masked array if there is data missing
-        if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)),
-                                         heights)
+        # Automatically turn this into a masked array if it is not already a
+        # masked array and there is data missing
+        if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
+            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
         self._heights = heights
         self._size = np.asarray(physical_sizes).item()
         self._periodic = periodic
@@ -226,10 +227,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         super().__init__(unit=unit, info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
-        if not isinstance(heights, np.ma.core.MaskedArray):
-            if np.sum(np.logical_not(np.isfinite(heights))) > 0:
-                heights = np.ma.masked_where(
-                    np.logical_not(np.isfinite(heights)), heights)
+        if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
+            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization
