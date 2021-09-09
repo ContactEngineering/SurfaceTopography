@@ -31,24 +31,14 @@ Tests surface classes
 
 import os
 import pickle
-import unittest
-from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
 from numpy.random import rand
-from numpy.testing import assert_array_equal
 
-from muFFT import FFT
 from NuMPI import MPI
-from NuMPI.Tools import Reduction
 
-from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
-                               make_sphere, open_topography,
-                               read_topography)
-from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UnitConversion import get_unit_conversion_factor
-from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
+from SurfaceTopography import UniformLineScan
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,

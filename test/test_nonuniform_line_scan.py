@@ -31,24 +31,14 @@ Tests surface classes
 
 import os
 import pickle
-import unittest
-from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from numpy.random import rand
-from numpy.testing import assert_array_equal
 
-from muFFT import FFT
 from NuMPI import MPI
-from NuMPI.Tools import Reduction
 
-from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
-                               make_sphere, open_topography,
-                               read_topography)
-from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UnitConversion import get_unit_conversion_factor
-from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
+from SurfaceTopography import NonuniformLineScan
+from SurfaceTopography.IO.Text import read_xyz
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -64,6 +54,7 @@ def test_properties():
     t = NonuniformLineScan(x, h)
     assert t.dim == 1
 
+
 def test_squeeze():
     x = np.linspace(0, 4 * np.pi, 101) ** (1.3)
     h = np.sin(x)
@@ -72,6 +63,7 @@ def test_squeeze():
     assert isinstance(surface2, NonuniformLineScan)
     np.testing.assert_allclose(surface.positions(), surface2.positions())
     np.testing.assert_allclose(surface.heights(), surface2.heights())
+
 
 def test_positions_and_heights():
     x = np.array((0, 1, 1.5, 2, 3))
@@ -85,6 +77,7 @@ def test_positions_and_heights():
     x2, h2 = t.positions_and_heights()
     np.testing.assert_allclose(x2, x)
     np.testing.assert_allclose(h2, h)
+
 
 def test_attribute_error():
     t = NonuniformLineScan([1, 2, 4], [2, 4, 8])
@@ -103,6 +96,7 @@ def test_attribute_error():
         t2.scale_factor
     # a scaled line scan has a scale_factor
     assert t2.scale(1).scale_factor == 1
+
 
 def test_setting_info_dict():
     x = np.array((0, 1, 1.5, 2, 3))
@@ -147,6 +141,7 @@ def test_setting_info_dict():
     with pytest.deprecated_call():
         dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
+
 def test_init_with_lists_calling_scale_and_detrend():
     # initialize with lists instead of arrays
     t = NonuniformLineScan(x=[1, 2, 3, 4], y=[2, 4, 6, 8])
@@ -154,6 +149,7 @@ def test_init_with_lists_calling_scale_and_detrend():
     # the following commands should be possible without errors
     st = t.scale(1)
     st.detrend(detrend_mode='center')
+
 
 def test_power_spectrum_from_profile():
     #
@@ -168,14 +164,16 @@ def test_power_spectrum_from_profile():
     q1, C1 = t.detrend('height').power_spectrum_from_profile()
     # ok can be called without errors
 
+
 def test_detrend():
     t = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
 
+
 def test_masked_input():
     with pytest.raises(ValueError):
-        NonuniformLineScan(x=np.ma.array([1,2,3], mask=[0,1,0]), y=[4,5,6])
+        NonuniformLineScan(x=np.ma.array([1, 2, 3], mask=[0, 1, 0]), y=[4, 5, 6])
 
     with pytest.raises(ValueError):
-        NonuniformLineScan(y=np.ma.array([1,2,3], mask=[0,1,0]), x=[4,5,6])
+        NonuniformLineScan(y=np.ma.array([1, 2, 3], mask=[0, 1, 0]), x=[4, 5, 6])
