@@ -172,3 +172,10 @@ def test_detrend():
     t = read_xyz(os.path.join(DATADIR, 'example.xyz'))
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
+
+def test_masked_input():
+    with pytest.raises(ValueError):
+        NonuniformLineScan(x=np.ma.array([1,2,3], mask=[0,1,0]), y=[4,5,6])
+
+    with pytest.raises(ValueError):
+        NonuniformLineScan(y=np.ma.array([1,2,3], mask=[0,1,0]), x=[4,5,6])
