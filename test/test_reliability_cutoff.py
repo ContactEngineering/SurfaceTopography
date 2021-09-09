@@ -47,4 +47,12 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
                 }
             }
         })
-    np.testing.assert_allclose(surf.short_reliability_cutoff(), 91.79698634551458)
+    cut = surf.short_reliability_cutoff()
+    np.testing.assert_allclose(cut, 91.79698634551458)
+
+    # Make sure PSD return only reliable portion
+    q, _ = surf.power_spectrum_from_profile()
+    assert q[-1] < 2 * np.pi / cut
+
+    q, _ = surf.power_spectrum_from_area()
+    assert q[-1] < 2 * np.pi / cut
