@@ -97,15 +97,15 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, rel
         topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography...
-        l, u = topography.bandwidth()
+        L, u = topography.bandwidth()
         # ...and that are reliable
         if reliable:
             short_cutoff = topography.short_reliability_cutoff()
             if short_cutoff is None:
                 short_cutoff = 0
-            l = max(short_cutoff, l)
+            L = max(short_cutoff, L)
         # For the factor n see arXiv:2106.16103
-        m = np.logical_and(distance > n * l, distance < u)
+        m = np.logical_and(distance > n * L, distance < u)
         existing_distances = distance[m]
 
         # Are there any distances left?
