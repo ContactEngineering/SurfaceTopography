@@ -31,7 +31,7 @@ from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
-def bicubic_interpolator(topography):
+def interpolate_bicubic(topography):
     r"""
     Returns a bicubic interpolation function based on the topography's heights
     and slopes (fourier_derivative)
@@ -196,5 +196,5 @@ class MirrorStichedTopography(DecoratedUniformTopography):
 
 
 Topography.register_function("mirror_stitch", MirrorStichedTopography)
-Topography.register_function("interpolate_bicubic", bicubic_interpolator)
+Topography.register_function("interpolate_bicubic", interpolate_bicubic)
 UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)
