@@ -76,7 +76,7 @@ def test_fourier_synthesis_rms_height_more_wavevectors(comm_self):
             long_cutoff=s / 8,
             short_cutoff=4 * s / n,
             # amplitude_distribution=lambda n: np.ones(n)
-        )
+            )
 
         realised_rms_heights.append(topography.rms_height_from_area())
     # print(abs(np.mean(realised_rms_heights) - rms_height) / rms_height)
@@ -100,7 +100,7 @@ def test_fourier_synthesis_rms_height():
             long_cutoff=None,
             short_cutoff=4 * s / n,
             # amplitude_distribution=lambda n: np.ones(n)
-        )
+            )
         realised_rms_heights.append(topography.rms_height_from_area())
     # TODO: this is not very accurate !
     assert abs(np.mean(
@@ -167,7 +167,7 @@ def test_fourier_synthesis_1D_input():
         long_cutoff=s / 2,
         short_cutoff=ls,
         amplitude_distribution=lambda n: np.ones(n)
-    )
+        )
     # TODO: What's the point of this test? There is nothing that is tested
 
 
@@ -187,7 +187,7 @@ def test_fourier_synthesis_linescan_c0(n):
         long_cutoff=s / 2,
         short_cutoff=ls,
         amplitude_distribution=lambda n: np.ones(n)
-    )
+        )
 
     if False:
         import matplotlib.pyplot as plt
@@ -257,3 +257,70 @@ def test_fourier_synthesis_linescan_hrms_more_wavevectors():
     # (realised_rms_heights - np.mean(realised_rms_heights))**2)))
     assert abs(
         np.mean(realised_rms_heights) - ref_height) / ref_height < 0.1  #
+
+
+def test_prescribed_psd_2D():
+    np.random.seed(0)
+    reference = fourier_synthesis((128, 128), (2.5, 2.5),
+                                  hurst=0.8,
+                                  c0=3., ).detrend("center")
+    np.random.seed(0)
+    from_function = fourier_synthesis((128, 128), (2.5, 2.5),
+                                      psd=lambda q: np.where(q > 0, 3 * q ** (-2 - 2 * 0.8), 0))
+
+    if False:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*reference.power_spectrum_from_area())
+        ax.loglog(*from_function.power_spectrum_from_area(), "+")
+        fig.show()
+
+    np.testing.assert_allclose(reference.power_spectrum_from_area()[1],
+                               from_function.power_spectrum_from_area()[1],
+                               atol=1e-5, rtol=1e-6)
+
+
+def test_prescribed_psd_2D_shortcut():
+    np.random.seed(0)
+    reference = fourier_synthesis((128, 128), (2.5, 2.5),
+                                  hurst=0.8,
+                                  c0=3.,
+                                  short_cutoff=0.1, ).detrend("center")
+    np.random.seed(0)
+    from_function = fourier_synthesis((128, 128), (2.5, 2.5),
+                                      psd=lambda q: np.where(q > 0, 3 * q ** (-2 - 2 * 0.8), 0),
+                                      short_cutoff=0.1, )
+
+    if False:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*reference.power_spectrum_from_area())
+        ax.loglog(*from_function.power_spectrum_from_area(), "+")
+        fig.show()
+
+    np.testing.assert_allclose(reference.power_spectrum_from_area()[1],
+                               from_function.power_spectrum_from_area()[1],
+                               atol=1e-5, rtol=1e-6)
+
+
+def test_prescribed_psd_1D():
+    np.random.seed(0)
+    reference = fourier_synthesis((128,), (2.5,),
+                                  hurst=0.8,
+                                  c0=3.,
+                                  ).detrend("center")
+    np.random.seed(0)
+    from_function = fourier_synthesis((128,), (2.5,),
+                                      psd=lambda q: np.where(q > 0, 3 * q ** (-1 - 2 * 0.8), 0),
+                                      )
+
+    if False:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*reference.power_spectrum_from_profile())
+        ax.loglog(*from_function.power_spectrum_from_profile(), "+")
+        fig.show()
+
+    np.testing.assert_allclose(reference.power_spectrum_from_profile()[1],
+                               from_function.power_spectrum_from_profile()[1],
+                               atol=1e-5, rtol=1e-6)
