@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.95.2.dev34+g25de60cc documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.95.2.dev38+g92d31f53 documentation</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.95.2.dev34+g25de60cc
+                0.95.2.dev38+g92d31f53
               </div>
             
           
@@ -441,7 +441,7 @@ this is not the case).</p>
 <p>Helper functions for the generation of random fractal surfaces</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generation.fourier_synthesis">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generation.</span></span><span class="sig-name descname"><span class="pre">fourier_synthesis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">nb_grid_pts</span></em>, <em class="sig-param"><span class="pre">physical_sizes</span></em>, <em class="sig-param"><span class="pre">hurst</span></em>, <em class="sig-param"><span class="pre">rms_height=None</span></em>, <em class="sig-param"><span class="pre">rms_slope=None</span></em>, <em class="sig-param"><span class="pre">c0=None</span></em>, <em class="sig-param"><span class="pre">short_cutoff=None</span></em>, <em class="sig-param"><span class="pre">long_cutoff=None</span></em>, <em class="sig-param"><span class="pre">rolloff=1.0</span></em>, <em class="sig-param"><span class="pre">amplitude_distribution=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">periodic=True</span></em>, <em class="sig-param"><span class="pre">rfn=None</span></em>, <em class="sig-param"><span class="pre">kfn=None</span></em>, <em class="sig-param"><span class="pre">progress_callback=None</span></em>, <em class="sig-param"><span class="pre">unit=None</span></em>, <em class="sig-param"><span class="pre">info={}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generation.fourier_synthesis" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generation.</span></span><span class="sig-name descname"><span class="pre">fourier_synthesis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">nb_grid_pts</span></em>, <em class="sig-param"><span class="pre">physical_sizes</span></em>, <em class="sig-param"><span class="pre">hurst=None</span></em>, <em class="sig-param"><span class="pre">rms_height=None</span></em>, <em class="sig-param"><span class="pre">rms_slope=None</span></em>, <em class="sig-param"><span class="pre">c0=None</span></em>, <em class="sig-param"><span class="pre">psd=None</span></em>, <em class="sig-param"><span class="pre">short_cutoff=None</span></em>, <em class="sig-param"><span class="pre">long_cutoff=None</span></em>, <em class="sig-param"><span class="pre">rolloff=1.0</span></em>, <em class="sig-param"><span class="pre">amplitude_distribution=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">periodic=True</span></em>, <em class="sig-param"><span class="pre">rfn=None</span></em>, <em class="sig-param"><span class="pre">kfn=None</span></em>, <em class="sig-param"><span class="pre">progress_callback=None</span></em>, <em class="sig-param"><span class="pre">unit=None</span></em>, <em class="sig-param"><span class="pre">info={}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generation.fourier_synthesis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a self-affine, randomly rough surface using a Fourier filtering
 algorithm. The algorithm is described in:
 Ramisetti et al., J. Phys.: Condens. Matter 23, 215004 (2011);
@@ -456,6 +456,8 @@ Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)</p>
 <li><p><strong>rms_slope</strong> (<em>float</em>) – Root mean-squared slope.</p></li>
 <li><p><strong>c0</strong> (<em>float</em>) – self affine prefactor <span class="math notranslate nohighlight">\(C_0\)</span>:
 <span class="math notranslate nohighlight">\(C(q) = C_0 q^{-2-2H}\)</span></p></li>
+<li><p><strong>psd</strong> (<em>callable</em>) – C(q)
+Function returning the Power Spectral Density as a function of the absolute value of the wavevector</p></li>
 <li><p><strong>short_cutoff</strong> (<em>float</em>) – Short-wavelength cutoff.</p></li>
 <li><p><strong>long_cutoff</strong> (<em>float</em>) – Long-wavelength cutoff.</p></li>
 <li><p><strong>rolloff</strong> (<em>float</em>) – Value for the power-spectral density (PSD) below the long-wavelength
