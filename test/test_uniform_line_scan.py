@@ -34,7 +34,6 @@ import pickle
 
 import numpy as np
 import pytest
-from numpy.random import rand
 
 from NuMPI import MPI
 
