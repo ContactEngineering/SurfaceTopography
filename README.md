@@ -14,7 +14,7 @@ Build status
 
 The following badge should say _build passing_. This means that all automated tests completed successfully for the master branch.
 
-[![Build Status](https://travis-ci.org/ContactEngineering/SurfaceTopography.svg?branch=master)](https://travis-ci.org/github/ContactEngineering/SurfaceTopography)
+[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/run_tests.yml)
 
 Documentation
 -------------
