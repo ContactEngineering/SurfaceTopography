@@ -259,8 +259,10 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         raise ValueError('Please specify either `scale_factor` or `distance`')
 
     if np.any(np.asarray(scale_factor) < 1.0):
-        raise ValueError('`scale_factor` cannot be smaller than unity. If you specified a specific `distance`, than '
-                         'this distance is smaller than the lower bound of the bandwidth of the surface.')
+        mask = np.asarray(scale_factor) < 1.0
+        raise ValueError(f'You specified values {scale_factor[mask]} for `scale_factor` which are smaller than unity. '
+                         'If you specified a specific `distance`, then this distance is smaller than the lower bound '
+                         'of the bandwidth of the surface.')
 
     is_periodic = topography.is_periodic if periodic is None else periodic
 

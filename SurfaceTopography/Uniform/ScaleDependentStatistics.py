@@ -85,7 +85,6 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
     if topography.dim == 1:
         return [func(_d) for _d in d]
     else:
-        dx, dy = d
         return [func(dx, dy) for dx, dy in zip(*d)]
 
 

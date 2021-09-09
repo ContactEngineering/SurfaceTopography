@@ -28,7 +28,7 @@ import numpy as np
 from .SurfaceContainer import SurfaceContainer
 
 
-def scale_dependent_statistical_property(container, func, n, distance, unit):
+def scale_dependent_statistical_property(container, func, n, distance, unit, reliable=True):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -70,6 +70,8 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
     unit : str
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
+    reliable : bool, optional
+        Only incorporate data deemed reliable. (Default: True)
 
     Returns
     -------
@@ -94,9 +96,16 @@ def scale_dependent_statistical_property(container, func, n, distance, unit):
     for topography in container:
         topography = topography.to_unit(unit)
 
-        # Only compute the statistical property for distances that actually exist for this specific topography
+        # Only compute the statistical property for distances that actually exist for this specific topography...
         l, u = topography.bandwidth()
-        m = np.logical_and(distance > l, distance < u)
+        # ...and that are reliable
+        if reliable:
+            short_cutoff = topography.short_reliability_cutoff()
+            if short_cutoff is None:
+                short_cutoff = 0
+            l = max(short_cutoff, l)
+        # For the factor n see arXiv:2106.16103
+        m = np.logical_and(distance > n * l, distance < u)
         existing_distances = distance[m]
 
         # Are there any distances left?
