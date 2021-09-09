@@ -23,7 +23,8 @@
 #
 
 """
-Tests of the filter and modification pipeline
+Tests reliability cutoff and its use to restrict the range of data in the
+analysis pipeline functions.
 """
 
 import os
@@ -50,9 +51,16 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
     cut = surf.short_reliability_cutoff()
     np.testing.assert_allclose(cut, 91.79698634551458)
 
-    # Make sure PSD return only reliable portion
+    # Make sure PSD returns only reliable portion
     q, _ = surf.power_spectrum_from_profile()
     assert q[-1] < 2 * np.pi / cut
 
     q, _ = surf.power_spectrum_from_area()
     assert q[-1] < 2 * np.pi / cut
+
+    # Make sure ACF returns only reliable portion
+    r, A = surf.autocorrelation_from_profile()
+    assert r[0] >= cut / 2
+
+    r, A = surf.autocorrelation_from_area()
+    assert r[0] >= cut / 2
