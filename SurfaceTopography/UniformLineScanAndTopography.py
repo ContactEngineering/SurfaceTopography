@@ -134,7 +134,20 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     def has_undefined_data(self):
         return np.ma.getmask(self._heights) is not np.ma.nomask
 
-    def positions(self):
+    def positions(self, meshgrid=True):
+        """
+        Return grid positions.
+
+        Arguments
+        ---------
+        meshgrid : bool, optional
+            Ignore, for compatibility with two-dimensional topographies
+
+        Returns
+        -------
+        x : np.ndarray
+            X-positions
+        """
         r, = self.nb_grid_pts
         p, = self.pixel_size
         return np.arange(r) * p
@@ -364,21 +377,38 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 self._heights) is not np.ma.nomask and np.ma.getmask(
                 self._heights).sum() > 0)
 
-    def positions(self):
+    def positions(self, meshgrid=True):
+        """
+        Return grid positions.
+
+        Arguments
+        ---------
+        meshgrid : bool, optional
+            If True, return the position on the same grid as the heights.
+            Otherwise, return one-dimensional position arrays. (Default: True)
+
+        Returns
+        -------
+        x : np.ndarray
+            X-positions
+        y : np.ndarray
+            Y-positions
+        """
         # FIXME: Write test for this method
         nx, ny = self.nb_grid_pts
         lnx, lny = self.nb_subdomain_grid_pts
         sx, sy = self.physical_sizes
-        return np.meshgrid(
-            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
-            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
-            indexing='ij')
+        x = (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx
+        y = (self.subdomain_locations[1] + np.arange(lny)) * sy / ny
+        if meshgrid:
+            x, y = np.meshgrid(x, y, indexing='ij')
+        return x, y
 
     def heights(self):
         return self._heights
 
-    def positions_and_heights(self):
-        x, y = self.positions()
+    def positions_and_heights(self, **kwargs):
+        x, y = self.positions(**kwargs)
         return x, y, self.heights()
 
     @property
@@ -450,14 +480,14 @@ class DecoratedUniformTopography(DecoratedTopography,
     def area_per_pt(self):
         return self.parent_topography.area_per_pt
 
-    def positions(self):
-        return self.parent_topography.positions()
+    def positions(self, **kwargs):
+        return self.parent_topography.positions(**kwargs)
 
-    def positions_and_heights(self):
+    def positions_and_heights(self, **kwargs):
         if self.dim == 1:
-            return self.positions(), self.heights()
+            return self.positions(**kwargs), self.heights()
         else:
-            return (*self.positions(), self.heights())
+            return (*self.positions(**kwargs), self.heights())
 
     def squeeze(self):
         if self.dim == 1:
@@ -511,12 +541,12 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         """Compute rescaled physical sizes."""
         return tuple(self.position_scale_factor * s for s in super().physical_sizes)
 
-    def positions(self):
+    def positions(self, **kwargs):
         """Compute the rescaled positions."""
         if self.dim == 1:
-            return self.position_scale_factor * super().positions()
+            return self.position_scale_factor * super().positions(**kwargs)
         else:
-            return tuple(self.position_scale_factor * p for p in super().positions())
+            return tuple(self.position_scale_factor * p for p in super().positions(**kwargs))
 
     def heights(self):
         """Computes the rescaled profile."""
@@ -840,8 +870,8 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         """
         return self.parent_topography.heights().T
 
-    def positions(self):
-        X, Y = self.parent_topography.positions()
+    def positions(self, **kwargs):
+        X, Y = self.parent_topography.positions(**kwargs)
         return Y.T, X.T
 
 
