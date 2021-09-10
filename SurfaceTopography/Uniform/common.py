@@ -35,45 +35,6 @@ from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
-#
-# Stencils for first and second derivatives
-#
-
-# First order upwind differences
-first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
-
-# second order central differences of the second derivative
-second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
-
-# first order upwind differences of the third derivative
-third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
-
-# second order central differences of the third derivative
-third_central_1d = muFFT.DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
-
-# First order upwind differences
-first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
-first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
-first_2d = (first_2d_x, first_2d_y)
-
-# second order central differences of the second derivative
-second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
-                                                  [0, -2, 0],
-                                                  [0, 1, 0]])
-second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0],
-                                                  [1, -2, 1],
-                                                  [0, 0, 0]])
-second_2d = (second_2d_x, second_2d_y)
-
-# first order upwind differences of the third derivative
-third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1],
-                                                 [3],
-                                                 [-3],
-                                                 [1]])
-third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
-
-third_2d = (third_2d_x, third_2d_y)
-
 
 def bandwidth(self):
     """
@@ -91,43 +52,6 @@ def bandwidth(self):
     upper_bound = np.mean(self.physical_sizes)
 
     return lower_bound, upper_bound
-
-
-def _get_default_derivative_operator(n, dim):
-    """
-    Return a default set of (finite-differences) derivative operators.
-
-    Parameters
-    ----------
-    n : int
-        Order of derivative.
-    dim : int
-        Dimension of the underlying field. (For dim > 1, this returns a
-        representation of the nabla-operator.)
-    """
-    if dim == 1:
-        if n == 1:
-            return first_1d
-        elif n == 2:
-            return second_1d
-        elif n == 3:
-            return third_1d
-        else:
-            raise ValueError("Don't know how to compute derivative of order "
-                             "{}.".format(n))
-    elif dim == 2:
-        if n == 1:
-            return first_2d
-        elif n == 2:
-            return second_2d
-        elif n == 3:
-            return third_2d
-        else:
-            raise ValueError("Don't know how to compute derivative of order "
-                             "{}.".format(n))
-    else:
-        raise ValueError("Don't know how to compute the derivative of a "
-                         "topography of dimension {}.".format(dim))
 
 
 def _trim_nonperiodic(arr, scale_factor, op):

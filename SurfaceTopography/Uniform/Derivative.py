@@ -59,15 +59,6 @@ second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0],
 second_2d = (second_2d_x, second_2d_y)
 
 # first order upwind differences of the third derivative
-third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, -1, 0, 0],
-                                                 [0, 3, 0, 0],
-                                                 [0, -3, 0, 0],
-                                                 [0, 1, 0, 0]])
-third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0, 0],
-                                                 [-1, 3, -3, 1],
-                                                 [0, 0, 0, 0],
-                                                 [0, 0, 0, 0]])
-
 third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1],
                                                  [3],
                                                  [-3],
@@ -94,6 +85,8 @@ def _get_default_derivative_operator(n, dim):
             return first_1d
         elif n == 2:
             return second_1d
+        elif n == 3:
+            return third_1d
         else:
             raise ValueError("Don't know how to compute derivative of order "
                              "{}.".format(n))
@@ -102,6 +95,8 @@ def _get_default_derivative_operator(n, dim):
             return first_2d
         elif n == 2:
             return second_2d
+        elif n == 3:
+            return third_2d
         else:
             raise ValueError("Don't know how to compute derivative of order "
                              "{}.".format(n))
