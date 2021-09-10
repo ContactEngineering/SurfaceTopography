@@ -48,6 +48,7 @@ import SurfaceTopography.Nonuniform.ScalarParameters  # noqa: F401
 import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.VariableBandwidth  # noqa: F401
 import SurfaceTopography.Uniform.common  # noqa: F401
+import SurfaceTopography.Uniform.Derivative  # noqa: F401
 import SurfaceTopography.Uniform.Interpolation  # noqa: F401
 import SurfaceTopography.Uniform.Filtering  # noqa: F401
 import SurfaceTopography.Uniform.Autocorrelation  # noqa: F401
