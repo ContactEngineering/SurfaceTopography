@@ -23,6 +23,8 @@
 # SOFTWARE.
 #
 
+import numpy as np
+
 import muFFT
 
 from ..HeightContainer import UniformTopographyInterface
@@ -184,9 +186,9 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         computing the derivative. (Default: None)
     interpolation : str, optional
         Interpolation method to use for fractional scale factors. Use
-        'bicubic' for a local bicubic interpolation or 'fourier' for global
+        'linear' for a local liner interpolation or 'fourier' for global
         Fourier interpolation. Note that Fourier interpolation carries large
-        errors for nonperiodic topographies. (Default: 'bicubic')
+        errors for nonperiodic topographies. (Default: 'linear')
 
     Returns
     -------
@@ -206,13 +208,13 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
     if operator is None:
         operator = _get_default_derivative_operator(n, topography.dim)
 
-    if interpolation == 'bicubic':
-        bicubic = topography.interpolate_bicubic()
+    if interpolation == 'linear':
+        linear = topography.interpolate_linear()
         positions = np.transpose(topography.positions())
     elif interpolation == 'fourier':
-        bicubic = None
+        linear = None
     else:
-        raise ValueError("`interpolation` argument must be either 'bicubic' or 'fourier'.")
+        raise ValueError("`interpolation` argument must be either 'linear' or 'fourier'.")
 
     def toiter(obj):
         """If object is scalar, wrap it into a list"""
@@ -275,13 +277,14 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
                 s = s[i]
             except (TypeError, IndexError):  # Python types raise TypeError, numpy types raise IndexError
                 pass
-            if s - int(s) != 0 and bicubic is not None:
+            if s - int(s) != 0 and linear is not None:
                 # We need to interpolate using the bicubic interpolator
                 lbounds = np.array(op.lbounds)
                 stencil = np.array(op.stencil)
                 _der = np.zeros_like(real_field)
                 for i in np.ndindex(stencil):
-                    _der += stencil[i] * bicubic(*np.transpose(positions + (lbounds + i) * scaled_grid_spacing))
+                    if stencil[i]:
+                        _der += stencil[i] * linear(*np.transpose(positions + (lbounds + i) * scaled_grid_spacing))
             else:
                 # We can use the Fourier trick to compute the derivative
                 fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)

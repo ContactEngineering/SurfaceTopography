@@ -31,23 +31,76 @@ from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
-def interpolate_bicubic(topography):
+def interpolate_linear(self):
+    def linear_interpolator_line_scan(x):
+        scaled_x = x / px
+        int_x = np.array(scaled_x, dtype=int)
+        frac_x = scaled_x - int_x
+        return (1 - frac_x) * heights[int_x % nx] + frac_x * heights[(int_x + 1) % nx]
+
+    def linear_interpolator_topography(x, y):
+        scaled_x = x / px
+        scaled_y = y / py
+        int_x = np.array(scaled_x, dtype=int)
+        int_y = np.array(scaled_y, dtype=int)
+        frac_x = scaled_x - int_x
+        frac_y = scaled_y - int_y
+
+        int_x %= nx
+        int_y %= ny
+        int1_x = (int_x + 1) % nx
+        int1_y = (int_y + 1) % ny
+
+        lower_triangle = \
+            (1 - frac_x - frac_y) * heights[int_x, int_y] + \
+            frac_x * heights[int1_x, int_y] + \
+            frac_y * heights[int_x, int1_y]
+        upper_triangle = \
+            (frac_x + frac_y - 1) * heights[int1_x, int1_y] + \
+            (1 - frac_x) * heights[int_x, int1_y] + \
+            (1 - frac_y) * heights[int1_x, int_y]
+
+        return np.where(frac_x + frac_y > 1, upper_triangle, lower_triangle)
+
+    heights = self.heights()
+    if self.dim == 1:
+        nx, = self.nb_grid_pts
+        px, = self.pixel_size
+        return linear_interpolator_line_scan
+    elif self.dim == 2:
+        nx, ny = self.nb_grid_pts
+        px, py = self.pixel_size
+        return linear_interpolator_topography
+    else:
+        raise ValueError(f'Cannot interpolate {self.dim}-dimensional height containers.')
+
+
+def interpolate_bicubic(self, derivative='fourier'):
     r"""
     Returns a bicubic interpolation function based on the topography's heights
-    and slopes (fourier_derivative)
+    and slopes as obtained using finite-differences (derivative='fd') or Fourier
+    derivative (derivative='fourier')
     """
-    if not topography.is_periodic:
-        raise ValueError(
-            "Bicubic interpolation only implemented for periodic surfaces")
+    if not self.is_periodic:
+        raise ValueError('Bicubic interpolation is only implemented for periodic surfaces.')
 
-    dx, dy = topography.pixel_size
-    derx, dery = topography.fourier_derivative()
-    interp = Bicubic(topography.heights(),
-                     derx * dx,  # Bicubic assumes a grid spacing of 1
-                     dery * dy
-                     )
+    if self.dim != 2:
+        raise ValueError('Bicubic interpolation is only implemented for topographies (not line scans).')
 
-    def wrapped_bicubic(x, y, derivative=0):
+    dx, dy = self.pixel_size
+    if derivative == 'fourier':
+        derx, dery = self.fourier_derivative()
+        interp = Bicubic(self.heights(),
+                         derx * dx,  # Bicubic assumes a grid spacing of 1
+                         dery * dy
+                         )
+    elif derivative == 'fd':
+        # The Bicubic class automatically determines derivatives from fd if left unspecified
+        interp = Bicubic(self.heights())
+    else:
+        raise ValueError(f"Unknown `derivative` type '{derivative}'.")
+
+    def bicubic_interpolator_topography(x, y, derivative=0):
         r"""
 
         Parameters
@@ -78,7 +131,7 @@ def interpolate_bicubic(topography):
             return interp_field, interp_derx, interp_dery
         elif derivative == 2:
             interp_field, interp_derx, interp_dery, \
-                interp_derxx, interp_deryy, interp_derxy = \
+            interp_derxx, interp_deryy, interp_derxy = \
                 interp(x / dx, y / dy, derivative=derivative)
 
             interp_derx = interp_derx / dx
@@ -88,26 +141,25 @@ def interpolate_bicubic(topography):
             interp_deryy = interp_deryy / dy ** 2
             interp_derxy = interp_derxx / dx / dy
 
-            return interp_field, interp_derx, interp_dery, \
-                interp_derxx, interp_deryy, interp_derxy
+            return interp_field, interp_derx, interp_dery, interp_derxx, interp_deryy, interp_derxy
 
-    return wrapped_bicubic
+    return bicubic_interpolator_topography
 
 
-def interpolate_fourier(topography, nb_grid_pts):
+def interpolate_fourier(self, nb_grid_pts):
     r"""
     Interpolates the heights of `topography` on a finer grid given by
     `nb_grid_pts` by padding the fourier spectrum with zeros.
 
     Only 2D implemented.
 
-    Note: at the nyquist frequenca we use the "minimal-oscillation"
-    interpolation, i.e. we assume a cosinus wave
+    Note: at the nyquist frequency we use the "minimal-oscillation"
+    interpolation, i.e. we assume a cosine wave
     (https://math.mit.edu/~stevenj/fft-deriv.pdf).
 
     Parameters
     ----------
-    topography: Topography
+    self: Topography
     nb_grid_pts: tuple
 
     Returns
@@ -117,9 +169,9 @@ def interpolate_fourier(topography, nb_grid_pts):
     """
     bigspectrum = np.zeros((nb_grid_pts[0], nb_grid_pts[1] // 2 + 1),
                            dtype=complex)
-    smallspectrum = np.fft.rfft2(topography.heights())
+    smallspectrum = np.fft.rfft2(self.heights())
     snx, sny = smallspectrum.shape
-    nx, ny = topography.nb_grid_pts
+    nx, ny = self.nb_grid_pts
 
     # the entries at the nyquist frequency are the superposition of the
     # positive and negative frequency. When we increase the fourier domain, we
@@ -150,9 +202,9 @@ def interpolate_fourier(topography, nb_grid_pts):
         bigspectrum[i, :sny] = smallspectrum[i, :sny]
 
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
-                      * np.prod(nb_grid_pts) / np.prod(topography.nb_grid_pts),
+                      * np.prod(nb_grid_pts) / np.prod(self.nb_grid_pts),
                       # normalization
-                      physical_sizes=topography.physical_sizes)
+                      physical_sizes=self.physical_sizes)
 
 
 class MirrorStichedTopography(DecoratedUniformTopography):
@@ -195,6 +247,6 @@ class MirrorStichedTopography(DecoratedUniformTopography):
             indexing='ij')
 
 
-Topography.register_function("mirror_stitch", MirrorStichedTopography)
+Topography.register_function("interpolate_linear", interpolate_linear)
 Topography.register_function("interpolate_bicubic", interpolate_bicubic)
 UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)
