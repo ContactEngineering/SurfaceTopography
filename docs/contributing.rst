@@ -17,7 +17,7 @@ Note that the parameter to `env.sh` specifies the Python interpreter for which t
 
     python setup.py build
 
-whenever any of the Cython (.pyx) sources are modified.
+whenever any of the pure C (in the `c` subdirectory) sources are modified.
 
 Code style
 ==========
