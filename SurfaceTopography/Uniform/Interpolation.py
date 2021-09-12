@@ -156,8 +156,7 @@ def interpolate_bicubic(self, derivative='fourier'):
             interp_dery = interp_dery / dy
             return interp_field, interp_derx, interp_dery
         elif derivative == 2:
-            interp_field, interp_derx, interp_dery, \
-            interp_derxx, interp_deryy, interp_derxy = \
+            interp_field, interp_derx, interp_dery, interp_derxx, interp_deryy, interp_derxy = \
                 interp(x / dx, y / dy, derivative=derivative)
 
             interp_derx = interp_derx / dx
