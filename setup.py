@@ -26,11 +26,11 @@
 #
 
 import glob
+from pathlib import Path
 import re
 
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
-
 
 class CustomBuildExtCommand(build_ext):
     """build_ext command for use when numpy headers are needed."""
@@ -119,10 +119,12 @@ setup(
     include_package_data=True,
     ext_modules=extensions,
     # metadata for upload to PyPI
-    author="Lars Pastewka",
-    author_email="lars.pastewka@imtek.uni-freiburg.de",
-    description="Read and analyze surface topographies",
-    license="MIT",
+    author='Lars Pastewka',
+    author_email='lars.pastewka@imtek.uni-freiburg.de',
+    description='Read and analyze surface topographies',
+    long_description=(Path(__file__).parent / "README.md").read_text(),
+    long_description_content_type='text/markdown',
+    license='MIT',
     test_suite='tests',
     # dependencies
     python_requires='>=3.5.0',
