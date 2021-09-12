@@ -36,7 +36,7 @@ from SurfaceTopography import read_topography
 
 def test_scanning_probe_reliability_cutoff(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
-    np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 91.79698634551458)
+    np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 90.700854)
 
 
 def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
@@ -49,7 +49,7 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
             }
         })
     cut = surf.short_reliability_cutoff()
-    np.testing.assert_allclose(cut, 91.79698634551458)
+    np.testing.assert_allclose(cut, 90.700854)
 
     # Make sure PSD returns only reliable portion
     q, _ = surf.power_spectrum_from_profile()
