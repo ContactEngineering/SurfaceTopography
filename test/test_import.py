@@ -40,8 +40,10 @@ def import_module(module):
         pass
     return return_code
 
+
 def test_python_module():
     assert import_module("SurfaceTopography") == 0
+
 
 def test_c_extension():
     assert import_module("_SurfaceTopography") == 0
