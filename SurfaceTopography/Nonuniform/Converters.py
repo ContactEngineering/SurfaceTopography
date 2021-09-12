@@ -30,70 +30,8 @@ representations.
 
 import numpy as np
 
-from .HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
-from .NonuniformLineScan import NonuniformLineScan, DecoratedNonuniformTopography
-from .UniformLineScanAndTopography import UniformLineScan, DecoratedUniformTopography
-
-
-class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
-    """
-    Wrap a uniform topography into a nonuniform one.
-    """
-
-    def __init__(self, topography, info={}):
-        """
-        Parameters
-        ----------
-        topography : :obj:`NonuniformLineScan`
-            SurfaceTopography to wrap.
-        """
-        super().__init__(topography, info=info)
-
-        # This is populated with functions from the nonuniform topography, but
-        # this is a uniform topography
-        self._functions = NonuniformLineScan._functions
-
-    # Implement abstract methods of AbstractHeightContainer
-
-    @property
-    def dim(self):
-        return 1
-
-    @property
-    def physical_sizes(self):
-        s, = self.parent_topography.physical_sizes
-        p, = self.parent_topography.pixel_size
-        return s - p,
-
-    @property
-    def is_periodic(self):
-        return False
-
-    # Implement nonuniform line scan interface
-
-    @property
-    def nb_grid_pts(self):
-        return self.parent_topography.nb_grid_pts
-
-    @property
-    def x_range(self):
-        s, = self.parent_topography.physical_sizes
-        p, = self.parent_topography.pixel_size
-        return 0, s - p
-
-    def positions(self):
-        """
-        Returns array containing the lateral positions.
-        """
-        r, = self.parent_topography.nb_grid_pts
-        p, = self.parent_topography.pixel_size
-        return np.arange(r) * p
-
-    def heights(self):
-        """
-        Returns array containing the topography data.
-        """
-        return self.parent_topography.heights()
+from SurfaceTopography.HeightContainer import NonuniformLineScanInterface
+from SurfaceTopography.UniformLineScanAndTopography import UniformLineScan, DecoratedUniformTopography
 
 
 class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
@@ -218,5 +156,4 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
 
 # Register pipeline functions from this module
-UniformTopographyInterface.register_function('to_nonuniform', WrapAsNonuniformLineScan)
 NonuniformLineScanInterface.register_function('to_uniform', UniformlyInterpolatedLineScan)

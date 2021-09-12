@@ -23,6 +23,8 @@
 # SOFTWARE.
 #
 
+"""Compute derivatives of uniform line scans and topographies"""
+
 import numpy as np
 
 import muFFT
@@ -193,9 +195,10 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     interpolation : str, optional
         Interpolation method to use for fractional scale factors. Use
         'linear' for a local liner interpolation or 'fourier' for global
-        Fourier interpolation. Note that Fourier interpolation carries large
-        errors for nonperiodic topographies and should be used with care.
-        (Default: 'linear')
+        Fourier interpolation. Set to 'disable' to raise an error when
+        interpolation is necessary. Note that Fourier interpolation carries
+        large errors for nonperiodic topographies and should be used with
+        care. (Default: 'linear')
 
     Returns
     -------
@@ -218,10 +221,10 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     if interpolation == 'linear':
         linear = self.interpolate_linear()
         positions = np.transpose(self.positions())
-    elif interpolation == 'fourier':
+    elif interpolation == 'fourier' or interpolation == 'disable':
         linear = None
     else:
-        raise ValueError("`interpolation` argument must be either 'linear' or 'fourier'.")
+        raise ValueError("`interpolation` argument must be either 'linear', 'fourier' or 'disable'.")
 
     def toiter(obj):
         """If object is scalar, wrap it into a list"""
@@ -280,7 +283,11 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         for s in toiter(scale_factor):
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
-            if np.any(s - s.astype(int) != 0) and linear is not None:
+            interpolation_required = np.any(s - s.astype(int) != 0)
+            if interpolation_required and interpolation == 'disabled':
+                raise ValueError('Interpolation is required to compute derivative at desired scale but is disabled '
+                                 'by the user.')
+            if interpolation_required and linear is not None:
                 # We need to interpolate using the linear interpolator
                 lbounds = np.array(op.lbounds)
                 stencil = np.array(op.stencil)
@@ -295,7 +302,8 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
                             _der += stencil_value * linear(*stencil_positions.T, periodic=True)
 
             else:
-                # We can use the Fourier trick to compute the derivative
+                # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
+                # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
                 fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
                 fft.ifft(fourier_field, real_field)
                 _der = np.array(real_field, copy=False) * fft.normalisation
