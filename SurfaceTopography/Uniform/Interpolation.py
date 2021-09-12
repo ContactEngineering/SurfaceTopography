@@ -32,15 +32,36 @@ from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 def interpolate_linear(self):
-    def linear_interpolator_line_scan(x):
+    r"""
+    Returns a linear interpolation function based on the topography's heights.
+    For (2D) topographies, the interpolation is not unique. Each rectangle is
+    split into two triangles that side in the lower left and upper right part
+    of the rectangle.
+
+    Note that for nonperiodic line scans/topographies, interpolation only
+    works for positions between 0 and sx - sx/nx - i.e. the interpolated
+    physical domain of the topography is smaller than the nominal domain.
+    """
+
+    def linear_interpolator_line_scan(x, periodic=None):
+        """Override periodicity of underlying topography with the `periodic` argument"""
         scaled_x = x / px
+        periodic = is_periodic if periodic is None else periodic
+        if not periodic:
+            if np.any(scaled_x < 0) or np.any(scaled_x > nx-1):
+                raise ValueError('Cannot interpolate outside of physical domain for nonperiodic line scans.')
         int_x = np.array(scaled_x, dtype=int)
         frac_x = scaled_x - int_x
         return (1 - frac_x) * heights[int_x % nx] + frac_x * heights[(int_x + 1) % nx]
 
-    def linear_interpolator_topography(x, y):
+    def linear_interpolator_topography(x, y, periodic=None):
+        """Override periodicity of underlying topography with the `periodic` argument"""
         scaled_x = x / px
         scaled_y = y / py
+        periodic = is_periodic if periodic is None else periodic
+        if not periodic:
+            if np.any(scaled_x < 0) or np.any(scaled_x > nx-1) or np.any(scaled_y < 0) or np.any(scaled_y > ny-1):
+                raise ValueError('Cannot interpolate outside of physical domain for nonperiodic topographies.')
         int_x = np.array(scaled_x, dtype=int)
         int_y = np.array(scaled_y, dtype=int)
         frac_x = scaled_x - int_x
@@ -63,6 +84,7 @@ def interpolate_linear(self):
         return np.where(frac_x + frac_y > 1, upper_triangle, lower_triangle)
 
     heights = self.heights()
+    is_periodic = self.is_periodic
     if self.dim == 1:
         nx, = self.nb_grid_pts
         px, = self.pixel_size
@@ -79,7 +101,11 @@ def interpolate_bicubic(self, derivative='fourier'):
     r"""
     Returns a bicubic interpolation function based on the topography's heights
     and slopes as obtained using finite-differences (derivative='fd') or Fourier
-    derivative (derivative='fourier')
+    derivative (derivative='fourier').
+
+    Note that for nonperiodic line scans/topographies, interpolation only
+    works for positions between 0 and sx - sx/nx - i.e. the interpolated
+    physical domain of the topography is smaller than the nominal domain.
     """
     if not self.is_periodic:
         raise ValueError('Bicubic interpolation is only implemented for periodic surfaces.')

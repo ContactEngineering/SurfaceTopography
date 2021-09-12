@@ -107,7 +107,7 @@ def _get_default_derivative_operator(n, dim):
                          "topography of dimension {}.".format(dim))
 
 
-def _trim_nonperiodic(arr, scale_factor, op):
+def trim_nonperiodic(arr, scale_factor, op):
     """
     Trim the outer edges of an array that contains derivatives computed under
     the assumption of periodicity. (These values at the outer edge will simply
@@ -129,10 +129,16 @@ def _trim_nonperiodic(arr, scale_factor, op):
     lbounds = np.array(op.lbounds)
     rbounds = lbounds + np.array(op.stencil.shape)
 
+    # Loop over dimension and add slicing information to `trimmed_slice`
     trimmed_slice = []
-    for L, r in zip(lbounds, rbounds):
-        L = -scale_factor * min(L, 0)
-        r = -scale_factor * max(0, r - 1)
+    for L, r, s in zip(lbounds, rbounds, scale_factor):
+        # This is the leftmost distance in the stencil from the point where the derivative is computed
+        # This value is always positive (or zero), i.e. it truncates the start of the array
+        L = np.ceil(-s * min(L, 0))
+        # This is the rightmost distance in the stencil from the point where the derivative is computed
+        # This value is always negative (or zero), i.e. it truncates the end of the array
+        r = np.floor(-s * max(0, r - 1))
+        # If r is zero, we set it to None to indicate that nothing is truncated from the end of the array
         if r == 0:
             r = None
         trimmed_slice += [slice(int(L), None if r is None else int(r))]
@@ -140,21 +146,21 @@ def _trim_nonperiodic(arr, scale_factor, op):
     return arr[tuple(trimmed_slice)]
 
 
-def derivative(topography, n, scale_factor=None, distance=None, operator=None, periodic=None, mask_function=None,
-               interpolation='bicubic'):
+def derivative(self, n, scale_factor=None, distance=None, operator=None, periodic=None, mask_function=None,
+               interpolation='linear'):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Surface topography object containing height information.
     n : int
         Order of the derivative.
     scale_factor : int or list of ints or list of tuples of ints, optional
         Integer factor that scales the stencil difference, i.e.
         specifying 2 will compute the derivative using a discrete step of
-        2 * dx. Either `scale_factor` or `distance` can be specified.
+        2 * px. Either `scale_factor` or `distance` can be specified.
         - Single int: Returns a single derivative scaled in all directions
           with this value
         - List of ints: Returns multiple derivatives, each scaled in all
@@ -168,8 +174,8 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         `scale_factor` or `distance` can be specified. Note that the distance
         specifies the overall length of the stencil of lowest truncation
         order, not the effective grid spacing used by this stencil. The scale
-        factor is then given by distance / (n * dx) where n is the order of the
-        derivative and dx the grid spacing.
+        factor is then given by distance / (n * px) where n is the order of the
+        derivative and px the grid spacing.
         (Default: None)
     operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
@@ -188,7 +194,8 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         Interpolation method to use for fractional scale factors. Use
         'linear' for a local liner interpolation or 'fourier' for global
         Fourier interpolation. Note that Fourier interpolation carries large
-        errors for nonperiodic topographies. (Default: 'linear')
+        errors for nonperiodic topographies and should be used with care.
+        (Default: 'linear')
 
     Returns
     -------
@@ -200,17 +207,17 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         then all returning array with have shape one less than the input
         arrays.
     """
-    if topography.physical_sizes is None:
+    if self.physical_sizes is None:
         raise ValueError(
             'SurfaceTopography does not have physical size information, but '
             'this is required to be able to compute a derivative.')
 
     if operator is None:
-        operator = _get_default_derivative_operator(n, topography.dim)
+        operator = _get_default_derivative_operator(n, self.dim)
 
     if interpolation == 'linear':
-        linear = topography.interpolate_linear()
-        positions = np.transpose(topography.positions())
+        linear = self.interpolate_linear()
+        positions = np.transpose(self.positions())
     elif interpolation == 'fourier':
         linear = None
     else:
@@ -224,7 +231,7 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
         except TypeError:
             return [obj]
 
-    grid_spacing = np.array(topography.pixel_size)
+    pixel_size = np.array(self.pixel_size)
 
     if scale_factor is None:
         if distance is None:
@@ -232,12 +239,12 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
             scale_factor = 1
         else:
             # Convert distance to scale factor
-            if topography.dim == 1:
-                dx, = grid_spacing
-                scale_factor = [d / (n * dx) for d in toiter(distance)]
+            if self.dim == 1:
+                px, = pixel_size
+                scale_factor = [d / (n * px) for d in toiter(distance)]
             else:
-                dx, dy = grid_spacing
-                scale_factor = np.array([(d / (n * dx), d / (n * dy)) for d in toiter(distance)])
+                px, py = pixel_size
+                scale_factor = np.array([(d / (n * px), d / (n * py)) for d in toiter(distance)])
 
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
@@ -248,20 +255,20 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
                          'If you specified a specific `distance`, then this distance is smaller than the lower bound '
                          'of the bandwidth of the surface.')
 
-    is_periodic = topography.is_periodic if periodic is None else periodic
+    is_periodic = self.is_periodic if periodic is None else periodic
 
     # Return FFT object (this will only be initialized once and reused in subsequent calls)
-    fft = topography.make_fft()
+    fft = self.make_fft()
 
     # These fields are reused when this function is called multiple times
     real_field = fft.fetch_or_register_real_space_field('real_temporary', 1)
     fourier_field = fft.fetch_or_register_fourier_space_field('complex_temporary', 1)
-    np.array(real_field, copy=False)[...] = topography.heights()
+    np.array(real_field, copy=False)[...] = self.heights()
     fft.fft(real_field, fourier_field)
 
     # Apply mask function
     if mask_function is not None:
-        np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / grid_spacing).T)
+        np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / pixel_size).T)
 
     fourier_array = np.array(fourier_field, copy=False)
     fourier_copy = fourier_array.copy()
@@ -271,29 +278,33 @@ def derivative(topography, n, scale_factor=None, distance=None, operator=None, p
     for i, op in enumerate(toiter(operator)):
         der = []
         for s in toiter(scale_factor):
-            scaled_grid_spacing = s * grid_spacing
-            try:
-                # If s is a tuple, the scale factor is per direction
-                s = s[i]
-            except (TypeError, IndexError):  # Python types raise TypeError, numpy types raise IndexError
-                pass
-            if s - int(s) != 0 and linear is not None:
-                # We need to interpolate using the bicubic interpolator
+            s = np.array(s) * np.ones_like(pixel_size)
+            scaled_pixel_size = s * pixel_size
+            if np.any(s - s.astype(int) != 0) and linear is not None:
+                # We need to interpolate using the linear interpolator
                 lbounds = np.array(op.lbounds)
                 stencil = np.array(op.stencil)
                 _der = np.zeros_like(real_field)
-                for i in np.ndindex(stencil):
-                    if stencil[i]:
-                        _der += stencil[i] * linear(*np.transpose(positions + (lbounds + i) * scaled_grid_spacing))
+                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                    if stencil_value:
+                        stencil_positions = positions + (lbounds + stencil_coordinate) * scaled_pixel_size
+                        # We enforce periodicity here but will trim the (erroneous) boundary region below
+                        if self.dim == 1:
+                            _der += stencil_value * linear(stencil_positions, periodic=True)
+                        else:
+                            _der += stencil_value * linear(*stencil_positions.T, periodic=True)
+
             else:
                 # We can use the Fourier trick to compute the derivative
-                fourier_array[...] = fourier_copy * op.fourier(fft.fftfreq * s)
+                fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
                 fft.ifft(fourier_field, real_field)
                 _der = np.array(real_field, copy=False) * fft.normalisation
 
             if not is_periodic:
-                _der = _trim_nonperiodic(_der, s, op)
-            _der /= scaled_grid_spacing[i] ** n
+                _der = trim_nonperiodic(_der, s, op)
+
+            # We need to divide by the grid spacing to make this a derivative
+            _der /= scaled_pixel_size[i] ** n
 
             try:
                 iter(scale_factor)
