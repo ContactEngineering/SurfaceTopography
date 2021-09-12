@@ -89,7 +89,11 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, rel
     `autocorrelation_from_profile` executed for all topographies/line scans in
     the container.
 
-    >>> s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
+    Note that the statistics function (the lambda expression below) needs to be
+    able to accept one argument (for line scans) and two arguments
+    (for topographies).
+
+    >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     """
     retvals = {}
     distance = np.array(distance)
