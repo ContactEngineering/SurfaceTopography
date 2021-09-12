@@ -30,8 +30,6 @@ topographies.
 
 import numpy as np
 
-import muFFT
-
 from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
