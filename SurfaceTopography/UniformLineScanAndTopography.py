@@ -616,23 +616,12 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     to the topography data to extract trend lines. The resulting topography
     is then detrended by substracting these trend lines.
 
-    Note on periodicity: Detrended Topographies with mode other than "center"
+    Note on periodicity: Detrended Topographies with mode other than 'center'
     will have `is_periodic` property set to False.
-
-    Parameters
-    ----------
-    detrend_mode : str
-        'center': center the topography, no trend correction.
-        'height': adjust slope such that rms height is minimized.
-        'slope': adjust slope such that rms slope is minimized.
-        'curvature': adjust slope and curvature such that rms height is
-        minimized.
-        (Default: 'height')
     """
 
     def __init__(self, topography, detrend_mode='height', info={}):
         """
-
         Note on periodicity: Detrended Topographies with mode other than
         "center" will have `is_periodic` property set to False.
 
@@ -795,19 +784,12 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     @property
     def curvatures(self):
-        """
-        convenience function that computes the curvatures
-        :math:`\rho = \frac{1}{R}` of the fitted plane
+        r"""
+        Curvature(s) of the fitted plane.
 
         Returns
         -------
-        tuple
-
-        dim = 1:
-        :math:`\rho` = 1 / R
-        dim = 2:
-        :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}`
-
+        :math:`\rho = 1 / R` for line scans or tuple :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}` for topographies
         """
 
         if self.dim == 1:

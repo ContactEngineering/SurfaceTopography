@@ -151,15 +151,15 @@ class AbstractTopography(object):
 
         Standardized keys
         -----------------
-        acquisition_time : :obj:`datetime`
+        'acquisition_time' : :obj:`datetime`
             Date and time of the measurement.
-        instrument : dict
+        'instrument' : dict
             Nested dictionary containing instrument data.
-            - name : str - Name of instrument
-            - parameters : dict - Additional instrument parameters, e.g.
-                - tip_radius : dict - Tip radius for tip based techniques
-                    - value : float - Value of tip radius
-                    - unit : str - Unit of tip radius
+                - 'name' : str - Name of instrument
+                - 'parameters' : dict - Additional instrument parameters, e.g.
+                    - 'tip_radius' : dict - Tip radius for tip based techniques
+                        - 'value' : float - Value of tip radius
+                        - 'unit' : str - Unit of tip radius
         """
         info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
         if self.unit is not None:
