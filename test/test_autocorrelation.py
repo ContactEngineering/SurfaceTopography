@@ -54,7 +54,7 @@ def py_autocorrelation_from_profile(line_scan, distances=None):
 
     Parameters
     ----------
-    line_scan : :obj:`NonuniformLineScan`
+    line_scan : :class:`SurfaceTopography.NonuniformLineScan`
         Container storing the nonuniform line scan.
     r : array_like
         Array containing distances for which to compute the ACF. If no array

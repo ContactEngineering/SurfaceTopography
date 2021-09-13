@@ -38,26 +38,27 @@ def derivative(topography, n):
     topographies.
 
     First derivative: Central differences.
+    
     Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`(x-\Delta x_-)` up to second order in the grid
     spacing :math:`\Delta x_+` and :math:`\Delta x_+`. Then
     :math:`\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)` yields:
 
     .. math::
 
-         \frac{d^2h}{dx^2} \approx  = 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x+-\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}
+         \frac{d^2h}{dx^2} \approx 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x_+\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
-        SurfaceTopography object containing height information.
+    topography : :class:`SurfaceTopography.NonuniformLineScan`
+        Object containing height information.
     n : int
         Number of times the derivative is taken.
 
     Returns
     -------
-    derivative : array
+    derivative : np.ndarray
         Array with derivative values. Length of array is reduced by :math:`n` with
-        respect to the input array for the :math:`n`th derivative.
+        respect to the input array for the :math:`n`-th derivative.
     """  # noqa: E501
     x, h = topography.positions_and_heights()
     if n == 1:

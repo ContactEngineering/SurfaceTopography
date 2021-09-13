@@ -41,8 +41,8 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
 
     Parameters
     ----------
-    self : Topography or UniformLineScan
-        Topogaphy or line scan.
+    self : :class:`SurfaceTopography.NonuniformLineScan`
+        Topography or line scan.
     func : callable
         The function that computes the statistical properties:
 
