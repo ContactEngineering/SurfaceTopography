@@ -215,7 +215,7 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
-    short_cutoff = topography.short_reliability_cutoff() if reliable else 0
+    short_cutoff = topography.short_reliability_cutoff() if reliable else None
     if short_cutoff is None:
         short_cutoff = -1  # Include zero distance
     mask = np.logical_and(n > 0, r_val > short_cutoff / 2)
