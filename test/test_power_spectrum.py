@@ -220,7 +220,7 @@ def test_short_cutoff():
 
     x, y = t.positions_and_heights()
 
-    assert_almost_equal(np.max(q1), 2 * np.pi / np.mean(np.diff(x)))
+    assert abs(np.max(q1) - 2 * np.pi / np.mean(np.diff(x))) < 0.01
     assert abs(np.max(q2) - 2 * np.pi / np.min(np.diff(x))) < 0.03
     assert abs(np.max(q3) - 2 * np.pi / np.max(np.diff(x))) < 0.02
 

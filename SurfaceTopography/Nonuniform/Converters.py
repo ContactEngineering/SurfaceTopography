@@ -93,12 +93,12 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
             if self.nb_points is not None or self.in_pixel_size is not None:
                 raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
             self._nb_points = self.nb_interpolate * int(s / min_dist)
-            self._pixel_size = s / self._nb_points
+            self._pixel_size = s / (self._nb_points - 1)
         elif self.nb_points is not None:
             if self.nb_interpolate is not None or self.in_pixel_size is not None:
                 raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
             self._nb_points = self.nb_points
-            self._pixel_size = s / self._nb_points
+            self._pixel_size = s / (self._nb_points - 1)
         else:
             raise ValueError('You need to specify one of `nb_points`, `nb_interpolate` or `pixel_size`.')
 
@@ -126,7 +126,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
     @property
     def physical_sizes(self):
-        return (self._nb_points + self.padding) * self._pixel_size,
+        return (self._nb_points + self.padding - 1) * self._pixel_size,
 
     @property
     def is_periodic(self):
