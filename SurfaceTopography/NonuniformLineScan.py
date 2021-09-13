@@ -55,8 +55,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         unit : str, optional
             The length unit.
         info : dict, optional
-            The info dictionary containing auxiliary data. This data is never
-            used by SurfaceTopography but can be used by third-party codes.
+            The info dictionary containing auxiliary data.
         """
         super().__init__(unit=unit, info=info)
         if np.ma.is_masked(x) or np.ma.is_masked(y):

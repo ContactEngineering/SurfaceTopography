@@ -85,6 +85,12 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# This enabled documentation of __init__
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+    'special-members': '__init__',
+}
 
 # -- Options for HTML output ----------------------------------------------
 

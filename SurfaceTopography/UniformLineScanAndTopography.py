@@ -61,8 +61,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         unit : str, optional
             The length unit.
         info : dict, optional
-            The info dictionary containing auxiliary data. This data is never
-            used by SurfaceTopography but can be used by third-party codes.
+            The info dictionary containing auxiliary data.
         """
         if not hasattr(heights, 'ndim'):
             heights = np.array(heights)
@@ -205,8 +204,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         unit : str, optional
             The length unit.
         info : dict, optional
-            The info dictionary containing auxiliary data. This data is never
-            used by SurfaceTopography but can be used by third-party codes.
+            The info dictionary containing auxiliary data.
         decomposition : str, optional
             Specification of the data decomposition of the heights array. If
             set to 'subdomain', the heights array contains only the part of
