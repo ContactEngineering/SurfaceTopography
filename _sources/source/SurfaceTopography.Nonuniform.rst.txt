@@ -12,6 +12,22 @@ SurfaceTopography.Nonuniform.Autocorrelation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Nonuniform.Converters module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.Converters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Nonuniform.Derivative module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.Derivative
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Nonuniform.Detrending module
 ----------------------------------------------
 

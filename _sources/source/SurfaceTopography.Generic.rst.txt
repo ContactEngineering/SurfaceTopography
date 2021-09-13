@@ -12,6 +12,14 @@ SurfaceTopography.Generic.Curvature module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Generic.ReliabilityCutoff module
+--------------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.ReliabilityCutoff
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generic.ScanningProbe module
 ----------------------------------------------
 

@@ -33,9 +33,11 @@ If you use this code, please cite:
 
 
    source/SurfaceTopography
+   source/SurfaceTopography.Container
+   source/SurfaceTopography.Generic
    source/SurfaceTopography.IO
    source/SurfaceTopography.Nonuniform
-   source/SurfaceTopography.Tools
+   source/SurfaceTopography.Support
    source/SurfaceTopography.Uniform
 
 

@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.95.3.dev2+g5f2541d2 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.95.3.dev50+gf27cc663 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.95.3.dev2+g5f2541d2
+                0.95.3.dev50+gf27cc663
               </div>
             
           
@@ -111,6 +111,8 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Converters">SurfaceTopography.Uniform.Converters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
@@ -125,7 +127,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -138,11 +139,16 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Converters">SurfaceTopography.Uniform.Converters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
@@ -232,40 +238,8 @@
 <span id="surfacetopography-uniform-autocorrelation-module"></span><h2>SurfaceTopography.Uniform.Autocorrelation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Autocorrelation" title="Permalink to this headline">¶</a></h2>
 <p>Height-difference autocorrelation functions</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute height-difference autocorrelation function and radial average.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the (two-dimensional) topography map.</p></li>
-<li><p><strong>nbins</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for radial average. Bins are automatically determined
-if set to None. Note: Returned array can be smaller than this because
-bins without data points are discarded. (Default: None)</p></li>
-<li><p><strong>bin_edges</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Edges used for binning the average. Specifying ‘log’ yields bins
-equally spaced on a log scale, ‘quadratic’ yields bins with
-similar number of data points and ‘linear’ yields linear bins.
-Alternatively, it is possible to explicitly specify the bin edges.
-If <cite>bin_edges</cite> are explicitly specified, then <cite>nbins</cite> is ignored.
-(Default: ‘log’)</p></li>
-<li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return full 2D autocorrelation map. (Default: False)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>A</strong> (<em>array</em>) – Radially averaged autocorrelation function. (Units: length**2)</p></li>
-<li><p><strong>A_xy</strong> (<em>array</em>) – 2D autocorrelation function. Only returned if return_map=True.
-(Units: length**2)</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the one-dimensional height-difference autocorrelation function
 (ACF).</p>
 <p>For non-periodic surfaces the ACF at distance d is given by:</p>
@@ -285,6 +259,7 @@ If <cite>bin_edges</cite> are explicitly specified, then <cite>nbins</cite> is i
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>direction</strong> (<em>int</em>) – Cartesian direction in which to compute the ACF</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -297,38 +272,229 @@ If <cite>bin_edges</cite> are explicitly specified, then <cite>nbins</cite> is i
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute height-difference autocorrelation function and radial average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the (two-dimensional) topography map.</p></li>
+<li><p><strong>nbins</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for radial average. Bins are automatically determined
+if set to None. Note: Returned array can be smaller than this because
+bins without data points are discarded. (Default: None)</p></li>
+<li><p><strong>bin_edges</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Edges used for binning the average. Specifying ‘log’ yields bins
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If <cite>bin_edges</cite> are explicitly specified, then <cite>nbins</cite> is ignored.
+(Default: ‘log’)</p></li>
+<li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return full 2D autocorrelation map. (Default: False)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>A</strong> (<em>array</em>) – Radially averaged autocorrelation function. (Units: length**2)</p></li>
+<li><p><strong>A_xy</strong> (<em>array</em>) – 2D autocorrelation function. Only returned if return_map=True.
+(Units: length**2)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Uniform.Converters">
+<span id="surfacetopography-uniform-converters-module"></span><h2>SurfaceTopography.Uniform.Converters module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Converters" title="Permalink to this headline">¶</a></h2>
+<p>Utility function for conversion between uniform and nonuniform
+representations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Converters.</span></span><span class="sig-name descname"><span class="pre">WrapAsNonuniformLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography" title="SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography</span></code></a></p>
+<p>Wrap a uniform topography into a nonuniform one.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography to wrap.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – Additional entries for the info dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.dim">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns 1 for line scans and 2 for topography maps.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.physical_sizes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">physical_sizes</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.physical_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the physical sizes of the topography.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.is_periodic">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.is_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the topography is periodically repeated at the
+boundaries.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.nb_grid_pts">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.nb_grid_pts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.x_range">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">x_range</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.x_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Uniform.Derivative">
+<span id="surfacetopography-uniform-derivative-module"></span><h2>SurfaceTopography.Uniform.Derivative module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Derivative" title="Permalink to this headline">¶</a></h2>
+<p>Compute derivatives of uniform line scans and topographies</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.trim_nonperiodic">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">trim_nonperiodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.trim_nonperiodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trim the outer edges of an array that contains derivatives computed under
+the assumption of periodicity. (These values at the outer edge will simply
+be wrong.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array to be trimmed.</p></li>
+<li><p><strong>scale_factor</strong> (<em>int</em><em>, </em><em>optional</em>) – Integer factor that scales the stencil difference.</p></li>
+<li><p><strong>op</strong> (<em>muFFT.DiscreteDerivative</em>) – Derivative operator that contains information about the size of the
+stencil.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.derivative">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute derivative of topography or line scan stored on a uniform grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Order of the derivative.</p></li>
+<li><p><strong>scale_factor</strong> (<em>int</em><em> or </em><em>list of ints</em><em> or </em><em>list of tuples of ints</em><em>, </em><em>optional</em>) – <p>Integer factor that scales the stencil difference, i.e.
+specifying 2 will compute the derivative using a discrete step of
+2 * px. Either <cite>scale_factor</cite> or <cite>distance</cite> can be specified.</p>
+<blockquote>
+<div><ul>
+<li><p>Single int: Returns a single derivative scaled in all directions
+with this value</p></li>
+<li><p>List of ints: Returns multiple derivatives, each scaled in all
+direction with the respective value from the list</p></li>
+<li><p>List of tuples of ints: Each tuple contains a scale factor in
+the two Cartesian (x- and y-) directions. Return multiple
+derivatives, scaled with different factors in both directions.</p></li>
+</ul>
+</div></blockquote>
+<p>(Default: None)</p>
+</p></li>
+<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>list of floats</em><em>, </em><em>optional</em>) – Explicit distance scale for computation of the derivative. Either
+<cite>scale_factor</cite> or <cite>distance</cite> can be specified. Note that the distance
+specifies the overall length of the stencil of lowest truncation
+order, not the effective grid spacing used by this stencil. The scale
+factor is then given by distance / (n * px) where n is the order of the
+derivative and px the grid spacing.
+(Default: None)</p></li>
+<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
+a simple upwind differences scheme will be applied to compute the
+derivative. A tuple contains the gradient, i.e. the derivative
+operators in the Cartesian directions for multidimensional fields.
+(Default: None)</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Override periodic flag from topography. (Default: None)</p></li>
+<li><p><strong>mask_function</strong> (<em>function</em><em>, </em><em>optional</em>) – A function that takes as argument the output of FFT.fftfreq and
+returns a mask that will be multiplied with the Fourier transformed
+topography. This can be used to implement Fourier filtering before
+computing the derivative. (Default: None)</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for fractional scale factors. Use
+‘linear’ for a local liner interpolation or ‘fourier’ for global
+Fourier interpolation. Set to ‘disable’ to raise an error when
+interpolation is necessary. Note that Fourier interpolation carries
+large errors for nonperiodic topographies and should be used with
+care. (Default: ‘linear’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. If dimension of the topography is
+unity (line scan), then an array of the same shape as the
+topography is returned. Otherwise, the first array index contains
+the direction of the derivative. If the topgography is nonperiodic,
+then all returning array with have shape one less than the input
+arrays.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array or tuple of arrays</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.fourier_derivative">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">fourier_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.fourier_derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>First order derivatives of the fourier interpolation of the Topography</p>
+<p>For example in x direction:</p>
+<div class="math notranslate nohighlight">
+\[\left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} =
+\frac{1}{2 \pi }
+\sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}\]</div>
+<p>With <span class="math notranslate nohighlight">\(\tilde h_{kl}\)</span> the DFT of the heights :math:<a href="#id1"><span class="problematic" id="id2">``</span></a>h
+For even number of points, the interpretation of the components at the
+Niquist frequency is ambiguous (we are free to choose amplitude or phase)
+Following (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>),
+we assume it is cosinusoidal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
+<li><p><strong>imtol</strong> (<em>float</em><em>, </em><em>optional</em>) – tolerance for the discarded imaginary part. If the maximum absolute of
+the imaginary part of the interpolated topography is more then that
+value times the total absolute value of dx, an AssertionError is raised
+If not specified the assertion will not be made.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dx</strong> (<em>array of floats</em>) – derivative with respect to x</p></li>
+<li><p><strong>dy</strong> (<em>array of floats</em>) – derivative with respect to y</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.Detrending">
 <span id="surfacetopography-uniform-detrending-module"></span><h2>SurfaceTopography.Uniform.Detrending module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Detrending" title="Permalink to this headline">¶</a></h2>
 <p>Helper functions to compute trends of surfaces</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Detrending.shift_and_tilt">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">shift_and_tilt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Detrending.shift_and_tilt" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns an array of same shape and physical_sizes as arr, but shifted and
-tilted so that mean(arr) = 0 and mean(arr**2) is minimized</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Detrending.tilt_and_curvature">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">tilt_and_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Detrending.tilt_and_curvature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Data in arr is interpreted as height information of a tilted and shifted
-surface.</p>
-<p>idea as follows</p>
-<ol class="arabic simple">
-<li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
-<li><p>arr_out.sum() = 0</p></li>
-</ol>
-<p>3) <a href="#id3"><span class="problematic" id="id4">|ň|</span></a> = 1
-=&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
-<blockquote>
-<div><p>dofs = n_x, n_y, d = X</p>
-</div></blockquote>
-<p>solution X_s = arg_min ((arr - ň.x + d)^2).sum()</p>
-<p>coeffs [, location_matrix (if full_output)]</p>
-<p>coeffs ordered as follows</p>
-<p>{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy</p>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Detrending.tilt_from_height">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">tilt_from_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Detrending.tilt_from_height" title="Permalink to this definition">¶</a></dt>
@@ -343,7 +509,7 @@ function.</p>
 <li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
 <li><p>arr_out.sum() = 0</p></li>
 </ol>
-<p>3) <a href="#id5"><span class="problematic" id="id6">|ň|</span></a> = 1
+<p>3) <a href="#id7"><span class="problematic" id="id8">|ň|</span></a> = 1
 =&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
 <blockquote>
 <div><p>dofs = n_x, n_y, d = X</p>
@@ -364,13 +530,99 @@ function.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Detrending.tilt_and_curvature">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">tilt_and_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Detrending.tilt_and_curvature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data in arr is interpreted as height information of a tilted and shifted
+surface.</p>
+<p>idea as follows</p>
+<ol class="arabic simple">
+<li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
+<li><p>arr_out.sum() = 0</p></li>
+</ol>
+<p>3) <a href="#id9"><span class="problematic" id="id10">|ň|</span></a> = 1
+=&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
+<blockquote>
+<div><p>dofs = n_x, n_y, d = X</p>
+</div></blockquote>
+<p>solution X_s = arg_min ((arr - ň.x + d)^2).sum()</p>
+<p>coeffs [, location_matrix (if full_output)]</p>
+<p>coeffs ordered as follows</p>
+<p>{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Detrending.shift_and_tilt">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">shift_and_tilt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Detrending.shift_and_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an array of same shape and physical_sizes as arr, but shifted and
+tilted so that mean(arr) = 0 and mean(arr**2) is minimized</p>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.Filtering">
 <span id="surfacetopography-uniform-filtering-module"></span><h2>SurfaceTopography.Uniform.Filtering module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Filtering" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">WindowedUniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<p>Construct a topography with a window function applied to it.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'windowed_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>window<span class="classifier">str, optional</span></dt><dd><p>Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: no window for periodic Topographies, “hann” window for
+nonperiodic Topographies)</p>
+</dd>
+<dt>direction<span class="classifier">str, optional</span></dt><dd><p>Direction in which the window is applied. Possible options are
+‘x’, ‘y’ and ‘radial’. If set to None, it chooses ‘x’ for line
+scans and ‘radial’ for topographies. (Default: None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.window_data">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">window_data</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.window_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the windowed topography.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">FilteredUniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">topography</span></em>, <em class="sig-param"><span class="pre">filter_function=&lt;function</span> <span class="pre">FilteredUniformTopography.&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">isotropic=True</span></em>, <em class="sig-param"><span class="pre">info={}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">topography</span></em>, <em class="sig-param"><span class="pre">filter_function=&lt;function</span> <span class="pre">FilteredUniformTopography.&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">isotropic=True</span></em>, <em class="sig-param"><span class="pre">info={}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_filter_isotropic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.filter_function">
 <span class="sig-name descname"><span class="pre">filter_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.filter_function" title="Permalink to this definition">¶</a></dt>
@@ -390,14 +642,61 @@ function.</p>
 <dd><p>Returns array containing the topography data.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_filter_isotropic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.is_filter_isotropic" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">ShortCutTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circular</span> <span class="pre">step'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Uniform.Filtering.FilteredUniformTopography</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'shortcut_filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography.name" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circular</span> <span class="pre">step'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a short wavelength cut filter to the topography using fft.</p>
+<p>for <cite>kind==”circular step”</cite> (default), parts of the spectrum with
+<cite>|q| &gt; cutoff_wavevector</cite> are set to zero</p>
+<p>for <cite>kind==”square step”</cite>, parts of the spectrum with
+<a href="#id3"><span class="problematic" id="id4">`</span></a>q_x &gt; cutoff_wavevector or q_y &gt; cutoff_wavevector ` are set to zero</p>
+<p>either <cite>cutoff_wavelength</cite> or
+<cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
+have to be provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
+<li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
+<li><p><strong>wavevector</strong> (<em>highest</em>) – </p></li>
+<li><p><strong>cutoff_wavelength</strong> (<em>float</em>) – </p></li>
+<li><p><strong>wavelength</strong> (<em>shortest</em>) – </p></li>
+<li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Topography with filtered heights</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">topography</span><span class="o">.</span><span class="n">shortcut</span><span class="p">(</span><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">l</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topography</span><span class="o">.</span><span class="n">shortcut</span><span class="p">(</span><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="c1"># equivalent</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavevector</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavelength</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -406,63 +705,55 @@ function.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">LongCutTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circular</span> <span class="pre">step'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Uniform.Filtering.FilteredUniformTopography</span></code></a></p>
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavelength</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'longcut_filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circular</span> <span class="pre">step'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a long wavelength cut filter to the topography using fft.</p>
+<p>for <cite>kind==”circular step”</cite> (default), parts of the spectrum with
+<cite>|q| &lt; cutoff_wavevector</cite> are set to zero</p>
+<p>for <cite>kind==”square step”</cite>, parts of the spectrum with
+<a href="#id5"><span class="problematic" id="id6">`</span></a>q_x &lt; cutoff_wavevector or q_y &lt; cutoff_wavevector ` are set to zero</p>
+<p>either <cite>cutoff_wavelength</cite> or
+<cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
+have to be provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
+<li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
+<li><p><strong>wavevector</strong> (<em>highest</em>) – </p></li>
+<li><p><strong>cutoff_wavelength</strong> (<em>float</em>) – </p></li>
+<li><p><strong>wavelength</strong> (<em>shortest</em>) – </p></li>
+<li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Topography with filtered heights</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">topography</span><span class="o">.</span><span class="n">longcut</span><span class="p">(</span><span class="n">cutoff_wavevector</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">l</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">topography</span><span class="o">.</span><span class="n">longcut</span><span class="p">(</span><span class="n">cutoff_wavelength</span><span class="o">=</span><span class="n">l</span><span class="p">)</span> <span class="c1"># equivalent</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavevector">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavevector</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavevector" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'longcut_filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">ShortCutTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavevector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circular</span> <span class="pre">step'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.FilteredUniformTopography" title="SurfaceTopography.Uniform.Filtering.FilteredUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Uniform.Filtering.FilteredUniformTopography</span></code></a></p>
 <dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavelength</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavevector</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.ShortCutTopography.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'shortcut_filtered_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.ShortCutTopography.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">WindowedUniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
-<p>Construct a topography with a window function applied to it.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights">
-<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes the windowed topography.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'windowed_topography'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.window_data">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">window_data</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.window_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">cutoff_wavelength</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -470,64 +761,42 @@ function.</p>
 </section>
 <section id="module-SurfaceTopography.Uniform.Interpolation">
 <span id="surfacetopography-uniform-interpolation-module"></span><h2>SurfaceTopography.Uniform.Interpolation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Interpolation" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">MirrorStichedTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
-<p>adds mirror images at the top (big y) and at the right (big x) of the
-topography, making it kind of periodic</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">
-<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns array containing the topography data.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return whether the topography is periodically repeated at the
-boundaries.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">physical_sizes</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the physical sizes of the topography.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions">
-<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns array containing the lateral positions.</p>
-</dd></dl>
-
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.interpolate_linear">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.interpolate_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a linear interpolation function based on the topography’s heights.
+For (2D) topographies, the interpolation is not unique. Each rectangle is
+split into two triangles that side in the lower left and upper right part
+of the rectangle.</p>
+<p>Note that for nonperiodic line scans/topographies, interpolation only
+works for positions between 0 and sx - sx/nx - i.e. the interpolated
+physical domain of the topography is smaller than the nominal domain.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.bicubic_interpolator">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">bicubic_interpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.bicubic_interpolator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.interpolate_bicubic">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">interpolate_bicubic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derivative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fourier'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.interpolate_bicubic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a bicubic interpolation function based on the topography’s heights
-and slopes (fourier_derivative)</p>
+and slopes as obtained using finite-differences (derivative=’fd’) or Fourier
+derivative (derivative=’fourier’).</p>
+<p>Note that for nonperiodic line scans/topographies, interpolation only
+works for positions between 0 and sx - sx/nx - i.e. the interpolated
+physical domain of the topography is smaller than the nominal domain.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.interpolate_fourier">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">interpolate_fourier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.interpolate_fourier" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">interpolate_fourier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.interpolate_fourier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolates the heights of <cite>topography</cite> on a finer grid given by
 <cite>nb_grid_pts</cite> by padding the fourier spectrum with zeros.</p>
 <p>Only 2D implemented.</p>
-<p>Note: at the nyquist frequenca we use the “minimal-oscillation”
-interpolation, i.e. we assume a cosinus wave
+<p>Note: at the nyquist frequency we use the “minimal-oscillation”
+interpolation, i.e. we assume a cosine wave
 (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
 <li><p><strong>nb_grid_pts</strong> (<em>tuple</em>) – </p></li>
 </ul>
 </dd>
@@ -540,13 +809,86 @@ interpolation, i.e. we assume a cosinus wave
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Interpolation.</span></span><span class="sig-name descname"><span class="pre">MirrorStichedTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<p>adds mirror images at the top (big y) and at the right (big x) of the
+topography, making it kind of periodic</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the topography is periodically repeated at the
+boundaries.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">physical_sizes</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the physical sizes of the topography.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.PowerSpectrum">
 <span id="surfacetopography-uniform-powerspectrum-module"></span><h2>SurfaceTopography.Uniform.PowerSpectrum module<a class="headerlink" href="#module-SurfaceTopography.Uniform.PowerSpectrum" title="Permalink to this headline">¶</a></h2>
 <p>Power-spectral density for uniform topographies.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute power spectrum from 1D FFT(s) of a topography or line scan
+stored on a uniform grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container with height information.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: no window for periodic Topographies, “hann” window for
+nonperiodic Topographies)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Reciprocal space vectors.</p></li>
+<li><p><strong>C_all</strong> (<em>array_like</em>) – Power spectrum. (Units: length**3)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute power spectrum from 2D FFT and radial average of a topography
 stored on a uniform grid.</p>
 <dl class="field-list simple">
@@ -565,8 +907,8 @@ If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</c
 ignored. (Default: ‘log’)</p></li>
 <li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
 (Default: None)</p></li>
-<li><p><strong>normalize_window</strong> (<em>bool</em><em>, </em><em>optional</em>) – Normalize window to unit mean. (Default: True)</p></li>
 <li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return full 2D power spectrum map. (Default: False)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -579,41 +921,54 @@ ignored. (Default: ‘log’)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute power spectrum from 1D FFT(s) of a topography or line scan
-stored on a uniform grid.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container with height information.</p></li>
-<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
-Default: no window for periodic Topographies, “hann” window for
-nonperiodic Topographies</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>q</strong> (<em>array_like</em>) – Reciprocal space vectors.</p></li>
-<li><p><strong>C_all</strong> (<em>array_like</em>) – Power spectrum. (Units: length**3)</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="module-SurfaceTopography.Uniform.ScalarParameters">
 <span id="surfacetopography-uniform-scalarparameters-module"></span><h2>SurfaceTopography.Uniform.ScalarParameters module<a class="headerlink" href="#module-SurfaceTopography.Uniform.ScalarParameters" title="Permalink to this headline">¶</a></h2>
 <p>Functions computing scalar roughness parameters</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square amplitude of the curvature of a
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square height amplitude of a topography or
+line scan stored on a uniform grid from individual profiles.
+(This is the Rq value.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square height amplitude of a topography or
+line scan stored on a uniform grid from the whole areal data.
+(This is the Sq value.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_gradient">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square amplitude of the height gradient of a
 topography stored on a uniform grid. The topography must be
-two-dimensional (i.e. a topography map). This function returns
-half the Laplacian.</p>
+two-dimensional (i.e. a topography map).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -630,7 +985,38 @@ cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_curvature</strong> – Root mean square curvature value.</p>
+<dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square amplitude of the height derivative of a
+topography or line scan stored on a uniform grid. If the topography is two
+dimensional (i.e. a topography map), the derivative is computed in the
+x-direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
+<li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
+Only used if short wavelength cutoff is set.
+(Default: no window for periodic Topographies, “hann” window for
+nonperiodic Topographies)</p></li>
+<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Direction in which the window is applied. Possible options are
+‘x’, ‘y’ and ‘radial’. If set to None, it chooses ‘x’ for line
+scans and ‘radial’ for topographies. Only used if short wavelength
+cutoff is set. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
@@ -670,74 +1056,6 @@ cutoff is set. (Default: None)</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_gradient">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_gradient" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square amplitude of the height gradient of a
-topography stored on a uniform grid. The topography must be
-two-dimensional (i.e. a topography map).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
-<li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
-<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
-Only used if short wavelength cutoff is set.
-(Default: no window for periodic Topographies, “hann” window for
-nonperiodic Topographies)</p></li>
-<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Direction in which the window is applied. Possible options are
-‘x’, ‘y’ and ‘radial’. If set to None, it chooses ‘x’ for line
-scans and ‘radial’ for topographies. Only used if short wavelength
-cutoff is set. (Default: None)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square height amplitude of a topography or
-line scan stored on a uniform grid from the whole areal data.
-(This is the Sq value.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square height amplitude of a topography or
-line scan stored on a uniform grid from individual profiles.
-(This is the Rq value.)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the root mean square amplitude of the Laplacian (i.e. the sum of
@@ -768,12 +1086,12 @@ cutoff is set. (Default: None)</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the root mean square amplitude of the height derivative of a
-topography or line scan stored on a uniform grid. If the topography is two
-dimensional (i.e. a topography map), the derivative is computed in the
-x-direction.</p>
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_wavelength_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the root mean square amplitude of the curvature of a
+topography stored on a uniform grid. The topography must be
+two-dimensional (i.e. a topography map). This function returns
+half the Laplacian.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -790,7 +1108,7 @@ cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
+<dd class="field-even"><p><strong>rms_curvature</strong> – Root mean square curvature value.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
@@ -803,7 +1121,7 @@ cutoff is set. (Default: None)</p></li>
 <span id="surfacetopography-uniform-scaledependentstatistics-module"></span><h2>SurfaceTopography.Uniform.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Uniform.ScaleDependentStatistics" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScaleDependentStatistics.scale_dependent_statistical_property">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute statistical properties of a uniform topography at specific scales.
 The scale is specified either by <cite>scale_factors</cite> or <cite>distance</cite>. These
 properties are statistics of derivatives carried out at specific scales,
@@ -835,6 +1153,12 @@ this is an array, then the statistical property is computed at each
 of these distances.</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
 unit before the derivative is computed.</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for computing derivatives at distances
+that do not equal an integer multiple of the grid spacing. Use
+‘linear’ for a local liner interpolation or ‘fourier’ for global
+Fourier interpolation. Note that Fourier interpolation carries large
+errors for nonperiodic topographies and should be used with care.
+(Default: ‘linear’)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -845,51 +1169,19 @@ unit before the derivative is computed.</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>This example yields the the height-difference autocorrelation function in
-the x-direction:</p>
+<p>This example yields the the scale-dependent derivative (equivalent to
+the autocorrelation function divided by the distance) in the x-direction:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">distances</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;&gt; s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">distance</span><span class="o">=</span><span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">/</span> <span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><cite>A</cite> and <cite>s</cite> are identical.</p>
 </dd></dl>
 
 </section>
 <section id="module-SurfaceTopography.Uniform.VariableBandwidth">
 <span id="surfacetopography-uniform-variablebandwidth-module"></span><h2>SurfaceTopography.Uniform.VariableBandwidth module<a class="headerlink" href="#module-SurfaceTopography.Uniform.VariableBandwidth" title="Permalink to this headline">¶</a></h2>
 <p>Variable bandwidth analysis for uniform topographies</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.VariableBandwidth.</span></span><span class="sig-name descname"><span class="pre">checkerboard_detrend_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_plane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform tilt correction (and substract mean value) in each individual
-rectangle of a checkerboard decomposition of the surface. This is
-identical to subdividing the surface into individual, nonoverlapping
-rectangles and performing individual tilt corrections on them.</p>
-<p>The main application of this function is to carry out a variable
-bandwidth analysis of the surface.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>subdivisions</strong> (<em>tuple</em>) – Number of subdivision per dimension, i.e. physical_sizes of the
-checkerboard.</p></li>
-<li><p><strong>order</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum order of the polynomial used for detrending. (Default: 1)</p></li>
-<li><p><strong>return_plane</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return parameters of the detrending plane. (Default: False)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array with height information, tilt-corrected within each
-checkerboard.</p></li>
-<li><p><em>if return_plane == True</em></p></li>
-<li><p><strong>parameters</strong> (<em>np.ndarray</em>) – Array of leading order <cite>subdivisions</cite> containing the fit
-parameters.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_profile">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.VariableBandwidth.</span></span><span class="sig-name descname"><span class="pre">checkerboard_detrend_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_plane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_profile" title="Permalink to this definition">¶</a></dt>
@@ -923,28 +1215,31 @@ parameters.</p></li>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.VariableBandwidth.</span></span><span class="sig-name descname"><span class="pre">variable_bandwidth_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform a variable bandwidth analysis by computing the mean
-root-mean-square height within increasingly finer subdivisions of the
-surface topography.</p>
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.VariableBandwidth.</span></span><span class="sig-name descname"><span class="pre">checkerboard_detrend_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_plane</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform tilt correction (and substract mean value) in each individual
+rectangle of a checkerboard decomposition of the surface. This is
+identical to subdividing the surface into individual, nonoverlapping
+rectangles and performing individual tilt corrections on them.</p>
+<p>The main application of this function is to carry out a variable
+bandwidth analysis of the surface.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map.</p></li>
-<li><p><strong>nb_grid_pts_cutoff</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum nb_grid_pts to allow for subdivision. The analysis will
-automatically analyze subdivision down to this nb_grid_pts.
-(Default: 4)</p></li>
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>subdivisions</strong> (<em>tuple</em>) – Number of subdivision per dimension, i.e. physical_sizes of the
+checkerboard.</p></li>
+<li><p><strong>order</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum order of the polynomial used for detrending. (Default: 1)</p></li>
+<li><p><strong>return_plane</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return parameters of the detrending plane. (Default: False)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>magnifications</strong> (<em>array</em>) – Array containing the magnifications.</p></li>
-<li><p><strong>bandwidths</strong> (<em>array</em>) – Array containing the bandwidths, here the physical sizes of the
-subdivided topography. For 2D topography maps, this is the mean of the
-two physical sizes of the subdivided section of the topography.</p></li>
-<li><p><strong>rms_heights</strong> (<em>array</em>) – Array containing the rms height corresponding to the respective
-magnification.</p></li>
+<li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array with height information, tilt-corrected within each
+checkerboard.</p></li>
+<li><p><em>if return_plane == True</em></p></li>
+<li><p><strong>parameters</strong> (<em>np.ndarray</em>) – Array of leading order <cite>subdivisions</cite> containing the fit
+parameters.</p></li>
 </ul>
 </p>
 </dd>
@@ -980,28 +1275,40 @@ magnification.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.VariableBandwidth.</span></span><span class="sig-name descname"><span class="pre">variable_bandwidth_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a variable bandwidth analysis by computing the mean
+root-mean-square height within increasingly finer subdivisions of the
+surface topography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map.</p></li>
+<li><p><strong>nb_grid_pts_cutoff</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum nb_grid_pts to allow for subdivision. The analysis will
+automatically analyze subdivision down to this nb_grid_pts.
+(Default: 4)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>magnifications</strong> (<em>array</em>) – Array containing the magnifications.</p></li>
+<li><p><strong>bandwidths</strong> (<em>array</em>) – Array containing the bandwidths, here the physical sizes of the
+subdivided topography. For 2D topography maps, this is the mean of the
+two physical sizes of the subdivided section of the topography.</p></li>
+<li><p><strong>rms_heights</strong> (<em>array</em>) – Array containing the rms height corresponding to the respective
+magnification.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.common">
 <span id="surfacetopography-uniform-common-module"></span><h2>SurfaceTopography.Uniform.common module<a class="headerlink" href="#module-SurfaceTopography.Uniform.common" title="Permalink to this headline">¶</a></h2>
 <p>Bin for small common helper function and classes for uniform
 topographies.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">FilledTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
-<dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_undefined_data</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.heights">
-<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.heights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns array containing the topography data.</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.bandwidth">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">bandwidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.bandwidth" title="Permalink to this definition">¶</a></dt>
@@ -1016,64 +1323,6 @@ the mean value of the two Cartesian directions.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>A 2-tuple (lower_bound, upper_bound) where the elements are floats.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.derivative">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.derivative" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute derivative of topography or line scan stored on a uniform grid.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
-<li><p><strong>n</strong> (<em>int</em>) – Order of the derivative.</p></li>
-<li><p><strong>scale_factor</strong> (<em>int</em><em> or </em><em>list of ints</em><em> or </em><em>list of tuples of ints</em><em>, </em><em>optional</em>) – <p>Integer factor that scales the stencil difference, i.e.
-specifying 2 will compute the derivative using a discrete step of
-2 * dx. Either <cite>scale_factor</cite> or <cite>distance</cite> can be specified.
-- Single int: Returns a single derivative scaled in all directions</p>
-<blockquote>
-<div><p>with this value</p>
-</div></blockquote>
-<ul>
-<li><p>List of ints: Returns multiple derivatives, each scaled in all
-direction with the respective value from the list</p></li>
-<li><p>List of tuples of ints: Each tuple contains a scale factor in
-the two Cartesian (x- and y-) directions. Return multiple
-derivatives, scaled with different factors in both directions.</p></li>
-</ul>
-<p>(Default: None)</p>
-</p></li>
-<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>list of floats</em><em>, </em><em>optional</em>) – Explicit distance scale for computation of the derivative. Either
-<cite>scale_factor</cite> or <cite>distance</cite> can be specified. Note that the distance
-specifies the overall length of the stencil of lowest truncation
-order, not the effective grid spacing used by this stencil. The scale
-factor is then given by distance / (n * dx) where n is the order of the
-derivative and dx the grid spacing.
-(Default: None)</p></li>
-<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
-a simple upwind differences scheme will be applied to compute the
-derivative. A tuple contains the gradient, i.e. the derivative
-operators in the Cartesian directions for multidimensional fields.
-(Default: None)</p></li>
-<li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Override periodic flag from topography. (Default: None)</p></li>
-<li><p><strong>mask_function</strong> (<em>function</em><em>, </em><em>optional</em>) – A function that takes as argument the output of FFT.fftfreq and
-returns a mask that will be multiplied with the Fourier transformed
-topography. This can be used to implement Fourier filtering before
-computing the derivative. (Default: None)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. If dimension of the topography is
-unity (line scan), then an array of the same shape as the
-topography is returned. Otherwise, the first array index contains
-the direction of the derivative. If the topgography is nonperiodic,
-then all returning array with have shape one less than the input
-arrays.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>array or tuple of arrays</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1106,40 +1355,6 @@ process.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.fourier_derivative">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">fourier_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.fourier_derivative" title="Permalink to this definition">¶</a></dt>
-<dd><p>First order derivatives of the fourier interpolation of the Topography</p>
-<p>For example in x direction:</p>
-<div class="math notranslate nohighlight">
-\[\left[ \frac{\partial h }{\partial x}\right]_{x_i, y_j} =
-\frac{1}{2 \pi }
-\sum_{kl} q_x^k \tilde h_{kl} e^{i (q_x^k x_i + q_y^l y_j}\]</div>
-<p>With <span class="math notranslate nohighlight">\(\tilde h_{kl}\)</span> the DFT of the heights :math:<a href="#id1"><span class="problematic" id="id2">``</span></a>h
-For even number of points, the interpretation of the components at the
-Niquist frequency is ambiguous (we are free to choose amplitude or phase)
-Following (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>),
-we assume it is cosinusoidal.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
-<li><p><strong>imtol</strong> (<em>float</em><em>, </em><em>optional</em>) – tolerance for the discarded imaginary part. If the maximum absolute of
-the imaginary part of the interpolated topography is more then that
-value times the total absolute value of dx, an AssertionError is raised
-If not specified the assertion will not be made.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>dx</strong> (<em>array of floats</em>) – derivative with respect to x</p></li>
-<li><p><strong>dy</strong> (<em>array of floats</em>) – derivative with respect to y</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.plot">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplot_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">111</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot an image of the topography using matplotlib.</p>
@@ -1148,6 +1363,37 @@ If not specified the assertion will not be made.</p></li>
 <dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Height information</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">FilledTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>masked (undefined) data is replaced with <cite>fill_value</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><em>UniformLineScan instance</em>) – </p></li>
+<li><p><strong>fill_value</strong> (<em>float</em><em> or </em><em>array of floats</em>) – masked value in topography will be replaced</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_undefined_data</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>

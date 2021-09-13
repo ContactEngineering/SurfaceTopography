@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.95.3.dev2+g5f2541d2 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.95.3.dev50+gf27cc663 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.95.3.dev2+g5f2541d2
+                0.95.3.dev50+gf27cc663
               </div>
             
           
@@ -117,7 +117,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -130,8 +129,16 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Support package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 
@@ -209,22 +216,27 @@
 </section>
 <section id="module-SurfaceTopography.Support.Deprecation">
 <span id="surfacetopography-support-deprecation-module"></span><h2>SurfaceTopography.Support.Deprecation module<a class="headerlink" href="#module-SurfaceTopography.Support.Deprecation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.deprecated">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Deprecation.</span></span><span class="sig-name descname"><span class="pre">deprecated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.deprecated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emit a deprecation warning for a function.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.DeprecatedDictionary">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Deprecation.</span></span><span class="sig-name descname"><span class="pre">DeprecatedDictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.DeprecatedDictionary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
 <p>A dictionary that raises a deprecation warning when accessing certain keys.</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.DeprecatedDictionary.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy">
 <span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">shallow</span> <span class="pre">copy</span> <span class="pre">of</span> <span class="pre">D</span></span></span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.deprecated">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Deprecation.</span></span><span class="sig-name descname"><span class="pre">deprecated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.deprecated" title="Permalink to this definition">¶</a></dt>
-<dd><p>Emit a deprecation warning for a function.</p>
 </dd></dl>
 
 </section>

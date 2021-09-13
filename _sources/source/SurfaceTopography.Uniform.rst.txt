@@ -12,6 +12,22 @@ SurfaceTopography.Uniform.Autocorrelation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Uniform.Converters module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Converters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Uniform.Derivative module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Derivative
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Uniform.Detrending module
 -------------------------------------------
 

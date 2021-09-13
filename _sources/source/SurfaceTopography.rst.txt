@@ -17,14 +17,6 @@ Subpackages
 Submodules
 ----------
 
-SurfaceTopography.Converters module
------------------------------------
-
-.. automodule:: SurfaceTopography.Converters
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 SurfaceTopography.FFTTricks module
 ----------------------------------
 

@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.95.3.dev2+g5f2541d2 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.95.3.dev50+gf27cc663 documentation</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.95.3.dev2+g5f2541d2
+                0.95.3.dev50+gf27cc663
               </div>
             
           
@@ -110,6 +110,8 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Derivative">SurfaceTopography.Nonuniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.PowerSpectrum">SurfaceTopography.Nonuniform.PowerSpectrum module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.ScalarParameters">SurfaceTopography.Nonuniform.ScalarParameters module</a></li>
@@ -124,7 +126,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -137,10 +138,14 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Derivative">SurfaceTopography.Nonuniform.Derivative module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.PowerSpectrum">SurfaceTopography.Nonuniform.PowerSpectrum module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.ScalarParameters">SurfaceTopography.Nonuniform.ScalarParameters module</a></li>
@@ -150,6 +155,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 
@@ -229,6 +235,33 @@
 <span id="surfacetopography-nonuniform-autocorrelation-module"></span><h2>SurfaceTopography.Nonuniform.Autocorrelation module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.Autocorrelation" title="Permalink to this headline">¶</a></h2>
 <p>Height-difference autocorrelation functions for nonuniform line scans</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_height_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the one-dimensional height-height autocorrelation function
+(ACF).</p>
+<p>This function treats the nonuniform line scan as a piece-wise function of
+straight lines between the data points. The ACF is computed exactly for
+this piece-wise linear interpolation of the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line_scan</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
+<li><p><strong>r</strong> (<em>array_like</em>) – Array containing distances for which to compute the ACF. If no array
+is given, the function will automatically construct an array with
+equally spaced distances. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>distances</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>A</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_difference_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fft'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_interpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the one-dimensional height-difference autocorrelation function
@@ -264,29 +297,127 @@ used for ‘fft’ algorithm. (Default: 5)</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_height_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the one-dimensional height-height autocorrelation function
-(ACF).</p>
-<p>This function treats the nonuniform line scan as a piece-wise function of
-straight lines between the data points. The ACF is computed exactly for
-this piece-wise linear interpolation of the data.</p>
+</section>
+<section id="module-SurfaceTopography.Nonuniform.Converters">
+<span id="surfacetopography-nonuniform-converters-module"></span><h2>SurfaceTopography.Nonuniform.Converters module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.Converters" title="Permalink to this headline">¶</a></h2>
+<p>Utility function for conversion between uniform and nonuniform
+representations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Converters.</span></span><span class="sig-name descname"><span class="pre">UniformlyInterpolatedLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_interpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<p>Interpolate a topography onto a uniform grid.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_interpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a nonuniform line scan to a uniform line scan by explicit
+linear interpolation between the discrete coordinates of the
+nonuniform scan.</p>
+<p><cite>nb_points</cite>, <cite>nb_interpolate</cite> or <cite>pixel_size</cite> needs to be specified.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_scan</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
-<li><p><strong>r</strong> (<em>array_like</em>) – Array containing distances for which to compute the ACF. If no array
-is given, the function will automatically construct an array with
-equally spaced distances. (Default: None)</p></li>
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography to interpolate.</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of equidistant grid points. Number of points will be
+automatically computed from the mean grid spacing and
+<cite>nb_interpolate</cite> if set to None. (Default: None)</p></li>
+<li><p><strong>padding</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of padding grid points, zeros appended to the data.
+(Default: 0)</p></li>
+<li><p><strong>nb_interpolate</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of grid points to between closest points on surface.
+(Default: None)</p></li>
+<li><p><strong>pixel_size</strong> (<em>float</em><em>, </em><em>optional</em>) – Grid spacing. (Default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.dim">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns 1 for line scans and 2 for topography maps.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.physical_sizes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">physical_sizes</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.physical_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the physical sizes of the topography.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_periodic">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_periodic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the topography is periodically repeated at the
+boundaries.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_uniform">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_uniform</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_uniform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.nb_grid_pts">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.nb_grid_pts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return nb_grid_pts, i.e. number of pixels, of the topography.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.pixel_size">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">pixel_size</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.area_per_pt">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">area_per_pt</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.area_per_pt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.has_undefined_data">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_undefined_data</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.has_undefined_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.heights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the rescaled profile.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Nonuniform.Derivative">
+<span id="surfacetopography-nonuniform-derivative-module"></span><h2>SurfaceTopography.Nonuniform.Derivative module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.Derivative" title="Permalink to this headline">¶</a></h2>
+<p>Compute derivatives of nonuniform line scans.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Derivative.derivative">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Derivative.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute derivative of nonuniform line-scan. Function assumes nonperiodic
+topographies.</p>
+<p>First derivative: Central differences.</p>
+<p>Second derivative: Expand <span class="math notranslate nohighlight">\(h(x+\Delta x_+)\)</span> and <span class="math notranslate nohighlight">\((x-\Delta x_-)\)</span> up to second order in the grid
+spacing <span class="math notranslate nohighlight">\(\Delta x_+\)</span> and <span class="math notranslate nohighlight">\(\Delta x_+\)</span>. Then
+<span class="math notranslate nohighlight">\(\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)\)</span> yields:</p>
+<div class="math notranslate nohighlight">
+\[\frac{d^2h}{dx^2} \approx 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x_+\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan" title="SurfaceTopography.NonuniformLineScan"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan</span></code></a>) – Object containing height information.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Number of times the derivative is taken.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>distances</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>A</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
-</ul>
-</p>
+<dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. Length of array is reduced by <span class="math notranslate nohighlight">\(n\)</span> with
+respect to the input array for the <span class="math notranslate nohighlight">\(n\)</span>-th derivative.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -335,14 +466,23 @@ sorted in ascending order.</p></li>
 <span id="surfacetopography-nonuniform-powerspectrum-module"></span><h2>SurfaceTopography.Nonuniform.PowerSpectrum module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.PowerSpectrum" title="Permalink to this headline">¶</a></h2>
 <p>Power-spectral density for nonuniform topographies.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.apply_window">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">apply_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.sinc">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">sinc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.sinc" title="Permalink to this definition">¶</a></dt>
+<dd><p>sinc function</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.dsinc">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">dsinc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.dsinc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Derivative of the sinc function</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.ft_rectangle">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">ft_rectangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.ft_rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fourier transform of a rectangle, <span class="math notranslate nohighlight">\(f(x) = 1\)</span> for <span class="math notranslate nohighlight">\(|x| &lt; 1/2\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\tilde{f}(q) = 2\sin(q/2)/q = sinc(q/2)\]</div>
 </dd></dl>
 
 <dl class="py function">
@@ -357,12 +497,9 @@ function is real-valued.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.ft_rectangle">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">ft_rectangle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.ft_rectangle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fourier transform of a rectangle, <span class="math notranslate nohighlight">\(f(x) = 1\)</span> for <span class="math notranslate nohighlight">\(|x| &lt; 1/2\)</span>,</p>
-<div class="math notranslate nohighlight">
-\[\tilde{f}(q) = 2\sin(q/2)/q = sinc(q/2)\]</div>
-</dd></dl>
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.apply_window">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">apply_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">
@@ -409,33 +546,10 @@ nonperiodic Topographies</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.sinc">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">sinc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.sinc" title="Permalink to this definition">¶</a></dt>
-<dd><p>sinc function</p>
-</dd></dl>
-
 </section>
 <section id="module-SurfaceTopography.Nonuniform.ScalarParameters">
 <span id="surfacetopography-nonuniform-scalarparameters-module"></span><h2>SurfaceTopography.Nonuniform.ScalarParameters module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.ScalarParameters" title="Permalink to this headline">¶</a></h2>
 <p>Functions computing scalar roughness parameters</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_height">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_height" title="Permalink to this definition">¶</a></dt>
@@ -486,12 +600,29 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Nonuniform.ScaleDependentStatistics">
 <span id="surfacetopography-nonuniform-scaledependentstatistics-module"></span><h2>SurfaceTopography.Nonuniform.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.ScaleDependentStatistics" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScaleDependentStatistics.scale_dependent_statistical_property">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_interpolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute statistical properties of a uniform topography at specific scales.
 The scale is specified either by <cite>scale_factors</cite> or <cite>distance</cite>. These
 properties are statistics of derivatives carried out at specific scales,
@@ -503,7 +634,7 @@ is fed into <cite>func</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Topogaphy or line scan.</p></li>
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan" title="SurfaceTopography.NonuniformLineScan"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan</span></code></a>) – Topography or line scan.</p></li>
 <li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">func(dx,</span> <span class="pre">dy=None)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
@@ -515,16 +646,13 @@ can be a mixture of topographies and line scans. The function can
 return a scalar value or an array, but the array size must be fixed.</p>
 </p></li>
 <li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Order of derivative. (Default: 1)</p></li>
-<li><p><strong>scale_factor</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Scale factor for rescaling the finite differences stencil. A scale
-factor of unity means the derivative is computed at the size of the
-individual pixel.</p></li>
 <li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. If
 this is an array, then the statistical property is computed at each
 of these distances.</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
-unit before the derivative is computed.</p></li>
-<li><p><strong>nb_interpolate</strong> (<em>int</em>) – Number of grid points to put between closest points on surface. Only
-used for ‘fft’ algorithm. (Default: 5)</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for computing derivatives. Can only be
+‘linear’ for nonuniform line scans and is provided for compatibility
+with the corresponding keyword parameter of the uniform containers.
+(Default: ‘linear’)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -535,13 +663,14 @@ used for ‘fft’ algorithm. (Default: 5)</p></li>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>This example yields the the height-difference autocorrelation function in
-the x-direction:</p>
+<p class="rubric">Examples</p>
+<p>This example yields the the scale-dependent derivative (equivalent to
+the autocorrelation function divided by the distance) in the x-direction:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">distances</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;&gt; s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">distance</span><span class="o">=</span><span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">/</span> <span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><cite>A</cite> and <cite>s</cite> are identical.</p>
 </dd></dl>
 
 </section>
@@ -620,34 +749,6 @@ scan. The upper bound is given by the overall length of the line scan.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>A 2-tuple (lower_bound, upper_bound) where the elements are floats.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.common.derivative">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.common.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.common.derivative" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute derivative of nonuniform line-scan. Function assumes nonperiodic
-topographies.</p>
-<p>First derivative: Central differences.
-Second derivative: Expand <span class="math notranslate nohighlight">\(h(x+\Delta x_+)\)</span> and <span class="math notranslate nohighlight">\((x-\Delta x_-)\)</span> up to second order in the grid
-spacing <span class="math notranslate nohighlight">\(\Delta x_+\)</span> and <span class="math notranslate nohighlight">\(\Delta x_+\)</span>. Then
-<span class="math notranslate nohighlight">\(\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)\)</span> yields:</p>
-<div class="math notranslate nohighlight">
-\[\frac{d^2h}{dx^2} \approx  = 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x+-\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}\]</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – SurfaceTopography object containing height information.</p></li>
-<li><p><strong>n</strong> (<em>int</em>) – Number of times the derivative is taken.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. Length of array is reduced by <span class="math notranslate nohighlight">\(n\)</span> with
-respect to the input array for the :math:<a href="#id1"><span class="problematic" id="id2">`</span></a>n`th derivative.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>

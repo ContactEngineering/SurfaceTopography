@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.95.3.dev2+g5f2541d2 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.95.3.dev50+gf27cc663 documentation</title>
   
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.95.3.dev2+g5f2541d2
+                0.95.3.dev50+gf27cc663
               </div>
             
           
@@ -108,6 +108,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
@@ -120,7 +121,6 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Converters">SurfaceTopography.Converters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -133,8 +133,19 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 
@@ -214,6 +225,34 @@
 <span id="surfacetopography-generic-curvature-module"></span><h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#module-SurfaceTopography.Generic.Curvature" title="Permalink to this headline">¶</a></h2>
 <p>Scale-dependent slope</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the one-dimensional scale-dependent curvature.</p>
+<p>The scale-dependent curvature is given by</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\begin{equation}
+h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
+\end{equation}</div></div></blockquote>
+<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Topography</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>curvature</strong> (<em>array</em>) – Curvature. (Units: 1/length)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent curvature.</p>
@@ -227,7 +266,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container storing the uniform topography map</p></li>
 <li><p><strong>nbins</strong> (<em>int</em>) – Number of bins for radial average. Bins are automatically determined
 if set to None. Note: Returned array can be smaller than this because
 bins without data points are discarded. (Default: None)</p></li>
@@ -243,30 +282,22 @@ bins without data points are discarded. (Default: None)</p></li>
 </dl>
 </dd></dl>
 
+</section>
+<section id="module-SurfaceTopography.Generic.ReliabilityCutoff">
+<span id="surfacetopography-generic-reliabilitycutoff-module"></span><h2>SurfaceTopography.Generic.ReliabilityCutoff module<a class="headerlink" href="#module-SurfaceTopography.Generic.ReliabilityCutoff" title="Permalink to this headline">¶</a></h2>
+<p>Automatic determination of the reliability of the underyling data</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the one-dimensional scale-dependent curvature.</p>
-<p>The scale-dependent curvature is given by</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\begin{equation}
-h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{1/2}/\lambda^2
-\end{equation}</div></div></blockquote>
-<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ReliabilityCutoff.</span></span><span class="sig-name descname"><span class="pre">short_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine down to which distance scale the data is realiable, i.e. below
+which distance it may be affected by instrumental artifacts. Currently
+supported are tip radius artifacts and a user specified resolution.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
-</ul>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>short_cutoff</strong> – All data below this length scale is unreliable</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>curvature</strong> (<em>array</em>) – Curvature. (Units: 1/length)</p></li>
-</ul>
-</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -306,34 +337,6 @@ on synthetic (simulated) data. (Default: 1/2)</p></li>
 <span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline">¶</a></h2>
 <p>Scale-dependent slope</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the two-dimensional, radially averaged scale-dependent slope.</p>
-<p>The scale-dependent slope is given by</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\begin{equation}
-h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
-\end{equation}</div></div></blockquote>
-<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_2D</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
-<li><p><strong>slope</strong> (<em>array</em>) – Slope. (Units: dimensionless)</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the one-dimensional scale-dependent slope.</p>
@@ -347,8 +350,36 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>topography</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Topography</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>slope</strong> (<em>array</em>) – Slope. (Units: dimensionless)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the two-dimensional, radially averaged scale-dependent slope.</p>
+<p>The scale-dependent slope is given by</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\begin{equation}
+h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
+\end{equation}</div></div></blockquote>
+<p>where <span class="math notranslate nohighlight">\(A(\lambda)\)</span> is the autocorrelation function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container storing the uniform topography map</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_2D</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
