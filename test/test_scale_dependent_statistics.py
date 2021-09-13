@@ -82,3 +82,11 @@ def test_container_mixed(file_format_examples):
     c, = read_container(f'{file_format_examples}/container2.zip')
     s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
+
+
+@pytest.mark.skip('Run this if have a one of the big diamond containers download from contact.engineering')
+def test_large_container_mixed():
+    c, = read_container('/home/pastewka/Downloads/surface.zip')
+    distances = np.logspace(np.log10(0.001), np.log10(1000), 11)
+    s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, unit='um', distance=distances)
+    assert not np.any(np.isnan(s))

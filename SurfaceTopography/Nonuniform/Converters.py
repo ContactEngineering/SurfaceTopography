@@ -87,7 +87,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
         if self.in_pixel_size is not None:
             if self.nb_points is not None or self.nb_interpolate is not None:
                 raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
-            self._nb_points = int(s / self.in_pixel_size)
+            self._nb_points = int(s / self.in_pixel_size) + 1
             self._pixel_size = self.in_pixel_size
         elif self.nb_interpolate is not None:
             if self.nb_points is not None or self.in_pixel_size is not None:
