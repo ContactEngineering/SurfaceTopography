@@ -4,11 +4,12 @@ Test derivatives
 
 import numpy as np
 
+import muFFT
 import muFFT.Stencils2D as Stencils2D
 
-from SurfaceTopography import UniformLineScan
+from SurfaceTopography import UniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Uniform.common import third_2d
+from SurfaceTopography.Uniform.Derivative import third_2d, trim_nonperiodic
 
 
 def test_uniform_vs_nonuniform():
@@ -187,9 +188,137 @@ def test_scale_factor():
     dx, dy = topography.derivative(1, scale_factor=[(1, 4), (2, 1), (4, 2)])
     dxn1, dxn2, dxn4 = dx
     dyn4, dyn1, dyn2 = dy
-    np.testing.assert_allclose(dxn1, dx1)
-    np.testing.assert_allclose(dyn1, dy1)
-    np.testing.assert_allclose(dxn2, dx2)
-    np.testing.assert_allclose(dyn2, dy2)
-    np.testing.assert_allclose(dxn4, dx4)
-    np.testing.assert_allclose(dyn4, dy4)
+    np.testing.assert_allclose(dxn1, dx1[:, :-3])
+    np.testing.assert_allclose(dyn1, dy1[:-1, :])
+    np.testing.assert_allclose(dxn2[:, :-1], dx2)
+    np.testing.assert_allclose(dyn2, dy2[:-2, :])
+    np.testing.assert_allclose(dxn4[:, :-2], dx4)
+    np.testing.assert_allclose(dyn4[:-3, :], dy4)
+
+
+def test_fractional_scale_factor_linear_1d():
+    nx = 8
+    sx = 1
+    slope = 0.3
+
+    topography = UniformLineScan(slope * np.arange(nx) * sx / nx, (sx,), periodic=False)
+
+    d1 = topography.derivative(1, scale_factor=1)
+    d2 = topography.derivative(1, scale_factor=1.5)
+    d3 = topography.derivative(1, scale_factor=2.3)
+
+    np.testing.assert_allclose(d1, slope)
+    np.testing.assert_allclose(d2, slope)
+    np.testing.assert_allclose(d3, slope)
+
+
+def test_fractional_scale_factor_linear_2d():
+    nx, ny = 8, 9
+    sx, sy = 1.3, 2.7
+    slopex = 0.3
+    slopey = 0.4
+
+    topography = Topography(slopex * np.arange(nx).reshape(nx, 1) * sx / nx +
+                            slopey * np.arange(ny).reshape(1, ny) * sy / ny, (sx, sy), periodic=False)
+
+    dx1, dy1 = topography.derivative(1, scale_factor=1)
+    dx2, dy2 = topography.derivative(1, scale_factor=1.5)
+    dx3, dy3 = topography.derivative(1, scale_factor=2.3)
+
+    np.testing.assert_allclose(dx1, slopex)
+    np.testing.assert_allclose(dy1, slopey)
+    np.testing.assert_allclose(dx2, slopex)
+    np.testing.assert_allclose(dy2, slopey)
+    np.testing.assert_allclose(dx3, slopex)
+    np.testing.assert_allclose(dy3, slopey)
+
+    dx1, dy1 = topography.derivative(1, scale_factor=[(1, 1.3)])
+    dx2, dy2 = topography.derivative(1, scale_factor=[(1.5, 2.3)])
+    dx3, dy3 = topography.derivative(1, scale_factor=[(2.3, 5.0)])
+
+    np.testing.assert_allclose(dx1, slopex)
+    np.testing.assert_allclose(dy1, slopey)
+    np.testing.assert_allclose(dx2, slopex)
+    np.testing.assert_allclose(dy2, slopey)
+    np.testing.assert_allclose(dx3, slopex)
+    np.testing.assert_allclose(dy3, slopey)
+
+
+def test_trim_nonperiodic_3x3_stencil():
+    op = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
+                                             [0, -2, 0],
+                                             [0, 1, 0]])
+    nx, ny = 5, 7
+    x_arr, y_arr = np.mgrid[:nx, :ny]
+    tx_arr = trim_nonperiodic(x_arr, (1.0, 1.0), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.0, 1.0), op)
+    assert tx_arr.shape == (3, 5)
+    assert tx_arr.min() == 1
+    assert tx_arr.max() == 3
+    assert ty_arr.min() == 1
+    assert ty_arr.max() == 5
+
+    tx_arr = trim_nonperiodic(x_arr, (1.5, 1.5), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.5, 1.5), op)
+    assert tx_arr.shape == (1, 3)
+    assert tx_arr.min() == 2
+    assert tx_arr.max() == 2
+    assert ty_arr.min() == 2
+    assert ty_arr.max() == 4
+
+    tx_arr = trim_nonperiodic(x_arr, (2, 2), op)
+    ty_arr = trim_nonperiodic(y_arr, (2, 2), op)
+    assert tx_arr.shape == (1, 3)
+    assert tx_arr.min() == 2
+    assert tx_arr.max() == 2
+    assert ty_arr.min() == 2
+    assert ty_arr.max() == 4
+
+    tx_arr = trim_nonperiodic(x_arr, (1.5, 1), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.5, 1), op)
+    assert tx_arr.shape == (1, 5)
+    assert tx_arr.min() == 2
+    assert tx_arr.max() == 2
+    assert ty_arr.min() == 1
+    assert ty_arr.max() == 5
+
+
+def test_trim_nonperiodic_3x2_stencil():
+    # Stencil has shape 3, 2
+    op = muFFT.DiscreteDerivative([0, -1], [[1, 0],
+                                            [-2, 0],
+                                            [1, 0]])
+
+    nx, ny = 5, 7
+    x_arr, y_arr = np.mgrid[:nx, :ny]
+    tx_arr = trim_nonperiodic(x_arr, (1.0, 1.0), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.0, 1.0), op)
+    assert tx_arr.shape == (3, 6)
+    assert tx_arr.min() == 0
+    assert tx_arr.max() == 2
+    assert ty_arr.min() == 1
+    assert ty_arr.max() == 6
+
+    tx_arr = trim_nonperiodic(x_arr, (1.5, 1.5), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.5, 1.5), op)
+    assert tx_arr.shape == (2, 5)
+    assert tx_arr.min() == 0
+    assert tx_arr.max() == 1
+    assert ty_arr.min() == 2
+    assert ty_arr.max() == 6
+
+    tx_arr = trim_nonperiodic(x_arr, (2, 2), op)
+    ty_arr = trim_nonperiodic(y_arr, (2, 2), op)
+    assert tx_arr.shape == (1, 5)
+    assert tx_arr.min() == 0
+    assert tx_arr.max() == 0
+    assert ty_arr.min() == 2
+    assert ty_arr.max() == 6
+
+    tx_arr = trim_nonperiodic(x_arr, (1.5, 1), op)
+    ty_arr = trim_nonperiodic(y_arr, (1.5, 1), op)
+    assert tx_arr.shape == (2, 6)
+    assert tx_arr.min() == 0
+    assert tx_arr.max() == 1
+    assert ty_arr.min() == 1
+    assert ty_arr.max() == 6

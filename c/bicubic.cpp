@@ -90,7 +90,8 @@ int invert_matrix(int n, double *mat)
  * values are supposed to be of size [0:nx][0:ny] and stored in row-major order
  */
 Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *derivativey, bool interp, bool lowmem)
-  : n1_{n1}, n2_{n2}, values_{values}, derivativex_{derivativex}, derivativey_{derivativey}, coeff_{}, coeff_lowmem_{}
+  : n1_{n1}, n2_{n2}, values_{values}, derivativex_{derivativex}, derivativey_{derivativey}, interp_{interp}, coeff_{},
+    coeff_lowmem_{}
 {
   const int box1[NCORN] = { 0,1,1,0 };
   const int box2[NCORN] = { 0,0,1,1 };
@@ -106,8 +107,6 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
    */
 
   /* --- */
-
-  this->interp_ = interp;
 
   /*
    * if lowmem = true then spline coefficients will be computed each
@@ -125,7 +124,7 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
   }
 
   /*
-   * for each box, create and solve the matrix equatoion.
+   * for each box, create and solve the matrix equation.
    *    / values of  \     /              \     / function and \
    *  a |  products  | * x | coefficients | = b |  derivative  |
    *    \within cubic/     \ of 2d cubic  /     \    values    /

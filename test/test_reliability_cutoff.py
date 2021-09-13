@@ -22,23 +22,45 @@
 # SOFTWARE.
 #
 
-import datetime
+"""
+Tests reliability cutoff and its use to restrict the range of data in the
+analysis pipeline functions.
+"""
+
 import os
 
 import numpy as np
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import DIReader
 
 
-def test_di_date(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'di1.di'))
-    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
-    assert t.info['instrument']['name'] == 'Dimension V'
+def test_scanning_probe_reliability_cutoff(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+    np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 90.700854)
 
 
-def test_4byte_data(file_format_examples):
-    r = DIReader(os.path.join(file_format_examples, 'di5.di'))
-    t = r.topography()
-    np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
-    assert t.info['instrument']['name'] == 'Dimension Icon'
+def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
+        'instrument': {
+            'tip_radius': {
+                'value': 40,
+                'unit': 'nm',
+                }
+            }
+        })
+    cut = surf.short_reliability_cutoff()
+    np.testing.assert_allclose(cut, 90.700854)
+
+    # Make sure PSD returns only reliable portion
+    q, _ = surf.power_spectrum_from_profile()
+    assert q[-1] < 2 * np.pi / cut
+
+    q, _ = surf.power_spectrum_from_area()
+    assert q[-1] < 2 * np.pi / cut
+
+    # Make sure ACF returns only reliable portion
+    r, A = surf.autocorrelation_from_profile()
+    assert r[0] >= cut / 2
+
+    r, A = surf.autocorrelation_from_area()
+    assert r[0] >= cut / 2

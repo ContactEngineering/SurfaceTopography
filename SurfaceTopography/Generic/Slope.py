@@ -49,7 +49,7 @@ def scale_dependent_slope_from_profile(topography, **kwargs):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan`
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to `autocorrelation_1D`
@@ -82,7 +82,7 @@ def scale_dependent_slope_from_area(topography, **kwargs):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    topography : SurfaceTopography or UniformLineScan
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to `autocorrelation_2D`

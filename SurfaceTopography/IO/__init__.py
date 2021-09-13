@@ -118,7 +118,8 @@ def open_topography(fobj, format=None, communicator=None):
 
     Returns
     -------
-    Instance of a :obj:`ReaderBase` subclass according to the format.
+    Instance of a :class:`SurfaceTopography.IO.Reader.ReaderBase` subclass
+    according to the format.
 
     Examples
     --------

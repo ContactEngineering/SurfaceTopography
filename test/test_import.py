@@ -28,27 +28,22 @@
 Import testing
 """
 
-import unittest
 import importlib
 
 
-class ImportabilityChecks(unittest.TestCase):
-
-    def import_module(self, module):
-        return_code = -1
-        try:
-            importlib.import_module(module)
-            return_code = 0
-        except ImportError:
-            pass
-        return return_code
-
-    def test_Surface(self):
-        self.assertEqual(self.import_module("SurfaceTopography"), 0)
-
-    def test_SurfaceTopography_C_extension(self):
-        self.assertEqual(self.import_module("_SurfaceTopography"), 0)
+def import_module(module):
+    return_code = -1
+    try:
+        importlib.import_module(module)
+        return_code = 0
+    except ImportError:
+        pass
+    return return_code
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_python_module():
+    assert import_module("SurfaceTopography") == 0
+
+
+def test_c_extension():
+    assert import_module("_SurfaceTopography") == 0

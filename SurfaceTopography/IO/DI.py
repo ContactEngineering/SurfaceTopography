@@ -185,9 +185,9 @@ version of the format.
                     height_scale_factor = hard_scale * hard_to_soft * soft_scale * binary_scale
 
                     if 'microscope' in equipment:
-                        info['instrument_name'] = equipment['microscope']
+                        info['instrument'] = {'name': equipment['microscope']}
                     elif 'description' in equipment:
-                        info['instrument_name'] = equipment['description']
+                        info['instrument'] = {'name': equipment['description']}
 
                     channel = ChannelInfo(self,
                                           len(self._channels),
@@ -255,8 +255,12 @@ version of the format.
         _info.update(info)
         if 'acquisition_time' in channel.info:
             _info['acquisition_time'] = channel.info['acquisition_time']
-        if 'instrument_name' in channel.info:
-            _info['instrument_name'] = channel.info['instrument_name']
+        if 'instrument' in channel.info:
+            try:
+                # This can be a nested dictionary!
+                _info['instrument'].update(channel.info['instrument'])
+            except KeyError:
+                _info['instrument'] = channel.info['instrument']
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:

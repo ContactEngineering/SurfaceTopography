@@ -151,10 +151,15 @@ class AbstractTopography(object):
 
         Standardized keys
         -----------------
-        instrument_name : str
-            Name of the instrument used to acquire the data.
-        acquisition_time : :obj:`datetime`
+        'acquisition_time' : :obj:`datetime`
             Date and time of the measurement.
+        'instrument' : dict
+            Nested dictionary containing instrument data.
+                - 'name' : str - Name of instrument
+                - 'parameters' : dict - Additional instrument parameters, e.g.
+                    - 'tip_radius' : dict - Tip radius for tip based techniques
+                        - 'value' : float - Value of tip radius
+                        - 'unit' : str - Unit of tip radius
         """
         info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
         if self.unit is not None:
@@ -286,12 +291,12 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
         """
         return NotImplementedError
 
-    def positions_and_heights(self):
+    def positions_and_heights(self, **kwargs):
         """
         Returns array containing the lateral positions and the topography
         data.
         """
-        p = self.positions()
+        p = self.positions(**kwargs)
         h = self.heights()
         try:
             x, y = p
@@ -337,12 +342,12 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
-    def positions_and_heights(self):
+    def positions_and_heights(self, **kwargs):
         """
         Returns array containing the lateral positions and the topography
         data.
         """
-        return self.positions(), self.heights()
+        return self.positions(**kwargs), self.heights()
 
     @property
     def is_MPI(self):

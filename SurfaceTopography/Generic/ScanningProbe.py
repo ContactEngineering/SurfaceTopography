@@ -29,7 +29,7 @@ Analysis functions related to scanning-probe microscopy
 import numpy as np
 import scipy
 
-from SurfaceTopography.HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
+from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
 def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):

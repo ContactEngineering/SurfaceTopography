@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 """
 Tests for power-spectral density analysis
 """
@@ -219,7 +220,7 @@ def test_short_cutoff():
 
     x, y = t.positions_and_heights()
 
-    assert_almost_equal(np.max(q1), 2 * np.pi / np.mean(np.diff(x)))
+    assert abs(np.max(q1) - 2 * np.pi / np.mean(np.diff(x))) < 0.01
     assert abs(np.max(q2) - 2 * np.pi / np.min(np.diff(x))) < 0.03
     assert abs(np.max(q3) - 2 * np.pi / np.max(np.diff(x))) < 0.02
 
@@ -301,3 +302,26 @@ def test_q0_2D():
     ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
     assert ratio > 0.2
     assert ratio < 5
+
+
+def test_reliability_cutoff():
+    surf = fourier_synthesis([1024, 512], [2.3, 2.4], 0.8, rms_height=0.87, unit='um', info={
+        'instrument': {
+            'tip_radius': {
+                'value': 0.001,
+                'unit': 'um'
+            }
+        }
+    })
+
+    # 1D
+    q1, C1 = surf.power_spectrum_from_profile(reliable=True)
+    q2, C2 = surf.power_spectrum_from_profile(reliable=False)
+    assert len(q1) < len(q2)
+    assert q1.max() < q2.max()
+
+    # 2D
+    q1, C1 = surf.power_spectrum_from_area(reliable=True)
+    q2, C2 = surf.power_spectrum_from_area(reliable=False)
+    assert len(q1) < len(q2)
+    assert q1.max() < q2.max()

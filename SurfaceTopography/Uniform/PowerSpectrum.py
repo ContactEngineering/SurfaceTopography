@@ -35,7 +35,8 @@ from ..HeightContainer import UniformTopographyInterface
 
 
 def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
-                                window=None):
+                                window=None,
+                                reliable=True):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan
     stored on a uniform grid.
@@ -46,8 +47,10 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
-        Default: no window for periodic Topographies, "hann" window for
-        nonperiodic Topographies
+        (Default: no window for periodic Topographies, "hann" window for
+        nonperiodic Topographies)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
 
     Returns
     -------
@@ -82,6 +85,14 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
     C_all[1:nx // 2, ...] += C_raw[nx - 1:(nx + 1) // 2:-1, ...]
     C_all /= 2
 
+    if reliable:
+        # Only keep reliable data
+        short_cutoff = topography.short_reliability_cutoff()
+        if short_cutoff is not None:
+            mask = q < 2 * np.pi / short_cutoff
+            q = q[mask]
+            C_all = C_all[mask]
+
     if topography.dim == 1:
         return q, C_all
     else:
@@ -90,8 +101,9 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
 
 def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-name
                              bin_edges='log',
-                             window=None, normalize_window=True,
-                             return_map=False):
+                             window=None,
+                             return_map=False,
+                             reliable=True):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
@@ -115,10 +127,10 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
-    normalize_window : bool, optional
-        Normalize window to unit mean. (Default: True)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
 
     Returns
     -------
@@ -130,6 +142,14 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     nx, ny = topography.nb_grid_pts
     sx, sy = topography.physical_sizes
 
+    qmax = 2 * np.pi * nx / (2 * sx)
+
+    if reliable:
+        # Update qmax
+        short_cutoff = topography.short_reliability_cutoff()
+        if short_cutoff is not None:
+            qmax = 2 * np.pi / short_cutoff
+
     h = topography.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
@@ -138,14 +158,17 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
 
     # Radial average
     q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, rmax=2 * np.pi * nx / (2 * sx),
+        C_qk, rmax=qmax,
         nbins=nbins, bin_edges=bin_edges,
         physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
+    q_val = q_val[n > 0]
+    C_val = C_val[n > 0]
+
     if return_map:
-        return q_val[n > 0], C_val[n > 0], C_qk
+        return q_val, C_val, C_qk
     else:
-        return q_val[n > 0], C_val[n > 0]
+        return q_val, C_val
 
 
 # Register analysis functions from this module

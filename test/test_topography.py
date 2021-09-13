@@ -438,7 +438,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
 
     def test_noniform_mean_zero(self):
         surface = fourier_synthesis((512,), (1.3,), 0.8,
-                                    rms_height=1).to_nonuniform()
+                                    rms_height=1, periodic=False).to_nonuniform()
         self.assertTrue(not surface.is_uniform)
         x, h = surface.positions_and_heights()
         s, = surface.physical_sizes
@@ -574,7 +574,7 @@ def test_di_orientation():
 
 
 def test_wrapped_x_range():
-    t = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1).to_nonuniform()
+    t = fourier_synthesis((128,), (1,), 0.8, rms_slope=0.1, periodic=False).to_nonuniform()
     x = t.positions()
     np.testing.assert_almost_equal(t.x_range[0], x[0])
     np.testing.assert_almost_equal(t.x_range[1], x[-1])

@@ -34,7 +34,7 @@ from ..common import radial_average
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_from_profile(topography, direction=0):
+def autocorrelation_from_profile(topography, direction=0, reliable=True):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -61,6 +61,8 @@ def autocorrelation_from_profile(topography, direction=0):
         Container storing the uniform topography map
     direction : int
         Cartesian direction in which to compute the ACF
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
 
     Returns
     -------
@@ -122,13 +124,19 @@ def autocorrelation_from_profile(topography, direction=0):
 
         r = sx * np.arange(nx) / nx
 
+    # The factor of two comes from the fact that the short cutoff is estimated
+    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    short_cutoff = topography.short_reliability_cutoff() if reliable else None
+    if short_cutoff is None:
+        short_cutoff = -1  # Include zero distance
+    mask = r > short_cutoff / 2
     if topography.dim == 2:
-        return r, A.mean(axis=1)
+        return r[mask], A.mean(axis=1)[mask]
     else:
-        return r, A
+        return r[mask], A[mask]
 
 
-def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_map=False):
+def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_map=False, reliable=True):
     """
     Compute height-difference autocorrelation function and radial average.
 
@@ -149,6 +157,8 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
         (Default: 'log')
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
 
     Returns
     -------
@@ -203,14 +213,18 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
             A_xy, rmax=(sx + sy) / 2, nbins=nbins, bin_edges=bin_edges,
             physical_sizes=(sx, sy), full=False)
 
+    # The factor of two comes from the fact that the short cutoff is estimated
+    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    short_cutoff = topography.short_reliability_cutoff() if reliable else None
+    if short_cutoff is None:
+        short_cutoff = -1  # Include zero distance
+    mask = np.logical_and(n > 0, r_val > short_cutoff / 2)
     if return_map:
-        return r_val[n > 0], A_val[n > 0], A_xy
+        return r_val[mask], A_val[mask], A_xy
     else:
-        return r_val[n > 0], A_val[n > 0]
+        return r_val[mask], A_val[mask]
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('autocorrelation_from_profile',
-                                             autocorrelation_from_profile)
-UniformTopographyInterface.register_function('autocorrelation_from_area',
-                                             autocorrelation_from_area)
+UniformTopographyInterface.register_function('autocorrelation_from_profile', autocorrelation_from_profile)
+UniformTopographyInterface.register_function('autocorrelation_from_area', autocorrelation_from_area)

@@ -26,7 +26,8 @@
 from ..HeightContainer import UniformTopographyInterface
 
 
-def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None):
+def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None,
+                                         interpolation='linear'):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -65,6 +66,13 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
     unit : str
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
+    interpolation : str, optional
+        Interpolation method to use for computing derivatives at distances
+        that do not equal an integer multiple of the grid spacing. Use
+        'linear' for a local liner interpolation or 'fourier' for global
+        Fourier interpolation. Note that Fourier interpolation carries large
+        errors for nonperiodic topographies and should be used with care.
+        (Default: 'linear')
 
     Returns
     -------
@@ -73,21 +81,33 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
 
     Examples
     --------
-    This example yields the the height-difference autocorrelation function in
-    the x-direction:
+    This example yields the the scale-dependent derivative (equivalent to
+    the autocorrelation function divided by the distance) in the x-direction:
 
     >>> distances, A = t.autocorrelation_from_profile()
-    >>>> s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])
-
-    `A` and `s` are identical.
+    >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
+    >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
-    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance)
+    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation)
     if topography.dim == 1:
-        return [func(_d) for _d in d]
+        try:
+            if scale_factor is not None:
+                iter(scale_factor)
+            if distance is not None:
+                iter(distance)
+            return [func(_d) for _d in d]
+        except TypeError:
+            return func(d)
     else:
-        dx, dy = d
-        return [func(dx, dy) for dx, dy in zip(*d)]
+        try:
+            if scale_factor is not None:
+                iter(scale_factor)
+            if distance is not None:
+                iter(distance)
+            return [func(dx, dy) for dx, dy in zip(*d)]
+        except TypeError:
+            return func(*d)
 
 
-UniformTopographyInterface.register_function('scale_dependent_statistical_property',
-                                             scale_dependent_statistical_property)
+UniformTopographyInterface.register_function(
+    'scale_dependent_statistical_property', scale_dependent_statistical_property)

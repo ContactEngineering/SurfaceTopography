@@ -30,70 +30,8 @@ representations.
 
 import numpy as np
 
-from .HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
-from .NonuniformLineScan import NonuniformLineScan, DecoratedNonuniformTopography
-from .UniformLineScanAndTopography import UniformLineScan, DecoratedUniformTopography
-
-
-class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
-    """
-    Wrap a uniform topography into a nonuniform one.
-    """
-
-    def __init__(self, topography, info={}):
-        """
-        Parameters
-        ----------
-        topography : :obj:`NonuniformLineScan`
-            SurfaceTopography to wrap.
-        """
-        super().__init__(topography, info=info)
-
-        # This is populated with functions from the nonuniform topography, but
-        # this is a uniform topography
-        self._functions = NonuniformLineScan._functions
-
-    # Implement abstract methods of AbstractHeightContainer
-
-    @property
-    def dim(self):
-        return 1
-
-    @property
-    def physical_sizes(self):
-        s, = self.parent_topography.physical_sizes
-        p, = self.parent_topography.pixel_size
-        return s - p,
-
-    @property
-    def is_periodic(self):
-        return False
-
-    # Implement nonuniform line scan interface
-
-    @property
-    def nb_grid_pts(self):
-        return self.parent_topography.nb_grid_pts
-
-    @property
-    def x_range(self):
-        s, = self.parent_topography.physical_sizes
-        p, = self.parent_topography.pixel_size
-        return 0, s - p
-
-    def positions(self):
-        """
-        Returns array containing the lateral positions.
-        """
-        r, = self.parent_topography.nb_grid_pts
-        p, = self.parent_topography.pixel_size
-        return np.arange(r) * p
-
-    def heights(self):
-        """
-        Returns array containing the topography data.
-        """
-        return self.parent_topography.heights()
+from SurfaceTopography.HeightContainer import NonuniformLineScanInterface
+from SurfaceTopography.UniformLineScanAndTopography import UniformLineScan, DecoratedUniformTopography
 
 
 class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
@@ -101,11 +39,13 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
     Interpolate a topography onto a uniform grid.
     """
 
-    def __init__(self, topography, nb_points=None, padding=0, nb_interpolate=None, info={}):
+    def __init__(self, topography, nb_points=None, padding=0, nb_interpolate=None, pixel_size=None, info={}):
         """
         Convert a nonuniform line scan to a uniform line scan by explicit
         linear interpolation between the discrete coordinates of the
         nonuniform scan.
+
+        `nb_points`, `nb_interpolate` or `pixel_size` needs to be specified.
 
         Parameters
         ----------
@@ -118,42 +58,55 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
         padding : int, optional
             Number of padding grid points, zeros appended to the data.
             (Default: 0)
-        nb_interpolate : int
+        nb_interpolate : int, optional
             Number of grid points to between closest points on surface.
             (Default: None)
+        pixel_size : float, optional
+            Grid spacing. (Default: None)
         """
         super().__init__(topography, info=info)
         self.nb_points = nb_points
         self.nb_interpolate = nb_interpolate
-        self._update_nb_points()
         self.padding = padding
+        self.in_pixel_size = pixel_size
+        self._update_nb_points_and_pixel_size()
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography
         self._functions = UniformLineScan._functions
 
-    def _update_nb_points(self):
-        """Automatically compute nb_points if it is None"""
-        if self.nb_points is None:
-            if self.nb_interpolate is None:
-                raise ValueError('You need to specify either `nb_points` or `nb_interpolate`.')
-            s, = self.parent_topography.physical_sizes
-            x = self.parent_topography.positions()
-            min_dist = np.min(np.diff(x))
-            if min_dist <= 0:
-                raise RuntimeError('This is a reentrant nonuniform line scan. Reentrant line scans cannot be converted '
-                                   'to uniform line scans.')
+    def _update_nb_points_and_pixel_size(self):
+        """Automatically compute `nb_points` and `pixel_size` if it is None"""
+        s, = self.parent_topography.physical_sizes
+        x = self.parent_topography.positions()
+        min_dist = np.min(np.diff(x))
+        if min_dist <= 0:
+            raise RuntimeError('This is a reentrant nonuniform line scan. Reentrant line scans cannot be converted '
+                               'to uniform line scans.')
+
+        if self.in_pixel_size is not None:
+            if self.nb_points is not None or self.nb_interpolate is not None:
+                raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
+            self._nb_points = int(s / self.in_pixel_size) + 1
+            self._pixel_size = self.in_pixel_size
+        elif self.nb_interpolate is not None:
+            if self.nb_points is not None or self.in_pixel_size is not None:
+                raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
             self._nb_points = self.nb_interpolate * int(s / min_dist)
-        else:
-            if self.nb_interpolate is not None:
-                raise ValueError('You cannot specify both, `nb_points` and `nb_interpolate`.')
+            self._pixel_size = s / (self._nb_points - 1)
+        elif self.nb_points is not None:
+            if self.nb_interpolate is not None or self.in_pixel_size is not None:
+                raise ValueError('You need to specify either `nb_points`, `nb_interpolate` or `pixel_size`.')
             self._nb_points = self.nb_points
+            self._pixel_size = s / (self._nb_points - 1)
+        else:
+            raise ValueError('You need to specify one of `nb_points`, `nb_interpolate` or `pixel_size`.')
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self.nb_points, self.padding, self.nb_interpolate
+        state = super().__getstate__(), self.nb_points, self.padding, self.nb_interpolate, self.in_pixel_size
         return state
 
     def __setstate__(self, state):
@@ -161,9 +114,9 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self.nb_points, self.padding, self.nb_interpolate = state
-        self._update_nb_points()
+        superstate, self.nb_points, self.padding, self.nb_interpolate, self.in_pixel_size = state
         super().__setstate__(superstate)
+        self._update_nb_points_and_pixel_size()
 
     # Implement abstract methods of AbstractHeightContainer
 
@@ -173,8 +126,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
     @property
     def physical_sizes(self):
-        s, = self.parent_topography.physical_sizes
-        return s * (self._nb_points + self.padding) / self._nb_points,
+        return (self._nb_points + self.padding - 1) * self._pixel_size,
 
     @property
     def is_periodic(self):
@@ -193,22 +145,18 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
     @property
     def pixel_size(self):
-        return tuple(s / r for s, r in zip(self.physical_sizes, self.nb_grid_pts))
+        return self._pixel_size,
 
     @property
     def area_per_pt(self):
-        return self.pixel_size
+        return self._pixel_size
 
     @property
     def has_undefined_data(self):
         return False
 
     def positions(self):
-        left, right = self.parent_topography.x_range
-        size = right - left
-        return np.linspace(left - size * self.padding / (2 * self._nb_points),
-                           right + size * self.padding / (2 * self._nb_points),
-                           self._nb_points + self.padding)
+        return np.arange(self._nb_points + self.padding) * self._pixel_size
 
     def heights(self):
         """ Computes the rescaled profile.
@@ -218,5 +166,4 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
 
 # Register pipeline functions from this module
-UniformTopographyInterface.register_function('to_nonuniform', WrapAsNonuniformLineScan)
 NonuniformLineScanInterface.register_function('to_uniform', UniformlyInterpolatedLineScan)

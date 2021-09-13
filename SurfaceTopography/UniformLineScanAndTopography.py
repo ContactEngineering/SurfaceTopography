@@ -61,8 +61,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         unit : str, optional
             The length unit.
         info : dict, optional
-            The info dictionary containing auxiliary data. This data is never
-            used by SurfaceTopography but can be used by third-party codes.
+            The info dictionary containing auxiliary data.
         """
         if not hasattr(heights, 'ndim'):
             heights = np.array(heights)
@@ -134,7 +133,20 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     def has_undefined_data(self):
         return np.ma.getmask(self._heights) is not np.ma.nomask
 
-    def positions(self):
+    def positions(self, meshgrid=True):
+        """
+        Return grid positions.
+
+        Arguments
+        ---------
+        meshgrid : bool, optional
+            Ignore, for compatibility with two-dimensional topographies
+
+        Returns
+        -------
+        x : np.ndarray
+            X-positions
+        """
         r, = self.nb_grid_pts
         p, = self.pixel_size
         return np.arange(r) * p
@@ -192,8 +204,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         unit : str, optional
             The length unit.
         info : dict, optional
-            The info dictionary containing auxiliary data. This data is never
-            used by SurfaceTopography but can be used by third-party codes.
+            The info dictionary containing auxiliary data.
         decomposition : str, optional
             Specification of the data decomposition of the heights array. If
             set to 'subdomain', the heights array contains only the part of
@@ -364,21 +375,38 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                 self._heights) is not np.ma.nomask and np.ma.getmask(
                 self._heights).sum() > 0)
 
-    def positions(self):
+    def positions(self, meshgrid=True):
+        """
+        Return grid positions.
+
+        Arguments
+        ---------
+        meshgrid : bool, optional
+            If True, return the position on the same grid as the heights.
+            Otherwise, return one-dimensional position arrays. (Default: True)
+
+        Returns
+        -------
+        x : np.ndarray
+            X-positions
+        y : np.ndarray
+            Y-positions
+        """
         # FIXME: Write test for this method
         nx, ny = self.nb_grid_pts
         lnx, lny = self.nb_subdomain_grid_pts
         sx, sy = self.physical_sizes
-        return np.meshgrid(
-            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
-            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
-            indexing='ij')
+        x = (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx
+        y = (self.subdomain_locations[1] + np.arange(lny)) * sy / ny
+        if meshgrid:
+            x, y = np.meshgrid(x, y, indexing='ij')
+        return x, y
 
     def heights(self):
         return self._heights
 
-    def positions_and_heights(self):
-        x, y = self.positions()
+    def positions_and_heights(self, **kwargs):
+        x, y = self.positions(**kwargs)
         return x, y, self.heights()
 
     @property
@@ -450,14 +478,14 @@ class DecoratedUniformTopography(DecoratedTopography,
     def area_per_pt(self):
         return self.parent_topography.area_per_pt
 
-    def positions(self):
-        return self.parent_topography.positions()
+    def positions(self, **kwargs):
+        return self.parent_topography.positions(**kwargs)
 
-    def positions_and_heights(self):
+    def positions_and_heights(self, **kwargs):
         if self.dim == 1:
-            return self.positions(), self.heights()
+            return self.positions(**kwargs), self.heights()
         else:
-            return (*self.positions(), self.heights())
+            return (*self.positions(**kwargs), self.heights())
 
     def squeeze(self):
         if self.dim == 1:
@@ -511,12 +539,12 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         """Compute rescaled physical sizes."""
         return tuple(self.position_scale_factor * s for s in super().physical_sizes)
 
-    def positions(self):
+    def positions(self, **kwargs):
         """Compute the rescaled positions."""
         if self.dim == 1:
-            return self.position_scale_factor * super().positions()
+            return self.position_scale_factor * super().positions(**kwargs)
         else:
-            return tuple(self.position_scale_factor * p for p in super().positions())
+            return tuple(self.position_scale_factor * p for p in super().positions(**kwargs))
 
     def heights(self):
         """Computes the rescaled profile."""
@@ -586,23 +614,12 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     to the topography data to extract trend lines. The resulting topography
     is then detrended by substracting these trend lines.
 
-    Note on periodicity: Detrended Topographies with mode other than "center"
+    Note on periodicity: Detrended Topographies with mode other than 'center'
     will have `is_periodic` property set to False.
-
-    Parameters
-    ----------
-    detrend_mode : str
-        'center': center the topography, no trend correction.
-        'height': adjust slope such that rms height is minimized.
-        'slope': adjust slope such that rms slope is minimized.
-        'curvature': adjust slope and curvature such that rms height is
-        minimized.
-        (Default: 'height')
     """
 
     def __init__(self, topography, detrend_mode='height', info={}):
         """
-
         Note on periodicity: Detrended Topographies with mode other than
         "center" will have `is_periodic` property set to False.
 
@@ -765,19 +782,12 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
     @property
     def curvatures(self):
-        """
-        convenience function that computes the curvatures
-        :math:`\rho = \frac{1}{R}` of the fitted plane
+        r"""
+        Curvature(s) of the fitted plane.
 
         Returns
         -------
-        tuple
-
-        dim = 1:
-        :math:`\rho` = 1 / R
-        dim = 2:
-        :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}`
-
+        :math:`\rho = 1 / R` for line scans or tuple :math:`\rho_{xx}, \rho_{yy}, \rho_{xy}` for topographies
         """
 
         if self.dim == 1:
@@ -840,8 +850,8 @@ class TransposedUniformTopography(DecoratedUniformTopography):
         """
         return self.parent_topography.heights().T
 
-    def positions(self):
-        X, Y = self.parent_topography.positions()
+    def positions(self, **kwargs):
+        X, Y = self.parent_topography.positions(**kwargs)
         return Y.T, X.T
 
 

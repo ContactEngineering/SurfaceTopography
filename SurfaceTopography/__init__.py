@@ -36,20 +36,25 @@ from .Special import make_sphere, PlasticTopography  # noqa: F401
 from .UniformLineScanAndTopography import Topography, UniformLineScan  # noqa: F401
 
 # These imports are required to register the analysis functions!
-import SurfaceTopography.Converters  # noqa: F401
+import SurfaceTopography.Uniform.Converters  # noqa: F401
 import SurfaceTopography.Generic.Curvature  # noqa: F401
+import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
 import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
+import SurfaceTopography.Nonuniform.Converters  # noqa: F401
+import SurfaceTopography.Nonuniform.Derivative  # noqa: F401
+import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Nonuniform.ScalarParameters  # noqa: F401
-import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.VariableBandwidth  # noqa: F401
 import SurfaceTopography.Uniform.common  # noqa: F401
-import SurfaceTopography.Uniform.Interpolation  # noqa: F401
-import SurfaceTopography.Uniform.Filtering  # noqa: F401
 import SurfaceTopography.Uniform.Autocorrelation  # noqa: F401
+import SurfaceTopography.Uniform.Converters  # noqa: F401
+import SurfaceTopography.Uniform.Derivative  # noqa: F401
+import SurfaceTopography.Uniform.Filtering  # noqa: F401
+import SurfaceTopography.Uniform.Interpolation  # noqa: F401
 import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Uniform.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
