@@ -38,7 +38,7 @@ def derivative(topography, n):
     topographies.
 
     First derivative: Central differences.
-    
+
     Second derivative: Expand :math:`h(x+\Delta x_+)` and :math:`(x-\Delta x_-)` up to second order in the grid
     spacing :math:`\Delta x_+` and :math:`\Delta x_+`. Then
     :math:`\Delta x_- f(x+\Delta x_+) + \Delta x_+ f(x+\Delta x_-)` yields:
