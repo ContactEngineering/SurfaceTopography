@@ -15,6 +15,7 @@ v0.96.0 (13Sep21)
 - ENH: Tip radius reliability analysis (#116)
 - ENH: Third derivatives
 - DOC: Include description for PyPI package (#102)
+- API: `to_nonuniform` now only works with nonperiodic uniform line scans
 
 v0.95.2 (9Sep21)
 ----------------
