@@ -7,6 +7,15 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies  will disappear
 
+v0.96.0 (13Sep21)
+-----------------
+
+- ENH: Generic scale-dependent statistical properties for containers (#116)
+- ENH: Linear interpolation for derivatives at arbitrary distances (#128)
+- ENH: Tip radius reliability analysis (#116)
+- ENH: Third derivatives
+- DOC: Include description for PyPI package (#102)
+
 v0.95.2 (9Sep21)
 ----------------
 
