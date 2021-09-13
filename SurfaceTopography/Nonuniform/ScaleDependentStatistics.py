@@ -23,10 +23,11 @@
 # SOFTWARE.
 #
 
+from ..common import toiter, fromiter
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None, nb_interpolate=5):
+def scale_dependent_statistical_property(self, func, n, distance, interpolation='linear'):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -40,7 +41,7 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    self : Topography or UniformLineScan
         Topogaphy or line scan.
     func : callable
         The function that computes the statistical properties:
@@ -54,20 +55,15 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
         return a scalar value or an array, but the array size must be fixed.
     n : int, optional
         Order of derivative. (Default: 1)
-    scale_factor : float or np.ndarray
-        Scale factor for rescaling the finite differences stencil. A scale
-        factor of unity means the derivative is computed at the size of the
-        individual pixel.
     distance : float or np.ndarray
         Characteristic distances at which the derivatives are computed. If
         this is an array, then the statistical property is computed at each
         of these distances.
-    unit : str
-        Unit of the distance array. All topographies are converted to this
-        unit before the derivative is computed.
-    nb_interpolate : int
-        Number of grid points to put between closest points on surface. Only
-        used for 'fft' algorithm. (Default: 5)
+    interpolation : str, optional
+        Interpolation method to use for computing derivatives. Can only be
+        'linear' for nonuniform line scans and is provided for compatibility
+        with the corresponding keyword parameter of the uniform containers.
+        (Default: 'linear')
 
     Returns
     -------
@@ -76,16 +72,24 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
 
     Examples
     --------
-    This example yields the the height-difference autocorrelation function in
-    the x-direction:
+    Examples
+    --------
+    This example yields the the scale-dependent derivative (equivalent to
+    the autocorrelation function divided by the distance) in the x-direction:
 
     >>> distances, A = t.autocorrelation_from_profile()
-    >>>> s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=distances[1::20])
-
-    `A` and `s` are identical.
+    >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
+    >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
-    return topography.to_uniform(nb_interpolate=nb_interpolate).scale_dependent_statistical_property(
-        func=func, n=n, scale_factor=scale_factor, distance=distance)
+    if interpolation != 'linear':
+        raise ValueError('Only linear interpolation is support for scale-dependent statistical properties of '
+                         'nonuniform line scans.')
+
+    stat = [self.to_uniform(pixel_size=d / n)
+                .scale_dependent_statistical_property(func=func, n=n, scale_factor=1, interpolation='disable')
+            for d in toiter(distance)]
+
+    return fromiter(stat, distance)
 
 
 NonuniformLineScanInterface.register_function('scale_dependent_statistical_property',

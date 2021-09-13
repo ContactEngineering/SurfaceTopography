@@ -135,7 +135,7 @@ def test_self_affine_topography_1d():
     r = 16384
     for H in [0.3, 0.8]:
         t0 = fourier_synthesis((r,), (1,), H, rms_slope=0.1,
-                               amplitude_distribution=lambda n: 1.0)
+                               amplitude_distribution=lambda n: 1.0, periodic=False)
 
         for t in [t0, t0.to_nonuniform()]:
             mag, bwidth, rms = t.variable_bandwidth_from_profile(nb_grid_pts_cutoff=r // 32)

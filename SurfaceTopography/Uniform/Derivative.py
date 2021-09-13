@@ -29,6 +29,7 @@ import numpy as np
 
 import muFFT
 
+from ..common import toiter
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import Topography
 
@@ -133,17 +134,17 @@ def trim_nonperiodic(arr, scale_factor, op):
 
     # Loop over dimension and add slicing information to `trimmed_slice`
     trimmed_slice = []
-    for L, r, s in zip(lbounds, rbounds, scale_factor):
+    for left, right, s in zip(lbounds, rbounds, scale_factor):
         # This is the leftmost distance in the stencil from the point where the derivative is computed
         # This value is always positive (or zero), i.e. it truncates the start of the array
-        L = np.ceil(-s * min(L, 0))
+        left = np.ceil(-s * min(left, 0))
         # This is the rightmost distance in the stencil from the point where the derivative is computed
         # This value is always negative (or zero), i.e. it truncates the end of the array
-        r = np.floor(-s * max(0, r - 1))
-        # If r is zero, we set it to None to indicate that nothing is truncated from the end of the array
-        if r == 0:
-            r = None
-        trimmed_slice += [slice(int(L), None if r is None else int(r))]
+        right = np.floor(-s * max(0, right - 1))
+        # If right is zero, we set it to None to indicate that nothing is truncated from the end of the array
+        if right == 0:
+            right = None
+        trimmed_slice += [slice(int(left), None if right is None else int(right))]
 
     return arr[tuple(trimmed_slice)]
 
@@ -163,13 +164,13 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         Integer factor that scales the stencil difference, i.e.
         specifying 2 will compute the derivative using a discrete step of
         2 * px. Either `scale_factor` or `distance` can be specified.
-        - Single int: Returns a single derivative scaled in all directions
-          with this value
-        - List of ints: Returns multiple derivatives, each scaled in all
-          direction with the respective value from the list
-        - List of tuples of ints: Each tuple contains a scale factor in
-          the two Cartesian (x- and y-) directions. Return multiple
-          derivatives, scaled with different factors in both directions.
+            - Single int: Returns a single derivative scaled in all directions
+              with this value
+            - List of ints: Returns multiple derivatives, each scaled in all
+              direction with the respective value from the list
+            - List of tuples of ints: Each tuple contains a scale factor in
+              the two Cartesian (x- and y-) directions. Return multiple
+              derivatives, scaled with different factors in both directions.
         (Default: None)
     distance : float or list of floats, optional
         Explicit distance scale for computation of the derivative. Either
@@ -226,14 +227,6 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     else:
         raise ValueError("`interpolation` argument must be either 'linear', 'fourier' or 'disable'.")
 
-    def toiter(obj):
-        """If object is scalar, wrap it into a list"""
-        try:
-            iter(obj)
-            return obj
-        except TypeError:
-            return [obj]
-
     pixel_size = np.array(self.pixel_size)
 
     if scale_factor is None:
@@ -253,10 +246,9 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         raise ValueError('Please specify either `scale_factor` or `distance`')
 
     if np.any(np.asarray(scale_factor) < 1.0):
-        mask = np.asarray(scale_factor) < 1.0
-        raise ValueError(f'You specified values {scale_factor[mask]} for `scale_factor` which are smaller than unity. '
-                         'If you specified a specific `distance`, then this distance is smaller than the lower bound '
-                         'of the bandwidth of the surface.')
+        raise ValueError(f'You specified values {scale_factor} for `scale_factor`, some of which are smaller than '
+                         'unity. If you specified a specific `distance`, then this distance is smaller than the lower '
+                         'bound of the bandwidth of the surface.')
 
     is_periodic = self.is_periodic if periodic is None else periodic
 
@@ -285,8 +277,8 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
             scaled_pixel_size = s * pixel_size
             interpolation_required = np.any(s - s.astype(int) != 0)
             if interpolation_required and interpolation == 'disabled':
-                raise ValueError('Interpolation is required to compute derivative at desired scale but is disabled '
-                                 'by the user.')
+                raise ValueError('Interpolation is required to compute derivative at the desired scale but is '
+                                 'explicitly disabled through the `interpolation` argument.')
             if interpolation_required and linear is not None:
                 # We need to interpolate using the linear interpolator
                 lbounds = np.array(op.lbounds)

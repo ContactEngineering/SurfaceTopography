@@ -124,9 +124,9 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log',
     C_xy = np.ravel(C_xy)
     i_xy = np.searchsorted(dr_r, dr_xy)
 
-    n_r = np.bincount(i_xy, minlength=len(dr_r)+1)
-    dravg_r = np.bincount(i_xy, weights=dr_xy, minlength=len(dr_r)+1)
-    C_r = np.bincount(i_xy, weights=C_xy, minlength=len(dr_r)+1)
+    n_r = np.bincount(i_xy, minlength=len(dr_r) + 1)
+    dravg_r = np.bincount(i_xy, weights=dr_xy, minlength=len(dr_r) + 1)
+    C_r = np.bincount(i_xy, weights=C_xy, minlength=len(dr_r) + 1)
 
     nreg_r = np.where(n_r == 0, np.ones_like(n_r), n_r)
     dravg_r /= nreg_r
@@ -134,3 +134,21 @@ def radial_average(C_xy, rmax=None, nbins=None, bin_edges='log',
 
     # We discard the final element as it contains data points outside our binned region
     return np.append([0.0], dr_r), n_r[:-1], dravg_r[:-1], C_r[:-1]
+
+
+def toiter(obj):
+    """If `obj` is scalar, wrap it into a list"""
+    try:
+        iter(obj)
+        return obj
+    except TypeError:
+        return [obj]
+
+
+def fromiter(result, obj):
+    """If `obj` is scalar, return first element of result list"""
+    try:
+        iter(obj)
+        return result
+    except TypeError:
+        return result[0]

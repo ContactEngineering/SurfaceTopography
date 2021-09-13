@@ -45,8 +45,16 @@ class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
         ----------
         topography : :obj:`NonuniformLineScan`
             SurfaceTopography to wrap.
+        info : dict
+            Additional entries for the info dictionary.
         """
         super().__init__(topography, info=info)
+
+        if topography.dim != 1:
+            raise ValueError('Only (one-dimensional) uniform line scans can be turned into nonuniform line scans.')
+
+        if topography.is_periodic:
+            raise ValueError('Periodic uniform line scans cannot be turned into nonuniform line scans.')
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography

@@ -115,8 +115,8 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
         state -- result of __getstate__
         """
         superstate, self.nb_points, self.padding, self.nb_interpolate, self.in_pixel_size = state
-        self._update_nb_points_and_pixel_size()
         super().__setstate__(superstate)
+        self._update_nb_points_and_pixel_size()
 
     # Implement abstract methods of AbstractHeightContainer
 
@@ -156,11 +156,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
         return False
 
     def positions(self):
-        left, right = self.parent_topography.x_range
-        size = right - left
-        return np.linspace(left - size * self.padding / (2 * self._nb_points),
-                           right + size * self.padding / (2 * self._nb_points),
-                           self._nb_points + self.padding)
+        return np.arange(self._nb_points + self.padding) * self._pixel_size
 
     def heights(self):
         """ Computes the rescaled profile.

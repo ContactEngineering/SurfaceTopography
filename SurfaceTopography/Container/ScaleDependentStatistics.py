@@ -28,7 +28,7 @@ import numpy as np
 from .SurfaceContainer import SurfaceContainer
 
 
-def scale_dependent_statistical_property(container, func, n, distance, unit, reliable=True):
+def scale_dependent_statistical_property(container, func, n, distance, unit, interpolation='linear', reliable=True):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -70,6 +70,13 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, rel
     unit : str
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
+    interpolation : str, optional
+        Interpolation method to use for computing derivatives at distances
+        that do not equal an integer multiple of the grid spacing. Use
+        'linear' for a local liner interpolation or 'fourier' for global
+        Fourier interpolation. Note that Fourier interpolation carries large
+        errors for nonperiodic topographies and should be used with care.
+        (Default: 'linear')
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
 
@@ -115,7 +122,8 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, rel
         # Are there any distances left?
         if len(existing_distances) > 0:
             # Yes! Let's compute the statistical properties at these scales
-            stat = topography.scale_dependent_statistical_property(func, n=n, distance=existing_distances)
+            stat = topography.scale_dependent_statistical_property(
+                func, n=n, distance=existing_distances, interpolation=interpolation)
             # Append results to our return values
             for e, s in zip(existing_distances, stat):
                 if e in retvals:
