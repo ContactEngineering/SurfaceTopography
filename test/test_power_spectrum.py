@@ -300,16 +300,18 @@ def test_q0_2D():
     # This is really not quantitative, it's just checking whether it's the right ballpark.
     # Any bug in normalization would show up here as an order of magnitude
     ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
-    assert ratio > 0.2
+    assert ratio > 0.1
     assert ratio < 5
 
 
 def test_reliability_cutoff():
     surf = fourier_synthesis([1024, 512], [2.3, 2.4], 0.8, rms_height=0.87, unit='um', info={
         'instrument': {
-            'tip_radius': {
-                'value': 0.001,
-                'unit': 'um'
+            'parameters': {
+                'tip_radius': {
+                    'value': 0.001,
+                    'unit': 'um'
+                }
             }
         }
     })
