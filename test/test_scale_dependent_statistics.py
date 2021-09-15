@@ -93,3 +93,11 @@ def test_large_container_mixed():
     distances = np.logspace(np.log10(0.001), np.log10(1000), 11)
     s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, unit='um', distance=distances)
     assert not np.any(np.isnan(s))
+
+
+@pytest.mark.skip('Run this if have a one of the big diamond containers download from contact.engineering')
+def test_large_container_power_spectrum():
+    c, = read_container('/home/pastewka/Downloads/surface.zip')
+    for t in c:
+        q, C = t.power_spectrum_from_profile()
+        print(t.info['datafile']['original'], len(q))
