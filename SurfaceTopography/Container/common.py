@@ -26,14 +26,13 @@
 #
 
 """
-Bin for small common helper function and classes for nonuniform
-topographies.
+Bin for small common helper function and classes for containers.
 """
 
 import numpy as np
 
 from .SurfaceContainer import SurfaceContainer
-from ..UnitConversion import get_unit_conversion_factor
+from ..UnitConversion import get_unit_conversion_factor, length_units
 
 
 def bandwidth(self, unit):
@@ -68,5 +67,23 @@ def bandwidth(self, unit):
     return global_lower, global_upper
 
 
+def suggest_length_unit(self):
+    """
+    Compute a suggestion for a unit to diplay container-wider information.
+    The unit is chose to minimize number of digits to the left and right of
+    the decimal point.
+    """
+    lower, upper = self.bandwidth(unit='m')
+    l10 = int(np.floor(np.log10(lower)))
+    u10 = int(np.ceil(np.log10(upper)))
+    m10 = 3 * int(np.ceil((l10 + u10) / 6))
+    fac = 10 ** m10
+    for key, value in length_units.items():
+        if value == fac:
+            return key
+    raise ValueError(f'Cannot find unit for scale prefix {fac}.')
+
+
 # Register analysis functions from this module
 SurfaceContainer.register_function('bandwidth', bandwidth)
+SurfaceContainer.register_function('suggest_length_unit', suggest_length_unit)

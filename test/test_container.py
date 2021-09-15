@@ -29,7 +29,7 @@ import numpy as np
 
 from SurfaceTopography import read_container
 
-def test_container_uniform(file_format_examples):
+def test_bandwidth_and_unit_suggestion(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
     upper_um, lower_um = c.bandwidth(unit='um')
     upper_mm, lower_mm = c.bandwidth(unit='mm')
@@ -37,3 +37,4 @@ def test_container_uniform(file_format_examples):
     np.testing.assert_almost_equal(lower_um, 100)
     np.testing.assert_almost_equal(upper_um, upper_mm * 1000)
     np.testing.assert_almost_equal(lower_um, lower_mm * 1000)
+    assert c.suggest_length_unit() == 'um'
