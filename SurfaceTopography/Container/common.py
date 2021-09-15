@@ -32,15 +32,24 @@ topographies.
 
 import numpy as np
 
-from ..HeightContainer import NonuniformLineScanInterface
+from .SurfaceContainer import SurfaceContainer
+from ..UnitConversion import get_unit_conversion_factor
 
 
-def bandwidth(self):
+def bandwidth(self, unit):
     """
     Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
-    length scales occurring on a topography. The lower end of the bandwidth is
-    given by the mean of the spacing of the individual points on the line
-    scan. The upper bound is given by the overall length of the line scan.
+    length scales occurring on any topography within the container. The lower
+    end of the bandwidth is given by the mean of the spacing of the individual
+    points on the line scan. The upper bound is given by the overall length of
+    the line scan.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit for reporting the bandwidths.
 
     Returns
     -------
@@ -49,12 +58,15 @@ def bandwidth(self):
     upper_bound : float
         Upper bound of the bandwidth.
     """
-    x = self.positions()
-    lower_bound = np.mean(np.diff(x))
-    upper_bound, = self.physical_sizes
+    global_lower = global_upper = None
+    for topography in self:
+        current_lower, current_upper = topography.bandwidth()
+        fac = get_unit_conversion_factor(topography.unit, unit)
+        global_lower = current_lower * fac if global_lower is None else min(global_lower, current_lower * fac)
+        global_upper = current_upper * fac if global_upper is None else max(global_upper, current_upper * fac)
 
-    return lower_bound, upper_bound
+    return global_lower, global_upper
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
+SurfaceContainer.register_function('bandwidth', bandwidth)

@@ -17,6 +17,21 @@ v0.96.0 (13Sep21)
 - DOC: Include description for PyPI package (#102)
 - API: `to_nonuniform` now only works with nonperiodic uniform line scans
 
+v0.97.0 (not yet released)
+--------------------------
+
+- ENH: `bandwidth` function for containers
+
+v0.96.0 (13Sep21)
+-----------------
+
+- ENH: Generic scale-dependent statistical properties for containers (#116)
+- ENH: Linear interpolation for derivatives at arbitrary distances (#128)
+- ENH: Tip radius reliability analysis (#116)
+- ENH: Third derivatives
+- DOC: Include description for PyPI package (#102)
+- API: `to_nonuniform` now only works with nonperiodic uniform line scans
+
 v0.95.2 (9Sep21)
 ----------------
 

@@ -27,4 +27,5 @@
 from .IO import read_container, read_published_container  # noqa: F401
 from .SurfaceContainer import SurfaceContainer  # noqa: F401
 
+import SurfaceTopography.Container.common  # noqa: F401
 import SurfaceTopography.Container.ScaleDependentStatistics  # noqa: F401
