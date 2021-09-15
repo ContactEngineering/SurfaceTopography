@@ -28,7 +28,7 @@ import numpy as np
 from .SurfaceContainer import SurfaceContainer
 
 
-def scale_dependent_statistical_property(container, func, n, distance, unit, interpolation='linear', reliable=True):
+def scale_dependent_statistical_property(self, func, n, distance, unit, interpolation='linear', reliable=True):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -49,7 +49,7 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, int
 
     Parameters
     ----------
-    container : SurfaceContainer
+    self : SurfaceContainer
         Container object containing the underlying data sets.
     func : callable
         The function that computes the statistical properties:
@@ -104,7 +104,8 @@ def scale_dependent_statistical_property(container, func, n, distance, unit, int
     """
     retvals = {}
     distance = np.array(distance)
-    for topography in container:
+    for topography in self:
+        topography = topography.topography()  # This way, container can be a list of readers or database objects
         topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography...

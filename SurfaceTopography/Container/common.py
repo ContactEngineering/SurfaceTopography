@@ -59,6 +59,7 @@ def bandwidth(self, unit):
     """
     global_lower = global_upper = None
     for topography in self:
+        topography = topography.topography()  # This way, container can be a list of readers or database objects
         current_lower, current_upper = topography.bandwidth()
         fac = get_unit_conversion_factor(topography.unit, unit)
         global_lower = current_lower * fac if global_lower is None else min(global_lower, current_lower * fac)
