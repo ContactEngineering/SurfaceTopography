@@ -150,7 +150,7 @@ def trim_nonperiodic(arr, scale_factor, op):
 
 
 def derivative(self, n, scale_factor=None, distance=None, operator=None, periodic=None, mask_function=None,
-               interpolation='linear'):
+               interpolation='linear', progress_callback=None):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
@@ -200,6 +200,9 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         interpolation is necessary. Note that Fourier interpolation carries
         large errors for nonperiodic topographies and should be used with
         care. (Default: 'linear')
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
 
     Returns
     -------
@@ -270,9 +273,13 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
 
     # Apply derivative operator in Fourier space
     derivatives = []
-    for i, op in enumerate(toiter(operator)):
+    operators = toiter(operator)
+    scale_factors = toiter(scale_factor)
+    for i, op in enumerate(operators):
         der = []
-        for s in toiter(scale_factor):
+        for j, s in enumerate(scale_factors):
+            if progress_callback is not None:
+                progress_callback(i * len(scale_factors) + j, len(operators) * len(scale_factors))
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
             interpolation_required = np.any(s - s.astype(int) != 0)
@@ -316,6 +323,8 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
             derivatives += [der]
         except TypeError:
             derivatives = der
+    if progress_callback is not None:
+        progress_callback(len(operators) * len(scale_factors), len(operators) * len(scale_factors))
     return derivatives
 
 

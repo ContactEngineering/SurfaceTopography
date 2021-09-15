@@ -82,7 +82,7 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
         Only incorporate data deemed reliable. (Default: True)
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
-        arguments for progress reporting.
+        arguments for progress reporting. (Default: None)
 
     Returns
     -------

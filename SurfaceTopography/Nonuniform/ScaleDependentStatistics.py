@@ -27,7 +27,8 @@ from ..common import toiter, fromiter
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def scale_dependent_statistical_property(self, func, n, distance, interpolation='linear'):
+def scale_dependent_statistical_property(self, func, n, distance, interpolation='linear',
+                                         progress_callback=None):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -64,14 +65,15 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
         'linear' for nonuniform line scans and is provided for compatibility
         with the corresponding keyword parameter of the uniform containers.
         (Default: 'linear')
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
 
     Returns
     -------
     statistical_fingerprint : np.ndarray or list of np.ndarray
         Array containing the result of `func`
 
-    Examples
-    --------
     Examples
     --------
     This example yields the the scale-dependent derivative (equivalent to
@@ -84,10 +86,14 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
     if interpolation != 'linear':
         raise ValueError('Only linear interpolation is support for scale-dependent statistical properties of '
                          'nonuniform line scans.')
-
-    stat = [self.to_uniform(pixel_size=d / n)
-                .scale_dependent_statistical_property(func=func, n=n, scale_factor=1, interpolation='disable')
-            for d in toiter(distance)]
+    stat = []
+    distances = toiter(distance)
+    for i, d in enumerate(distances):
+        if progress_callback is not None:
+            progress_callback(i, len(distances))
+        stat += self.to_uniform(pixel_size=d / n).scale_dependent_statistical_property(func=func, n=n, scale_factor=1,
+                                                                                       interpolation='disable')
+    progress_callback(len(distances), len(distances))
 
     return fromiter(stat, distance)
 

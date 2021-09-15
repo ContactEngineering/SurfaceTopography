@@ -27,7 +27,7 @@ from ..HeightContainer import UniformTopographyInterface
 
 
 def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None,
-                                         interpolation='linear'):
+                                         interpolation='linear', progress_callback=None):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -73,6 +73,9 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
         Fourier interpolation. Note that Fourier interpolation carries large
         errors for nonperiodic topographies and should be used with care.
         (Default: 'linear')
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
 
     Returns
     -------
@@ -88,7 +91,8 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
     >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
     >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
-    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation)
+    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
+                              progress_callback=progress_callback)
     if topography.dim == 1:
         try:
             if scale_factor is not None:
