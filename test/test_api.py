@@ -42,6 +42,7 @@ common_functions = [
     "scale_dependent_statistical_property",
     "to_unit",
     "to_netcdf",
+    "topography",
 ]
 
 uniform_functions = [
