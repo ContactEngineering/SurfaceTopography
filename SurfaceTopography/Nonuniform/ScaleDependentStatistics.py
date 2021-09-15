@@ -93,7 +93,8 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
             progress_callback(i, len(distances))
         stat += self.to_uniform(pixel_size=d / n).scale_dependent_statistical_property(func=func, n=n, scale_factor=1,
                                                                                        interpolation='disable')
-    progress_callback(len(distances), len(distances))
+    if progress_callback is not None:
+        progress_callback(len(distances), len(distances))
 
     return fromiter(stat, distance)
 
