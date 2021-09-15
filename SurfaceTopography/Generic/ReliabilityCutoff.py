@@ -44,14 +44,18 @@ def short_reliability_cutoff(self):
     info = self.info
     if 'instrument' in info:
         instrument = info['instrument']
-        if 'tip_radius' in instrument:
-            # We are carrying out a scanning probe analysis, get tip radius in correct units
-            tip_radius = instrument['tip_radius']
-            r = tip_radius['value'] * get_unit_conversion_factor(tip_radius['unit'], self.unit)
-            return self.scanning_probe_reliability_cutoff(r)
+        if 'parameters' in instrument:
+            parameters = instrument['parameters']
+            if 'tip_radius' in parameters:
+                # We are carrying out a scanning probe analysis, get tip radius in correct units
+                tip_radius = parameters['tip_radius']
+                r = tip_radius['value'] * get_unit_conversion_factor(tip_radius['unit'], self.unit)
+                return self.scanning_probe_reliability_cutoff(r)
+            else:
+                # Don't know what type of instrument this is and how to carry out a reliability analysis
+                return None
         else:
-            # Don't know what type of instrument this is and how to carry out
-            # a reliability analysis
+            # This instrument has no parameters, we cannot carry out a reliability analysis
             return None
     else:
         # We cannot say anything about reliability if we do not know the
