@@ -93,8 +93,6 @@ def derivative(self, n, scale_factor=None, distance=None, interpolation='linear'
                 progress_callback(i, len(distances))
             scale_factor = int(np.ceil(d / lower))
             stencil_size = d / scale_factor
-            print('positions = ', self.to_uniform(pixel_size=stencil_size / n).positions())
-            print('heights = ', self.to_uniform(pixel_size=stencil_size / n).heights())
             derivatives += [self.to_uniform(pixel_size=stencil_size / n).derivative(n=n, scale_factor=scale_factor,
                                                                                     interpolation='disable')]
         if progress_callback is not None:

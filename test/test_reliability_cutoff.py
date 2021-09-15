@@ -85,3 +85,17 @@ def test_reliability_cutoff_line_scan(file_format_examples):
     cut = surf.to_nonuniform().short_reliability_cutoff()
     # This differs from the above because the derivatives are computed at slightly different locations
     np.testing.assert_allclose(cut, 0.126505, atol=1e-6)
+
+
+def test_problem1(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di6.di'), info={
+        'instrument': {
+            'parameters': {
+                'tip_radius': {
+                    'value': 26,
+                    'unit': 'nm',
+                }
+            }
+        }
+    })
+    assert surf.short_reliability_cutoff() is None
