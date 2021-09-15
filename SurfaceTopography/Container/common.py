@@ -73,7 +73,7 @@ def suggest_length_unit(self):
     The unit is chose to minimize number of digits to the left and right of
     the decimal point.
     """
-    lower, upper = self.bandwidth(unit='m')
+    lower, upper = bandwidth(self, unit='m')
     l10 = int(np.floor(np.log10(lower)))
     u10 = int(np.ceil(np.log10(upper)))
     m10 = 3 * int(np.ceil((l10 + u10) / 6))
