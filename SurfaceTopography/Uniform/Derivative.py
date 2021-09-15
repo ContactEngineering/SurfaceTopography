@@ -240,11 +240,16 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
             # Convert distance to scale factor
             if self.dim == 1:
                 px, = pixel_size
-                scale_factor = [d / (n * px) for d in toiter(distance)]
+                try:
+                    scale_factor = [d / (n * px) for d in distance]
+                except TypeError:
+                    scale_factor = distance / (n * px)
             else:
                 px, py = pixel_size
-                scale_factor = np.array([(d / (n * px), d / (n * py)) for d in toiter(distance)])
-
+                try:
+                    scale_factor = np.array([(d / (n * px), d / (n * py)) for d in distance])
+                except TypeError:
+                    scale_factor = (distance / (n * px), distance / (n * py))
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
 

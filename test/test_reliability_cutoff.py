@@ -80,4 +80,8 @@ def test_reliability_cutoff_line_scan(file_format_examples):
         }
     })
     cut = surf.short_reliability_cutoff()
-    np.testing.assert_allclose(cut, 0.126519)
+    np.testing.assert_allclose(cut, 0.126504, atol=1e-6)
+
+    cut = surf.to_nonuniform().short_reliability_cutoff()
+    # This differs from the above because the derivatives are computed at slightly different locations
+    np.testing.assert_allclose(cut, 0.126505, atol=1e-6)

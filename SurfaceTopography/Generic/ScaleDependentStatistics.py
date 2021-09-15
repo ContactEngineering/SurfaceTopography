@@ -23,12 +23,11 @@
 # SOFTWARE.
 #
 
-from ..common import toiter, fromiter
-from ..HeightContainer import NonuniformLineScanInterface
+from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 
 
-def scale_dependent_statistical_property(self, func, n, distance, interpolation='linear',
-                                         progress_callback=None):
+def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None,
+                                         interpolation='linear', progress_callback=None):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -42,8 +41,8 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
 
     Parameters
     ----------
-    self : :class:`SurfaceTopography.NonuniformLineScan`
-        Topography or line scan.
+    topography : Topography or UniformLineScan
+        Topogaphy or line scan.
     func : callable
         The function that computes the statistical properties:
 
@@ -56,14 +55,23 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
         return a scalar value or an array, but the array size must be fixed.
     n : int, optional
         Order of derivative. (Default: 1)
+    scale_factor : float or np.ndarray
+        Scale factor for rescaling the finite differences stencil. A scale
+        factor of unity means the derivative is computed at the size of the
+        individual pixel.
     distance : float or np.ndarray
         Characteristic distances at which the derivatives are computed. If
         this is an array, then the statistical property is computed at each
         of these distances.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the derivative is computed.
     interpolation : str, optional
-        Interpolation method to use for computing derivatives. Can only be
-        'linear' for nonuniform line scans and is provided for compatibility
-        with the corresponding keyword parameter of the uniform containers.
+        Interpolation method to use for computing derivatives at distances
+        that do not equal an integer multiple of the grid spacing. Use
+        'linear' for a local liner interpolation or 'fourier' for global
+        Fourier interpolation. Note that Fourier interpolation carries large
+        errors for nonperiodic topographies and should be used with care.
         (Default: 'linear')
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
@@ -83,21 +91,29 @@ def scale_dependent_statistical_property(self, func, n, distance, interpolation=
     >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
     >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
-    if interpolation != 'linear':
-        raise ValueError('Only linear interpolation is support for scale-dependent statistical properties of '
-                         'nonuniform line scans.')
-    stat = []
-    distances = toiter(distance)
-    for i, d in enumerate(distances):
-        if progress_callback is not None:
-            progress_callback(i, len(distances))
-        stat += self.to_uniform(pixel_size=d / n).scale_dependent_statistical_property(func=func, n=n, scale_factor=1,
-                                                                                       interpolation='disable')
-    if progress_callback is not None:
-        progress_callback(len(distances), len(distances))
+    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
+                              progress_callback=progress_callback)
+    if topography.dim == 1:
+        try:
+            if scale_factor is not None:
+                iter(scale_factor)
+            if distance is not None:
+                iter(distance)
+            return [func(_d) for _d in d]
+        except TypeError:
+            return func(d)
+    else:
+        try:
+            if scale_factor is not None:
+                iter(scale_factor)
+            if distance is not None:
+                iter(distance)
+            return [func(dx, dy) for dx, dy in zip(*d)]
+        except TypeError:
+            return func(*d)
 
-    return fromiter(stat, distance)
 
-
-NonuniformLineScanInterface.register_function('scale_dependent_statistical_property',
-                                              scale_dependent_statistical_property)
+UniformTopographyInterface.register_function(
+    'scale_dependent_statistical_property', scale_dependent_statistical_property)
+NonuniformLineScanInterface.register_function(
+    'scale_dependent_statistical_property', scale_dependent_statistical_property)

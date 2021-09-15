@@ -57,17 +57,8 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     """
     target_curvature = safety_factor / tip_radius
 
-    if self.dim == 1:
-        sx, = self.physical_sizes
-        px, = self.pixel_size
-    elif self.dim == 2:
-        sx, sy = self.physical_sizes
-        px, py = self.pixel_size
-    else:
-        raise ValueError(f"Don't know how to handle a topography of dimension {self.dim}.")
-
-    def objective(scale_factor):
-        d = self.derivative(n=2, scale_factor=scale_factor)
+    def objective(distance):
+        d = self.derivative(n=2, distance=distance)
         if self.dim == 1:
             return target_curvature + np.min(d)
         elif self.dim == 2:
@@ -75,10 +66,10 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
         else:
             raise ValueError(f'Cannot handle a {self.dim}-dimensional topography.')
 
-    reliability_cutoff = 2 * scipy.optimize.brentq(objective,
-                                                   1, sx / 4 / px,  # bounds
-                                                   xtol=1e-4
-                                                   ) * px
+    lower, upper = self.bandwidth()
+    reliability_cutoff = scipy.optimize.brentq(objective,
+                                               2 * lower, upper / 2,  # bounds
+                                               xtol=1e-4)
 
     return reliability_cutoff
 
