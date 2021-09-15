@@ -29,6 +29,7 @@ import numpy as np
 
 from SurfaceTopography import read_container
 
+
 def test_bandwidth_and_unit_suggestion(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
     upper_um, lower_um = c.bandwidth(unit='um')
