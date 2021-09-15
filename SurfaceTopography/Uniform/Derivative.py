@@ -253,11 +253,6 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
 
-    if np.any(np.asarray(scale_factor) < 1.0):
-        raise ValueError(f'You specified values {scale_factor} for `scale_factor`, some of which are smaller than '
-                         'unity. If you specified a specific `distance`, then this distance is smaller than the lower '
-                         'bound of the bandwidth of the surface.')
-
     is_periodic = self.is_periodic if periodic is None else periodic
 
     # Return FFT object (this will only be initialized once and reused in subsequent calls)

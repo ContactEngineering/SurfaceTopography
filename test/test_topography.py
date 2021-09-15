@@ -892,8 +892,3 @@ def test_power_spectrum_from_profile():
     q1, C1 = t.power_spectrum_from_profile(window='hann')
 
     # TODO add check for values
-
-
-def test_topography_self():
-    t = UniformLineScan([1, 2], (1,))
-    assert t.topography() is t

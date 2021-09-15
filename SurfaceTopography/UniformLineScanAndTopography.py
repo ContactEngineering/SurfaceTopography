@@ -947,7 +947,6 @@ UniformTopographyInterface.register_function('max', lambda this: this.heights().
 
 # Register pipeline functions from this module
 UniformTopographyInterface.register_function('to_unit', ScaledUniformTopography)
-UniformTopographyInterface.register_function('topography', lambda self: self)
 UniformTopographyInterface.register_function('scale', StaticallyScaledUniformTopography)
 UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
 UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)

@@ -111,7 +111,6 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
-        topography = topography.topography()  # This way, container can be a list of readers or database objects
         topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography...

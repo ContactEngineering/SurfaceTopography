@@ -405,6 +405,5 @@ NonuniformLineScanInterface.register_function(
 
 # Register pipeline functions from this module
 NonuniformLineScanInterface.register_function('to_unit', ScaledNonuniformTopography)
-NonuniformLineScanInterface.register_function('topography', lambda self: self)
 NonuniformLineScanInterface.register_function('scale', StaticallyScaledNonuniformTopography)
 NonuniformLineScanInterface.register_function('detrend', DetrendedNonuniformTopography)
