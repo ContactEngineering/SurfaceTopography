@@ -67,8 +67,9 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
             raise ValueError(f'Cannot handle a {self.dim}-dimensional topography.')
 
     lower, upper = self.bandwidth()
+    max_px = np.max(self.pixel_size)
     reliability_cutoff = scipy.optimize.brentq(objective,
-                                               2 * lower, upper / 2,  # bounds
+                                               2 * max_px, upper / 2,  # bounds
                                                xtol=1e-4)
 
     return reliability_cutoff
