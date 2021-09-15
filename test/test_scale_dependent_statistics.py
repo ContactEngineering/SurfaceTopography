@@ -73,9 +73,12 @@ def test_container_uniform(file_format_examples):
                                        7.224607689277936e-05])
 
     # Test that specifying distances where no data exists does not raise an exception
-    s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.00001, 1.0, 10000], unit='um')
+    iterations = []
+    s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.00001, 1.0, 10000], unit='um',
+                                               progress_callback=lambda i, n: iterations.append(i))
     assert s[0] is None
     assert s[2] is None
+    np.testing.assert_allclose(np.array(iterations), np.arange(len(c)+1))
 
 
 def test_container_mixed(file_format_examples):

@@ -28,7 +28,8 @@ import numpy as np
 from .SurfaceContainer import SurfaceContainer
 
 
-def scale_dependent_statistical_property(self, func, n, distance, unit, interpolation='linear', reliable=True):
+def scale_dependent_statistical_property(self, func, n, distance, unit, interpolation='linear', reliable=True,
+                                         progress_callback=None):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -79,6 +80,9 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
         (Default: 'linear')
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting.
 
     Returns
     -------
@@ -104,7 +108,9 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
     """
     retvals = {}
     distance = np.array(distance)
-    for topography in self:
+    for i, topography in enumerate(self):
+        if progress_callback is not None:
+            progress_callback(i, len(self))
         topography = topography.topography()  # This way, container can be a list of readers or database objects
         topography = topography.to_unit(unit)
 
@@ -131,6 +137,8 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
                     retvals[e] += [s]
                 else:
                     retvals[e] = [s]
+    if progress_callback is not None:
+        progress_callback(len(self), len(self))
     return [np.mean(retvals[d], axis=0) if d in retvals else None for d in distance]
 
 
