@@ -51,10 +51,17 @@ def test_make_linear_grid():
     np.testing.assert_allclose(e, np.linspace(2, 33, 6))
 
 
-@pytest.mark.parametrize("func,atol", [(lambda x: x, 1e-6), (lambda x: np.sin(x), 0.1)])
-def test_resample(func, atol):
+@pytest.mark.parametrize('method,func,tol_kwargs', [
+    ('bin-average', lambda x: x, dict(atol=1e-12)),
+    ('bin-average', lambda x: np.sin(x), dict(atol=1e-3)),
+    ('bin-average', lambda x: x ** 2, dict(atol=1e-3)),
+    ('gaussian-process', lambda x: x, dict(atol=1e-6)),
+    ('gaussian-process', lambda x: np.sin(x), dict()),
+    ('gaussian-process', lambda x: x ** 2, dict(atol=1e-6)),
+])
+def test_resample(method, func, tol_kwargs):
     x = np.linspace(0, 1, 101)
     y = func(x)
 
-    x_resampled, bin_edges, nb_points, y_resampled = resample(x, y, collocation='linear', nb_points=13)
-    np.testing.assert_allclose(y_resampled, func(x_resampled), atol=atol)
+    x_resampled, bin_edges, y_resampled, _ = resample(x, y, collocation='linear', nb_points=13, method=method)
+    np.testing.assert_allclose(y_resampled, func(x_resampled), **tol_kwargs)
