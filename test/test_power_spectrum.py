@@ -191,7 +191,7 @@ def test_dsinc():
 
 def test_NaNs():
     surf = fourier_synthesis([1024, 512], [2, 1], 0.8, rms_slope=0.1)
-    q, C = surf.power_spectrum_from_area(nbins=1000)
+    q, C = surf.power_spectrum_from_area(nb_points=1000)
     assert np.isnan(C).sum() == 0
 
 
@@ -264,7 +264,7 @@ def test_default_window_2D():
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
         ax.plot(*topography.power_spectrum_from_profile(), label="periodic=True")
-        ax.plot(*topography.power_spectrum_from_area(nbins=20),
+        ax.plot(*topography.power_spectrum_from_area(nb_points=20),
                 label="2D, periodic=True")
         ax.set_xscale("log")
         ax.set_yscale("log")
@@ -275,7 +275,7 @@ def test_default_window_2D():
     if True:
         import matplotlib.pyplot as plt
         ax.plot(*topography.power_spectrum_from_profile(), label="periodic=False")
-        ax.plot(*topography.power_spectrum_from_area(nbins=20),
+        ax.plot(*topography.power_spectrum_from_area(nb_points=20),
                 label="2D, periodic=False")
         ax.set_xscale("log")
         ax.set_yscale("log")
@@ -296,7 +296,7 @@ def test_q0_1D():
 def test_q0_2D():
     surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
     rms_height = surf.rms_height_from_area()  # Need to measure it since it can fluctuate wildly
-    q, C = surf.power_spectrum_from_area(nbins=200, bin_edges='quadratic')
+    q, C = surf.power_spectrum_from_area(nb_points=200, collocation='quadratic')
     # This is really not quantitative, it's just checking whether it's the right ballpark.
     # Any bug in normalization would show up here as an order of magnitude
     ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)

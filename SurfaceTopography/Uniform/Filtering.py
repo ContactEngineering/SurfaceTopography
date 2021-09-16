@@ -143,8 +143,7 @@ class FilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
-                 filter_function=lambda qx, qy: (np.abs(qx) <= 1) * np.abs(
-                     qy) <= 1,
+                 filter_function=lambda qx, qy: (np.abs(qx) <= 1) * np.abs(qy) <= 1,
                  isotropic=True,
                  info={}):
 
@@ -208,13 +207,11 @@ class FilteredUniformTopography(DecoratedUniformTopography):
             qy *= 2 * np.pi / sy
 
             if self.is_filter_isotropic:
-                h_qs = np.fft.irfftn(np.fft.rfftn(
-                    self.parent_topography.heights()) * self.filter_function(
-                    np.sqrt(qx ** 2 + qy ** 2)))
+                h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) *
+                                     self.filter_function(np.sqrt(qx ** 2 + qy ** 2)))
             else:
-                h_qs = np.fft.irfftn(np.fft.rfftn(
-                    self.parent_topography.heights()) * self.filter_function(
-                    qx, qy))
+                h_qs = np.fft.irfftn(np.fft.rfftn(self.parent_topography.heights()) *
+                                     self.filter_function(qx, qy))
 
             return h_qs
         elif self.dim == 1:

@@ -147,7 +147,7 @@ def test_uniform_brute_force_autocorrelation_from_area():
     m = 11
     for surf in [Topography(np.ones([n, m]), (n, m), periodic=False),
                  Topography(np.random.random([n, m]), (n, m), periodic=False)]:
-        r, A, A_xy = surf.autocorrelation_from_area(nbins=100, return_map=True)
+        r, A, A_xy = surf.autocorrelation_from_area(nb_points=100, return_map=True)
 
         nx, ny = surf.nb_grid_pts
         dir_A_xy = np.zeros([n, m])
@@ -168,7 +168,7 @@ def test_uniform_brute_force_autocorrelation_from_area():
         dir_n[dir_n == 0] = 1
         dir_A /= dir_n
         assert_array_almost_equal(A_xy, dir_A_xy)
-        assert_array_almost_equal(A[:-2], dir_A[:-2])
+        assert_array_almost_equal(A[2:-1], dir_A[2:-1])
 
 
 def test_nonuniform_impulse_autocorrelation():

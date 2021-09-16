@@ -39,7 +39,7 @@ def test_longcut():
     t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
 
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
-    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_from_area()
+    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_from_area(nb_points_per_decade=10)
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
     # the cut is not clean because of the binning in the 2D PSD (Ciso)
 

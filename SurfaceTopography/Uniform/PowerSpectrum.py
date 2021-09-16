@@ -34,16 +34,14 @@ from SurfaceTopography.Support.Regression import resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
-                                window=None,
-                                reliable=True):
+def power_spectrum_from_profile(self, window=None, reliable=True):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan
     stored on a uniform grid.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    self : SurfaceTopography or UniformLineScan
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
@@ -59,8 +57,8 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    n = topography.nb_grid_pts
-    s = topography.physical_sizes
+    n = self.nb_grid_pts
+    s = self.physical_sizes
 
     try:
         nx, ny = n
@@ -69,7 +67,7 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
         nx, = n
         sx, = s
 
-    h = topography.window(window).heights()
+    h = self.window(window).heights()
 
     # Compute FFT and normalize
     fourier_topography = sx/nx * np.fft.fft(h, axis=0)
@@ -87,43 +85,41 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
 
     if reliable:
         # Only keep reliable data
-        short_cutoff = topography.short_reliability_cutoff()
+        short_cutoff = self.short_reliability_cutoff()
         if short_cutoff is not None:
             mask = q < 2 * np.pi / short_cutoff
             q = q[mask]
             C_all = C_all[mask]
 
-    if topography.dim == 1:
+    if self.dim == 1:
         return q, C_all
     else:
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-name
-                             bin_edges='log',
-                             window=None,
-                             return_map=False,
-                             reliable=True):
+def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=5, window=None,
+                             return_map=False, reliable=True):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography`
+    self : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int, optional
-        Number of bins for radial average. Bins are automatically determined
-        if set to None. (Default: None) Note: Returned array can be smaller
-        than this because bins without data points are discarded.
-        (Default: None)
-    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
-        Edges used for binning the average. Specifying 'log' yields bins
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
         Alternatively, it is possible to explicitly specify the bin edges.
         If bin_edges are explicitly specified, then `rmax` and `nbins` is
         ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
@@ -139,26 +135,27 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
+    nx, ny = self.nb_grid_pts
+    sx, sy = self.physical_sizes
 
     qmax = 2 * np.pi * nx / (2 * sx)
 
     if reliable:
         # Update qmax
-        short_cutoff = topography.short_reliability_cutoff()
+        short_cutoff = self.short_reliability_cutoff()
         if short_cutoff is not None:
             qmax = 2 * np.pi / short_cutoff
 
-    h = topography.window(window=window, direction='radial').heights()
+    h = self.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
-    surface_qk = topography.area_per_pt * np.fft.fft2(h)
+    surface_qk = self.area_per_pt * np.fft.fft2(h)
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average
-    q_edges, n, q_val, C_val = resample_radial(C_qk, max_radius=qmax, nb_points=nbins, collocation=bin_edges,
-                                               physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
+    q_val, q_edges, n, C_val = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
+                                               collocation=collocation, nb_points=nb_points,
+                                               nb_points_per_decade=nb_points_per_decade, max_radius=qmax)
 
     q_val = q_val[n > 0]
     C_val = C_val[n > 0]
@@ -170,7 +167,5 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('power_spectrum_from_profile',
-                                             power_spectrum_from_profile)
-UniformTopographyInterface.register_function('power_spectrum_from_area',
-                                             power_spectrum_from_area)
+UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
+UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)

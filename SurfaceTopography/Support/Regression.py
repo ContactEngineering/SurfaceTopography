@@ -106,12 +106,9 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     ----------
     data : array_like
         2D-array of values to be averaged.
-    max_radius : float, optional
-        Maximum radius, is automatically determined from the range of the data
-        if not provided. (Default: None)
-    nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+    physical_sizes : (float, float), optional
+        Physical size of the 2D grid. (Default: Size is equal to number of
+        grid points.)
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -119,9 +116,12 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         Alternatively, it is possible to explicitly specify the bin edges.
         If bin_edges are explicitly specified, then `rmax` and `nbins` is
         ignored. (Default: 'log')
-    physical_sizes : (float, float), optional
-        Physical size of the 2D grid. (Default: Size is equal to number of
-        grid points.)
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    max_radius : float, optional
+        Maximum radius, is automatically determined from the range of the data
+        if not provided. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: None)
@@ -151,12 +151,12 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         x = np.where(x > nx // 2, nx - x, x)
         y = np.where(y > ny // 2, ny - y, y)
 
-    min_value = 1.0
+    min_radius = 1.0
     if physical_sizes is not None:
         sx, sy = physical_sizes
         x = sx / nx * x
         y = sy / ny * y
-        min_value = min(sx / nx, sy / ny)
+        min_radius = min(sx / nx, sy / ny)
     radius = np.sqrt((x ** 2).reshape(-1, 1) + (y ** 2).reshape(1, -1))
     if max_radius is None:
         max_radius = np.max(radius)
@@ -167,12 +167,16 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     # Flatten array and find bin index of flattened arrays
     radius = np.ravel(radius)
     data = np.ravel(data)
-    bin_index = np.searchsorted(collocation_points, bin_edges, radius)
+    bin_index = np.searchsorted(bin_edges, radius)
 
     # Compute averages within bins
-    number_of_data_points = np.bincount(bin_index, minlength=len(collocation_points) + 1)
-    resampled_values = np.bincount(bin_index, weights=data, minlength=len(collocation_points) + 1) / \
-                       np.where(number_of_data_points == 0, np.ones_like(number_of_data_points), number_of_data_points)
+    number_of_data_points = np.bincount(bin_index, minlength=len(bin_edges) + 1)
+    number_of_data_points1 = np.where(number_of_data_points == 0, np.ones_like(number_of_data_points),
+                                      number_of_data_points)
+    resampled_values = np.bincount(bin_index, weights=data, minlength=len(bin_edges) + 1) / number_of_data_points1
+
+    # Resample collocation points as average of the distances in each bin
+    collocation_points = np.bincount(bin_index, weights=radius, minlength=len(bin_edges) + 1) / number_of_data_points1
 
     # We discard the final element as it contains data points outside our binned region
-    return collocation_points, bin_edges, number_of_data_points[:-1], resampled_values[:-1]
+    return collocation_points[1:-1], bin_edges, number_of_data_points[1:-1], resampled_values[1:-1]
