@@ -50,10 +50,7 @@ def test_limiting_values():
 
     rms_slope = np.sqrt(np.mean(((np.roll(t.heights(), 1, 0) - t.heights()) / px) ** 2))
     assert_almost_equal(s[0], rms_slope)
-
-    r2, s2 = t.scale_dependent_slope_from_area()
-
-    assert_almost_equal(s[0], s2[0])
+    assert_almost_equal(s[0], t.rms_slope_from_profile())
 
 
 def test_numeric_vs_analytical():
