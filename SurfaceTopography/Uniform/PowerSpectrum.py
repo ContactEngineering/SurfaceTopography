@@ -153,7 +153,7 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average
-    q_val, q_edges, n, C_val = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
+    q_val, q_edges, C_val, n = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
                                                collocation=collocation, nb_points=nb_points,
                                                nb_points_per_decade=nb_points_per_decade, max_radius=qmax)
 

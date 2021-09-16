@@ -24,9 +24,11 @@
 
 """Test for resampling of noisy data."""
 
+import pytest
+
 import numpy as np
 
-from SurfaceTopography.Support.Regression import make_grid, resample_radial
+from SurfaceTopography.Support.Regression import make_grid, resample
 
 
 def test_make_log_grid():
@@ -47,3 +49,12 @@ def test_make_linear_grid():
     x, e = make_grid('linear', 2, 33, nb_points=5)
     assert len(e) == len(x) + 1
     np.testing.assert_allclose(e, np.linspace(2, 33, 6))
+
+
+@pytest.mark.parametrize("func,atol", [(lambda x: x, 1e-6), (lambda x: np.sin(x), 0.1)])
+def test_resample(func, atol):
+    x = np.linspace(0, 1, 101)
+    y = func(x)
+
+    x_resampled, bin_edges, nb_points, y_resampled = resample(x, y, collocation='linear', nb_points=13)
+    np.testing.assert_allclose(y_resampled, func(x_resampled), atol=atol)

@@ -187,7 +187,7 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         A_xy = A_xy[0, 0] - A_xy
 
         # Radial average
-        r_val, r_edges, n, A_val = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
+        r_val, r_edges, A_val, n = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
                                                    nb_points_per_decade=nb_points_per_decade, collocation=collocation,
                                                    max_radius=(sx + sy) / 4)
     else:
@@ -210,7 +210,7 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
                     (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         # Radial average
-        r_val, r_edges, n, A_val = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
+        r_val, r_edges, A_val, n = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
                                                    nb_points=nb_points, nb_points_per_decade=nb_points_per_decade,
                                                    max_radius=(sx + sy) / 2, full=False)
 

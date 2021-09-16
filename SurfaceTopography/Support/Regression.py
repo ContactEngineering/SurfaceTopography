@@ -94,13 +94,159 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
     return collocation_points, bin_edges
 
 
+def bin_average(bin_edges, x, values):
+    """
+    Average values over bins.
+
+    Parameters
+    ----------
+    bin_edges : array_like
+        Edges of bins.
+    x : array_like
+        Collocation points for `values` array.
+    values : array_like
+        Function values/variates.
+
+    Returns
+    -------
+    collocation_points : np.ndarray
+        Collocation points, resampled as average over input `x`.
+    number_of_data_points : np.ndarray
+        Number of data points per bin.
+    resampled_values : np.ndarray
+        Resampled/averaged values.
+    """
+    # Find bin index
+    bin_index = np.searchsorted(bin_edges, x)
+
+    # Compute averages within bins
+    number_of_data_points = np.bincount(bin_index, minlength=len(bin_edges) + 1)
+    number_of_data_points1 = np.where(number_of_data_points == 0, np.ones_like(number_of_data_points),
+                                      number_of_data_points)
+    resampled_values = np.bincount(bin_index, weights=values, minlength=len(bin_edges) + 1) / number_of_data_points1
+
+    # Resample collocation points as average of the distances in each bin
+    collocation_points = np.bincount(bin_index, weights=x, minlength=len(bin_edges) + 1) / number_of_data_points1
+
+    # We discard the final element as it contains data points outside our binned region
+    return collocation_points[1:-1], number_of_data_points[1:-1], resampled_values[1:-1]
+
+
+def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
+    return signal_variance*np.exp(-(x1-x2)**2 / (2*length_scale**2))
+
+
+def gp_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=0):
+    """
+    Gaussian process regression for resampling a simple function.
+
+    Parameters
+    ----------
+    output_x : array_like
+        Collocation points for resampled values.
+    x : array_like
+        Collocation points for `values` array.
+    values : array_like
+        Function values/variates.
+
+    Returns
+    -------
+    resampled_values : np.ndarray
+        Resampled/averaged values.
+    """
+    # Covariance between observations
+    obs_cov = kernel(x.reshape(-1, 1), x.reshape(1, -1))
+
+    # Add noise to observation covariance matrix
+    obs_cov += noise_variance * np.identity(len(x))
+
+    # Compute kernel coefficients
+    coeff = np.linalg.solve(obs_cov, values)
+
+    # Covariance between test outputs
+    test_cov = kernel(output_x.reshape(-1, 1), output_x.reshape(1, -1))
+
+    # Covariance between observation and test outputs
+    obs_test_cov = kernel(x.reshape(-1, 1), output_x.reshape(1, -1))
+
+    # Compute predictive mean
+    pred_mean = coeff.dot(obs_test_cov)
+
+    # Compute predictive covariance
+    pred_cov = test_cov - obs_test_cov.T.dot(np.linalg.solve(obs_cov, obs_test_cov))
+
+    # Return mean and variance
+    return pred_mean, pred_cov.diagonal()
+
+
+def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=5,
+             method='bin-average'):
+    """
+    Resample a noisy 2D data set onto a different grid.
+
+    Parameters
+    ----------
+    x : array_like
+        Evaluation points.
+    values : array_like
+        Function values.
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    min_value : float, optional
+        Minimum value, is automatically determined from the range of the data
+        if not provided. (Default: None)
+    max_value : float, optional
+        Maximum value, is automatically determined from the range of the data
+        if not provided. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
+    method : str, optional
+        Method can be 'bin-average' for simple bin averaging and
+        'gaussian-process' for Gaussian process regression.
+        (Default: 'bin-average')
+
+    Returns
+    -------
+    collocation_points : np.ndarray
+        Points where the data has been collected.
+    bin_edges : np.ndarray
+        Bin edges.
+    number_of_data_points : np.ndarray
+        Number of data points per radial bin.
+    resampled_values : np.ndarray
+        Resampled values.
+    """
+    # pylint: disable=invalid-name
+    if max_value is None:
+        max_value = np.max(x)
+    if min_value is None:
+        min_value = np.min(x)
+
+    collocation_points, bin_edges = make_grid(collocation, min_value, max_value, nb_points=nb_points,
+                                              nb_points_per_decade=nb_points_per_decade)
+
+    if method == 'bin-average':
+        collocation_points, number_of_data_points, resampled_values = bin_average(bin_edges, x, values)
+        return collocation_points, bin_edges, resampled_values, number_of_data_points
+    elif method == 'gaussian-process':
+        resampled_values, resampled_variance = gp_regression(collocation_points, x, values)
+        return collocation_points, bin_edges, resampled_values, resampled_variance
+
+
 def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None, max_radius=None,
                     nb_points_per_decade=5, full=True):
     """
     Compute radial average of quantities reported on a 2D grid and collect
     results of collocation points.
-
-    Either `nb_bins` or `collocation` must be present.
 
     Parameters
     ----------
@@ -164,19 +310,6 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     collocation_points, bin_edges = make_grid(collocation, min_radius, max_radius, nb_points=nb_points,
                                               nb_points_per_decade=nb_points_per_decade)
 
-    # Flatten array and find bin index of flattened arrays
-    radius = np.ravel(radius)
-    data = np.ravel(data)
-    bin_index = np.searchsorted(bin_edges, radius)
-
-    # Compute averages within bins
-    number_of_data_points = np.bincount(bin_index, minlength=len(bin_edges) + 1)
-    number_of_data_points1 = np.where(number_of_data_points == 0, np.ones_like(number_of_data_points),
-                                      number_of_data_points)
-    resampled_values = np.bincount(bin_index, weights=data, minlength=len(bin_edges) + 1) / number_of_data_points1
-
-    # Resample collocation points as average of the distances in each bin
-    collocation_points = np.bincount(bin_index, weights=radius, minlength=len(bin_edges) + 1) / number_of_data_points1
-
-    # We discard the final element as it contains data points outside our binned region
-    return collocation_points[1:-1], bin_edges, number_of_data_points[1:-1], resampled_values[1:-1]
+    collocation_points, number_of_data_points, resampled_values = bin_average(bin_edges, np.ravel(radius),
+                                                                              np.ravel(data))
+    return collocation_points, bin_edges, resampled_values, number_of_data_points

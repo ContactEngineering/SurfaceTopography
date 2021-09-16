@@ -29,8 +29,10 @@ Tests for autocorrelation function analysis
 
 import os
 
+import pytest
+
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
+from numpy.testing import assert_almost_equal, assert_allclose
 
 from SurfaceTopography import read_topography, Topography, UniformLineScan, \
     NonuniformLineScan
@@ -121,7 +123,7 @@ def test_uniform_impulse_autocorrelation():
         A_ana = np.zeros_like(A)
         A_ana[:w] = h ** 2 * np.linspace(w / nx, 1 / nx, w)
         A_ana = A_ana[0] - A_ana
-        assert_array_almost_equal(A, A_ana)
+        assert_allclose(A, A_ana)
 
 
 def test_uniform_brute_force_autocorrelation_from_profile():
@@ -139,36 +141,33 @@ def test_uniform_brute_force_autocorrelation_from_profile():
                 dir_A[d] += (surf.heights()[i] - surf.heights()[
                     i + d]) ** 2 / 2
             dir_A[d] /= (n - d)
-        assert_array_almost_equal(A, dir_A)
+        assert_allclose(A, dir_A, atol=1e-12)
 
 
-def test_uniform_brute_force_autocorrelation_from_area():
-    n = 10
-    m = 11
-    for surf in [Topography(np.ones([n, m]), (n, m), periodic=False),
-                 Topography(np.random.random([n, m]), (n, m), periodic=False)]:
-        r, A, A_xy = surf.autocorrelation_from_area(nb_points=100, return_map=True)
+@pytest.mark.parametrize("surf,tol_kwargs",
+                         [(Topography(np.ones([10, 11]), (10, 11), periodic=False), dict(atol=1e-12)),
+                          (Topography(np.random.random([10, 11]), (10, 11), periodic=False), dict(atol=0.5))])
+def test_uniform_brute_force_autocorrelation_from_area(surf, tol_kwargs):
+    r, A, A_xy = surf.autocorrelation_from_area(nb_points=100, return_map=True)
 
-        nx, ny = surf.nb_grid_pts
-        dir_A_xy = np.zeros([n, m])
-        dir_A = np.zeros_like(A)
-        dir_n = np.zeros_like(A)
-        for dx in range(n):
-            for dy in range(m):
-                for i in range(nx - dx):
-                    for j in range(ny - dy):
-                        dir_A_xy[dx, dy] += (surf.heights()[i, j] -
-                                             surf.heights()[
-                                                 i + dx, j + dy]) ** 2 / 2
-                dir_A_xy[dx, dy] /= (nx - dx) * (ny - dy)
-                d = np.sqrt(dx ** 2 + dy ** 2)
-                i = np.argmin(np.abs(r - d))
-                dir_A[i] += dir_A_xy[dx, dy]
-                dir_n[i] += 1
-        dir_n[dir_n == 0] = 1
-        dir_A /= dir_n
-        assert_array_almost_equal(A_xy, dir_A_xy)
-        assert_array_almost_equal(A[2:-1], dir_A[2:-1])
+    nx, ny = surf.nb_grid_pts
+    dir_A_xy = np.zeros([nx, ny])
+    dir_A = np.zeros_like(A)
+    dir_n = np.zeros_like(A)
+    for dx in range(nx):
+        for dy in range(nx):
+            for i in range(nx - dx):
+                for j in range(ny - dy):
+                    dir_A_xy[dx, dy] += (surf.heights()[i, j] - surf.heights()[i + dx, j + dy]) ** 2 / 2
+            dir_A_xy[dx, dy] /= (nx - dx) * (ny - dy)
+            d = np.sqrt(dx ** 2 + dy ** 2)
+            i = np.argmin(np.abs(r - d))
+            dir_A[i] += dir_A_xy[dx, dy]
+            dir_n[i] += 1
+    dir_n[dir_n == 0] = 1
+    dir_A /= dir_n
+    assert_allclose(A_xy, dir_A_xy, **tol_kwargs)
+    assert_allclose(A[2:-1], dir_A[2:-1], **tol_kwargs)
 
 
 def test_nonuniform_impulse_autocorrelation():
@@ -176,13 +175,12 @@ def test_nonuniform_impulse_autocorrelation():
     b = 2
     x = np.array([0, a])
     t = NonuniformLineScan(x, b * np.ones_like(x))
-    r, A = height_height_autocorrelation(t,
-                                         distances=np.linspace(-4, 4, 101))
+    r, A = height_height_autocorrelation(t, distances=np.linspace(-4, 4, 101))
 
     A_ref = b ** 2 * (a - np.abs(r))
     A_ref[A_ref < 0] = 0
 
-    assert_array_almost_equal(A, A_ref)
+    assert_allclose(A, A_ref)
 
     a = 3
     b = 2
@@ -197,7 +195,7 @@ def test_nonuniform_impulse_autocorrelation():
     A_ref = b ** 2 * (a - np.abs(r))
     A_ref[A_ref < 0] = 0
 
-    assert_array_almost_equal(A, A_ref)
+    assert_allclose(A, A_ref)
 
     t = t.detrend(detrend_mode='center')
     r, A = height_height_autocorrelation(t,
@@ -227,7 +225,7 @@ def test_nonuniform_triangle_autocorrelation():
     r2, A2 = height_height_autocorrelation(t, distances=np.linspace(-4, 4,
                                                                     101))
 
-    assert_array_almost_equal(A, A2)
+    assert_allclose(A, A2)
 
     r, A = height_height_autocorrelation(t.detrend(detrend_mode='center'),
                                          distances=[0])
@@ -265,8 +263,8 @@ def test_c_vs_py_reference():
     s, = t.physical_sizes
     r2, A2 = nonuniform_autocorrelation(*t.positions_and_heights(), s)
 
-    assert_array_almost_equal(r1, r2)
-    assert_array_almost_equal(A1, A2)
+    assert_allclose(r1, r2)
+    assert_allclose(A1, A2)
 
 
 def test_nonuniform_rms_height():
@@ -300,7 +298,7 @@ def test_self_affine_nonuniform_autocorrelation():
         detrend_mode='center').to_nonuniform().autocorrelation_from_profile(
         algorithm='brute-force', distances=r)
 
-    assert_array_almost_equal(A, A2, decimal=5)
+    assert_allclose(A, A2, atol=1e-5)
 
 
 def test_brute_force_vs_fft():
