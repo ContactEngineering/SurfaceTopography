@@ -31,7 +31,8 @@ import os
 import pytest
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
+from numpy.testing import assert_almost_equal, assert_allclose
+from scipy.interpolate import interp1d
 
 from NuMPI import MPI
 
@@ -73,7 +74,7 @@ def test_uniform():
                         C /= L
                         r = np.zeros_like(C)
                         r[k] = 1 / 4
-                        assert_array_almost_equal(C, r)
+                        assert_allclose(C, r, atol=1e-12)
 
 
 def test_invariance():
@@ -107,8 +108,8 @@ def test_invariance():
             short_cutoff=None,
             window='None')
 
-        assert_array_almost_equal(C1, C2)
-        assert_array_almost_equal(C2, C3)
+        assert_allclose(C1, C2, atol=1e-12)
+        assert_allclose(C2, C3, atol=1e-12)
 
 
 def test_rectangle():
@@ -127,7 +128,7 @@ def test_rectangle():
         C_ana = (2 * b * np.sin(a * q) / q) ** 2
         C_ana /= 2 * a
 
-        assert_array_almost_equal(C, C_ana)
+        assert_allclose(C, C_ana)
 
 
 def test_triangle():
@@ -147,7 +148,7 @@ def test_triangle():
                 a * q ** 2)) ** 2
         C_ana /= 2 * a
 
-        assert_array_almost_equal(C, C_ana)
+        assert_allclose(C, C_ana)
 
 
 def test_rectangle_and_triangle():
@@ -170,7 +171,7 @@ def test_rectangle_and_triangle():
         ) / ((a - b) * q ** 2)
         C_ana = np.abs(C_ana) ** 2 / (b - a)
 
-        assert_array_almost_equal(C, C_ana)
+        assert_allclose(C, C_ana)
 
 
 def test_dsinc():
@@ -178,9 +179,9 @@ def test_dsinc():
     assert_almost_equal(dsinc(np.pi) * np.pi, -1)
     assert_almost_equal(dsinc(2 * np.pi) * np.pi, 1 / 2)
     assert_almost_equal(dsinc(3 * np.pi) * np.pi, -1 / 3)
-    assert_array_almost_equal(dsinc([0, np.pi]) * np.pi, [0, -1])
-    assert_array_almost_equal(dsinc([0, 2 * np.pi]) * np.pi, [0, 1 / 2])
-    assert_array_almost_equal(dsinc([0, 3 * np.pi]) * np.pi, [0, -1 / 3])
+    assert_allclose(dsinc([0, np.pi]) * np.pi, [0, -1])
+    assert_allclose(dsinc([0, 2 * np.pi]) * np.pi, [0, 1 / 2])
+    assert_allclose(dsinc([0, 3 * np.pi]) * np.pi, [0, -1 / 3])
 
     dx = 1e-9
     for x in [0, 0.5e-6, 1e-6, 0.5, 1]:
@@ -289,7 +290,7 @@ def test_q0_1D():
     rms_height = surf.rms_height_from_profile()  # Need to measure it since it can fluctuate wildly
     q, C = surf.power_spectrum_from_profile()
     ratio = rms_height**2 / (np.trapz(C, q)/np.pi)
-    assert ratio > 0.2
+    assert ratio > 0.1
     assert ratio < 5
 
 
@@ -327,3 +328,31 @@ def test_reliability_cutoff():
     q2, C2 = surf.power_spectrum_from_area(reliable=False)
     assert len(q1) < len(q2)
     assert q1.max() < q2.max()
+
+
+def test_resampling(plot=False):
+    r = 128
+    s = 1.3
+    H = 0.8
+    slope = 0.1
+    t = fourier_synthesis((r,), (s,), H, rms_slope=slope, short_cutoff=s / 20,
+                          amplitude_distribution=lambda n: 1.0)
+    q1, C1 = t.power_spectrum_from_profile()
+    q2, C2 = t.power_spectrum_from_profile(resampling_method='bin-average')
+    q3, C3 = t.power_spectrum_from_profile(resampling_method='gaussian-process')
+
+    assert len(q1) == len(C1)
+    assert len(q2) == len(C2)
+    assert len(q3) == len(C3)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(q1, C1, 'x-', label='native')
+        plt.loglog(q2, C2, 'o-', label='bin-average')
+        plt.loglog(q3, C3, 's-', label='gaussian-process')
+        plt.legend(loc='best')
+        plt.show()
+
+    f = interp1d(q1, C1)
+    assert_allclose(C2, f(q2), atol=1e-6)
+    #assert_allclose(C3, f(q3), atol=1e-6)

@@ -30,11 +30,12 @@ Power-spectral density for uniform topographies.
 
 import numpy as np
 
-from SurfaceTopography.Support.Regression import resample_radial
+from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def power_spectrum_from_profile(self, window=None, reliable=True):
+def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method=None,
+                                collocation='log', nb_points=None, nb_points_per_decade=10):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan
     stored on a uniform grid.
@@ -49,6 +50,24 @@ def power_spectrum_from_profile(self, window=None, reliable=True):
         nonperiodic Topographies)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: None)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
@@ -57,15 +76,12 @@ def power_spectrum_from_profile(self, window=None, reliable=True):
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    n = self.nb_grid_pts
-    s = self.physical_sizes
-
     try:
-        nx, ny = n
-        sx, sy = s
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
     except ValueError:
-        nx, = n
-        sx, = s
+        nx, = self.nb_grid_pts
+        sx, = self.physical_sizes
 
     h = self.window(window).heights()
 
@@ -91,14 +107,22 @@ def power_spectrum_from_profile(self, window=None, reliable=True):
             q = q[mask]
             C_all = C_all[mask]
 
-    if self.dim == 1:
-        return q, C_all
+    if resampling_method is None:
+        if self.dim == 1:
+            return q, C_all
+        else:
+            return q, C_all.mean(axis=1)
     else:
-        return q, C_all.mean(axis=1)
+        if self.dim == 2:
+            q = np.ravel([q] * ny)
+            C_all = np.ravel(C_all)
+        q, _, C, _ = resample(q, C_all, min_value=q[1], max_value=q[-1], collocation=collocation, nb_points=nb_points,
+                              nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        return q, C
 
 
-def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=10, window=None,
-                             return_map=False, reliable=True, resampling_method='bin-average'):
+def power_spectrum_from_area(self, window=None, reliable=True, collocation='log', nb_points=None,
+                             nb_points_per_decade=10, return_map=False, resampling_method='bin-average'):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
@@ -107,6 +131,11 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
     ----------
     self : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        (Default: None)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -120,13 +149,8 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: None)
-    window : str, optional
-        Window for eliminating edge effect. See scipy.signal.get_window.
-        (Default: None)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
-    reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
     resampling_method : str, optional
         Method can be 'bin-average' for simple bin averaging and
         'gaussian-process' for Gaussian process regression.

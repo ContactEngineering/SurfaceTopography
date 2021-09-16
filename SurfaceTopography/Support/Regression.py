@@ -95,6 +95,14 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
     return collocation_points, bin_edges
 
 
+def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
+    return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
+
+
+def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
+    return signal_variance * np.exp(-(np.log10(1 + (x1 - x2) ** 2)) / (2 * length_scale ** 2))
+
+
 def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_value):
     """
     Suggest a kernel function for Gaussian process regression with test
@@ -124,20 +132,8 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
     kernel : func
         Kernel function.
     """
-    if collocation == 'log':
-        length_scale = (np.log10(max_value) - np.log10(min_value)) / nb_collocation_points
-        return lambda x1, x2: gaussian_log_kernel(x1, x2, length_scale=length_scale)
-    else:
-        length_scale = (max_value - min_value) / nb_collocation_points
-        return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
-
-
-def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
-    return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
-
-
-def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
-    return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
+    length_scale = (max_value - min_value) / nb_collocation_points
+    return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
 
 
 def bin_average(bin_edges, x, values):
@@ -178,12 +174,14 @@ def bin_average(bin_edges, x, values):
     resampled_collocation_points = np.bincount(bin_index, weights=x,
                                                minlength=len(bin_edges) + 1) / number_of_data_points1
 
-    # Mark missing data points by NaNs
-    resampled_values[number_of_data_points == 0] = np.nan
-    resampled_variance[number_of_data_points == 0] = np.nan
-
     # We discard the final element as it contains data points outside our binned region
-    return resampled_collocation_points[1:-1], resampled_values[1:-1], resampled_variance[1:-1]
+    resampled_collocation_points = resampled_collocation_points[1:-1]
+    resampled_values = resampled_values[1:-1]
+    resampled_variance = resampled_variance[1:-1]
+
+    # We discard elements with no data
+    mask = number_of_data_points[1:-1] != 0
+    return resampled_collocation_points[mask], resampled_values[mask], resampled_variance[mask]
 
 
 def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=0):

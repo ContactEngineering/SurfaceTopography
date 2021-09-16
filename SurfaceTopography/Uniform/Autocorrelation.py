@@ -30,11 +30,12 @@ Height-difference autocorrelation functions
 
 import numpy as np
 
-from SurfaceTopography.Support.Regression import resample_radial
+from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_from_profile(self, direction=0, reliable=True):
+def autocorrelation_from_profile(self, reliable=True, resampling_method=None, collocation='log', nb_points=None,
+                                 nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -59,10 +60,26 @@ def autocorrelation_from_profile(self, direction=0, reliable=True):
     ----------
     self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
-    direction : int
-        Cartesian direction in which to compute the ACF
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: None)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
@@ -71,16 +88,14 @@ def autocorrelation_from_profile(self, direction=0, reliable=True):
     A : array
         Autocorrelation function. (Units: length**2)
     """  # noqa: E501
-    nx = self.nb_grid_pts[direction]
-    sx = self.physical_sizes[direction]
+    try:
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
+    except ValueError:
+        nx, = self.nb_grid_pts
+        sx, = self.physical_sizes
 
     p = self.heights()
-    if direction != 0:
-        if direction == 1:
-            p = p.T
-        else:
-            raise ValueError("Don't know how to handle direction "
-                             "{}".format(direction))
 
     if self.is_periodic:
         # Compute height-height autocorrelation function from a convolution
@@ -127,17 +142,30 @@ def autocorrelation_from_profile(self, direction=0, reliable=True):
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
     short_cutoff = self.short_reliability_cutoff() if reliable else None
-    if short_cutoff is None:
-        short_cutoff = -1  # Include zero distance
-    mask = r > short_cutoff / 2
-    if self.dim == 2:
-        return r[mask], A.mean(axis=1)[mask]
+    if short_cutoff is not None:
+        mask = r > short_cutoff / 2
+        r = r[mask]
+        A = A[mask]
+    if resampling_method is None:
+        if self.dim == 2:
+            return r, A.mean(axis=1)
+        else:
+            return r, A
     else:
-        return r[mask], A[mask]
+        if collocation == 'log':
+            # Exclude zero distance because that does not work on a log-scale
+            r = r[1:]
+            A = A[1:]
+        if self.dim == 2:
+            r = np.ravel([r] * ny)
+            A = np.ravel(A)
+        r, _, A, _ = resample(r, A, min_value=sx / nx, max_value=sx / 2, collocation=collocation, nb_points=nb_points,
+                              nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        return r, A
 
 
-def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=5, return_map=False,
-                              reliable=True, resampling_method='bin-average'):
+def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=None, nb_points_per_decade=5,
+                              return_map=False, resampling_method='bin-average'):
     """
     Compute height-difference autocorrelation function and radial average.
 
@@ -145,6 +173,8 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
     ----------
     self : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -160,8 +190,6 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         (Default: None)
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
-    reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
     resampling_method : str, optional
         Method can be 'bin-average' for simple bin averaging and
         'gaussian-process' for Gaussian process regression.
@@ -211,7 +239,7 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
         A_xy = (A0_xy - A_xy[:nx, :ny]) / (
-                    (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
+                (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,

@@ -33,6 +33,7 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_allclose
+from scipy.interpolate import interp1d
 
 from SurfaceTopography import read_topography, Topography, UniformLineScan, \
     NonuniformLineScan
@@ -308,3 +309,31 @@ def test_brute_force_vs_fft():
     x = A[1:] / A2[1:]
     print(x.min(), x.max())
     assert np.alltrue(np.logical_and(x > 0.98, x < 1.02))
+
+
+def test_resampling(plot=False):
+    r = 128
+    s = 1.3
+    H = 0.8
+    slope = 0.1
+    t = fourier_synthesis((r,), (s,), H, rms_slope=slope, short_cutoff=s / 20,
+                          amplitude_distribution=lambda n: 1.0)
+    r1, A1 = t.autocorrelation_from_profile()
+    r2, A2 = t.autocorrelation_from_profile(resampling_method='bin-average')
+    r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
+
+    assert len(r1) == len(A1)
+    assert len(r2) == len(A2)
+    assert len(r3) == len(A3)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(r1, A1, 'x-', label='native')
+        plt.loglog(r2, A2, 'o-', label='bin-average')
+        plt.loglog(r3, A3, 's-', label='gaussian-process')
+        plt.legend(loc='best')
+        plt.show()
+
+    f = interp1d(r1, A1)
+    assert_allclose(A2, f(r2), atol=1e-6)
+    assert_allclose(A3, f(r3), atol=1e-6)
