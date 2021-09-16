@@ -97,8 +97,8 @@ def power_spectrum_from_profile(self, window=None, reliable=True):
         return q, C_all.mean(axis=1)
 
 
-def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=5, window=None,
-                             return_map=False, reliable=True):
+def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=10, window=None,
+                             return_map=False, reliable=True, resampling_method='bin-average'):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
@@ -127,6 +127,10 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
         Return full 2D power spectrum map. (Default: False)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be 'bin-average' for simple bin averaging and
+        'gaussian-process' for Gaussian process regression.
+        (Default: 'bin-average')
 
     Returns
     -------
@@ -155,10 +159,8 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
     # Radial average
     q_val, q_edges, C_val, _ = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
                                                collocation=collocation, nb_points=nb_points,
-                                               nb_points_per_decade=nb_points_per_decade, max_radius=qmax)
-
-    q_val = q_val[np.isfinite(C_val)]
-    C_val = C_val[np.isfinite(C_val)]
+                                               nb_points_per_decade=nb_points_per_decade, max_radius=qmax,
+                                               method=resampling_method)
 
     if return_map:
         return q_val, C_val, C_qk

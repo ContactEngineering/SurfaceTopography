@@ -32,7 +32,7 @@ regression.
 import numpy as np
 
 
-def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=5):
+def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10):
     """
     Create collocation points.
 
@@ -229,7 +229,7 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
     return pred_mean, pred_cov.diagonal()
 
 
-def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=5,
+def resample(x, values, collocation='log', nb_points=None, min_value=None, max_value=None, nb_points_per_decade=10,
              method='bin-average'):
     """
     Resample noisy function data set onto a specific grid.

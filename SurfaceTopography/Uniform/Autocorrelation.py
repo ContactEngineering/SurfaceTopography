@@ -137,7 +137,7 @@ def autocorrelation_from_profile(self, direction=0, reliable=True):
 
 
 def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points_per_decade=5, return_map=False,
-                              reliable=True):
+                              reliable=True, resampling_method='bin-average'):
     """
     Compute height-difference autocorrelation function and radial average.
 
@@ -162,6 +162,10 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         Return full 2D autocorrelation map. (Default: False)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be 'bin-average' for simple bin averaging and
+        'gaussian-process' for Gaussian process regression.
+        (Default: 'bin-average')
 
     Returns
     -------
@@ -189,7 +193,7 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
                                                    nb_points_per_decade=nb_points_per_decade, collocation=collocation,
-                                                   max_radius=(sx + sy) / 4)
+                                                   max_radius=(sx + sy) / 4, method=resampling_method)
     else:
         p = self.heights()
 
@@ -212,14 +216,14 @@ def autocorrelation_from_area(self, collocation='log', nb_points=None, nb_points
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
                                                    nb_points=nb_points, nb_points_per_decade=nb_points_per_decade,
-                                                   max_radius=(sx + sy) / 2, full=False)
+                                                   max_radius=(sx + sy) / 2, full=False, method=resampling_method)
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
     short_cutoff = self.short_reliability_cutoff() if reliable else None
     if short_cutoff is None:
         short_cutoff = -1  # Include zero distance
-    mask = np.logical_and(np.isfinite(A_val), r_val > short_cutoff / 2)
+    mask = r_val > short_cutoff / 2
     if return_map:
         return r_val[mask], A_val[mask], A_xy
     else:
