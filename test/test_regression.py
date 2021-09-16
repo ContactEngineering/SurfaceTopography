@@ -35,7 +35,7 @@ def test_make_log_grid():
     for i in range(4):
         # This makes bin edges [0, 1, 10, 100, ...]
         x, e = make_grid('log', 1, 10 ** i, nb_points_per_decade=1)
-        np.testing.assert_allclose(e[1:], 10 ** np.arange(i + 1))
+        np.testing.assert_allclose(e, 10 ** np.arange(i + 1))
         assert len(e) == len(x) + 1
 
 
@@ -64,4 +64,18 @@ def test_resample(method, func, tol_kwargs):
     y = func(x)
 
     x_resampled, bin_edges, y_resampled, _ = resample(x, y, collocation='linear', nb_points=13, method=method)
+    np.testing.assert_allclose(y_resampled, func(x_resampled), **tol_kwargs)
+
+
+@pytest.mark.parametrize('method,func,tol_kwargs', [
+    ('bin-average', lambda x: x ** 2, dict(rtol=0.03)),
+    ('bin-average', lambda x: x ** -2.8, dict(rtol=0.2)),
+    ('gaussian-process', lambda x: x ** 2, dict(rtol=0.001)),
+    ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.01)),
+])
+def test_logresample(method, func, tol_kwargs):
+    x = np.linspace(0.1, 10, 1001)
+    y = func(x)
+
+    x_resampled, bin_edges, y_resampled, _ = resample(x, y, collocation='log', nb_points_per_decade=3, method=method)
     np.testing.assert_allclose(y_resampled, func(x_resampled), **tol_kwargs)

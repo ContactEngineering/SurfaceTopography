@@ -73,10 +73,10 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
             # which is the (minimal) size of a grid point
             # i.e. min_radius = np.exp(np.log(min_radius) + dl) - min_radius
             # => dl = np.log(2)
-            nb_points = int(np.ceil((np.log10(max_value) - np.log10(min_value) + 1) * nb_points_per_decade)) + 1
-        bin_edges = np.linspace(np.log10(min_value), np.log10(max_value), nb_points - 1)
-        collocation_points = np.append([0], 10 ** ((bin_edges[1:] + bin_edges[:-1]) / 2))
-        bin_edges = np.append([0], 10 ** bin_edges)
+            nb_points = int(np.ceil((np.log10(max_value) - np.log10(min_value) + 1) * nb_points_per_decade))
+        bin_edges = np.linspace(np.log10(min_value), np.log10(max_value), nb_points)
+        collocation_points = 10 ** ((bin_edges[1:] + bin_edges[:-1]) / 2)
+        bin_edges = 10 ** bin_edges
     elif collocation == 'quadratic':
         # Quadratic -> similar statistics for each data point on a 2D radial grid
         if nb_points is None:
@@ -95,14 +95,12 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
     return collocation_points, bin_edges
 
 
-def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
-    return signal_variance*np.exp(-(x1-x2)**2 / (2*length_scale**2))
-
-
-def suggest_kernel_for_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=5):
+def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_value):
     """
     Suggest a kernel function for Gaussian process regression with test
-    locations on a specific grid.
+    locations on a specific grid. The length scale (smoothening scale)
+    of the kernel is set to the characteristic spacing between the sampling
+    output points.
 
     Parameters
     ----------
@@ -113,17 +111,13 @@ def suggest_kernel_for_grid(collocation, min_value, max_value, nb_points=None, n
         Alternatively, it is possible to explicitly specify the bin edges.
         If bin edges are explicitly specified, then the other arguments
         to this function are ignored.
+    nb_collocation_points : int
+        Number of collocation points.
     min_value : float
         Minimum value. Note that for log-spaced collocation points, this
         is the first value - the leftmost bin edge with always be zero.
     max_value : float
         Maximum value.
-    nb_points : int, optional
-        Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
-    nb_points_per_decade : int, optional
-        Number of points per decade for log-spaced collocation points.
-        (Default: None)
 
     Returns
     -------
@@ -131,9 +125,19 @@ def suggest_kernel_for_grid(collocation, min_value, max_value, nb_points=None, n
         Kernel function.
     """
     if collocation == 'log':
-        pass
+        length_scale = (np.log10(max_value) - np.log10(min_value)) / nb_collocation_points
+        return lambda x1, x2: gaussian_log_kernel(x1, x2, length_scale=length_scale)
     else:
-        return gaussian_kernel
+        length_scale = (max_value - min_value) / nb_collocation_points
+        return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
+
+
+def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
+    return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
+
+
+def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
+    return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
 
 
 def bin_average(bin_edges, x, values):
@@ -167,12 +171,12 @@ def bin_average(bin_edges, x, values):
                                       number_of_data_points)
     resampled_values = np.bincount(bin_index, weights=values, minlength=len(bin_edges) + 1) / number_of_data_points1
     resampled_variance = \
-        np.bincount(bin_index, weights=values ** 2, minlength=len(bin_edges) + 1) / number_of_data_points1 \
-        - resampled_values ** 2
+        np.bincount(bin_index, weights=values ** 2,
+                    minlength=len(bin_edges) + 1) / number_of_data_points1 - resampled_values ** 2
 
     # Resample collocation points as average of the distances in each bin
-    resampled_collocation_points = np.bincount(bin_index, weights=x, minlength=len(bin_edges) + 1) \
-                                   / number_of_data_points1
+    resampled_collocation_points = np.bincount(bin_index, weights=x,
+                                               minlength=len(bin_edges) + 1) / number_of_data_points1
 
     # Mark missing data points by NaNs
     resampled_values[number_of_data_points == 0] = np.nan
@@ -284,7 +288,10 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         collocation_points, resampled_values, resampled_variance = bin_average(bin_edges, x, values)
         return collocation_points, bin_edges, resampled_values, resampled_variance
     elif method == 'gaussian-process':
-        resampled_values, resampled_variance = gaussian_process_regression(collocation_points, x, values)
+        resampled_values, resampled_variance = \
+            gaussian_process_regression(collocation_points, x, values,
+                                        kernel=suggest_kernel_for_grid(collocation, len(collocation_points),
+                                                                       min_value, max_value))
         return collocation_points, bin_edges, resampled_values, resampled_variance
     else:
         raise ValueError(f"Unknown resampling method '{method}'.")
