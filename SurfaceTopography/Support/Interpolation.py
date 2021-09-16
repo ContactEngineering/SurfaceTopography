@@ -1,6 +1,6 @@
 #
-# Copyright 2020-2021 Lars Pastewka
-#           2019-2020 Antoine Sanner
+# Copyright 2020 Lars Pastewka
+#           2019 Antoine Sanner
 #
 # ### MIT license
 #
@@ -23,23 +23,8 @@
 # SOFTWARE.
 #
 
-from .Deprecation import deprecated, DeprecatedDictionary  # noqa: F401
-from .Interpolation import Bicubic  # noqa: F401
-from .Regression import resample_radial  # noqa: F401
+"""
+Interpolation classes
+"""
 
-def toiter(obj):
-    """If `obj` is scalar, wrap it into a list"""
-    try:
-        iter(obj)
-        return obj
-    except TypeError:
-        return [obj]
-
-
-def fromiter(result, obj):
-    """If `obj` is scalar, return first element of result list"""
-    try:
-        iter(obj)
-        return result
-    except TypeError:
-        return result[0]
+from _SurfaceTopography import Bicubic  # noqa: F401

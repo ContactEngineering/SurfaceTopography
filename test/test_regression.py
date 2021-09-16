@@ -1,6 +1,5 @@
 #
-# Copyright 2020 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2021 Lars Pastewka
 #
 # ### MIT license
 #
@@ -23,8 +22,28 @@
 # SOFTWARE.
 #
 
-"""
-Interpolation module
-"""
+"""Test for resampling of noisy data."""
 
-from _SurfaceTopography import Bicubic  # noqa: F401
+import numpy as np
+
+from SurfaceTopography.Support.Regression import make_grid, resample_radial
+
+
+def test_make_log_grid():
+    for i in range(4):
+        # This makes bin edges [0, 1, 10, 100, ...]
+        x, e = make_grid('log', 1, 10 ** i, nb_points_per_decade=1)
+        np.testing.assert_allclose(e[1:], 10 ** np.arange(i + 1))
+        assert len(e) == len(x) + 1
+
+
+def test_make_quadratic_grid():
+    x, e = make_grid('quadratic', 0, 100, nb_points=2)
+    assert len(e) == len(x) + 1
+    np.testing.assert_allclose(e, [0, 100 / np.sqrt(2), 100])
+
+
+def test_make_linear_grid():
+    x, e = make_grid('linear', 2, 33, nb_points=5)
+    assert len(e) == len(x) + 1
+    np.testing.assert_allclose(e, np.linspace(2, 33, 6))

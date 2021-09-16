@@ -30,7 +30,7 @@ Height-difference autocorrelation functions
 
 import numpy as np
 
-from ..common import radial_average
+from SurfaceTopography.Support.Regression import resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
@@ -184,10 +184,8 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
         A_xy = A_xy[0, 0] - A_xy
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(
-            # pylint: disable=invalid-name
-            A_xy, rmax=(sx + sy) / 4, nbins=nbins, bin_edges=bin_edges,
-            physical_sizes=(sx, sy))
+        r_edges, n, r_val, A_val = resample_radial(A_xy, max_radius=(sx + sy) / 4, nb_points=nbins, collocation=bin_edges,
+                                                   physical_sizes=(sx, sy))
     else:
         p = topography.heights()
 
@@ -208,10 +206,8 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
                     (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(
-            # pylint: disable=invalid-name
-            A_xy, rmax=(sx + sy) / 2, nbins=nbins, bin_edges=bin_edges,
-            physical_sizes=(sx, sy), full=False)
+        r_edges, n, r_val, A_val = resample_radial(A_xy, max_radius=(sx + sy) / 2, nb_points=nbins, collocation=bin_edges,
+                                                   physical_sizes=(sx, sy), full=False)
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103

@@ -26,7 +26,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from SurfaceTopography.Interpolation import Bicubic
+from SurfaceTopography.Support.Interpolation import Bicubic
 from SurfaceTopography.Generation import fourier_synthesis
 
 # from muFFT import FourierInterpolation # future

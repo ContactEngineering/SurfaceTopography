@@ -29,8 +29,8 @@
 
 import numpy as np
 
-from ..common import toiter, fromiter
 from ..HeightContainer import NonuniformLineScanInterface
+from ..Support import toiter, fromiter
 
 
 def derivative(self, n, scale_factor=None, distance=None, interpolation='linear', progress_callback=None):

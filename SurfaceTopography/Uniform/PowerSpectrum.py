@@ -30,7 +30,7 @@ Power-spectral density for uniform topographies.
 
 import numpy as np
 
-from ..common import radial_average
+from SurfaceTopography.Support.Regression import resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
@@ -157,10 +157,8 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average
-    q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, rmax=qmax,
-        nbins=nbins, bin_edges=bin_edges,
-        physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
+    q_edges, n, q_val, C_val = resample_radial(C_qk, max_radius=qmax, nb_points=nbins, collocation=bin_edges,
+                                               physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
 
     q_val = q_val[n > 0]
     C_val = C_val[n > 0]

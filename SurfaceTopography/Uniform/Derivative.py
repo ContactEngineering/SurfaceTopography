@@ -29,8 +29,8 @@ import numpy as np
 
 import muFFT
 
-from ..common import toiter
 from ..HeightContainer import UniformTopographyInterface
+from ..Support import toiter
 from ..UniformLineScanAndTopography import Topography
 
 #
