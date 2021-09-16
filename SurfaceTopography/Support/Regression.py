@@ -359,14 +359,6 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     if max_radius is None:
         max_radius = np.max(radius)
 
-    collocation_points, bin_edges = make_grid(collocation, min_radius, max_radius, nb_points=nb_points,
-                                              nb_points_per_decade=nb_points_per_decade)
-
-    if method == 'bin-average':
-        collocation_points, resampled_values, resampled_variance = bin_average(bin_edges, np.ravel(radius),
-                                                                                  np.ravel(data))
-        return collocation_points, bin_edges, resampled_values, resampled_variance
-    elif method == 'gaussian-process':
-        raise NotImplementedError
-    else:
-        raise ValueError(f"Unknown resampling method '{method}'.")
+    return resample(np.ravel(radius), np.ravel(data), collocation=collocation, nb_points=nb_points,
+                    min_value=min_radius, max_value=max_radius, nb_points_per_decade=nb_points_per_decade,
+                    method=method)
