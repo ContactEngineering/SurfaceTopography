@@ -157,7 +157,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method=None, co
             r = r[1:]
             A = A[1:]
         if self.dim == 2:
-            r = np.ravel([r] * ny)
+            r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
             A = np.ravel(A)
         r, _, A, _ = resample(r, A, min_value=sx / nx, max_value=sx / 2, collocation=collocation, nb_points=nb_points,
                               nb_points_per_decade=nb_points_per_decade, method=resampling_method)

@@ -330,29 +330,32 @@ def test_reliability_cutoff():
     assert q1.max() < q2.max()
 
 
-def test_resampling(plot=False):
-    r = 128
-    s = 1.3
+@pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])
+def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     H = 0.8
     slope = 0.1
-    t = fourier_synthesis((r,), (s,), H, rms_slope=slope, short_cutoff=s / 20,
+    t = fourier_synthesis(nb_grid_pts, physical_sizes, H, rms_slope=slope, short_cutoff=np.mean(physical_sizes) / 20,
                           amplitude_distribution=lambda n: 1.0)
     q1, C1 = t.power_spectrum_from_profile()
     q2, C2 = t.power_spectrum_from_profile(resampling_method='bin-average')
-    q3, C3 = t.power_spectrum_from_profile(resampling_method='gaussian-process')
+    if t.dim == 1:
+        q3, C3 = t.power_spectrum_from_profile(resampling_method='gaussian-process')
 
     assert len(q1) == len(C1)
     assert len(q2) == len(C2)
-    assert len(q3) == len(C3)
+    if t.dim == 1:
+        assert len(q3) == len(C3)
 
     if plot:
         import matplotlib.pyplot as plt
         plt.loglog(q1, C1, 'x-', label='native')
         plt.loglog(q2, C2, 'o-', label='bin-average')
-        plt.loglog(q3, C3, 's-', label='gaussian-process')
+        if t.dim == 1:
+            plt.loglog(q3, C3, 's-', label='gaussian-process')
         plt.legend(loc='best')
         plt.show()
 
     f = interp1d(q1, C1)
     assert_allclose(C2, f(q2), atol=1e-6)
-    #assert_allclose(C3, f(q3), atol=1e-6)
+    if t.dim == 1:
+        assert_allclose(C3, f(q3), atol=1e-6)
