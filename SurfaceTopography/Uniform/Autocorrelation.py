@@ -114,6 +114,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method=None, co
         A /= 2
 
         r = sx * np.arange(nx // 2) / nx
+        max_distance = sx / 2
     else:
         # Compute height-height autocorrelation function. We need to zero
         # pad the FFT for the nonperiodic case in order to separate images.
@@ -138,6 +139,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method=None, co
         A = ((A0_xy - A_xy[:nx]).T / (nx - np.arange(nx))).T
 
         r = sx * np.arange(nx) / nx
+        max_distance = sx
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
@@ -159,8 +161,8 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method=None, co
         if self.dim == 2:
             r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
             A = np.ravel(A)
-        r, _, A, _ = resample(r, A, min_value=sx / nx, max_value=sx / 2, collocation=collocation, nb_points=nb_points,
-                              nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        r, _, A, _ = resample(r, A, min_value=sx / nx, max_value=max_distance, collocation=collocation,
+                              nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
         return r, A
 
 
