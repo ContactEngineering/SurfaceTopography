@@ -71,7 +71,7 @@ def test_resample(method, func, tol_kwargs):
     ('bin-average', lambda x: x ** 2, dict(rtol=0.03)),
     ('bin-average', lambda x: x ** -2.8, dict(rtol=0.2)),
     ('gaussian-process', lambda x: x ** 2, dict(rtol=0.001)),
-    ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.01)),
+    ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.03)),
 ])
 def test_logresample(method, func, tol_kwargs):
     x = np.linspace(0.1, 10, 1001)
