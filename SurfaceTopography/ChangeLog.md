@@ -17,6 +17,7 @@ v0.97.0 (not yet released)
 - BUG: Multiple bug fixed in scale-dependent analyses
 - API: Reconciled radial averages into its own regression module;
   default behavior has changed
+- API: All analysis functions now resample data onto a reasonable grid
 
 v0.96.0 (13Sep21)
 -----------------

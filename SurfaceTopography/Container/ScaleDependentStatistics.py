@@ -128,7 +128,7 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
         # Are there any distances left?
         if len(existing_distances) > 0:
             # Yes! Let's compute the statistical properties at these scales
-            stat = topography.scale_dependent_statistical_property(
+            _, stat = topography.scale_dependent_statistical_property(
                 func, n=n, distance=existing_distances, interpolation=interpolation)
             # Append results to our return values
             for e, s in zip(existing_distances, stat):
@@ -138,7 +138,7 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
                     retvals[e] = [s]
     if progress_callback is not None:
         progress_callback(len(self), len(self))
-    return [np.mean(retvals[d], axis=0) if d in retvals else None for d in distance]
+    return distance, [np.mean(retvals[d], axis=0) if d in retvals else None for d in distance]
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)

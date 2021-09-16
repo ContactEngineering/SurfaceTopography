@@ -35,20 +35,20 @@ def test_scale_dependent_rms_slope_from_profile():
 
     x, A = t.autocorrelation_from_profile(resampling_method=None)
 
-    s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=x[1::20])
+    _, s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=x[1::20])
 
     np.testing.assert_allclose(2 * A[1::20] / x[1::20] ** 2, s)
 
 
 def test_scalar_input():
     t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1)
-    s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[0.01, 0.1, 1])
+    _, s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[0.01, 0.1, 1])
     assert len(s) == 3
-    s2 = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=0.1)
+    _, s2 = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=0.1)
     with pytest.raises(TypeError):
         iter(s2)
     np.testing.assert_almost_equal(s[1], s2)
-    s3 = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, scale_factor=2)
+    _, s3 = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, scale_factor=2)
     with pytest.raises(TypeError):
         iter(s3)
 
@@ -67,15 +67,15 @@ def test_nonuniform():
 
 def test_container_uniform(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
-    s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.01, 0.1, 1.0, 10], unit='um')
+    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.01, 0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
     np.testing.assert_almost_equal(s, [0.0018715281899762592, 0.0006849065620048571, 0.0002991781282532277,
                                        7.224607689277936e-05])
 
     # Test that specifying distances where no data exists does not raise an exception
     iterations = []
-    s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.00001, 1.0, 10000], unit='um',
-                                               progress_callback=lambda i, n: iterations.append(i))
+    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.00001, 1.0, 10000], unit='um',
+                                                  progress_callback=lambda i, n: iterations.append(i))
     assert s[0] is None
     assert s[2] is None
     np.testing.assert_allclose(np.array(iterations), np.arange(len(c) + 1))
@@ -83,7 +83,7 @@ def test_container_uniform(file_format_examples):
 
 def test_container_mixed(file_format_examples):
     c, = read_container(f'{file_format_examples}/container2.zip')
-    s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
+    _, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
 
 
