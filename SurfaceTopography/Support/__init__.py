@@ -27,6 +27,7 @@ from .Deprecation import deprecated, DeprecatedDictionary  # noqa: F401
 from .Interpolation import Bicubic  # noqa: F401
 from .Regression import resample_radial  # noqa: F401
 
+
 def toiter(obj):
     """If `obj` is scalar, wrap it into a list"""
     try:
