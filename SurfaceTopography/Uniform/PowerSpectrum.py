@@ -70,7 +70,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True):
     h = self.window(window).heights()
 
     # Compute FFT and normalize
-    fourier_topography = sx/nx * np.fft.fft(h, axis=0)
+    fourier_topography = sx / nx * np.fft.fft(h, axis=0)
     dq = 2 * np.pi / sx
     q = dq * np.arange(nx // 2)
 
@@ -153,12 +153,12 @@ def power_spectrum_from_area(self, collocation='log', nb_points=None, nb_points_
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average
-    q_val, q_edges, C_val, n = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
+    q_val, q_edges, C_val, _ = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
                                                collocation=collocation, nb_points=nb_points,
                                                nb_points_per_decade=nb_points_per_decade, max_radius=qmax)
 
-    q_val = q_val[n > 0]
-    C_val = C_val[n > 0]
+    q_val = q_val[np.isfinite(C_val)]
+    C_val = C_val[np.isfinite(C_val)]
 
     if return_map:
         return q_val, C_val, C_qk
