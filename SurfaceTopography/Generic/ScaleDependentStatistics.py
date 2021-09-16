@@ -23,11 +23,15 @@
 # SOFTWARE.
 #
 
+import numpy as np
+
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
+from ..Support.Regression import make_grid
 
 
-def scale_dependent_statistical_property(topography, func, n=1, scale_factor=None, distance=None,
-                                         interpolation='linear', progress_callback=None):
+def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None,
+                                         interpolation='linear', progress_callback=None,
+                                         collocation='log', nb_points=None, nb_points_per_decade=10):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -41,7 +45,7 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
 
     Parameters
     ----------
-    topography : Topography or UniformLineScan
+    self : Topography or UniformLineScan
         Topogaphy or line scan.
     func : callable
         The function that computes the statistical properties:
@@ -76,6 +80,18 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Automatic computation of sampling grid if neigther `scale_factor` nor
+        `distance` is specified. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        (Default: 'log')
+    nb_points : int, optional
+        Number of points for automatic sampling grid. Bins are automatically
+        determined if set to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
@@ -87,30 +103,35 @@ def scale_dependent_statistical_property(topography, func, n=1, scale_factor=Non
     This example yields the the scale-dependent derivative (equivalent to
     the autocorrelation function divided by the distance) in the x-direction:
 
-    >>> distances, A = t.autocorrelation_from_profile()
+    >>> distances, A = t.autocorrelation_from_profile(resampling_method=None)
     >>> s = t.scale_dependent_statistical_property(lambda x, y=None: np.var(x), distance=distances[1::20])
     >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
-    d = topography.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
-                              progress_callback=progress_callback)
-    if topography.dim == 1:
+    if scale_factor is None and distance is None:
+        distance, _ = make_grid(collocation, *self.bandwidth(), nb_points=nb_points,
+                                nb_points_per_decade=nb_points_per_decade)
+    d = self.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
+                        progress_callback=progress_callback)
+    if distance is None:
+        distance = scale_factor * np.mean(self.physical_sizes)
+    if self.dim == 1:
         try:
             if scale_factor is not None:
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
-            return [func(_d) for _d in d]
+            return distance, [func(_d) for _d in d]
         except TypeError:
-            return func(d)
+            return distance, func(d)
     else:
         try:
             if scale_factor is not None:
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
-            return [func(dx, dy) for dx, dy in zip(*d)]
+            return distance, [func(dx, dy) for dx, dy in zip(*d)]
         except TypeError:
-            return func(*d)
+            return distance, func(*d)
 
 
 UniformTopographyInterface.register_function(
