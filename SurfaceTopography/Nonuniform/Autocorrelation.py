@@ -100,8 +100,7 @@ def height_height_autocorrelation(line_scan, distances=None):
     return distances, A
 
 
-def height_difference_autocorrelation(line_scan, algorithm='fft',
-                                      distances=None, nb_interpolate=5):
+def height_difference_autocorrelation(line_scan, algorithm='fft', distances=None, nb_interpolate=5):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -143,7 +142,7 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
         if distances is not None:
             raise ValueError(
                 "`distances` can only be used with 'brute-force' algorithm.")
-        return line_scan.to_uniform(nb_interpolate=nb_interpolate).autocorrelation_from_profile()
+        return line_scan.to_uniform(nb_interpolate=nb_interpolate).autocorrelation_from_profile(resampling_method=None)
     elif algorithm == 'brute-force':
         return _SurfaceTopography.nonuniform_autocorrelation(x, h, s, distances)
     else:
@@ -152,5 +151,4 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function(
-    'autocorrelation_from_profile', height_difference_autocorrelation)
+NonuniformLineScanInterface.register_function('autocorrelation_from_profile', height_difference_autocorrelation)

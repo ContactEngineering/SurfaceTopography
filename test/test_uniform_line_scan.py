@@ -200,4 +200,4 @@ def test_power_spectrum_from_profile():
     # power spectrum 1D with a window given
     #
     t = UniformLineScan([2, 4, 6, 8], 4)
-    t.power_spectrum_from_profile(window='hann')
+    t.power_spectrum_from_profile(window='hann', resampling_method=None)

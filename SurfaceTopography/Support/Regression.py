@@ -100,7 +100,7 @@ def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
 
 
 def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
-    return signal_variance * np.exp(-(np.log10(1 + (x1 - x2) ** 2)) / (2 * length_scale ** 2))
+    return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
 
 
 def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_value):
@@ -132,8 +132,12 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
     kernel : func
         Kernel function.
     """
-    length_scale = (max_value - min_value) / nb_collocation_points
-    return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
+    if collocation == 'log':
+        length_scale = np.log10(max_value) - np.log10(min_value)
+        return lambda x1, x2: gaussian_log_kernel(x1, x2, length_scale=length_scale)
+    else:
+        length_scale = (max_value - min_value) / nb_collocation_points
+        return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
 
 
 def bin_average(bin_edges, x, values):

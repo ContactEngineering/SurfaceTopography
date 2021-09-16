@@ -119,7 +119,7 @@ def test_uniform_impulse_autocorrelation():
                        (nx // 2, 5, 1, False), (nx // 3, 6, 2.5, False)]:
         y = np.zeros(nx)
         y[x - w // 2:x + (w + 1) // 2] = h
-        r, A = UniformLineScan(y, nx, periodic=True).autocorrelation_from_profile()
+        r, A = UniformLineScan(y, nx, periodic=True).autocorrelation_from_profile(resampling_method=None)
 
         A_ana = np.zeros_like(A)
         A_ana[:w] = h ** 2 * np.linspace(w / nx, 1 / nx, w)
@@ -133,7 +133,7 @@ def test_uniform_brute_force_autocorrelation_from_profile():
                  UniformLineScan(np.arange(n), n, periodic=False),
                  Topography(np.random.random(n).reshape(n, 1), (n, 1),
                             periodic=False)]:
-        r, A = surf.autocorrelation_from_profile()
+        r, A = surf.autocorrelation_from_profile(resampling_method=None)
 
         n = len(A)
         dir_A = np.zeros(n)
@@ -290,14 +290,13 @@ def test_self_affine_nonuniform_autocorrelation():
     t = fourier_synthesis((r,), (s,), H, rms_slope=slope, short_cutoff=s / 20,
                           amplitude_distribution=lambda n: 1.0)
     t._periodic = False
-    r, A = t.detrend(detrend_mode='center').autocorrelation_from_profile()
+    r, A = t.detrend(detrend_mode='center').autocorrelation_from_profile(resampling_method=None)
     # Need to exclude final point because we cannot compute nonuniform ACF at
     # that point
     r = r[1:-1]
     A = A[1:-1]
-    r2, A2 = t.detrend(
-        detrend_mode='center').to_nonuniform().autocorrelation_from_profile(
-        algorithm='brute-force', distances=r)
+    r2, A2 = t.detrend(detrend_mode='center').to_nonuniform() \
+        .autocorrelation_from_profile(algorithm='brute-force', distances=r)
 
     assert_allclose(A, A2, atol=1e-5)
 
@@ -307,8 +306,7 @@ def test_brute_force_vs_fft():
     r, A = t.detrend().autocorrelation_from_profile()
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5)
     x = A[1:] / A2[1:]
-    print(x.min(), x.max())
-    assert np.alltrue(np.logical_and(x > 0.98, x < 1.02))
+    assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])
@@ -317,7 +315,7 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     slope = 0.1
     t = fourier_synthesis(nb_grid_pts, physical_sizes, H, rms_slope=slope, short_cutoff=np.mean(physical_sizes) / 20,
                           amplitude_distribution=lambda n: 1.0)
-    r1, A1 = t.autocorrelation_from_profile()
+    r1, A1 = t.autocorrelation_from_profile(resampling_method=None)
     r2, A2 = t.autocorrelation_from_profile(resampling_method='bin-average')
     if t.dim == 1:
         r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
@@ -339,4 +337,4 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     f = interp1d(r1, A1)
     assert_allclose(A2, f(r2), atol=1e-6)
     if t.dim == 1:
-        assert_allclose(A3, f(r3), atol=1e-6)
+        assert_allclose(A3, f(r3), atol=0.01)

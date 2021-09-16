@@ -34,8 +34,8 @@ from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_from_profile(self, reliable=True, resampling_method=None, collocation='log', nb_points=None,
-                                 nb_points_per_decade=10):
+def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-average', collocation='log',
+                                 nb_points=None, nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).

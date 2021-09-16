@@ -33,15 +33,15 @@ from SurfaceTopography.Generation import fourier_synthesis
 def test_scale_dependent_rms_slope_from_profile():
     t = fourier_synthesis((1024, 1024), (1, 1), 0.8, rms_slope=0.1)
 
-    x, A = t.autocorrelation_from_profile()
+    x, A = t.autocorrelation_from_profile(resampling_method=None)
 
     s = t.scale_dependent_statistical_property(lambda x, y: np.var(x), distance=x[1::20])
 
-    np.testing.assert_allclose(2*A[1::20]/x[1::20]**2, s)
+    np.testing.assert_allclose(2 * A[1::20] / x[1::20] ** 2, s)
 
 
 def test_scalar_input():
-    t = fourier_synthesis((1024, ), (7,), 0.8, rms_slope=0.1)
+    t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1)
     s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[0.01, 0.1, 1])
     assert len(s) == 3
     s2 = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=0.1)
@@ -54,14 +54,14 @@ def test_scalar_input():
 
 
 def test_nonuniform():
-    t = fourier_synthesis((1024, ), (7,), 0.8, rms_slope=0.1, periodic=False)
+    t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False)
     p, = t.pixel_size
-    s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4*p, 16*p])
+    s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4 * p, 16 * p])
     t2 = t.to_nonuniform()
     t3 = t2.to_uniform(pixel_size=p)
     np.testing.assert_almost_equal(t3.pixel_size, p)
     np.testing.assert_almost_equal(t3.positions()[1] - t3.positions()[0], p)
-    s2 = t2.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4*p, 16*p])
+    s2 = t2.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4 * p, 16 * p])
     np.testing.assert_allclose(s, s2, atol=1e-3)
 
 
@@ -78,7 +78,7 @@ def test_container_uniform(file_format_examples):
                                                progress_callback=lambda i, n: iterations.append(i))
     assert s[0] is None
     assert s[2] is None
-    np.testing.assert_allclose(np.array(iterations), np.arange(len(c)+1))
+    np.testing.assert_allclose(np.array(iterations), np.arange(len(c) + 1))
 
 
 def test_container_mixed(file_format_examples):

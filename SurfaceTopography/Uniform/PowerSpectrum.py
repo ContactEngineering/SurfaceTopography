@@ -34,7 +34,7 @@ from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method=None,
+def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method='bin-average',
                                 collocation='log', nb_points=None, nb_points_per_decade=10):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan

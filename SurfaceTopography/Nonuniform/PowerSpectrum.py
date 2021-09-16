@@ -156,7 +156,7 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
             raise RuntimeError('This topography is reentrant (i.e. it contains overhangs). The power-spectral '
                                'density cannot be computed for reentrant topographies.')
         wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
-            .power_spectrum_from_profile(window=window)
+            .power_spectrum_from_profile(window=window, resampling_method=None)
     elif algorithm == 'brute-force':
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]

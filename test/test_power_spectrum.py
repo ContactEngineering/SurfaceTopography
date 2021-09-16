@@ -58,7 +58,7 @@ def test_uniform():
                     x = np.arange(n) * L / n
                     h = np.sin(2 * np.pi * k * x / L)
                     t = UniformLineScan(h, physical_sizes=L, periodic=periodic)
-                    q, C = t.power_spectrum_from_profile()
+                    q, C = t.power_spectrum_from_profile(resampling_method=None)
 
                     # The ms height of the sine is 1/2. The sum over the PSD
                     # (from -q to +q) is the ms height. Our PSD only contains
@@ -336,7 +336,7 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     slope = 0.1
     t = fourier_synthesis(nb_grid_pts, physical_sizes, H, rms_slope=slope, short_cutoff=np.mean(physical_sizes) / 20,
                           amplitude_distribution=lambda n: 1.0)
-    q1, C1 = t.power_spectrum_from_profile()
+    q1, C1 = t.power_spectrum_from_profile(resampling_method=None)
     q2, C2 = t.power_spectrum_from_profile(resampling_method='bin-average')
     if t.dim == 1:
         q3, C3 = t.power_spectrum_from_profile(resampling_method='gaussian-process')
@@ -358,4 +358,4 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     f = interp1d(q1, C1)
     assert_allclose(C2, f(q2), atol=1e-6)
     if t.dim == 1:
-        assert_allclose(C3, f(q3), atol=1e-6)
+        assert_allclose(C3, f(q3), atol=1e-5)
