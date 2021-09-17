@@ -368,3 +368,14 @@ def test_container_mixed(file_format_examples, plot=False):
         for t in c:
             plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
         plt.show()
+
+
+@pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
+def test_large_container_mixed(plot=True):
+    c, = read_container('/home/pastewka/Downloads/surface.zip')
+    d, s = c.autocorrelation(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'kx-')
+        plt.show()
