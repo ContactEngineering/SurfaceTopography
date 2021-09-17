@@ -28,8 +28,8 @@ import numpy as np
 from .SurfaceContainer import SurfaceContainer
 
 
-def scale_dependent_statistical_property(self, func, n, distance, unit, interpolation='linear', reliable=True,
-                                         progress_callback=None):
+def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_decade=10, distances=None,
+                                         interpolation='linear', reliable=True, progress_callback=None):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -64,13 +64,16 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
         return a scalar value or an array, but the array size must be fixed.
     n : int
         Order of derivative.
-    distance : float or np.ndarray
-        Characteristic distances at which the derivatives are computed. If
-        this is an array, then the statistical property is computed at each
-        of these distances.
     unit : str
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
+    nb_points_per_decade : int, optional
+        Number of points be decade in length for automatic grid construction.
+        (Default: 10)
+    distances : float or np.ndarray, optional
+        Characteristic distances at which the derivatives are computed. If
+        this is an array, then the statistical property is computed at each
+        of these distances. (Default: None)
     interpolation : str, optional
         Interpolation method to use for computing derivatives at distances
         that do not equal an integer multiple of the grid spacing. Use
@@ -107,7 +110,6 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
     >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     """
     retvals = {}
-    distance = np.array(distance)
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
@@ -121,9 +123,18 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
             if short_cutoff is None:
                 short_cutoff = 0
             lower = max(short_cutoff, lower)
+
+        if distances is None:
+            # The automatic grid must include the full decades, i.e. 0.01, 0.1, 1, 10, 100, etc. as values. This
+            # ensures that the grid of subsequent calculations are aligned.
+            lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
+            existing_distances = np.logspace(lower_decade, upper_decade,
+                                             (upper_decade - lower_decade) * nb_points_per_decade + 1)
+        else:
+            existing_distances = np.array(distances)
         # For the factor n see arXiv:2106.16103
-        m = np.logical_and(distance > n * lower, distance < upper)
-        existing_distances = distance[m]
+        m = np.logical_and(existing_distances > n * lower, existing_distances < upper)
+        existing_distances = existing_distances[m]
 
         # Are there any distances left?
         if len(existing_distances) > 0:
@@ -138,7 +149,12 @@ def scale_dependent_statistical_property(self, func, n, distance, unit, interpol
                     retvals[e] = [s]
     if progress_callback is not None:
         progress_callback(len(self), len(self))
-    return distance, [np.mean(retvals[d], axis=0) if d in retvals else None for d in distance]
+    if distances is not None:
+        return distances, [np.mean(retvals[d], axis=0) if d in retvals else None for d in distances]
+    else:
+        sorted_retvals = sorted(retvals.items(), key=lambda x: x[0])
+        return np.array([d for d, vals in sorted_retvals]), \
+               np.array([np.mean(vals, axis=0) for d, vals in sorted_retvals])
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)

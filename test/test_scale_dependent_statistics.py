@@ -66,36 +66,54 @@ def test_nonuniform():
 
 
 def test_container_uniform(file_format_examples):
+    """This container has just topography maps"""
     c, = read_container(f'{file_format_examples}/container1.zip')
-    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.01, 0.1, 1.0, 10], unit='um')
+    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.01, 0.1, 1.0, 10],
+                                                  unit='um')
     assert (np.diff(s) < 0).all()
     np.testing.assert_almost_equal(s, [0.0018715281899762592, 0.0006849065620048571, 0.0002991781282532277,
                                        7.224607689277936e-05])
 
     # Test that specifying distances where no data exists does not raise an exception
     iterations = []
-    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distance=[0.00001, 1.0, 10000],
+    _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.00001, 1.0, 10000],
                                                   unit='um', progress_callback=lambda i, n: iterations.append(i))
     assert s[0] is None
     assert s[2] is None
     np.testing.assert_allclose(np.array(iterations), np.arange(len(c) + 1))
 
+    # Test without specifying explicit distances
+    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=1, unit='um')
+    np.testing.assert_allclose(d, [0.01, 0.1, 1, 10])
+    np.testing.assert_allclose(s, [1.87152819e-03, 6.84906562e-04, 2.99178128e-04, 7.22460769e-05])
+
 
 def test_container_mixed(file_format_examples):
+    """This container has a mixture of maps and line scans"""
     c, = read_container(f'{file_format_examples}/container2.zip')
-    _, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
+    _, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
 
+    # Test without specifying explicit distances
+    d, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, nb_points_per_decade=1, unit='um')
+    np.testing.assert_allclose(d, [0.001, 0.01, 0.1, 1, 10, 100])
+    np.testing.assert_allclose(s, [1.057908e-03, 4.016837e-02, 2.302750e-03, 2.058876e-04, 2.822253e-06, 2.650320e-08],
+                               atol=1e-8)
 
-@pytest.mark.skip('Run this if have a one of the big diamond containers download from contact.engineering')
-def test_large_container_mixed():
+
+@pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
+def test_large_container_mixed(plot=False):
     c, = read_container('/home/pastewka/Downloads/surface.zip')
-    distances = np.logspace(np.log10(0.001), np.log10(1000), 11)
-    s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, unit='um', distance=distances)
+    d, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, unit='um', nb_points_per_decade=2)
     assert not np.any(np.isnan(s))
 
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'kx-')
+        plt.show()
 
-@pytest.mark.skip('Run this if have a one of the big diamond containers download from contact.engineering')
+
+@pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
 def test_large_container_power_spectrum():
     c, = read_container('/home/pastewka/Downloads/surface.zip')
     for t in c:
