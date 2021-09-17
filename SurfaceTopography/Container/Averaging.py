@@ -24,14 +24,18 @@
 
 """Compute properties as averages over individual results."""
 
+import logging
+
 import numpy as np
 from collections import defaultdict
 
 from ..Support.Regression import resample
 from .SurfaceContainer import SurfaceContainer
 
+_log = logging.Logger(__name__)
 
-def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None):
+
+def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=True, progress_callback=None, **kwargs):
     """
     Return average property on a logarithmic grid.
 
@@ -62,10 +66,14 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
         # Compute property... but do not allow any resampling
         func = getattr(topography, function_name)
-        x, y = func(reliable=reliable, resampling_method=None)
+        x, y = func(reliable=reliable, resampling_method=None, **kwargs)
 
         # Construct grid in this range
-        lower, upper = np.min(x[x > 0]), np.max(x)
+        m = x > 0
+        if np.sum(m) < 1:
+            _log.warning(f'Topography {topography.info["datafile"]["original"]} contributes no data to average.')
+            continue
+        lower, upper = np.min(x[m]), np.max(x)
         lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
 
         # Resample onto the same grid
