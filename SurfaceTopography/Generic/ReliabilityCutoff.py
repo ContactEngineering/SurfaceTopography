@@ -53,7 +53,7 @@ def short_reliability_cutoff(self, other_cutoff=None):
                 scanning_probe_cutoff = self.scanning_probe_reliability_cutoff(r)
                 return scanning_probe_cutoff if other_cutoff is None else \
                     other_cutoff if scanning_probe_cutoff is None else \
-                        max(scanning_probe_cutoff, other_cutoff)
+                    max(scanning_probe_cutoff, other_cutoff)
             else:
                 # Don't know what type of instrument this is and how to carry out a reliability analysis
                 return other_cutoff
