@@ -71,7 +71,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
         # Construct grid in this range
         m = x > 0
         if np.sum(m) < 1:
-            _log.warning(f'Topography {topography.info["datafile"]["original"]} contributes no data to average.')
+            _log.warning(f'Topography {topography} contributes no data to average.')
             continue
         lower, upper = np.min(x[m]), np.max(x)
         lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
