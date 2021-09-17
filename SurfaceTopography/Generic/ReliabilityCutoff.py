@@ -30,9 +30,9 @@ from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInte
 from ..UnitConversion import get_unit_conversion_factor
 
 
-def short_reliability_cutoff(self):
+def short_reliability_cutoff(self, other_cutoff=None):
     """
-    Determine down to which distance scale the data is realiable, i.e. below
+    Determine down to which distance scale the data is reliable, i.e. below
     which distance it may be affected by instrumental artifacts. Currently
     supported are tip radius artifacts and a user specified resolution.
 
@@ -50,17 +50,18 @@ def short_reliability_cutoff(self):
                 # We are carrying out a scanning probe analysis, get tip radius in correct units
                 tip_radius = parameters['tip_radius']
                 r = tip_radius['value'] * get_unit_conversion_factor(tip_radius['unit'], self.unit)
-                return self.scanning_probe_reliability_cutoff(r)
+                scanning_probe_cutoff = self.scanning_probe_reliability_cutoff(r)
+                return scanning_probe_cutoff if other_cutoff is None else max(scanning_probe_cutoff, other_cutoff)
             else:
                 # Don't know what type of instrument this is and how to carry out a reliability analysis
-                return None
+                return other_cutoff
         else:
             # This instrument has no parameters, we cannot carry out a reliability analysis
-            return None
+            return other_cutoff
     else:
         # We cannot say anything about reliability if we do not know the
         # instrument and its parameters
-        return None
+        return other_cutoff
 
 
 UniformTopographyInterface.register_function('short_reliability_cutoff', short_reliability_cutoff)

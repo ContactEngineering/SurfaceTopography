@@ -99,20 +99,19 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
     C_all[1:nx // 2, ...] += C_raw[nx - 1:(nx + 1) // 2:-1, ...]
     C_all /= 2
 
-    if reliable:
+    if resampling_method is None:
         # Only keep reliable data
-        short_cutoff = self.short_reliability_cutoff()
+        short_cutoff = self.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
             mask = q < 2 * np.pi / short_cutoff
             q = q[mask]
             C_all = C_all[mask]
-
-    if resampling_method is None:
         if self.dim == 1:
             return q, C_all
         else:
             return q, C_all.mean(axis=1)
     else:
+        short_cutoff = 2 * np.pi / self.short_reliability_cutoff(2 * sx / nx) if reliable else np.pi * nx / sx
         if collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             q = q[1:]
@@ -120,8 +119,8 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         if self.dim == 2:
             q = np.resize(q, (C_all.shape[1], q.shape[0])).T.ravel()
             C_all = np.ravel(C_all)
-        q, _, C, _ = resample(q, C_all, min_value=q[1], max_value=q[-1], collocation=collocation, nb_points=nb_points,
-                              nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        q, _, C, _ = resample(q, C_all, min_value=q[1], max_value=short_cutoff, collocation=collocation,
+                              nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
         return q, C
 
 

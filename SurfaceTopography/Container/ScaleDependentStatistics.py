@@ -68,7 +68,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
     nb_points_per_decade : int, optional
-        Number of points be decade in length for automatic grid construction.
+        Number of points per decade in length for automatic grid construction.
         (Default: 10)
     distances : float or np.ndarray, optional
         Characteristic distances at which the derivatives are computed. If

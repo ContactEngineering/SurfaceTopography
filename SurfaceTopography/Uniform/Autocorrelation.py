@@ -143,17 +143,18 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
-    short_cutoff = self.short_reliability_cutoff() if reliable else None
-    if short_cutoff is not None:
-        mask = r > short_cutoff / 2
-        r = r[mask]
-        A = A[mask]
     if resampling_method is None:
+        short_cutoff = self.short_reliability_cutoff() if reliable else None
+        if short_cutoff is not None:
+            mask = r > short_cutoff / 2
+            r = r[mask]
+            A = A[mask]
         if self.dim == 2:
             return r, A.mean(axis=1)
         else:
             return r, A
     else:
+        short_cutoff = self.short_reliability_cutoff(2 * sx / nx) if reliable else 2 * sx / nx
         if collocation == 'log':
             # Exclude zero distance because that does not work on a log-scale
             r = r[1:]
@@ -161,7 +162,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         if self.dim == 2:
             r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
             A = np.ravel(A)
-        r, _, A, _ = resample(r, A, min_value=sx / nx, max_value=max_distance, collocation=collocation,
+        r, _, A, _ = resample(r, A, min_value=short_cutoff, max_value=max_distance,collocation=collocation,
                               nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
         return r, A
 
@@ -210,6 +211,10 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
 
+    # The factor of two comes from the fact that the short cutoff is estimated
+    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    short_cutoff = self.short_reliability_cutoff(np.mean(self.pixel_size)) if reliable else np.mean(self.pixel_size)
+
     # Compute FFT and normalize
     if self.is_periodic:
         surface_qk = np.fft.fft2(self[...])
@@ -223,7 +228,8 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
                                                    nb_points_per_decade=nb_points_per_decade, collocation=collocation,
-                                                   max_radius=(sx + sy) / 4, method=resampling_method)
+                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 4,
+                                                   method=resampling_method)
     else:
         p = self.heights()
 
@@ -246,18 +252,13 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
                                                    nb_points=nb_points, nb_points_per_decade=nb_points_per_decade,
-                                                   max_radius=(sx + sy) / 2, full=False, method=resampling_method)
+                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 2, full=False,
+                                                   method=resampling_method)
 
-    # The factor of two comes from the fact that the short cutoff is estimated
-    # from the curvature but the ACF is the slope, see arXiv:2106.16103
-    short_cutoff = self.short_reliability_cutoff() if reliable else None
-    if short_cutoff is None:
-        short_cutoff = -1  # Include zero distance
-    mask = r_val > short_cutoff / 2
     if return_map:
-        return r_val[mask], A_val[mask], A_xy
+        return r_val, A_val, A_xy
     else:
-        return r_val[mask], A_val[mask]
+        return r_val, A_val
 
 
 # Register analysis functions from this module

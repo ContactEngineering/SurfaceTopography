@@ -95,8 +95,9 @@ def apply_window(x, y, window=None):
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
-                   nb_interpolate=5, short_cutoff=np.mean, window=None):
+def power_spectrum(line_scan, reliable=True, algorithm='fft', wavevectors=None, nb_interpolate=5, short_cutoff=np.mean,
+                   window=None, resampling_method='bin-average', collocation='log', nb_points=None,
+                   nb_points_per_decade=10):
     r"""
     Compute power-spectral density (PSD) for a nonuniform topography. The
     topography is assumed to be given by a series of points connected by
@@ -106,7 +107,9 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
     ----------
     line_scan : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
-    algorithms : str
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    algorithm : str
         Algorithm to compute autocorrelation.
         * 'fft': Interpolates the nonuniform line scan on a grid and then uses
         the FFT to compute the autocorrelation. Scales O(N log N)
@@ -134,13 +137,31 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
         'None').
         Default: no window for periodic Topographies, "hann" window for
         nonperiodic Topographies
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: None)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
-    q : array
-        Wavevector array at which the PSD has been computed.
-    C : array
-        PSD values.
+    wavevectors : array
+        Wavevector array at which the PSD has been computed. (Unit: length)
+    psd : array
+        PSD values. (Unit: length**-3)
     """
     if not line_scan.is_periodic and window is None:
         window = "hann"
@@ -149,15 +170,23 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
     x, y = line_scan.positions_and_heights()
     if algorithm == 'fft':
         if wavevectors is not None:
-            raise ValueError("`wavevectors` can only be used with "
-                             "'brute-force' algorithm.")
+            raise ValueError("`wavevectors` can only be used with 'brute-force' algorithm.")
         min_dist = np.min(np.diff(x))
         if min_dist <= 0:
             raise RuntimeError('This topography is reentrant (i.e. it contains overhangs). The power-spectral '
                                'density cannot be computed for reentrant topographies.')
         wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
-            .power_spectrum_from_profile(window=window, resampling_method=None)
+            .power_spectrum_from_profile(window=window, reliable=reliable, resampling_method=resampling_method,
+                                          collocation=collocation, nb_points=nb_points,
+                                          nb_points_per_decade=nb_points_per_decade)
     elif algorithm == 'brute-force':
+        if reliable:
+            raise ValueError("'Brute-force' algorithm for nonuniform line scans does not support reliability analysis.")
+        if resampling_method is not None:
+            raise ValueError("'Brute-force' algorithm for nonuniform line scans does not support resampling.")
+        if wavevectors is None:
+            raise ValueError("You need to specify `wavevectors` for the 'brute-force' algorithm.")
+
         y = apply_window(x, y, window=window)
         L = x[-1] - x[0]
         if wavevectors is None:
@@ -173,12 +202,10 @@ def power_spectrum(line_scan, algorithm='fft', wavevectors=None,
                              ft_one_sided_triangle(wavevectors * dx)) * np.exp(
                     -1j * x0 * wavevectors)
             else:
-                raise ValueError('Nonuniform data points must be sorted in '
-                                 'order of ascending x-values.')
+                raise ValueError('Nonuniform data points must be sorted in order of ascending x-values.')
         psd = np.abs(y_q) ** 2 / L
     else:
-        raise ValueError("Unknown algorithm '{}' specified."
-                         .format(algorithm))
+        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 
     if short_cutoff is not None:
         mask = wavevectors < 2 * np.pi / short_cutoff(np.diff(x))

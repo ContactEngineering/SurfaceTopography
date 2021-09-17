@@ -144,12 +144,14 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
         return lambda x1, x2: gaussian_kernel(x1, x2, length_scale=length_scale)
 
 
-def bin_average(bin_edges, x, values):
+def bin_average(collocation_points, bin_edges, x, values):
     """
-    Average values over bins.
+    Average values over bins. Returns NaN for bins without data.
 
     Parameters
     ----------
+    collocation_points : np.ndarray
+        Collocation points.
     bin_edges : array_like
         Edges of bins.
     x : array_like
@@ -160,7 +162,7 @@ def bin_average(bin_edges, x, values):
     Returns
     -------
     resampled_collocation_points : np.ndarray
-        Collocation points, resampled as average over input `x`.
+        Collocation points, resampled as average over input `x` if data is present.
     resampled_values : np.ndarray
         Resampled/averaged values.
     resampled_variance : np.ndarray
@@ -187,9 +189,12 @@ def bin_average(bin_edges, x, values):
     resampled_values = resampled_values[1:-1]
     resampled_variance = resampled_variance[1:-1]
 
-    # We discard elements with no data
-    mask = number_of_data_points[1:-1] != 0
-    return resampled_collocation_points[mask], resampled_values[mask], resampled_variance[mask]
+    # Mark elements with no data
+    mask = number_of_data_points[1:-1] == 0
+    resampled_collocation_points[mask] = collocation_points[mask]
+    resampled_values[mask] = np.nan
+    resampled_variance[mask] = np.nan
+    return resampled_collocation_points, resampled_values, resampled_variance
 
 
 def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=1e-6):
@@ -297,7 +302,7 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
                                               nb_points_per_decade=nb_points_per_decade)
 
     if method == 'bin-average':
-        collocation_points, resampled_values, resampled_variance = bin_average(bin_edges, x, values)
+        collocation_points, resampled_values, resampled_variance = bin_average(collocation_points, bin_edges, x, values)
     elif method == 'gaussian-process':
         if collocation == 'log':
             # For log-spaced sampling points we fit in log-space... because
@@ -326,7 +331,7 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
     return collocation_points, bin_edges, resampled_values, resampled_variance
 
 
-def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None, max_radius=None,
+def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None, min_radius=0, max_radius=None,
                     nb_points_per_decade=5, full=True, method='bin-average'):
     """
     Compute radial average of quantities reported on a 2D grid and collect
@@ -349,6 +354,8 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
     nb_points : int, optional
         Number of bins for averaging. Bins are automatically determined if set
         to None. (Default: None)
+    min_radius : float, optional
+        Minimum radius. (Default: 0)
     max_radius : float, optional
         Maximum radius, is automatically determined from the range of the data
         if not provided. (Default: None)
@@ -385,12 +392,13 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         x = np.where(x > nx // 2, nx - x, x)
         y = np.where(y > ny // 2, ny - y, y)
 
-    min_radius = 1.0
-    if physical_sizes is not None:
+    if physical_sizes is None:
+        min_radius = max(min_radius, 1.0)
+    else:
         sx, sy = physical_sizes
         x = sx / nx * x
         y = sy / ny * y
-        min_radius = min(sx / nx, sy / ny)
+        min_radius = max(min(sx / nx, sy / ny), min_radius)
     radius = np.sqrt((x ** 2).reshape(-1, 1) + (y ** 2).reshape(1, -1))
     if max_radius is None:
         max_radius = np.max(radius)

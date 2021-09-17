@@ -35,11 +35,9 @@ import numpy as np
 from numpy.testing import assert_almost_equal, assert_allclose
 from scipy.interpolate import interp1d
 
-from SurfaceTopography import read_topography, Topography, UniformLineScan, \
-    NonuniformLineScan
+from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan, NonuniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Nonuniform.Autocorrelation import \
-    height_height_autocorrelation
+from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
@@ -168,7 +166,8 @@ def test_uniform_brute_force_autocorrelation_from_area(surf, tol_kwargs):
     dir_n[dir_n == 0] = 1
     dir_A /= dir_n
     assert_allclose(A_xy, dir_A_xy, **tol_kwargs)
-    assert_allclose(A[2:-1], dir_A[2:-1], **tol_kwargs)
+    m = np.isfinite(A)
+    assert_allclose(A[m], dir_A[m], **tol_kwargs)
 
 
 def test_nonuniform_impulse_autocorrelation():
@@ -244,7 +243,7 @@ def test_self_affine_uniform_autocorrelation():
 
     r, A = t.autocorrelation_from_profile()
 
-    m = np.logical_and(r > 1e-3, r < 10 ** (-1.5))
+    m = np.logical_and(np.logical_and(r > 1e-3, r < 10 ** (-1.5)), np.isfinite(A))
     b, a = np.polyfit(np.log(r[m]), np.log(A[m]), 1)
     assert abs(b / 2 - H) < 0.1
 
@@ -296,7 +295,8 @@ def test_self_affine_nonuniform_autocorrelation():
     r = r[1:-1]
     A = A[1:-1]
     r2, A2 = t.detrend(detrend_mode='center').to_nonuniform() \
-        .autocorrelation_from_profile(algorithm='brute-force', distances=r)
+        .autocorrelation_from_profile(algorithm='brute-force', distances=r, reliable=False, resampling_method=None,
+                                      short_cutoff=None)
 
     assert_allclose(A, A2, atol=1e-5)
 
@@ -304,7 +304,11 @@ def test_self_affine_nonuniform_autocorrelation():
 def test_brute_force_vs_fft():
     t = read_topography(os.path.join(DATADIR, 'example.xyz'))
     r, A = t.detrend().autocorrelation_from_profile()
-    r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5)
+    m = np.isfinite(A)
+    r = r[m]
+    A = A[m]
+    r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
+                                                      reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
     assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
 
@@ -332,5 +336,35 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
         plt.show()
 
     f = interp1d(r1, A1)
-    assert_allclose(A2, f(r2), atol=1e-6)
+    assert_allclose(A2[np.isfinite(A2)], f(r2[np.isfinite(A2)]), atol=1e-6)
     # assert_allclose(A3, f(r3), atol=1e-4)
+
+
+def test_container_uniform(file_format_examples, plot=False):
+    """This container has just topography maps"""
+    c, = read_container(f'{file_format_examples}/container1.zip')
+    d, s = c.autocorrelation(unit='um', nb_points_per_decade=2)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
+        plt.show()
+
+    assert_allclose(s, [4.76306017e-09, 5.42493630e-08, 3.44862254e-07, 2.09698128e-06, 1.16854493e-05, 6.11236431e-05,
+                        4.07759215e-04, 1.41787788e-03, 7.73657754e-03, 1.39632798e-02])
+
+
+# This test is just supposed to finish without an exception
+def test_container_mixed(file_format_examples, plot=False):
+    """This container has a mixture of maps and line scans"""
+    c, = read_container(f'{file_format_examples}/container2.zip')
+    d, s = c.autocorrelation(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
+        plt.show()

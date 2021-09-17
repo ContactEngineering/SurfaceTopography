@@ -36,8 +36,7 @@ from scipy.interpolate import interp1d
 
 from NuMPI import MPI
 
-from SurfaceTopography import read_topography, UniformLineScan, \
-    NonuniformLineScan, Topography
+from SurfaceTopography import read_container, read_topography, UniformLineScan, NonuniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Nonuniform.PowerSpectrum import sinc, dsinc
 
@@ -46,6 +45,7 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
+
 
 ###
 
@@ -90,7 +90,9 @@ def test_invariance():
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         x = np.array([-a, 0, a])
         h = np.array([b, (b + c) / 2, c])
@@ -98,7 +100,9 @@ def test_invariance():
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         x = np.array([-a, 0, a / 2, a])
         h = np.array([b, (b + c) / 2, (3 * c + b) / 4, c])
@@ -106,7 +110,9 @@ def test_invariance():
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         assert_allclose(C1, C2, atol=1e-12)
         assert_allclose(C2, C3, atol=1e-12)
@@ -123,7 +129,9 @@ def test_rectangle():
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         C_ana = (2 * b * np.sin(a * q) / q) ** 2
         C_ana /= 2 * a
@@ -142,7 +150,9 @@ def test_triangle():
             wavevectors=q,
             algorithm='brute-force',
             short_cutoff=None,
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         C_ana = (2 * b * (a * q * np.cos(a * q) - np.sin(a * q)) / (
                 a * q ** 2)) ** 2
@@ -163,7 +173,9 @@ def test_rectangle_and_triangle():
         q, C = NonuniformLineScan(x, h).power_spectrum_from_profile(
             wavevectors=q,
             algorithm='brute-force',
-            window='None')
+            window='None',
+            reliable=False,
+            resampling_method=None)
 
         C_ana = np.exp(-1j * (a + b) * q) * (
                 np.exp(1j * a * q) * (c - d + 1j * (a - b) * d * q) +
@@ -193,7 +205,7 @@ def test_dsinc():
 def test_NaNs():
     surf = fourier_synthesis([1024, 512], [2, 1], 0.8, rms_slope=0.1)
     q, C = surf.power_spectrum_from_area(nb_points=1000)
-    assert np.isnan(C).sum() == 0
+    assert np.isnan(C).sum() == 388
 
 
 def test_brute_force_vs_fft():
@@ -201,7 +213,9 @@ def test_brute_force_vs_fft():
     q, A = t.detrend().power_spectrum_from_profile(window="None")
     q2, A2 = t.detrend().power_spectrum_from_profile(algorithm='brute-force',
                                                      wavevectors=q, nb_interpolate=5,
-                                                     window="None")
+                                                     window="None",
+                                                     reliable=False,
+                                                     resampling_method=None)
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
@@ -209,9 +223,9 @@ def test_brute_force_vs_fft():
 
 def test_short_cutoff():
     t = read_topography(os.path.join(DATADIR, 'example.xyz'))
-    q1, C1 = t.detrend().power_spectrum_from_profile()
-    q2, C2 = t.detrend().power_spectrum_from_profile(short_cutoff=np.min)
-    q3, C3 = t.detrend().power_spectrum_from_profile(short_cutoff=np.max)
+    q1, C1 = t.detrend().power_spectrum_from_profile(short_cutoff=np.mean, reliable=False, resampling_method=None)
+    q2, C2 = t.detrend().power_spectrum_from_profile(short_cutoff=np.min, reliable=False, resampling_method=None)
+    q3, C3 = t.detrend().power_spectrum_from_profile(short_cutoff=np.max, reliable=False, resampling_method=None)
 
     assert len(q3) < len(q1)
     assert len(q1) < len(q2)
@@ -288,8 +302,8 @@ def test_default_window_2D():
 def test_q0_1D():
     surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
     rms_height = surf.rms_height_from_profile()  # Need to measure it since it can fluctuate wildly
-    q, C = surf.power_spectrum_from_profile()
-    ratio = rms_height**2 / (np.trapz(C, q)/np.pi)
+    q, C = surf.power_spectrum_from_profile(reliable=False, resampling_method=None)
+    ratio = rms_height ** 2 / (np.trapz(C, q) / np.pi)
     assert ratio > 0.1
     assert ratio < 10
 
@@ -300,7 +314,7 @@ def test_q0_2D():
     q, C = surf.power_spectrum_from_area(nb_points=200, collocation='quadratic')
     # This is really not quantitative, it's just checking whether it's the right ballpark.
     # Any bug in normalization would show up here as an order of magnitude
-    ratio = rms_height**2 / (np.trapz(q*C, q)/np.pi)
+    ratio = rms_height ** 2 / (np.trapz(q * C, q) / np.pi)
     assert ratio > 0.1
     assert ratio < 10
 
@@ -321,17 +335,17 @@ def test_reliability_cutoff():
     q1, C1 = surf.power_spectrum_from_profile(reliable=True)
     q2, C2 = surf.power_spectrum_from_profile(reliable=False)
     assert len(q1) < len(q2)
-    assert q1.max() < q2.max()
+    assert np.nanmax(q1) < np.nanmax(q2)
 
     # 2D
     q1, C1 = surf.power_spectrum_from_area(reliable=True)
     q2, C2 = surf.power_spectrum_from_area(reliable=False)
     assert len(q1) < len(q2)
-    assert q1.max() < q2.max()
+    assert np.nanmax(q1) < np.nanmax(q2)
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])
-def test_resampling(nb_grid_pts, physical_sizes, plot=True):
+def test_resampling(nb_grid_pts, physical_sizes, plot=False):
     H = 0.8
     slope = 0.1
     t = fourier_synthesis(nb_grid_pts, physical_sizes, H, rms_slope=slope, short_cutoff=np.mean(physical_sizes) / 20,
@@ -353,5 +367,35 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=True):
         plt.show()
 
     f = interp1d(q1, C1)
-    assert_allclose(C2, f(q2), atol=1e-6)
+    assert_allclose(C2[np.isfinite(C2)], f(q2[np.isfinite(C2)]), atol=1e-6)
     # assert_allclose(C3, f(q3), atol=1e-5)
+
+
+def test_container_uniform(file_format_examples, plot=False):
+    """This container has just topography maps"""
+    c, = read_container(f'{file_format_examples}/container1.zip')
+    d, s = c.power_spectrum(unit='um', nb_points_per_decade=2)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').power_spectrum_from_profile(), 'x-')
+        plt.show()
+
+    assert_allclose(s, [np.nan, 7.694374e-02, 3.486013e-02, 8.882600e-04, 8.680968e-05, 3.947691e-06, 4.912031e-07,
+                        1.136185e-08, 1.466590e-09, 9.681977e-12, 4.609198e-21, np.nan], atol=1e-8)
+
+
+# This test is just supposed to finish without an exception
+def test_container_mixed(file_format_examples, plot=False):
+    """This container has a mixture of maps and line scans"""
+    c, = read_container(f'{file_format_examples}/container2.zip')
+    d, s = c.power_spectrum(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').power_spectrum_from_profile(), 'x-')
+        plt.show()
