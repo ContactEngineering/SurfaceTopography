@@ -177,8 +177,8 @@ def power_spectrum(line_scan, reliable=True, algorithm='fft', wavevectors=None, 
                                'density cannot be computed for reentrant topographies.')
         wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
             .power_spectrum_from_profile(window=window, reliable=reliable, resampling_method=resampling_method,
-                                          collocation=collocation, nb_points=nb_points,
-                                          nb_points_per_decade=nb_points_per_decade)
+                                         collocation=collocation, nb_points=nb_points,
+                                         nb_points_per_decade=nb_points_per_decade)
     elif algorithm == 'brute-force':
         if reliable:
             raise ValueError("'Brute-force' algorithm for nonuniform line scans does not support reliability analysis.")
