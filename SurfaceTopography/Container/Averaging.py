@@ -62,7 +62,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
         # Compute property... but do not allow any resampling
         func = getattr(topography, function_name)
-        x, y = func(reliable=True, resampling_method=None)
+        x, y = func(reliable=reliable, resampling_method=None)
 
         # Construct grid in this range
         lower, upper = np.min(x[x > 0]), np.max(x)
