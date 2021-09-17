@@ -154,7 +154,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     else:
         sorted_retvals = sorted(retvals.items(), key=lambda x: x[0])
         return np.array([d for d, vals in sorted_retvals]), \
-               np.array([np.mean(vals, axis=0) for d, vals in sorted_retvals])
+            np.array([np.mean(vals, axis=0) for d, vals in sorted_retvals])
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)
