@@ -55,10 +55,9 @@ def test_make_linear_grid():
     ('bin-average', lambda x: x, dict(atol=1e-12)),
     ('bin-average', lambda x: np.sin(x), dict(atol=1e-3)),
     ('bin-average', lambda x: x ** 2, dict(atol=1e-3)),
-# The following does not seem to pass in CI
-#    ('gaussian-process', lambda x: x, dict(atol=1e-6)),
-#    ('gaussian-process', lambda x: np.sin(x), dict()),
-#    ('gaussian-process', lambda x: x ** 2, dict(atol=1e-6)),
+    ('gaussian-process', lambda x: x, dict(atol=1e-3)),
+    ('gaussian-process', lambda x: np.sin(x), dict(atol=1e-4)),
+    ('gaussian-process', lambda x: x ** 2, dict(atol=1e-3)),
 ])
 def test_resample(method, func, tol_kwargs):
     x = np.linspace(0, 1, 101)
@@ -71,8 +70,8 @@ def test_resample(method, func, tol_kwargs):
 @pytest.mark.parametrize('method,func,tol_kwargs', [
     ('bin-average', lambda x: x ** 2, dict(rtol=0.03)),
     ('bin-average', lambda x: x ** -2.8, dict(rtol=0.2)),
-    # ('gaussian-process', lambda x: x ** 2, dict(rtol=0.001)),
-    # ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.03)),
+    ('gaussian-process', lambda x: x ** 2, dict(rtol=0.001)),
+    ('gaussian-process', lambda x: x ** -2.8, dict(rtol=0.03)),
 ])
 def test_logresample(method, func, tol_kwargs):
     x = np.linspace(0.1, 10, 1001)

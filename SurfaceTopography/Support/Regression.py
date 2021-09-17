@@ -29,7 +29,11 @@ to another. Currently implemented are simple bin averages and Gaussian process
 regression.
 """
 
+import logging
+
 import numpy as np
+
+_log = logging.Logger(__name__)
 
 
 def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10):
@@ -133,7 +137,7 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
         Kernel function.
     """
     if collocation == 'log':
-        length_scale = np.log10(max_value) - np.log10(min_value)
+        length_scale = (np.log10(max_value) - np.log10(min_value)) / nb_collocation_points
         return lambda x1, x2: gaussian_log_kernel(x1, x2, length_scale=length_scale)
     else:
         length_scale = (max_value - min_value) / nb_collocation_points
@@ -188,7 +192,7 @@ def bin_average(bin_edges, x, values):
     return resampled_collocation_points[mask], resampled_values[mask], resampled_variance[mask]
 
 
-def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=0):
+def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noise_variance=1e-6):
     """
     Gaussian process regression for resampling a simple function.
 
@@ -200,6 +204,12 @@ def gaussian_process_regression(output_x, x, values, kernel=gaussian_kernel, noi
         Collocation points for `values` array.
     values : array_like
         Function values/variates.
+    kernel : func, optional
+        Kernel function/covariance model.
+        (Default: gaussian_kernel)
+    noise_variance : float, optional
+        Noise variance.
+        (Default: 1e-6)
 
     Returns
     -------
@@ -288,15 +298,32 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
 
     if method == 'bin-average':
         collocation_points, resampled_values, resampled_variance = bin_average(bin_edges, x, values)
-        return collocation_points, bin_edges, resampled_values, resampled_variance
     elif method == 'gaussian-process':
-        resampled_values, resampled_variance = \
-            gaussian_process_regression(collocation_points, x, values,
-                                        kernel=suggest_kernel_for_grid(collocation, len(collocation_points),
-                                                                       min_value, max_value))
-        return collocation_points, bin_edges, resampled_values, resampled_variance
+        if collocation == 'log':
+            # For log-spaced sampling points we fit in log-space... because
+            # this is then most likely a power-law. Note that this is pure
+            # function fitting - if we are collecting noisy data to compute
+            # the ACF or PSD we should actually be averaging in linear space.
+            # (This is because the arithmetic mean is the max likelihood
+            # estimator for the underlying distribution of the data. The
+            # difference can be clearly seen in numerical experiments.)
+            resampled_values, resampled_variance = \
+                gaussian_process_regression(np.log(collocation_points), np.log(x), np.log(values))
+            resampled_values = np.exp(resampled_values)
+        else:
+            _log.warning('Gaussian process regression of log-spaced data should only be used for fitting functions, '
+                         'not for inference from noisy data.')
+            resampled_values, resampled_variance = \
+                gaussian_process_regression(collocation_points, x, values)
+    # FIXME: The variance is bogus when log-sampling and we should really use a different kernel function in that case.
+    #        resampled_values, resampled_variance = \
+    #            gaussian_process_regression(collocation_points, x, values,
+    #                                        kernel=suggest_kernel_for_grid(collocation, len(collocation_points),
+    #                                                                       min_value, max_value))
     else:
         raise ValueError(f"Unknown resampling method '{method}'.")
+
+    return collocation_points, bin_edges, resampled_values, resampled_variance
 
 
 def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None, max_radius=None,

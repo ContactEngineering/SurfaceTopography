@@ -317,24 +317,20 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
                           amplitude_distribution=lambda n: 1.0)
     r1, A1 = t.autocorrelation_from_profile(resampling_method=None)
     r2, A2 = t.autocorrelation_from_profile(resampling_method='bin-average')
-    if t.dim == 1:
-        r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
+    r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
 
     assert len(r1) == len(A1)
     assert len(r2) == len(A2)
-    if t.dim == 1:
-        assert len(r3) == len(A3)
+    assert len(r3) == len(A3)
 
     if plot:
         import matplotlib.pyplot as plt
         plt.loglog(r1, A1, 'x-', label='native')
         plt.loglog(r2, A2, 'o-', label='bin-average')
-        if t.dim == 1:
-            plt.loglog(r3, A3, 's-', label='gaussian-process')
+        plt.loglog(r3, A3, 's-', label='gaussian-process')
         plt.legend(loc='best')
         plt.show()
 
     f = interp1d(r1, A1)
     assert_allclose(A2, f(r2), atol=1e-6)
-    if t.dim == 1:
-        assert_allclose(A3, f(r3), atol=0.01)
+    assert_allclose(A3, f(r3), atol=1e-4)
