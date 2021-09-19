@@ -95,7 +95,7 @@ def apply_window(x, y, window=None):
         raise ValueError('Unknown window {}'.format(window))
 
 
-def power_spectrum(line_scan, reliable=True, algorithm='fft', wavevectors=None, nb_interpolate=5, short_cutoff=np.mean,
+def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_interpolate=5, short_cutoff=np.mean,
                    window=None, resampling_method='bin-average', collocation='log', nb_points=None,
                    nb_points_per_decade=10):
     r"""
@@ -105,7 +105,7 @@ def power_spectrum(line_scan, reliable=True, algorithm='fft', wavevectors=None, 
 
     Parameters
     ----------
-    line_scan : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
@@ -163,19 +163,18 @@ def power_spectrum(line_scan, reliable=True, algorithm='fft', wavevectors=None, 
     psd : array
         PSD values. (Unit: length**-3)
     """
-    if not line_scan.is_periodic and window is None:
+    if not self.is_periodic and window is None:
         window = "hann"
 
-    s, = line_scan.physical_sizes
-    x, y = line_scan.positions_and_heights()
+    s, = self.physical_sizes
+    x, y = self.positions_and_heights()
     if algorithm == 'fft':
         if wavevectors is not None:
             raise ValueError("`wavevectors` can only be used with 'brute-force' algorithm.")
-        min_dist = np.min(np.diff(x))
-        if min_dist <= 0:
+        if self.is_reentrant:
             raise RuntimeError('This topography is reentrant (i.e. it contains overhangs). The power-spectral '
                                'density cannot be computed for reentrant topographies.')
-        wavevectors, psd = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
+        wavevectors, psd = self.to_uniform(nb_interpolate=nb_interpolate) \
             .power_spectrum_from_profile(window=window, reliable=reliable, resampling_method=resampling_method,
                                          collocation=collocation, nb_points=nb_points,
                                          nb_points_per_decade=nb_points_per_decade)

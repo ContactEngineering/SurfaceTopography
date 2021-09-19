@@ -103,10 +103,6 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     def is_periodic(self):
         return self._periodic
 
-    @property
-    def is_uniform(self):
-        return True
-
     # Implement uniform line scan interface
 
     @property
@@ -328,10 +324,6 @@ class Topography(AbstractTopography, UniformTopographyInterface):
     @property
     def is_periodic(self):
         return self._periodic
-
-    @property
-    def is_uniform(self):
-        return True
 
     @property
     def physical_sizes(self):

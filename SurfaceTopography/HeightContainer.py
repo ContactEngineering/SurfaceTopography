@@ -242,6 +242,10 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
         return True
 
     @property
+    def is_reentrant(self):
+        return False  # Uniform datasets cannot be reentrant
+
+    @property
     def is_domain_decomposed(self):
         return self.nb_grid_pts != self.nb_subdomain_grid_pts
 
@@ -317,6 +321,10 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
     @property
     def is_uniform(self):
         return False
+
+    @property
+    def is_reentrant(self):
+        return np.min(np.diff(self.positions())) < 0
 
     @property
     @abc.abstractmethod

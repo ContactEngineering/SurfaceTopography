@@ -95,10 +95,6 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         boundaries."""
         return False
 
-    @property
-    def is_uniform(self):
-        return False
-
     # Implement uniform line scan interface
 
     @property
@@ -396,12 +392,9 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
 
 # Register analysis functions from this module
 NonuniformLineScanInterface.register_function(
-    'mean', lambda this:
-    np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
-NonuniformLineScanInterface.register_function(
-    'min', lambda this: this.heights().min())
-NonuniformLineScanInterface.register_function(
-    'max', lambda this: this.heights().max())
+    'mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
+NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
+NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
 
 # Register pipeline functions from this module
 NonuniformLineScanInterface.register_function('to_unit', ScaledNonuniformTopography)
