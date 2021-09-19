@@ -255,10 +255,10 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
             rms_heights = rms_heights[m]
             rms_slopes = rms_slopes[m]
 
-    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, s=rms_slopes)
+    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, g=rms_slopes)
 
 
-def variable_bandwidth_from_area(self, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -268,6 +268,21 @@ def variable_bandwidth_from_area(self, nb_grid_pts_cutoff=4):
     ----------
     self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map.
+    quantities : str, optional
+        Specification of return tuple, where each string character
+        stand for specific quantity. Possible quantities are
+            - 'm': Magnification (Unit: dimensionless)
+            - 'b': Bandwidth (Unit: length)
+            - 'h': RMS height (Unit: length)
+            - 'g': RMS gradient (Unit: dimensionless)
+        For example, 'mbh' return a tuple with the three entries
+        magnification, bandwidth, rms height.
+        (Default: 'bh')
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Can only be None for the variable bandwidth analysis.
+        (Default: None)
     nb_grid_pts_cutoff : int, optional
         Minimum nb_grid_pts to allow for subdivision. The analysis will
         automatically analyze subdivision down to this nb_grid_pts.
@@ -284,7 +299,13 @@ def variable_bandwidth_from_area(self, nb_grid_pts_cutoff=4):
     rms_heights : array
         Array containing the rms height corresponding to the respective
         magnification.
+    rms_gradients : np.ndarray
+        Array containing the rms gradients corresponding to the respective
+        magnification.
     """
+    if resampling_method is not None:
+        raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
+
     magnification = 1
     physical_sizes = np.array(self.physical_sizes)
     min_size = np.min(physical_sizes)
@@ -293,13 +314,31 @@ def variable_bandwidth_from_area(self, nb_grid_pts_cutoff=4):
     magnifications = []
     bandwidths = []
     rms_heights = []
+    rms_gradients = []
     while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
         bandwidths += [np.mean(physical_sizes / subdivisions)]
-        rms_heights += [np.std(self.checkerboard_detrend_area(subdivisions))]
+        h, coeffs = self.checkerboard_detrend_area(subdivisions, return_plane=True)
+        rms_heights += [np.sqrt(np.mean(h * h))]
+        rms_gradients += [np.sqrt(np.mean(coeffs[1] * coeffs[1] + coeffs[2] * coeffs[2]))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
+
+    magnifications = np.array(magnifications)
+    bandwidths = np.array(bandwidths)
+    rms_heights = np.array(rms_heights)
+    rms_gradients = np.array(rms_gradients)
+
+    if reliable:
+        short_cutoff = self.short_reliability_cutoff()
+        if short_cutoff:
+            m = bandwidths > short_cutoff
+            magnifications = magnifications[m]
+            bandwidths = bandwidths[m]
+            rms_heights = rms_heights[m]
+            rms_gradients = rms_gradients[m]
+
+    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, g=rms_gradients)
 
 
 # Register analysis functions from this module
