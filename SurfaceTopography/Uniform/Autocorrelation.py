@@ -66,7 +66,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         Method can be None for no resampling (return on the grid of the
         data) 'bin-average' for simple bin averaging and 'gaussian-process'
         for Gaussian process regression.
-        (Default: None)
+        (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with

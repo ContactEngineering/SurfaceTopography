@@ -44,3 +44,27 @@ def fromiter(result, obj):
         return result
     except TypeError:
         return result[0]
+
+
+def build_tuple(quantities, **kwargs):
+    """
+    Build a custom tuple, where each of the characters in quantities
+    represents a certain datum.
+
+    Parameters
+    ----------
+    quantities : str
+        String with quantities, e.g. 'dhj' returns a 3-tuple with the
+        datums associated with the characters 'd', 'h' and 'j'.
+    **kwargs : dict
+        Individual datums, e.g. `d=..., h=..., j=...`.
+
+    Returns
+    -------
+    datum : tuple
+        Tuple of length `quantities`.
+    """
+    retvals = []
+    for c in quantities:
+        retvals += [kwargs[c]]
+    return tuple(retvals)

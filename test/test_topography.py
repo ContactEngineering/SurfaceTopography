@@ -521,7 +521,6 @@ class DetrendedSurfaceTest(unittest.TestCase):
         detrended = surface.detrend(detrend_mode="curvature")
         self.assertAlmostEqual(abs(detrended.curvatures[0]), 1 / radius)
 
-
     def test_nonuniform_reentrant(self):
         x = np.array((1, 2, 3, 4, 3.5, 4.5, 5.5))
         y = -2 * x

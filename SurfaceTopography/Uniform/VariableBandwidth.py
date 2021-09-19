@@ -30,9 +30,10 @@ Variable bandwidth analysis for uniform topographies
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
+from ..Support import build_tuple
 
 
-def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane=False):
+def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False):
     """
     Perform tilt correction (and substract mean value) in each individual
     line section of a checkerboard decomposition of a profile. For topography
@@ -44,7 +45,7 @@ def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     subdivisions : int
         Number of subdivision, i.e. physical_sizes of the
@@ -66,16 +67,16 @@ def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane
         parameters.
     """
     # compute unique consecutive index for each subdivided region
-    region_index = np.arange(topography.nb_grid_pts[0]) * subdivisions // topography.nb_grid_pts[0]
+    region_index = np.arange(self.nb_grid_pts[0]) * subdivisions // self.nb_grid_pts[0]
 
-    if topography.dim == 1:
-        x, h = topography.positions_and_heights()
-    elif topography.dim == 2:
-        nx, ny = topography.nb_grid_pts
-        x, y, h = topography.positions_and_heights()
+    if self.dim == 1:
+        x, h = self.positions_and_heights()
+    elif self.dim == 2:
+        nx, ny = self.nb_grid_pts
+        x, y, h = self.positions_and_heights()
         region_index = np.array([[region_index + i * subdivisions] for i in range(ny)]).T
     else:
-        raise ValueError(f'Cannot perform checkerboard detrend on topographies of dimension {topography.dim}')
+        raise ValueError(f'Cannot perform checkerboard detrend on topographies of dimension {self.dim}')
 
     shape = h.shape
     h = h.reshape(-1)
@@ -95,7 +96,7 @@ def checkerboard_detrend_profile(topography, subdivisions, order=1, return_plane
         return detrended_h
 
 
-def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=False):
+def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -107,7 +108,7 @@ def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=Fa
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
     subdivisions : tuple
         Number of subdivision per dimension, i.e. physical_sizes of the
@@ -128,14 +129,14 @@ def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=Fa
         Array of leading order `subdivisions` containing the fit
         parameters.
     """
-    if topography.dim != 2:
+    if self.dim != 2:
         raise ValueError('Areal checkerboard tilt correction can only performend on topography maps, not on profiles.')
 
     # compute unique consecutive index for each subdivided region
-    region_coord = [np.arange(n) * s // n for n, s in zip(topography.nb_grid_pts, subdivisions)]
+    region_coord = [np.arange(n) * s // n for n, s in zip(self.nb_grid_pts, subdivisions)]
     region_coord = np.meshgrid(*region_coord, indexing='ij')
     region_index = region_coord[0]
-    for i in range(1, topography.dim):
+    for i in range(1, self.dim):
         region_index = subdivisions[i] * region_index + region_coord[i]
 
     # Number of polynomial coefficents
@@ -155,7 +156,7 @@ def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=Fa
 
     assert len(ij) == nb_coeff
 
-    x, y, h = topography.positions_and_heights()
+    x, y, h = self.positions_and_heights()
     shape = h.shape
     h = h.reshape(-1)
     x = x.reshape(-1)
@@ -175,7 +176,7 @@ def checkerboard_detrend_area(topography, subdivisions, order=1, return_plane=Fa
         return detrended_h
 
 
-def variable_bandwidth_from_profile(topography, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -183,8 +184,23 @@ def variable_bandwidth_from_profile(topography, nb_grid_pts_cutoff=4):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map or line scan.
+    quantities : str, optional
+        Specification of return tuple, where each string character
+        stand for specific quantity. Possible quantities are
+            - 'm': Magnification (Unit: dimensionless)
+            - 'b': Bandwidth (Unit: length)
+            - 'h': RMS height (Unit: length)
+            - 's': RMS slope (Unit: dimensionless)
+        For example, 'mbh' return a tuple with the three entries
+        magnification, bandwidth, rms height.
+        (Default: 'bh')
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Can only be None for the variable bandwidth analysis.
+        (Default: None)
     nb_grid_pts_cutoff : int, optional
         Minimum nb_grid_pts to allow for subdivision. The analysis will
         automatically analyze subdivision down to this nb_grid_pts.
@@ -192,33 +208,57 @@ def variable_bandwidth_from_profile(topography, nb_grid_pts_cutoff=4):
 
     Returns
     -------
-    magnifications : array
+    magnifications : np.ndarray
         Array containing the magnifications.
-    bandwidths : array
+    bandwidths : np.ndarray
         Array containing the bandwidths, here the physical sizes of the
         subdivided topography. For 2D topography maps, this is the mean of the
         two physical sizes of the subdivided section of the topography.
-    rms_heights : array
+    rms_heights : np.ndarray
         Array containing the rms height corresponding to the respective
         magnification.
+    rms_slopes : np.ndarray
+        Array containing the rms slopes corresponding to the respective
+        magnification.
     """
+    if resampling_method is not None:
+        raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
+
     magnification = 1
     subdivisions = 1
-    sx = topography.physical_sizes[0]
-    nx = int(topography.nb_grid_pts[0])
+    sx = self.physical_sizes[0]
+    nx = int(self.nb_grid_pts[0])
     magnifications = []
     bandwidths = []
     rms_heights = []
+    rms_slopes = []
     while nx // subdivisions >= nb_grid_pts_cutoff:
         magnifications += [magnification]
         bandwidths += [sx / subdivisions]
-        rms_heights += [np.std(topography.checkerboard_detrend_profile(subdivisions))]
+        h, coeffs = self.checkerboard_detrend_profile(subdivisions, return_plane=True)
+        rms_heights += [np.sqrt(np.mean(h * h))]
+        rms_slopes += [np.sqrt(np.mean(coeffs[1] * coeffs[1]))]
         magnification *= 2
         subdivisions *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
+
+    magnifications = np.array(magnifications)
+    bandwidths = np.array(bandwidths)
+    rms_heights = np.array(rms_heights)
+    rms_slopes = np.array(rms_slopes)
+
+    if reliable:
+        short_cutoff = self.short_reliability_cutoff()
+        if short_cutoff:
+            m = bandwidths > short_cutoff
+            magnifications = magnifications[m]
+            bandwidths = bandwidths[m]
+            rms_heights = rms_heights[m]
+            rms_slopes = rms_slopes[m]
+
+    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, s=rms_slopes)
 
 
-def variable_bandwidth_from_area(topography, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_area(self, nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -226,7 +266,7 @@ def variable_bandwidth_from_area(topography, nb_grid_pts_cutoff=4):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map.
     nb_grid_pts_cutoff : int, optional
         Minimum nb_grid_pts to allow for subdivision. The analysis will
@@ -246,17 +286,17 @@ def variable_bandwidth_from_area(topography, nb_grid_pts_cutoff=4):
         magnification.
     """
     magnification = 1
-    physical_sizes = np.array(topography.physical_sizes)
+    physical_sizes = np.array(self.physical_sizes)
     min_size = np.min(physical_sizes)
-    subdivisions = np.round(topography.physical_sizes / min_size).astype(int)
-    nb_grid_pts = np.array(topography.nb_grid_pts, dtype=int)
+    subdivisions = np.round(self.physical_sizes / min_size).astype(int)
+    nb_grid_pts = np.array(self.nb_grid_pts, dtype=int)
     magnifications = []
     bandwidths = []
     rms_heights = []
     while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
         bandwidths += [np.mean(physical_sizes / subdivisions)]
-        rms_heights += [np.std(topography.checkerboard_detrend_area(subdivisions))]
+        rms_heights += [np.std(self.checkerboard_detrend_area(subdivisions))]
         magnification *= 2
         subdivisions *= 2
     return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)

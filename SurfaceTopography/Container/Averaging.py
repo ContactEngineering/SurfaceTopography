@@ -92,7 +92,12 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     return avgresults.T[0], avgresults.T[1]
 
 
+# All container functionsa are 'profile' functions, because container can contain mixtures of topgoraphic maps and line
+# scans.
 SurfaceContainer.register_function(
     'autocorrelation', lambda self, unit, **kwargs: log_average(self, 'autocorrelation_from_profile', unit, **kwargs))
 SurfaceContainer.register_function(
     'power_spectrum', lambda self, unit, **kwargs: log_average(self, 'power_spectrum_from_profile', unit, **kwargs))
+SurfaceContainer.register_function(
+    'variable_bandwidth',
+    lambda self, unit, **kwargs: log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs))

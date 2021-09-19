@@ -32,7 +32,7 @@ import numpy as np
 
 from NuMPI import MPI
 
-from SurfaceTopography import Topography, UniformLineScan
+from SurfaceTopography import read_container, Topography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
 pytestmark = pytest.mark.skipif(
@@ -138,7 +138,7 @@ def test_self_affine_topography_1d():
                                amplitude_distribution=lambda n: 1.0, periodic=False)
 
         for t in [t0, t0.to_nonuniform()]:
-            mag, bwidth, rms = t.variable_bandwidth_from_profile(nb_grid_pts_cutoff=r // 32)
+            mag, bwidth, rms = t.variable_bandwidth_from_profile('mbh', nb_grid_pts_cutoff=r // 32)
             np.testing.assert_allclose(rms[0], t.detrend().rms_height_from_profile())
             np.testing.assert_allclose(bwidth, t.physical_sizes[0] / mag)
             # Since this is a self-affine surface, rms(mag) ~ mag^-H
@@ -159,3 +159,34 @@ def test_self_affine_topography_2d():
         b, a = np.polyfit(np.log(mag[1:]), np.log(rms[1:]), 1)
         # The error is huge...
         assert abs(H + b) < 0.1
+
+
+def test_container_uniform(file_format_examples, plot=False):
+    """This container has just topography maps"""
+    c, = read_container(f'{file_format_examples}/container1.zip')
+    d, s = c.variable_bandwidth(unit='um', nb_points_per_decade=2)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-', label='average')
+        for t in c:
+            plt.loglog(*t.to_unit('um').variable_bandwidth_from_profile(), 'x-')
+        plt.legend()
+        plt.show()
+
+    np.testing.assert_allclose(s, [9.918090e-05, 2.615391e-04, 7.041195e-04, 1.686523e-03, 4.670294e-03, 1.177619e-02,
+                                   2.489248e-02, 6.184931e-02], atol=1e-8)
+
+
+# This test is just supposed to finish without an exception
+def test_container_mixed(file_format_examples, plot=False):
+    """This container has a mixture of maps and line scans"""
+    c, = read_container(f'{file_format_examples}/container2.zip')
+    d, s = c.variable_bandwidth(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').variable_bandwidth_from_profile(), 'x-')
+        plt.show()
