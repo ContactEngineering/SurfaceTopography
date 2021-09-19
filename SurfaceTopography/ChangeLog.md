@@ -14,6 +14,7 @@ v0.97.0 (not yet released)
 - ENH: Progress callbacks for some analysis functions
 - ENH: Gaussian process regression for resampling noisy data onto an
   arbitrary grid
+- ENH: Added `is_reentrant` property
 - BUG: Multiple bugs fixed in scale-dependent analyses
 - API: Reconciled radial averages into its own regression module;
   default behavior has changed
