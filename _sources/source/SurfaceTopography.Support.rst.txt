@@ -12,6 +12,22 @@ SurfaceTopography.Support.Deprecation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Support.Interpolation module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Support.Interpolation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Support.Regression module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Support.Regression
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

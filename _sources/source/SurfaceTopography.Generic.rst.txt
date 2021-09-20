@@ -20,6 +20,14 @@ SurfaceTopography.Generic.ReliabilityCutoff module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Generic.ScaleDependentStatistics module
+---------------------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.ScaleDependentStatistics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generic.ScanningProbe module
 ----------------------------------------------
 

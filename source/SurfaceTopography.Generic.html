@@ -1,79 +1,38 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.96.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.96.1.dev63+gc90af5bb documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="SurfaceTopography.IO package" href="SurfaceTopography.IO.html" />
     <link rel="prev" title="SurfaceTopography.Container package" href="SurfaceTopography.Container.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.96.0
+                0.96.1.dev63+gc90af5bb
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -81,18 +40,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
@@ -109,6 +57,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
@@ -124,12 +73,10 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Interpolation">SurfaceTopography.Interpolation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UnitConversion">SurfaceTopography.UnitConversion module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.common">SurfaceTopography.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
@@ -138,6 +85,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
@@ -149,84 +97,42 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">SurfaceTopography</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="SurfaceTopography.html">SurfaceTopography package</a> &raquo;</li>
-        
       <li>SurfaceTopography.Generic package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/source/SurfaceTopography.Generic.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <section id="surfacetopography-generic-package">
-<h1>SurfaceTopography.Generic package<a class="headerlink" href="#surfacetopography-generic-package" title="Permalink to this headline">¶</a></h1>
+<h1>SurfaceTopography.Generic package<a class="headerlink" href="#surfacetopography-generic-package" title="Permalink to this headline"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
 </section>
 <section id="module-SurfaceTopography.Generic.Curvature">
-<span id="surfacetopography-generic-curvature-module"></span><h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#module-SurfaceTopography.Generic.Curvature" title="Permalink to this headline">¶</a></h2>
+<span id="surfacetopography-generic-curvature-module"></span><h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#module-SurfaceTopography.Generic.Curvature" title="Permalink to this headline"></a></h2>
 <p>Scale-dependent slope</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional scale-dependent curvature.</p>
 <p>The scale-dependent curvature is given by</p>
 <blockquote>
@@ -254,7 +160,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent curvature.</p>
 <p>The scale-dependent curvature is given by</p>
 <blockquote>
@@ -284,12 +190,12 @@ bins without data points are discarded. (Default: None)</p></li>
 
 </section>
 <section id="module-SurfaceTopography.Generic.ReliabilityCutoff">
-<span id="surfacetopography-generic-reliabilitycutoff-module"></span><h2>SurfaceTopography.Generic.ReliabilityCutoff module<a class="headerlink" href="#module-SurfaceTopography.Generic.ReliabilityCutoff" title="Permalink to this headline">¶</a></h2>
+<span id="surfacetopography-generic-reliabilitycutoff-module"></span><h2>SurfaceTopography.Generic.ReliabilityCutoff module<a class="headerlink" href="#module-SurfaceTopography.Generic.ReliabilityCutoff" title="Permalink to this headline"></a></h2>
 <p>Automatic determination of the reliability of the underyling data</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ReliabilityCutoff.</span></span><span class="sig-name descname"><span class="pre">short_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine down to which distance scale the data is realiable, i.e. below
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ReliabilityCutoff.</span></span><span class="sig-name descname"><span class="pre">short_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff" title="Permalink to this definition"></a></dt>
+<dd><p>Determine down to which distance scale the data is reliable, i.e. below
 which distance it may be affected by instrumental artifacts. Currently
 supported are tip radius artifacts and a user specified resolution.</p>
 <dl class="field-list simple">
@@ -303,12 +209,85 @@ supported are tip radius artifacts and a user specified resolution.</p>
 </dd></dl>
 
 </section>
+<section id="module-SurfaceTopography.Generic.ScaleDependentStatistics">
+<span id="surfacetopography-generic-scaledependentstatistics-module"></span><h2>SurfaceTopography.Generic.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
+<dd><p>Compute statistical properties of a uniform topography at specific scales.
+The scale is specified either by <cite>scale_factors</cite> or <cite>distance</cite>. These
+properties are statistics of derivatives carried out at specific scales,
+as computed using the <cite>derivative</cite> pipeline function.</p>
+<p>The specific statistical properties is computed by the <cite>func</cite> argument.
+The output of <cite>func</cite> needs to be homogeneous, i.e. if an array is returned,
+this array must have the same size independent of the derivative data that
+is fed into <cite>func</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Topogaphy or line scan.</p></li>
+<li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(dx,</span> <span class="pre">dy=None)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+<p>A function taking the derivative in x-direction and optionally the
+derivative in y-direction (only for topographies, i.e. maps). The
+function needs to be able to ignore the second argument as a container
+can be a mixture of topographies and line scans. The function can
+return a scalar value or an array, but the array size must be fixed.</p>
+</p></li>
+<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Order of derivative. (Default: 1)</p></li>
+<li><p><strong>scale_factor</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Scale factor for rescaling the finite differences stencil. A scale
+factor of unity means the derivative is computed at the size of the
+individual pixel.</p></li>
+<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. If
+this is an array, then the statistical property is computed at each
+of these distances.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
+unit before the derivative is computed.</p></li>
+<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for computing derivatives at distances
+that do not equal an integer multiple of the grid spacing. Use
+‘linear’ for a local liner interpolation or ‘fourier’ for global
+Fourier interpolation. Note that Fourier interpolation carries large
+errors for nonperiodic topographies and should be used with care.
+(Default: ‘linear’)</p></li>
+<li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
+arguments for progress reporting. (Default: None)</p></li>
+<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Automatic computation of sampling grid if neigther <cite>scale_factor</cite> nor
+<cite>distance</cite> is specified. Specifying ‘log’ yields collocation points
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+(Default: ‘log’)</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points for automatic sampling grid. Bins are automatically
+determined if set to None. (Default: None)</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
+(Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This example yields the the scale-dependent derivative (equivalent to
+the autocorrelation function divided by the distance) in the x-direction:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">distances</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">(</span><span class="n">resampling_method</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">distance</span><span class="o">=</span><span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">/</span> <span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="module-SurfaceTopography.Generic.ScanningProbe">
-<span id="surfacetopography-generic-scanningprobe-module"></span><h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScanningProbe" title="Permalink to this headline">¶</a></h2>
+<span id="surfacetopography-generic-scanningprobe-module"></span><h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScanningProbe" title="Permalink to this headline"></a></h2>
 <p>Analysis functions related to scanning-probe microscopy</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScanningProbe.</span></span><span class="sig-name descname"><span class="pre">scanning_probe_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScanningProbe.</span></span><span class="sig-name descname"><span class="pre">scanning_probe_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff" title="Permalink to this definition"></a></dt>
 <dd><p>Estimate a length scale below which tip radius artifacts affect the
 measured data. See: <a class="reference external" href="https://arxiv.org/abs/2106.16103">https://arxiv.org/abs/2106.16103</a></p>
 <dl class="field-list simple">
@@ -334,11 +313,11 @@ on synthetic (simulated) data. (Default: 1/2)</p></li>
 
 </section>
 <section id="module-SurfaceTopography.Generic.Slope">
-<span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline">¶</a></h2>
+<span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline"></a></h2>
 <p>Scale-dependent slope</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional scale-dependent slope.</p>
 <p>The scale-dependent slope is given by</p>
 <blockquote>
@@ -351,7 +330,8 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Topography</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to
+<cite>autocorrelation_from_profile</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -366,7 +346,7 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent slope.</p>
 <p>The scale-dependent slope is given by</p>
 <blockquote>
@@ -379,7 +359,8 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_2D</cite></p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to
+<cite>autocorrelation_from_area</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -394,7 +375,7 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 
 </section>
 <section id="module-SurfaceTopography.Generic">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Generic" title="Permalink to this headline">¶</a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Generic" title="Permalink to this headline"></a></h2>
 <p>Module containing generic functions that work for both uniform and nonuniform
 topographies</p>
 </section>
@@ -402,50 +383,33 @@ topographies</p>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="SurfaceTopography.IO.html" class="btn btn-neutral float-right" title="SurfaceTopography.IO package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="SurfaceTopography.Container.html" class="btn btn-neutral float-left" title="SurfaceTopography.Container package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SurfaceTopography.IO.html" class="btn btn-neutral float-right" title="SurfaceTopography.IO package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2015-2020 The Authors.
-
-    </p>
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

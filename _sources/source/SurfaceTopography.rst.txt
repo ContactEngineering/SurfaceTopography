@@ -41,14 +41,6 @@ SurfaceTopography.HeightContainer module
    :undoc-members:
    :show-inheritance:
 
-SurfaceTopography.Interpolation module
---------------------------------------
-
-.. automodule:: SurfaceTopography.Interpolation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 SurfaceTopography.NonuniformLineScan module
 -------------------------------------------
 
@@ -77,14 +69,6 @@ SurfaceTopography.UnitConversion module
 ---------------------------------------
 
 .. automodule:: SurfaceTopography.UnitConversion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SurfaceTopography.common module
--------------------------------
-
-.. automodule:: SurfaceTopography.common
    :members:
    :undoc-members:
    :show-inheritance:

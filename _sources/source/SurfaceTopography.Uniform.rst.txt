@@ -68,14 +68,6 @@ SurfaceTopography.Uniform.ScalarParameters module
    :undoc-members:
    :show-inheritance:
 
-SurfaceTopography.Uniform.ScaleDependentStatistics module
----------------------------------------------------------
-
-.. automodule:: SurfaceTopography.Uniform.ScaleDependentStatistics
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 SurfaceTopography.Uniform.VariableBandwidth module
 --------------------------------------------------
 

@@ -4,6 +4,14 @@ SurfaceTopography.Container package
 Submodules
 ----------
 
+SurfaceTopography.Container.Averaging module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.Averaging
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Container.IO module
 -------------------------------------
 
@@ -24,6 +32,14 @@ SurfaceTopography.Container.SurfaceContainer module
 ---------------------------------------------------
 
 .. automodule:: SurfaceTopography.Container.SurfaceContainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Container.common module
+-----------------------------------------
+
+.. automodule:: SurfaceTopography.Container.common
    :members:
    :undoc-members:
    :show-inheritance:
