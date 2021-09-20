@@ -32,7 +32,7 @@ import numpy as np
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..UnitConversion import height_units, mangle_length_unit_utf8
+from ..UnitConversion import length_units, mangle_length_unit_utf8
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 from .Reader import MetadataAlreadyFixedByFile
@@ -235,14 +235,14 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
         unit = zunit
     if unit is not None:
         if xunit is not None:
-            xsiz *= height_units[xunit] / height_units[unit]
+            xsiz *= length_units[xunit] / length_units[unit]
         if yunit is not None:
-            ysiz *= height_units[yunit] / height_units[unit]
+            ysiz *= length_units[yunit] / length_units[unit]
         if zunit is not None:
             if zfac is None:
-                zfac = height_units[zunit] / height_units[unit]
+                zfac = length_units[zunit] / length_units[unit]
             else:
-                zfac *= height_units[zunit] / height_units[unit]
+                zfac *= length_units[zunit] / length_units[unit]
         info['unit'] = unit
 
     # handle channel name

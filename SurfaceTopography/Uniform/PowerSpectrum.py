@@ -30,20 +30,19 @@ Power-spectral density for uniform topographies.
 
 import numpy as np
 
-from ..common import radial_average
+from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
-                                window=None,
-                                reliable=True):
+def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method='bin-average',
+                                collocation='log', nb_points=None, nb_points_per_decade=10):
     """
     Compute power spectrum from 1D FFT(s) of a topography or line scan
     stored on a uniform grid.
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    self : SurfaceTopography or UniformLineScan
         Container with height information.
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
@@ -51,6 +50,24 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
         nonperiodic Topographies)
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
@@ -59,20 +76,17 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
-    n = topography.nb_grid_pts
-    s = topography.physical_sizes
-
     try:
-        nx, ny = n
-        sx, sy = s
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
     except ValueError:
-        nx, = n
-        sx, = s
+        nx, = self.nb_grid_pts
+        sx, = self.physical_sizes
 
-    h = topography.window(window).heights()
+    h = self.window(window).heights()
 
     # Compute FFT and normalize
-    fourier_topography = sx/nx * np.fft.fft(h, axis=0)
+    fourier_topography = sx / nx * np.fft.fft(h, axis=0)
     dq = 2 * np.pi / sx
     q = dq * np.arange(nx // 2)
 
@@ -85,52 +99,65 @@ def power_spectrum_from_profile(topography,  # pylint: disable=invalid-name
     C_all[1:nx // 2, ...] += C_raw[nx - 1:(nx + 1) // 2:-1, ...]
     C_all /= 2
 
-    if reliable:
+    if resampling_method is None:
         # Only keep reliable data
-        short_cutoff = topography.short_reliability_cutoff()
+        short_cutoff = self.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
             mask = q < 2 * np.pi / short_cutoff
             q = q[mask]
             C_all = C_all[mask]
-
-    if topography.dim == 1:
-        return q, C_all
+        if self.dim == 1:
+            return q, C_all
+        else:
+            return q, C_all.mean(axis=1)
     else:
-        return q, C_all.mean(axis=1)
+        short_cutoff = 2 * np.pi / self.short_reliability_cutoff(2 * sx / nx) if reliable else np.pi * nx / sx
+        if collocation == 'log':
+            # Exclude zero distance because that does not work on a log-scale
+            q = q[1:]
+            C_all = C_all[1:]
+        if self.dim == 2:
+            q = np.resize(q, (C_all.shape[1], q.shape[0])).T.ravel()
+            C_all = np.ravel(C_all)
+        q, _, C, _ = resample(q, C_all, min_value=q[1], max_value=short_cutoff, collocation=collocation,
+                              nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        return q, C
 
 
-def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-name
-                             bin_edges='log',
-                             window=None,
-                             return_map=False,
-                             reliable=True):
+def power_spectrum_from_area(self, window=None, reliable=True, collocation='log', nb_points=None,
+                             nb_points_per_decade=10, return_map=False, resampling_method='bin-average'):
     """
     Compute power spectrum from 2D FFT and radial average of a topography
     stored on a uniform grid.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography`
+    self : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int, optional
-        Number of bins for radial average. Bins are automatically determined
-        if set to None. (Default: None) Note: Returned array can be smaller
-        than this because bins without data points are discarded.
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
-    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
-        Edges used for binning the average. Specifying 'log' yields bins
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
         Alternatively, it is possible to explicitly specify the bin edges.
         If bin_edges are explicitly specified, then `rmax` and `nbins` is
         ignored. (Default: 'log')
-    window : str, optional
-        Window for eliminating edge effect. See scipy.signal.get_window.
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
         (Default: None)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
-    reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be 'bin-average' for simple bin averaging and
+        'gaussian-process' for Gaussian process regression.
+        (Default: 'bin-average')
 
     Returns
     -------
@@ -139,31 +166,28 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
+    nx, ny = self.nb_grid_pts
+    sx, sy = self.physical_sizes
 
     qmax = 2 * np.pi * nx / (2 * sx)
 
     if reliable:
         # Update qmax
-        short_cutoff = topography.short_reliability_cutoff()
+        short_cutoff = self.short_reliability_cutoff()
         if short_cutoff is not None:
             qmax = 2 * np.pi / short_cutoff
 
-    h = topography.window(window=window, direction='radial').heights()
+    h = self.window(window=window, direction='radial').heights()
 
     # Compute FFT and normalize
-    surface_qk = topography.area_per_pt * np.fft.fft2(h)
+    surface_qk = self.area_per_pt * np.fft.fft2(h)
     C_qk = abs(surface_qk) ** 2 / (sx * sy)  # pylint: disable=invalid-name
 
     # Radial average
-    q_edges, n, q_val, C_val = radial_average(  # pylint: disable=invalid-name
-        C_qk, rmax=qmax,
-        nbins=nbins, bin_edges=bin_edges,
-        physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy))
-
-    q_val = q_val[n > 0]
-    C_val = C_val[n > 0]
+    q_val, q_edges, C_val, _ = resample_radial(C_qk, physical_sizes=(2 * np.pi * nx / sx, 2 * np.pi * ny / sy),
+                                               collocation=collocation, nb_points=nb_points,
+                                               nb_points_per_decade=nb_points_per_decade, max_radius=qmax,
+                                               method=resampling_method)
 
     if return_map:
         return q_val, C_val, C_qk
@@ -172,7 +196,5 @@ def power_spectrum_from_area(topography, nbins=None,  # pylint: disable=invalid-
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('power_spectrum_from_profile',
-                                             power_spectrum_from_profile)
-UniformTopographyInterface.register_function('power_spectrum_from_area',
-                                             power_spectrum_from_area)
+UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
+UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)

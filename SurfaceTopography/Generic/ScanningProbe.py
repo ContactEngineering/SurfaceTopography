@@ -57,27 +57,27 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     """
     target_curvature = safety_factor / tip_radius
 
-    if self.dim == 1:
-        sx, = self.physical_sizes
-        px, = self.pixel_size
-    elif self.dim == 2:
-        sx, sy = self.physical_sizes
-        px, py = self.pixel_size
+    def objective(distance):
+        d = self.derivative(n=2, distance=distance)
+        if self.dim == 1:
+            return target_curvature + np.min(d)
+        elif self.dim == 2:
+            return target_curvature + np.min(d[0])
+        else:
+            raise ValueError(f'Cannot handle a {self.dim}-dimensional topography.')
+
+    lower, upper = self.bandwidth()
+    if objective(2 * lower) > 0:
+        # Curvature is at lower end is smaller than tip curvature
+        return None
+    elif objective(upper / 2) < 0:
+        # Curvature at upper end is larger than tip curvature;
+        # None of the data is reliable
+        return upper
     else:
-        raise ValueError(f"Don't know how to handle a topography of dimension {self.dim}.")
-
-    def negative_minimum(dx, dy=None):
-        return -np.min(dx)
-
-    def objective(scale_factor):
-        return target_curvature - negative_minimum(*self.derivative(n=2, scale_factor=scale_factor))
-
-    reliability_cutoff = 2 * scipy.optimize.brentq(objective,
-                                                   1, sx / 4 / px,  # bounds
-                                                   xtol=1e-4
-                                                   ) * px
-
-    return reliability_cutoff
+        return scipy.optimize.brentq(objective,
+                                     2 * lower, upper / 2,  # bounds
+                                     xtol=1e-4)
 
 
 UniformTopographyInterface.register_function('scanning_probe_reliability_cutoff', scanning_probe_reliability_cutoff)

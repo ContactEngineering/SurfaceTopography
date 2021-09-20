@@ -9,6 +9,7 @@ common_properties = [
     "info",
     "is_uniform",
     "is_periodic",
+    "is_reentrant",
     "nb_grid_pts",
     "physical_sizes",
     "unit",

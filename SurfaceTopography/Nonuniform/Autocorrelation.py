@@ -100,8 +100,9 @@ def height_height_autocorrelation(line_scan, distances=None):
     return distances, A
 
 
-def height_difference_autocorrelation(line_scan, algorithm='fft',
-                                      distances=None, nb_interpolate=5):
+def height_difference_autocorrelation(line_scan, reliable=True, algorithm='fft', distances=None, nb_interpolate=5,
+                                      short_cutoff=np.mean, resampling_method='bin-average', collocation='log',
+                                      nb_points=None, nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -114,6 +115,8 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
     ----------
     line_scan : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
     algorithm : str
         Algorithm to compute autocorrelation.
         * 'fft': Interpolates the nonuniform line scan on a grid and then uses
@@ -129,28 +132,65 @@ def height_difference_autocorrelation(line_scan, algorithm='fft',
     nb_interpolate : int
         Number of grid points to put between closest points on surface. Only
         used for 'fft' algorithm. (Default: 5)
+    short_cutoff : function, optional
+        Function that determines how the short cutoff for the returned PSD is
+        computed. If set to None, the full PSD of the interpolated data is
+        returned. If the user passes a function, that function is called with
+        an array that contains the distances between the points of the uniform
+        line scan. Pass `np.max`, `np.mean` or `np.min` to use the maximum,
+        mean or minimum of that distance as the cutoff.
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: None)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
     distances : array
         Distances. (Units: length)
-    A : array
+    acf : array
         Autocorrelation function. (Units: length**2)
     """
     s, = line_scan.physical_sizes
     x, h = line_scan.positions_and_heights()
     if algorithm == 'fft':
         if distances is not None:
-            raise ValueError(
-                "`distances` can only be used with 'brute-force' algorithm.")
-        return line_scan.to_uniform(nb_interpolate=nb_interpolate).autocorrelation_from_profile()
+            raise ValueError("`distances` can only be used with 'brute-force' algorithm.")
+        distances, acf = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
+            .autocorrelation_from_profile(reliable=reliable, resampling_method=resampling_method,
+                                          collocation=collocation, nb_points=nb_points,
+                                          nb_points_per_decade=nb_points_per_decade)
     elif algorithm == 'brute-force':
-        return _SurfaceTopography.nonuniform_autocorrelation(x, h, s, distances)
+        if reliable:
+            raise ValueError("'Brute-force' algorithm for nonuniform line scans does not support reliability analysis.")
+        if resampling_method is not None:
+            raise ValueError("'Brute-force' algorithm for nonuniform line scans does not support resampling.")
+        if distances is None:
+            raise ValueError("You need to specify `distances` for the 'brute-force' algorithm.")
+        distances, acf = _SurfaceTopography.nonuniform_autocorrelation(x, h, s, distances)
     else:
-        raise ValueError("Unknown algorithm '{}' specified."
-                         .format(algorithm))
+        raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
+
+    if short_cutoff is not None:
+        mask = distances < short_cutoff(np.diff(x))
+        distances = distances[mask]
+        acf = acf[mask]
+    return distances, acf
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function(
-    'autocorrelation_from_profile', height_difference_autocorrelation)
+NonuniformLineScanInterface.register_function('autocorrelation_from_profile', height_difference_autocorrelation)

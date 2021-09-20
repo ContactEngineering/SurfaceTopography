@@ -30,9 +30,10 @@
 import numpy as np
 
 from ..HeightContainer import NonuniformLineScanInterface
+from ..Support import toiter, fromiter
 
 
-def derivative(topography, n):
+def derivative(self, n, scale_factor=None, distance=None, interpolation='linear', progress_callback=None):
     r"""
     Compute derivative of nonuniform line-scan. Function assumes nonperiodic
     topographies.
@@ -49,10 +50,26 @@ def derivative(topography, n):
 
     Parameters
     ----------
-    topography : :class:`SurfaceTopography.NonuniformLineScan`
+    self : :class:`SurfaceTopography.NonuniformLineScan`
         Object containing height information.
     n : int
         Number of times the derivative is taken.
+    scale_factor : int or list of ints or list of tuples of ints, optional
+        Scale factors are not supported by nonuniform line scans.
+        (Default: None)
+    distance : float or list of floats, optional
+        Explicit distance scale for computation of the derivative. Note that
+        the distance specifies the overall length of the stencil of lowest
+        truncation order, not the effective grid spacing used by this stencil.
+        The scale factor is then given by distance / (n * px) where n is the
+        order of the derivative and px the grid spacing.
+        (Default: None)
+    interpolation : str, optional
+        Only 'linear' interpolation is supported by nonuniform line scans.
+        (Default: 'linear')
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
 
     Returns
     -------
@@ -60,7 +77,32 @@ def derivative(topography, n):
         Array with derivative values. Length of array is reduced by :math:`n` with
         respect to the input array for the :math:`n`-th derivative.
     """  # noqa: E501
-    x, h = topography.positions_and_heights()
+    if scale_factor is not None:
+        raise ValueError('Scale factors are not supported by nonuniform line scans.')
+    if interpolation != 'linear':
+        raise ValueError('Line scans only support linear interpolation.')
+
+    if distance is not None:
+        # If an explicit distance scale is given, we interpolate onto a regular grid and pass the derivative
+        # calculation on to the uniform line scan derivative function.
+        lower, upper = self.bandwidth()
+        derivatives = []
+        distances = toiter(distance)
+        for i, d in enumerate(distances):
+            if progress_callback is not None:
+                progress_callback(i, len(distances))
+            scale_factor = int(np.ceil(d / lower))
+            stencil_size = d / scale_factor
+            derivatives += [self.to_uniform(pixel_size=stencil_size / n).derivative(n=n, scale_factor=scale_factor,
+                                                                                    interpolation='disable')]
+        if progress_callback is not None:
+            progress_callback(len(distances), len(distances))
+
+        return fromiter(derivatives, distance)
+
+    # If no explicit distance scale is given, we simply compute the derivatives from finite differences expressions on
+    # nonuniform grids.
+    x, h = self.positions_and_heights()
     if n == 1:
         return np.diff(h) / np.diff(x)
     elif n == 2:

@@ -42,18 +42,15 @@ def test_limiting_values():
 
     t = fourier_synthesis(nb_grid_pts, physical_sizes, Hurst,
                           rms_slope=slope,
-                          short_cutoff=0.1*np.mean(physical_sizes))
+                          short_cutoff=0.1 * np.mean(physical_sizes))
 
-    r, s = t.scale_dependent_slope_from_profile()
+    r, s = t.scale_dependent_slope_from_profile(resampling_method=None)
 
     px, py = t.pixel_size
 
-    rms_slope = np.sqrt(np.mean(((np.roll(t.heights(), 1, 0) - t.heights())/px)**2))
+    rms_slope = np.sqrt(np.mean(((np.roll(t.heights(), 1, 0) - t.heights()) / px) ** 2))
     assert_almost_equal(s[0], rms_slope)
-
-    r2, s2 = t.scale_dependent_slope_from_area()
-
-    assert_almost_equal(s[0], s2[0])
+    assert_almost_equal(s[0], t.rms_slope_from_profile())
 
 
 def test_numeric_vs_analytical():
@@ -62,5 +59,5 @@ def test_numeric_vs_analytical():
     qs = 2 * np.pi * 8 / L
     t1 = UniformLineScan(np.sin(np.arange(nx) * L * qs / nx), L, periodic=True)
 
-    x, y = t1.scale_dependent_slope_from_profile()
-    assert_array_almost_equal(y, np.sqrt(1-np.cos(qs * x))/x)
+    x, y = t1.scale_dependent_slope_from_profile(resampling_method=None)
+    assert_array_almost_equal(y, np.sqrt(1 - np.cos(qs * x)) / x)

@@ -29,14 +29,15 @@ Tests for autocorrelation function analysis
 
 import os
 
-import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
+import pytest
 
-from SurfaceTopography import read_topography, Topography, UniformLineScan, \
-    NonuniformLineScan
+import numpy as np
+from numpy.testing import assert_almost_equal, assert_allclose
+from scipy.interpolate import interp1d
+
+from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan, NonuniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Nonuniform.Autocorrelation import \
-    height_height_autocorrelation
+from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation
 
 DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
 
@@ -116,12 +117,12 @@ def test_uniform_impulse_autocorrelation():
                        (nx // 2, 5, 1, False), (nx // 3, 6, 2.5, False)]:
         y = np.zeros(nx)
         y[x - w // 2:x + (w + 1) // 2] = h
-        r, A = UniformLineScan(y, nx, periodic=True).autocorrelation_from_profile()
+        r, A = UniformLineScan(y, nx, periodic=True).autocorrelation_from_profile(resampling_method=None)
 
         A_ana = np.zeros_like(A)
         A_ana[:w] = h ** 2 * np.linspace(w / nx, 1 / nx, w)
         A_ana = A_ana[0] - A_ana
-        assert_array_almost_equal(A, A_ana)
+        assert_allclose(A, A_ana)
 
 
 def test_uniform_brute_force_autocorrelation_from_profile():
@@ -130,7 +131,7 @@ def test_uniform_brute_force_autocorrelation_from_profile():
                  UniformLineScan(np.arange(n), n, periodic=False),
                  Topography(np.random.random(n).reshape(n, 1), (n, 1),
                             periodic=False)]:
-        r, A = surf.autocorrelation_from_profile()
+        r, A = surf.autocorrelation_from_profile(resampling_method=None)
 
         n = len(A)
         dir_A = np.zeros(n)
@@ -139,36 +140,34 @@ def test_uniform_brute_force_autocorrelation_from_profile():
                 dir_A[d] += (surf.heights()[i] - surf.heights()[
                     i + d]) ** 2 / 2
             dir_A[d] /= (n - d)
-        assert_array_almost_equal(A, dir_A)
+        assert_allclose(A, dir_A, atol=1e-12)
 
 
-def test_uniform_brute_force_autocorrelation_from_area():
-    n = 10
-    m = 11
-    for surf in [Topography(np.ones([n, m]), (n, m), periodic=False),
-                 Topography(np.random.random([n, m]), (n, m), periodic=False)]:
-        r, A, A_xy = surf.autocorrelation_from_area(nbins=100, return_map=True)
+@pytest.mark.parametrize("surf,tol_kwargs",
+                         [(Topography(np.ones([10, 11]), (10, 11), periodic=False), dict(atol=1e-12)),
+                          (Topography(np.random.random([10, 11]), (10, 11), periodic=False), dict(atol=0.5))])
+def test_uniform_brute_force_autocorrelation_from_area(surf, tol_kwargs):
+    r, A, A_xy = surf.autocorrelation_from_area(nb_points=100, return_map=True)
 
-        nx, ny = surf.nb_grid_pts
-        dir_A_xy = np.zeros([n, m])
-        dir_A = np.zeros_like(A)
-        dir_n = np.zeros_like(A)
-        for dx in range(n):
-            for dy in range(m):
-                for i in range(nx - dx):
-                    for j in range(ny - dy):
-                        dir_A_xy[dx, dy] += (surf.heights()[i, j] -
-                                             surf.heights()[
-                                                 i + dx, j + dy]) ** 2 / 2
-                dir_A_xy[dx, dy] /= (nx - dx) * (ny - dy)
-                d = np.sqrt(dx ** 2 + dy ** 2)
-                i = np.argmin(np.abs(r - d))
-                dir_A[i] += dir_A_xy[dx, dy]
-                dir_n[i] += 1
-        dir_n[dir_n == 0] = 1
-        dir_A /= dir_n
-        assert_array_almost_equal(A_xy, dir_A_xy)
-        assert_array_almost_equal(A[:-2], dir_A[:-2])
+    nx, ny = surf.nb_grid_pts
+    dir_A_xy = np.zeros([nx, ny])
+    dir_A = np.zeros_like(A)
+    dir_n = np.zeros_like(A)
+    for dx in range(nx):
+        for dy in range(nx):
+            for i in range(nx - dx):
+                for j in range(ny - dy):
+                    dir_A_xy[dx, dy] += (surf.heights()[i, j] - surf.heights()[i + dx, j + dy]) ** 2 / 2
+            dir_A_xy[dx, dy] /= (nx - dx) * (ny - dy)
+            d = np.sqrt(dx ** 2 + dy ** 2)
+            i = np.argmin(np.abs(r - d))
+            dir_A[i] += dir_A_xy[dx, dy]
+            dir_n[i] += 1
+    dir_n[dir_n == 0] = 1
+    dir_A /= dir_n
+    assert_allclose(A_xy, dir_A_xy, **tol_kwargs)
+    m = np.isfinite(A)
+    assert_allclose(A[m], dir_A[m], **tol_kwargs)
 
 
 def test_nonuniform_impulse_autocorrelation():
@@ -176,13 +175,12 @@ def test_nonuniform_impulse_autocorrelation():
     b = 2
     x = np.array([0, a])
     t = NonuniformLineScan(x, b * np.ones_like(x))
-    r, A = height_height_autocorrelation(t,
-                                         distances=np.linspace(-4, 4, 101))
+    r, A = height_height_autocorrelation(t, distances=np.linspace(-4, 4, 101))
 
     A_ref = b ** 2 * (a - np.abs(r))
     A_ref[A_ref < 0] = 0
 
-    assert_array_almost_equal(A, A_ref)
+    assert_allclose(A, A_ref)
 
     a = 3
     b = 2
@@ -197,7 +195,7 @@ def test_nonuniform_impulse_autocorrelation():
     A_ref = b ** 2 * (a - np.abs(r))
     A_ref[A_ref < 0] = 0
 
-    assert_array_almost_equal(A, A_ref)
+    assert_allclose(A, A_ref)
 
     t = t.detrend(detrend_mode='center')
     r, A = height_height_autocorrelation(t,
@@ -227,7 +225,7 @@ def test_nonuniform_triangle_autocorrelation():
     r2, A2 = height_height_autocorrelation(t, distances=np.linspace(-4, 4,
                                                                     101))
 
-    assert_array_almost_equal(A, A2)
+    assert_allclose(A, A2)
 
     r, A = height_height_autocorrelation(t.detrend(detrend_mode='center'),
                                          distances=[0])
@@ -245,7 +243,7 @@ def test_self_affine_uniform_autocorrelation():
 
     r, A = t.autocorrelation_from_profile()
 
-    m = np.logical_and(r > 1e-3, r < 10 ** (-1.5))
+    m = np.logical_and(np.logical_and(r > 1e-3, r < 10 ** (-1.5)), np.isfinite(A))
     b, a = np.polyfit(np.log(r[m]), np.log(A[m]), 1)
     assert abs(b / 2 - H) < 0.1
 
@@ -265,8 +263,8 @@ def test_c_vs_py_reference():
     s, = t.physical_sizes
     r2, A2 = nonuniform_autocorrelation(*t.positions_and_heights(), s)
 
-    assert_array_almost_equal(r1, r2)
-    assert_array_almost_equal(A1, A2)
+    assert_allclose(r1, r2)
+    assert_allclose(A1, A2)
 
 
 def test_nonuniform_rms_height():
@@ -291,22 +289,93 @@ def test_self_affine_nonuniform_autocorrelation():
     t = fourier_synthesis((r,), (s,), H, rms_slope=slope, short_cutoff=s / 20,
                           amplitude_distribution=lambda n: 1.0)
     t._periodic = False
-    r, A = t.detrend(detrend_mode='center').autocorrelation_from_profile()
+    r, A = t.detrend(detrend_mode='center').autocorrelation_from_profile(resampling_method=None)
     # Need to exclude final point because we cannot compute nonuniform ACF at
     # that point
     r = r[1:-1]
     A = A[1:-1]
-    r2, A2 = t.detrend(
-        detrend_mode='center').to_nonuniform().autocorrelation_from_profile(
-        algorithm='brute-force', distances=r)
+    r2, A2 = t.detrend(detrend_mode='center').to_nonuniform() \
+        .autocorrelation_from_profile(algorithm='brute-force', distances=r, reliable=False, resampling_method=None,
+                                      short_cutoff=None)
 
-    assert_array_almost_equal(A, A2, decimal=5)
+    assert_allclose(A, A2, atol=1e-5)
 
 
 def test_brute_force_vs_fft():
     t = read_topography(os.path.join(DATADIR, 'example.xyz'))
     r, A = t.detrend().autocorrelation_from_profile()
-    r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5)
+    m = np.isfinite(A)
+    r = r[m]
+    A = A[m]
+    r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
+                                                      reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
-    print(x.min(), x.max())
-    assert np.alltrue(np.logical_and(x > 0.98, x < 1.02))
+    assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
+
+
+@pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])
+def test_resampling(nb_grid_pts, physical_sizes, plot=False):
+    H = 0.8
+    slope = 0.1
+    t = fourier_synthesis(nb_grid_pts, physical_sizes, H, rms_slope=slope, short_cutoff=np.mean(physical_sizes) / 20,
+                          amplitude_distribution=lambda n: 1.0)
+    r1, A1 = t.autocorrelation_from_profile(resampling_method=None)
+    r2, A2 = t.autocorrelation_from_profile(resampling_method='bin-average')
+    # r3, A3 = t.autocorrelation_from_profile(resampling_method='gaussian-process')
+
+    assert len(r1) == len(A1)
+    assert len(r2) == len(A2)
+    # assert len(r3) == len(A3)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(r1, A1, 'x-', label='native')
+        plt.loglog(r2, A2, 'o-', label='bin-average')
+        # plt.loglog(r3, A3, 's-', label='gaussian-process')
+        plt.legend(loc='best')
+        plt.show()
+
+    f = interp1d(r1, A1)
+    assert_allclose(A2[np.isfinite(A2)], f(r2[np.isfinite(A2)]), atol=1e-6)
+    # assert_allclose(A3, f(r3), atol=1e-4)
+
+
+def test_container_uniform(file_format_examples, plot=False):
+    """This container has just topography maps"""
+    c, = read_container(f'{file_format_examples}/container1.zip')
+    d, s = c.autocorrelation(unit='um', nb_points_per_decade=2)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
+        plt.show()
+
+    assert_allclose(s, [4.76306017e-09, 5.42493630e-08, 3.44862254e-07, 2.09698128e-06, 1.16854493e-05, 6.11236431e-05,
+                        4.07759215e-04, 1.41787788e-03, 7.73657754e-03, 1.39632798e-02])
+
+
+# This test is just supposed to finish without an exception
+def test_container_mixed(file_format_examples, plot=False):
+    """This container has a mixture of maps and line scans"""
+    c, = read_container(f'{file_format_examples}/container2.zip')
+    d, s = c.autocorrelation(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        for t in c:
+            plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
+        plt.show()
+
+
+@pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
+def test_large_container_mixed(plot=True):
+    c, = read_container('/home/pastewka/Downloads/surface.zip')
+    d, s = c.autocorrelation(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'kx-')
+        plt.show()

@@ -24,3 +24,47 @@
 #
 
 from .Deprecation import deprecated, DeprecatedDictionary  # noqa: F401
+from .Interpolation import Bicubic  # noqa: F401
+from .Regression import resample_radial  # noqa: F401
+
+
+def toiter(obj):
+    """If `obj` is scalar, wrap it into a list"""
+    try:
+        iter(obj)
+        return obj
+    except TypeError:
+        return [obj]
+
+
+def fromiter(result, obj):
+    """If `obj` is scalar, return first element of result list"""
+    try:
+        iter(obj)
+        return result
+    except TypeError:
+        return result[0]
+
+
+def build_tuple(quantities, **kwargs):
+    """
+    Build a custom tuple, where each of the characters in quantities
+    represents a certain datum.
+
+    Parameters
+    ----------
+    quantities : str
+        String with quantities, e.g. 'dhj' returns a 3-tuple with the
+        datums associated with the characters 'd', 'h' and 'j'.
+    **kwargs : dict
+        Individual datums, e.g. `d=..., h=..., j=...`.
+
+    Returns
+    -------
+    datum : tuple
+        Tuple of length `quantities`.
+    """
+    retvals = []
+    for c in quantities:
+        retvals += [kwargs[c]]
+    return tuple(retvals)

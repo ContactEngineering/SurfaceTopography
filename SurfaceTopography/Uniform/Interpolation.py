@@ -26,7 +26,7 @@
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
-from ..Interpolation import Bicubic
+from SurfaceTopography.Support.Interpolation import Bicubic
 from ..UniformLineScanAndTopography import Topography
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 

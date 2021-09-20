@@ -32,9 +32,10 @@ import numpy as np
 
 from ..HeightContainer import NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
+from ..Support import build_tuple
 
 
-def checkerboard_detrend_profile(line_scan, subdivisions, tol=1e-6):
+def checkerboard_detrend_profile(self, subdivisions, tol=1e-6):
     """
     Perform tilt correction (and substract mean value) in each individual
     rectangle of a checkerboard decomposition of the surface. This is
@@ -46,7 +47,7 @@ def checkerboard_detrend_profile(line_scan, subdivisions, tol=1e-6):
 
     Parameters
     ----------
-    line_scan : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         Container storing the uniform topography map
     subdivisions : int
         Number of subdivisions.
@@ -60,9 +61,9 @@ def checkerboard_detrend_profile(line_scan, subdivisions, tol=1e-6):
         List with new, subdivided and detrended line scans.
     """
     if subdivisions == 1:
-        return [line_scan.detrend()]
+        return [self.detrend()]
 
-    x, y = line_scan.positions_and_heights()
+    x, y = self.positions_and_heights()
 
     subdivided_line_scans = []
     for i in range(subdivisions):
@@ -100,12 +101,13 @@ def checkerboard_detrend_profile(line_scan, subdivisions, tol=1e-6):
             sub_y = np.append(sub_y, [sub_yright])
 
         subdivided_line_scans += [
-            NonuniformLineScan(sub_x, sub_y, info=line_scan.info).detrend()]
+            NonuniformLineScan(sub_x, sub_y, info=self.info).detrend()]
 
     return subdivided_line_scans
 
 
-def variable_bandwidth_from_profile(line_scan, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None,
+                                    nb_grid_pts_cutoff=4):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -113,8 +115,22 @@ def variable_bandwidth_from_profile(line_scan, nb_grid_pts_cutoff=4):
 
     Parameters
     ----------
-    line_scan : obj:`NonuniformLineScan`
+    self : obj:`NonuniformLineScan`
         Container storing the uniform topography map
+    quantities : str, optional
+        Specification of return tuple, where each string character
+        stand for specific quantity. Possible quantities are
+            - 'm': Magnification (Unit: dimensionless)
+            - 'b': Bandwidth (Unit: length)
+            - 'h': RMS height (Unit: length)
+        For example, 'mbh' return a tuple with the three entries
+        magnification, bandwidth, rms height.
+        (Default: 'bh')
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Can only be None for the variable bandwidth analysis.
+        (Default: None)
     nb_grid_pts_cutoff : int
         Minimum number of data points to allow for subdivision. The analysis
         will automatically analyze subdivision down to this nb_grid_pts.
@@ -130,13 +146,16 @@ def variable_bandwidth_from_profile(line_scan, nb_grid_pts_cutoff=4):
         Array containing the rms height corresponding to the respective
         magnification.
     """
+    if resampling_method is not None:
+        raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
+
     magnification = 1
-    min_nb_grid_pts, = line_scan.nb_grid_pts
+    min_nb_grid_pts, = self.nb_grid_pts
     magnifications = []
     bandwidths = []
     rms_heights = []
     while min_nb_grid_pts >= nb_grid_pts_cutoff:
-        subdivided_line_scans = line_scan.checkerboard_detrend_profile(magnification)
+        subdivided_line_scans = self.checkerboard_detrend_profile(magnification)
         min_nb_grid_pts = min(
             [line.nb_grid_pts[0] for line in subdivided_line_scans])
         magnifications += [magnification]
@@ -144,7 +163,20 @@ def variable_bandwidth_from_profile(line_scan, nb_grid_pts_cutoff=4):
         rms_heights += [
             np.mean([line.rms_height_from_profile() for line in subdivided_line_scans])]
         magnification *= 2
-    return np.array(magnifications), np.array(bandwidths), np.array(rms_heights)
+
+    magnifications = np.array(magnifications)
+    bandwidths = np.array(bandwidths)
+    rms_heights = np.array(rms_heights)
+
+    if reliable:
+        short_cutoff = self.short_reliability_cutoff()
+        if short_cutoff:
+            m = bandwidths > short_cutoff
+            magnifications = magnifications[m]
+            bandwidths = bandwidths[m]
+            rms_heights = rms_heights[m]
+
+    return build_tuple(quantities, m=np.array(magnifications), b=np.array(bandwidths), h=np.array(rms_heights))
 
 
 # Register analysis functions from this module

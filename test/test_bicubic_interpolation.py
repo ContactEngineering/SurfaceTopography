@@ -32,7 +32,7 @@ import numpy as np
 
 from NuMPI import MPI
 
-from SurfaceTopography.Interpolation import Bicubic
+from SurfaceTopography.Support.Interpolation import Bicubic
 from SurfaceTopography.Generation import fourier_synthesis
 
 pytestmark = pytest.mark.skipif(

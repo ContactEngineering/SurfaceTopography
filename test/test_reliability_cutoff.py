@@ -38,16 +38,25 @@ def test_scanning_probe_reliability_cutoff(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
     np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 90.700854)
 
+    # Should be None because there is no tip radius information
+    assert surf.short_reliability_cutoff() is None
+
+    cut = surf.short_reliability_cutoff(0.2)
+    # Should be the maximum of the actual value and the value that was passed
+    np.testing.assert_almost_equal(cut, 0.2)
+
 
 def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
         'instrument': {
-            'tip_radius': {
-                'value': 40,
-                'unit': 'nm',
+            'parameters': {
+                'tip_radius': {
+                    'value': 40,
+                    'unit': 'nm',
                 }
             }
-        })
+        }
+    })
     cut = surf.short_reliability_cutoff()
     np.testing.assert_allclose(cut, 90.700854)
 
@@ -64,3 +73,44 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
 
     r, A = surf.autocorrelation_from_area()
     assert r[0] >= cut / 2
+
+
+def test_reliability_cutoff_line_scan(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'example7.txt'), unit='um', info={
+        'instrument': {
+            'parameters': {
+                'tip_radius': {
+                    'value': 40,
+                    'unit': 'nm',
+                }
+            }
+        }
+    })
+    cut = surf.short_reliability_cutoff()
+    np.testing.assert_allclose(cut, 0.126504, atol=1e-6)
+
+    cut = surf.to_nonuniform().short_reliability_cutoff()
+    # This differs from the above because the derivatives are computed at slightly different locations
+    np.testing.assert_allclose(cut, 0.126505, atol=1e-6)
+
+    cut = surf.to_nonuniform().short_reliability_cutoff(0.2)
+    # Should be the maximum of the actual value and the value that was passed
+    np.testing.assert_allclose(cut, 0.2)
+
+    cut = surf.to_nonuniform().short_reliability_cutoff(0.1)
+    # Should be the maximum of the actual value and the value that was passed
+    np.testing.assert_allclose(cut, 0.126505, atol=1e-6)
+
+
+def test_problem1(file_format_examples):
+    surf = read_topography(os.path.join(file_format_examples, 'di6.di'), info={
+        'instrument': {
+            'parameters': {
+                'tip_radius': {
+                    'value': 26,
+                    'unit': 'nm',
+                }
+            }
+        }
+    })
+    assert surf.short_reliability_cutoff() is None

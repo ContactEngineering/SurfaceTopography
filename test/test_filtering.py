@@ -39,8 +39,11 @@ def test_longcut():
     t = fourier_synthesis((n, n), (13, 13), 0.9, 1.)
 
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
-    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_from_area()
-    assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
+    q, psd = t.longcut(cutoff_wavevector=cutoff_wavevector).power_spectrum_from_area(nb_points_per_decade=10)
+    m = np.isfinite(psd)
+    q = q[m]
+    psd = psd[m]
+    np.testing.assert_allclose(psd[q < 0.9 * cutoff_wavevector], 0, atol=1e-12)
     # the cut is not clean because of the binning in the 2D PSD (Ciso)
 
     if False:
@@ -62,7 +65,7 @@ def test_shortcut():
     cutoff_wavevector = 2 * np.pi / 13 * 0.4 * n
     q, psd = t.shortcut(cutoff_wavevector=cutoff_wavevector
                         ).power_spectrum_from_area()
-    assert (psd[q > 1.5 * cutoff_wavevector] < 1e-10).all()
+    np.testing.assert_allclose(psd[q > 1.5 * cutoff_wavevector], 0)
 
     if False:
         import matplotlib.pyplot as plt
@@ -140,6 +143,9 @@ def test_isotropic_1d():
     cutoff_wavevector = 2 * np.pi / 13 * n / 4
     q, psd = t.filter(
         filter_function=lambda q: q > cutoff_wavevector).power_spectrum_from_profile()
+    m = np.isfinite(psd)
+    q = q[m]
+    psd = psd[m]
     assert (psd[q < 0.9 * cutoff_wavevector] < 1e-10).all()
 
 

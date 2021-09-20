@@ -5,7 +5,24 @@ Deprecations in version 1.0
 ---------------------------
 
 - `unit` entry for the `info` dictionary will disappear
-- `scale_factor` property for scaled topographies  will disappear
+- `scale_factor` property for scaled topographies will disappear
+
+v0.97.0 (not yet released)
+--------------------------
+
+- ENH: `bandwidth` function for containers
+- ENH: Progress callbacks for some analysis functions
+- ENH: Gaussian process regression for resampling noisy data onto an
+  arbitrary grid
+- ENH: Added `is_reentrant` property
+- ENH: Computing averaged autocorrelation, power spectrum and variable
+  bandwidth analysis for containers
+- BUG: Multiple bugs fixed in scale-dependent analyses
+- API: Reconciled radial averages into its own regression module;
+  default behavior has changed
+- API: All analysis functions now resample data onto a reasonable grid
+- API: Resampling methods no longer discard bins with no data; those are
+  filled with NaNs
 
 v0.96.0 (13Sep21)
 -----------------

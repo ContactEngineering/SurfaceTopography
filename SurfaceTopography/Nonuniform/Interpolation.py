@@ -1,8 +1,6 @@
 #
-# Copyright 2018-2020 Lars Pastewka
-#           2019 Antoine Sanner
-#           2019 Michael Röttger
-#           2015-2016 Till Junge
+# Copyright 2020-2021 Lars Pastewka
+#           2020 Antoine Sanner
 #
 # ### MIT license
 #
@@ -25,36 +23,24 @@
 # SOFTWARE.
 #
 
-"""
-Bin for small common helper function and classes for nonuniform
-topographies.
-"""
-
-import numpy as np
+import scipy.interpolate
 
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def bandwidth(self):
+def interpolate_linear(self):
+    r"""
+    Returns a linear interpolation function based on the topography's heights.
     """
-    Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
-    length scales occurring on a topography. The lower end of the bandwidth is
-    given by the mean of the spacing of the individual points on the line
-    scan. The upper bound is given by the overall length of the line scan.
+    return scipy.interpolate.interp1d(*self.positions_and_heights(), kind='linear')
 
-    Returns
-    -------
-    lower_bound : float
-        Lower bound of the bandwidth.
-    upper_bound : float
-        Upper bound of the bandwidth.
+
+def interpolate_cubic(self):
+    r"""
+    Returns a linear interpolation function based on the topography's heights.
     """
-    x = self.positions()
-    lower_bound = np.mean(np.diff(x))
-    upper_bound, = self.physical_sizes
-
-    return lower_bound, upper_bound
+    return scipy.interpolate.interp1d(*self.positions_and_heights(), kind='cubic')
 
 
-# Register analysis functions from this module
-NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
+NonuniformLineScanInterface.register_function('interpolate_cubic', interpolate_cubic)
+NonuniformLineScanInterface.register_function('interpolate_linear', interpolate_linear)

@@ -322,3 +322,33 @@ def test_trim_nonperiodic_3x2_stencil():
     assert tx_arr.max() == 1
     assert ty_arr.min() == 1
     assert ty_arr.max() == 6
+
+
+def test_interpolation():
+    nx = 16
+    sx = 1
+    uniform = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+    nonuniform = uniform.to_nonuniform()
+
+    x = np.linspace(0, sx - sx / nx, 101)
+    funiform = uniform.interpolate_linear()
+    fnonuniform = nonuniform.interpolate_linear()
+
+    intuniform = funiform(x)
+    intnonuniform = fnonuniform(x)
+
+    np.testing.assert_allclose(uniform.positions(), nonuniform.positions())
+    np.testing.assert_allclose(uniform.heights(), nonuniform.heights())
+    np.testing.assert_allclose(intuniform, intnonuniform)
+
+
+def test_line_scans():
+    nx = 128
+    sx = 1
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+
+    d1 = topography.derivative(n=1, distance=sx / 12)
+    d2 = topography.to_nonuniform().derivative(n=1, distance=sx / 12)
+    np.testing.assert_almost_equal(d1[0], d2[0])
+    # Note: Only the first derivative value are identical because the leftmost point of the stencil differs for the
+    # the other derivative values.

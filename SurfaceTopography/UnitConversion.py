@@ -23,10 +23,10 @@
 #
 
 
-height_units = {'m': 1.0, 'mm': 1e-3, 'um': 1e-6, 'µm': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
+length_units = {'m': 1.0, 'mm': 1e-3, 'um': 1e-6, 'µm': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
 voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
-units = dict(height=height_units, voltage=voltage_units)
+units = dict(length=length_units, voltage=voltage_units)
 
 
 ###

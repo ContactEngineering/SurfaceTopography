@@ -30,11 +30,12 @@ Height-difference autocorrelation functions
 
 import numpy as np
 
-from ..common import radial_average
+from SurfaceTopography.Support.Regression import resample, resample_radial
 from ..HeightContainer import UniformTopographyInterface
 
 
-def autocorrelation_from_profile(topography, direction=0, reliable=True):
+def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-average', collocation='log',
+                                 nb_points=None, nb_points_per_decade=10):
     r"""
     Compute the one-dimensional height-difference autocorrelation function
     (ACF).
@@ -57,12 +58,28 @@ def autocorrelation_from_profile(topography, direction=0, reliable=True):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Container storing the uniform topography map
-    direction : int
-        Cartesian direction in which to compute the ACF
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be None for no resampling (return on the grid of the
+        data) 'bin-average' for simple bin averaging and 'gaussian-process'
+        for Gaussian process regression.
+        (Default: 'bin-average')
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
+        equally spaced on a log scale, 'quadratic' yields bins with
+        similar number of data points and 'linear' yields linear bins.
+        Alternatively, it is possible to explicitly specify the bin edges.
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
 
     Returns
     -------
@@ -71,18 +88,16 @@ def autocorrelation_from_profile(topography, direction=0, reliable=True):
     A : array
         Autocorrelation function. (Units: length**2)
     """  # noqa: E501
-    nx = topography.nb_grid_pts[direction]
-    sx = topography.physical_sizes[direction]
+    try:
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
+    except ValueError:
+        nx, = self.nb_grid_pts
+        sx, = self.physical_sizes
 
-    p = topography.heights()
-    if direction != 0:
-        if direction == 1:
-            p = p.T
-        else:
-            raise ValueError("Don't know how to handle direction "
-                             "{}".format(direction))
+    p = self.heights()
 
-    if topography.is_periodic:
+    if self.is_periodic:
         # Compute height-height autocorrelation function from a convolution
         # using FFT. This is periodic by nature.
         surface_qy = np.fft.fft(p, axis=0)
@@ -99,6 +114,7 @@ def autocorrelation_from_profile(topography, direction=0, reliable=True):
         A /= 2
 
         r = sx * np.arange(nx // 2) / nx
+        max_distance = sx / 2
     else:
         # Compute height-height autocorrelation function. We need to zero
         # pad the FFT for the nonperiodic case in order to separate images.
@@ -123,42 +139,64 @@ def autocorrelation_from_profile(topography, direction=0, reliable=True):
         A = ((A0_xy - A_xy[:nx]).T / (nx - np.arange(nx))).T
 
         r = sx * np.arange(nx) / nx
+        max_distance = sx
 
     # The factor of two comes from the fact that the short cutoff is estimated
     # from the curvature but the ACF is the slope, see arXiv:2106.16103
-    short_cutoff = topography.short_reliability_cutoff() if reliable else None
-    if short_cutoff is None:
-        short_cutoff = -1  # Include zero distance
-    mask = r > short_cutoff / 2
-    if topography.dim == 2:
-        return r[mask], A.mean(axis=1)[mask]
+    if resampling_method is None:
+        short_cutoff = self.short_reliability_cutoff() if reliable else None
+        if short_cutoff is not None:
+            mask = r > short_cutoff / 2
+            r = r[mask]
+            A = A[mask]
+        if self.dim == 2:
+            return r, A.mean(axis=1)
+        else:
+            return r, A
     else:
-        return r[mask], A[mask]
+        short_cutoff = self.short_reliability_cutoff(2 * sx / nx) if reliable else 2 * sx / nx
+        if collocation == 'log':
+            # Exclude zero distance because that does not work on a log-scale
+            r = r[1:]
+            A = A[1:]
+        if self.dim == 2:
+            r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
+            A = np.ravel(A)
+        r, _, A, _ = resample(r, A, min_value=short_cutoff, max_value=max_distance, collocation=collocation,
+                              nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
+        return r, A
 
 
-def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_map=False, reliable=True):
+def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=None, nb_points_per_decade=5,
+                              return_map=False, resampling_method='bin-average'):
     """
     Compute height-difference autocorrelation function and radial average.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography`
+    self : :obj:`SurfaceTopography`
         Container storing the (two-dimensional) topography map.
-    nbins : int, optional
-        Number of bins for radial average. Bins are automatically determined
-        if set to None. Note: Returned array can be smaller than this because
-        bins without data points are discarded. (Default: None)
-    bin_edges : {'log', 'quadratic', 'linear', array_like}, optional
-        Edges used for binning the average. Specifying 'log' yields bins
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    collocation : {'log', 'quadratic', 'linear', array_like}, optional
+        Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
         similar number of data points and 'linear' yields linear bins.
         Alternatively, it is possible to explicitly specify the bin edges.
-        If `bin_edges` are explicitly specified, then `nbins` is ignored.
-        (Default: 'log')
+        If bin_edges are explicitly specified, then `rmax` and `nbins` is
+        ignored. (Default: 'log')
+    nb_points : int, optional
+        Number of bins for averaging. Bins are automatically determined if set
+        to None. (Default: None)
+    nb_points_per_decade : int, optional
+        Number of points per decade for log-spaced collocation points.
+        (Default: None)
     return_map : bool, optional
         Return full 2D autocorrelation map. (Default: False)
-    reliable : bool, optional
-        Only return data deemed reliable. (Default: True)
+    resampling_method : str, optional
+        Method can be 'bin-average' for simple bin averaging and
+        'gaussian-process' for Gaussian process regression.
+        (Default: 'bin-average')
 
     Returns
     -------
@@ -170,12 +208,16 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
         2D autocorrelation function. Only returned if return_map=True.
         (Units: length**2)
     """
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
+    nx, ny = self.nb_grid_pts
+    sx, sy = self.physical_sizes
+
+    # The factor of two comes from the fact that the short cutoff is estimated
+    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    short_cutoff = self.short_reliability_cutoff(np.mean(self.pixel_size)) if reliable else np.mean(self.pixel_size)
 
     # Compute FFT and normalize
-    if topography.is_periodic:
-        surface_qk = np.fft.fft2(topography[...])
+    if self.is_periodic:
+        surface_qk = np.fft.fft2(self[...])
         C_qk = abs(surface_qk) ** 2  # pylint: disable=invalid-name
         A_xy = np.fft.ifft2(C_qk).real / (nx * ny)
 
@@ -184,12 +226,12 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
         A_xy = A_xy[0, 0] - A_xy
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(
-            # pylint: disable=invalid-name
-            A_xy, rmax=(sx + sy) / 4, nbins=nbins, bin_edges=bin_edges,
-            physical_sizes=(sx, sy))
+        r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), nb_points=nb_points,
+                                                   nb_points_per_decade=nb_points_per_decade, collocation=collocation,
+                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 4,
+                                                   method=resampling_method)
     else:
-        p = topography.heights()
+        p = self.heights()
 
         # Compute height-height autocorrelation function
         surface_qk = np.fft.fft2(p, s=(2 * nx - 1, 2 * ny - 1))
@@ -205,24 +247,18 @@ def autocorrelation_from_area(topography, nbins=None, bin_edges='log', return_ma
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
         A_xy = (A0_xy - A_xy[:nx, :ny]) / (
-                    (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
+                (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
 
         # Radial average
-        r_edges, n, r_val, A_val = radial_average(
-            # pylint: disable=invalid-name
-            A_xy, rmax=(sx + sy) / 2, nbins=nbins, bin_edges=bin_edges,
-            physical_sizes=(sx, sy), full=False)
+        r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,
+                                                   nb_points=nb_points, nb_points_per_decade=nb_points_per_decade,
+                                                   min_radius=short_cutoff, max_radius=(sx + sy) / 2, full=False,
+                                                   method=resampling_method)
 
-    # The factor of two comes from the fact that the short cutoff is estimated
-    # from the curvature but the ACF is the slope, see arXiv:2106.16103
-    short_cutoff = topography.short_reliability_cutoff() if reliable else None
-    if short_cutoff is None:
-        short_cutoff = -1  # Include zero distance
-    mask = np.logical_and(n > 0, r_val > short_cutoff / 2)
     if return_map:
-        return r_val[mask], A_val[mask], A_xy
+        return r_val, A_val, A_xy
     else:
-        return r_val[mask], A_val[mask]
+        return r_val, A_val
 
 
 # Register analysis functions from this module

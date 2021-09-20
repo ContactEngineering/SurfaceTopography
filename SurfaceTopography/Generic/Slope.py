@@ -52,7 +52,8 @@ def scale_dependent_slope_from_profile(topography, **kwargs):
     topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan`
         Container storing the uniform topography map
     **kwargs : dict
-        Additional keyword parameters are passed on to `autocorrelation_1D`
+        Additional keyword parameters are passed on to
+        `autocorrelation_from_profile`
 
     Returns
     -------
@@ -85,7 +86,8 @@ def scale_dependent_slope_from_area(topography, **kwargs):
     topography : SurfaceTopography or UniformLineScan
         Container storing the uniform topography map
     **kwargs : dict
-        Additional keyword parameters are passed on to `autocorrelation_2D`
+        Additional keyword parameters are passed on to
+        `autocorrelation_from_area`
 
     Returns
     -------
@@ -99,11 +101,7 @@ def scale_dependent_slope_from_area(topography, **kwargs):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('scale_dependent_slope_from_profile',
-                                             scale_dependent_slope_from_profile)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_from_profile',
-                                              scale_dependent_slope_from_profile)
-UniformTopographyInterface.register_function('scale_dependent_slope_from_area',
-                                             scale_dependent_slope_from_area)
-NonuniformLineScanInterface.register_function('scale_dependent_slope_from_area',
-                                              scale_dependent_slope_from_area)
+UniformTopographyInterface.register_function('scale_dependent_slope_from_profile', scale_dependent_slope_from_profile)
+NonuniformLineScanInterface.register_function('scale_dependent_slope_from_profile', scale_dependent_slope_from_profile)
+UniformTopographyInterface.register_function('scale_dependent_slope_from_area', scale_dependent_slope_from_area)
+NonuniformLineScanInterface.register_function('scale_dependent_slope_from_area', scale_dependent_slope_from_area)

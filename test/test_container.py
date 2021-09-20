@@ -1,7 +1,7 @@
 #
-# Copyright 2018-2020 Lars Pastewka
-#           2019 Antoine Sanner
-#           2019 Michael Röttger
+# Copyright 2016, 2020 Lars Pastewka
+#           2018, 2020 Antoine Sanner
+#           2018, 2020 Michael Röttger
 #           2015-2016 Till Junge
 #
 # ### MIT license
@@ -25,36 +25,17 @@
 # SOFTWARE.
 #
 
-"""
-Bin for small common helper function and classes for nonuniform
-topographies.
-"""
-
 import numpy as np
 
-from ..HeightContainer import NonuniformLineScanInterface
+from SurfaceTopography import read_container
 
 
-def bandwidth(self):
-    """
-    Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
-    length scales occurring on a topography. The lower end of the bandwidth is
-    given by the mean of the spacing of the individual points on the line
-    scan. The upper bound is given by the overall length of the line scan.
-
-    Returns
-    -------
-    lower_bound : float
-        Lower bound of the bandwidth.
-    upper_bound : float
-        Upper bound of the bandwidth.
-    """
-    x = self.positions()
-    lower_bound = np.mean(np.diff(x))
-    upper_bound, = self.physical_sizes
-
-    return lower_bound, upper_bound
-
-
-# Register analysis functions from this module
-NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
+def test_bandwidth_and_unit_suggestion(file_format_examples):
+    c, = read_container(f'{file_format_examples}/container1.zip')
+    upper_um, lower_um = c.bandwidth(unit='um')
+    upper_mm, lower_mm = c.bandwidth(unit='mm')
+    np.testing.assert_almost_equal(upper_um, 0.002)
+    np.testing.assert_almost_equal(lower_um, 100)
+    np.testing.assert_almost_equal(upper_um, upper_mm * 1000)
+    np.testing.assert_almost_equal(lower_um, lower_mm * 1000)
+    assert c.suggest_length_unit() == 'um'

@@ -35,7 +35,7 @@ from datetime import datetime
 import numpy as np
 
 from ..UniformLineScanAndTopography import Topography
-from ..UnitConversion import get_unit_conversion_factor, height_units, mangle_length_unit_utf8
+from ..UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
 
 from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
 
@@ -170,7 +170,7 @@ version of the format.
                                 "to handle this.".format(hard_unit,
                                                          soft_unit,
                                                          image_data_key))
-                    if height_unit in height_units:
+                    if height_unit in length_units:
                         height_unit = mangle_length_unit_utf8(height_unit)
                         if xy_unit != height_unit:
                             fac = get_unit_conversion_factor(xy_unit,
