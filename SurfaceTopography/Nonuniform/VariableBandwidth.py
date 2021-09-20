@@ -123,7 +123,6 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
             - 'h': RMS height (Unit: length)
-            - 's': RMS slope (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
         (Default: 'bh')
