@@ -82,8 +82,8 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
             nb_points=(upper_decade - lower_decade) * nb_points_per_decade + 1)
 
         # Store for later averaging
-        for i, (xval, yval) in enumerate(zip(collocation_points, resampled_y)):
-            results[lower_decade * nb_points_per_decade + i] += [(xval, yval)]
+        for j, (xval, yval) in enumerate(zip(collocation_points, resampled_y)):
+            results[lower_decade * nb_points_per_decade + j] += [(xval, yval)]
 
     if progress_callback is not None:
         progress_callback(len(self), len(self))
