@@ -192,7 +192,7 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
             - 'h': RMS height (Unit: length)
-            - 's': RMS slope (Unit: dimensionless)
+            - 's': RMS detrending slope (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
         (Default: 'bh')
@@ -218,8 +218,8 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         Array containing the rms height corresponding to the respective
         magnification.
     rms_slopes : np.ndarray
-        Array containing the rms slopes corresponding to the respective
-        magnification.
+        Array containing the rms values of the detrending slopes corresponding
+        to the respective magnification.
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
@@ -274,7 +274,7 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
             - 'h': RMS height (Unit: length)
-            - 'g': RMS gradient (Unit: dimensionless)
+            - 'g': RMS detrending gradient (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
         (Default: 'bh')
@@ -300,8 +300,8 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         Array containing the rms height corresponding to the respective
         magnification.
     rms_gradients : np.ndarray
-        Array containing the rms gradients corresponding to the respective
-        magnification.
+        Array containing the rms values of the detrending gradients
+        corresponding to the respective magnification.
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
