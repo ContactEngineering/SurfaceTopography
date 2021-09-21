@@ -324,7 +324,7 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def is_reentrant(self):
-        return np.min(np.diff(self.positions())) < 0
+        return np.min(np.diff(self.positions())) <= 0
 
     @property
     @abc.abstractmethod
