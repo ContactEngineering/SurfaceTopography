@@ -62,6 +62,7 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
+
         topography = topography.to_unit(unit)
 
         # Compute property... but do not allow any resampling

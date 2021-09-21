@@ -115,6 +115,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
+
         topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography...
@@ -149,11 +150,15 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             # Append results to our return values
             for i, e, s in zip(unique_distance_index, existing_distances, stat):
                 results[i] += [(e, s)]
+
     if progress_callback is not None:
         progress_callback(len(self), len(self))
+
     if distances is not None:
+        # If distances are specified by the user, we return exactly those distances with Nones where no data exists
         return distances, [np.mean(results[i], axis=0)[1] if i in results else None for i in range(len(distances))]
     else:
+        # If distances are not specified by the, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
         distances, properties = np.array([np.mean(vals, axis=0) for i, vals in sorted_results]).T
         return distances, properties
