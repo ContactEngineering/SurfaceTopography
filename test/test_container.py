@@ -38,4 +38,4 @@ def test_bandwidth_and_unit_suggestion(file_format_examples):
     np.testing.assert_almost_equal(lower_um, 100)
     np.testing.assert_almost_equal(upper_um, upper_mm * 1000)
     np.testing.assert_almost_equal(lower_um, lower_mm * 1000)
-    assert c.suggest_length_unit() == 'um'
+    assert c.suggest_length_unit() == 'µm'
