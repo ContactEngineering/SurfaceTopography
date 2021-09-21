@@ -119,7 +119,7 @@ def test_container_mixed(file_format_examples):
     d, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, nb_points_per_decade=5, unit='um')
 
     # Make sure that we don't have two distances that are almost identical
-    assert (np.diff(d) > 1e-3).all()
+    assert (np.diff(d) > 1e-4).all()
 
 
 @pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
