@@ -108,7 +108,8 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
     >>> np.testing.assert_allclose(2 * A[1::20] / distances[1::20] ** 2, s)
     """
     if scale_factor is None and distance is None:
-        distance, _ = make_grid(collocation, *self.bandwidth(), nb_points=nb_points,
+        lower, upper = self.bandwidth()
+        distance, _ = make_grid(collocation, n * lower, upper, nb_points=nb_points,
                                 nb_points_per_decade=nb_points_per_decade)
     d = self.derivative(n=n, scale_factor=scale_factor, distance=distance, interpolation=interpolation,
                         progress_callback=progress_callback)

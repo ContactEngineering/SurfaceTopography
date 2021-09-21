@@ -12,7 +12,7 @@ If you use this code, please cite:
 Build status
 ------------
 
-The following badge should say _build passing_. This means that all automated tests completed successfully for the master branch.
+The following badge should say _tests passing_. This means that all automated tests completed successfully for the master branch.
 
 [![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/run_tests.yml)
 

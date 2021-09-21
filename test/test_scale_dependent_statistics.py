@@ -65,7 +65,7 @@ def test_nonuniform():
     np.testing.assert_allclose(s, s2, atol=1e-3)
 
 
-def test_container_uniform(file_format_examples):
+def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
     c, = read_container(f'{file_format_examples}/container1.zip')
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.01, 0.1, 1.0, 10],
@@ -84,8 +84,23 @@ def test_container_uniform(file_format_examples):
 
     # Test without specifying explicit distances
     d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=1, unit='um')
+
     np.testing.assert_allclose(d, [0.01, 0.1, 1, 10])
     np.testing.assert_allclose(s, [1.87152819e-03, 6.84906562e-04, 2.99178128e-04, 7.22460769e-05])
+
+    # Test without specifying explicit distances and more points
+    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=5, unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        for t in c:
+            plt.loglog(*t.to_unit('um').scale_dependent_statistical_property(lambda x, y: np.var(x), n=1,
+                                                                             nb_points_per_decade=5), 'o-')
+        plt.loglog(d, s, 'kx-')
+        plt.show()
+
+    # Make sure that we don't have two distances that are almost identical
+    assert (np.diff(d) > 1e-3).all()
 
 
 def test_container_mixed(file_format_examples):
@@ -99,6 +114,12 @@ def test_container_mixed(file_format_examples):
     np.testing.assert_allclose(d, [0.001, 0.01, 0.1, 1, 10, 100])
     np.testing.assert_allclose(s, [1.057908e-03, 4.016837e-02, 2.302750e-03, 2.058876e-04, 2.822253e-06, 2.650320e-08],
                                atol=1e-8)
+
+    # Test without specifying explicit distances and more points
+    d, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, nb_points_per_decade=5, unit='um')
+
+    # Make sure that we don't have two distances that are almost identical
+    assert (np.diff(d) > 1e-4).all()
 
 
 @pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')

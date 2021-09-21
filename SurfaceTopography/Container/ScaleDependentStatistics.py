@@ -23,6 +23,8 @@
 # SOFTWARE.
 #
 
+from collections import defaultdict
+
 import numpy as np
 
 from .SurfaceContainer import SurfaceContainer
@@ -109,10 +111,11 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
 
     >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     """
-    retvals = {}
+    results = defaultdict(list)
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
+
         topography = topography.to_unit(unit)
 
         # Only compute the statistical property for distances that actually exist for this specific topography...
@@ -130,11 +133,14 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
             existing_distances = np.logspace(lower_decade, upper_decade,
                                              (upper_decade - lower_decade) * nb_points_per_decade + 1)
+            unique_distance_index = lower_decade * nb_points_per_decade + np.arange(len(existing_distances))
         else:
             existing_distances = np.array(distances)
+            unique_distance_index = np.arange(len(distances))
         # For the factor n see arXiv:2106.16103
         m = np.logical_and(existing_distances > n * lower, existing_distances < upper)
         existing_distances = existing_distances[m]
+        unique_distance_index = unique_distance_index[m]
 
         # Are there any distances left?
         if len(existing_distances) > 0:
@@ -142,19 +148,20 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             _, stat = topography.scale_dependent_statistical_property(
                 func, n=n, distance=existing_distances, interpolation=interpolation)
             # Append results to our return values
-            for e, s in zip(existing_distances, stat):
-                if e in retvals:
-                    retvals[e] += [s]
-                else:
-                    retvals[e] = [s]
+            for i, e, s in zip(unique_distance_index, existing_distances, stat):
+                results[i] += [(e, s)]
+
     if progress_callback is not None:
         progress_callback(len(self), len(self))
+
     if distances is not None:
-        return distances, [np.mean(retvals[d], axis=0) if d in retvals else None for d in distances]
+        # If distances are specified by the user, we return exactly those distances with Nones where no data exists
+        return distances, [np.mean(results[i], axis=0)[1] if i in results else None for i in range(len(distances))]
     else:
-        sorted_retvals = sorted(retvals.items(), key=lambda x: x[0])
-        return np.array([d for d, vals in sorted_retvals]), \
-            np.array([np.mean(vals, axis=0) for d, vals in sorted_retvals])
+        # If distances are not specified by the, the distance array contains only distances where data exists
+        sorted_results = sorted(results.items(), key=lambda x: x[0])
+        distances, properties = np.array([np.mean(vals, axis=0) for i, vals in sorted_results]).T
+        return distances, properties
 
 
 SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)
