@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.97.1 (21Sep21)
+-----------------
+
+- BUG: Prefer micrometer with Greek 'mu' sign
+- BUG: Surface is already reentrant if two x values are identical
+
 v0.97.0 (21Sep21)
 -----------------
 
