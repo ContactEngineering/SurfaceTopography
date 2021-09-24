@@ -7,6 +7,10 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.97.2 (21Sep21)
+-----------------
+- BUG: fix segmentation faults due to integer overflow for large bicubic interpolation
+
 v0.97.1 (21Sep21)
 -----------------
 
