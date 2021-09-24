@@ -120,7 +120,7 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
     this->values_ = NULL; // this indicates that we have precomputed coefficients
     this->derivativex_ = NULL;
     this->derivativey_ = NULL;
-    this->coeff_.resize(this->n1_*this->n2_*NPARA);
+    this->coeff_.resize(static_cast<ptrdiff_t>(this->n1_)*this->n2_*NPARA);
   }
 
   /*
