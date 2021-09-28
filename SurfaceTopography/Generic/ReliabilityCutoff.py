@@ -39,7 +39,9 @@ def short_reliability_cutoff(self, other_cutoff=None):
     Returns
     -------
     short_cutoff : float
-        All data below this length scale is unreliable
+        All data below this length scale is unreliable. For tip radius
+        analysis, this is the length of the stencil for the second derivative
+        used to compute the reliability cutoff.
     """
     info = self.info
     if 'instrument' in info:

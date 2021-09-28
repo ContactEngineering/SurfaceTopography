@@ -25,8 +25,9 @@
 import pytest
 
 import numpy as np
+import scipy.interpolate
 
-from SurfaceTopography import read_container
+from SurfaceTopography import read_container, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
@@ -53,7 +54,27 @@ def test_scalar_input():
         iter(s3)
 
 
-def test_nonuniform():
+def test_uniform_synthetic():
+    t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False).detrend()
+
+    L, u = t.bandwidth()
+
+    r, A = t.autocorrelation_from_profile(resampling_method=None)
+    r = r[1:]
+    A = A[1:]
+    assert abs(r.min()/L - 1) < 0.1  # Within 10% of bandwidth
+    assert abs(r.max()/u - 1) < 0.1
+
+    f = scipy.interpolate.interp1d(r, np.sqrt(2 * A) / r)
+    r, s = t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
+
+    assert abs(r.min()/L - 1) < 0.1  # With 10% of bandwidth
+    assert abs(r.max()/u - 1) < 0.1
+
+    np.testing.assert_allclose(np.sqrt(s), f(r), atol=0.01)
+
+
+def test_nonuniform_synthetic():
     t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False)
     p, = t.pixel_size
     s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4 * p, 16 * p])
@@ -63,6 +84,45 @@ def test_nonuniform():
     np.testing.assert_almost_equal(t3.positions()[1] - t3.positions()[0], p)
     s2 = t2.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4 * p, 16 * p])
     np.testing.assert_allclose(s, s2, atol=1e-3)
+
+
+def test_nonuniform_file(file_format_examples, plot=False):
+    t = read_topography(f'{file_format_examples}/nonuniform.asc', unit='nm').detrend()
+
+    L, u = t.bandwidth()
+
+    q, C = t.power_spectrum_from_profile()
+
+    assert abs(2 * np.pi / q.max() / L - 1) < 0.2
+    assert abs(2 * np.pi / q.min() / u - 1) < 0.6
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.plot(*t.positions_and_heights(), 'kx-')
+        plt.show()
+
+    r, A = t.autocorrelation_from_profile()
+    assert abs(r.min() / L - 1) < 0.1
+    assert abs(r.max() / u - 1) < 0.1
+
+    if plot:
+        plt.loglog(r, A, 'x-')
+        plt.loglog(*t.to_uniform(nb_interpolate=5).autocorrelation_from_profile())
+        plt.show()
+        plt.loglog(r, np.sqrt(2 * A) / r, label='ACF')
+
+    f = scipy.interpolate.interp1d(r, np.sqrt(2 * A) / r)
+
+    r, s = t.scale_dependent_statistical_property(lambda x: np.mean(x * x))
+    assert abs(r.min() / L - 1) < 0.1
+    assert abs(r.max() / u - 1) < 0.1
+
+    if plot:
+        plt.loglog(r, np.sqrt(s), label='SDRP')
+        plt.legend(loc='best')
+        plt.show()
+
+    np.testing.assert_allclose(np.sqrt(s[1:-1]), f(r[1:-1]), atol=0.005)
 
 
 def test_container_uniform(file_format_examples, plot=False):

@@ -186,7 +186,7 @@ def height_difference_autocorrelation(line_scan, reliable=True, algorithm='fft',
         raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 
     if short_cutoff is not None:
-        mask = distances < short_cutoff(np.diff(x))
+        mask = distances > short_cutoff(np.diff(x))
         distances = distances[mask]
         acf = acf[mask]
     return distances, acf

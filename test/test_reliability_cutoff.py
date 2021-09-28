@@ -74,6 +74,10 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
     r, A = surf.autocorrelation_from_area()
     assert r[0] >= cut / 2
 
+    # Make sure SDRP returns only reliable portion
+    r, s = surf.scale_dependent_statistical_property(lambda x, y=None: np.mean(x * x))
+    assert r[0] >= cut / 2
+
 
 def test_reliability_cutoff_line_scan(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'example7.txt'), unit='um', info={
