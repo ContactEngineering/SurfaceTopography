@@ -144,7 +144,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
 
     short_cutoff = self.short_reliability_cutoff() if reliable else None
     if short_cutoff is not None:
-        mask = distance > short_cutoff / 2
+        mask = distance > short_cutoff * n / 2
         distance = distance[mask]
         retvals = retvals[mask]
 
