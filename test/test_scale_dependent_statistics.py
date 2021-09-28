@@ -53,6 +53,7 @@ def test_scalar_input():
     with pytest.raises(TypeError):
         iter(s3)
 
+
 def test_uniform_synthetic():
     t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False).detrend()
 
