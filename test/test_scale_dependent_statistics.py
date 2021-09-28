@@ -74,7 +74,7 @@ def test_uniform_synthetic():
     np.testing.assert_allclose(np.sqrt(s), f(r), atol=0.01)
 
 
-def test_nonuniform_synthetic(plot=True):
+def test_nonuniform_synthetic():
     t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False)
     p, = t.pixel_size
     s = t.scale_dependent_statistical_property(lambda x: np.var(x), n=1, distance=[p, 4 * p, 16 * p])
