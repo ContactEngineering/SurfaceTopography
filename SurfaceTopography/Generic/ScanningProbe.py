@@ -54,6 +54,8 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     -------
     reliability_cutoff : float
         Length scale below which data is affected by tip radius artifacts.
+        Note that this is the length of the stencil for the second derivative
+        used to compute the reliability cutoff.
     """
     target_curvature = safety_factor / tip_radius
 
