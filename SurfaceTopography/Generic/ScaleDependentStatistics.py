@@ -29,7 +29,7 @@ from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInte
 from ..Support.Regression import make_grid
 
 
-def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None,
+def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None, reliable=True,
                                          interpolation='linear', progress_callback=None,
                                          collocation='log', nb_points=None, nb_points_per_decade=10):
     """
@@ -67,6 +67,8 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         Characteristic distances at which the derivatives are computed. If
         this is an array, then the statistical property is computed at each
         of these distances.
+    reliable : bool, optional
+        Only incorporate data deemed reliable. (Default: True)
     unit : str
         Unit of the distance array. All topographies are converted to this
         unit before the derivative is computed.
@@ -121,8 +123,9 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
-            return distance, [func(_d) for _d in d]
+            retvals = np.array([func(_d) for _d in d])
         except TypeError:
+            # If there is a single distance, the reliability analysis is skipped
             return distance, func(d)
     else:
         try:
@@ -130,9 +133,18 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
-            return distance, [func(dx, dy) for dx, dy in zip(*d)]
+            retvals = np.array([func(dx, dy) for dx, dy in zip(*d)])
         except TypeError:
+            # If there is a single distance, the reliability analysis is skipped
             return distance, func(*d)
+
+    short_cutoff = self.short_reliability_cutoff() if reliable else None
+    if short_cutoff is not None:
+        mask = distance > short_cutoff / 2
+        distance = distance[mask]
+        retvals = retvals[mask]
+
+    return distance, retvals
 
 
 UniformTopographyInterface.register_function(
