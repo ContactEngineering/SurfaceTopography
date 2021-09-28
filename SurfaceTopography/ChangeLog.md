@@ -10,6 +10,7 @@ Deprecations in version 1.0
 v0.97.3 (28Sep21)
 -----------------
 
+- ENH: Apply reliability cutoff to scale-dependent statistical analysis
 - BUG: Filtered wrong end of autocorrelation for reliability cutoff
 
 v0.97.2 (24Sep21)
