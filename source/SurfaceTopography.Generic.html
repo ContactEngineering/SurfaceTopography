@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.97.2 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.97.3.dev13+gc048f1f5 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.97.2
+                0.97.3.dev13+gc048f1f5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -200,7 +200,9 @@ which distance it may be affected by instrumental artifacts. Currently
 supported are tip radius artifacts and a user specified resolution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>short_cutoff</strong> – All data below this length scale is unreliable</p>
+<dd class="field-odd"><p><strong>short_cutoff</strong> – All data below this length scale is unreliable. For tip radius
+analysis, this is the length of the stencil for the second derivative
+used to compute the reliability cutoff.</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>float</p>
@@ -213,7 +215,7 @@ supported are tip radius artifacts and a user specified resolution.</p>
 <span id="surfacetopography-generic-scaledependentstatistics-module"></span><h2>SurfaceTopography.Generic.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
 <dd><p>Compute statistical properties of a uniform topography at specific scales.
 The scale is specified either by <cite>scale_factors</cite> or <cite>distance</cite>. These
 properties are statistics of derivatives carried out at specific scales,
@@ -240,9 +242,14 @@ return a scalar value or an array, but the array size must be fixed.</p>
 <li><p><strong>scale_factor</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Scale factor for rescaling the finite differences stencil. A scale
 factor of unity means the derivative is computed at the size of the
 individual pixel.</p></li>
-<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. If
-this is an array, then the statistical property is computed at each
+<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. This
+is the overall length of the underlying stencil of lowest truncation
+order, not the effective grid spacing used by this stencil. (The
+corresponding scale factor is then given by distance / (n * px) where
+n is the order of the derivative and px the grid spacing.)
+If this is an array, then the statistical property is computed at each
 of these distances.</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only incorporate data deemed reliable. (Default: True)</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
 unit before the derivative is computed.</p></li>
 <li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for computing derivatives at distances
@@ -303,7 +310,9 @@ on synthetic (simulated) data. (Default: 1/2)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>reliability_cutoff</strong> – Length scale below which data is affected by tip radius artifacts.</p>
+<dd class="field-even"><p><strong>reliability_cutoff</strong> – Length scale below which data is affected by tip radius artifacts.
+Note that this is the length of the stencil for the second derivative
+used to compute the reliability cutoff.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
