@@ -64,8 +64,12 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         factor of unity means the derivative is computed at the size of the
         individual pixel.
     distance : float or np.ndarray
-        Characteristic distances at which the derivatives are computed. If
-        this is an array, then the statistical property is computed at each
+        Characteristic distances at which the derivatives are computed. This
+        is the overall length of the underlying stencil of lowest truncation
+        order, not the effective grid spacing used by this stencil. (The
+        corresponding scale factor is then given by distance / (n * px) where
+        n is the order of the derivative and px the grid spacing.)
+        If this is an array, then the statistical property is computed at each
         of these distances.
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
