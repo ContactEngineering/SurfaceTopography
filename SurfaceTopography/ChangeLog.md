@@ -10,11 +10,12 @@ Deprecations in version 1.0
 v0.97.3 (28Sep21)
 -----------------
 
-- BUG: Filtered wrong end of autocorrelation
+- BUG: Filtered wrong end of autocorrelation for reliability cutoff
 
 v0.97.2 (24Sep21)
 -----------------
-- BUG: Fix segmentation faults due to integer overflow for large bicubic interpolation
+- BUG: Fix segmentation faults due to integer overflow for large bicubic
+  interpolation
 
 v0.97.1 (21Sep21)
 -----------------
