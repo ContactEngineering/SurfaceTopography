@@ -96,7 +96,7 @@ def test_save_and_load_np(comm_self, file_format_examples):
 
 @pytest.fixture
 def examplefile(comm):
-    fn = tempfile.mkdtemp() + "/workflowtest.npy"
+    fn = DATADIR + "/workflowtest.npy"
     res = (128, 64)
     np.random.seed(1)
     data = np.random.random(res)
