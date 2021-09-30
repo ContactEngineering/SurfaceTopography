@@ -46,7 +46,7 @@ def test_scanning_probe_reliability_cutoff(file_format_examples):
     np.testing.assert_almost_equal(cut, 0.2)
 
 
-def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
+def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
         'instrument': {
             'parameters': {
@@ -59,6 +59,40 @@ def test_reliability_cutoff_from_instrument_metadata(file_format_examples):
     })
     cut = surf.short_reliability_cutoff()
     np.testing.assert_allclose(cut, 90.700854)
+
+    # Make sure PSD returns only reliable portion
+    q, _ = surf.power_spectrum_from_profile()
+    assert q[-1] < 2 * np.pi / cut
+
+    q, _ = surf.power_spectrum_from_area()
+    assert q[-1] < 2 * np.pi / cut
+
+    # Make sure ACF returns only reliable portion
+    r, A = surf.autocorrelation_from_profile()
+    assert r[0] >= cut / 2
+
+    r, A = surf.autocorrelation_from_area()
+    assert r[0] >= cut / 2
+
+    # Make sure SDRP returns only reliable portion
+    r, s = surf.scale_dependent_statistical_property(lambda x, y=None: np.mean(x * x))
+    assert r[0] >= cut / 2
+
+
+def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_examples):
+    resolution = 70
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
+        'instrument': {
+            'parameters': {
+                'resolution': {
+                    'value': resolution,
+                    'unit': 'nm',
+                }
+            }
+        }
+    })
+    cut = surf.short_reliability_cutoff()
+    np.testing.assert_almost_equal(cut, resolution)
 
     # Make sure PSD returns only reliable portion
     q, _ = surf.power_spectrum_from_profile()
