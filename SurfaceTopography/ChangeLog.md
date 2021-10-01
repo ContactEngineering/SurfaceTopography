@@ -7,6 +7,11 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.97.4 (30Sep21)
+-----------------
+
+- ENH: Interpret 'resolution' instrument entry as reliability cutoff
+
 v0.97.3 (28Sep21)
 -----------------
 
