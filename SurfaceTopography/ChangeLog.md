@@ -7,6 +7,11 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.97.5 (03Oct21)
+-----------------
+
+- ENH: Added kilometers to units
+
 v0.97.4 (30Sep21)
 -----------------
 
