@@ -45,8 +45,7 @@ from .ZON import ZONReader
 # Only writers
 import SurfaceTopography.IO.DZI  # noqa: F401
 
-from .Reader import UnknownFileFormatGiven, CannotDetectFileFormat, MetadataAlreadyFixedByFile,\
-    FileFormatMismatch, CorruptFile, ReaderBase  # noqa: F401
+from .Reader import ReaderBase  # noqa: F401
 
 readers = [
     # XYZ must come before ASC, because 2D XYZ is a specialized ASC

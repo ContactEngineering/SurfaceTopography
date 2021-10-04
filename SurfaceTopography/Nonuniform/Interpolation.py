@@ -25,6 +25,7 @@
 
 import scipy.interpolate
 
+from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -32,6 +33,9 @@ def interpolate_linear(self):
     r"""
     Returns a linear interpolation function based on the topography's heights.
     """
+    if self.is_reentrant:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). Interpolation is not '
+                                 'possible for reentrant topographies.')
     return scipy.interpolate.interp1d(*self.positions_and_heights(), kind='linear')
 
 
@@ -39,6 +43,9 @@ def interpolate_cubic(self):
     r"""
     Returns a linear interpolation function based on the topography's heights.
     """
+    if self.is_reentrant:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). Interpolation is not '
+                                 'possible for reentrant topographies.')
     return scipy.interpolate.interp1d(*self.positions_and_heights(), kind='cubic')
 
 

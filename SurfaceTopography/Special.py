@@ -121,8 +121,8 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
                      subdomain_locations[1], nb_subdomain_grid_pts[1])) ** 2
         r2 = rx2 + ry2
     else:
-        raise Exception("Problem has to be 1- or 2-dimensional. "
-                        "Yours is {}-dimensional".format(dim))
+        raise ValueError("Problem has to be 1- or 2-dimensional. "
+                         "Yours is {}-dimensional".format(dim))
 
     if kind == "sphere":
         radius2 = radius ** 2  # avoid nans for small radii

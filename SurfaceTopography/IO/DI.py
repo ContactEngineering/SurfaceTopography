@@ -34,10 +34,11 @@ from datetime import datetime
 
 import numpy as np
 
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
 
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
+from .Reader import ReaderBase, ChannelInfo
 
 
 ###
@@ -153,7 +154,7 @@ version of the format.
 
                     s = scanner['@' + quantity].split()
                     if s[0] != 'V' or len(s) < 2:
-                        raise ValueError('Malformed Nanoscope DI file.')
+                        raise IOError('Malformed Nanoscope DI file.')
                     soft_scale = float(s[1])
 
                     height_unit = None
@@ -164,7 +165,7 @@ version of the format.
                         hard_to_soft = get_unit_conversion_factor(hard_unit,
                                                                   soft_unit)
                         if hard_to_soft is None:
-                            raise ValueError(
+                            raise RuntimeError(
                                 "Units for hard (={}) and soft (={}) "
                                 "scale differ for '{}'. Don't know how "
                                 "to handle this.".format(hard_unit,

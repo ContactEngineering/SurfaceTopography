@@ -29,6 +29,7 @@ Power-spectral density for nonuniform topographies.
 
 import numpy as np
 
+from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -172,8 +173,8 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
         if wavevectors is not None:
             raise ValueError("`wavevectors` can only be used with 'brute-force' algorithm.")
         if self.is_reentrant:
-            raise RuntimeError('This topography is reentrant (i.e. it contains overhangs). The power-spectral '
-                               'density cannot be computed for reentrant topographies.')
+            raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The power-spectral '
+                                     'density cannot be computed for reentrant topographies.')
         wavevectors, psd = self.to_uniform(nb_interpolate=nb_interpolate) \
             .power_spectrum_from_profile(window=window, reliable=reliable, resampling_method=resampling_method,
                                          collocation=collocation, nb_points=nb_points,

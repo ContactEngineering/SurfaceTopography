@@ -31,10 +31,11 @@ import numpy as np
 
 import _SurfaceTopography
 
+from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def height_height_autocorrelation(line_scan, distances=None):
+def height_height_autocorrelation(self, distances=None):
     r"""
     Compute the one-dimensional height-height autocorrelation function
     (ACF).
@@ -45,7 +46,7 @@ def height_height_autocorrelation(line_scan, distances=None):
 
     Parameters
     ----------
-    line_scan : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     r : array_like
         Array containing distances for which to compute the ACF. If no array
@@ -59,17 +60,21 @@ def height_height_autocorrelation(line_scan, distances=None):
     A : array
         Autocorrelation function. (Units: length**2)
     """
-    size, = line_scan.physical_sizes
+    if self.is_reentrant:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The autocorrelation '
+                                 'cannot be computed for reentrant topographies.')
+
+    size, = self.physical_sizes
     if distances is None:
         # FIXME!!! We need a better heuristics to decide on the distances
-        res, = line_scan.nb_grid_pts
+        res, = self.nb_grid_pts
         distances = np.linspace(0, size, res)
     else:
         distances = np.asarray(distances, dtype=float)
     A = np.zeros_like(distances)
 
-    x, h = line_scan.positions_and_heights()
-    s = line_scan.derivative(1)
+    x, h = self.positions_and_heights()
+    s = self.derivative(1)
     # FIXME!!! This is slow
     for i in range(len(x) - 1):
         for j in range(len(x) - 1):
@@ -100,7 +105,7 @@ def height_height_autocorrelation(line_scan, distances=None):
     return distances, A
 
 
-def height_difference_autocorrelation(line_scan, reliable=True, algorithm='fft', distances=None, nb_interpolate=5,
+def height_difference_autocorrelation(self, reliable=True, algorithm='fft', distances=None, nb_interpolate=5,
                                       short_cutoff=np.mean, resampling_method='bin-average', collocation='log',
                                       nb_points=None, nb_points_per_decade=10):
     r"""
@@ -113,7 +118,7 @@ def height_difference_autocorrelation(line_scan, reliable=True, algorithm='fft',
 
     Parameters
     ----------
-    line_scan : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         Container storing the nonuniform line scan.
     reliable : bool, optional
         Only return data deemed reliable. (Default: True)
@@ -165,12 +170,16 @@ def height_difference_autocorrelation(line_scan, reliable=True, algorithm='fft',
     acf : array
         Autocorrelation function. (Units: length**2)
     """
-    s, = line_scan.physical_sizes
-    x, h = line_scan.positions_and_heights()
+    if self.is_reentrant:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The autocorrelation '
+                                 'cannot be computed for reentrant topographies.')
+
+    s, = self.physical_sizes
+    x, h = self.positions_and_heights()
     if algorithm == 'fft':
         if distances is not None:
             raise ValueError("`distances` can only be used with 'brute-force' algorithm.")
-        distances, acf = line_scan.to_uniform(nb_interpolate=nb_interpolate) \
+        distances, acf = self.to_uniform(nb_interpolate=nb_interpolate) \
             .autocorrelation_from_profile(reliable=reliable, resampling_method=resampling_method,
                                           collocation=collocation, nb_points=nb_points,
                                           nb_points_per_decade=nb_points_per_decade)
