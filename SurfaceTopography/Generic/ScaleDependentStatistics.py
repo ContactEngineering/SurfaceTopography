@@ -31,7 +31,7 @@ from ..Support.Regression import make_grid
 
 def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None, reliable=True,
                                          interpolation='linear', progress_callback=None,
-                                         collocation='log', nb_points=None, nb_points_per_decade=10):
+                                         collocation='log', nb_points=None, nb_points_per_decade=10, threshold=4):
     """
     Compute statistical properties of a uniform topography at specific scales.
     The scale is specified either by `scale_factors` or `distance`. These
@@ -98,6 +98,12 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: None)
+    threshold : int, optional
+        Defines the minimal amount of data points of the probability distribution
+        to calculate the statistical properties with func.
+        E.g. the scipy.stats.kstat function needs at least 4 data points to
+        calculate the 4th cumulant function, otherwise it returns nan or inf
+        (Default: 4)
 
     Returns
     -------
@@ -127,9 +133,15 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
+            # check if the amount of data points fulfill threshold, otherwise set to nan
+            for i in range(0, len(d)):
+                if len(d[i]) < threshold:
+                    d[i] = np.nan
             retvals = np.array([func(_d) for _d in d])
         except TypeError:
             # If there is a single distance, the reliability analysis is skipped
+            if len(d) < threshold:
+                d = np.nan
             return distance, func(d)
     else:
         try:
@@ -137,9 +149,19 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
                 iter(scale_factor)
             if distance is not None:
                 iter(distance)
+            # check if the amount of data points fulfill threshold, otherwise set to nan
+            for i in range(0, len(d)):
+                _d = d[i]
+                for j in range(0, len(d[i])):
+                    __d = d[i][j]
+                    if len(d[i][j].flatten()) < threshold:
+                        d[i][j] = np.nan
             retvals = np.array([func(dx, dy) for dx, dy in zip(*d)])
         except TypeError:
             # If there is a single distance, the reliability analysis is skipped
+            for i in range(0, len(d)):
+                if len(d[i]) < threshold:
+                    d[i] = np.nan
             return distance, func(*d)
 
     short_cutoff = self.short_reliability_cutoff() if reliable else None
