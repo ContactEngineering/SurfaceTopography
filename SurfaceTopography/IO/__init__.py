@@ -27,6 +27,9 @@
 
 import os
 
+from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFixedByFile, ReadFileError, \
+    UnknownFileFormatGiven  # noqa: F401
+
 # Old-style readers
 from .FromFile import HGTReader, OPDReader, X3PReader
 from .Text import AscReader, XYZReader

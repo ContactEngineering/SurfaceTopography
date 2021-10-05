@@ -29,6 +29,8 @@ import abc
 
 import numpy as np
 
+from ..Exceptions import MetadataAlreadyFixedByFile
+
 
 class ChannelInfo:
     """

@@ -348,11 +348,11 @@ def test_reliability_cutoff():
 
 def test_no_reliable_data():
     t = NonuniformLineScan([0., 1., 2., 3.5, 4., 5., 6.],
-                       [-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667],
-                       unit='nm',
-                       info=dict(instrument={'name': 'Bla',
-                                             'type': 'microscope-based',
-                                             'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+                           [-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667],
+                           unit='nm',
+                           info=dict(instrument={'name': 'Bla',
+                                                 'type': 'microscope-based',
+                                                 'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_profile()
 

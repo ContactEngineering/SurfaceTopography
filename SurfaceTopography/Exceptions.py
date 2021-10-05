@@ -26,6 +26,7 @@
 This module contains most exceptions used in SurfaceTopography.
 """
 
+
 class CannotPerformAnalysisError(Exception):
     """
     Exception raised when an analysis cannot be performed.
@@ -87,6 +88,7 @@ class MetadataAlreadyFixedByFile(ReadFileError):
     given metadata which cannot be overridden, because
     it is already fixed by the file contents.
     """
+
     def __init__(self, kw, alt_msg=None):
         """
         Parameters
