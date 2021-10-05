@@ -152,9 +152,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
                 iter(distance)
             # check if the amount of data points fulfill threshold, otherwise set to nan
             for i in range(0, len(d)):
-                _d = d[i]
                 for j in range(0, len(d[i])):
-                    __d = d[i][j]
                     if len(d[i][j].flatten()) < threshold:
                         d[i][j] = np.nan
             retvals = np.array([func(dx, dy) for dx, dy in zip(*d)])
