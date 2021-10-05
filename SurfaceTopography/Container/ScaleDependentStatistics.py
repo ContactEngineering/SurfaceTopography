@@ -90,7 +90,8 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         arguments for progress reporting. (Default: None)
     threshold : int, optional
         Defines the minimal amount of data points of the probability distribution
-        to calculate the statistical properties with func.
+        to calculate the statistical properties with func and returns a np.nan if
+        the value is below the threshold.
         E.g. the scipy.stats.kstat function needs at least 4 data points to
         calculate the 4th cumulant function, otherwise it returns nan or inf
         (Default: 4)

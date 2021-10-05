@@ -26,9 +26,11 @@ import pytest
 
 import numpy as np
 import scipy.interpolate
+from scipy.stats import kstat
 
 from SurfaceTopography import read_container, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography import SurfaceContainer
 
 
 def test_scale_dependent_rms_slope_from_profile():
@@ -200,3 +202,26 @@ def test_large_container_power_spectrum():
     for t in c:
         q, C = t.power_spectrum_from_profile()
         print(t.info['datafile']['original'], len(q))
+
+
+
+def test_nan_handling_and_threshold():
+    t1 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(250,), unit="nm", hurst=0.8, rms_height=1,
+                           periodic=False)
+    t2 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(2500,), unit="nm", hurst=0.8, rms_height=1,
+                           periodic=False)
+    t3 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(25000,), unit="nm", hurst=0.8, rms_height=1,
+                           periodic=False)
+
+    c = SurfaceContainer([t1, t2, t3])
+    d1, s1 = c.scale_dependent_statistical_property(lambda x, y=None: kstat(x, n=4), n=1, unit='nm',
+                                                    distances=[249, 2499, 23000, 24999], threshold=4)
+
+    d2, s2 = c.scale_dependent_statistical_property(lambda x, y=None: kstat(x, n=4), n=1, unit='nm',
+                                                    distances=[23000], threshold=100)
+
+    assert not np.isnan(s1[0])
+    assert not np.isnan(s1[1])
+    assert not np.isnan(s1[2])
+    assert np.isnan(s1[3])
+    assert np.isnan(s2[0])
