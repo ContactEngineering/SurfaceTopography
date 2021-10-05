@@ -37,10 +37,11 @@ from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
+from .Reader import ReaderBase, ChannelInfo
 
 # The files within ZON (zip) files are named using UUIDs. Some of these
 # UUIDs are fixed and contain the same information in each of these files.

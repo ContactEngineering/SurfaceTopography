@@ -41,7 +41,8 @@ from NuMPI import MPI
 
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.IO import readers, detect_format, CannotDetectFileFormat, MetadataAlreadyFixedByFile
+from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlreadyFixedByFile
+from SurfaceTopography.IO import readers, detect_format
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
 from SurfaceTopography.UniformLineScanAndTopography import Topography
@@ -440,14 +441,14 @@ class UnknownFileFormatGivenTest(unittest.TestCase):
                 format='Nonexistentfileformat')
 
     def test_detect_format(self):
-        with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
+        with self.assertRaises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
             SurfaceTopography.IO.open_topography(
                 os.path.join(DATADIR, "surface.2048x2048.h5"),
                 format='Nonexistentfileformat')
 
 
 def test_file_format_mismatch():
-    with pytest.raises(SurfaceTopography.IO.FileFormatMismatch):
+    with pytest.raises(SurfaceTopography.Exceptions.FileFormatMismatch):
         SurfaceTopography.IO.open_topography(
             os.path.join(DATADIR, 'surface.2048x2048.h5'), format="npy")
 

@@ -30,12 +30,13 @@ import numpy as np
 
 from numpyencoder import NumpyEncoder
 
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
+from .Reader import ReaderBase, ChannelInfo
 
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams

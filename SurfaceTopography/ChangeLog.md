@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.98.0 (05Oct21)
+-----------------
+
+- API: Analysis function now raise errors upon encountering reentrant
+  topographies or topographies with no reliable data
+
 v0.97.5 (03Oct21)
 -----------------
 

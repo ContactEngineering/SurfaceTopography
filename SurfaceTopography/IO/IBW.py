@@ -28,10 +28,11 @@ import numpy as np
 
 from igor.binarywave import load as loadibw
 
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo, MetadataAlreadyFixedByFile
+from .Reader import ReaderBase, ChannelInfo
 
 
 class IBWReader(ReaderBase):

@@ -29,6 +29,8 @@ import abc
 
 import numpy as np
 
+from ..Exceptions import MetadataAlreadyFixedByFile
+
 
 class ChannelInfo:
     """
@@ -402,60 +404,3 @@ class ReaderBase(metaclass=abc.ABCMeta):
             been defined in the file, because they should not be overridden.
         """
         raise NotImplementedError
-
-
-class ReadFileError(Exception):
-    pass
-
-
-class UnknownFileFormatGiven(ReadFileError):
-    pass
-
-
-class CannotDetectFileFormat(ReadFileError):
-    """
-    Raised when no reader is able to open_topography the file
-    """
-    pass
-
-
-class FileFormatMismatch(ReadFileError):
-    """
-    Raised when the reader cannot interpret the file at all
-    (obvious for txt vs binary, but holds also for a header)
-    """
-    pass
-
-
-class CorruptFile(ReadFileError):
-    """
-    Raised when the reader identifies the file format as matching,
-    but there is a mistake, for example the number of points doesn't match
-    """
-    pass
-
-
-class MetadataAlreadyFixedByFile(ReadFileError):
-    """
-    Raised when instantiating a topography from a reader,
-    given metadata which cannot be overridden, because
-    it is already fixed by the file contents.
-    """
-    def __init__(self, kw, alt_msg=None):
-        """
-        Parameters
-        ----------
-        kw: str
-            Name of the keyword argument to .topography().
-        alt_msg: str or None
-            If not None, use this as error message instead of
-            the default one.
-        """
-        self._kw = kw
-        self._alt_msg = alt_msg
-
-    def __str__(self):
-        if self._alt_msg:
-            return self._alt_msg
-        else:
-            return f"Value for keyword '{self._kw}' is already fixed by file contents and cannot be overridden"

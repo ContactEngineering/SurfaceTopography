@@ -29,6 +29,7 @@
 
 import numpy as np
 
+from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 from ..Support import toiter, fromiter
 
@@ -81,6 +82,9 @@ def derivative(self, n, scale_factor=None, distance=None, interpolation='linear'
         raise ValueError('Scale factors are not supported by nonuniform line scans.')
     if interpolation != 'linear':
         raise ValueError('Line scans only support linear interpolation.')
+    if self.is_reentrant:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). Derivatives cannot be '
+                                 'computed for reentrant topographies.')
 
     if distance is not None:
         # If an explicit distance scale is given, we interpolate onto a regular grid and pass the derivative

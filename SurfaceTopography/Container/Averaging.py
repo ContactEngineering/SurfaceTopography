@@ -29,6 +29,7 @@ import logging
 import numpy as np
 from collections import defaultdict
 
+from ..Exceptions import NoReliableDataError
 from ..Support.Regression import resample
 from .SurfaceContainer import SurfaceContainer
 
@@ -88,6 +89,9 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
     if progress_callback is not None:
         progress_callback(len(self), len(self))
+
+    if len(results) == 0:
+        raise NoReliableDataError('Container contains no reliable data.')
 
     avgresults = np.array(sorted([np.nanmean(vals, axis=0) for vals in results.values()], key=lambda x: x[0]))
     return avgresults.T[0], avgresults.T[1]

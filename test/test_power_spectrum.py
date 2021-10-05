@@ -36,7 +36,9 @@ from scipy.interpolate import interp1d
 
 from NuMPI import MPI
 
-from SurfaceTopography import read_container, read_topography, UniformLineScan, NonuniformLineScan, Topography
+from SurfaceTopography import read_container, read_topography, UniformLineScan, NonuniformLineScan, Topography, \
+    SurfaceContainer
+from SurfaceTopography.Exceptions import NoReliableDataError
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Nonuniform.PowerSpectrum import sinc, dsinc
 
@@ -342,6 +344,21 @@ def test_reliability_cutoff():
     q2, C2 = surf.power_spectrum_from_area(reliable=False)
     assert len(q1) < len(q2)
     assert np.nanmax(q1) < np.nanmax(q2)
+
+
+def test_no_reliable_data():
+    t = NonuniformLineScan([0., 1., 2., 3.5, 4., 5., 6.],
+                           [-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667],
+                           unit='nm',
+                           info=dict(instrument={'name': 'Bla',
+                                                 'type': 'microscope-based',
+                                                 'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_profile()
+
+    c = SurfaceContainer([t])
+    with pytest.raises(NoReliableDataError):
+        c.power_spectrum(unit='um')
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])
