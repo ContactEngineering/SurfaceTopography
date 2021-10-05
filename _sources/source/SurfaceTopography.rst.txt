@@ -17,6 +17,14 @@ Subpackages
 Submodules
 ----------
 
+SurfaceTopography.Exceptions module
+-----------------------------------
+
+.. automodule:: SurfaceTopography.Exceptions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.FFTTricks module
 ----------------------------------
 

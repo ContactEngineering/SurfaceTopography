@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.97.5 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.97.6.dev4+ge02050b7 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.97.5
+                0.97.6.dev4+ge02050b7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -61,6 +61,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -190,6 +191,91 @@
 </section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+</section>
+<section id="module-SurfaceTopography.Exceptions">
+<span id="surfacetopography-exceptions-module"></span><h2>SurfaceTopography.Exceptions module<a class="headerlink" href="#module-SurfaceTopography.Exceptions" title="Permalink to this headline"></a></h2>
+<p>This module contains most exceptions used in SurfaceTopography.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.CannotPerformAnalysisError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">CannotPerformAnalysisError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception raised when an analysis cannot be performed.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.NoReliableDataError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">NoReliableDataError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.NoReliableDataError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="SurfaceTopography.Exceptions.CannotPerformAnalysisError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.CannotPerformAnalysisError</span></code></a></p>
+<p>Exception indicates that an analysis has no reliable data and would need
+to return an empty result.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.ReentrantDataError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">ReentrantDataError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.ReentrantDataError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="SurfaceTopography.Exceptions.CannotPerformAnalysisError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.CannotPerformAnalysisError</span></code></a></p>
+<p>Exception indicates that the underlying data is reentrant and that the
+analysis function does not work on reentrant data.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.ReadFileError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">ReadFileError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.ReadFileError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.UnknownFileFormatGiven">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">UnknownFileFormatGiven</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.UnknownFileFormatGiven" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.ReadFileError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.CannotDetectFileFormat">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">CannotDetectFileFormat</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.CannotDetectFileFormat" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.ReadFileError</span></code></a></p>
+<p>Raised when no reader is able to open_topography the file</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.FileFormatMismatch">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">FileFormatMismatch</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.FileFormatMismatch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.ReadFileError</span></code></a></p>
+<p>Raised when the reader cannot interpret the file at all
+(obvious for txt vs binary, but holds also for a header)</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.CorruptFile">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">CorruptFile</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.CorruptFile" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.ReadFileError</span></code></a></p>
+<p>Raised when the reader identifies the file format as matching,
+but there is a mistake, for example the number of points doesn’t match</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">MetadataAlreadyFixedByFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.ReadFileError</span></code></a></p>
+<p>Raised when instantiating a topography from a reader,
+given metadata which cannot be overridden, because
+it is already fixed by the file contents.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kw</strong> (<em>str</em>) – Name of the keyword argument to .topography().</p></li>
+<li><p><strong>alt_msg</strong> (<em>str</em><em> or </em><em>None</em>) – If not None, use this as error message instead of
+the default one.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.FFTTricks">
 <span id="surfacetopography-ffttricks-module"></span><h2>SurfaceTopography.FFTTricks module<a class="headerlink" href="#module-SurfaceTopography.FFTTricks" title="Permalink to this headline"></a></h2>

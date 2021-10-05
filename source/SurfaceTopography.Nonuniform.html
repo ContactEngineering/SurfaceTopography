@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.97.5 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.97.6.dev4+ge02050b7 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.97.5
+                0.97.6.dev4+ge02050b7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -74,6 +74,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -140,7 +141,7 @@
 <p>Height-difference autocorrelation functions for nonuniform line scans</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_height_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_scan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_height_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional height-height autocorrelation function
 (ACF).</p>
 <p>This function treats the nonuniform line scan as a piece-wise function of
@@ -149,7 +150,7 @@ this piece-wise linear interpolation of the data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_scan</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
 <li><p><strong>r</strong> (<em>array_like</em>) – Array containing distances for which to compute the ACF. If no array
 is given, the function will automatically construct an array with
 equally spaced distances. (Default: None)</p></li>
@@ -167,7 +168,7 @@ equally spaced distances. (Default: None)</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_difference_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">line_scan</span></em>, <em class="sig-param"><span class="pre">reliable=True</span></em>, <em class="sig-param"><span class="pre">algorithm='fft'</span></em>, <em class="sig-param"><span class="pre">distances=None</span></em>, <em class="sig-param"><span class="pre">nb_interpolate=5</span></em>, <em class="sig-param"><span class="pre">short_cutoff=&lt;function</span> <span class="pre">mean&gt;</span></em>, <em class="sig-param"><span class="pre">resampling_method='bin-average'</span></em>, <em class="sig-param"><span class="pre">collocation='log'</span></em>, <em class="sig-param"><span class="pre">nb_points=None</span></em>, <em class="sig-param"><span class="pre">nb_points_per_decade=10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">height_difference_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">reliable=True</span></em>, <em class="sig-param"><span class="pre">algorithm='fft'</span></em>, <em class="sig-param"><span class="pre">distances=None</span></em>, <em class="sig-param"><span class="pre">nb_interpolate=5</span></em>, <em class="sig-param"><span class="pre">short_cutoff=&lt;function</span> <span class="pre">mean&gt;</span></em>, <em class="sig-param"><span class="pre">resampling_method='bin-average'</span></em>, <em class="sig-param"><span class="pre">collocation='log'</span></em>, <em class="sig-param"><span class="pre">nb_points=None</span></em>, <em class="sig-param"><span class="pre">nb_points_per_decade=10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional height-difference autocorrelation function
 (ACF).</p>
 <p>This function treats the nonuniform line scan as a piece-wise function of
@@ -176,7 +177,7 @@ this piece-wise linear interpolation of the data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line_scan</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
 <li><p><strong>algorithm</strong> (<em>str</em>) – Algorithm to compute autocorrelation.
 * ‘fft’: Interpolates the nonuniform line scan on a grid and then uses

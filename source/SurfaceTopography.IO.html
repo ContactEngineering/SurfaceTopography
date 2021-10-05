@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.97.5 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.97.6.dev4+ge02050b7 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.97.5
+                0.97.6.dev4+ge02050b7
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -78,6 +78,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
@@ -1828,64 +1829,6 @@ MPI process.</p></li>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>MetadataAlreadyDefined</strong> – Raised if <cite>physical_sizes</cite> or <cite>height_scale_factor</cite> have already
     been defined in the file, because they should not be overridden.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ReadFileError">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ReadFileError</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReadFileError" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.UnknownFileFormatGiven">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">UnknownFileFormatGiven</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.UnknownFileFormatGiven" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.CannotDetectFileFormat">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">CannotDetectFileFormat</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.CannotDetectFileFormat" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
-<p>Raised when no reader is able to open_topography the file</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.FileFormatMismatch">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">FileFormatMismatch</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.FileFormatMismatch" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
-<p>Raised when the reader cannot interpret the file at all
-(obvious for txt vs binary, but holds also for a header)</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.CorruptFile">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">CorruptFile</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.CorruptFile" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
-<p>Raised when the reader identifies the file format as matching,
-but there is a mistake, for example the number of points doesn’t match</p>
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">MetadataAlreadyFixedByFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReadFileError" title="SurfaceTopography.IO.Reader.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.IO.Reader.ReadFileError</span></code></a></p>
-<p>Raised when instantiating a topography from a reader,
-given metadata which cannot be overridden, because
-it is already fixed by the file contents.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.MetadataAlreadyFixedByFile.__init__" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>kw</strong> (<em>str</em>) – Name of the keyword argument to .topography().</p></li>
-<li><p><strong>alt_msg</strong> (<em>str</em><em> or </em><em>None</em>) – If not None, use this as error message instead of
-the default one.</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
