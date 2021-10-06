@@ -32,7 +32,7 @@ from .SurfaceContainer import SurfaceContainer
 
 
 def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_decade=10, distances=None,
-                                         interpolation='linear', reliable=True, progress_callback=None):
+                                         interpolation='linear', reliable=True, progress_callback=None, threshold=4):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -89,6 +89,13 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
+    threshold : int, optional
+        Defines the minimal amount of data points of the probability distribution
+        to calculate the statistical properties with func and returns a np.nan if
+        the value is below the threshold.
+        E.g. the scipy.stats.kstat function needs at least 4 data points to
+        calculate the 4th cumulant function, otherwise it returns nan or inf
+        (Default: 4)
 
     Returns
     -------
@@ -152,7 +159,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         if len(existing_distances) > 0:
             # Yes! Let's compute the statistical properties at these scales
             _, stat = topography.scale_dependent_statistical_property(
-                func, n=n, distance=existing_distances, interpolation=interpolation)
+                func, n=n, distance=existing_distances, interpolation=interpolation, threshold=threshold)
             # Append results to our return values
             for i, e, s in zip(unique_distance_index, existing_distances, stat):
                 results[i] += [(e, s)]
@@ -162,11 +169,11 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
 
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances with Nones where no data exists
-        return distances, [np.mean(results[i], axis=0)[1] if i in results else None for i in range(len(distances))]
+        return distances, [np.nanmean(results[i], axis=0)[1] if i in results else None for i in range(len(distances))]
     else:
         # If distances are not specified by the, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
-        distances, properties = np.array([np.mean(vals, axis=0) for i, vals in sorted_results]).T
+        distances, properties = np.array([np.nanmean(vals, axis=0) for i, vals in sorted_results]).T
         return distances, properties
 
 
