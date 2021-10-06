@@ -301,7 +301,7 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         min_value = np.min(x)
 
     if min_value >= max_value:
-        raise NoReliableDataError('Data contains no reliable data.')
+        raise NoReliableDataError('Dataset contains no reliable data.')
 
     collocation_points, bin_edges = make_grid(collocation, min_value, max_value, nb_points=nb_points,
                                               nb_points_per_decade=nb_points_per_decade)

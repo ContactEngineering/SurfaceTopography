@@ -27,6 +27,7 @@ from collections import defaultdict
 
 import numpy as np
 
+from ..Exceptions import NoReliableDataError
 from .SurfaceContainer import SurfaceContainer
 
 
@@ -128,6 +129,9 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             lower = max(short_cutoff, lower)
 
         if distances is None:
+            if lower >= upper:
+                raise NoReliableDataError('Dataset contains no reliable data.')
+
             # The automatic grid must include the full decades, i.e. 0.01, 0.1, 1, 10, 100, etc. as values. This
             # ensures that the grid of subsequent calculations are aligned.
             lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
@@ -139,6 +143,8 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             unique_distance_index = np.arange(len(distances))
         # For the factor n see arXiv:2106.16103
         m = np.logical_and(existing_distances > n * lower, existing_distances < upper)
+        if m.sum() == 0:
+            raise NoReliableDataError('Dataset contains no reliable data.')
         existing_distances = existing_distances[m]
         unique_distance_index = unique_distance_index[m]
 
