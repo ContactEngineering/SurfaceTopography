@@ -336,6 +336,8 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         short_cutoff = self.short_reliability_cutoff()
         if short_cutoff:
             m = bandwidths > short_cutoff
+            if m.sum() == 0:
+                raise NoReliableDataError('Dataset contains no reliable data.')
             magnifications = magnifications[m]
             bandwidths = bandwidths[m]
             rms_heights = rms_heights[m]

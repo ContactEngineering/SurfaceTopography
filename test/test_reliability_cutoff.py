@@ -32,7 +32,7 @@ import os
 import numpy as np
 import pytest
 
-from SurfaceTopography import read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan
+from SurfaceTopography import read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan, Topography
 from SurfaceTopography.Exceptions import NoReliableDataError
 
 
@@ -187,6 +187,28 @@ def test_no_reliable_data_uniform():
 
     with pytest.raises(NoReliableDataError):
         c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+
+
+def test_no_reliable_data_topography():
+    t = Topography(
+        np.array([[-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667]] * 6),
+        (6, 6),
+        unit='nm',
+        info=dict(instrument={'name': 'Bla',
+                              'type': 'microscope-based',
+                              'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.variable_bandwidth_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.scale_dependent_statistical_property(lambda x, y: np.mean(x * x + y * y), n=1)
 
 
 def test_no_reliable_data_nonuniform():
