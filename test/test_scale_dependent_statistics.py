@@ -204,7 +204,6 @@ def test_large_container_power_spectrum():
         print(t.info['datafile']['original'], len(q))
 
 
-
 def test_nan_handling_and_threshold():
     t1 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(250,), unit="nm", hurst=0.8, rms_height=1,
                            periodic=False)
