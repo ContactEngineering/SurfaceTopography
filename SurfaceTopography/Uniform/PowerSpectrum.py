@@ -102,10 +102,10 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
 
     if resampling_method is None:
         # Only keep reliable data
-        short_cutoff = self.short_reliability_cutoff() if reliable else None
+        short_cutoff = self.short_reliability_cutoff(2 * sx / nx) if reliable else None
         if short_cutoff is not None:
             mask = q < 2 * np.pi / short_cutoff
-            if mask.sum() == 0:
+            if mask.sum() <= 1:  # There is always q=0 in there
                 raise NoReliableDataError('Dataset contains no reliable data.')
             q = q[mask]
             C_all = C_all[mask]
