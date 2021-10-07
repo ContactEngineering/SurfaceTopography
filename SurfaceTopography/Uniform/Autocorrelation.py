@@ -30,8 +30,9 @@ Height-difference autocorrelation functions
 
 import numpy as np
 
-from SurfaceTopography.Support.Regression import resample, resample_radial
+from ..Exceptions import NoReliableDataError
 from ..HeightContainer import UniformTopographyInterface
+from ..Support.Regression import resample, resample_radial
 
 
 def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-average', collocation='log',
@@ -147,6 +148,8 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         short_cutoff = self.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
             mask = r > short_cutoff / 2
+            if mask.sum() == 0:
+                raise NoReliableDataError('Dataset contains no reliable data.')
             r = r[mask]
             A = A[mask]
         if self.dim == 2:
@@ -162,7 +165,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         if self.dim == 2:
             r = np.resize(r, (A.shape[1], r.shape[0])).T.ravel()
             A = np.ravel(A)
-        r, _, A, _ = resample(r, A, min_value=short_cutoff, max_value=max_distance, collocation=collocation,
+        r, _, A, _ = resample(r, A, min_value=short_cutoff / 2, max_value=max_distance, collocation=collocation,
                               nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
         return r, A
 

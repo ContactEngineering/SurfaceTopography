@@ -29,7 +29,7 @@ Power-spectral density for nonuniform topographies.
 
 import numpy as np
 
-from ..Exceptions import ReentrantDataError
+from ..Exceptions import ReentrantDataError, NoReliableDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -209,6 +209,8 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
 
     if short_cutoff is not None:
         mask = wavevectors < 2 * np.pi / short_cutoff(np.diff(x))
+        if mask.sum() == 0:
+            raise NoReliableDataError('Dataset contains no reliable data.')
         wavevectors = wavevectors[mask]
         psd = psd[mask]
     return wavevectors, psd

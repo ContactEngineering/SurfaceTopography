@@ -165,9 +165,11 @@ def test_no_reliable_data_uniform():
 
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_profile()
+        t.power_spectrum_from_profile(resampling_method=None)
 
     with pytest.raises(NoReliableDataError):
         t.autocorrelation_from_profile()
+        t.autocorrelation_from_profile(resampling_method=None)
 
     with pytest.raises(NoReliableDataError):
         t.variable_bandwidth_from_profile()
@@ -221,9 +223,11 @@ def test_no_reliable_data_nonuniform():
 
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_profile()
+        t.power_spectrum_from_profile(resampling_method=None)
 
     with pytest.raises(NoReliableDataError):
         t.autocorrelation_from_profile()
+        t.autocorrelation_from_profile(resampling_method=None)
 
     with pytest.raises(NoReliableDataError):
         t.variable_bandwidth_from_profile()
