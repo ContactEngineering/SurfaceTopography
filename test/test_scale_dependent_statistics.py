@@ -104,8 +104,8 @@ def test_nonuniform_file(file_format_examples, plot=False):
         plt.show()
 
     r, A = t.autocorrelation_from_profile()
-    assert abs(r.min() / L - 1) < 0.1
-    assert abs(r.max() / u - 1) < 0.1
+    assert abs(r.min() / L - 1) < 0.2
+    assert abs(r.max() / u - 1) < 0.2
 
     if plot:
         plt.loglog(r, A, 'x-')
