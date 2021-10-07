@@ -238,7 +238,6 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         if distance is None:
             # This is the default behavior
             scale_factor = [1]
-            scale_factor_is_array = True
         else:
             # Convert distance to scale factor
             if self.dim == 1:
