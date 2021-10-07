@@ -233,10 +233,12 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     pixel_size = np.array(self.pixel_size)
 
     nb_scale_factors = 1
+    scale_factor_is_array = False
     if scale_factor is None:
         if distance is None:
             # This is the default behavior
             scale_factor = [1]
+            scale_factor_is_array = True
         else:
             # Convert distance to scale factor
             if self.dim == 1:
@@ -244,6 +246,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
                 try:
                     scale_factor = [d / (n * px) for d in distance]
                     nb_scale_factors = len(scale_factor)
+                    scale_factor_is_array = True
                 except TypeError:
                     scale_factor = [distance / (n * px)]
             else:
@@ -251,6 +254,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
                 try:
                     scale_factor = [(d / (n * px), d / (n * py)) for d in distance]
                     nb_scale_factors = len(scale_factor)
+                    scale_factor_is_array = True
                 except TypeError:
                     scale_factor = [(distance / (n * px), distance / (n * py))]
     elif distance is not None:
@@ -259,6 +263,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         try:
             iter(scale_factor)
             nb_scale_factors = len(scale_factor)
+            scale_factor_is_array = True
         except TypeError:
             scale_factor = [scale_factor]
 
@@ -321,7 +326,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
             # We need to divide by the grid spacing to make this a derivative
             _der /= scaled_pixel_size[i] ** n
 
-            if nb_scale_factors > 1:
+            if scale_factor_is_array:
                 der += [_der]
             else:
                 der = _der
