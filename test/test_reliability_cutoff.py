@@ -255,3 +255,31 @@ def test_no_reliable_data_nonuniform():
 
     with pytest.raises(NoReliableDataError):
         c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+
+
+def test_linear_2d():
+    t = Topography([[9, 9, 9, 9, 9],
+                    [7, 7, 7, 7, 7],
+                    [5, 5, 5, 5, 5],
+                    [3, 3, 3, 3, 3],
+                    [1, 1, 1, 1, 1],
+                    [-1, -1, -1, -1, -1],
+                    [-3, -3, -3, -3, -3],
+                    [-5, -5, -5, -5, -5],
+                    [-7, -7, -7, -7, -7],
+                    [-9, -9, -9, -9, -9]],
+                   (1, 2), unit='um', info={
+                       'instrument': {
+                           'parameters': {
+                               'tip_radius': {
+                                'value': 26,
+                                'unit': 'nm',
+                               }
+                           }
+                       }})
+
+    # This has zero curvature, so everything should be reliable
+    assert t.short_reliability_cutoff() is None
+
+    q, C = t.power_spectrum_from_profile()
+    assert np.isnan(C).sum() != 0

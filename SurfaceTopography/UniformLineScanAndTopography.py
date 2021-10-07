@@ -228,6 +228,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                       subdomain_locations, nb_subdomain_grid_pts, comm,
                       [info])
         """
+        heights = np.asarray(heights)
         if heights.ndim != 2:
             raise ValueError('Heights array must be two-dimensional.')
 
