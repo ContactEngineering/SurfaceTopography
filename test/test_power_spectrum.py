@@ -205,7 +205,7 @@ def test_dsinc():
 def test_NaNs():
     surf = fourier_synthesis([1024, 512], [2, 1], 0.8, rms_slope=0.1)
     q, C = surf.power_spectrum_from_area(nb_points=1000)
-    assert np.isnan(C).sum() == 388
+    assert np.isnan(C).sum() == 390
 
 
 def test_brute_force_vs_fft():
