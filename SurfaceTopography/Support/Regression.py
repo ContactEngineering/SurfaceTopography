@@ -38,7 +38,7 @@ from ..Exceptions import NoReliableDataError
 _log = logging.Logger(__name__)
 
 
-def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10):
+def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10, dectol=0.01):
     """
     Create collocation points.
 
@@ -62,6 +62,9 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: None)
+    dectol : float, optional
+        Tolerance for left and right bin edge in terms of decades added to
+        the edges. (Default: 0.01)
 
     Returns
     -------
@@ -80,7 +83,7 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
             # i.e. min_radius = np.exp(np.log(min_radius) + dl) - min_radius
             # => dl = np.log(2)
             nb_points = int(np.ceil((np.log10(max_value) - np.log10(min_value) + 1) * nb_points_per_decade))
-        bin_edges = np.linspace(np.log10(min_value), np.log10(max_value), nb_points)
+        bin_edges = np.linspace(np.log10(min_value) - dectol, np.log10(max_value) + dectol, nb_points)
         collocation_points = 10 ** ((bin_edges[1:] + bin_edges[:-1]) / 2)
         bin_edges = 10 ** bin_edges
     elif collocation == 'quadratic':

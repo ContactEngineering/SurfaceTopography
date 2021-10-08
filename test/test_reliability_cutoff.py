@@ -267,7 +267,7 @@ def test_linear_2d_small_tip():
                              [-3, -3, -3, -3, -3],
                              [-5, -5, -5, -5, -5],
                              [-7, -7, -7, -7, -7],
-                             [-9, -9, -9, -9, -9]]),
+                             [-9, -9, -9, -9, -9]]).T,
                    (1, 2), unit='um', info={
                        'instrument': {
                            'parameters': {
@@ -276,7 +276,7 @@ def test_linear_2d_small_tip():
                                 'unit': 'nm',
                                }
                            }
-                       }})
+                       }}).detrend('center')
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
@@ -301,16 +301,16 @@ def test_linear_2d_large_tip():
                              [-3, -3, -3, -3, -3],
                              [-5, -5, -5, -5, -5],
                              [-7, -7, -7, -7, -7],
-                             [-9, -9, -9, -9, -9]]),
+                             [-9, -9, -9, -9, -9]]).T,
                    (1, 2), unit='um', info={
                        'instrument': {
                            'parameters': {
                                'tip_radius': {
-                                'value': 26,
+                                'value': 10,
                                 'unit': 'mm',
                                }
                            }
-                       }})
+                       }}).detrend('center')
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
