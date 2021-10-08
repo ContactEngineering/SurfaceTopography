@@ -257,7 +257,7 @@ def test_no_reliable_data_nonuniform():
         c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
 
 
-def test_linear_2d():
+def test_linear_2d_small_tip():
     t = Topography(np.array([[9, 9, 9, 9, 9],
                              [7, 7, 7, 7, 7],
                              [5, 5, 5, 5, 5],
@@ -282,4 +282,44 @@ def test_linear_2d():
     assert t.short_reliability_cutoff() is None
 
     q, C = t.power_spectrum_from_profile()
-    assert np.isnan(C).sum() != 0
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.transpose().power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.power_spectrum_from_area()
+    assert np.isfinite(C).sum() > 0
+
+
+def test_linear_2d_large_tip():
+    t = Topography(np.array([[9, 9, 9, 9, 9],
+                             [7, 7, 7, 7, 7],
+                             [5, 5, 5, 5, 5],
+                             [3, 3, 3, 3, 3],
+                             [1, 1, 1, 1, 1],
+                             [-1, -1, -1, -1, -1],
+                             [-3, -3, -3, -3, -3],
+                             [-5, -5, -5, -5, -5],
+                             [-7, -7, -7, -7, -7],
+                             [-9, -9, -9, -9, -9]]),
+                   (1, 2), unit='um', info={
+                       'instrument': {
+                           'parameters': {
+                               'tip_radius': {
+                                'value': 26,
+                                'unit': 'mm',
+                               }
+                           }
+                       }})
+
+    # This has zero curvature, so everything should be reliable
+    assert t.short_reliability_cutoff() is None
+
+    q, C = t.power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.transpose().power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.power_spectrum_from_area()
+    assert np.isfinite(C).sum() > 0
