@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 0.98.0 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 0.98.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.98.0
+                0.98.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -205,7 +205,7 @@ the metadata.
 <span id="surfacetopography-container-scaledependentstatistics-module"></span><h2>SurfaceTopography.Container.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Container.ScaleDependentStatistics" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
 <dd><p>Compute statistical properties of a topography container (i.e. of a set of
 topographies and line scans) at specific scales. These properties are
 statistics of derivatives carried out at specific scales, as computed
@@ -251,6 +251,12 @@ errors for nonperiodic topographies and should be used with care.
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only incorporate data deemed reliable. (Default: True)</p></li>
 <li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
 arguments for progress reporting. (Default: None)</p></li>
+<li><p><strong>threshold</strong> (<em>int</em><em>, </em><em>optional</em>) – Defines the minimal amount of data points of the probability distribution
+to calculate the statistical properties with func and returns a np.nan if
+the value is below the threshold.
+E.g. the scipy.stats.kstat function needs at least 4 data points to
+calculate the 4th cumulant function, otherwise it returns nan or inf
+(Default: 4)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
