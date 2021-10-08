@@ -353,7 +353,7 @@ def test_container_uniform(file_format_examples, plot=False):
         plt.show()
 
     assert_allclose(s, [4.763060e-09, 4.091906e-08, 3.358181e-07, 1.789275e-06, 1.138728e-05, 5.439554e-05,
-                        3.960935e-04, 1.417818e-03, 7.781458e-03, 1.398545e-02])
+                        3.960935e-04, 1.417818e-03, 7.781458e-03, 1.398545e-02], atol=1e-8)
 
 
 # This test is just supposed to finish without an exception
