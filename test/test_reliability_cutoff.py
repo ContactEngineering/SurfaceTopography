@@ -30,8 +30,10 @@ analysis pipeline functions.
 import os
 
 import numpy as np
+import pytest
 
-from SurfaceTopography import read_topography
+from SurfaceTopography import read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan, Topography
+from SurfaceTopography.Exceptions import NoReliableDataError
 
 
 def test_scanning_probe_reliability_cutoff(file_format_examples):
@@ -152,3 +154,172 @@ def test_problem1(file_format_examples):
         }
     })
     assert surf.short_reliability_cutoff() is None
+
+
+def test_no_reliable_data_uniform():
+    t = UniformLineScan([-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667], 6,
+                        unit='nm',
+                        info=dict(instrument={'name': 'Bla',
+                                              'type': 'microscope-based',
+                                              'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_profile(resampling_method=None)
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_profile(resampling_method=None)
+
+    with pytest.raises(NoReliableDataError):
+        t.variable_bandwidth_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
+
+    c = SurfaceContainer([t])
+    with pytest.raises(NoReliableDataError):
+        c.power_spectrum(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.autocorrelation(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.variable_bandwidth(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+
+
+def test_no_reliable_data_topography():
+    t = Topography(
+        np.array([[-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667]] * 6),
+        (6, 6),
+        unit='nm',
+        info=dict(instrument={'name': 'Bla',
+                              'type': 'microscope-based',
+                              'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.variable_bandwidth_from_area()
+
+    with pytest.raises(NoReliableDataError):
+        t.scale_dependent_statistical_property(lambda x, y: np.mean(x * x + y * y), n=1)
+
+
+def test_no_reliable_data_nonuniform():
+    t = NonuniformLineScan([0., 1., 2., 3.5, 4., 5., 6.],
+                           [-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667],
+                           unit='nm',
+                           info=dict(instrument={'name': 'Bla',
+                                                 'type': 'microscope-based',
+                                                 'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.power_spectrum_from_profile(resampling_method=None)
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.autocorrelation_from_profile(resampling_method=None)
+
+    with pytest.raises(NoReliableDataError):
+        t.variable_bandwidth_from_profile()
+
+    with pytest.raises(NoReliableDataError):
+        t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
+
+    c = SurfaceContainer([t])
+    with pytest.raises(NoReliableDataError):
+        c.power_spectrum(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.autocorrelation(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.variable_bandwidth(unit='um')
+
+    with pytest.raises(NoReliableDataError):
+        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+
+
+def test_linear_2d_small_tip():
+    t = Topography(np.array([[9, 9, 9, 9, 9],
+                             [7, 7, 7, 7, 7],
+                             [5, 5, 5, 5, 5],
+                             [3, 3, 3, 3, 3],
+                             [1, 1, 1, 1, 1],
+                             [-1, -1, -1, -1, -1],
+                             [-3, -3, -3, -3, -3],
+                             [-5, -5, -5, -5, -5],
+                             [-7, -7, -7, -7, -7],
+                             [-9, -9, -9, -9, -9]]).T,
+                   (1, 2), unit='um', info={
+                       'instrument': {
+                           'parameters': {
+                               'tip_radius': {
+                                'value': 26,
+                                'unit': 'nm',
+                               }
+                           }
+                       }}).detrend('center')
+
+    # This has zero curvature, so everything should be reliable
+    assert t.short_reliability_cutoff() is None
+
+    q, C = t.power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.transpose().power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.power_spectrum_from_area()
+    assert np.isfinite(C).sum() > 0
+
+
+def test_linear_2d_large_tip():
+    t = Topography(np.array([[9, 9, 9, 9, 9],
+                             [7, 7, 7, 7, 7],
+                             [5, 5, 5, 5, 5],
+                             [3, 3, 3, 3, 3],
+                             [1, 1, 1, 1, 1],
+                             [-1, -1, -1, -1, -1],
+                             [-3, -3, -3, -3, -3],
+                             [-5, -5, -5, -5, -5],
+                             [-7, -7, -7, -7, -7],
+                             [-9, -9, -9, -9, -9]]).T,
+                   (1, 2), unit='um', info={
+                       'instrument': {
+                           'parameters': {
+                               'tip_radius': {
+                                'value': 10,
+                                'unit': 'mm',
+                               }
+                           }
+                       }}).detrend('center')
+
+    # This has zero curvature, so everything should be reliable
+    assert t.short_reliability_cutoff() is None
+
+    q, C = t.power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.transpose().power_spectrum_from_profile()
+    assert np.isfinite(C).sum() > 0
+
+    q, C = t.power_spectrum_from_area()
+    assert np.isfinite(C).sum() > 0

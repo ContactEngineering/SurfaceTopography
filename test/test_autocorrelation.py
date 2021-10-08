@@ -352,8 +352,8 @@ def test_container_uniform(file_format_examples, plot=False):
             plt.loglog(*t.to_unit('um').autocorrelation_from_profile(), 'x-')
         plt.show()
 
-    assert_allclose(s, [4.76306017e-09, 5.42493630e-08, 3.44862254e-07, 2.09698128e-06, 1.16854493e-05, 6.11236431e-05,
-                        4.07759215e-04, 1.41787788e-03, 7.73657754e-03, 1.39632798e-02])
+    assert_allclose(s, [4.763060e-09, 4.091906e-08, 3.358181e-07, 1.789275e-06, 1.138728e-05, 5.439554e-05,
+                        3.960935e-04, 1.417818e-03, 7.781458e-03, 1.398545e-02], atol=1e-8)
 
 
 # This test is just supposed to finish without an exception

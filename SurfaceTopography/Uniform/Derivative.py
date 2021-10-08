@@ -232,26 +232,39 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
 
     pixel_size = np.array(self.pixel_size)
 
+    nb_scale_factors = 1
+    scale_factor_is_array = False
     if scale_factor is None:
         if distance is None:
             # This is the default behavior
-            scale_factor = 1
+            scale_factor = [1]
         else:
             # Convert distance to scale factor
             if self.dim == 1:
                 px, = pixel_size
                 try:
                     scale_factor = [d / (n * px) for d in distance]
+                    nb_scale_factors = len(scale_factor)
+                    scale_factor_is_array = True
                 except TypeError:
-                    scale_factor = distance / (n * px)
+                    scale_factor = [distance / (n * px)]
             else:
                 px, py = pixel_size
                 try:
-                    scale_factor = np.array([(d / (n * px), d / (n * py)) for d in distance])
+                    scale_factor = [(d / (n * px), d / (n * py)) for d in distance]
+                    nb_scale_factors = len(scale_factor)
+                    scale_factor_is_array = True
                 except TypeError:
-                    scale_factor = (distance / (n * px), distance / (n * py))
+                    scale_factor = [(distance / (n * px), distance / (n * py))]
     elif distance is not None:
         raise ValueError('Please specify either `scale_factor` or `distance`')
+    else:
+        try:
+            iter(scale_factor)
+            nb_scale_factors = len(scale_factor)
+            scale_factor_is_array = True
+        except TypeError:
+            scale_factor = [scale_factor]
 
     is_periodic = self.is_periodic if periodic is None else periodic
 
@@ -274,12 +287,11 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     # Apply derivative operator in Fourier space
     derivatives = []
     operators = toiter(operator)
-    scale_factors = toiter(scale_factor)
     for i, op in enumerate(operators):
         der = []
-        for j, s in enumerate(scale_factors):
+        for j, s in enumerate(scale_factor):
             if progress_callback is not None:
-                progress_callback(i * len(scale_factors) + j, len(operators) * len(scale_factors))
+                progress_callback(i * nb_scale_factors + j, len(operators) * nb_scale_factors)
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
             interpolation_required = np.any(s - s.astype(int) != 0)
@@ -313,10 +325,9 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
             # We need to divide by the grid spacing to make this a derivative
             _der /= scaled_pixel_size[i] ** n
 
-            try:
-                iter(scale_factor)
+            if scale_factor_is_array:
                 der += [_der]
-            except TypeError:
+            else:
                 der = _der
         try:
             iter(operator)
@@ -324,7 +335,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         except TypeError:
             derivatives = der
     if progress_callback is not None:
-        progress_callback(len(operators) * len(scale_factors), len(operators) * len(scale_factors))
+        progress_callback(len(operators) * nb_scale_factors, len(operators) * nb_scale_factors)
     return derivatives
 
 

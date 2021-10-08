@@ -62,8 +62,12 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     def objective(distance):
         d = self.derivative(n=2, distance=distance)
         if self.dim == 1:
+            if len(d) == 0:
+                return target_curvature
             return target_curvature + np.min(d)
         elif self.dim == 2:
+            if len(d[0]) == 0:
+                return target_curvature
             return target_curvature + np.min(d[0])
         else:
             raise ValueError(f'Cannot handle a {self.dim}-dimensional topography.')

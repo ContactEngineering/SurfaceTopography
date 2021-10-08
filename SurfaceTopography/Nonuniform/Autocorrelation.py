@@ -31,7 +31,7 @@ import numpy as np
 
 import _SurfaceTopography
 
-from ..Exceptions import ReentrantDataError
+from ..Exceptions import ReentrantDataError, NoReliableDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -195,7 +195,9 @@ def height_difference_autocorrelation(self, reliable=True, algorithm='fft', dist
         raise ValueError("Unknown algorithm '{}' specified.".format(algorithm))
 
     if short_cutoff is not None:
-        mask = distances > short_cutoff(np.diff(x))
+        mask = distances > short_cutoff(np.diff(x)) / 2
+        if mask.sum() == 0:
+            raise NoReliableDataError('Dataset contains no reliable data.')
         distances = distances[mask]
         acf = acf[mask]
     return distances, acf

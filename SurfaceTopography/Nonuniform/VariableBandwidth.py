@@ -30,6 +30,7 @@ Variable bandwidth analysis for nonuniform topographies
 
 import numpy as np
 
+from ..Exceptions import NoReliableDataError
 from ..HeightContainer import NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..Support import build_tuple
@@ -172,6 +173,8 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         short_cutoff = self.short_reliability_cutoff()
         if short_cutoff:
             m = bandwidths > short_cutoff
+            if m.sum() == 0:
+                raise NoReliableDataError('Dataset contains no reliable data.')
             magnifications = magnifications[m]
             bandwidths = bandwidths[m]
             rms_heights = rms_heights[m]

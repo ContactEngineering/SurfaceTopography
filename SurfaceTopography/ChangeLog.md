@@ -7,6 +7,16 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.98.1 (08Oct21)
+-----------------
+
+- ENH: Allow specification of a minimum number of data points for
+  scale-dependent statistical properties
+- BUG: Properly raise `NoReliableDataError` for variable bandwidth
+  method and scale-dependent statistical properties
+- BUG: Multiple bug fixes for corner cases
+- BUG: Fixed shape of return array for derivatives
+
 v0.98.0 (05Oct21)
 -----------------
 

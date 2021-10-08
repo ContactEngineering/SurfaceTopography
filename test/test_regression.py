@@ -34,7 +34,7 @@ from SurfaceTopography.Support.Regression import make_grid, resample
 def test_make_log_grid():
     for i in range(4):
         # This makes bin edges [0, 1, 10, 100, ...]
-        x, e = make_grid('log', 1, 10 ** i, nb_points_per_decade=1)
+        x, e = make_grid('log', 1, 10 ** i, nb_points_per_decade=1, dectol=0.0)
         np.testing.assert_allclose(e, 10 ** np.arange(i + 1))
         assert len(e) == len(x) + 1
 

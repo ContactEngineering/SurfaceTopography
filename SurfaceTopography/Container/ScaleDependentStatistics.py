@@ -23,11 +23,15 @@
 # SOFTWARE.
 #
 
+import logging
 from collections import defaultdict
 
 import numpy as np
 
+from ..Exceptions import NoReliableDataError
 from .SurfaceContainer import SurfaceContainer
+
+_log = logging.Logger(__name__)
 
 
 def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_decade=10, distances=None,
@@ -135,6 +139,10 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             lower = max(short_cutoff, lower)
 
         if distances is None:
+            if lower >= upper:
+                _log.warning(f'Topography {topography} contributes no data to average.')
+                continue
+
             # The automatic grid must include the full decades, i.e. 0.01, 0.1, 1, 10, 100, etc. as values. This
             # ensures that the grid of subsequent calculations are aligned.
             lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
@@ -157,9 +165,14 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
             # Append results to our return values
             for i, e, s in zip(unique_distance_index, existing_distances, stat):
                 results[i] += [(e, s)]
+        else:
+            _log.warning(f'Topography {topography} contributes no data to average.')
 
     if progress_callback is not None:
         progress_callback(len(self), len(self))
+
+    if len(results) == 0:
+        raise NoReliableDataError('Container contains no reliable data.')
 
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances with Nones where no data exists

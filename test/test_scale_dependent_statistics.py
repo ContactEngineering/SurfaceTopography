@@ -104,8 +104,8 @@ def test_nonuniform_file(file_format_examples, plot=False):
         plt.show()
 
     r, A = t.autocorrelation_from_profile()
-    assert abs(r.min() / L - 1) < 0.1
-    assert abs(r.max() / u - 1) < 0.1
+    assert abs(2 * r.min() / L - 1) < 0.2
+    assert abs(r.max() / u - 1) < 0.2
 
     if plot:
         plt.loglog(r, A, 'x-')
@@ -202,7 +202,6 @@ def test_large_container_power_spectrum():
     for t in c:
         q, C = t.power_spectrum_from_profile()
         print(t.info['datafile']['original'], len(q))
-
 
 
 def test_nan_handling_and_threshold():
