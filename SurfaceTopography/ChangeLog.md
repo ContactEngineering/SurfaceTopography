@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.98.2 (23Oct21)
+-----------------
+
+- BUG: Raise NoReliableDataError for container only if none of the
+  topographies contribute data (#152)
+
 v0.98.1 (08Oct21)
 -----------------
 

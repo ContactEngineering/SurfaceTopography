@@ -32,7 +32,8 @@ import os
 import numpy as np
 import pytest
 
-from SurfaceTopography import read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan, Topography
+from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
+                               Topography)
 from SurfaceTopography.Exceptions import NoReliableDataError
 
 
@@ -323,3 +324,38 @@ def test_linear_2d_large_tip():
 
     q, C = t.power_spectrum_from_area()
     assert np.isfinite(C).sum() > 0
+
+
+def test_partially_reliable_data_container(file_format_examples):
+    c, = read_container(f'{file_format_examples}/container1.zip')
+
+    # Patch info dictionary
+    c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
+    c[1]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
+    c[2]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
+
+    # Check that we raise NoReliableDataError for one of the topographies
+    c[0].power_spectrum_from_profile()
+    c[1].power_spectrum_from_profile()
+    with pytest.raises(NoReliableDataError):
+        c[2].power_spectrum_from_profile()
+
+    # This should raise no error
+    c.power_spectrum(unit='um')
+
+    # Patch info dictionary such that all data is unreliable
+    c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
+    c[1]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
+    c[2]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
+
+    # Check that we raise NoReliableDataError for one of the topographies
+    with pytest.raises(NoReliableDataError):
+        c[0].power_spectrum_from_profile()
+    with pytest.raises(NoReliableDataError):
+        c[1].power_spectrum_from_profile()
+    with pytest.raises(NoReliableDataError):
+        c[2].power_spectrum_from_profile()
+
+    # This should now raise a NoReliableDataError
+    with pytest.raises(NoReliableDataError):
+        c.power_spectrum(unit='um')
