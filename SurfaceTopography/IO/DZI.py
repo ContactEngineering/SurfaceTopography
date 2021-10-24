@@ -64,6 +64,11 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
         tiles. (Default: jpg)
     cmap : str or colormap, optional
         Color map for rendering the topography. (Default: None)
+
+    Returns
+    -------
+    filenames : list of str
+        List with names of files created during write operation
     """
     cmap = cm.get_cmap(cmap)
 
@@ -80,7 +85,9 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                       xmlns='http://schemas.microsoft.com/deepzoom/2008')
     ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
     os.makedirs(root_directory, exist_ok=True)
-    ET.ElementTree(root).write(os.path.join(root_directory, name + '.xml'), encoding='utf-8', xml_declaration=True)
+    fn = os.path.join(root_directory, name + '.xml')
+    ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
+    filenames = [fn]
 
     # Determine number of levels
     max_level = math.ceil(math.log2(max(width, height)))
@@ -122,10 +129,13 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                 colors = (cmap(heights[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
                 # Remove alpha channel before writing
                 Image.fromarray(colors[:, :, :3]).save(fn)
+                filenames += [fn]
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
         step *= 2
+
+    return filenames
 
 
 UniformTopographyInterface.register_function('to_dzi', write_dzi)
