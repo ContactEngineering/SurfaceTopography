@@ -68,11 +68,19 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
 
         # Compute property... but do not allow any resampling
         func = getattr(topography, function_name)
-        x, y = func(reliable=reliable, resampling_method=None, **kwargs)
+        try:
+            x, y = func(reliable=reliable, resampling_method=None, **kwargs)
+            has_data = True
+        except NoReliableDataError:
+            has_data = False
 
         # Construct grid in this range
-        m = x > 0
-        if np.sum(m) < 1:
+        if has_data:
+            # Idiot check: Is there actually more than one data point
+            # (if not, NoReliableDataError should actually have been raised above)
+            m = x > 0
+            has_data = np.sum(m) >= 1
+        if not has_data:
             _log.warning(f'Topography {topography} contributes no data to average.')
             continue
         lower, upper = np.min(x[m]), np.max(x)
