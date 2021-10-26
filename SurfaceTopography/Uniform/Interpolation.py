@@ -229,7 +229,7 @@ def interpolate_fourier(self, nb_grid_pts):
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)
                       * np.prod(nb_grid_pts) / np.prod(self.nb_grid_pts),
                       # normalization
-                      physical_sizes=self.physical_sizes)
+                      physical_sizes=self.physical_sizes, periodic=True)
 
 
 class MirrorStichedTopography(DecoratedUniformTopography):
