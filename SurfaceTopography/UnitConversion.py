@@ -87,7 +87,7 @@ def mangle_length_unit_ascii(unit):
         return unit
 
 
-def suggest_length_units(lower_in_meters, upper_in_meters):
+def suggest_length_unit(lower_in_meters, upper_in_meters):
     l10 = int(np.floor(np.log10(lower_in_meters)))
     u10 = int(np.ceil(np.log10(upper_in_meters)))
     m10 = 3 * int(np.ceil((l10 + u10) / 6))
