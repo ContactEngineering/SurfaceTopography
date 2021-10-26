@@ -29,7 +29,7 @@
 Bin for small common helper function and classes for containers.
 """
 
-import SurfaceTopography.UnitConversion as unit
+import SurfaceTopography.UnitConversion as UnitConversion
 from .SurfaceContainer import SurfaceContainer
 
 
@@ -58,7 +58,7 @@ def bandwidth(self, unit):
     global_lower = global_upper = None
     for topography in self:
         current_lower, current_upper = topography.bandwidth()
-        fac = unit.get_unit_conversion_factor(topography.unit, unit)
+        fac = UnitConversion.get_unit_conversion_factor(topography.unit, unit)
         global_lower = current_lower * fac if global_lower is None else min(global_lower, current_lower * fac)
         global_upper = current_upper * fac if global_upper is None else max(global_upper, current_upper * fac)
 
@@ -71,7 +71,7 @@ def suggest_length_unit(self):
     The unit is chose to minimize number of digits to the left and right of
     the decimal point.
     """
-    return unit.suggest_length_unit(*bandwidth(self, unit='m'))
+    return UnitConversion.suggest_length_unit(*bandwidth(self, unit='m'))
 
 
 # Register analysis functions from this module
