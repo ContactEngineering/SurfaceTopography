@@ -116,6 +116,9 @@ def test_exception(make_topography_with_missing_data, dim, is_nonuniform, height
         topo.rms_curvature_from_area()
 
     with pytest.raises(UndefinedDataError):
+        topo.rms_laplacian()
+
+    with pytest.raises(UndefinedDataError):
         topo.autocorrelation_from_profile()
 
     with pytest.raises(UndefinedDataError):
