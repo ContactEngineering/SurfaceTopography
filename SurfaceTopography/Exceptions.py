@@ -31,6 +31,7 @@ class CannotPerformAnalysisError(Exception):
     """
     Exception raised when an analysis cannot be performed.
     """
+    pass
 
 
 class NoReliableDataError(CannotPerformAnalysisError):
@@ -45,6 +46,14 @@ class ReentrantDataError(CannotPerformAnalysisError):
     """
     Exception indicates that the underlying data is reentrant and that the
     analysis function does not work on reentrant data.
+    """
+    pass
+
+
+class UndefinedDataError(CannotPerformAnalysisError):
+    """
+    Exception indicates that the underlying data has missing (undefined) data
+    points and that the analysis function cannot handle missing data
     """
     pass
 

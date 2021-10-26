@@ -361,11 +361,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        reduction = Reduction(self.communicator)
-        return reduction.any(
-            np.ma.getmask(
-                self._heights) is not np.ma.nomask and np.ma.getmask(
-                self._heights).sum() > 0)
+        return Reduction(self.communicator).any(
+            np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0)
 
     def positions(self, meshgrid=True):
         """
