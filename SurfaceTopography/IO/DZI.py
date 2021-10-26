@@ -39,18 +39,18 @@ from PIL import Image
 from ..HeightContainer import UniformTopographyInterface
 
 
-def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
+def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
     """
-    Write topography to a Deep Zoom Image file. This can for example be used
-    to create a zoomable topography with OpenSeadragon
+    Write generica numpy array to a Deep Zoom Image file. This can for example
+    be used to create a zoomable topography with OpenSeadragon
     (https://openseadragon.github.io/).
 
     Additional keyword parameters are passed to Pillow's `save` function.
 
     Parameters
     ----------
-    self : :obj:`Topography`
-        Topogaphy to export
+    data : np.ndarray
+        Two-dimensional array containing the data.
     name : str
         Name of the exported file. This is used as a prefix. Output filter
         create the file `name`.xml that contains the metadata and a directory
@@ -75,12 +75,11 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
     cmap = cm.get_cmap(cmap)
 
     # Image size
-    full_width, full_height = width, height = self.nb_grid_pts
+    full_width, full_height = width, height = data.shape
 
     # Get heights and rescale to interval 0, 1
-    heights = self.heights()
-    mx, mn = self.max(), self.min()
-    heights = (heights - mn) / (mx - mn)
+    mx, mn = data.max(), data.min()
+    data = (data - mn) / (mx - mn)
 
     # Write configuration XML file
     root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
@@ -128,7 +127,7 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                     top = full_height - 1
 
                 # Convert to image and save
-                colors = (cmap(heights[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
+                colors = (cmap(data[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
                 # Remove alpha channel before writing
                 Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
                 filenames += [fn]
@@ -140,4 +139,41 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
     return filenames
 
 
-UniformTopographyInterface.register_function('to_dzi', write_dzi)
+def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
+    """
+    Write topography to a Deep Zoom Image file. This can for example be used
+    to create a zoomable topography with OpenSeadragon
+    (https://openseadragon.github.io/).
+
+    Additional keyword parameters are passed to Pillow's `save` function.
+
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        Topogaphy to export
+    name : str
+        Name of the exported file. This is used as a prefix. Output filter
+        create the file `name`.xml that contains the metadata and a directory
+        `name`_files that contains the rendered image files at different levels.
+    root_directory : str
+        Root directory where to place `name`.xml and `name`_files.
+    tile_size : int, optional
+        Size of individual tiles. (Default: 256)
+    overlap : int, optional
+        Overlap of tiles. (Default: 1)
+    format : str, optional
+        Image format. Note that PNG files have seems at the boundary between
+        tiles. (Default: jpg)
+    cmap : str or colormap, optional
+        Color map for rendering the topography. (Default: None)
+
+    Returns
+    -------
+    filenames : list of str
+        List with names of files created during write operation
+    """
+    return write_dzi(self.heights(), name, root_directory=root_directory, tile_size=tile_size, overlap=overlap,
+                     format=format, cmap=cmap, **kwargs)
+
+
+UniformTopographyInterface.register_function('to_dzi', write_topography_dzi)
