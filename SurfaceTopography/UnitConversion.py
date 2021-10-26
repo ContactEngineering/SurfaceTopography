@@ -22,14 +22,12 @@
 # SOFTWARE.
 #
 
+import numpy as np
 
 length_units = {'km': 1000.0, 'm': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'um': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
 voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(length=length_units, voltage=voltage_units)
-
-
-###
 
 
 def get_unit_conversion_factor(unit1_str, unit2_str):
@@ -87,3 +85,14 @@ def mangle_length_unit_ascii(unit):
         return 'um'
     else:
         return unit
+
+
+def suggest_length_units(lower_in_meters, upper_in_meters):
+    l10 = int(np.floor(np.log10(lower_in_meters)))
+    u10 = int(np.ceil(np.log10(upper_in_meters)))
+    m10 = 3 * int(np.ceil((l10 + u10) / 6))
+    fac = 10 ** m10
+    for key, value in length_units.items():
+        if value == fac:
+            return key
+    raise ValueError(f'Cannot find unit for scale prefix {fac}.')

@@ -29,10 +29,8 @@
 Bin for small common helper function and classes for containers.
 """
 
-import numpy as np
-
+import SurfaceTopography.UnitConversion as unit
 from .SurfaceContainer import SurfaceContainer
-from ..UnitConversion import get_unit_conversion_factor, length_units
 
 
 def bandwidth(self, unit):
@@ -60,7 +58,7 @@ def bandwidth(self, unit):
     global_lower = global_upper = None
     for topography in self:
         current_lower, current_upper = topography.bandwidth()
-        fac = get_unit_conversion_factor(topography.unit, unit)
+        fac = unit.get_unit_conversion_factor(topography.unit, unit)
         global_lower = current_lower * fac if global_lower is None else min(global_lower, current_lower * fac)
         global_upper = current_upper * fac if global_upper is None else max(global_upper, current_upper * fac)
 
@@ -73,15 +71,7 @@ def suggest_length_unit(self):
     The unit is chose to minimize number of digits to the left and right of
     the decimal point.
     """
-    lower, upper = bandwidth(self, unit='m')
-    l10 = int(np.floor(np.log10(lower)))
-    u10 = int(np.ceil(np.log10(upper)))
-    m10 = 3 * int(np.ceil((l10 + u10) / 6))
-    fac = 10 ** m10
-    for key, value in length_units.items():
-        if value == fac:
-            return key
-    raise ValueError(f'Cannot find unit for scale prefix {fac}.')
+    return unit.suggest_length_unit(*bandwidth(self, unit='m'))
 
 
 # Register analysis functions from this module
