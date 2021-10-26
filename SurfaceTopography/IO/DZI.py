@@ -39,11 +39,13 @@ from PIL import Image
 from ..HeightContainer import UniformTopographyInterface
 
 
-def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None):
+def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
     """
     Write topography to a Deep Zoom Image file. This can for example be used
     to create a zoomable topography with OpenSeadragon
     (https://openseadragon.github.io/).
+
+    Additional keyword parameters are passed to Pillow's `save` function.
 
     Parameters
     ----------
@@ -128,7 +130,7 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                 # Convert to image and save
                 colors = (cmap(heights[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
                 # Remove alpha channel before writing
-                Image.fromarray(colors[:, :, :3]).save(fn)
+                Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
                 filenames += [fn]
 
         width = math.ceil(width / 2)
