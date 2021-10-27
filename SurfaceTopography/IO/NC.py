@@ -58,6 +58,7 @@ class _SpecialNetCDFFile(netcdf_file):
             self.flush()
         # we want to disable calling closing the file
         # in case of file streams
+
     __del__ = close
 
 
@@ -207,7 +208,6 @@ plt.show()
             heights_unit = None
         if heights_unit is not None and heights_unit != self._unit:
             raise ValueError('Units for x-coordinate and heights in NetCDF file differ.')
-
 
     def __del__(self):
         self.close()
