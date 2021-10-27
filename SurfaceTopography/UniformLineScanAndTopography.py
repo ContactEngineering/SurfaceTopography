@@ -39,7 +39,7 @@ from .HeightContainer import (
 )
 from .Support import deprecated
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
-from .UnitConversion import get_unit_conversion_factor
+from .Support.UnitConversion import get_unit_conversion_factor
 
 
 class UniformLineScan(AbstractTopography, UniformTopographyInterface):

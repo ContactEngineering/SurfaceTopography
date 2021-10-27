@@ -34,7 +34,7 @@ from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
+from ..Support.UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
 from .Reader import ReaderBase, ChannelInfo
 

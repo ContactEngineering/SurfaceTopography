@@ -29,7 +29,7 @@
 Bin for small common helper function and classes for containers.
 """
 
-import SurfaceTopography.UnitConversion as UnitConversion
+import SurfaceTopography.Support.UnitConversion as UnitConversion
 from .SurfaceContainer import SurfaceContainer
 
 

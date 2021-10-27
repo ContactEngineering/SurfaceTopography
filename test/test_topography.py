@@ -47,7 +47,7 @@ from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UnitConversion import get_unit_conversion_factor
+from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
 
 pytestmark = pytest.mark.skipif(

@@ -30,7 +30,7 @@ import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
