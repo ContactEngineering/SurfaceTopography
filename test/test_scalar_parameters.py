@@ -55,9 +55,6 @@ def sinewave2D(comm):
     return (L, hm, top)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 def test_rms_curvature(sinewave2D):
     L, hm, top = sinewave2D
     numerical = top.rms_curvature_from_area()
@@ -106,13 +103,9 @@ def test_rms_curvature_sinewave_2D(periodic):
     # print(numerical-analytical)
     np.testing.assert_almost_equal(numerical_lapl, analytical_lapl, precision)
 
-    np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2,
-                                   precision)
+    np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2, precision)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 def test_rms_curvature_paraboloid_uniform_1D():
     n = 16
     x = np.arange(n)
@@ -125,9 +118,6 @@ def test_rms_curvature_paraboloid_uniform_1D():
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 def test_rms_curvature_paraboloid_uniform_2D():
     n = 16
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
