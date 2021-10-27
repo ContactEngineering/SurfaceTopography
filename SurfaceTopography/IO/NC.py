@@ -192,6 +192,23 @@ plt.show()
         except AttributeError:
             pass
 
+        # Check unit consistency
+        if self._y_var is not None:
+            try:
+                y_unit = mangle_length_unit_utf8(self._y_var.unit)
+            except AttributeError:
+                y_unit = None
+            if y_unit is not None and y_unit != self._unit:
+                raise ValueError('Units for x- and y-coordinate in NetCDF file differ.')
+
+        try:
+            heights_unit = mangle_length_unit_utf8(self._heights_var.unit)
+        except AttributeError:
+            heights_unit = None
+        if heights_unit is not None and heights_unit != self._unit:
+            raise ValueError('Units for x-coordinate and heights in NetCDF file differ.')
+
+
     def __del__(self):
         self.close()
 
