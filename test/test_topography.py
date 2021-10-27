@@ -928,3 +928,15 @@ def test_power_spectrum_from_profile():
     q1, C1 = t.power_spectrum_from_profile(window='hann')
 
     # TODO add check for values
+
+
+def test_equal_operator():
+    t = Topography(np.array([[1, 1, 1, 1],
+                             [1, 1, 1, 1],
+                             [1, 1, 1, 1]]), physical_sizes=(1, 1))
+
+    t2 = t.scale(2).detrend('height')
+
+    assert not t.__eq__(t2)
+    assert not t2.__eq__(t)
+    assert t != t2
