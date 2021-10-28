@@ -117,9 +117,6 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_gradient` does not support MPI-decomposed topographies.")
-
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim <= 1:
@@ -164,9 +161,6 @@ def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_slope_from_profile` does not support MPI-decomposed topographies.")
-
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     mask_function = None if short_wavelength_cutoff is None else \
@@ -211,8 +205,6 @@ def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=
     rms_curvature : float
         Root mean square curvature value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_curvature_from_profile` does not support MPI-decomposed topographies.")
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     mask_function = None if short_wavelength_cutoff is None else \
@@ -256,8 +248,6 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
     rms_laplacian : float
         Root mean square Laplacian value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_laplacian` does not support MPI-decomposed topographies.")
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
