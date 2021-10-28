@@ -7,6 +7,14 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.99.0 (not yet released)
+--------------------------
+
+- ENH: Raise exception if missing data points are unsupported (#106)
+- ENH: Parallel implementation of scalar roughness parameters (#55)
+- BUG: __eq__ for topographies did not compare height information (#96)
+- BUG: NetCDF reader checks consistency of units (#82)
+
 v0.98.2 (25Oct21)
 -----------------
 
