@@ -12,6 +12,8 @@ v0.99.0 (not yet released)
 
 - ENH: Raise exception if missing data points are unsupported (#106)
 - ENH: Parallel implementation of scalar roughness parameters (#55)
+- ENH: DZI writer has option to write metadata as JSON
+- ENH: DZI writer dumps colorbar information into metadata file
 - BUG: __eq__ for topographies did not compare height information (#96)
 - BUG: NetCDF reader checks consistency of units (#82)
 
