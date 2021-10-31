@@ -22,31 +22,37 @@
 # SOFTWARE.
 #
 
+import json
 import os
 import tempfile
 import xml.etree.cElementTree as ET
 
+import numpy as np
+
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-def test_write():
+def test_write_xml():
     nx, ny = 1782, 1302
-    t = fourier_synthesis((nx, ny), (1, 1), 0.8, rms_slope=0.1)
+    t = fourier_synthesis((nx, ny), (1, 1), 0.8, rms_slope=0.1, unit='mm')
     with tempfile.TemporaryDirectory() as d:
         filenames = t.to_dzi('synthetic', d)
         assert os.path.exists(f'{d}/synthetic_files')
         for i in range(12):
             assert os.path.exists(f'{d}/synthetic_files/{i}')
-        root = ET.parse(open(f'{d}/synthetic.xml')).getroot()
+        root = ET.parse(open(f'{d}/synthetic.dzi')).getroot()
         assert root.attrib['TileSize'] == '256'
         assert root.attrib['Overlap'] == '1'
         assert root.attrib['Format'] == 'jpg'
+        assert root.attrib['ColorbarTitle'] == 'Height (mm)'
         assert root[0].attrib['Width'] == f'{nx}'
         assert root[0].attrib['Height'] == f'{ny}'
+        np.testing.assert_allclose(float(root[1].attrib['Minimum']), t.min())
+        np.testing.assert_allclose(float(root[1].attrib['Maximum']), t.max())
 
         filenames = [fn[len(d)+1:] for fn in filenames]
         assert set(filenames) == set([
-            'synthetic.xml',
+            'synthetic.dzi',
             'synthetic_files/11/0_0.jpg', 'synthetic_files/11/0_1.jpg', 'synthetic_files/11/0_2.jpg',
             'synthetic_files/11/0_3.jpg', 'synthetic_files/11/0_4.jpg', 'synthetic_files/11/0_5.jpg',
             'synthetic_files/11/1_0.jpg', 'synthetic_files/11/1_1.jpg', 'synthetic_files/11/1_2.jpg',
@@ -70,3 +76,24 @@ def test_write():
             'synthetic_files/7/0_0.jpg', 'synthetic_files/6/0_0.jpg', 'synthetic_files/5/0_0.jpg',
             'synthetic_files/4/0_0.jpg', 'synthetic_files/3/0_0.jpg', 'synthetic_files/2/0_0.jpg',
             'synthetic_files/1/0_0.jpg', 'synthetic_files/0/0_0.jpg'])
+
+
+def test_write_json():
+    nx, ny = 1324, 871
+    t = fourier_synthesis((nx, ny), (1.3, 1.2), 0.8, rms_slope=0.1, unit='mm')
+    with tempfile.TemporaryDirectory() as d:
+        filenames = t.to_dzi('synthetic', d, meta_format='json')
+        assert os.path.exists(f'{d}/synthetic_files')
+        for i in range(12):
+            assert os.path.exists(f'{d}/synthetic_files/{i}')
+        with open(f'{d}/synthetic.dzi', 'r') as f:
+            meta = json.load(f)
+        meta = meta['Image']
+        assert meta['TileSize'] == 256
+        assert meta['Overlap'] == 1
+        assert meta['Format'] == 'jpg'
+        assert meta['ColorbarTitle'] == 'Height (mm)'
+        assert meta['Size']['Width'] == nx
+        assert meta['Size']['Height'] == ny
+        np.testing.assert_allclose(meta['ColorbarRange']['Minimum'], t.min())
+        np.testing.assert_allclose(meta['ColorbarRange']['Maximum'], t.max())

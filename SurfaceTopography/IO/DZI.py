@@ -28,6 +28,7 @@
 # https://docs.microsoft.com/en-us/previous-versions/windows/silverlight/dotnet-windows-silverlight/cc645077(v=vs.95)
 #
 
+import json
 import math
 import os
 import xml.etree.cElementTree as ET
@@ -39,7 +40,8 @@ from PIL import Image
 from ..HeightContainer import UniformTopographyInterface
 
 
-def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
+def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
+              colorbar_title=None, cmap=None, **kwargs):
     """
     Write generica numpy array to a Deep Zoom Image file. This can for example
     be used to create a zoomable topography with OpenSeadragon
@@ -62,8 +64,14 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
     overlap : int, optional
         Overlap of tiles. (Default: 1)
     format : str, optional
-        Image format. Note that PNG files have seems at the boundary between
-        tiles. (Default: jpg)
+        Image format. Note that PNG files have seams at the boundary between
+        tiles. (Default: 'jpg')
+    meta_format : str, optional
+        Format for metadata information (the DZI file), can be 'xml' or
+        'json'. (Default: 'xml')
+    colorbar_title : str, optional
+        Additional title for the color bar that is dumped into the DZI file.
+        (Default: None)
     cmap : str or colormap, optional
         Color map for rendering the topography. (Default: None)
 
@@ -81,13 +89,38 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
     mx, mn = data.max(), data.min()
     data = (data - mn) / (mx - mn)
 
-    # Write configuration XML file
-    root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
-                      xmlns='http://schemas.microsoft.com/deepzoom/2008')
-    ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
-    os.makedirs(root_directory, exist_ok=True)
-    fn = os.path.join(root_directory, name + '.xml')
-    ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
+    # Write configuration file
+    fn = os.path.join(root_directory, name + '.dzi')
+    if meta_format == 'xml':
+        root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
+                          xmlns='http://schemas.microsoft.com/deepzoom/2008')
+        if colorbar_title is not None:
+            root.set('ColorbarTitle', colorbar_title)
+        ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
+        ET.SubElement(root, 'ColorbarRange', Minimum=str(mn), Maximum=str(mx))
+        os.makedirs(root_directory, exist_ok=True)
+        ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
+    elif meta_format == 'json':
+        with open(fn, 'w') as f:
+            image_dict = {
+                'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
+                'Format': format,
+                'Overlap': overlap,
+                'TileSize': tile_size,
+                'Size': {
+                    'Width': width,
+                    'Height': height
+                },
+                'ColorbarRange': {
+                    'Minimum': mn,
+                    'Maximum': mx
+                }
+            }
+            if colorbar_title is not None:
+                image_dict.update({'ColorbarTitle': colorbar_title})
+            json.dump({'Image': image_dict}, f)
+    else:
+        raise ValueError(f'Unknown metadata format {meta_format}.')
     filenames = [fn]
 
     # Determine number of levels
@@ -139,7 +172,8 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
     return filenames
 
 
-def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None, **kwargs):
+def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
+                         cmap=None, **kwargs):
     """
     Write topography to a Deep Zoom Image file. This can for example be used
     to create a zoomable topography with OpenSeadragon
@@ -164,6 +198,9 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
     format : str, optional
         Image format. Note that PNG files have seems at the boundary between
         tiles. (Default: jpg)
+    meta_format : str, optional
+        Format for metadata information (the DZI file), can be 'xml' or
+        'json'. (Default: 'xml')
     cmap : str or colormap, optional
         Color map for rendering the topography. (Default: None)
 
@@ -173,7 +210,8 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
         List with names of files created during write operation
     """
     return write_dzi(self.heights(), name, root_directory=root_directory, tile_size=tile_size, overlap=overlap,
-                     format=format, cmap=cmap, **kwargs)
+                     format=format, meta_format=meta_format, colorbar_title=f'Height ({self.unit})', cmap=cmap,
+                     **kwargs)
 
 
 UniformTopographyInterface.register_function('to_dzi', write_topography_dzi)
