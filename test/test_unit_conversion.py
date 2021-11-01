@@ -24,6 +24,7 @@
 
 from SurfaceTopography.Support.UnitConversion import suggest_length_unit
 
+
 def test_suggest_length_unit():
     assert suggest_length_unit(1e-3, 1e-2) == 'mm'
     assert suggest_length_unit(1e-6, 1e-5) == 'µm'
