@@ -118,11 +118,11 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             image_dict = {
                 'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
                 'Format': format,
-                'Overlap': overlap,
-                'TileSize': tile_size,
+                'Overlap': int(overlap),
+                'TileSize': int(tile_size),
                 'Size': {
-                    'Width': width,
-                    'Height': height
+                    'Width': int(width),
+                    'Height': int(height)
                 },
                 'PixelsPerMeter': {
                     'Width': pixels_per_meter_width,
