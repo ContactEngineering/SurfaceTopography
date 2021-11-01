@@ -24,7 +24,7 @@
 
 import numpy as np
 
-length_units = {'km': 1000.0, 'm': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'um': 1e-6, 'nm': 1e-9, 'Å': 1e-10}
+length_units = {'km': 1000.0, 'm': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'um': 1e-6, 'nm': 1e-9, 'Å': 1e-10, 'pm': 1e-12}
 voltage_units = {'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9}
 
 units = dict(length=length_units, voltage=voltage_units)
