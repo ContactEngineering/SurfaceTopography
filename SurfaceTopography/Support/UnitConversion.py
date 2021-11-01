@@ -146,9 +146,12 @@ def suggest_length_unit(lower_in_meters, upper_in_meters):
     unit : str
         Suggestion for the length unit
     """
-    l10 = int(np.floor(np.log10(lower_in_meters)))
     u10 = int(np.ceil(np.log10(upper_in_meters)))
-    m10 = 3 * int(np.ceil((l10 + u10) / 6 - 0.5))
+    if lower_in_meters > 0:
+        l10 = int(np.floor(np.log10(lower_in_meters)))
+        m10 = 3 * int(np.ceil((l10 + u10) / 6 - 0.5))
+    else:
+        m10 = 3 * int(np.ceil((u10) / 6 - 1))
     fac = 10 ** m10
     for key, value in length_units.items():
         if value == fac:
