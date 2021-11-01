@@ -32,9 +32,15 @@ import os
 import numpy as np
 import pytest
 
+from NuMPI import MPI
+
 from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
                                Topography)
 from SurfaceTopography.Exceptions import NoReliableDataError
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_scanning_probe_reliability_cutoff(file_format_examples):
@@ -270,14 +276,14 @@ def test_linear_2d_small_tip():
                              [-7, -7, -7, -7, -7],
                              [-9, -9, -9, -9, -9]]).T,
                    (1, 2), unit='um', info={
-                       'instrument': {
-                           'parameters': {
-                               'tip_radius': {
-                                'value': 26,
-                                'unit': 'nm',
-                               }
-                           }
-                       }}).detrend('center')
+            'instrument': {
+                'parameters': {
+                    'tip_radius': {
+                        'value': 26,
+                        'unit': 'nm',
+                    }
+                }
+            }}).detrend('center')
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
@@ -304,14 +310,14 @@ def test_linear_2d_large_tip():
                              [-7, -7, -7, -7, -7],
                              [-9, -9, -9, -9, -9]]).T,
                    (1, 2), unit='um', info={
-                       'instrument': {
-                           'parameters': {
-                               'tip_radius': {
-                                'value': 10,
-                                'unit': 'mm',
-                               }
-                           }
-                       }}).detrend('center')
+            'instrument': {
+                'parameters': {
+                    'tip_radius': {
+                        'value': 10,
+                        'unit': 'mm',
+                    }
+                }
+            }}).detrend('center')
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
