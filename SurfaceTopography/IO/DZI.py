@@ -38,10 +38,11 @@ from matplotlib import cm
 from PIL import Image
 
 from ..HeightContainer import UniformTopographyInterface
+from ..Support.UnitConversion import suggest_length_unit, get_unit_conversion_factor
 
 
-def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
-              colorbar_title=None, cmap=None, **kwargs):
+def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
+              meta_format='xml', colorbar_title=None, cmap=None, **kwargs):
     """
     Write generica numpy array to a Deep Zoom Image file. This can for example
     be used to create a zoomable topography with OpenSeadragon
@@ -57,8 +58,13 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
         Name of the exported file. This is used as a prefix. Output filter
         create the file `name`.xml that contains the metadata and a directory
         `name`_files that contains the rendered image files at different levels.
-    root_directory : str
+    physical_sizes : tuple of floats
+        Linear physical sizes of the two-dimensional array.
+    unit : str
+        Length units of physical sizes.
+    root_directory : str, optional
         Root directory where to place `name`.xml and `name`_files.
+        (Default: '.')
     tile_size : int, optional
         Size of individual tiles. (Default: 256)
     overlap : int, optional
@@ -85,6 +91,12 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
     # Image size
     full_width, full_height = width, height = data.shape
 
+    # Compute pixels per meter
+    sx, sy = physical_sizes
+    fac = get_unit_conversion_factor(unit, 'm')
+    pixels_per_meter_width = width / (fac * sx)
+    pixels_per_meter_height = height / (fac * sy)
+
     # Get heights and rescale to interval 0, 1
     mx, mn = data.max(), data.min()
     data = (data - mn) / (mx - mn)
@@ -92,11 +104,12 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
     # Write configuration file
     fn = os.path.join(root_directory, name + '.dzi')
     if meta_format == 'xml':
-        root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
+        root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format, Colormap=cmap.name,
                           xmlns='http://schemas.microsoft.com/deepzoom/2008')
         if colorbar_title is not None:
             root.set('ColorbarTitle', colorbar_title)
         ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
+        ET.SubElement(root, 'PixelsPerMeter', Width=str(pixels_per_meter_width), Height=str(pixels_per_meter_height))
         ET.SubElement(root, 'ColorbarRange', Minimum=str(mn), Maximum=str(mx))
         os.makedirs(root_directory, exist_ok=True)
         ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
@@ -111,6 +124,11 @@ def write_dzi(data, name, root_directory='.', tile_size=256, overlap=1, format='
                     'Width': width,
                     'Height': height
                 },
+                'PixelsPerMeter': {
+                    'Width': pixels_per_meter_width,
+                    'Height': pixels_per_meter_height
+                },
+                'Colormap': cmap.name,
                 'ColorbarRange': {
                     'Minimum': mn,
                     'Maximum': mx
@@ -209,9 +227,15 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
     filenames : list of str
         List with names of files created during write operation
     """
-    return write_dzi(self.heights(), name, root_directory=root_directory, tile_size=tile_size, overlap=overlap,
-                     format=format, meta_format=meta_format, colorbar_title=f'Height ({self.unit})', cmap=cmap,
-                     **kwargs)
+    # Get reasonable unit
+    mn, mx = self.min(), self.max()
+    fac = get_unit_conversion_factor(self.unit, 'm')
+    ideal_height_unit = suggest_length_unit(fac * min(abs(mn), abs(mx)), fac * max(abs(mn), abs(mx)))
+
+    t = self.to_unit(ideal_height_unit)
+    return write_dzi(t.heights(), name, t.physical_sizes, ideal_height_unit, root_directory=root_directory,
+                     tile_size=tile_size, overlap=overlap, format=format, meta_format=meta_format,
+                     colorbar_title=f'Height ({ideal_height_unit})', cmap=cmap, **kwargs)
 
 
 UniformTopographyInterface.register_function('to_dzi', write_topography_dzi)

@@ -33,6 +33,19 @@ units = dict(length=length_units, voltage=voltage_units)
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
     Compute factor for conversion from unit1 to unit2.
+
+    Parameters
+    ----------
+    unit1_str : str
+        Name of source unit
+    unit2_str : str
+        Name of targe unit
+
+    Returns
+    -------
+    fac : float
+        Unit conversion factors. A quantity in unit1 is converted to unit2
+        by multiplication with this factor.
     """
     if unit1_str is None:
         raise ValueError('Cannot convert from None unit')
@@ -90,7 +103,7 @@ def mangle_length_unit_ascii(unit):
 def suggest_length_unit(lower_in_meters, upper_in_meters):
     l10 = int(np.floor(np.log10(lower_in_meters)))
     u10 = int(np.ceil(np.log10(upper_in_meters)))
-    m10 = 3 * int(np.ceil((l10 + u10) / 6))
+    m10 = 3 * int(np.ceil((l10 + u10) / 6 - 0.5))
     fac = 10 ** m10
     for key, value in length_units.items():
         if value == fac:
