@@ -40,7 +40,7 @@ from PIL import Image
 from numpyencoder import NumpyEncoder
 
 from ..HeightContainer import UniformTopographyInterface
-from ..Support.UnitConversion import suggest_length_unit, get_unit_conversion_factor
+from ..Support.UnitConversion import get_unit_conversion_factor, suggest_length_unit_for_data
 
 
 def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
@@ -230,10 +230,7 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
         List with names of files created during write operation
     """
     # Get reasonable unit
-    mn, mx = self.min(), self.max()
-    fac = get_unit_conversion_factor(self.unit, 'm')
-    ideal_height_unit = suggest_length_unit(fac * min(abs(mn), abs(mx)), fac * max(abs(mn), abs(mx)))
-
+    ideal_height_unit = suggest_length_unit_for_data(self.heights(), self.unit)
     t = self.to_unit(ideal_height_unit)
     return write_dzi(t.heights(), name, t.physical_sizes, ideal_height_unit, root_directory=root_directory,
                      tile_size=tile_size, overlap=overlap, format=format, meta_format=meta_format,

@@ -74,6 +74,21 @@ def get_unit_conversion_factor(unit1_str, unit2_str):
 
 
 def mangle_length_unit_utf8(unit):
+    """
+    Convert unit string to normalized UTF-8 unit string, e.g. converts 'um'
+    to 'µm' and makes sure 'µ' is MICRO SIGN (00B5) and not GREEK SMALL LETTER
+    MU (03BC).
+
+    Parameters
+    ----------
+    unit : str
+        Name of unit
+
+    Returns
+    -------
+    output_unit : str
+        Mangled name of unit
+    """
     if isinstance(unit, str):
         unit = unit.strip()
     else:
@@ -89,6 +104,20 @@ def mangle_length_unit_utf8(unit):
 
 
 def mangle_length_unit_ascii(unit):
+    """
+    Convert unit string to ASCII representation, e.g. converts 'µm'
+    to 'um'.
+
+    Parameters
+    ----------
+    unit : str
+        Name of unit
+
+    Returns
+    -------
+    output_unit : str
+        Mangled name of unit
+    """
     unit = unit.strip()
     if unit == '':
         return None
@@ -101,6 +130,22 @@ def mangle_length_unit_ascii(unit):
 
 
 def suggest_length_unit(lower_in_meters, upper_in_meters):
+    """
+    Suggest a length unit for representing data in a certain range.
+    E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.
+
+    Parameters
+    ----------
+    lower_in_meters : float
+        Lower bound of range in meters
+    upper_in_meters : float
+        Upper bound of range in meters
+
+    Returns
+    -------
+    unit : str
+        Suggestion for the length unit
+    """
     l10 = int(np.floor(np.log10(lower_in_meters)))
     u10 = int(np.ceil(np.log10(upper_in_meters)))
     m10 = 3 * int(np.ceil((l10 + u10) / 6 - 0.5))
@@ -109,3 +154,24 @@ def suggest_length_unit(lower_in_meters, upper_in_meters):
         if value == fac:
             return key
     raise ValueError(f'Cannot find unit for scale prefix {fac}.')
+
+
+def suggest_length_unit_for_data(data, unit):
+    """
+    Suggest a length unit for representing a data set.
+
+    Parameters
+    ----------
+    data : array_like
+        Data set that needs representing (e.g. in a color bar)
+    unit : str
+        Unit of the data set
+
+    Returns
+    -------
+    unit : str
+        Suggestion for the length unit
+    """
+    mn, mx = np.min(data), np.max(data)
+    fac = get_unit_conversion_factor(unit, 'm')
+    return suggest_length_unit(fac * min(abs(mn), abs(mx)), fac * max(abs(mn), abs(mx)))
