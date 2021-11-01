@@ -118,7 +118,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             image_dict = {
                 'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
                 'Format': format,
-                'Overlap': int(overlap),
+                'Overlap': int(overlap),  # Convert explicity to int because numpy int64 cannot be serialized
                 'TileSize': int(tile_size),
                 'Size': {
                     'Width': int(width),
