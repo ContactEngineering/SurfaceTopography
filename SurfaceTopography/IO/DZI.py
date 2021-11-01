@@ -37,6 +37,8 @@ import numpy as np
 from matplotlib import cm
 from PIL import Image
 
+from numpyencoder import NumpyEncoder
+
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.UnitConversion import suggest_length_unit, get_unit_conversion_factor
 
@@ -118,11 +120,11 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             image_dict = {
                 'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
                 'Format': format,
-                'Overlap': int(overlap),  # Convert explicity to int because numpy int64 cannot be serialized
-                'TileSize': int(tile_size),
+                'Overlap': overlap,
+                'TileSize': tile_size,
                 'Size': {
-                    'Width': int(width),
-                    'Height': int(height)
+                    'Width': width,
+                    'Height': height
                 },
                 'PixelsPerMeter': {
                     'Width': pixels_per_meter_width,
@@ -136,7 +138,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             }
             if colorbar_title is not None:
                 image_dict.update({'ColorbarTitle': colorbar_title})
-            json.dump({'Image': image_dict}, f)
+            json.dump({'Image': image_dict}, f, cls=NumpyEncoder)
     else:
         raise ValueError(f'Unknown metadata format {meta_format}.')
     manifest = [fn]
