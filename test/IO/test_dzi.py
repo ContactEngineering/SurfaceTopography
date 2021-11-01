@@ -37,7 +37,7 @@ def test_write_xml():
     t = fourier_synthesis((nx, ny), (1, 1), 0.8, rms_slope=0.1, unit='mm')
     sx, sy = t.physical_sizes
     with tempfile.TemporaryDirectory() as d:
-        filenames = t.to_dzi('synthetic', d)
+        manifest = t.to_dzi('synthetic', d)
         assert os.path.exists(f'{d}/synthetic_files')
         for i in range(12):
             assert os.path.exists(f'{d}/synthetic_files/{i}')
@@ -54,8 +54,8 @@ def test_write_xml():
         np.testing.assert_allclose(float(root[2].attrib['Minimum']), 1000 * t.min())
         np.testing.assert_allclose(float(root[2].attrib['Maximum']), 1000 * t.max())
 
-        filenames = [fn[len(d)+1:] for fn in filenames]
-        assert set(filenames) == set([
+        manifest = [fn[len(d) + 1:] for fn in manifest]
+        assert set(manifest) == set([
             'synthetic.dzi',
             'synthetic_files/11/0_0.jpg', 'synthetic_files/11/0_1.jpg', 'synthetic_files/11/0_2.jpg',
             'synthetic_files/11/0_3.jpg', 'synthetic_files/11/0_4.jpg', 'synthetic_files/11/0_5.jpg',
@@ -87,7 +87,7 @@ def test_write_json():
     t = fourier_synthesis((nx, ny), (1.3, 1.2), 0.8, rms_slope=0.1, unit='mm')
     sx, sy = t.physical_sizes
     with tempfile.TemporaryDirectory() as d:
-        filenames = t.to_dzi('synthetic', d, meta_format='json')
+        manifest = t.to_dzi('synthetic', d, meta_format='json')
         assert os.path.exists(f'{d}/synthetic_files')
         for i in range(12):
             assert os.path.exists(f'{d}/synthetic_files/{i}')
@@ -105,3 +105,21 @@ def test_write_json():
         np.testing.assert_allclose(meta['PixelsPerMeter']['Height'], 1000 * ny / sy)
         np.testing.assert_allclose(meta['ColorbarRange']['Minimum'], t.min() * 1000)
         np.testing.assert_allclose(meta['ColorbarRange']['Maximum'], t.max() * 1000)
+
+        manifest = [fn[len(d) + 1:] for fn in manifest]
+        assert set(manifest) == set([
+            'synthetic.dzi',
+            'synthetic_files/0/0_0.jpg', 'synthetic_files/1/0_0.jpg', 'synthetic_files/10/0_0.jpg',
+            'synthetic_files/10/0_1.jpg', 'synthetic_files/10/1_0.jpg', 'synthetic_files/10/1_1.jpg',
+            'synthetic_files/10/2_0.jpg', 'synthetic_files/10/2_1.jpg', 'synthetic_files/11/0_0.jpg',
+            'synthetic_files/11/0_1.jpg', 'synthetic_files/11/0_2.jpg', 'synthetic_files/11/0_3.jpg',
+            'synthetic_files/11/1_0.jpg', 'synthetic_files/11/1_1.jpg', 'synthetic_files/11/1_2.jpg',
+            'synthetic_files/11/1_3.jpg', 'synthetic_files/11/2_0.jpg', 'synthetic_files/11/2_1.jpg',
+            'synthetic_files/11/2_2.jpg', 'synthetic_files/11/2_3.jpg', 'synthetic_files/11/3_0.jpg',
+            'synthetic_files/11/3_1.jpg', 'synthetic_files/11/3_2.jpg', 'synthetic_files/11/3_3.jpg',
+            'synthetic_files/11/4_0.jpg', 'synthetic_files/11/4_1.jpg', 'synthetic_files/11/4_2.jpg',
+            'synthetic_files/11/4_3.jpg', 'synthetic_files/11/5_0.jpg', 'synthetic_files/11/5_1.jpg',
+            'synthetic_files/11/5_2.jpg', 'synthetic_files/11/5_3.jpg', 'synthetic_files/2/0_0.jpg',
+            'synthetic_files/3/0_0.jpg', 'synthetic_files/4/0_0.jpg', 'synthetic_files/5/0_0.jpg',
+            'synthetic_files/6/0_0.jpg', 'synthetic_files/7/0_0.jpg', 'synthetic_files/8/0_0.jpg',
+            'synthetic_files/9/0_0.jpg', 'synthetic_files/9/1_0.jpg'])

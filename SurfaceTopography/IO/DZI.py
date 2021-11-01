@@ -83,7 +83,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
 
     Returns
     -------
-    filenames : list of str
+    manifest : list of str
         List with names of files created during write operation
     """
     cmap = cm.get_cmap(cmap)
@@ -139,7 +139,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             json.dump({'Image': image_dict}, f)
     else:
         raise ValueError(f'Unknown metadata format {meta_format}.')
-    filenames = [fn]
+    manifest = [fn]
 
     # Determine number of levels
     max_level = math.ceil(math.log2(max(width, height)))
@@ -181,13 +181,13 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
                 colors = (cmap(data[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
                 # Remove alpha channel before writing
                 Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
-                filenames += [fn]
+                manifest += [fn]
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
         step *= 2
 
-    return filenames
+    return manifest
 
 
 def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
