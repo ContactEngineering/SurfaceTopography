@@ -26,10 +26,10 @@ from SurfaceTopography.Support.UnitConversion import suggest_length_unit
 
 
 def test_suggest_length_unit():
-    assert suggest_length_unit(1e-3, 1e-2) == 'mm'
-    assert suggest_length_unit(1e-6, 1e-5) == 'µm'
+    assert suggest_length_unit('log', 1e-3, 1e-2) == 'mm'
+    assert suggest_length_unit('log', 1e-6, 1e-5) == 'µm'
 
-    assert suggest_length_unit(0, 1e-2) == 'mm'
+    assert suggest_length_unit('linear', 0, 1e-2) == 'mm'
 
-    assert suggest_length_unit(1e-9, 1) == 'µm'
-    assert suggest_length_unit(1e-9, 10) == 'mm'
+    assert suggest_length_unit('log', 1e-9, 1) == 'µm'
+    assert suggest_length_unit('log', 1e-9, 10) == 'mm'

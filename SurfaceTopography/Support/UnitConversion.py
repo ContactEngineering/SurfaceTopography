@@ -129,13 +129,16 @@ def mangle_length_unit_ascii(unit):
         return unit
 
 
-def suggest_length_unit(lower_in_meters, upper_in_meters):
+def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
     """
     Suggest a length unit for representing data in a certain range.
     E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.
 
     Parameters
     ----------
+    scale : str
+        'linear': displaying data on a linear axis
+        'log' displaying data on a log-space axis
     lower_in_meters : float
         Lower bound of range in meters
     upper_in_meters : float
@@ -146,12 +149,16 @@ def suggest_length_unit(lower_in_meters, upper_in_meters):
     unit : str
         Suggestion for the length unit
     """
-    u10 = int(np.ceil(np.log10(upper_in_meters)))
-    if lower_in_meters > 0:
+    if scale == 'linear':
+        v = max(abs(lower_in_meters), abs(upper_in_meters))
+        m10 = int(np.log10(v) / 3)
+    elif scale == 'log':
+        u10 = int(np.ceil(np.log10(upper_in_meters)))
         l10 = int(np.floor(np.log10(lower_in_meters)))
-        m10 = 3 * int(np.ceil((l10 + u10) / 6 - 0.5))
+        m10 = 3 * int(np.ceil((l10 + u10) / 6))
     else:
-        m10 = 3 * int(np.ceil((u10) / 6 - 1))
+        raise ValueError(f"Unknown scale parameter '{scale}'.")
+
     fac = 10 ** m10
     for key, value in length_units.items():
         if value == fac:
@@ -159,12 +166,15 @@ def suggest_length_unit(lower_in_meters, upper_in_meters):
     raise ValueError(f'Cannot find unit for scale prefix {fac}.')
 
 
-def suggest_length_unit_for_data(data, unit):
+def suggest_length_unit_for_data(scale, data, unit):
     """
     Suggest a length unit for representing a data set.
 
     Parameters
     ----------
+    scale : str
+        'linear': displaying data on a linear axis
+        'log' displaying data on a log-space axis
     data : array_like
         Data set that needs representing (e.g. in a color bar)
     unit : str
@@ -177,4 +187,4 @@ def suggest_length_unit_for_data(data, unit):
     """
     mn, mx = np.min(data), np.max(data)
     fac = get_unit_conversion_factor(unit, 'm')
-    return suggest_length_unit(fac * min(abs(mn), abs(mx)), fac * max(abs(mn), abs(mx)))
+    return suggest_length_unit(scale, fac * mn, fac * mx)

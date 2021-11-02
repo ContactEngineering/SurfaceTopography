@@ -65,13 +65,24 @@ def bandwidth(self, unit):
     return global_lower, global_upper
 
 
-def suggest_length_unit(self):
+def suggest_length_unit(self, scale):
     """
     Compute a suggestion for a unit to diplay container-wider information.
     The unit is chose to minimize number of digits to the left and right of
     the decimal point.
+
+    Parameters
+    ----------
+    scale : str
+        'linear': displaying data on a linear axis
+        'log' displaying data on a log-space axis
+
+    Returns
+    -------
+    unit : str
+        Suggestion for the length unit
     """
-    return UnitConversion.suggest_length_unit(*bandwidth(self, unit='m'))
+    return UnitConversion.suggest_length_unit(scale, *bandwidth(self, unit='m'))
 
 
 # Register analysis functions from this module

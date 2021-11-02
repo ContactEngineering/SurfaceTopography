@@ -230,7 +230,7 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
         List with names of files created during write operation
     """
     # Get reasonable unit
-    ideal_height_unit = suggest_length_unit_for_data(self.heights(), self.unit)
+    ideal_height_unit = suggest_length_unit_for_data('linear', self.heights(), self.unit)
     t = self.to_unit(ideal_height_unit)
     return write_dzi(t.heights(), name, t.physical_sizes, ideal_height_unit, root_directory=root_directory,
                      tile_size=tile_size, overlap=overlap, format=format, meta_format=meta_format,
