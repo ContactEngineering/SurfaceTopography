@@ -155,7 +155,7 @@ def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
     elif scale == 'log':
         u10 = int(np.ceil(np.log10(upper_in_meters)))
         l10 = int(np.floor(np.log10(lower_in_meters)))
-        m10 = 3 * int(np.ceil((l10 + u10) / 6))
+        m10 = 3 * int(np.ceil((l10 + u10) / 6) - 0.5)
     else:
         raise ValueError(f"Unknown scale parameter '{scale}'.")
 
