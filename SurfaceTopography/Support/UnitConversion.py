@@ -151,11 +151,11 @@ def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
     """
     if scale == 'linear':
         v = max(abs(lower_in_meters), abs(upper_in_meters))
-        m10 = int(np.log10(v) / 3)
+        m10 = 3 * int(np.floor(np.log10(v) / 3))
     elif scale == 'log':
         u10 = int(np.ceil(np.log10(upper_in_meters)))
         l10 = int(np.floor(np.log10(lower_in_meters)))
-        m10 = 3 * int(np.ceil((l10 + u10) / 6) - 0.5)
+        m10 = 3 * int(np.ceil((l10 + u10) / 6) - 1)
     else:
         raise ValueError(f"Unknown scale parameter '{scale}'.")
 
