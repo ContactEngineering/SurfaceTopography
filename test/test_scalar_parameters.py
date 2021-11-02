@@ -34,6 +34,10 @@ from muFFT import FFT
 from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+
 
 @pytest.fixture
 def sinewave2D(comm):
@@ -168,7 +172,7 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_slope_uniform_topography(self):
-        numerical = Topography(np.transpose([self.sinsurf[:-1]]*5), (self.L, 1)).rms_slope_from_profile()
+        numerical = Topography(np.transpose([self.sinsurf[:-1]] * 5), (self.L, 1)).rms_slope_from_profile()
         analytical = np.sqrt(2 * np.pi ** 2 * self.hm ** 2 / self.L ** 2)
         # print(numerical-analytical)
         self.assertAlmostEqual(numerical, analytical, self.precision)
@@ -187,11 +191,11 @@ def test_rms_slope_from_profile():
             np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
             # rms slope should not depend on filter for these cutoffs...
             for cutoff in [1, 2, 4, 8, 16]:
-                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0] / r * cutoff)
                 np.testing.assert_almost_equal(rms_slope, last_rms_slope)
             # ...but starts being a monotonously decreasing function here
             for cutoff in [64, 128, 256]:
-                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0] / r * cutoff)
                 assert rms_slope < last_rms_slope
                 last_rms_slope = rms_slope
 
@@ -211,10 +215,10 @@ def test_rms_slope_from_area():
             np.testing.assert_almost_equal(last_rms_slope, t.scale(1.3, 1.3).rms_gradient())
             # rms slope should not depend on filter for these cutoffs...
             for cutoff in [4]:
-                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0] / r * cutoff)
                 np.testing.assert_almost_equal(rms_slope, last_rms_slope)
             # ...but starts being a monotonously decreasing function here
             for cutoff in [16, 32]:
-                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0] / r * cutoff)
                 assert rms_slope < last_rms_slope
                 last_rms_slope = rms_slope
