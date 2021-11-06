@@ -148,6 +148,24 @@ File format of the Bruker Dektak XT* series stylus profilometer.
     def channels(self):
         return self._channels
 
+    def info_from_manifest(self, prefix):
+        info = {'opdx_prefix': prefix}
+
+        try:
+            acquisition_time = datetime.datetime.strptime(
+                self.manifest['/MetaData/Date'].data + ' ' + self.manifest['/MetaData/Time'].data,
+                '%d/%m/%Y %I:%M:%S %p')
+            info['acquisition_time'] = acquisition_time
+        except KeyError:
+            pass
+
+        try:
+            info['instrument'] = {'name': self.manifest['/MetaData/MeasurementSettings/InstrumentName'].data}
+        except KeyError:
+            pass
+
+        return info
+
     def read_linescan_channel_infos(self, channel_index):
         """
         Read line scan (profile) information
@@ -166,17 +184,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
             height_scale_factor *= get_unit_conversion_factor(height_unit, unit)
 
-            acquisition_time = datetime.datetime.strptime(
-                self.manifest['/MetaData/Date'].data + ' ' + self.manifest['/MetaData/Time'].data,
-                '%d/%m/%Y %I:%M:%S %p')
-            info = {
-                'opdx_prefix': prefix,
-                'acquisition_time': acquisition_time,
-                'instrument': {
-                    'name': self.manifest['/MetaData/MeasurementSettings/InstrumentName'].data
-                }
-            }
-
             self._channels += [ChannelInfo(self, channel_index,
                                            name=self.manifest[f'{prefix}/DataKind'].data,
                                            dim=1,
@@ -184,7 +191,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                            physical_sizes=physical_size,
                                            unit=unit,
                                            height_scale_factor=height_scale_factor,
-                                           info=info)]
+                                           info=self.info_from_manifest(prefix))]
 
             channel_index += 1
 
@@ -211,17 +218,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         height_scale_factor *= get_unit_conversion_factor(height_unit, unit_x)
 
-        acquisition_time = datetime.datetime.strptime(
-            self.manifest['/MetaData/Date'].data + ' ' + self.manifest['/MetaData/Time'].data,
-            '%d/%m/%Y %I:%M:%S %p')
-        info = {
-            'opdx_prefix': prefix,
-            'acquisition_time': acquisition_time,
-            'instrument': {
-                'name': self.manifest['/MetaData/MeasurementSettings/InstrumentName'].data
-            }
-        }
-
         self._channels += [ChannelInfo(self, channel_index,
                                        name=self.manifest[f'{prefix}/DataKind'].data,
                                        dim=2,
@@ -229,7 +225,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                        physical_sizes=(physical_size_x, physical_size_y),
                                        unit=unit_x,
                                        height_scale_factor=height_scale_factor,
-                                       info=info)]
+                                       info=self.info_from_manifest(prefix))]
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
