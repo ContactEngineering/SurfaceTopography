@@ -104,8 +104,8 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     data = (data - mn) / (mx - mn)
 
     # Write configuration file
-    fn = os.path.join(root_directory, name + '.dzi')
     if meta_format == 'xml':
+        fn = os.path.join(root_directory, name + '.xml')
         root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format, Colormap=cmap.name,
                           xmlns='http://schemas.microsoft.com/deepzoom/2008')
         if colorbar_title is not None:
@@ -116,6 +116,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
         os.makedirs(root_directory, exist_ok=True)
         ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
     elif meta_format == 'json':
+        fn = os.path.join(root_directory, name + '.json')
         with open(fn, 'w') as f:
             image_dict = {
                 'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',

@@ -41,7 +41,7 @@ def test_write_xml():
         assert os.path.exists(f'{d}/synthetic_files')
         for i in range(12):
             assert os.path.exists(f'{d}/synthetic_files/{i}')
-        root = ET.parse(open(f'{d}/synthetic.dzi')).getroot()
+        root = ET.parse(open(f'{d}/synthetic.xml')).getroot()
         assert root.attrib['TileSize'] == '256'
         assert root.attrib['Overlap'] == '1'
         assert root.attrib['Format'] == 'jpg'
@@ -56,7 +56,7 @@ def test_write_xml():
 
         manifest = [fn[len(d) + 1:] for fn in manifest]
         assert set(manifest) == set([
-            'synthetic.dzi',
+            'synthetic.xml',
             'synthetic_files/11/0_0.jpg', 'synthetic_files/11/0_1.jpg', 'synthetic_files/11/0_2.jpg',
             'synthetic_files/11/0_3.jpg', 'synthetic_files/11/0_4.jpg', 'synthetic_files/11/0_5.jpg',
             'synthetic_files/11/1_0.jpg', 'synthetic_files/11/1_1.jpg', 'synthetic_files/11/1_2.jpg',
@@ -91,7 +91,7 @@ def test_write_json():
         assert os.path.exists(f'{d}/synthetic_files')
         for i in range(12):
             assert os.path.exists(f'{d}/synthetic_files/{i}')
-        with open(f'{d}/synthetic.dzi', 'r') as f:
+        with open(f'{d}/synthetic.json', 'r') as f:
             meta = json.load(f)
         meta = meta['Image']
         assert meta['TileSize'] == 256
@@ -108,7 +108,7 @@ def test_write_json():
 
         manifest = [fn[len(d) + 1:] for fn in manifest]
         assert set(manifest) == set([
-            'synthetic.dzi',
+            'synthetic.json',
             'synthetic_files/0/0_0.jpg', 'synthetic_files/1/0_0.jpg', 'synthetic_files/10/0_0.jpg',
             'synthetic_files/10/0_1.jpg', 'synthetic_files/10/1_0.jpg', 'synthetic_files/10/1_1.jpg',
             'synthetic_files/10/2_0.jpg', 'synthetic_files/10/2_1.jpg', 'synthetic_files/11/0_0.jpg',
