@@ -26,10 +26,11 @@
 # SOFTWARE.
 #
 
+import datetime
 import unittest
 import os
 
-import numpy.testing as npt
+import numpy as np
 import pytest
 
 from NuMPI import MPI
@@ -91,72 +92,37 @@ class OPDxSurfaceTest(unittest.TestCase):
 
         loader = OPDxReader(file_path)
 
-        channel_0, channel_1 = loader.channels
+        channel_0, = loader.channels
 
         # Check if metadata has been read in
 
-        # Default channel should be 1, 'raw'
-        self.assertEqual(loader.default_channel.index, 1)
+        # Default channel should be 0, 'Raw'
+        self.assertEqual(loader.default_channel.index, 0)
 
         #
-        # Channel 0: Image
+        # Channel 0: Raw
         #
-        self.assertEqual(channel_0.info['Time'], '12:53:14 PM')
-
-        self.assertEqual(channel_0.info['ImageHeight'], 960)
-        self.assertEqual(channel_0.info['ImageWidth'], 1280)
-
-        self.assertEqual(channel_0.info['Width_value'], 47.81942809668896)
-        self.assertEqual(channel_0.info['Height_value'], 35.85522403809594)
-        self.assertEqual(channel_0.info['z_scale'], 1.0)
-
-        # there is no z unit so we cannot return a common unit here
-        assert 'unit' not in channel_0.info
+        assert channel_0.unit == 'µm'
 
         # .. mandatory keys
-        self.assertEqual(channel_0.name, 'Image')
+        self.assertEqual(channel_0.name, 'Height')
         self.assertEqual(channel_0.dim, 2)
         self.assertAlmostEqual(channel_0.physical_sizes[1], 35.85522403809594)
         self.assertAlmostEqual(channel_0.physical_sizes[0], 47.81942809668896)
         self.assertAlmostEqual(channel_0.nb_grid_pts[1], 960)
         self.assertAlmostEqual(channel_0.nb_grid_pts[0], 1280)
 
-        #
-        # Channel 1: Raw
-        #
-        self.assertEqual(channel_1.info['Time'], '12:53:14 PM')
-
-        self.assertEqual(channel_1.info['ImageHeight'], 960)
-        self.assertEqual(channel_1.info['ImageWidth'], 1280)
-
-        self.assertEqual(channel_1.info['Width_value'], 47.81942809668896)
-        self.assertEqual(channel_1.info['Height_value'], 35.85522403809594)
-        self.assertEqual(channel_1.info['z_scale'], 78.592625)
-
-        assert channel_1.info['unit'] == 'µm'  # see GH 281
-        assert channel_1.unit == 'µm'  # see GH 281
-
-        # .. mandatory keys
-        self.assertEqual(channel_1.name, 'Raw')
-        self.assertEqual(channel_1.dim, 2)
-        self.assertAlmostEqual(channel_1.physical_sizes[1], 35.85522403809594)
-        self.assertAlmostEqual(channel_1.physical_sizes[0], 47.81942809668896)
-        self.assertAlmostEqual(channel_1.nb_grid_pts[1], 960)
-        self.assertAlmostEqual(channel_1.nb_grid_pts[0], 1280)
-
     def test_topography(self):
         file_path = os.path.join(DATADIR, 'opdx2.OPDx')
 
         with OPDxReader(file_path) as loader:
-            self.assertEqual(loader.default_channel.index, 1)
+            self.assertEqual(loader.default_channel.index, 0)
 
             topography = loader.default_channel.topography()
 
             # Check physical sizes
-            self.assertAlmostEqual(topography.physical_sizes[0], 47.819,
-                                   places=3)
-            self.assertAlmostEqual(topography.physical_sizes[1], 35.855,
-                                   places=3)
+            self.assertAlmostEqual(topography.physical_sizes[0], 47.819, places=3)
+            self.assertAlmostEqual(topography.physical_sizes[1], 35.855, places=3)
 
             # Check nb_grid_ptss
             self.assertEqual(topography.nb_grid_pts[0], 1280)
@@ -166,11 +132,10 @@ class OPDxSurfaceTest(unittest.TestCase):
             self.assertEqual(topography.info['unit'], 'µm')  # see GH 281
 
             # Check an entry in the metadata
-            self.assertEqual(topography.info['SequenceNumber'], 5972)
+            self.assertEqual(topography.info['acquisition_time'], datetime.datetime(2018, 5, 12, 12, 53, 14))
 
             # Check a height value
-            self.assertAlmostEqual(topography.heights()[0, 0], -7.731534,
-                                   places=6)
+            self.assertAlmostEqual(topography.heights()[0, 0], -7.731534, places=6)
 
     def test_read_with_check(self):
         buffer = ['V', 'C', 'A', ' ', 'D', 'A', 'T', 'A', '\x01', '\x00',
@@ -247,9 +212,10 @@ class OPDxSurfaceTest(unittest.TestCase):
     def test_read_structured(self):
         buffer = ['\x01', '\x04', '\x12', '\xca', '\x50', '\x71']
         pos = 0
-        out, start, pos = read_structured(buffer, pos)
+        out, start, length, pos = read_structured(buffer, pos)
         self.assertEqual(out, ['\x12', '\xca', '\x50', '\x71'])
         self.assertEqual(start, 2)
+        self.assertEqual(length, 4)
         self.assertEqual(pos, len(buffer))
 
     def test_read_name(self):
@@ -268,8 +234,7 @@ class OPDxSurfaceTest(unittest.TestCase):
                  + ['\x00' for _ in range(12)]  # The extra tail
         pos = 0
 
-        unit = DektakQuantUnit()
-        unit, divisor, pos = read_dimension2d_content(buffer, pos, unit)
+        unit, divisor, pos = read_dimension2d_content(buffer, pos)
 
         self.assertAlmostEqual(unit.value, 7.04608e-309, places=10)
         self.assertEqual(unit.name, 'OK')
@@ -312,10 +277,11 @@ class OPDxSurfaceTest(unittest.TestCase):
         buffer = ['\x04', '\x00', '\x00', '\x00', 'N', 'A', 'M', 'E',
                   '\x01', '\x04', '\x12', '\xca', '\x50', '\x71']
         pos = 0
-        typename, out, start, pos = read_named_struct(buffer, pos)
+        typename, out, start, length, pos = read_named_struct(buffer, pos)
         self.assertEqual(typename, 'NAME')
         self.assertEqual(out, ['\x12', '\xca', '\x50', '\x71'])
         self.assertEqual(start, 10)
+        self.assertEqual(length, 4)
         self.assertEqual(pos, len(buffer))
 
     def test_read_item(self):
@@ -336,7 +302,7 @@ class OPDxSurfaceTest(unittest.TestCase):
 
         item = hash_table['/BOOL']
 
-        self.assertEqual(item.data.b, False)
+        self.assertEqual(item.data, False)
 
         # Test for int items
         buffer = ['\x03', '\x00', '\x00', '\x00', 'I', 'N', 'T',
@@ -347,15 +313,14 @@ class OPDxSurfaceTest(unittest.TestCase):
         hash_table = dict()
         path = ""
 
-        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table,
-                                                  path)
+        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table, path)
 
         self.assertEqual(path, '')
         self.assertEqual(pos, len(buffer))
 
         item = hash_table['/INT']
 
-        self.assertEqual(item.data.si, 1252725010)
+        self.assertEqual(item.data, 1252725010)
 
         # Test for Quantity items
         buffer = ['\x09', '\x00', '\x00', '\x00', 'T', 'E', 'S', 'T', '_',
@@ -372,37 +337,34 @@ class OPDxSurfaceTest(unittest.TestCase):
         hash_table = dict()
         path = ""
 
-        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table,
-                                                  path)
+        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table, path)
 
         self.assertEqual(path, '')
         self.assertEqual(pos, len(buffer))
 
         item = hash_table['/TEST_DATA']
 
-        self.assertEqual(item.data.qun.name, 'NAME')
-        self.assertEqual(item.data.qun.symbol, 'SYM')
-        self.assertAlmostEqual(item.data.qun.value, 0.73, places=10)
-        self.assertEqual(item.data.qun.extra, [])
+        self.assertEqual(item.data.name, 'NAME')
+        self.assertEqual(item.data.symbol, 'SYM')
+        self.assertAlmostEqual(item.data.value, 0.73, places=10)
+        self.assertEqual(item.data.extra, [])
 
 
 @pytest.mark.skip(reason="See issue #275")
 def test_opdx_txt_absolute_consistency():
     t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
     t_txt = read_topography(os.path.join(DATADIR, 'opdx2.txt'))
-    print(t_opdx.pixel_size)
     assert ((abs(t_opdx.pixel_size - t_txt.pixel_size)
              / t_opdx.pixel_size) < 1e-3).all()
     assert ((abs(t_opdx.physical_sizes - t_txt.physical_sizes)
              / t_opdx.physical_sizes) < 1e-3).all()
     assert t_opdx.nb_grid_pts == t_txt.nb_grid_pts
-    npt.assert_all_close(t_opdx.heights, t_txt.heights)
+    np.testing.assert_all_close(t_opdx.heights, t_txt.heights)
 
 
 def test_opdx_txt_consistency():
     t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
     t_txt = read_topography(os.path.join(DATADIR, 'opdx2.txt'))
-    print(t_opdx.pixel_size)
     assert abs(t_opdx.pixel_size[0] / t_opdx.pixel_size[1] - 1) < 1e-3
     assert abs(t_txt.pixel_size[0] / t_txt.pixel_size[1] - 1) < 1e-3
 
@@ -415,7 +377,7 @@ def test_opdx_txt_consistency():
     # opd file's heights are in µm, txt file's heights in m
     assert t_opdx.info['unit'] == 'µm'
     assert t_txt.info['unit'] == 'm'
-    npt.assert_allclose(t_opdx.detrend().heights(),
+    np.testing.assert_allclose(t_opdx.detrend().heights(),
                         t_txt.detrend().scale(1e6).heights(), rtol=1e-6,
                         atol=1e-3)
 
@@ -440,3 +402,12 @@ def test_opdx_txt_heights_lateral_consistency():
 
     assert (1 / rhoxx - R) / R < 0.01
     assert (1 / rhoyy - R) / R < 0.01
+
+
+def test_opdx3(file_format_examples):
+    r = OPDxReader(f'{file_format_examples}/opdx3.OPDx')
+    t = r.topography()
+    assert t.info['instrument']['name'] == 'Dektak Profiler'
+
+    x, y = np.loadtxt(f'{file_format_examples}/opdx3.txt', unpack=True)
+    np.testing.assert_allclose(t.heights(), y * 1e6)
