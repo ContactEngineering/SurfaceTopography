@@ -17,6 +17,8 @@ v0.99.0 (not yet released)
 - ENH: Support for line scans in OPDx files
 - BUG: __eq__ for topographies did not compare height information (#96)
 - BUG: NetCDF reader checks consistency of units (#82)
+- BUG: Storing topographies with undefined data to NetCDF files was
+  broken in some cases; now an explicit mask is stored to the NetCDF file
 - MAINT: Refactored OPDx reader
 
 
