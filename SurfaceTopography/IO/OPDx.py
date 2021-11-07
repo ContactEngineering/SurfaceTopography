@@ -280,28 +280,8 @@ def _read_item(stream, manifest, prefix='', offset=0):
 
     item.typeid = _read_scalar(stream, 'B')
 
-    # simple types
-    if item.typeid == DEKTAK_TIME_STAMP:
-        item.data = stream.read(TIMESTAMP_SIZE)
-    elif item.typeid == DEKTAK_QUANTITY:
-        length = _read_varlen(stream)
-        start = stream.tell()
-        item.data = _read_quantity(stream)
-        stream.seek(start + length)
-        # stream.read(20)
-        # if start + length != stream.tell():
-        #    raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
-        #                       f'does not equal the expected position {start + length}.')
-    elif item.typeid == DEKTAK_UNITS:
-        length = _read_varlen(stream)
-        start = stream.tell()
-        item.data = _read_unit(stream)
-        if start + length != stream.tell():
-            raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
-                               f'does not equal the expected position {start + length}.')
-
     # Container types
-    elif item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
+    if item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
         length = _read_varlen(stream)
         start = stream.tell()
         while _read_item(stream, manifest, prefix=path):
@@ -314,27 +294,6 @@ def _read_item(stream, manifest, prefix='', offset=0):
         stream.seek(start + length)
         return path
     # Types with string type name
-    elif item.typeid == DEKTAK_DOUBLE_ARRAY:
-        item.typename = _read_name(stream)
-        length = _read_varlen(stream)
-        item.data = (stream.tell(), length)
-        # Skip over data
-        stream.seek(length, 1)
-    elif item.typeid == DEKTAK_STRING_LIST:
-        item.typename = _read_name(stream)
-        length = _read_varlen(stream)
-        start = stream.tell()
-        item.data = []
-        while stream.tell() < start + length:
-            s = _read_name(stream)
-            item.data += [s]
-        if start + length != stream.tell():
-            raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
-                               f'does not equal the expected position {start + length}.')
-    elif item.typeid == DEKTAK_TYPE_ID:
-        item.typename = _read_name(stream)
-        length = _read_varlen(stream)
-        item.data = stream.read(length)
     elif item.typeid == DEKTAK_POS_RAW_DATA:
         if path.startswith('/2D_Data'):
             item.typename = _read_name(stream)
@@ -350,7 +309,7 @@ def _read_item(stream, manifest, prefix='', offset=0):
             item.typename = _read_name(stream)
             length = _read_varlen(stream)
             start = stream.tell()
-            unit = _read_unit(stream)
+            unit = _read_unit_data(stream)
             count = _read_scalar(stream, '<u8')
             # Skip over data
             stream.seek(start + length)
@@ -358,19 +317,6 @@ def _read_item(stream, manifest, prefix='', offset=0):
         else:
             # TODO check if should assume 1D here like Gwyddion
             raise ValueError
-    elif item.typeid == DEKTAK_MATRIX:
-        item.typename = _read_name(stream)
-        some_int = _read_scalar(stream, '<u4')
-        another_name = _read_name(stream)
-        length = _read_varlen(stream)
-        yres = _read_scalar(stream, '<u4')
-        xres = _read_scalar(stream, '<u4')
-        if length < 8:  # 2 * sizeof int32
-            raise ValueError
-        length -= 8
-        item.data = (some_int, another_name, offset + stream.tell(), length, xres, yres)
-        # Skip over data
-        stream.seek(length, 1)
 
     # Terminator
     elif item.typeid == DEKTAK_TERMINATOR:
@@ -378,7 +324,7 @@ def _read_item(stream, manifest, prefix='', offset=0):
 
     else:
         try:
-            t = _simple_types[item.typeid]
+            t = _item_readers[item.typeid]
         except KeyError:
             raise ValueError(f"Don't know how to read type with id {item.typeid}.")
         if isinstance(t, str):
@@ -393,7 +339,11 @@ def _read_item(stream, manifest, prefix='', offset=0):
         return None
 
 
-def _read_unit(f):
+def _read_time_stamp(stream):
+    return stream.read(TIMESTAMP_SIZE)
+
+
+def _read_unit(stream):
     """
     Reads in a quantity unit: Value, name and symbol.
 
@@ -407,15 +357,38 @@ def _read_unit(f):
     quantunit : DektakQuantUnit
         A quantunit item, filled with value, name and symbol
     """
+    length = _read_varlen(stream)
+    start = stream.tell()
+    unit = _read_unit_data(stream)
+    if start + length != stream.tell():
+        raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                           f'does not equal the expected position {start + length}.')
+    return unit
+
+
+def _read_unit_data(stream):
+    """
+    Reads in a quantity unit: Value, name and symbol.
+
+    Parameters
+    ----------
+    stream : bytes
+        The input buffer
+
+    Returns
+    -------
+    quantunit : DektakQuantUnit
+        A quantunit item, filled with value, name and symbol
+    """
     quantunit = DektakQuantUnit()
     quantunit.extra = []
 
-    quantunit.name = _read_name(f)
-    quantunit.symbol = _read_name(f)
+    quantunit.name = _read_name(stream)
+    quantunit.symbol = _read_name(stream)
     quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
 
-    quantunit.value = _read_scalar(f, '<f8')
-    quantunit.extra = f.read(UNIT_EXTRA)
+    quantunit.value = _read_scalar(stream, '<f8')
+    quantunit.extra = stream.read(UNIT_EXTRA)
 
     return quantunit
 
@@ -434,6 +407,9 @@ def _read_quantity(stream):
     quantunit : DektakQuantUnit
         A quantunit item, filled with value, name and symbol
     """
+    length = _read_varlen(stream)
+    start = stream.tell()
+
     quantunit = DektakQuantUnit()
     quantunit.extra = []
 
@@ -442,6 +418,8 @@ def _read_quantity(stream):
     quantunit.name = _read_name(stream)
     quantunit.symbol = _read_name(stream)
     quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
+
+    stream.seek(start + length)
 
     return quantunit
 
@@ -504,7 +482,53 @@ def _read_varlen(stream):
         raise ValueError(f"Don't know how to read a variable length of size {lenlen}.")
 
 
-_simple_types = {
+def _read_string_list(stream):
+    _read_name(stream)  # typename, we discard this information
+    length = _read_varlen(stream)
+    start = stream.tell()
+    data = []
+    while stream.tell() < start + length:
+        s = _read_name(stream)
+        data += [s]
+    if start + length != stream.tell():
+        raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                           f'does not equal the expected position {start + length}.')
+    return data
+
+
+def _read_double_array(stream):
+    _read_name(stream)  # typename, we discard this information
+    length = _read_varlen(stream)
+    data = (stream.tell(), length)
+    # Skip over data
+    stream.seek(length, 1)
+    return data  # This is start position and length of the buffer
+
+
+def _read_type_id(stream):
+    _read_name(stream)  # typename, we discard this information
+    length = _read_varlen(stream)
+    return stream.read(length)
+
+
+def _read_matrix(stream):
+    _read_name(stream)  # typename, we discard this information
+    some_int = _read_scalar(stream, '<u4')
+    another_name = _read_name(stream)
+    length = _read_varlen(stream)
+    yres = _read_scalar(stream, '<u4')
+    xres = _read_scalar(stream, '<u4')
+    if length < 8:  # 2 * sizeof int32
+        raise ValueError
+    length -= 8  # Remove xres and yres
+    data = (some_int, another_name, stream.tell(), length, xres, yres)
+    # Skip over data
+    stream.seek(length, 1)
+    return data
+
+
+_item_readers = {
+    # Simple types
     DEKTAK_BOOLEAN: '?',
     DEKTAK_SINT32: '<i4',
     DEKTAK_UINT32: '<u4',
@@ -513,4 +537,12 @@ _simple_types = {
     DEKTAK_FLOAT: '<f4',
     DEKTAK_DOUBLE: '<f8',
     DEKTAK_STRING: _read_string,
+    DEKTAK_QUANTITY: _read_quantity,
+    DEKTAK_TIME_STAMP: _read_time_stamp,
+    DEKTAK_UNITS: _read_unit,
+    # Containers
+    DEKTAK_STRING_LIST: _read_string_list,
+    DEKTAK_DOUBLE_ARRAY: _read_double_array,
+    DEKTAK_TYPE_ID: _read_type_id,
+    DEKTAK_MATRIX: _read_matrix,
 }
