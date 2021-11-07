@@ -40,6 +40,7 @@ pytestmark = pytest.mark.skipif(
 def test_detect_format(file_format_examples):
     assert SurfaceTopography.IO.detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
 
+
 def test_read(file_format_examples):
     loader = H5Reader(os.path.join(file_format_examples, 'surface.2048x2048.h5'))
 

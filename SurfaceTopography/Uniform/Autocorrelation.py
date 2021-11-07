@@ -90,7 +90,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         Autocorrelation function. (Units: length**2)
     """  # noqa: E501
     if self.has_undefined_data:
-        raise UndefinedDataError('This topography has undefined data (missing data points). Derivatives cannot be '
+        raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '
                                  'computed for topographies with missing data points.')
 
     try:
@@ -216,7 +216,7 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         (Units: length**2)
     """
     if self.has_undefined_data:
-        raise UndefinedDataError('This topography has undefined data (missing data points). Derivatives cannot be '
+        raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '
                                  'computed for topographies with missing data points.')
 
     nx, ny = self.nb_grid_pts

@@ -29,7 +29,7 @@ Variable bandwidth analysis for uniform topographies
 
 import numpy as np
 
-from ..Exceptions import NoReliableDataError
+from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import build_tuple
 
@@ -225,6 +225,10 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
 
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Variable bandwidth '
+                                 'analysis cannot be computed for topographies with missing data points.')
+
     magnification = 1
     subdivisions = 1
     sx = self.physical_sizes[0]
@@ -308,6 +312,10 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
+
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Variable bandwidth '
+                                 'analysis cannot be computed for topographies with missing data points.')
 
     magnification = 1
     physical_sizes = np.array(self.physical_sizes)
