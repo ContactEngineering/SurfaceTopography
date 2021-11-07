@@ -25,7 +25,6 @@
 #
 
 import os
-import unittest
 import pytest
 
 from NuMPI import MPI

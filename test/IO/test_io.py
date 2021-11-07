@@ -438,13 +438,13 @@ def test_to_netcdf(fn):
 def test_read_unknown_file_format(file_format_examples):
     with pytest.raises(SurfaceTopography.IO.UnknownFileFormatGiven):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
-            format='Nonexistentfileformat')
+                                             format='Nonexistentfileformat')
 
 
 def test_detect_format_unknown_file_format(file_format_examples):
     with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
-            format='Nonexistentfileformat')
+                                             format='Nonexistentfileformat')
 
 
 def test_file_format_mismatch(file_format_examples):
