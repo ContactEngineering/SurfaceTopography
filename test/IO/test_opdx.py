@@ -36,10 +36,10 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO.OPDx import read_with_check, read_float, \
-    read_double, read_int16, read_int32, read_int64, read_varlen, \
-    read_structured, read_name, DektakQuantUnit, read_dimension2d_content, \
-    read_quantunit_content, read_named_struct, read_item, OPDxReader
+from SurfaceTopography.IO.OPDx import read_float, \
+    read_double, read_uint16, read_uint32, read_uint64, read_varlen, \
+    read_name, DektakQuantUnit, read_dimension2d_content, \
+    _read_unit, read_item, OPDxReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -212,7 +212,7 @@ class OPDxSurfaceTest(unittest.TestCase):
     def test_read_structured(self):
         buffer = ['\x01', '\x04', '\x12', '\xca', '\x50', '\x71']
         pos = 0
-        out, start, length, pos = read_structured(buffer, pos)
+        out, start, length, pos = read_container(buffer, pos)
         self.assertEqual(out, ['\x12', '\xca', '\x50', '\x71'])
         self.assertEqual(start, 2)
         self.assertEqual(length, 4)
@@ -252,7 +252,7 @@ class OPDxSurfaceTest(unittest.TestCase):
 
         pos = 0
 
-        unit, pos = read_quantunit_content(buffer, pos, is_unit=True)
+        unit, pos = _read_unit(buffer, pos, is_unit=True)
         self.assertEqual(unit.name, 'NAME')
         self.assertEqual(unit.symbol, 'SYM')
         self.assertAlmostEqual(unit.value, 0.73, places=10)
@@ -266,7 +266,7 @@ class OPDxSurfaceTest(unittest.TestCase):
 
         pos = 0
 
-        unit, pos = read_quantunit_content(buffer, pos, is_unit=False)
+        unit, pos = _read_unit(buffer, pos, is_unit=False)
         self.assertEqual(unit.name, 'NAME')
         self.assertEqual(unit.symbol, 'SYM')
         self.assertAlmostEqual(unit.value, 0.73, places=10)
@@ -277,7 +277,7 @@ class OPDxSurfaceTest(unittest.TestCase):
         buffer = ['\x04', '\x00', '\x00', '\x00', 'N', 'A', 'M', 'E',
                   '\x01', '\x04', '\x12', '\xca', '\x50', '\x71']
         pos = 0
-        typename, out, start, length, pos = read_named_struct(buffer, pos)
+        typename, out, start, length, pos = read_named_container(buffer, pos)
         self.assertEqual(typename, 'NAME')
         self.assertEqual(out, ['\x12', '\xca', '\x50', '\x71'])
         self.assertEqual(start, 10)
@@ -363,7 +363,8 @@ def test_opdx_txt_absolute_consistency():
 
 
 def test_opdx_txt_consistency():
-    t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
+    #t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
+    t_opdx = OPDxReader(os.path.join(DATADIR, 'opdx2.OPDx')).topography()
     t_txt = read_topography(os.path.join(DATADIR, 'opdx2.txt'))
     assert abs(t_opdx.pixel_size[0] / t_opdx.pixel_size[1] - 1) < 1e-3
     assert abs(t_txt.pixel_size[0] / t_txt.pixel_size[1] - 1) < 1e-3

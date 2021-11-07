@@ -26,7 +26,7 @@
 #
 
 import datetime
-from collections import OrderedDict
+from struct import unpack
 
 import numpy as np
 
@@ -36,7 +36,7 @@ from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_u
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
-MAGIC = "VCA DATA\x01\x00\x00\x55"
+MAGIC = b'VCA DATA\x01\x00\x00\x55'
 
 DEKTAK_MATRIX = 0x00  # Too lazy to assign an actual type id?
 DEKTAK_BOOLEAN = 0x01  # Takes value 0 and 1
@@ -75,31 +75,28 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
+        self.file_path = file_path
         with OpenFromAny(file_path, 'rb') as f:
-            # read topography in file as hexadecimal
-            self.buffer = [chr(byte) for byte in f.read()]
+            # Check OPDx file magic
+            if f.read(len(MAGIC)) != MAGIC:
+                raise ValueError('File magic does not match. This is not a Dektak OPDx file.')
 
-            # length of file
-            physical_sizes = len(self.buffer)
-
-            # check if correct header
-            if physical_sizes < len(MAGIC) or ''.join(self.buffer[:len(MAGIC)]) != MAGIC:
-                raise ValueError('Invalid file format for Dektak OPDx.')
-
-            pos = len(MAGIC)
+            # Read OPDx file manifest (without reading arrays and matrices)
             self.manifest = {}
-            while pos < physical_sizes:
-                buf, pos, manifest, path = read_item(buf=self.buffer, pos=pos, manifest=self.manifest, path="")
+            while read_item(f, self.manifest):
+                pass
 
             # Read channel information
             self._channels = []
-            data_kind = manifest['/MetaData/DataKind'].data
+            data_kind = self.manifest['/MetaData/DataKind'].data
             if data_kind == 'Surface Profile':
+                # This file contains a line scan
                 self.read_linescan_channel_infos(0)
             elif data_kind == 'Surface Height':
+                # This file contains a topography scan
                 self.read_topography_channel_infos(0)
             else:
-                raise ValueError(f"Cannot load data of kind '{data_kind}'.")
+                raise ValueError(f"Don't know how to read data of kind '{data_kind}'.")
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -124,7 +121,11 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         if channel_info.dim == 1:
             position, length = self.manifest[f'{prefix}/Array'].data
-            data = read_array(channel_info.nb_grid_pts[0], self.buffer[position:position + length])
+            #position = 48556
+            assert length == 8 * channel_info.nb_grid_pts[0] + DOUBLE_ARRAY_EXTRA
+            with OpenFromAny(self.file_path, 'rb') as f:
+                f.seek(position + DOUBLE_ARRAY_EXTRA)
+                data = np.frombuffer(f.read(length - DOUBLE_ARRAY_EXTRA), np.dtype('<f8'))
 
             physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
 
@@ -134,8 +135,10 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             some_int, another_name, position, length, xres, yres = self.manifest[f'{prefix}/Matrix'].data
             assert channel_info.nb_grid_pts == (xres, yres)
             assert length == 4 * xres * yres
-            data = read_matrix(xres, yres, self.buffer[position:position + length], 1.0).T
-            assert data.shape == (xres, yres)
+
+            with OpenFromAny(self.file_path, 'rb') as f:
+                f.seek(position)
+                data = np.frombuffer(f.read(length), np.dtype('<f4')).reshape((yres, xres)).T
 
             physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
 
@@ -246,205 +249,231 @@ class DektakQuantUnit:
         self.extra = None
 
 
-def read_item(buf, pos, manifest, path, abspos=0):
+def read_item(stream, manifest, prefix='', offset=0):
     """
-    Reads in the next item out of the buffer and saves it in the hash table.
+    Reads in the next item out of the buffer and saves it in the manifest.
     May recursively call itself for containers.
 
     Parameters
     ----------
-    buf : bytes
-        The raw data buffer
-    pos : int
-        Current position in the buffer
-    manifest : OrderedDict
-        The output hash table
-    path : str
-        Current name to save
-    abspos : int, optional
-        Absolute position in buffer to keep track when calling itself
+    stream : file-like stream object
+        The input file/buffer.
+    manifest : dict
+        The manifest that will be updated by a call to this function.
+    prefix : str, optional
+        Prefix to the keys that are stored in the manifest. (Default: '')
+    offset : int, optional
+        Offset of f relative to the absolute start of the buffer holding the
+        full OPDx.
         (Default: 0)
 
     Returns
     -------
-    but : bytes,
-        Output buffer
-    newpos : int
-        New position
-    manifest : OrderedDict
-        Hash table with new item in it
-    new_path : str
-        New path
+    key : str
+        Return the key for the item that was created by this read command.
+        None indicates that the end of the buffer or file has been reached.
     """
-    orig_path_len = len(path)
     item = DektakItem()
-    itempos = 0
-    name, pos = read_name(buf, pos)
+    name = read_name(stream)
 
-    path += '/'
-    path += name
+    path = f'{prefix}/{name}'
 
-    item.typeid, pos = read_with_check(buf, pos, 1)
-    item.typeid = ord(item.typeid[0])
+    item.typeid = read_uint8(stream)
 
     # simple types
     if item.typeid == DEKTAK_BOOLEAN:
-        b8, pos = read_with_check(buf, pos, 1)
-        if b8 == '\x01':
-            item.data = True
-        elif b8 == '\x00':
-            item.data = False
-        else:
-            raise ValueError("Something went wrong.")
-
+        item.data = bool(read_uint8(stream))
     elif item.typeid == DEKTAK_SINT32:
-        item.data, pos = read_int32(buf, pos, signed=True)
+        item.data = read_sint32(stream)
     elif item.typeid == DEKTAK_UINT32:
-        item.data, pos = read_int32(buf, pos, signed=False)
+        item.data = read_uint32(stream)
     elif item.typeid == DEKTAK_SINT64:
-        item.data, pos = read_int64(buf, pos, signed=True)
+        item.data = read_sint64(stream)
     elif item.typeid == DEKTAK_UINT64:
-        item.data, pos = read_int64(buf, pos, signed=False)
+        item.data = read_uint64(stream)
     elif item.typeid == DEKTAK_FLOAT:
-        item.data, pos = read_float(buf, pos)
+        item.data = read_float(stream)
     elif item.typeid == DEKTAK_DOUBLE:
-        item.data, pos = read_double(buf, pos)
+        item.data = read_double(stream)
     elif item.typeid == DEKTAK_TIME_STAMP:
-        time, pos = read_with_check(buf, pos, TIMESTAMP_SIZE)
-        item.data = time
+        item.data = stream.read(TIMESTAMP_SIZE)
     elif item.typeid == DEKTAK_STRING:
-        item.data, pos = read_string(buf, pos)
+        item.data = read_string(stream)
     elif item.typeid == DEKTAK_QUANTITY:
-        content, _, _, pos = read_structured(buf, pos)
-        item.data, itempos = read_quantunit_content(content, itempos, False)
+        length = read_varlen(stream)
+        start = stream.tell()
+        item.data = _read_quantity(stream)
+        stream.seek(start + length)
+        #stream.read(20)
+        #if start + length != stream.tell():
+        #    raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+        #                       f'does not equal the expected position {start + length}.')
     elif item.typeid == DEKTAK_UNITS:
-        content, _, _, pos = read_structured(buf, pos)
-        item.data, itempos = read_quantunit_content(content, itempos, True)
+        length = read_varlen(stream)
+        start = stream.tell()
+        item.data = _read_unit(stream)
+        if start + length != stream.tell():
+            raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                               f'does not equal the expected position {start + length}.')
     elif item.typeid == DEKTAK_TERMINATOR:
-        pos = len(buf)
+        return None
+
     # Container types.
     elif item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
-        # TODO find out if maybe better place somewhere else
-        content, start, _, pos = read_structured(buf, pos)
-        abspos += start
-        while itempos < len(content):
-            content, itempos, manifest, path = read_item(
-                buf=content, pos=itempos, manifest=manifest,
-                path=path, abspos=abspos)
+        length = read_varlen(stream)
+        start = stream.tell()
+        while read_item(stream, manifest, prefix=path):
+            pass
+        # There are two bytes at the end of every container with unknown purpose...
+        read_uint16(stream)
+        if start + length != stream.tell():
+            raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                               f'does not equal the expected position {start + length}.')
+        stream.seek(start + length)
+        return path
     # Types with string type name
     elif item.typeid == DEKTAK_DOUBLE_ARRAY:
-        item.typename, content, start, length, pos = read_named_struct(buf, pos)
-        item.data = (start + abspos, length)
+        item.typename = read_name(stream)
+        length = read_varlen(stream)
+        item.data = (stream.tell(), length)
+        # Skip over data
+        stream.seek(length, 1)
     elif item.typeid == DEKTAK_STRING_LIST:
-        item.typename, content, start, _, pos = read_named_struct(buf, pos)
+        item.typename = read_name(stream)
+        length = read_varlen(stream)
+        start = stream.tell()
         item.data = []
-        while itempos < len(content):
-            s, itempos = read_name(content, itempos)
+        while stream.tell() < start + length:
+            s = read_name(stream)
             item.data += [s]
+        if start + length != stream.tell():
+            raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                               f'does not equal the expected position {start + length}.')
     elif item.typeid == DEKTAK_TYPE_ID:
-        item.typename, item.data, _, _, pos = read_named_struct(buf, pos)
+        item.typename = read_name(stream)
+        length = read_varlen(stream)
+        item.data = stream.read(length)
     elif item.typeid == DEKTAK_POS_RAW_DATA:
         if path.startswith('/2D_Data'):
-            item.typename, content, _, _, pos = read_named_struct(buf, pos)
-            unitx, divisorx, itempos = read_dimension2d_content(content, itempos)
-            unity, divisory, itempos = read_dimension2d_content(content, itempos)
+            item.typename = read_name(stream)
+            length = read_varlen(stream)
+            start = stream.tell()
+            unitx, divisorx = read_dimension2d_content(stream)
+            unity, divisory = read_dimension2d_content(stream)
             item.data = (unitx, divisorx, unity, divisory)
+            if start + length != stream.tell():
+                raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
+                                   f'does not equal the expected position {start + length}.')
         elif path.startswith('/1D_Data'):
-            item.typename, content, _, _, pos = read_named_struct(buf, pos)
-            unit, itempos = read_quantunit_content(content, itempos, True)
-            count, itempos = read_int64(content, itempos)
+            item.typename = read_name(stream)
+            length = read_varlen(stream)
+            start = stream.tell()
+            unit = _read_unit(stream)
+            count = read_uint64(stream)
+            # Skip over data
+            stream.seek(start + length)
             item.data = (unit, count)
         else:
             # TODO check if should assume 1D here like Gwyddion
             raise ValueError
     elif item.typeid == DEKTAK_MATRIX:
-        item.typename, pos = read_name(buf, pos)
-        some_int, pos = read_int32(buf, pos)
-        another_name, pos = read_name(buf, pos)
-        length, pos = read_varlen(buf, pos)
-        yres, pos = read_int32(buf, pos)
-        xres, pos = read_int32(buf, pos)
+        item.typename = read_name(stream)
+        some_int = read_uint32(stream)
+        another_name = read_name(stream)
+        length = read_varlen(stream)
+        yres = read_uint32(stream)
+        xres = read_uint32(stream)
         if length < 8:  # 2 * sizeof int32
             raise ValueError
         length -= 8
-        p = pos + abspos
-        item.data = (some_int, another_name, p, length, xres, yres)
-
-        if len(buf) - pos < length:
-            raise ValueError
-        pos += length
+        item.data = (some_int, another_name, offset + stream.tell(), length, xres, yres)
+        # Skip over data
+        stream.seek(length, 1)
     else:
-        raise ValueError
-    manifest[path] = item
-    path = path[:orig_path_len]
-    return buf, pos, manifest, path
+        raise ValueError(f"Don't know how to read type with id {item.typeid}.")
+    if item.data is not None:
+        manifest[path] = item
+        return path
+    else:
+        return None
 
 
-def read_quantunit_content(buf, pos, is_unit):
+def _read_unit(f):
     """
     Reads in a quantity unit: Value, name and symbol.
 
     Parameters
     ----------
-    buf : bytes
+    f : bytes
         The input buffer
-    pos : integer
-        The position in the buffer
-    is_unit : boot
-        Whether or not it is a unit
 
     Returns
     -------
     quantunit : DektakQuantUnit
         A quantunit item, filled with value, name and symbol
-    new_pos : int
-        New position in input buffer
     """
     quantunit = DektakQuantUnit()
     quantunit.extra = []
 
-    if not is_unit:
-        quantunit.value, pos = read_double(buf, pos)
-
-    quantunit.name, pos = read_name(buf, pos)
-    quantunit.symbol, pos = read_name(buf, pos)
+    quantunit.name = read_name(f)
+    quantunit.symbol = read_name(f)
     quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
 
-    if is_unit:
-        quantunit.value, pos = read_double(buf, pos)
-        res, pos = read_with_check(buf, pos, UNIT_EXTRA)
-        quantunit.extra += res
+    quantunit.value = read_double(f)
+    quantunit.extra = f.read(UNIT_EXTRA)
 
-    return quantunit, pos
+    return quantunit
 
 
-def read_dimension2d_content(buf, pos):
+def _read_quantity(f):
+    """
+    Reads in a quantity unit: Value, name and symbol.
+
+    Parameters
+    ----------
+    f : bytes
+        The input buffer
+
+    Returns
+    -------
+    quantunit : DektakQuantUnit
+        A quantunit item, filled with value, name and symbol
+    """
+    quantunit = DektakQuantUnit()
+    quantunit.extra = []
+
+    quantunit.value = read_double(f)
+
+    quantunit.name = read_name(f)
+    quantunit.symbol = read_name(f)
+    quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
+
+    return quantunit
+
+
+def read_dimension2d_content(stream):
     """
     Reads in information about a 2d dimension.
 
     Parameters
     ----------
-    buf : bytes
+    stream : bytes
         The input buffer
-    pos : integer
-        Position in the buffer
 
     Returns
     -------
     unit : DektakQuantUnit
-        The unit (is passed through)
+        The unit
     divisor : float
         Divisor
-    new_pos : int
-        New position in input buffer
     """
     unit = DektakQuantUnit()
-    unit.value, pos = read_double(buf, pos)
-    unit.name, pos = read_name(buf, pos)
-    unit.symbol, pos = read_name(buf, pos)
-    divisor, pos = read_double(buf, pos)
-    unit.extra, pos = read_with_check(buf, pos, UNIT_EXTRA)
-    return unit, divisor, pos
+    unit.value = read_double(stream)
+    unit.name = read_name(stream)
+    unit.symbol = read_name(stream)
+    divisor = read_double(stream)
+    unit.extra = stream.read(UNIT_EXTRA)
+    return unit, divisor
 
 
 def read_matrix(xres, yres, data, q=1):
@@ -479,339 +508,67 @@ def read_matrix(xres, yres, data, q=1):
     return data
 
 
-def read_array(nb_points, data):
-    """
-    Reads a float matrix of given dimensions and multiplies with a scale.
-
-    Parameters
-    ----------
-    xres : int
-        Resolution along x-axis
-    yres : int
-        Resolution along y-axis
-    data : bytes
-        The raw hex data
-    q : float
-        The scale of the data
-
-    Returns
-    -------
-    data : np.ndarray
-        Matrix
-    """
-    data = ''.join(data[DOUBLE_ARRAY_EXTRA:])
-
-    assert len(data) == 8 * nb_points
-
-    dt = np.dtype('<f8')  # double, little-endian
-    data = np.frombuffer(str.encode(data, "raw_unicode_escape"), dt)
-    return data
-
-
-def read_name(buf, pos):
-    """
-    Reads a name.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    name : str
-        Name
-    new_pos : int
-        New position in input buffer
-    """
-
+def read_name(f):
     # Names always have a size of 4 bytes
-    length, pos = read_int32(buf, pos)
-    if len(buf) < length or pos > len(buf) - length:
-        raise ValueError("Some sizes went wrong.")
-    position = pos
-
-    name = buf[position:position + length]
-    name = "".join(s for s in name)
-    pos += length
-    return name, pos
+    length = read_uint32(f)
+    return f.read(length).decode('raw_unicode_escape')
 
 
-def read_structured(buf, pos):
-    """
-    Reads a length and returns a part of the buffer that long.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    out : int
-        Output buffer
-    start : int
-        Start position within input buffer
-    pos : int
-        New position in input buffer
-    """
-    length, pos = read_varlen(buf, pos)
-    if len(buf) < length or pos > len(buf) - length:
-        raise ValueError("Some sizes went wrong.")
-    start = pos
-    pos += length
-    return buf[start:start + length], start, length, pos
+def read_string(stream):
+    # String have variable lengths
+    string_length = read_varlen(stream)
+    return stream.read(string_length).decode('raw_unicode_escape')
 
 
-def read_string(buf, pos):
-    """
-    Reads a string.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    out : int
-        Output buffer
-    pos : int
-        New position in input buffer
-    """
-    buf, start, length, pos = read_structured(buf, pos)
-    return ''.join(buf), pos
-
-
-def read_named_struct(buf, pos):
-    """
-    Same as `read_structured` but there is a name to it.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    name : str
-        Name of buffer
-    out : int
-        Output buffer
-    start : int
-        Start position within input buffer
-    pos : int
-        New position in input buffer
-    """
-    typename, pos = read_name(buf, pos)
-    content, start, length, pos = read_structured(buf, pos)
-    return typename, content, start, length, pos
-
-
-def read_varlen(buf, pos):
-    """
-    Reads a length of variable length itself
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    out : int
-        Length value
-    new_pos : int
-        New position in input buffer
-    """
-    lenlen, pos = read_with_check(buf, pos, 1)
-    lenlen = np.frombuffer(str.encode(lenlen, "raw_unicode_escape"), "<u1")[0]
+def read_varlen(f):
+    lenlen = read_uint8(f)
     if lenlen == 1:
-        length, pos = read_with_check(buf, pos, 1)
-        length = \
-            np.frombuffer(str.encode(length, "raw_unicode_escape"), "<u1")[0]
+        return read_uint8(f)
     elif lenlen == 2:
-        length, pos = read_int16(buf, pos)
+        return read_uint16(f)
     elif lenlen == 4:
-        length, pos = read_int32(buf, pos)
+        return read_uint32(f)
     else:
-        raise ValueError
-    return length, pos
+        raise ValueError(f"Don't know how to read a variable length of size {lenlen}.")
 
 
-def read_int64(buf, pos, signed=False):
-    """
-    Reads a 64bit int.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-    signed : bool, optional
-        Signed integer (Default: false)
-
-    Returns
-    -------
-    out : int
-        Output value
-    new_pos : int
-        New position in input buffer
-    """
-    out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
-    out = ''.join(out)
-    dt = "<i8" if signed else "<u8"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
-        0]  # interpret hexadecimal -> int (little-endian)
-    return out, pos
+def read_sint64(f):
+    return unpack('<q', f.read(8))[0]
 
 
-def read_int32(buf, pos, signed=False):
-    """
-    Reads a 32bit int.
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-    signed : bool, optional
-        Signed integer (Default: false)
-
-    Returns
-    -------
-    out : int
-        Output value
-    new_pos : int
-        New position in input buffer
-    """
-    out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
-    out = ''.join(out)
-    dt = "<i4" if signed else "<u4"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
-        0]  # interpret hexadecimal -> int (little-endian)
-    return out, pos
+def read_uint64(f):
+    return unpack('<Q', f.read(8))[0]
 
 
-def read_int16(buf, pos, signed=False):
-    """
-    Reads a 16bit integer.
+def read_sint32(f):
+    buffer = f.read(4)
+    if buffer:
+        return unpack('<l', buffer)[0]
+    else:
+        return None
 
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-    signed : bool, optional
-        Signed integer (Default: false)
-
-    Returns
-    -------
-    out : int
-        Output value
-    new_pos : int
-        New position in input buffer
-    """
-    out, pos = read_with_check(buf=buf, pos=pos, nbytes=2)
-    out = ''.join(out)
-    dt = "<i2" if signed else "<u2"
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
-        0]  # interpret hexadecimal -> int (little-endian)
-    return out, pos
+def read_uint32(f):
+    buffer = f.read(4)
+    if buffer:
+        return unpack('<L', buffer)[0]
+    else:
+        return None
 
 
-def read_double(buf, pos):
-    """
-    Reads a double (64bit)
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    out : float
-        Output value
-    new_pos : int
-        New position in input buffer
-    """
-    out, pos = read_with_check(buf=buf, pos=pos, nbytes=8)
-    out = ''.join(out)
-    dt = np.dtype('d')  # double
-    dt = dt.newbyteorder('<')  # little-endian
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[
-        0]  # interpret hexadecimal -> int (little-endian)
-    return out, pos
+def read_sint16(f):
+    return unpack('<h', f.read(2))[0]
 
 
-def read_float(buf, pos):
-    """
-    Reads a float (32bit)
-
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-
-    Returns
-    -------
-    out : float
-        Output value
-    new_pos : int
-        New position in input buffer
-    """
-    out, pos = read_with_check(buf=buf, pos=pos, nbytes=4)
-    out = ''.join(out)
-    dt = np.dtype('f')  # double
-    dt = dt.newbyteorder('<')  # little-endian
-    out = np.frombuffer(str.encode(out, "raw_unicode_escape"), dt)[0]  # interpret hexadecimal -> int (little-endian)
-    return out, pos
+def read_uint16(f):
+    return unpack('<H', f.read(2))[0]
 
 
-def read_with_check(buf, pos, nbytes):
-    """
-    Reads and returns n bytes.
+def read_uint8(f):
+    return unpack('B', f.read(1))[0]
 
-    Parameters
-    ----------
-    buf : bytes
-        Input buffer
-    pos : int
-        The current position
-    nbytes : int
-        Number of bytes to read in
+def read_double(f):
+    return unpack('<d', f.read(8))[0]
 
-    Returns
-    -------
-    out : bytes
-        Output buffer
-    new_pos : int
-        New position in input buffer
-    """
 
-    if len(buf) < nbytes or len(buf) - nbytes < pos:
-        raise ValueError("Some sizes went wrong.")
-
-    out = buf[pos:pos + nbytes]
-    pos += int(nbytes)
-
-    out = out[0] if nbytes == 1 else out
-    return out, pos
+def read_float(f):
+    return unpack('<f', f.read(4))[0]
