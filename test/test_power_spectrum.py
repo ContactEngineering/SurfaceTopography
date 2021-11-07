@@ -44,8 +44,6 @@ pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
 
-DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
-
 
 ###
 
@@ -208,8 +206,8 @@ def test_NaNs():
     assert np.isnan(C).sum() == 390
 
 
-def test_brute_force_vs_fft():
-    t = read_topography(os.path.join(DATADIR, 'example.xyz'))
+def test_brute_force_vs_fft(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
     q, A = t.detrend().power_spectrum_from_profile(window="None")
     q2, A2 = t.detrend().power_spectrum_from_profile(algorithm='brute-force',
                                                      wavevectors=q, nb_interpolate=5,
@@ -221,8 +219,8 @@ def test_brute_force_vs_fft():
     assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
 
 
-def test_short_cutoff():
-    t = read_topography(os.path.join(DATADIR, 'example.xyz'))
+def test_short_cutoff(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
     q1, C1 = t.detrend().power_spectrum_from_profile(short_cutoff=np.mean, reliable=False, resampling_method=None)
     q2, C2 = t.detrend().power_spectrum_from_profile(short_cutoff=np.min, reliable=False, resampling_method=None)
     q3, C3 = t.detrend().power_spectrum_from_profile(short_cutoff=np.max, reliable=False, resampling_method=None)

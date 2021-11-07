@@ -35,11 +35,15 @@ import numpy as np
 from numpy.testing import assert_almost_equal, assert_allclose
 from scipy.interpolate import interp1d
 
+from NuMPI import MPI
+
 from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan, NonuniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation
 
-DATADIR = os.path.join(os.path.dirname(__file__), 'file_format_examples')
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 ###
@@ -301,8 +305,8 @@ def test_self_affine_nonuniform_autocorrelation():
     assert_allclose(A, A2, atol=1e-5)
 
 
-def test_brute_force_vs_fft():
-    t = read_topography(os.path.join(DATADIR, 'example.xyz'))
+def test_brute_force_vs_fft(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
     r, A = t.detrend().autocorrelation_from_profile()
     m = np.isfinite(A)
     r = r[m]
