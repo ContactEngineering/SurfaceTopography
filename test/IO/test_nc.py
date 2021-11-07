@@ -30,7 +30,6 @@ import tempfile
 import numpy as np
 from scipy.io.netcdf import netcdf_file
 
-from NuMPI import MPI
 from muFFT import FFT
 
 from SurfaceTopography.IO import read_topography

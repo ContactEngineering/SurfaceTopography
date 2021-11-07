@@ -81,8 +81,8 @@ variables describes the physical unit. The optional additional attribute
 `periodic` indicates whether the direction contains periodic data. If
 `periodic` is missing, the reader interprets the data as non-periodic.
 
-If an additional variable `mask` is present, this variable is used to mask
-undefined points. 
+If an additional variable `mask` is present, this variable is used to mark
+undefined points.
 
 An example file layout (output of `ncdump -h`) containing a topography map
 with 128 x 128 pixels looks like this:
