@@ -21,6 +21,8 @@ v0.99.0 (not yet released)
   broken in some cases; now an explicit mask is stored to the NetCDF file
 - MAINT: Refactored OPDx reader (attention: height scale factor differs from
   old reader)
+- MAINT: Variable bandwidth raises `UndefinedDataError` when topography has
+  undefined data points
 
 
 v0.98.2 (25Oct21)
