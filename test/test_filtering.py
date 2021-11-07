@@ -27,9 +27,15 @@ import pytest
 
 import numpy as np
 
+from NuMPI import MPI
+
 import SurfaceTopography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography import Topography, UniformLineScan
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_longcut():

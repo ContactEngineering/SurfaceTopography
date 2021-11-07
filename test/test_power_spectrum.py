@@ -45,9 +45,6 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 
-###
-
-
 def test_uniform():
     for periodic in [True, False]:
         for L in [1.3, 10.6]:

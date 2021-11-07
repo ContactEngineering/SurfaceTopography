@@ -46,8 +46,6 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 
-###
-
 def py_autocorrelation_from_profile(line_scan, distances=None):
     r"""
     Compute the one-dimensional height-difference autocorrelation function

@@ -22,7 +22,15 @@
 # SOFTWARE.
 #
 
+import pytest
+
+from NuMPI import MPI
+
 from SurfaceTopography.Support.UnitConversion import suggest_length_unit
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_suggest_length_unit():

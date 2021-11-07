@@ -32,12 +32,17 @@ import pytest
 
 import numpy as np
 
+from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO.Text import read_xyz
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_translate(comm_self):

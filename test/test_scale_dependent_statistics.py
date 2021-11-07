@@ -22,15 +22,20 @@
 # SOFTWARE.
 #
 
-import pytest
-
 import numpy as np
+import pytest
 import scipy.interpolate
 from scipy.stats import kstat
+
+from NuMPI import MPI
 
 from SurfaceTopography import read_container, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography import SurfaceContainer
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_scale_dependent_rms_slope_from_profile():
