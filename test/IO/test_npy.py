@@ -40,8 +40,6 @@ from SurfaceTopography.IO.NPY import save_npy
 import NuMPI
 from NuMPI import MPI
 
-DATADIR = os.path.dirname(os.path.realpath(__file__))
-
 
 def test_save_and_load(comm_self, file_format_examples):
     # sometimes the surface isn't transposed the same way when
@@ -95,8 +93,8 @@ def test_save_and_load_np(comm_self, file_format_examples):
 
 
 @pytest.fixture
-def examplefile(comm):
-    fn = DATADIR + "/workflowtest.npy"
+def examplefile(comm, file_format_examples):
+    fn = file_format_examples + "/workflowtest.npy"
     res = (128, 64)
     np.random.seed(1)
     data = np.random.random(res)

@@ -106,6 +106,3 @@ def test_sphere_standoff(comm):
                                R ** 2)
 
     np.testing.assert_allclose(Z[np.logical_not(sl_inner)], - R - standoff)
-
-#
-# #def test_paraboloid(comm, fftengine_class)

@@ -23,20 +23,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-import pytest
+
 import os
+import pytest
 from numpy.testing import assert_allclose
+
+from NuMPI import MPI
 
 from SurfaceTopography.IO.Text import read_xyz
 
-DATADIR = os.path.join(
-    os.path.dirname(
-        os.path.dirname(os.path.realpath(__file__))),
-    'file_format_examples')
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_read_1d():
-    surface = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+def test_read_1d(file_format_examples):
+    surface = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -47,11 +49,11 @@ def test_read_1d():
 
 
 @pytest.mark.parametrize("filename", ['example-2d.xyz', 'example-2d-different-order.xyz'])
-def test_read_2d(filename):
+def test_read_2d(filename, file_format_examples):
     """
     Here the order of points in the input file shouldn't matter.
     """
-    surface = read_xyz(os.path.join(DATADIR, filename))
+    surface = read_xyz(os.path.join(file_format_examples, filename))
     assert surface.is_uniform
     x, y, z = surface.positions_and_heights()
     assert x.shape == (4, 4)

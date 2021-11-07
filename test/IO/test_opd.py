@@ -25,38 +25,39 @@
 #
 
 import os
-from pytest import approx
+import pytest
+
+from NuMPI import MPI
 
 from SurfaceTopography.IO.FromFile import read_opd
 from SurfaceTopography.IO import open_topography
 
-DATADIR = os.path.join(
-    os.path.dirname(
-        os.path.dirname(os.path.realpath(__file__))),
-    'file_format_examples')
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_read_opd():
-    surface = read_opd(os.path.join(DATADIR, 'example.opd'))
+def test_read_opd(file_format_examples):
+    surface = read_opd(os.path.join(file_format_examples, 'example.opd'))
     nx, ny = surface.nb_grid_pts
     assert nx == 640
     assert ny == 480
     sx, sy = surface.physical_sizes
 
-    assert sx == approx(0.125909140)
-    assert sy == approx(0.094431855)
+    assert sx == pytest.approx(0.125909140)
+    assert sy == pytest.approx(0.094431855)
     assert surface.is_uniform
-    assert surface.height_scale_factor == approx(0.0005772949829101563)
+    assert surface.height_scale_factor == pytest.approx(0.0005772949829101563)
 
 
-def test_undefined_points():
-    t = read_opd(os.path.join(DATADIR, 'example2.opd'))
+def test_undefined_points(file_format_examples):
+    t = read_opd(os.path.join(file_format_examples, 'example2.opd'))
     assert t.has_undefined_data
 
 
-def test_reader():
-    reader = open_topography(os.path.join(DATADIR, 'example.opd'))
+def test_reader(file_format_examples):
+    reader = open_topography(os.path.join(file_format_examples, 'example.opd'))
     assert len(reader.channels) == 1
     ch = reader.default_channel
-    assert ch.physical_sizes == approx((0.125909140, 0.094431855))
-    assert ch.height_scale_factor == approx(0.0005772949829101563)
+    assert ch.physical_sizes == pytest.approx((0.125909140, 0.094431855))
+    assert ch.height_scale_factor == pytest.approx(0.0005772949829101563)

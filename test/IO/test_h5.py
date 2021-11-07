@@ -26,32 +26,27 @@
 
 import os
 import unittest
+import pytest
+
+from NuMPI import MPI
 
 import SurfaceTopography
 from SurfaceTopography.IO import H5Reader
 
-DATADIR = os.path.join(
-    os.path.dirname(
-        os.path.dirname(os.path.realpath(__file__))),
-    'file_format_examples')
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
-class h5SurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
+def test_detect_format(file_format_examples):
+    assert SurfaceTopography.IO.detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
 
-    def test_detect_format(self):
-        self.assertEqual(SurfaceTopography.IO.detect_format(
-            # TODO(pastewka): this will be the standard detect format method
-            #  in the future
-            os.path.join(DATADIR, 'surface.2048x2048.h5')), 'h5')
+def test_read(file_format_examples):
+    loader = H5Reader(os.path.join(file_format_examples, 'surface.2048x2048.h5'))
 
-    def test_read(self):
-        loader = H5Reader(os.path.join(DATADIR, 'surface.2048x2048.h5'))
-
-        topography = loader.topography(physical_sizes=(1., 1.))
-        nx, ny = topography.nb_grid_pts
-        self.assertEqual(nx, 2048)
-        self.assertEqual(ny, 2048)
-        self.assertTrue(topography.is_uniform)
-        self.assertEqual(topography.dim, 2)
+    topography = loader.topography(physical_sizes=(1., 1.))
+    nx, ny = topography.nb_grid_pts
+    assert nx == 2048
+    assert ny == 2048
+    assert topography.is_uniform
+    assert topography.dim == 2

@@ -28,8 +28,15 @@ import tempfile
 import xml.etree.cElementTree as ET
 
 import numpy as np
+import pytest
+
+from NuMPI import MPI
 
 from SurfaceTopography.Generation import fourier_synthesis
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_write_xml():

@@ -24,11 +24,18 @@
 
 import datetime
 import os
+import pytest
 
 import numpy as np
 
+from NuMPI import MPI
+
 from SurfaceTopography import read_topography
 from SurfaceTopography.IO import DIReader
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_di_date(file_format_examples):
