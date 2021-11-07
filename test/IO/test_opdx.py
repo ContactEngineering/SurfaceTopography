@@ -113,20 +113,7 @@ def test_topography(file_format_examples):
         np.testing.assert_allclose(topography.heights()[0, 0], -7.731534)
 
 
-@pytest.mark.skip(reason="See issue #275")
-def test_opdx_txt_absolute_consistency():
-    t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
-    t_txt = read_topography(os.path.join(DATADIR, 'opdx2.txt'))
-    assert ((abs(t_opdx.pixel_size - t_txt.pixel_size)
-             / t_opdx.pixel_size) < 1e-3).all()
-    assert ((abs(t_opdx.physical_sizes - t_txt.physical_sizes)
-             / t_opdx.physical_sizes) < 1e-3).all()
-    assert t_opdx.nb_grid_pts == t_txt.nb_grid_pts
-    np.testing.assert_all_close(t_opdx.heights, t_txt.heights)
-
-
 def test_opdx_txt_consistency(file_format_examples):
-    # t_opdx = read_topography(os.path.join(DATADIR, 'opdx2.OPDx'))
     t_opdx = OPDxReader(os.path.join(file_format_examples, 'opdx2.OPDx')).topography()
     t_txt = read_topography(os.path.join(file_format_examples, 'opdx2.txt'))
     assert abs(t_opdx.pixel_size[0] / t_opdx.pixel_size[1] - 1) < 1e-3
