@@ -88,7 +88,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         # Populate channel information
         self._channels = []
-        data_kind = self.manifest['/MetaData/DataKind'].data
+        data_kind = self.manifest['/MetaData/DataKind']
         if data_kind == 'Surface Profile':
             # This file contains a line scan
             self.read_linescan_channel_infos(0)
@@ -120,7 +120,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             raise MetadataAlreadyFixedByFile('height_scale_factor')
 
         if channel_info.dim == 1:
-            position, length = self.manifest[f'{prefix}/Array'].data
+            position, length = self.manifest[f'{prefix}/Array']
             # position = 48556
             assert length == 8 * channel_info.nb_grid_pts[0] + DOUBLE_ARRAY_EXTRA
             with OpenFromAny(self.file_path, 'rb') as f:
@@ -132,7 +132,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             return UniformLineScan(heights=data, physical_sizes=physical_sizes, unit=unit, periodic=periodic,
                                    info=channel_info.info).scale(channel_info.height_scale_factor)
         elif channel_info.dim == 2:
-            some_int, another_name, position, length, xres, yres = self.manifest[f'{prefix}/Matrix'].data
+            some_int, another_name, position, length, xres, yres = self.manifest[f'{prefix}/Matrix']
             assert channel_info.nb_grid_pts == (xres, yres)
             assert length == 4 * xres * yres
 
@@ -156,14 +156,14 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         try:
             acquisition_time = datetime.datetime.strptime(
-                self.manifest['/MetaData/Date'].data + ' ' + self.manifest['/MetaData/Time'].data,
+                self.manifest['/MetaData/Date'] + ' ' + self.manifest['/MetaData/Time'],
                 '%d/%m/%Y %I:%M:%S %p')
             info['acquisition_time'] = acquisition_time
         except KeyError:
             pass
 
         try:
-            info['instrument'] = {'name': self.manifest['/MetaData/MeasurementSettings/InstrumentName'].data}
+            info['instrument'] = {'name': self.manifest['/MetaData/MeasurementSettings/InstrumentName']}
         except KeyError:
             pass
 
@@ -173,22 +173,22 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         """
         Read line scan (profile) information
         """
-        channel_names = self.manifest['/MetaData/1D_Channels/Height'].data
+        channel_names = self.manifest['/MetaData/1D_Channels/Height']
 
         for channel_name in channel_names:
             prefix = f'/1D_Data/{channel_name}'
 
-            nb_grid_pts = self.manifest[f'{prefix}/NumPoints'].data
-            physical_size = self.manifest[f'{prefix}/Extent'].data.value
-            unit = self.manifest[f'{prefix}/Extent'].data.symbol
+            nb_grid_pts = self.manifest[f'{prefix}/NumPoints']
+            physical_size = self.manifest[f'{prefix}/Extent'].value
+            unit = self.manifest[f'{prefix}/Extent'].symbol
 
-            height_scale_factor = self.manifest[f'{prefix}/DataScale'].data.value
-            height_unit = self.manifest[f'{prefix}/DataScale'].data.symbol
+            height_scale_factor = self.manifest[f'{prefix}/DataScale'].value
+            height_unit = self.manifest[f'{prefix}/DataScale'].symbol
 
             height_scale_factor *= get_unit_conversion_factor(height_unit, unit)
 
             self._channels += [ChannelInfo(self, channel_index,
-                                           name=self.manifest[f'{prefix}/DataKind'].data,
+                                           name=self.manifest[f'{prefix}/DataKind'],
                                            dim=1,
                                            nb_grid_pts=nb_grid_pts,
                                            physical_sizes=physical_size,
@@ -202,27 +202,27 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         """
         Read topography (2D map) information
         """
-        channel_name = self.manifest['/MetaData/PrimaryData2D'].data
+        channel_name = self.manifest['/MetaData/PrimaryData2D']
         prefix = f'/2D_Data/{channel_name}'
 
-        nb_grid_pts_y = self.manifest[f'{prefix}/Dimension1Points'].data
-        nb_grid_pts_x = self.manifest[f'{prefix}/Dimension2Points'].data
+        nb_grid_pts_y = self.manifest[f'{prefix}/Dimension1Points']
+        nb_grid_pts_x = self.manifest[f'{prefix}/Dimension2Points']
 
-        physical_size_y = self.manifest[f'{prefix}/Dimension1Extent'].data.value
-        unit_y = self.manifest[f'{prefix}/Dimension1Extent'].data.symbol
+        physical_size_y = self.manifest[f'{prefix}/Dimension1Extent'].value
+        unit_y = self.manifest[f'{prefix}/Dimension1Extent'].symbol
 
-        physical_size_x = self.manifest[f'{prefix}/Dimension2Extent'].data.value
-        unit_x = self.manifest[f'{prefix}/Dimension2Extent'].data.symbol
+        physical_size_x = self.manifest[f'{prefix}/Dimension2Extent'].value
+        unit_x = self.manifest[f'{prefix}/Dimension2Extent'].symbol
 
         physical_size_y *= get_unit_conversion_factor(unit_y, unit_x)
 
-        height_scale_factor = self.manifest[f'{prefix}/DataScale'].data.value
-        height_unit = self.manifest[f'{prefix}/DataScale'].data.symbol
+        height_scale_factor = self.manifest[f'{prefix}/DataScale'].value
+        height_unit = self.manifest[f'{prefix}/DataScale'].symbol
 
         height_scale_factor *= get_unit_conversion_factor(height_unit, unit_x)
 
         self._channels += [ChannelInfo(self, channel_index,
-                                       name=self.manifest[f'{prefix}/DataKind'].data,
+                                       name=self.manifest[f'{prefix}/DataKind'],
                                        dim=2,
                                        nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
                                        physical_sizes=(physical_size_x, physical_size_y),
@@ -232,13 +232,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
-
-
-class DektakItem:
-    def __init__(self):
-        self.typename = None
-        self.typeid = None
-        self.data = None
 
 
 class DektakQuantUnit:
@@ -273,15 +266,14 @@ def _read_item(stream, manifest, prefix='', offset=0):
         Return the key for the item that was created by this read command.
         None indicates that the end of the buffer or file has been reached.
     """
-    item = DektakItem()
     name = _read_name(stream)
-
     path = f'{prefix}/{name}'
+    data = None
 
-    item.typeid = _read_scalar(stream, 'B')
+    typeid = _read_scalar(stream, 'B')
 
     # Container types
-    if item.typeid == DEKTAK_CONTAINER or item.typeid == DEKTAK_RAW_DATA or item.typeid == DEKTAK_RAW_DATA_2D:
+    if typeid == DEKTAK_CONTAINER or typeid == DEKTAK_RAW_DATA or typeid == DEKTAK_RAW_DATA_2D:
         length = _read_varlen(stream)
         start = stream.tell()
         while _read_item(stream, manifest, prefix=path):
@@ -293,47 +285,44 @@ def _read_item(stream, manifest, prefix='', offset=0):
                                f'does not equal the expected position {start + length}.')
         stream.seek(start + length)
         return path
-    # Types with string type name
-    elif item.typeid == DEKTAK_POS_RAW_DATA:
+    elif typeid == DEKTAK_POS_RAW_DATA:
         if path.startswith('/2D_Data'):
-            item.typename = _read_name(stream)
+            _read_name(stream)  # typename, we discard this information
             length = _read_varlen(stream)
             start = stream.tell()
             unitx, divisorx = read_dimension2d_content(stream)
             unity, divisory = read_dimension2d_content(stream)
-            item.data = (unitx, divisorx, unity, divisory)
+            data = (unitx, divisorx, unity, divisory)
             if start + length != stream.tell():
                 raise RuntimeError(f'The OPDx reader has missed some data entries. The stream position {stream.tell()} '
                                    f'does not equal the expected position {start + length}.')
         elif path.startswith('/1D_Data'):
-            item.typename = _read_name(stream)
+            _read_name(stream)  # typename, we discard this information
             length = _read_varlen(stream)
             start = stream.tell()
             unit = _read_unit_data(stream)
             count = _read_scalar(stream, '<u8')
             # Skip over data
             stream.seek(start + length)
-            item.data = (unit, count)
+            data = (unit, count)
         else:
             # TODO check if should assume 1D here like Gwyddion
             raise ValueError
-
-    # Terminator
-    elif item.typeid == DEKTAK_TERMINATOR:
+    elif typeid == DEKTAK_TERMINATOR:
+        # Terminator
         return None
-
     else:
         try:
-            t = _item_readers[item.typeid]
+            t = _item_readers[typeid]
         except KeyError:
-            raise ValueError(f"Don't know how to read type with id {item.typeid}.")
+            raise ValueError(f"Don't know how to read type with id {typeid}.")
         if isinstance(t, str):
-            item.data = _read_scalar(stream, t)
+            data = _read_scalar(stream, t)
         else:
-            item.data = t(stream)
+            data = t(stream)
 
-    if item.data is not None:
-        manifest[path] = item
+    if data is not None:
+        manifest[path] = data
         return path
     else:
         return None
