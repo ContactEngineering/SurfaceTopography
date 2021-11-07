@@ -19,7 +19,8 @@ v0.99.0 (not yet released)
 - BUG: NetCDF reader checks consistency of units (#82)
 - BUG: Storing topographies with undefined data to NetCDF files was
   broken in some cases; now an explicit mask is stored to the NetCDF file
-- MAINT: Refactored OPDx reader
+- MAINT: Refactored OPDx reader (attention: height scale factor differs from
+  old reader)
 
 
 v0.98.2 (25Oct21)
