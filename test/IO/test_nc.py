@@ -154,5 +154,19 @@ def test_save_and_load_line_scan(comm_self):
         assert t == t2
 
 
+def test_save_and_load_line_scan_opd(file_format_examples, comm_self):
+    t = read_topography(os.path.join(file_format_examples, 'opd3.opd'))
+    with tempfile.TemporaryDirectory() as d:
+        tmpfn = f'{d}/line_scan.nc'
+
+        # Save file
+        t.to_netcdf(tmpfn)
+
+        # Read file
+        t2 = read_topography(tmpfn)
+
+        assert t == t2
+
+
 if __name__ == '__main__':
     test_save_and_load(MPI.COMM_WORLD)
