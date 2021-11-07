@@ -36,10 +36,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO.OPDx import read_float, \
-    read_double, read_uint16, read_uint32, read_uint64, read_varlen, \
-    read_name, DektakQuantUnit, read_dimension2d_content, \
-    _read_unit, read_item, OPDxReader
+from SurfaceTopography.IO.OPDx import OPDxReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -193,19 +190,19 @@ class OPDxSurfaceTest(unittest.TestCase):
     def test_read_varlen(self):
         buffer = ['\x01', '\xab']
         pos = 0
-        out, pos = read_varlen(buffer, pos)
+        out, pos = _read_varlen(buffer, pos)
         self.assertEqual(out, 171)
         self.assertEqual(pos, len(buffer))
 
         buffer = ['\x02', '\x12', '\x11']
         pos = 0
-        out, pos = read_varlen(buffer, pos)
+        out, pos = _read_varlen(buffer, pos)
         self.assertEqual(out, 4370)
         self.assertEqual(pos, len(buffer))
 
         buffer = ['\x04', '\x12', '\x11', '\xab', '\x4a']
         pos = 0
-        out, pos = read_varlen(buffer, pos)
+        out, pos = _read_varlen(buffer, pos)
         self.assertEqual(out, 1252725010)
         self.assertEqual(pos, len(buffer))
 
@@ -221,7 +218,7 @@ class OPDxSurfaceTest(unittest.TestCase):
     def test_read_name(self):
         buffer = ['\x02', '\x00', '\x00', '\x00', 'O', 'K']
         pos = 0
-        out, pos = read_name(buffer, pos)
+        out, pos = _read_name(buffer, pos)
         self.assertEqual(out, 'OK')
         self.assertEqual(pos, len(buffer))
 
@@ -294,8 +291,8 @@ class OPDxSurfaceTest(unittest.TestCase):
         hash_table = dict()
         path = ""
 
-        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table,
-                                                  path)
+        buffer, pos, hash_table, path = _read_item(buffer, pos, hash_table,
+                                                   path)
 
         self.assertEqual(path, '')
         self.assertEqual(pos, len(buffer))
@@ -313,7 +310,7 @@ class OPDxSurfaceTest(unittest.TestCase):
         hash_table = dict()
         path = ""
 
-        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table, path)
+        buffer, pos, hash_table, path = _read_item(buffer, pos, hash_table, path)
 
         self.assertEqual(path, '')
         self.assertEqual(pos, len(buffer))
@@ -337,7 +334,7 @@ class OPDxSurfaceTest(unittest.TestCase):
         hash_table = dict()
         path = ""
 
-        buffer, pos, hash_table, path = read_item(buffer, pos, hash_table, path)
+        buffer, pos, hash_table, path = _read_item(buffer, pos, hash_table, path)
 
         self.assertEqual(path, '')
         self.assertEqual(pos, len(buffer))
