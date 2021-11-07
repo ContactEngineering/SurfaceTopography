@@ -39,6 +39,7 @@ from SurfaceTopography.Generation import fourier_synthesis
 
 from .test_io import binary_example_file_list, explicit_physical_sizes
 
+
 def test_save_and_load(comm):
     nb_grid_pts = (128, 128)
     size = (3, 3)
