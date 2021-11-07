@@ -119,6 +119,9 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile('height_scale_factor')
 
+        info = info.copy()
+        info.update(channel_info.info)
+
         if channel_info.dim == 1:
             position, length = self.manifest[f'{prefix}/Array']
             # position = 48556
@@ -130,7 +133,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
 
             return UniformLineScan(heights=data, physical_sizes=physical_sizes, unit=unit, periodic=periodic,
-                                   info=channel_info.info).scale(channel_info.height_scale_factor)
+                                   info=info).scale(channel_info.height_scale_factor)
         elif channel_info.dim == 2:
             some_int, another_name, position, length, xres, yres = self.manifest[f'{prefix}/Matrix']
             assert channel_info.nb_grid_pts == (xres, yres)
@@ -143,7 +146,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
 
             return Topography(heights=data, physical_sizes=physical_sizes, unit=unit, periodic=periodic,
-                              info=channel_info.info).scale(channel_info.height_scale_factor)
+                              info=info).scale(channel_info.height_scale_factor)
         else:
             raise RuntimeError(f"Don't know how to read a {channel_info.dim}-dimensional dataset.")
 
@@ -155,9 +158,9 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info = {'opdx_prefix': prefix}
 
         try:
-            acquisition_time = datetime.datetime.strptime(
+            acquisition_time = str(datetime.datetime.strptime(
                 self.manifest['/MetaData/Date'] + ' ' + self.manifest['/MetaData/Time'],
-                '%d/%m/%Y %I:%M:%S %p')
+                '%d/%m/%Y %I:%M:%S %p'))
             info['acquisition_time'] = acquisition_time
         except KeyError:
             pass
