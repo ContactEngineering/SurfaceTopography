@@ -26,7 +26,7 @@
 #
 
 import datetime
-from struct import unpack
+from collections import namedtuple
 
 import numpy as np
 
@@ -234,12 +234,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
     topography.__doc__ = ReaderBase.topography.__doc__
 
 
-class DektakQuantUnit:
-    def __init__(self):
-        self.name = None
-        self.symbol = None
-        self.value = None
-        self.extra = None
+DektakUnit = namedtuple('DektakUnit', ['name', 'symbol', 'value', 'extra'])
 
 
 def _read_item(stream, manifest, prefix='', offset=0):
@@ -343,8 +338,8 @@ def _read_unit(stream):
 
     Returns
     -------
-    quantunit : DektakQuantUnit
-        A quantunit item, filled with value, name and symbol
+    unit : DektakUnit
+        A unit item, filled with value, name and symbol
     """
     length = _read_varlen(stream)
     start = stream.tell()
@@ -366,20 +361,16 @@ def _read_unit_data(stream):
 
     Returns
     -------
-    quantunit : DektakQuantUnit
-        A quantunit item, filled with value, name and symbol
+    unit : DektakUnit
+        A unit item, filled with value, name and symbol
     """
-    quantunit = DektakQuantUnit()
-    quantunit.extra = []
+    name = _read_name(stream)
+    symbol = mangle_length_unit_utf8(_read_name(stream))
 
-    quantunit.name = _read_name(stream)
-    quantunit.symbol = _read_name(stream)
-    quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
+    value = _read_scalar(stream, '<f8')
+    extra = stream.read(UNIT_EXTRA)
 
-    quantunit.value = _read_scalar(stream, '<f8')
-    quantunit.extra = stream.read(UNIT_EXTRA)
-
-    return quantunit
+    return DektakUnit(name, symbol, value, extra)
 
 
 def _read_quantity(stream):
@@ -393,24 +384,19 @@ def _read_quantity(stream):
 
     Returns
     -------
-    quantunit : DektakQuantUnit
-        A quantunit item, filled with value, name and symbol
+    unit : DektakUnit
+        A unit item, filled with value, name and symbol
     """
     length = _read_varlen(stream)
     start = stream.tell()
 
-    quantunit = DektakQuantUnit()
-    quantunit.extra = []
-
-    quantunit.value = _read_scalar(stream, '<f8')
-
-    quantunit.name = _read_name(stream)
-    quantunit.symbol = _read_name(stream)
-    quantunit.symbol = mangle_length_unit_utf8(quantunit.symbol)
+    value = _read_scalar(stream, '<f8')
+    name = _read_name(stream)
+    symbol = mangle_length_unit_utf8(_read_name(stream))
 
     stream.seek(start + length)
 
-    return quantunit
+    return DektakUnit(name, symbol, value, [])
 
 
 def read_dimension2d_content(stream):
@@ -424,18 +410,17 @@ def read_dimension2d_content(stream):
 
     Returns
     -------
-    unit : DektakQuantUnit
+    unit : DektakUnit
         The unit
     divisor : float
         Divisor
     """
-    unit = DektakQuantUnit()
-    unit.value = _read_scalar(stream, '<f8')
-    unit.name = _read_name(stream)
-    unit.symbol = _read_name(stream)
+    value = _read_scalar(stream, '<f8')
+    name = _read_name(stream)
+    symbol = _read_name(stream)
     divisor = _read_scalar(stream, '<f8')
-    unit.extra = stream.read(UNIT_EXTRA)
-    return unit, divisor
+    extra = stream.read(UNIT_EXTRA)
+    return DektakUnit(name, symbol, value, extra), divisor
 
 
 def _read_name(stream):
@@ -517,7 +502,7 @@ def _read_matrix(stream):
 
 
 _item_readers = {
-    # Simple types
+    DEKTAK_MATRIX: _read_matrix,
     DEKTAK_BOOLEAN: '?',
     DEKTAK_SINT32: '<i4',
     DEKTAK_UINT32: '<u4',
@@ -525,13 +510,11 @@ _item_readers = {
     DEKTAK_UINT64: '<u8',
     DEKTAK_FLOAT: '<f4',
     DEKTAK_DOUBLE: '<f8',
+    DEKTAK_TYPE_ID: _read_type_id,
     DEKTAK_STRING: _read_string,
     DEKTAK_QUANTITY: _read_quantity,
     DEKTAK_TIME_STAMP: _read_time_stamp,
     DEKTAK_UNITS: _read_unit,
-    # Containers
-    DEKTAK_STRING_LIST: _read_string_list,
     DEKTAK_DOUBLE_ARRAY: _read_double_array,
-    DEKTAK_TYPE_ID: _read_type_id,
-    DEKTAK_MATRIX: _read_matrix,
+    DEKTAK_STRING_LIST: _read_string_list,
 }
