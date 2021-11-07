@@ -14,8 +14,11 @@ v0.99.0 (not yet released)
 - ENH: Parallel implementation of scalar roughness parameters (#55)
 - ENH: DZI writer has option to write metadata as JSON
 - ENH: DZI writer dumps colorbar information into metadata file
+- ENH: Support for line scans in OPDx files
 - BUG: __eq__ for topographies did not compare height information (#96)
 - BUG: NetCDF reader checks consistency of units (#82)
+- MAINT: Refactored OPDx reader
+
 
 v0.98.2 (25Oct21)
 -----------------
