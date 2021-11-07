@@ -307,7 +307,7 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     def __eq__(self, other):
         return self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and \
-               np.allclose(self.positions_and_heights(), other.positions_and_heights())
+               np.allclose(self.positions(), other.positions()) and np.allclose(self.heights(), other.heights())
 
     def __getitem__(self, i):
         return self.heights()[i]
