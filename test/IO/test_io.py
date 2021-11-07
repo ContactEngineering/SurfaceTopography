@@ -106,6 +106,7 @@ text_example_file_list = _convert_filelist([
     # example8: from the reader's docstring, with extra newline at end
     'opdx1.txt',
     'opdx2.txt',
+    'opdx3.txt',
     'example-2d.xyz',
     # Not yet working
     # 'example6.txt',

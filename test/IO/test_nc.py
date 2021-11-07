@@ -24,6 +24,7 @@
 #
 
 import os
+import pytest
 import tempfile
 
 import numpy as np
@@ -36,6 +37,7 @@ from SurfaceTopography.IO import read_topography
 from SurfaceTopography.IO.NC import NCReader
 from SurfaceTopography.Generation import fourier_synthesis
 
+from .test_io import binary_example_file_list, explicit_physical_sizes
 
 def test_save_and_load(comm):
     nb_grid_pts = (128, 128)
@@ -154,10 +156,13 @@ def test_save_and_load_line_scan(comm_self):
         assert t == t2
 
 
-def test_save_and_load_line_scan_opd(file_format_examples, comm_self):
-    t = read_topography(os.path.join(file_format_examples, 'opd3.opd'))
+@pytest.mark.parametrize('fn', binary_example_file_list)
+def test_save_and_load_binary_files(fn, comm_self):
+    if fn in explicit_physical_sizes:
+        return
+    t = read_topography(fn)
     with tempfile.TemporaryDirectory() as d:
-        tmpfn = f'{d}/line_scan.nc'
+        tmpfn = f'{d}/tmp.nc'
 
         # Save file
         t.to_netcdf(tmpfn)
@@ -165,8 +170,5 @@ def test_save_and_load_line_scan_opd(file_format_examples, comm_self):
         # Read file
         t2 = read_topography(tmpfn)
 
+        # Check that the two topographies equal
         assert t == t2
-
-
-if __name__ == '__main__':
-    test_save_and_load(MPI.COMM_WORLD)
