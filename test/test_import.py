@@ -30,14 +30,6 @@ Import testing
 
 import importlib
 
-import pytest
-
-from NuMPI import MPI
-
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
-
 
 def import_module(module):
     return_code = -1
