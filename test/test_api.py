@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
 
-from NuMPI import MPI
-
 from SurfaceTopography import UniformLineScan, NonuniformLineScan, Topography
 
 
