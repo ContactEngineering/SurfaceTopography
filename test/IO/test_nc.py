@@ -31,6 +31,7 @@ import numpy as np
 from scipy.io.netcdf import netcdf_file
 
 from muFFT import FFT
+from NuMPI import MPI
 
 from SurfaceTopography.IO import read_topography
 from SurfaceTopography.IO.NC import NCReader
@@ -89,7 +90,10 @@ def test_save_and_load(comm):
         os.remove('parallel_save_test.nc')
 
 
-def test_save_and_load_no_unit(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_save_and_load_no_unit():
     nb_grid_pts = (128, 128)
     size = (3, 3)
 
@@ -108,7 +112,10 @@ def test_save_and_load_no_unit(comm_self):
     os.remove('no_unit.nc')
 
 
-def test_load_no_physical_sizes(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_load_no_physical_sizes():
     nb_grid_pts = (128, 128)
     size = (3, 3)
 
@@ -136,7 +143,10 @@ def test_load_no_physical_sizes(comm_self):
     os.remove('no_physical_sizes.nc')
 
 
-def test_save_and_load_line_scan(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_save_and_load_line_scan():
     nb_grid_pts = (128,)
     size = (3,)
 
@@ -156,8 +166,11 @@ def test_save_and_load_line_scan(comm_self):
         assert t == t2
 
 
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize('fn', binary_example_file_list)
-def test_save_and_load_binary_files(fn, comm_self):
+def test_save_and_load_binary_files(fn):
     if fn in explicit_physical_sizes:
         return
     t = read_topography(fn)
