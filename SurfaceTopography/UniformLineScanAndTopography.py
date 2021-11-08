@@ -47,7 +47,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    def __init__(self, heights, physical_sizes, periodic=False, unit=None, info={}):
+    def __init__(self, heights, physical_sizes, periodic=False, unit=None, info={}, communicator=MPI.COMM_SELF):
         """
         Parameters
         ----------
@@ -69,7 +69,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 
-        super().__init__(unit=unit, info=info)
+        super().__init__(unit=unit, info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if it is not already a
         # masked array and there is data missing
@@ -361,7 +361,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return Reduction(self.communicator).any(
+        return Reduction(self._communicator).sum(
             np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0)
 
     def positions(self, meshgrid=True):

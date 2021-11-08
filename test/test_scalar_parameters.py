@@ -35,7 +35,6 @@ from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-@pytest.fixture
 def sinewave2D(comm):
     n = 256
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
@@ -55,8 +54,8 @@ def sinewave2D(comm):
     return (L, hm, top)
 
 
-def test_rms_curvature(sinewave2D, comm_self):
-    L, hm, top = sinewave2D
+def test_rms_curvature(comm_self):
+    L, hm, top = sinewave2D(comm_self)
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi ** 4 / L ** 4) * hm ** 2 / 4 / 4)
     #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4
@@ -64,16 +63,16 @@ def test_rms_curvature(sinewave2D, comm_self):
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-def test_rms_slope(sinewave2D, comm_self):
-    L, hm, top = sinewave2D
+def test_rms_slope(comm_self):
+    L, hm, top = sinewave2D(comm_self)
     numerical = top.rms_gradient()
     analytical = np.sqrt(2 * np.pi ** 2 * hm ** 2 / L ** 2)
     # print(numerical-analytical)
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-def test_rms_height(comm, sinewave2D):
-    L, hm, top = sinewave2D
+def test_rms_height(comm):
+    L, hm, top = sinewave2D(comm)
     numerical = top.rms_height_from_area()
     analytical = np.sqrt(hm ** 2 / 4)
 
@@ -107,7 +106,7 @@ def test_rms_curvature_paraboloid_uniform_1D(comm_self):
     heights = 0.5 * curvature * x ** 2
 
     surf = UniformLineScan(heights, physical_sizes=(n,),
-                           periodic=False)
+                           periodic=False, communicator=comm_self)
     # central finite differences are second order and so exact for the parabola
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
@@ -117,7 +116,7 @@ def test_rms_curvature_paraboloid_uniform_2D(comm_self):
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
     curvature = 0.1
     heights = 0.5 * curvature * (X ** 2 + Y ** 2)
-    surf = Topography(heights, physical_sizes=(n, n), periodic=False)
+    surf = Topography(heights, physical_sizes=(n, n), periodic=False, communicator=comm_self)
     # central finite differences are second order and so exact for the
     # paraboloid
     assert abs((surf.rms_curvature_from_area() - curvature) / curvature) < 1e-15
@@ -168,7 +167,10 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-def test_rms_slope_from_profile(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_rms_slope_from_profile():
     r = 4096
     res = (r,)
     for H in [0.3, 0.8]:
@@ -190,7 +192,10 @@ def test_rms_slope_from_profile(comm_self):
                 last_rms_slope = rms_slope
 
 
-def test_rms_slope_from_area(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_rms_slope_from_area():
     r = 2048
     res = [r, r]
     for H in [0.3, 0.8]:
