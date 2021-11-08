@@ -24,10 +24,16 @@
 #
 
 import numpy as np
+import pytest
 
 from muFFT import FFT
+from NuMPI import MPI
 
 from SurfaceTopography import make_sphere
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_sphere(comm):
@@ -38,8 +44,6 @@ def test_sphere(comm):
     R = 20.
     center = (3., 3.)
     fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
-
-    print(fftengine.nb_subdomain_grid_pts)
 
     topography = make_sphere(
         R, (nx, ny), (sx, sy), centre=center,

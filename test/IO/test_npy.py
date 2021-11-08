@@ -40,6 +40,10 @@ from SurfaceTopography.IO.NPY import save_npy
 import NuMPI
 from NuMPI import MPI
 
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial funcionalities, please execute with pytest")
+
 
 def test_save_and_load(comm_self, file_format_examples):
     # sometimes the surface isn't transposed the same way when
