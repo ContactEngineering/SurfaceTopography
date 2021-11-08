@@ -363,7 +363,7 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     def __eq__(self, other):
         return Reduction(self._communicator).all(
-            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and \
+            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and
             np.allclose(self.positions_and_heights(), other.positions_and_heights()))
 
     def __getitem__(self, i):
