@@ -5,10 +5,6 @@ from NuMPI import MPI
 
 from SurfaceTopography import UniformLineScan, NonuniformLineScan, Topography
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
-
 
 common_properties = [
     "communicator",
