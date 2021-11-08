@@ -34,10 +34,6 @@ from muFFT import FFT
 from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
-
 
 @pytest.fixture
 def sinewave2D(comm):
@@ -59,7 +55,7 @@ def sinewave2D(comm):
     return (L, hm, top)
 
 
-def test_rms_curvature(sinewave2D):
+def test_rms_curvature(sinewave2D, comm_self):
     L, hm, top = sinewave2D
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi ** 4 / L ** 4) * hm ** 2 / 4 / 4)
@@ -68,10 +64,7 @@ def test_rms_curvature(sinewave2D):
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
-def test_rms_slope(sinewave2D):
+def test_rms_slope(sinewave2D, comm_self):
     L, hm, top = sinewave2D
     numerical = top.rms_gradient()
     analytical = np.sqrt(2 * np.pi ** 2 * hm ** 2 / L ** 2)
@@ -87,11 +80,8 @@ def test_rms_height(comm, sinewave2D):
     assert numerical == analytical
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize("periodic", [False, True])
-def test_rms_curvature_sinewave_2D(periodic):
+def test_rms_curvature_sinewave_2D(periodic, comm_self):
     precision = 5
 
     n = 256
@@ -110,7 +100,7 @@ def test_rms_curvature_sinewave_2D(periodic):
     np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2, precision)
 
 
-def test_rms_curvature_paraboloid_uniform_1D():
+def test_rms_curvature_paraboloid_uniform_1D(comm_self):
     n = 16
     x = np.arange(n)
     curvature = 0.1
@@ -122,7 +112,7 @@ def test_rms_curvature_paraboloid_uniform_1D():
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
 
-def test_rms_curvature_paraboloid_uniform_2D():
+def test_rms_curvature_paraboloid_uniform_2D(comm_self):
     n = 16
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
     curvature = 0.1
@@ -178,7 +168,7 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
-def test_rms_slope_from_profile():
+def test_rms_slope_from_profile(comm_self):
     r = 4096
     res = (r,)
     for H in [0.3, 0.8]:
@@ -200,7 +190,7 @@ def test_rms_slope_from_profile():
                 last_rms_slope = rms_slope
 
 
-def test_rms_slope_from_area():
+def test_rms_slope_from_area(comm_self):
     r = 2048
     res = [r, r]
     for H in [0.3, 0.8]:
