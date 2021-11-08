@@ -24,16 +24,10 @@
 #
 
 import numpy as np
-import pytest
 
 from muFFT import FFT
-from NuMPI import MPI
 
 from SurfaceTopography import make_sphere
-
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_sphere(comm):
