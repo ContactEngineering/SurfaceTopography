@@ -41,7 +41,10 @@ import NuMPI
 from NuMPI import MPI
 
 
-def test_save_and_load(comm_self, file_format_examples):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_save_and_load(file_format_examples):
     # sometimes the surface isn't transposed the same way when
     topography = open_topography(
         os.path.join(file_format_examples, 'di4.di'), format="di").topography()
@@ -50,7 +53,7 @@ def test_save_and_load(comm_self, file_format_examples):
         npyfile = os.path.join(d, 'test_save_and_load.npy')
         save_npy(npyfile, topography)
 
-        loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
+        loaded_topography = NPYReader(npyfile).topography(
             # nb_subdomain_grid_pts=topography.nb_grid_pts,
             # subdomain_locations=(0,0),
             physical_sizes=(1., 1.))
@@ -65,16 +68,19 @@ def test_save_and_load(comm_self, file_format_examples):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-def test_load_binary_stream(comm_self, file_format_examples):
+def test_load_binary_stream(file_format_examples):
     with open(os.path.join(file_format_examples, 'example-2d.npy'), mode="rb") as f:
-        loaded_topography = NPYReader(f, communicator=comm_self).topography(
+        loaded_topography = NPYReader(f).topography(
             # nb_subdomain_grid_pts=topography.nb_grid_pts,
             # subdomain_locations=(0,0),
             physical_sizes=(1., 1.))
         loaded_topography
 
 
-def test_save_and_load_np(comm_self, file_format_examples):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_save_and_load_np(file_format_examples):
     # sometimes the surface isn't transposed the same way when
 
     topography = open_topography(
@@ -85,8 +91,7 @@ def test_save_and_load_np(comm_self, file_format_examples):
         npyfile = os.path.join(d, 'test_save_and_load_np.npy')
         np.save(npyfile, topography.heights())
 
-        loaded_topography = NPYReader(npyfile, communicator=comm_self).topography(
-            physical_sizes=(1., 1.))
+        loaded_topography = NPYReader(npyfile).topography(physical_sizes=(1., 1.))
 
         np.testing.assert_allclose(loaded_topography.heights(),
                                    topography.heights())

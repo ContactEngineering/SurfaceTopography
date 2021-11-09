@@ -124,7 +124,6 @@ File format of the Bruker Dektak XT* series stylus profilometer.
 
         if channel_info.dim == 1:
             position, length = self.manifest[f'{prefix}/Array']
-            # position = 48556
             assert length == 8 * channel_info.nb_grid_pts[0] + DOUBLE_ARRAY_EXTRA
             with OpenFromAny(self.file_path, 'rb') as f:
                 f.seek(position + DOUBLE_ARRAY_EXTRA)

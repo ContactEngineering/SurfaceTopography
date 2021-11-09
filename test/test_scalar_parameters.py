@@ -35,7 +35,7 @@ from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-def sinewave2D(comm):
+def sinewave2D(comm=None):
     n = 256
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
 
@@ -63,8 +63,11 @@ def test_rms_curvature(comm):
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-def test_rms_slope(comm_self):
-    L, hm, top = sinewave2D(comm_self)
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_rms_slope():
+    L, hm, top = sinewave2D()
     numerical = top.rms_gradient()
     analytical = np.sqrt(2 * np.pi ** 2 * hm ** 2 / L ** 2)
     # print(numerical-analytical)
@@ -79,8 +82,11 @@ def test_rms_height(comm):
     assert numerical == analytical
 
 
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize("periodic", [False, True])
-def test_rms_curvature_sinewave_2D(periodic, comm_self):
+def test_rms_curvature_sinewave_2D(periodic):
     precision = 5
 
     n = 256
@@ -99,24 +105,29 @@ def test_rms_curvature_sinewave_2D(periodic, comm_self):
     np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2, precision)
 
 
-def test_rms_curvature_paraboloid_uniform_1D(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_rms_curvature_paraboloid_uniform_1D():
     n = 16
     x = np.arange(n)
     curvature = 0.1
     heights = 0.5 * curvature * x ** 2
 
-    surf = UniformLineScan(heights, physical_sizes=(n,),
-                           periodic=False, communicator=comm_self)
+    surf = UniformLineScan(heights, physical_sizes=(n,), periodic=False)
     # central finite differences are second order and so exact for the parabola
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
 
-def test_rms_curvature_paraboloid_uniform_2D(comm_self):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_rms_curvature_paraboloid_uniform_2D():
     n = 16
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
     curvature = 0.1
     heights = 0.5 * curvature * (X ** 2 + Y ** 2)
-    surf = Topography(heights, physical_sizes=(n, n), periodic=False, communicator=comm_self)
+    surf = Topography(heights, physical_sizes=(n, n), periodic=False)
     # central finite differences are second order and so exact for the
     # paraboloid
     assert abs((surf.rms_curvature_from_area() - curvature) / curvature) < 1e-15

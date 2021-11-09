@@ -45,7 +45,7 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_translate(comm_self):
+def test_translate():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
                             physical_sizes=(4., 3.))
 
@@ -125,35 +125,6 @@ def test_fill_undefined_data(periodic):
     assert filled_topography.physical_sizes == topography.physical_sizes
     assert filled_topography.is_periodic == topography.is_periodic
     assert filled_topography.info["test"] == 1
-
-
-def test_fill_undefined_data_parallel(comm):
-    np.random.seed(comm.rank)
-    local_data = np.random.uniform(size=(3, 1))
-    local_data[local_data > 0.9] = np.nan
-    if comm.rank == 0:  # make sure we always have undefined data
-        local_data[0, 0] = np.nan
-    topography = Topography(local_data,
-                            (1., 1.),
-                            info=dict(test=1),
-                            communicator=comm,
-                            decomposition="subdomain",
-                            nb_grid_pts=(3, comm.size),
-                            subdomain_locations=(0, comm.rank)
-                            )
-
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
-    assert topography.has_undefined_data
-    assert not filled_topography.has_undefined_data
-
-    mask = np.ma.getmask(topography.heights())
-    nmask = np.logical_not(mask)
-
-    reduction = Reduction(comm)
-
-    assert reduction.all(filled_topography[nmask] == topography[nmask])
-    assert reduction.all(filled_topography[mask] == - np.infty)
-    assert not filled_topography.has_undefined_data
 
 
 def test_uniform_scaled_topography():
