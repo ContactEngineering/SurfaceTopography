@@ -46,7 +46,7 @@ from ..Support.UnitConversion import get_unit_conversion_factor, suggest_length_
 def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
               meta_format='xml', colorbar_title=None, cmap=None, **kwargs):
     """
-    Write generica numpy array to a Deep Zoom Image file. This can for example
+    Write generic numpy array to a Deep Zoom Image file. This can for example
     be used to create a zoomable topography with OpenSeadragon
     (https://openseadragon.github.io/).
 
