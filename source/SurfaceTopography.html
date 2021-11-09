@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.98.3.dev4+g6751be42 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.98.3.dev86+g218f467b documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.98.3.dev4+g6751be42
+                0.98.3.dev86+g218f467b
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -68,7 +68,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.UnitConversion">SurfaceTopography.UnitConversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
@@ -168,6 +167,7 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Interpolation">SurfaceTopography.Support.Interpolation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Regression">SurfaceTopography.Support.Regression module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.UnitConversion">SurfaceTopography.Support.UnitConversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support">Module contents</a></li>
 </ul>
 </li>
@@ -216,6 +216,14 @@ to return an empty result.</p>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="SurfaceTopography.Exceptions.CannotPerformAnalysisError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.CannotPerformAnalysisError</span></code></a></p>
 <p>Exception indicates that the underlying data is reentrant and that the
 analysis function does not work on reentrant data.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.UndefinedDataError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">UndefinedDataError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.UndefinedDataError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="SurfaceTopography.Exceptions.CannotPerformAnalysisError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Exceptions.CannotPerformAnalysisError</span></code></a></p>
+<p>Exception indicates that the underlying data has missing (undefined) data
+points and that the analysis function cannot handle missing data</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -281,13 +289,19 @@ the default one.</p></li>
 <span id="surfacetopography-ffttricks-module"></span><h2>SurfaceTopography.FFTTricks module<a class="headerlink" href="#module-SurfaceTopography.FFTTricks" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.FFTTricks.make_fft">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.FFTTricks.</span></span><span class="sig-name descname"><span class="pre">make_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.FFTTricks.make_fft" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.FFTTricks.</span></span><span class="sig-name descname"><span class="pre">make_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fft</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.FFTTricks.make_fft" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiate a muFFT object that can compute the Fourier transform of the
 topography and has the same decomposition layout (or raise an error if
 this is not the case).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the topography map.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the topography map.</p></li>
+<li><p><strong>communicator</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em>) – Communicator object. Use communicator from topography object if not
+present. (Default: None)</p></li>
+<li><p><strong>optional</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em>) – Communicator object. Use communicator from topography object if not
+present. (Default: None)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1088,12 +1102,12 @@ plastic_displ – initial plastic displacements</p>
 <p>Support for uniform topogography descriptions</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.</span></span><span class="sig-name descname"><span class="pre">UniformLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.</span></span><span class="sig-name descname"><span class="pre">UniformLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">heights</span></em>, <em class="sig-param"><span class="pre">physical_sizes</span></em>, <em class="sig-param"><span class="pre">periodic=False</span></em>, <em class="sig-param"><span class="pre">unit=None</span></em>, <em class="sig-param"><span class="pre">info={}</span></em>, <em class="sig-param"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography" title="SurfaceTopography.HeightContainer.AbstractTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.HeightContainer.AbstractTopography</span></code></a>, <a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface" title="SurfaceTopography.HeightContainer.UniformTopographyInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.HeightContainer.UniformTopographyInterface</span></code></a></p>
 <p>Line scan that lives on a uniform one-dimensional grid.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">heights</span></em>, <em class="sig-param"><span class="pre">physical_sizes</span></em>, <em class="sig-param"><span class="pre">periodic=False</span></em>, <em class="sig-param"><span class="pre">unit=None</span></em>, <em class="sig-param"><span class="pre">info={}</span></em>, <em class="sig-param"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -1752,25 +1766,6 @@ topography_b   – second topography of the compound</p>
 </dd></dl>
 
 </dd></dl>
-
-</section>
-<section id="module-SurfaceTopography.UnitConversion">
-<span id="surfacetopography-unitconversion-module"></span><h2>SurfaceTopography.UnitConversion module<a class="headerlink" href="#module-SurfaceTopography.UnitConversion" title="Permalink to this headline"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.UnitConversion.get_unit_conversion_factor">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">get_unit_conversion_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit1_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit2_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UnitConversion.get_unit_conversion_factor" title="Permalink to this definition"></a></dt>
-<dd><p>Compute factor for conversion from unit1 to unit2.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.UnitConversion.mangle_length_unit_utf8">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">mangle_length_unit_utf8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UnitConversion.mangle_length_unit_utf8" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.UnitConversion.mangle_length_unit_ascii">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">mangle_length_unit_ascii</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UnitConversion.mangle_length_unit_ascii" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 </section>
 <section id="module-SurfaceTopography">

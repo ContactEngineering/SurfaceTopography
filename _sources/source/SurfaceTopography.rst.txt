@@ -73,14 +73,6 @@ SurfaceTopography.UniformLineScanAndTopography module
    :undoc-members:
    :show-inheritance:
 
-SurfaceTopography.UnitConversion module
----------------------------------------
-
-.. automodule:: SurfaceTopography.UnitConversion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

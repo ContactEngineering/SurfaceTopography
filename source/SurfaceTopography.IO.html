@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.98.3.dev4+g6751be42 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.98.3.dev86+g218f467b documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.98.3.dev4+g6751be42
+                0.98.3.dev86+g218f467b
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -85,7 +85,6 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UnitConversion">SurfaceTopography.UnitConversion module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
@@ -220,22 +219,63 @@ MPI process.</p></li>
 <span id="surfacetopography-io-dzi-module"></span><h2>SurfaceTopography.IO.DZI module<a class="headerlink" href="#module-SurfaceTopography.IO.DZI" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.DZI.write_dzi">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_dzi" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_dzi" title="Permalink to this definition"></a></dt>
+<dd><p>Write generic numpy array to a Deep Zoom Image file. This can for example
+be used to create a zoomable topography with OpenSeadragon
+(<a class="reference external" href="https://openseadragon.github.io/">https://openseadragon.github.io/</a>).</p>
+<p>Additional keyword parameters are passed to Pillow’s <cite>save</cite> function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – Two-dimensional array containing the data.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the exported file. This is used as a prefix. Output filter
+create the file <cite>name</cite>.xml that contains the metadata and a directory
+<a href="#id3"><span class="problematic" id="id4">`</span></a>name`_files that contains the rendered image files at different levels.</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Linear physical sizes of the two-dimensional array.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length units of physical sizes.</p></li>
+<li><p><strong>root_directory</strong> (<em>str</em><em>, </em><em>optional</em>) – Root directory where to place <cite>name</cite>.xml and <a href="#id5"><span class="problematic" id="id6">`</span></a>name`_files.
+(Default: ‘.’)</p></li>
+<li><p><strong>tile_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Size of individual tiles. (Default: 256)</p></li>
+<li><p><strong>overlap</strong> (<em>int</em><em>, </em><em>optional</em>) – Overlap of tiles. (Default: 1)</p></li>
+<li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – Image format. Note that PNG files have seams at the boundary between
+tiles. (Default: ‘jpg’)</p></li>
+<li><p><strong>meta_format</strong> (<em>str</em><em>, </em><em>optional</em>) – Format for metadata information (the DZI file), can be ‘xml’ or
+‘json’. (Default: ‘xml’)</p></li>
+<li><p><strong>colorbar_title</strong> (<em>str</em><em>, </em><em>optional</em>) – Additional title for the color bar that is dumped into the DZI file.
+(Default: None)</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>colormap</em><em>, </em><em>optional</em>) – Color map for rendering the topography. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>manifest</strong> – List with names of files created during write operation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.DZI.write_topography_dzi">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_topography_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_topography_dzi" title="Permalink to this definition"></a></dt>
 <dd><p>Write topography to a Deep Zoom Image file. This can for example be used
 to create a zoomable topography with OpenSeadragon
 (<a class="reference external" href="https://openseadragon.github.io/">https://openseadragon.github.io/</a>).</p>
+<p>Additional keyword parameters are passed to Pillow’s <cite>save</cite> function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Topography</span></code>) – Topogaphy to export</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – Name of the exported file. This is used as a prefix. Output filter
 create the file <cite>name</cite>.xml that contains the metadata and a directory
-<a href="#id3"><span class="problematic" id="id4">`</span></a>name`_files that contains the rendered image files at different levels.</p></li>
-<li><p><strong>root_directory</strong> (<em>str</em>) – Root directory where to place <cite>name</cite>.xml and <a href="#id5"><span class="problematic" id="id6">`</span></a>name`_files.</p></li>
+<a href="#id7"><span class="problematic" id="id8">`</span></a>name`_files that contains the rendered image files at different levels.</p></li>
+<li><p><strong>root_directory</strong> (<em>str</em>) – Root directory where to place <cite>name</cite>.xml and <a href="#id9"><span class="problematic" id="id10">`</span></a>name`_files.</p></li>
 <li><p><strong>tile_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Size of individual tiles. (Default: 256)</p></li>
 <li><p><strong>overlap</strong> (<em>int</em><em>, </em><em>optional</em>) – Overlap of tiles. (Default: 1)</p></li>
 <li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – Image format. Note that PNG files have seems at the boundary between
 tiles. (Default: jpg)</p></li>
+<li><p><strong>meta_format</strong> (<em>str</em><em>, </em><em>optional</em>) – Format for metadata information (the DZI file), can be ‘xml’ or
+‘json’. (Default: ‘xml’)</p></li>
 <li><p><strong>cmap</strong> (<em>str</em><em> or </em><em>colormap</em><em>, </em><em>optional</em>) – Color map for rendering the topography. (Default: None)</p></li>
 </ul>
 </dd>
@@ -295,7 +335,7 @@ fobj – filename or file object</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FromFile.X3PReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.X3PReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id7"><span class="problematic" id="id8">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id11"><span class="problematic" id="id12">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -363,7 +403,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FromFile.OPDReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.OPDReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id9"><span class="problematic" id="id10">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id13"><span class="problematic" id="id14">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -431,7 +471,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FromFile.HGTReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.HGTReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id11"><span class="problematic" id="id12">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id15"><span class="problematic" id="id16">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -501,7 +541,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.H5.H5Reader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.H5.H5Reader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id13"><span class="problematic" id="id14">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id17"><span class="problematic" id="id18">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -566,7 +606,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.IBW.IBWReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.IBW.IBWReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id15"><span class="problematic" id="id16">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id19"><span class="problematic" id="id20">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -680,7 +720,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.MI.MIReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.MI.MIReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id17"><span class="problematic" id="id18">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id21"><span class="problematic" id="id22">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -779,7 +819,7 @@ returned.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Matlab.MatReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Matlab.MatReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id19"><span class="problematic" id="id20">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id23"><span class="problematic" id="id24">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -849,7 +889,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NC.NCReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NC.NCReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id21"><span class="problematic" id="id22">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id25"><span class="problematic" id="id26">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -976,7 +1016,7 @@ metadata so we use directly the implementation from numpy and NuMPI.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NPY.NPYReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NPY.NPYReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id23"><span class="problematic" id="id24">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id27"><span class="problematic" id="id28">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1090,480 +1130,71 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id25"><span class="problematic" id="id26">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id29"><span class="problematic" id="id30">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.reformat_dict">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">reformat_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.reformat_dict" title="Permalink to this definition"></a></dt>
-<dd><p>Reformat the metadata dict from C convention to a more readable format and
-remove artefacts. Also gets and returns the default channel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – The name of the current channel</p></li>
-<li><p><strong>metadata</strong> (<em>OrderedDict</em>) – The metadata dict</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>new dict</strong> (<em>OrderedDict</em>) – The nicer dict</p></li>
-<li><p><strong>primary_channel_name</strong> (<em>str</em>) – The name of the primary channel.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakItemData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakItemData</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakItemData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakItemData.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakItemData.__init__" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.info_from_manifest">
+<span class="sig-name descname"><span class="pre">info_from_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.info_from_manifest" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.read_linescan_channel_infos">
+<span class="sig-name descname"><span class="pre">read_linescan_channel_infos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.read_linescan_channel_infos" title="Permalink to this definition"></a></dt>
+<dd><p>Read line scan (profile) information</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.read_topography_channel_infos">
+<span class="sig-name descname"><span class="pre">read_topography_channel_infos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.read_topography_channel_infos" title="Permalink to this definition"></a></dt>
+<dd><p>Read topography (2D map) information</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakItem">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakItem</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakItem" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakItem.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakItem.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakUnit">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakUnit" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakUnit.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakUnit.extra" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 3</p>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakRawPos1D">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakRawPos1D</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakRawPos1D" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakRawPos1D.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakRawPos1D.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakUnit.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakUnit.name" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakRawPos2D">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakRawPos2D</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakRawPos2D" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakRawPos2D.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakRawPos2D.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakUnit.symbol">
+<span class="sig-name descname"><span class="pre">symbol</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakUnit.symbol" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakQuantUnit">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakQuantUnit</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakQuantUnit" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakQuantUnit.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakQuantUnit.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakUnit.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakUnit.value" title="Permalink to this definition"></a></dt>
+<dd><p>Alias for field number 2</p>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakMatrix">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakMatrix</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakMatrix" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakMatrix.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakMatrix.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakBuf">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">DektakBuf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakBuf" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.DektakBuf.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.DektakBuf.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.find_1d_data">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">find_1d_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hash_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.find_1d_data" title="Permalink to this definition"></a></dt>
-<dd><p>THIS HAS NOT BEEN TESTED DUE TO NO FILES WITH 1D DATA AVAILABLE.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.find_2d_data">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">find_2d_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hash_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.find_2d_data" title="Permalink to this definition"></a></dt>
-<dd><p>Get all the 2d data channels out of the previously filled hash table.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>hash_table</strong> (<em>OrderedDict</em>) – The filled hash table</p></li>
-<li><p><strong>buf</strong> (<em>bytes</em>) – The raw hex data</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>output</strong> – Dictionary with all names, data and metadata of the different channels</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>OrderedDict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.find_2d_data_matrix">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">find_2d_data_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.find_2d_data_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Checks if an item is a matrix and if it is, returns it’s channel name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – The name (key) of a found item</p></li>
-<li><p><strong>item</strong> (<a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakItem" title="SurfaceTopography.IO.OPDx.DektakItem"><em>DektakItem</em></a>) – The item itself</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>name</strong> – The name of the matrix data channel</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.create_meta">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">create_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hash_table</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.create_meta" title="Permalink to this definition"></a></dt>
-<dd><p>Gets all the metadata out of a hash table.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>hash_table</strong> (<em>OrderedDict</em>) – The hash table</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>container</strong> – Hash table with all metadata names and values</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>OrderedDict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_item">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hash_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abspos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_item" title="Permalink to this definition"></a></dt>
-<dd><p>Reads in the next item out of the buffer and saves it in the hash table.
-May recursively call itself for containers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – The raw data buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – Current position in the buffer</p></li>
-<li><p><strong>hash_table</strong> (<em>OrderedDict</em>) – The output hash table</p></li>
-<li><p><strong>path</strong> (<em>str</em>) – Current name to save</p></li>
-<li><p><strong>abspos</strong> (<em>int</em><em>, </em><em>optional</em>) – Absolute position in buffer to keep track when calling itself
-(Default: 0)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>but</strong> (<em>bytes,</em>) – Output buffer</p></li>
-<li><p><strong>newpos</strong> (<em>int</em>) – New position</p></li>
-<li><p><strong>hash_table</strong> (<em>OrderedDict</em>) – Hash table with new item in it</p></li>
-<li><p><strong>new_path</strong> (<em>str</em>) – New path</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_quantunit_content">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_quantunit_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_quantunit_content" title="Permalink to this definition"></a></dt>
-<dd><p>Reads in a quantity unit: Value, name and symbol.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – The input buffer</p></li>
-<li><p><strong>pos</strong> (<em>integer</em>) – The position in the buffer</p></li>
-<li><p><strong>is_unit</strong> (<em>boot</em>) – Whether or not it is a unit</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>quantunit</strong> (<em>DektakQuantUnit</em>) – A quantunit item, filled with value, name and symbol</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_dimension2d_content">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_dimension2d_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_dimension2d_content" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_dimension2d_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_dimension2d_content" title="Permalink to this definition"></a></dt>
 <dd><p>Reads in information about a 2d dimension.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – The input buffer</p></li>
-<li><p><strong>pos</strong> (<em>integer</em>) – Position in the buffer</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – The unit</p></li>
-</ul>
+<dd class="field-odd"><p><strong>stream</strong> (<em>bytes</em>) – The input buffer</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>unit</strong> (<em>str</em>) – The unit (is passed through)</p></li>
+<li><p><strong>unit</strong> (<em>DektakUnit</em>) – The unit</p></li>
 <li><p><strong>divisor</strong> (<em>float</em>) – Divisor</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.build_matrix">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">build_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xres</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yres</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.build_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a float matrix of given dimensions and multiplies with a scale.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>xres</strong> (<em>int</em>) – Resolution along x-axis</p></li>
-<li><p><strong>yres</strong> (<em>int</em>) – Resolution along y-axis</p></li>
-<li><p><strong>data</strong> (<em>bytes</em>) – The raw hex data</p></li>
-<li><p><strong>q</strong> (<em>float</em>) – The scale of the data</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>data</strong> – Matrix</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_name">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_name" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – Name</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_structured">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_structured</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_structured" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a length and returns a part of the buffer that long.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>int</em>) – Output buffer</p></li>
-<li><p><strong>start</strong> (<em>int</em>) – Start position within input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_named_struct">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_named_struct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_named_struct" title="Permalink to this definition"></a></dt>
-<dd><p>Same as <cite>read_structured</cite> but there is a name to it.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – Name of buffer</p></li>
-<li><p><strong>out</strong> (<em>int</em>) – Output buffer</p></li>
-<li><p><strong>start</strong> (<em>int</em>) – Start position within input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_varlen">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_varlen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_varlen" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a length of variable length itself</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>int</em>) – Length value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_int64">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_int64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_int64" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a 64bit int.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-<li><p><strong>signed</strong> (<em>bool</em><em>, </em><em>optional</em>) – Signed integer (Default: false)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>int</em>) – Output value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_int32">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_int32</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_int32" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a 32bit int.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-<li><p><strong>signed</strong> (<em>bool</em><em>, </em><em>optional</em>) – Signed integer (Default: false)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>int</em>) – Output value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_int16">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_int16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_int16" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a 16bit integer.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-<li><p><strong>signed</strong> (<em>bool</em><em>, </em><em>optional</em>) – Signed integer (Default: false)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>int</em>) – Output value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_double">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_double</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_double" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a double (64bit)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>float</em>) – Output value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_float">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_float" title="Permalink to this definition"></a></dt>
-<dd><p>Reads a float (32bit)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>float</em>) – Output value</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.read_with_check">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.OPDx.</span></span><span class="sig-name descname"><span class="pre">read_with_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.read_with_check" title="Permalink to this definition"></a></dt>
-<dd><p>Reads and returns n bytes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>buf</strong> (<em>bytes</em>) – Input buffer</p></li>
-<li><p><strong>pos</strong> (<em>int</em>) – The current position</p></li>
-<li><p><strong>nbytes</strong> (<em>int</em>) – Number of bytes to read in</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>out</strong> (<em>bytes</em>) – Output buffer</p></li>
-<li><p><strong>new_pos</strong> (<em>int</em>) – New position in input buffer</p></li>
 </ul>
 </p>
 </dd>
@@ -1784,7 +1415,7 @@ is typically equal to the file extension of this format.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ReaderBase.channels">
 <em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReaderBase.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id27"><span class="problematic" id="id28">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id31"><span class="problematic" id="id32">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1867,7 +1498,7 @@ the heights; the physical_sizes is not contained in the file</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.ZON.ZONReader.channels">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.channels" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id29"><span class="problematic" id="id30">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id33"><span class="problematic" id="id34">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2006,7 +1637,7 @@ memory.</p>
 the file has multiple channels or not.</p>
 <p>You can always check the channels and their metadata with
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
-<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id31"><span class="problematic" id="id32">``</span></a>unit` and <a href="#id33"><span class="problematic" id="id34">`</span></a>height_scale_factor:</p>
+<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id35"><span class="problematic" id="id36">``</span></a>unit` and <a href="#id37"><span class="problematic" id="id38">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
 <span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
 <span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>

@@ -28,6 +28,14 @@ SurfaceTopography.Support.Regression module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Support.UnitConversion module
+-----------------------------------------------
+
+.. automodule:: SurfaceTopography.Support.UnitConversion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
