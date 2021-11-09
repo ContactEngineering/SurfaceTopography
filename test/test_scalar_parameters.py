@@ -49,7 +49,7 @@ def sinewave2D(comm=None):
     top = Topography(sinsurf, decomposition='domain',
                      nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
                      subdomain_locations=fftengine.subdomain_locations,
-                     physical_sizes=size, communicator=comm)
+                     physical_sizes=size, communicator=MPI.COMM_SELF if comm is None else comm)
 
     return (L, hm, top)
 

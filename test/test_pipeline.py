@@ -33,7 +33,6 @@ import pytest
 import numpy as np
 
 from NuMPI import MPI
-from NuMPI.Tools import Reduction
 
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
