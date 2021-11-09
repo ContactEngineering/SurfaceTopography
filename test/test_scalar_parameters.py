@@ -54,8 +54,8 @@ def sinewave2D(comm):
     return (L, hm, top)
 
 
-def test_rms_curvature(comm_self):
-    L, hm, top = sinewave2D(comm_self)
+def test_rms_curvature(comm):
+    L, hm, top = sinewave2D(comm)
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi ** 4 / L ** 4) * hm ** 2 / 4 / 4)
     #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4
