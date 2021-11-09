@@ -29,6 +29,7 @@ import numpy as np
 
 import muFFT
 
+from ..Exceptions import UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import toiter
 from ..UniformLineScanAndTopography import Topography
@@ -218,6 +219,10 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         raise ValueError(
             'SurfaceTopography does not have physical size information, but '
             'this is required to be able to compute a derivative.')
+
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Derivatives cannot be '
+                                 'computed for topographies with missing data points.')
 
     if operator is None:
         operator = _get_default_derivative_operator(n, self.dim)

@@ -34,7 +34,7 @@ from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
+from ..Support.UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
 
 from .Reader import ReaderBase, ChannelInfo
 
@@ -58,6 +58,7 @@ class _SpecialNetCDFFile(netcdf_file):
             self.flush()
         # we want to disable calling closing the file
         # in case of file streams
+
     __del__ = close
 
 
@@ -79,6 +80,9 @@ in the respective direction. The optional attribute `length_unit` of these
 variables describes the physical unit. The optional additional attribute
 `periodic` indicates whether the direction contains periodic data. If
 `periodic` is missing, the reader interprets the data as non-periodic.
+
+If an additional variable `mask` is present, this variable is used to mark
+undefined points.
 
 An example file layout (output of `ncdump -h`) containing a topography map
 with 128 x 128 pixels looks like this:
@@ -148,6 +152,7 @@ plt.show()
         self._x_var = self._nc.variables['x'] if 'x' in self._nc.variables else None
         self._y_var = self._nc.variables['y'] if 'y' in self._nc.variables else None
         self._heights_var = self._nc.variables['heights']
+        self._mask_var = self._nc.variables['mask'] if 'mask' in self._nc.variables else None
 
         # The following information may be missing from the NetCDF file
         self._physical_sizes = None
@@ -191,6 +196,22 @@ plt.show()
             self._unit = mangle_length_unit_utf8(self._x_var.unit)
         except AttributeError:
             pass
+
+        # Check unit consistency
+        if self._y_var is not None:
+            try:
+                y_unit = mangle_length_unit_utf8(self._y_var.unit)
+            except AttributeError:
+                y_unit = None
+            if y_unit is not None and y_unit != self._unit:
+                raise ValueError('Units for x- and y-coordinate in NetCDF file differ.')
+
+        try:
+            heights_unit = mangle_length_unit_utf8(self._heights_var.unit)
+        except AttributeError:
+            heights_unit = None
+        if heights_unit is not None and heights_unit != self._unit:
+            raise ValueError('Units for x-coordinate and heights in NetCDF file differ.')
 
     def __del__(self):
         self.close()
@@ -260,8 +281,8 @@ plt.show()
         _info.update(info)
 
         heights = self._heights_var[...]
-        if not np.ma.is_masked(heights):
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if self._mask_var is not None:
+            heights = np.ma.masked_where(self._mask_var[...], heights)
         if not np.ma.is_masked(heights):
             # If is it not masked, make sure it becomes a proper numpy array
             heights = np.array(heights)
@@ -374,9 +395,17 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
         nc.createDimension('x', nx)
         if topography.dim > 1:
             nc.createDimension('y', ny)
-            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'), **var_kwargs)
+            spatial = ('x', 'y')
+            heights_var = nc.createVariable('heights', 'f8', spatial, **var_kwargs)
         else:
-            heights_var = nc.createVariable('heights', 'f8', ('x',), **var_kwargs)
+            spatial = ('x',)
+            heights_var = nc.createVariable('heights', 'f8', spatial, **var_kwargs)
+
+        # Storing and retrieving masked arrays does not work reliably in
+        # NetCDF. We need to store the mask explicitly.
+        mask_var = None
+        if topography.has_undefined_data:
+            mask_var = nc.createVariable('mask', 'b', spatial, **var_kwargs)
 
         # Create variables for x- and y-positions, but only if physical_sizes
         # exist. (physical_sizes should always exist, but who knows...)
@@ -408,11 +437,16 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
                     y_var.unit = mangle_length_unit_ascii(topography.unit)
                 y_var[...] = np.arange(ny) / ny * sy
 
+        h = topography.heights()
         if topography.is_domain_decomposed:
             heights_var.set_collective(True)
-            heights_var[topography.subdomain_slices] = topography.heights()
+            heights_var[topography.subdomain_slices] = h
+            if mask_var is not None:
+                mask_var[topography.subdomain_slices] = np.ma.getmask(h)
         else:
-            heights_var[...] = topography.heights()
+            heights_var[...] = h
+            if mask_var is not None:
+                mask_var[...] = np.ma.getmask(h)
         if topography.unit is not None:
             heights_var.unit = mangle_length_unit_ascii(topography.unit)
 

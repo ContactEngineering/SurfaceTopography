@@ -28,7 +28,13 @@ import pytest
 
 import numpy as np
 
+from NuMPI import MPI
+
 from SurfaceTopography.Support.Regression import make_grid, resample
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_make_log_grid():

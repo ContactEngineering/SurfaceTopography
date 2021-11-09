@@ -3,13 +3,19 @@ Test derivatives
 """
 
 import numpy as np
+import pytest
 
 import muFFT
 import muFFT.Stencils2D as Stencils2D
+from NuMPI import MPI
 
 from SurfaceTopography import UniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Uniform.Derivative import third_2d, trim_nonperiodic
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_uniform_vs_nonuniform():

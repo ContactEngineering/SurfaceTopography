@@ -22,11 +22,18 @@
 # SOFTWARE.
 #
 
+import pytest
 import tempfile
 
 from numpy.testing import assert_allclose
 
+from NuMPI import MPI
+
 from SurfaceTopography import SurfaceContainer, read_container, read_topography  # , read_published_container
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_read_just_uniform(file_format_examples):

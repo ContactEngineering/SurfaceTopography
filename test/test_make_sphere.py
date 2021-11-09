@@ -39,8 +39,6 @@ def test_sphere(comm):
     center = (3., 3.)
     fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
 
-    print(fftengine.nb_subdomain_grid_pts)
-
     topography = make_sphere(
         R, (nx, ny), (sx, sy), centre=center,
         nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
@@ -106,6 +104,3 @@ def test_sphere_standoff(comm):
                                R ** 2)
 
     np.testing.assert_allclose(Z[np.logical_not(sl_inner)], - R - standoff)
-
-#
-# #def test_paraboloid(comm, fftengine_class)

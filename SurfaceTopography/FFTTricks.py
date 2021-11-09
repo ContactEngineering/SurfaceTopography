@@ -27,7 +27,7 @@ import muFFT
 import numpy as np
 
 
-def make_fft(topography, fft='mpi'):
+def make_fft(topography, fft='mpi', communicator=None):
     """
     Instantiate a muFFT object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
@@ -37,6 +37,9 @@ def make_fft(topography, fft='mpi'):
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the topography map.
+    communicator, optional : mpi4py communicator or NuMPI stub communicator
+        Communicator object. Use communicator from topography object if not
+        present. (Default: None)
     """
 
     # We only initialize this once and attach it to the topography object
@@ -44,7 +47,8 @@ def make_fft(topography, fft='mpi'):
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muFFT.FFT(topography.nb_grid_pts, fft=fft, communicator=topography.communicator)
+        fft = muFFT.FFT(topography.nb_grid_pts, fft=fft,
+                        communicator=topography.communicator if communicator is None else communicator)
         if fft.subdomain_locations != topography.subdomain_locations or \
                 fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
             raise RuntimeError('muFFT suggested a domain decomposition that '

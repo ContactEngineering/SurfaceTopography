@@ -30,7 +30,7 @@ Power-spectral density for uniform topographies.
 
 import numpy as np
 
-from ..Exceptions import NoReliableDataError
+from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.Regression import resample, resample_radial
 
@@ -77,6 +77,10 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
     C_all : array_like
         Power spectrum. (Units: length**3)
     """
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
+                                 'computed for topographies with missing data points.')
+
     try:
         nx, ny = self.nb_grid_pts
         sx, sy = self.physical_sizes
@@ -169,6 +173,10 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
     C_all : array_like
         Power spectrum. (Units: length**4)
     """
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
+                                 'computed for topographies with missing data points.')
+
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
 

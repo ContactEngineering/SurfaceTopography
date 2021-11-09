@@ -28,6 +28,7 @@
 # https://docs.microsoft.com/en-us/previous-versions/windows/silverlight/dotnet-windows-silverlight/cc645077(v=vs.95)
 #
 
+import json
 import math
 import os
 import xml.etree.cElementTree as ET
@@ -36,58 +37,112 @@ import numpy as np
 from matplotlib import cm
 from PIL import Image
 
+from numpyencoder import NumpyEncoder
+
 from ..HeightContainer import UniformTopographyInterface
+from ..Support.UnitConversion import get_unit_conversion_factor, suggest_length_unit_for_data
 
 
-def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', cmap=None):
+def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
+              meta_format='xml', colorbar_title=None, cmap=None, **kwargs):
     """
-    Write topography to a Deep Zoom Image file. This can for example be used
-    to create a zoomable topography with OpenSeadragon
+    Write generic numpy array to a Deep Zoom Image file. This can for example
+    be used to create a zoomable topography with OpenSeadragon
     (https://openseadragon.github.io/).
+
+    Additional keyword parameters are passed to Pillow's `save` function.
 
     Parameters
     ----------
-    self : :obj:`Topography`
-        Topogaphy to export
+    data : np.ndarray
+        Two-dimensional array containing the data.
     name : str
         Name of the exported file. This is used as a prefix. Output filter
         create the file `name`.xml that contains the metadata and a directory
         `name`_files that contains the rendered image files at different levels.
-    root_directory : str
+    physical_sizes : tuple of floats
+        Linear physical sizes of the two-dimensional array.
+    unit : str
+        Length units of physical sizes.
+    root_directory : str, optional
         Root directory where to place `name`.xml and `name`_files.
+        (Default: '.')
     tile_size : int, optional
         Size of individual tiles. (Default: 256)
     overlap : int, optional
         Overlap of tiles. (Default: 1)
     format : str, optional
-        Image format. Note that PNG files have seems at the boundary between
-        tiles. (Default: jpg)
+        Image format. Note that PNG files have seams at the boundary between
+        tiles. (Default: 'jpg')
+    meta_format : str, optional
+        Format for metadata information (the DZI file), can be 'xml' or
+        'json'. (Default: 'xml')
+    colorbar_title : str, optional
+        Additional title for the color bar that is dumped into the DZI file.
+        (Default: None)
     cmap : str or colormap, optional
         Color map for rendering the topography. (Default: None)
 
     Returns
     -------
-    filenames : list of str
+    manifest : list of str
         List with names of files created during write operation
     """
     cmap = cm.get_cmap(cmap)
 
     # Image size
-    full_width, full_height = width, height = self.nb_grid_pts
+    full_width, full_height = width, height = data.shape
+
+    # Compute pixels per meter
+    sx, sy = physical_sizes
+    fac = get_unit_conversion_factor(unit, 'm')
+    pixels_per_meter_width = width / (fac * sx)
+    pixels_per_meter_height = height / (fac * sy)
 
     # Get heights and rescale to interval 0, 1
-    heights = self.heights()
-    mx, mn = self.max(), self.min()
-    heights = (heights - mn) / (mx - mn)
+    mx, mn = data.max(), data.min()
+    data = (data - mn) / (mx - mn)
 
-    # Write configuration XML file
-    root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format,
-                      xmlns='http://schemas.microsoft.com/deepzoom/2008')
-    ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
-    os.makedirs(root_directory, exist_ok=True)
-    fn = os.path.join(root_directory, name + '.xml')
-    ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
-    filenames = [fn]
+    # Write configuration file
+    if meta_format == 'xml':
+        fn = os.path.join(root_directory, name + '.xml')
+        root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format, Colormap=cmap.name,
+                          xmlns='http://schemas.microsoft.com/deepzoom/2008')
+        if colorbar_title is not None:
+            root.set('ColorbarTitle', colorbar_title)
+        ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
+        ET.SubElement(root, 'PixelsPerMeter', Width=str(pixels_per_meter_width), Height=str(pixels_per_meter_height))
+        ET.SubElement(root, 'ColorbarRange', Minimum=str(mn), Maximum=str(mx))
+        os.makedirs(root_directory, exist_ok=True)
+        ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
+    elif meta_format == 'json':
+        fn = os.path.join(root_directory, name + '.json')
+        with open(fn, 'w') as f:
+            image_dict = {
+                'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
+                'Format': format,
+                'Overlap': overlap,
+                'TileSize': tile_size,
+                'Size': {
+                    'Width': width,
+                    'Height': height
+                },
+                'PixelsPerMeter': {
+                    'Width': pixels_per_meter_width,
+                    'Height': pixels_per_meter_height
+                },
+                'Colormap': cmap.name,
+                'ColorbarRange': {
+                    'Minimum': mn,
+                    'Maximum': mx
+                }
+            }
+            if colorbar_title is not None:
+                image_dict.update({'ColorbarTitle': colorbar_title})
+            json.dump({'Image': image_dict}, f, cls=NumpyEncoder)
+    else:
+        raise ValueError(f'Unknown metadata format {meta_format}.')
+    manifest = [fn]
 
     # Determine number of levels
     max_level = math.ceil(math.log2(max(width, height)))
@@ -126,16 +181,61 @@ def write_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='
                     top = full_height - 1
 
                 # Convert to image and save
-                colors = (cmap(heights[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
+                colors = (cmap(data[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
                 # Remove alpha channel before writing
-                Image.fromarray(colors[:, :, :3]).save(fn)
-                filenames += [fn]
+                Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
+                manifest += [fn]
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
         step *= 2
 
-    return filenames
+    return manifest
 
 
-UniformTopographyInterface.register_function('to_dzi', write_dzi)
+def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
+                         cmap=None, **kwargs):
+    """
+    Write topography to a Deep Zoom Image file. This can for example be used
+    to create a zoomable topography with OpenSeadragon
+    (https://openseadragon.github.io/).
+
+    Additional keyword parameters are passed to Pillow's `save` function.
+
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        Topogaphy to export
+    name : str
+        Name of the exported file. This is used as a prefix. Output filter
+        create the file `name`.xml that contains the metadata and a directory
+        `name`_files that contains the rendered image files at different levels.
+    root_directory : str
+        Root directory where to place `name`.xml and `name`_files.
+    tile_size : int, optional
+        Size of individual tiles. (Default: 256)
+    overlap : int, optional
+        Overlap of tiles. (Default: 1)
+    format : str, optional
+        Image format. Note that PNG files have seems at the boundary between
+        tiles. (Default: jpg)
+    meta_format : str, optional
+        Format for metadata information (the DZI file), can be 'xml' or
+        'json'. (Default: 'xml')
+    cmap : str or colormap, optional
+        Color map for rendering the topography. (Default: None)
+
+    Returns
+    -------
+    filenames : list of str
+        List with names of files created during write operation
+    """
+    # Get reasonable unit
+    ideal_height_unit = suggest_length_unit_for_data('linear', self.heights(), self.unit)
+    t = self.to_unit(ideal_height_unit)
+    return write_dzi(t.heights(), name, t.physical_sizes, ideal_height_unit, root_directory=root_directory,
+                     tile_size=tile_size, overlap=overlap, format=format, meta_format=meta_format,
+                     colorbar_title=f'Height ({ideal_height_unit})', cmap=cmap, **kwargs)
+
+
+UniformTopographyInterface.register_function('to_dzi', write_topography_dzi)

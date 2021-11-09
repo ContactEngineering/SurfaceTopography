@@ -27,7 +27,7 @@ Automatic determination of the reliability of the underyling data
 """
 
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
-from ..UnitConversion import get_unit_conversion_factor
+from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 def short_reliability_cutoff(self, other_cutoff=None):

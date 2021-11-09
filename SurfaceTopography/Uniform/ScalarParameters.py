@@ -56,8 +56,9 @@ def rms_height_from_profile(topography):
         raise NotImplementedError('`rms_height_from_profile` does not support MPI-decomposed topographies.')
 
     n = np.prod(topography.nb_grid_pts)
+    reduction = Reduction(topography._communicator)
     profile = topography.heights()
-    return np.sqrt(np.sum((profile - np.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2) / n)
+    return np.sqrt(reduction.sum((profile - reduction.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2) / n)
 
 
 def rms_height_from_area(topography):
@@ -80,9 +81,9 @@ def rms_height_from_area(topography):
         raise ValueError('Areal rms height can only be computed for topographies, not line scans.')
     elif topography.dim == 2:
         n = np.prod(topography.nb_grid_pts)
-        pnp = Reduction(topography._communicator)
+        reduction = Reduction(topography._communicator)
         profile = topography.heights()
-        return np.sqrt(pnp.sum((profile - pnp.sum(profile) / n) ** 2) / n)
+        return np.sqrt(reduction.sum((profile - reduction.sum(profile) / n) ** 2) / n)
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
@@ -116,9 +117,6 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_gradient` does not support MPI-decomposed topographies.")
-
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim <= 1:
@@ -127,7 +125,8 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
         mask_function = None if short_wavelength_cutoff is None else \
             lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         slx, sly = topography.derivative(1, mask_function=mask_function)
-        return np.sqrt(np.mean(slx ** 2 + sly ** 2))
+        reduction = Reduction(topography._communicator)
+        return np.sqrt(reduction.mean(slx ** 2 + sly ** 2))
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
@@ -162,9 +161,6 @@ def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None
     rms_slope : float
         Root mean square slope value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_slope_from_profile` does not support MPI-decomposed topographies.")
-
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     mask_function = None if short_wavelength_cutoff is None else \
@@ -175,7 +171,8 @@ def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None
         dx, dy = topography.derivative(1, mask_function=mask_function)
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
-    return np.sqrt(np.mean(dx ** 2))
+    reduction = Reduction(topography._communicator)
+    return np.sqrt(reduction.mean(dx ** 2))
 
 
 def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=None,
@@ -208,8 +205,6 @@ def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=
     rms_curvature : float
         Root mean square curvature value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_curvature_from_profile` does not support MPI-decomposed topographies.")
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     mask_function = None if short_wavelength_cutoff is None else \
@@ -220,7 +215,8 @@ def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=
         d2x, d2y = topography.derivative(2, mask_function=mask_function)
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
-    return np.sqrt(np.mean(d2x ** 2))
+    reduction = Reduction(topography._communicator)
+    return np.sqrt(reduction.mean(d2x ** 2))
 
 
 def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
@@ -252,8 +248,6 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
     rms_laplacian : float
         Root mean square Laplacian value.
     """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError("`rms_laplacian` does not support MPI-decomposed topographies.")
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
@@ -262,7 +256,8 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
         mask_function = None if short_wavelength_cutoff is None else \
             lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
         curv = topography.derivative(2, mask_function=mask_function)
-        return np.sqrt(((curv[0] + curv[1]) ** 2).mean())
+        reduction = Reduction(topography._communicator)
+        return np.sqrt(reduction.mean((curv[0] + curv[1]) ** 2))
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 

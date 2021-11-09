@@ -54,7 +54,7 @@ def test_fourier_synthesis(n):
     assert abs(topography.rms_gradient() - rms_slope) / rms_slope < 1e-1
 
 
-def test_fourier_synthesis_rms_height_more_wavevectors(comm_self):
+def test_fourier_synthesis_rms_height_more_wavevectors():
     """
     Set amplitude to 0 (rolloff = 0) outside the self affine region.
 

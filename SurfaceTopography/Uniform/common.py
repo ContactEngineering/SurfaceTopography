@@ -57,15 +57,15 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
-                     communicator):
+def domain_decompose(self, subdomain_locations, nb_subdomain_grid_pts,
+                     communicator=None):
     """
     Turn a topography that is defined over the whole domain into one that is
     decomposed for each individual MPI process.
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         SurfaceTopography object containing height information.
     subdomain_locations : tuple of ints
         Origin (location) of the subdomain handled by the present MPI
@@ -74,8 +74,9 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
         Number of grid points within the subdomain handled by the present
         MPI process. This is only required if decomposition is set to
         'domain'.
-    communicator : mpi4py communicator or NuMPI stub communicator
-        Communicator object.
+    communicator, optional : mpi4py communicator or NuMPI stub communicator
+        Communicator object. Use communicator from topography object if not
+        present. (Default: None)
 
     Returns
     -------
@@ -83,15 +84,17 @@ def domain_decompose(topography, subdomain_locations, nb_subdomain_grid_pts,
         SurfaceTopography object that now holds only data local the MPI
         process.
     """
-    return topography.__class__(topography.heights(),
-                                topography.physical_sizes,
-                                periodic=topography.is_periodic,
-                                decomposition='domain',
-                                subdomain_locations=subdomain_locations,
-                                nb_subdomain_grid_pts=nb_subdomain_grid_pts,
-                                communicator=communicator,
-                                unit=topography.unit,
-                                info=topography.info)
+    if communicator is None and self.communicator is None:
+        raise RuntimeError('Please provide an MPI communicator.')
+    return self.__class__(self.heights(),
+                          self.physical_sizes,
+                          periodic=self.is_periodic,
+                          decomposition='domain',
+                          subdomain_locations=subdomain_locations,
+                          nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                          communicator=self.communicator if communicator is None else communicator,
+                          unit=self.unit,
+                          info=self.info)
 
 
 def plot(topography, subplot_location=111):

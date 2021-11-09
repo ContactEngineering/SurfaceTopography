@@ -26,8 +26,15 @@
 #
 
 import numpy as np
+import pytest
+
+from NuMPI import MPI
 
 from SurfaceTopography import read_container
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_bandwidth_and_unit_suggestion(file_format_examples):
@@ -38,4 +45,4 @@ def test_bandwidth_and_unit_suggestion(file_format_examples):
     np.testing.assert_almost_equal(lower_um, 100)
     np.testing.assert_almost_equal(upper_um, upper_mm * 1000)
     np.testing.assert_almost_equal(lower_um, lower_mm * 1000)
-    assert c.suggest_length_unit() == 'µm'
+    assert c.suggest_length_unit('log') == 'nm'

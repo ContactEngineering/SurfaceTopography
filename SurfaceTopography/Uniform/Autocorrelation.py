@@ -30,7 +30,7 @@ Height-difference autocorrelation functions
 
 import numpy as np
 
-from ..Exceptions import NoReliableDataError
+from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.Regression import resample, resample_radial
 
@@ -89,6 +89,10 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
     A : array
         Autocorrelation function. (Units: length**2)
     """  # noqa: E501
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '
+                                 'computed for topographies with missing data points.')
+
     try:
         nx, ny = self.nb_grid_pts
         sx, sy = self.physical_sizes
@@ -211,6 +215,10 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
         2D autocorrelation function. Only returned if return_map=True.
         (Units: length**2)
     """
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Autocorrelation cannot be '
+                                 'computed for topographies with missing data points.')
+
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
 

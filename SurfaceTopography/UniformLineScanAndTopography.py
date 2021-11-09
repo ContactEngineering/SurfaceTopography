@@ -39,7 +39,7 @@ from .HeightContainer import (
 )
 from .Support import deprecated
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
-from .UnitConversion import get_unit_conversion_factor
+from .Support.UnitConversion import get_unit_conversion_factor
 
 
 class UniformLineScan(AbstractTopography, UniformTopographyInterface):
@@ -47,7 +47,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
     Line scan that lives on a uniform one-dimensional grid.
     """
 
-    def __init__(self, heights, physical_sizes, periodic=False, unit=None, info={}):
+    def __init__(self, heights, physical_sizes, periodic=False, unit=None, info={}, communicator=MPI.COMM_SELF):
         """
         Parameters
         ----------
@@ -69,7 +69,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         if heights.ndim != 1:
             raise ValueError('Heights array must be one-dimensional.')
 
-        super().__init__(unit=unit, info=info)
+        super().__init__(unit=unit, info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if it is not already a
         # masked array and there is data missing
@@ -361,11 +361,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        reduction = Reduction(self.communicator)
-        return reduction.any(
-            np.ma.getmask(
-                self._heights) is not np.ma.nomask and np.ma.getmask(
-                self._heights).sum() > 0)
+        return Reduction(self._communicator).sum(
+            np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0)
 
     def positions(self, meshgrid=True):
         """
@@ -933,9 +930,9 @@ class CompoundTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('mean', lambda this: this.heights().mean())
-UniformTopographyInterface.register_function('min', lambda this: this.heights().min())
-UniformTopographyInterface.register_function('max', lambda this: this.heights().max())
+UniformTopographyInterface.register_function('mean', lambda this: Reduction(this._communicator).mean(this.heights()))
+UniformTopographyInterface.register_function('min', lambda this: Reduction(this._communicator).min(this.heights()))
+UniformTopographyInterface.register_function('max', lambda this: Reduction(this._communicator).max(this.heights()))
 
 # Register pipeline functions from this module
 UniformTopographyInterface.register_function('to_unit', ScaledUniformTopography)

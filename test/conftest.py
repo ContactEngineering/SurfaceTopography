@@ -69,7 +69,6 @@ def MyMPITestFixture(commsize, scope='function'):
 
 
 comm = MyMPITestFixture([1, 4], scope='session')
-comm_self = MyMPITestFixture([1], scope='session')
 
 maxcomm = MyMPITestFixture([MPI.COMM_WORLD.Get_size()], scope="session")
 

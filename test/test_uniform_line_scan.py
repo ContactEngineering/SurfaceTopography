@@ -29,7 +29,6 @@
 Tests surface classes
 """
 
-import os
 import pickle
 
 import numpy as np
@@ -42,9 +41,6 @@ from SurfaceTopography import UniformLineScan
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-
-DATADIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
 
 
 def test_properties():

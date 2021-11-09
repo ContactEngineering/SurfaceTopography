@@ -29,11 +29,10 @@ import io
 import os
 import pickle
 import tempfile
-import unittest
 import warnings
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 import NuMPI
@@ -83,10 +82,13 @@ binary_example_file_list = _convert_filelist([
     '10x10-one_channel_without_name.ibw',
     'example1.mat',
     'example.opd',
+    'example2.opd',
+    'opd3.opd',
     'example.x3p',
     'example2.x3p',
     'opdx1.OPDx',
     'opdx2.OPDx',
+    'opdx3.OPDx',
     'mi1.mi',
     'N46E013.hgt',
     'example.zon',
@@ -103,6 +105,7 @@ text_example_file_list = _convert_filelist([
     # example8: from the reader's docstring, with extra newline at end
     'opdx1.txt',
     'opdx2.txt',
+    'opdx3.txt',
     'example-2d.xyz',
     # Not yet working
     # 'example6.txt',
@@ -130,11 +133,11 @@ text_example_memory_list = [
 
 
 @pytest.mark.parametrize("reader", readers)
-def test_no_resource_warning_on_failure(reader):
+def test_no_resource_warning_on_failure(reader, file_format_examples):
     """
     Tests for each reader class that it doesn't raise a ResourceWarning
     """
-    fn = os.path.join(DATADIR, "wrongnpyfile.npy")
+    fn = os.path.join(file_format_examples, "wrongnpyfile.npy")
     with warnings.catch_warnings(record=True) as w:
         # Cause all warnings to always be triggered.
         warnings.simplefilter("always")  # deactivate hiding of ResourceWarnings
@@ -149,14 +152,14 @@ def test_no_resource_warning_on_failure(reader):
             assert not issubclass(wi.category, ResourceWarning)
 
 
-def test_uniform_stylus():
-    t = read_topography(os.path.join(DATADIR, 'example7.txt'))
+def test_uniform_stylus(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'example7.txt'))
     assert t.is_uniform
 
 
-def test_cannot_detect_file_format_on_txt():
+def test_cannot_detect_file_format_on_txt(file_format_examples):
     with pytest.raises(CannotDetectFileFormat):
-        read_topography(os.path.join(DATADIR, 'nonsense_txt_file.txt'))
+        read_topography(os.path.join(file_format_examples, 'nonsense_txt_file.txt'))
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list)
@@ -432,42 +435,37 @@ def test_to_netcdf(fn):
         assert t == t2
 
 
-class UnknownFileFormatGivenTest(unittest.TestCase):
-
-    def test_read(self):
-        with self.assertRaises(SurfaceTopography.IO.UnknownFileFormatGiven):
-            SurfaceTopography.IO.open_topography(
-                os.path.join(DATADIR, "surface.2048x2048.h5"),
-                format='Nonexistentfileformat')
-
-    def test_detect_format(self):
-        with self.assertRaises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
-            SurfaceTopography.IO.open_topography(
-                os.path.join(DATADIR, "surface.2048x2048.h5"),
-                format='Nonexistentfileformat')
+def test_read_unknown_file_format(file_format_examples):
+    with pytest.raises(SurfaceTopography.IO.UnknownFileFormatGiven):
+        SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
+                                             format='Nonexistentfileformat')
 
 
-def test_file_format_mismatch():
+def test_detect_format_unknown_file_format(file_format_examples):
+    with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
+        SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
+                                             format='Nonexistentfileformat')
+
+
+def test_file_format_mismatch(file_format_examples):
     with pytest.raises(SurfaceTopography.Exceptions.FileFormatMismatch):
         SurfaceTopography.IO.open_topography(
-            os.path.join(DATADIR, 'surface.2048x2048.h5'), format="npy")
+            os.path.join(file_format_examples, 'surface.2048x2048.h5'), format="npy")
 
 
-class LineScanInFileWithMinimalSpacesTest(unittest.TestCase):
-    def test_detect_format_then_read(self):
-        self.assertEqual(detect_format(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')), 'xyz')
+def test_line_scan_detect_format_then_read(file_format_examples):
+    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
 
-    def test_read(self):
-        surface = read_xyz(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'))
 
-        self.assertFalse(surface.is_uniform)
-        self.assertEqual(surface.dim, 1)
+def test_line_scan_read(file_format_examples):
+    surface = read_xyz(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc'))
 
-        x, y = surface.positions_and_heights()
-        self.assertGreater(len(x), 0)
-        self.assertEqual(len(x), len(y))
+    assert not surface.is_uniform
+    assert surface.dim == 1
+
+    x, y = surface.positions_and_heights()
+    assert len(x) > 0
+    assert len(x) == len(y)
 
 
 @pytest.mark.parametrize("reader", readers)
@@ -477,9 +475,9 @@ def test_readers_have_name(reader):
 
 # yes, the German version still has "Value units"
 @pytest.mark.parametrize("lang_filename_infix", ["english", "german"])
-def test_gwyddion_txt_import(lang_filename_infix):
+def test_gwyddion_txt_import(lang_filename_infix, file_format_examples):
     fname = os.path.join(
-        DATADIR,
+        file_format_examples,
         'gwyddion-export-{}.txt'.format(lang_filename_infix))
 
     #
@@ -537,19 +535,19 @@ def test_gwyddion_txt_import(lang_filename_infix):
     np.testing.assert_allclose(topo.heights(), expected_heights)
 
 
-def test_detect_format():
-    assert detect_format(os.path.join(DATADIR, 'di1.di')) == 'di'
-    assert detect_format(os.path.join(DATADIR, 'di2.di')) == 'di'
-    assert detect_format(os.path.join(DATADIR, 'example.ibw')) == 'ibw'
-    assert detect_format(os.path.join(DATADIR, 'example.opd')) == 'opd'
-    assert detect_format(os.path.join(DATADIR, 'example.x3p')) == 'x3p'
-    assert detect_format(os.path.join(DATADIR, 'example1.mat')) == 'mat'
-    assert detect_format(os.path.join(DATADIR, 'example.xyz')) == 'xyz'
-    assert detect_format(os.path.join(DATADIR, 'example-2d.xyz')) == 'xyz'
-    assert detect_format(os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
-    assert detect_format(os.path.join(DATADIR, 'example-2d.npy')) == 'npy'
-    assert detect_format(os.path.join(DATADIR, 'surface.2048x2048.h5')) == 'h5'
-    assert detect_format(os.path.join(DATADIR, 'example.zon')) == 'zon'
+def test_detect_format(file_format_examples):
+    assert detect_format(os.path.join(file_format_examples, 'di1.di')) == 'di'
+    assert detect_format(os.path.join(file_format_examples, 'di2.di')) == 'di'
+    assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
+    assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
+    assert detect_format(os.path.join(file_format_examples, 'example.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
+    assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
+    assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
+    assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
 
 
 def test_to_matrix():

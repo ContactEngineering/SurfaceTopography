@@ -47,7 +47,7 @@ from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                make_sphere, open_topography,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.UnitConversion import get_unit_conversion_factor
+from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
 
 pytestmark = pytest.mark.skipif(
@@ -926,5 +926,3 @@ def test_power_spectrum_from_profile():
     t = Topography(h, (8, 6))
 
     q1, C1 = t.power_spectrum_from_profile(window='hann')
-
-    # TODO add check for values

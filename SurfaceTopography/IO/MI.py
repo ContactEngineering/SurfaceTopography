@@ -29,7 +29,7 @@ import numpy as np
 
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..UnitConversion import mangle_length_unit_utf8
+from ..Support.UnitConversion import mangle_length_unit_utf8
 
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo

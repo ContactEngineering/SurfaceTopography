@@ -44,9 +44,6 @@ pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
 
-DATADIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), 'file_format_examples')
-
 
 def test_properties():
     x = np.array((0, 1, 1.5, 2, 3))
@@ -165,8 +162,8 @@ def test_power_spectrum_from_profile():
     # ok can be called without errors
 
 
-def test_detrend():
-    t = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+def test_detrend(file_format_examples):
+    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
 

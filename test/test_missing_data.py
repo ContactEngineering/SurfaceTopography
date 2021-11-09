@@ -6,6 +6,7 @@ import pytest
 
 from NuMPI import MPI
 
+from SurfaceTopography.Exceptions import UndefinedDataError
 from SurfaceTopography.IO import open_topography, read_topography
 
 pytestmark = pytest.mark.skipif(
@@ -87,3 +88,44 @@ def test_masked_array_kept_by_netcdf(make_topography_with_missing_data, dim, is_
         topo.to_netcdf(tmpfile.name)
         netcdf_topo = read_topography(tmpfile.name)
         assert np.ma.is_masked(netcdf_topo.heights()), "Masked array lost while saving to netCDF"
+
+
+@pytest.mark.parametrize("dim, is_nonuniform, height_scale_factor, detrend_mode", [
+    (2, False, None, None),  # None means: do not apply
+    (2, False, 2, None),
+    (2, False, None, 'center'),
+    (2, False, 2, 'center'),
+])
+def test_exception(make_topography_with_missing_data, dim, is_nonuniform, height_scale_factor, detrend_mode):
+    topo = make_topography_with_missing_data(dim=dim, is_nonuniform=is_nonuniform,
+                                             height_scale_factor=height_scale_factor)
+
+    assert topo.rms_height_from_profile() is not None
+    assert topo.rms_height_from_area() is not None
+
+    with pytest.raises(UndefinedDataError):
+        topo.rms_slope_from_profile()
+
+    with pytest.raises(UndefinedDataError):
+        topo.rms_gradient()
+
+    with pytest.raises(UndefinedDataError):
+        topo.rms_curvature_from_profile()
+
+    with pytest.raises(UndefinedDataError):
+        topo.rms_curvature_from_area()
+
+    with pytest.raises(UndefinedDataError):
+        topo.rms_laplacian()
+
+    with pytest.raises(UndefinedDataError):
+        topo.autocorrelation_from_profile()
+
+    with pytest.raises(UndefinedDataError):
+        topo.autocorrelation_from_area()
+
+    with pytest.raises(UndefinedDataError):
+        topo.power_spectrum_from_profile()
+
+    with pytest.raises(UndefinedDataError):
+        topo.power_spectrum_from_area()

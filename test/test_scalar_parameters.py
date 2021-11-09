@@ -35,8 +35,7 @@ from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-@pytest.fixture
-def sinewave2D(comm):
+def sinewave2D(comm=None):
     n = 256
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
 
@@ -50,16 +49,13 @@ def sinewave2D(comm):
     top = Topography(sinsurf, decomposition='domain',
                      nb_subdomain_grid_pts=fftengine.nb_subdomain_grid_pts,
                      subdomain_locations=fftengine.subdomain_locations,
-                     physical_sizes=size, communicator=comm)
+                     physical_sizes=size, communicator=MPI.COMM_SELF if comm is None else comm)
 
     return (L, hm, top)
 
 
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
-def test_rms_curvature(sinewave2D):
-    L, hm, top = sinewave2D
+def test_rms_curvature(comm):
+    L, hm, top = sinewave2D(comm)
     numerical = top.rms_curvature_from_area()
     analytical = np.sqrt(4 * (16 * np.pi ** 4 / L ** 4) * hm ** 2 / 4 / 4)
     #                 rms(∆)^2 = (qx^2 + qy^2)^2 * hm^2 / 4
@@ -70,16 +66,16 @@ def test_rms_curvature(sinewave2D):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-def test_rms_slope(sinewave2D):
-    L, hm, top = sinewave2D
+def test_rms_slope():
+    L, hm, top = sinewave2D()
     numerical = top.rms_gradient()
     analytical = np.sqrt(2 * np.pi ** 2 * hm ** 2 / L ** 2)
     # print(numerical-analytical)
     np.testing.assert_almost_equal(numerical, analytical, 5)
 
 
-def test_rms_height(comm, sinewave2D):
-    L, hm, top = sinewave2D
+def test_rms_height(comm):
+    L, hm, top = sinewave2D(comm)
     numerical = top.rms_height_from_area()
     analytical = np.sqrt(hm ** 2 / 4)
 
@@ -106,8 +102,7 @@ def test_rms_curvature_sinewave_2D(periodic):
     # print(numerical-analytical)
     np.testing.assert_almost_equal(numerical_lapl, analytical_lapl, precision)
 
-    np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2,
-                                   precision)
+    np.testing.assert_almost_equal(surf.rms_curvature_from_area(), analytical_lapl / 2, precision)
 
 
 @pytest.mark.skipif(
@@ -119,8 +114,7 @@ def test_rms_curvature_paraboloid_uniform_1D():
     curvature = 0.1
     heights = 0.5 * curvature * x ** 2
 
-    surf = UniformLineScan(heights, physical_sizes=(n,),
-                           periodic=False)
+    surf = UniformLineScan(heights, physical_sizes=(n,), periodic=False)
     # central finite differences are second order and so exact for the parabola
     assert abs((surf.rms_curvature_from_profile() - curvature) / curvature) < 1e-14
 
@@ -178,12 +172,15 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_slope_uniform_topography(self):
-        numerical = Topography(np.transpose([self.sinsurf[:-1]]*5), (self.L, 1)).rms_slope_from_profile()
+        numerical = Topography(np.transpose([self.sinsurf[:-1]] * 5), (self.L, 1)).rms_slope_from_profile()
         analytical = np.sqrt(2 * np.pi ** 2 * self.hm ** 2 / self.L ** 2)
         # print(numerical-analytical)
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
 
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 def test_rms_slope_from_profile():
     r = 4096
     res = (r,)
@@ -197,15 +194,18 @@ def test_rms_slope_from_profile():
             np.testing.assert_almost_equal(last_rms_slope, 0.1, decimal=2)
             # rms slope should not depend on filter for these cutoffs...
             for cutoff in [1, 2, 4, 8, 16]:
-                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0] / r * cutoff)
                 np.testing.assert_almost_equal(rms_slope, last_rms_slope)
             # ...but starts being a monotonously decreasing function here
             for cutoff in [64, 128, 256]:
-                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_slope_from_profile(short_wavelength_cutoff=s[0] / r * cutoff)
                 assert rms_slope < last_rms_slope
                 last_rms_slope = rms_slope
 
 
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 def test_rms_slope_from_area():
     r = 2048
     res = [r, r]
@@ -221,10 +221,10 @@ def test_rms_slope_from_area():
             np.testing.assert_almost_equal(last_rms_slope, t.scale(1.3, 1.3).rms_gradient())
             # rms slope should not depend on filter for these cutoffs...
             for cutoff in [4]:
-                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0] / r * cutoff)
                 np.testing.assert_almost_equal(rms_slope, last_rms_slope)
             # ...but starts being a monotonously decreasing function here
             for cutoff in [16, 32]:
-                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0]/r*cutoff)
+                rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0] / r * cutoff)
                 assert rms_slope < last_rms_slope
                 last_rms_slope = rms_slope

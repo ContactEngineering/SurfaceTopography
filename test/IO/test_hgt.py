@@ -25,17 +25,19 @@
 #
 
 import os
+import pytest
+
+from NuMPI import MPI
 
 from SurfaceTopography.IO.FromFile import read_hgt
 
-DATADIR = os.path.join(
-    os.path.dirname(
-        os.path.dirname(os.path.realpath(__file__))),
-    'file_format_examples')
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_read():
-    surface = read_hgt(os.path.join(DATADIR, 'N46E013.hgt'))
+def test_read(file_format_examples):
+    surface = read_hgt(os.path.join(file_format_examples, 'N46E013.hgt'))
     nx, ny = surface.nb_grid_pts
     assert nx == 3601
     assert ny == 3601

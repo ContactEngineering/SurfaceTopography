@@ -34,7 +34,7 @@ from .HeightContainer import AbstractTopography, DecoratedTopography, \
     NonuniformLineScanInterface
 from .Nonuniform.Detrending import polyfit
 from .Support import deprecated
-from .UnitConversion import get_unit_conversion_factor
+from .Support.UnitConversion import get_unit_conversion_factor
 
 
 class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):

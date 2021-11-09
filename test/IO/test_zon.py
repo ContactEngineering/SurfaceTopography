@@ -26,6 +26,7 @@ import os
 
 import numpy as np
 import pytest
+
 from NuMPI import MPI
 
 from SurfaceTopography.IO.ZON import ZONReader
@@ -34,15 +35,9 @@ pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
 
-DATADIR = os.path.join(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.realpath(__file__))),
-    'file_format_examples')
 
-
-def test_read_header():
-    file_path = os.path.join(DATADIR, 'example.zon')
+def test_read_header(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example.zon')
 
     loader = ZONReader(file_path)
 
@@ -60,8 +55,8 @@ def test_read_header():
     np.testing.assert_allclose(loader.default_channel.physical_sizes, (0.004378, 0.006369), rtol=1e-4)
 
 
-def test_topography():
-    file_path = os.path.join(DATADIR, 'example.zon')
+def test_topography(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example.zon')
 
     loader = ZONReader(file_path)
 

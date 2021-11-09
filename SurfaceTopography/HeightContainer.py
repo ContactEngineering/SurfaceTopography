@@ -34,6 +34,7 @@ import warnings
 import numpy as np
 
 from NuMPI import MPI
+from NuMPI.Tools import Reduction
 
 from .Support import DeprecatedDictionary
 
@@ -97,9 +98,6 @@ class AbstractTopography(object):
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
-
-    def __eq__(self, other):
-        return self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic
 
     def __getstate__(self):
         """
@@ -309,7 +307,9 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
             return p, h
 
     def __eq__(self, other):
-        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
+        return Reduction(self._communicator).all(
+            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and
+            np.allclose(self.positions(), other.positions()) and np.allclose(self.heights(), other.heights()))
 
     def __getitem__(self, i):
         return self.heights()[i]
@@ -362,7 +362,9 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
         return False
 
     def __eq__(self, other):
-        return super.__eq__(self, other) and np.allclose(self.positions_and_heights(), other.positions_and_heights())
+        return Reduction(self._communicator).all(
+            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and
+            np.allclose(self.positions_and_heights(), other.positions_and_heights()))
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]

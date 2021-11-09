@@ -81,7 +81,10 @@ class ChannelInfo:
         self._height_scale_factor = height_scale_factor
         self._periodic = periodic
         self._unit = unit
-        self._info = info.copy()
+        if info is None:
+            self._info = None
+        else:
+            self._info = info.copy()
 
     def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):

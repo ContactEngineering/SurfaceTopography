@@ -25,11 +25,18 @@
 #
 
 import os
+import pytest
 import unittest
 
 import numpy as np
 
+from NuMPI import MPI
+
 from SurfaceTopography.IO.FromFile import read_x3p
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 DATADIR = os.path.join(
     os.path.dirname(
