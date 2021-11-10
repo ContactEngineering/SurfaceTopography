@@ -358,3 +358,30 @@ def test_line_scans():
     np.testing.assert_almost_equal(d1[0], d2[0])
     # Note: Only the first derivative value are identical because the leftmost point of the stencil differs for the
     # the other derivative values.
+
+
+def test_fourier_derivative():
+    nx, ny = 128, 128
+    sx, sy = 1, 1
+
+    topography = fourier_synthesis([nx, ny], (sx, sy), 0.8, rms_height=1.)
+
+    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1, 1)
+    qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1, -1)
+
+    if nx % 2 == 0:
+        qx[int(nx / 2), 0] = 0
+    if ny % 2 == 0:
+        qy[0, int(ny / 2)] = 0
+
+    spectrum = np.fft.fft2(topography.heights())
+    dx = np.fft.ifft2(spectrum * (1j * qx))
+    dy = np.fft.ifft2(spectrum * (1j * qy))
+
+    dx = dx.real
+    dy = dy.real
+
+    dx2, dy2 = topography.fourier_derivative()
+
+    np.testing.assert_allclose(dx, dx2)
+    np.testing.assert_allclose(dy, dy2)

@@ -344,10 +344,9 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     return derivatives
 
 
-def fourier_derivative(topography, imtol=None):
+def fourier_derivative(self, scale_factor=None, distance=None, mask_function=None):
     r"""
-
-    First order derivatives of the fourier interpolation of the Topography
+    First derivatives of the fourier interpolation of the topography.
 
     For example in x direction:
 
@@ -366,45 +365,49 @@ def fourier_derivative(topography, imtol=None):
 
     Parameters
     ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
+    self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Surface topography object containing height information.
-    imtol: float, optional
-        tolerance for the discarded imaginary part. If the maximum absolute of
-        the imaginary part of the interpolated topography is more then that
-        value times the total absolute value of dx, an AssertionError is raised
-        If not specified the assertion will not be made.
+    n : int
+        Order of the derivative.
+    scale_factor : int or list of ints or list of tuples of ints, optional
+        Integer factor that scales the stencil difference, i.e.
+        specifying 2 will compute the derivative using a discrete step of
+        2 * px. Either `scale_factor` or `distance` can be specified.
+            - Single int: Returns a single derivative scaled in all directions
+              with this value
+            - List of ints: Returns multiple derivatives, each scaled in all
+              direction with the respective value from the list
+            - List of tuples of ints: Each tuple contains a scale factor in
+              the two Cartesian (x- and y-) directions. Return multiple
+              derivatives, scaled with different factors in both directions.
+        (Default: None)
+    distance : float or list of floats, optional
+        Explicit distance scale for computation of the derivative. Either
+        `scale_factor` or `distance` can be specified. Note that the distance
+        specifies the overall length of the stencil of lowest truncation
+        order, not the effective grid spacing used by this stencil. The scale
+        factor is then given by distance / (n * px) where n is the order of the
+        derivative and px the grid spacing.
+        (Default: None)
+    mask_function : function, optional
+        A function that takes as argument the output of FFT.fftfreq and
+        returns a mask that will be multiplied with the Fourier transformed
+        topography. This can be used to implement Fourier filtering before
+        computing the derivative. (Default: None)
+
     Returns
     -------
-    dx: array of floats
-        derivative with respect to x
-    dy: array of floats
-        derivative with respect to y
+    derivative : array or tuple of arrays
+        Array with derivative values. If dimension of the topography is
+        unity (line scan), then an array of the same shape as the
+        topography is returned. Otherwise, the first array index contains
+        the direction of the derivative. If the topgography is nonperiodic,
+        then all returning array with have shape one less than the input
+        arrays.
     """
-    nx, ny = topography.nb_grid_pts
-    sx, sy = topography.physical_sizes
-
-    qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1, 1)
-    qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1, -1)
-
-    if nx % 2 == 0:
-        qx[int(nx / 2), 0] = 0
-    if ny % 2 == 0:
-        qy[0, int(ny / 2)] = 0
-
-    spectrum = np.fft.fft2(topography.heights())
-    dx = np.fft.ifft2(spectrum * (1j * qx))
-    dy = np.fft.ifft2(spectrum * (1j * qy))
-
-    if imtol is not None:
-        assert (abs(dx.imag) / np.mean(abs(dx)) < imtol).all(), \
-            np.max(abs(dx.imag) / np.mean(abs(dx)))
-        assert (abs(dy.imag) / np.mean(abs(dy)) < imtol).all(), \
-            np.max(abs(dy.imag) / np.mean(abs(dy)))
-
-    dx = dx.real
-    dy = dy.real
-
-    return dx, dy
+    dim = self.dim
+    return self.derivative(1, operator=(muFFT.FourierDerivative(dim, i) for i in range(dim)),
+                           scale_factor=scale_factor, distance=distance, mask_function=mask_function)
 
 
 # Register analysis functions from this module
