@@ -1,8 +1,7 @@
 Installation
 ============
 
-You need Python 3 and FFTW3_ to run SurfaceTopography. All Python dependencies can be installed
-automatically by invoking
+You need Python 3,  NetCDF_ and FFTW3_ in order to install SurfaceTopography.
 
 Direct installation with pip
 ----------------------------
@@ -17,7 +16,7 @@ Or if you want the latest unreleased version
 
 .. code-block:: bash
 
-    python3 -m pip  install [--user] git+https://github.com/ComputationalMechanics/SurfaceTopography.git
+    python3 -m pip  install [--user] git+https://github.com/ContactEngineering/SurfaceTopography.git
 
 
 The command will install other dependencies including muFFT_, NuMPI_ and
@@ -33,12 +32,13 @@ If you want to install all optional dependencies for full functionality:
     python3 -m pip install [--user] -r requirements.txt
     rm requirements.txt
 
-Tip: to install FFTW3 and BLAS/LAPACK on ubuntu, you can for example use
+Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
 
 .. code-block:: bash
 
-    sudo apt-get install libfftw3-dev libopenblas-dev
+    sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
 
+See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` for an example installation on ubuntu.
 
 Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
 You can specify the directory where you installed FFTW3_
@@ -97,6 +97,12 @@ Updating SurfaceTopography
 If you update SurfaceTopography (whether with pip or `git pull` if you cloned the repository),  you may need to
 uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of them will be installed.
 
+Singularity_ container
+----------------------
+
+We provide a definition file to build a singularity container `here <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` .
+
+.. _Singularity: https://sylabs.io/singularity/
 .. _FFTW3: http://www.fftw.org/
 .. _muFFT: https://gitlab.com/muspectre/muspectre.git
 .. _nuMPI: https://github.com/IMTEK-Simulation/NuMPI.git
@@ -104,3 +110,4 @@ uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of 
 .. _Homebrew: https://brew.sh/
 .. _OpenBLAS: https://www.openblas.net/
 .. _LAPACK: http://www.netlib.org/lapack/
+.. _NetCDF: https://www.unidata.ucar.edu/software/netcdf/
