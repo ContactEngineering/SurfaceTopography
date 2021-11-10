@@ -27,9 +27,11 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
+from ..Support.Bibliography import doi
 from ..Support.Regression import make_grid
 
 
+@doi('arXiv:2106.16103')
 def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None, reliable=True,
                                          interpolation='linear', progress_callback=None,
                                          collocation='log', nb_points=None, nb_points_per_decade=10, threshold=4):

@@ -37,6 +37,7 @@ from NuMPI import MPI
 from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
                                Topography)
 from SurfaceTopography.Exceptions import NoReliableDataError
+from SurfaceTopography.Support.Bibliography import doi
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -66,7 +67,9 @@ def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_exam
             }
         }
     })
+    doi.clear()
     cut = surf.short_reliability_cutoff()
+    assert doi.dois == {'arXiv:2106.16103'}
     np.testing.assert_allclose(cut, 90.700854)
 
     # Make sure PSD returns only reliable portion
