@@ -360,7 +360,7 @@ def test_line_scans():
     # the other derivative values.
 
 
-def test_fourier_derivative():
+def test_mufft_fourier_derivative_vs_manual():
     nx, ny = 128, 128
     sx, sy = 1, 1
 
