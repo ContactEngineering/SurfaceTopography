@@ -171,7 +171,7 @@ def test_fourier_synthesis_1D_input():
     # TODO: What's the point of this test? There is nothing that is tested
 
 
-@pytest.mark.parametrize("n", (256, 1024))
+@pytest.mark.parametrize("n", (255, 256, 1024))
 def test_fourier_synthesis_linescan_c0(n):
     H = 0.7
     c0 = 8.
