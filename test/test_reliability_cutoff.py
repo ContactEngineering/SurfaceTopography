@@ -37,7 +37,6 @@ from NuMPI import MPI
 from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
                                Topography)
 from SurfaceTopography.Exceptions import NoReliableDataError
-from SurfaceTopography.Support.Bibliography import doi
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,

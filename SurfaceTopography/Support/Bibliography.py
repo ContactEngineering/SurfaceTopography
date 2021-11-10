@@ -54,14 +54,26 @@ class doi(object):
     dois = set()
 
     def __init__(self, *args):
+        self._n = 0
         self._add_these_dois = args
 
     def __call__(self, func):
         def func_with_doi(*args, **kwargs):
             if 'dois' in kwargs:
+                # `dois` is present. We store a reference to this set that
+                # will be updated in subsequent function calls.
                 doi.dois = kwargs['dois']
                 del kwargs['dois']
+                self._n = 0
             doi.dois.update(self._add_these_dois)
-            return func(*args, **kwargs)
+            self._n += 1
+            retvals = func(*args, **kwargs)
+            self._n -= 1
+            if self._n == 0:
+                # We have reached the point where the original `dois` argument
+                # was passed. Create a new set such that subsequent calls don't
+                # contaminate the bibliography.
+                doi.dois = set()
+            return retvals
 
         return func_with_doi
