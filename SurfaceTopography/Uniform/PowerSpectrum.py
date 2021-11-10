@@ -32,7 +32,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
-from ..Support.Bibliography import doi
+from ..Support import doi
 from ..Support.Regression import resample, resample_radial
 
 

@@ -53,18 +53,15 @@ class doi(object):
 
     dois = set()
 
-    def __init__(self, add_this_doi):
-        self._add_this_doi = add_this_doi
+    def __init__(self, *args):
+        self._add_these_dois = args
 
     def __call__(self, func):
         def func_with_doi(*args, **kwargs):
             if 'dois' in kwargs:
                 doi.dois = kwargs['dois']
                 del kwargs['dois']
-            doi.dois.update([self._add_this_doi])
+            doi.dois.update(self._add_these_dois)
             return func(*args, **kwargs)
 
         return func_with_doi
-
-    def clear():
-        doi.dois = set()

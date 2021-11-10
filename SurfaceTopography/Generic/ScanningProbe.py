@@ -30,7 +30,7 @@ import numpy as np
 import scipy
 
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
-from ..Support.Bibliography import doi
+from ..Support import doi
 
 
 @doi('arXiv:2106.16103')

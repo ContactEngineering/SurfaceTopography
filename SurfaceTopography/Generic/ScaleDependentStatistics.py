@@ -27,7 +27,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
-from ..Support.Bibliography import doi
+from ..Support import doi
 from ..Support.Regression import make_grid
 
 

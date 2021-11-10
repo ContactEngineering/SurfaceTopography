@@ -67,9 +67,9 @@ def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_exam
             }
         }
     })
-    doi.clear()
-    cut = surf.short_reliability_cutoff()
-    assert doi.dois == {'arXiv:2106.16103'}
+    dois = set()
+    cut = surf.short_reliability_cutoff(dois=dois)
+    assert dois == {'arXiv:2106.16103'}
     np.testing.assert_allclose(cut, 90.700854)
 
     # Make sure PSD returns only reliable portion
