@@ -659,17 +659,6 @@ def test_autocompletion():
     assert 'to_uniform' in dir(t3)
 
 
-@pytest.mark.parametrize("ny", [7, 6])
-@pytest.mark.parametrize("nx", [5, 4])
-def test_fourier_derivative_realness(nx, ny):
-    # fourier_derivative internally asserts that the imaginary part is within
-    # numerical tolerance. We check here this error isn't raised for any
-    # configuration of odd and even grid points
-    topography = Topography(np.random.random((nx, ny)),
-                            physical_sizes=(2., 3.))
-    topography.fourier_derivative(imtol=1e-12)
-
-
 def test_fourier_interpolate_nyquist(plot=False):
     # asserts that the interpolation follows the "minimal-osciallation"
     # assumption for the nyquist frequency

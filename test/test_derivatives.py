@@ -69,7 +69,7 @@ def test_fourier_derivative(plot=False):
     topography = topography.scale(1 / topography.rms_height_from_area())
 
     # Fourier derivative
-    dx, dy = topography.fourier_derivative(imtol=1e-12)
+    dx, dy = topography.fourier_derivative()
 
     # Finite-differences. We use central differences because this produces the
     # derivative at the same point as the Fourier derivative
