@@ -7,9 +7,10 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
-v0.99.0 (not yet released)
---------------------------
+v0.99.0 (11Nov21)
+-----------------
 
+- ENH: Self-report citations (#135)
 - ENH: Raise exception if missing data points are unsupported (#106)
 - ENH: Parallel implementation of scalar roughness parameters (#55)
 - ENH: DZI writer has option to write metadata as JSON
@@ -19,6 +20,7 @@ v0.99.0 (not yet released)
 - BUG: NetCDF reader checks consistency of units (#82)
 - BUG: Storing topographies with undefined data to NetCDF files was
   broken in some cases; now an explicit mask is stored to the NetCDF file
+- MAINT: Compute Fourier derivative with muFFT (#111)
 - MAINT: Refactored OPDx reader (attention: height scale factor differs from
   old reader)
 - MAINT: Variable bandwidth raises `UndefinedDataError` when topography has
