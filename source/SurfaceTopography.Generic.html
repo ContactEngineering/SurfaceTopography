@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.98.3.dev88+g2772fe35 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 0.98.3.dev100+gabc6ac97 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -15,7 +15,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.98.3.dev88+g2772fe35
+                0.98.3.dev100+gabc6ac97
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -213,119 +213,10 @@ used to compute the reliability cutoff.</p>
 </section>
 <section id="module-SurfaceTopography.Generic.ScaleDependentStatistics">
 <span id="surfacetopography-generic-scaledependentstatistics-module"></span><h2>SurfaceTopography.Generic.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics" title="Permalink to this headline"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
-<dd><p>Compute statistical properties of a uniform topography at specific scales.
-The scale is specified either by <cite>scale_factors</cite> or <cite>distance</cite>. These
-properties are statistics of derivatives carried out at specific scales,
-as computed using the <cite>derivative</cite> pipeline function.</p>
-<p>The specific statistical properties is computed by the <cite>func</cite> argument.
-The output of <cite>func</cite> needs to be homogeneous, i.e. if an array is returned,
-this array must have the same size independent of the derivative data that
-is fed into <cite>func</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Topogaphy or line scan.</p></li>
-<li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
-<blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">func(dx,</span> <span class="pre">dy=None)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
-</div></blockquote>
-<p>A function taking the derivative in x-direction and optionally the
-derivative in y-direction (only for topographies, i.e. maps). The
-function needs to be able to ignore the second argument as a container
-can be a mixture of topographies and line scans. The function can
-return a scalar value or an array, but the array size must be fixed.</p>
-</p></li>
-<li><p><strong>n</strong> (<em>int</em><em>, </em><em>optional</em>) – Order of derivative. (Default: 1)</p></li>
-<li><p><strong>scale_factor</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Scale factor for rescaling the finite differences stencil. A scale
-factor of unity means the derivative is computed at the size of the
-individual pixel.</p></li>
-<li><p><strong>distance</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Characteristic distances at which the derivatives are computed. This
-is the overall length of the underlying stencil of lowest truncation
-order, not the effective grid spacing used by this stencil. (The
-corresponding scale factor is then given by distance / (n * px) where
-n is the order of the derivative and px the grid spacing.)
-If this is an array, then the statistical property is computed at each
-of these distances.</p></li>
-<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only incorporate data deemed reliable. (Default: True)</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
-unit before the derivative is computed.</p></li>
-<li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for computing derivatives at distances
-that do not equal an integer multiple of the grid spacing. Use
-‘linear’ for a local liner interpolation or ‘fourier’ for global
-Fourier interpolation. Note that Fourier interpolation carries large
-errors for nonperiodic topographies and should be used with care.
-(Default: ‘linear’)</p></li>
-<li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
-arguments for progress reporting. (Default: None)</p></li>
-<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Automatic computation of sampling grid if neigther <cite>scale_factor</cite> nor
-<cite>distance</cite> is specified. Specifying ‘log’ yields collocation points
-equally spaced on a log scale, ‘quadratic’ yields bins with
-similar number of data points and ‘linear’ yields linear bins.
-(Default: ‘log’)</p></li>
-<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points for automatic sampling grid. Bins are automatically
-determined if set to None. (Default: None)</p></li>
-<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
-(Default: None)</p></li>
-<li><p><strong>threshold</strong> (<em>int</em><em>, </em><em>optional</em>) – Defines the minimal amount of data points of the probability distribution
-to calculate the statistical properties with func and returns a np.nan if
-the value is below the threshold.
-E.g. the scipy.stats.kstat function needs at least 4 data points to
-calculate the 4th cumulant function, otherwise it returns nan or inf
-(Default: 4)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<p>This example yields the the scale-dependent derivative (equivalent to
-the autocorrelation function divided by the distance) in the x-direction:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">distances</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">autocorrelation_from_profile</span><span class="p">(</span><span class="n">resampling_method</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">scale_dependent_statistical_property</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">distance</span><span class="o">=</span><span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">/</span> <span class="n">distances</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">20</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 <section id="module-SurfaceTopography.Generic.ScanningProbe">
 <span id="surfacetopography-generic-scanningprobe-module"></span><h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScanningProbe" title="Permalink to this headline"></a></h2>
 <p>Analysis functions related to scanning-probe microscopy</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ScanningProbe.</span></span><span class="sig-name descname"><span class="pre">scanning_probe_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff" title="Permalink to this definition"></a></dt>
-<dd><p>Estimate a length scale below which tip radius artifacts affect the
-measured data. See: <a class="reference external" href="https://arxiv.org/abs/2106.16103">https://arxiv.org/abs/2106.16103</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Topogaphy or line scan.</p></li>
-<li><p><strong>tip_radius</strong> (<em>float</em>) – Tip radius.</p></li>
-<li><p><strong>safety_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Tip radius artifacts are expected to play a role for scales below
-which the minimum scale-dependent curvature drops below
--safety_factor/radius. The <cite>safety_factor</cite> should be on the order of 1.
-In <a class="reference external" href="https://arxiv.org/abs/2106.16103">https://arxiv.org/abs/2106.16103</a> a factor of 1/2 is estimated based
-on synthetic (simulated) data. (Default: 1/2)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>reliability_cutoff</strong> – Length scale below which data is affected by tip radius artifacts.
-Note that this is the length of the stencil for the second derivative
-used to compute the reliability cutoff.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="module-SurfaceTopography.Generic.Slope">
 <span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this headline"></a></h2>

@@ -4,6 +4,14 @@ SurfaceTopography.Support package
 Submodules
 ----------
 
+SurfaceTopography.Support.Bibliography module
+---------------------------------------------
+
+.. automodule:: SurfaceTopography.Support.Bibliography
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Support.Deprecation module
 --------------------------------------------
 

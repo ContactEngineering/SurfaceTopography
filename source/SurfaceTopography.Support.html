@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.98.3.dev88+g2772fe35 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.98.3.dev100+gabc6ac97 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.98.3.dev88+g2772fe35
+                0.98.3.dev100+gabc6ac97
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -57,6 +57,7 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Support package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Support.Bibliography">SurfaceTopography.Support.Bibliography module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Support.Interpolation">SurfaceTopography.Support.Interpolation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Support.Regression">SurfaceTopography.Support.Regression module</a></li>
@@ -84,6 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Support package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support.Bibliography">SurfaceTopography.Support.Bibliography module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support.Interpolation">SurfaceTopography.Support.Interpolation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support.Regression">SurfaceTopography.Support.Regression module</a></li>
@@ -124,6 +126,44 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
 </section>
+<section id="module-SurfaceTopography.Support.Bibliography">
+<span id="surfacetopography-support-bibliography-module"></span><h2>SurfaceTopography.Support.Bibliography module<a class="headerlink" href="#module-SurfaceTopography.Support.Bibliography" title="Permalink to this headline"></a></h2>
+<p>Tracing bibliography through function calls.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.Bibliography.doi">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Bibliography.</span></span><span class="sig-name descname"><span class="pre">doi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Bibliography.doi" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>To add bibliography information, simply decorate the function:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+&#64;doi(‘10.1088/2051-672X/aa51f8’)
+def power_spectrum(topography):</p>
+<blockquote>
+<div><p>…</p>
+</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p>The DOIs can be requested by passing a <cite>doi</cite> argument with an empty set to
+the function:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">dois</span> <span class="pre">=</span> <span class="pre">set()</span>
+<span class="pre">power_spectrum(topography,</span> <span class="pre">dois=dois)</span>
+<span class="pre">print(dois)</span>&#160; <span class="pre">#</span> <span class="pre">Prints</span> <span class="pre">the</span> <span class="pre">relevant</span> <span class="pre">bibliographic</span> <span class="pre">information</span>
+<span class="pre">`</span></code></p>
+<p>Note that the dois need to be evaluated directly after the function call.
+Any additional function calls will continue to populate the set with
+bibliography information.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.Bibliography.doi.dois">
+<span class="sig-name descname"><span class="pre">dois</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Support.Bibliography.doi.dois" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.Bibliography.doi.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Bibliography.doi.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-SurfaceTopography.Support.Deprecation">
 <span id="surfacetopography-support-deprecation-module"></span><h2>SurfaceTopography.Support.Deprecation module<a class="headerlink" href="#module-SurfaceTopography.Support.Deprecation" title="Permalink to this headline"></a></h2>
 <dl class="py function">
@@ -134,7 +174,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Deprecation.DeprecatedDictionary">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Deprecation.</span></span><span class="sig-name descname"><span class="pre">DeprecatedDictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.DeprecatedDictionary" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Deprecation.</span></span><span class="sig-name descname"><span class="pre">DeprecatedDictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Deprecation.DeprecatedDictionary" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
 <p>A dictionary that raises a deprecation warning when accessing certain keys.</p>
 <dl class="py method">
@@ -262,7 +302,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Regression.gaussian_process_regression">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">gaussian_process_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">output_x</span></em>, <em class="sig-param"><span class="pre">x</span></em>, <em class="sig-param"><span class="pre">values</span></em>, <em class="sig-param"><span class="pre">kernel=&lt;function</span> <span class="pre">gaussian_kernel&gt;</span></em>, <em class="sig-param"><span class="pre">noise_variance=1e-06</span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.gaussian_process_regression" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">gaussian_process_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel=&lt;function</span> <span class="pre">gaussian_kernel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_variance=1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.gaussian_process_regression" title="Permalink to this definition"></a></dt>
 <dd><p>Gaussian process regression for resampling a simple function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
