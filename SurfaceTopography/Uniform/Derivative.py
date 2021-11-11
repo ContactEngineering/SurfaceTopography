@@ -367,8 +367,6 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
     ----------
     self : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
         Surface topography object containing height information.
-    n : int
-        Order of the derivative.
     scale_factor : int or list of ints or list of tuples of ints, optional
         Integer factor that scales the stencil difference, i.e.
         specifying 2 will compute the derivative using a discrete step of
