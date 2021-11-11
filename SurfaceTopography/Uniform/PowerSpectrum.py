@@ -32,9 +32,11 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
+from ..Support import doi
 from ..Support.Regression import resample, resample_radial
 
 
+@doi('10.1088/2051-672X/aa51f8')
 def power_spectrum_from_profile(self, window=None, reliable=True, resampling_method='bin-average',
                                 collocation='log', nb_points=None, nb_points_per_decade=10):
     """
@@ -131,6 +133,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         return q, C
 
 
+@doi('10.1088/2051-672X/aa51f8')
 def power_spectrum_from_area(self, window=None, reliable=True, collocation='log', nb_points=None,
                              nb_points_per_decade=10, return_map=False, resampling_method='bin-average'):
     """

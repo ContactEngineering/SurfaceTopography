@@ -36,7 +36,7 @@ import numpy as np
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-from .Support import DeprecatedDictionary
+from .Support import doi, DeprecatedDictionary
 
 # Standardized entries for the info dictionary
 
@@ -229,7 +229,12 @@ class DecoratedTopography(AbstractTopography):
 class TopographyInterface(object):
     @classmethod
     def register_function(cls, name, function):
-        cls._functions.update({name: function})
+        if function.__name__ != 'func_with_doi':
+            # We want the `dois` argument for all pipeline functions. If no
+            # doi has been specified, we simply wrap it in an empty decorator.
+            cls._functions.update({name: doi()(function)})
+        else:
+            cls._functions.update({name: function})
 
 
 class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):

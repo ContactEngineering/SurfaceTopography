@@ -139,7 +139,7 @@ class WindowedUniformTopography(DecoratedUniformTopography):
                 raise ValueError(f"Unknown direction '{self._direction}'.")
 
 
-class FilteredUniformTopography(DecoratedUniformTopography):
+class FourierFilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
@@ -230,7 +230,7 @@ class FilteredUniformTopography(DecoratedUniformTopography):
             return np.real(h_q_filtered)
 
 
-class ShortCutTopography(FilteredUniformTopography):
+class ShortCutTopography(FourierFilteredUniformTopography):
     name = 'shortcut_filtered_topography'
 
     def __init__(self, topography,
@@ -326,7 +326,7 @@ class ShortCutTopography(FilteredUniformTopography):
         super().__setstate__(superstate)
 
 
-class LongCutTopography(FilteredUniformTopography):
+class LongCutTopography(FourierFilteredUniformTopography):
     name = 'longcut_filtered_topography'
 
     def __init__(self, topography,
@@ -423,6 +423,6 @@ class LongCutTopography(FilteredUniformTopography):
 
 
 UniformTopographyInterface.register_function("window", WindowedUniformTopography)
-UniformTopographyInterface.register_function("filter", FilteredUniformTopography)
+UniformTopographyInterface.register_function("filter", FourierFilteredUniformTopography)
 UniformTopographyInterface.register_function("shortcut", ShortCutTopography)
 UniformTopographyInterface.register_function("longcut", LongCutTopography)

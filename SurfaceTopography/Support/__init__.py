@@ -23,6 +23,7 @@
 # SOFTWARE.
 #
 
+from .Bibliography import doi  # noqa: F401
 from .Deprecation import deprecated, DeprecatedDictionary  # noqa: F401
 from .Interpolation import Bicubic  # noqa: F401
 from .Regression import resample_radial  # noqa: F401

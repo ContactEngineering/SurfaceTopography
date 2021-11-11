@@ -25,16 +25,17 @@
 
 """
 Height-difference autocorrelation functions
-
 """
 
 import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
+from ..Support import doi
 from ..Support.Regression import resample, resample_radial
 
 
+@doi('10.1016/j.triboint.2018.02.002')
 def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-average', collocation='log',
                                  nb_points=None, nb_points_per_decade=10):
     r"""
@@ -174,6 +175,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         return r, A
 
 
+@doi('10.1016/j.triboint.2018.02.002')
 def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=None, nb_points_per_decade=5,
                               return_map=False, resampling_method='bin-average'):
     """

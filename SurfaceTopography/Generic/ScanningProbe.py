@@ -30,8 +30,10 @@ import numpy as np
 import scipy
 
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
+from ..Support import doi
 
 
+@doi('arXiv:2106.16103')
 def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     """
     Estimate a length scale below which tip radius artifacts affect the
