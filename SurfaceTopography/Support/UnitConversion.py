@@ -98,7 +98,7 @@ def mangle_length_unit_utf8(unit):
         return None
     elif unit == 'A':
         return 'Å'
-    elif unit == 'μm' or unit == 'um' or unit == '~m' or unit == 'Âµm':
+    elif unit == 'μm' or unit == 'um' or unit == '~m':
         return 'µm'
     else:
         return unit
