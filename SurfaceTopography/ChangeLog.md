@@ -11,6 +11,7 @@ v0.99.1 (15Nov21)
 -----------------
 
 - BUG: Fixed unicode conversion issue in OPDx reader
+- BUG: Always suggest a unit (#164)
 
 v0.99.0 (11Nov21)
 -----------------
