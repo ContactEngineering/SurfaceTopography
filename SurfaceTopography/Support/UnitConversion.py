@@ -25,8 +25,9 @@
 import numpy as np
 
 length_units = {'Gm': 1e9, 'Mm': 1e6, 'km': 1000.0, 'm': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'um': 1e-6, 'nm': 1e-9,
-                'Å': 1e-10, 'pm': 1e-12}
-voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9, 'pV': 1e-12}
+                'Å': 1e-10, 'pm': 1e-12, 'fm': 1e-15}
+voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9, 'pV': 1e-12,
+                 'fV': 1e-15}
 
 units = dict(length=length_units, voltage=voltage_units)
 
@@ -98,7 +99,7 @@ def mangle_length_unit_utf8(unit):
         return None
     elif unit == 'A':
         return 'Å'
-    elif unit == 'μm' or unit == 'um' or unit == '~m' or unit == 'Âµm':
+    elif unit == 'μm' or unit == 'um' or unit == '~m':
         return 'µm'
     else:
         return unit
@@ -161,10 +162,27 @@ def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
         raise ValueError(f"Unknown scale parameter '{scale}'.")
 
     fac = 10 ** m10
+    minfac = 1
+    minunit = 'm'
+    maxfac = 1
+    maxunit = 'm'
     for key, value in length_units.items():
+        if value < minfac:
+            minfac = value
+            minunit = key
+        if value > maxfac:
+            maxfac = value
+            maxunit = key
         if value == fac:
             return key
-    raise ValueError(f'Cannot find unit for scale prefix {fac}.')
+
+    # We could not identify any unit from our list
+    if fac < minfac:
+        return minunit
+    elif fac > maxfac:
+        return maxunit
+    else:
+        raise RuntimeError(f'Cannot find unit for scale prefix {fac}.')
 
 
 def suggest_length_unit_for_data(scale, data, unit):

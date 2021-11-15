@@ -428,13 +428,13 @@ def read_dimension2d_content(stream):
 def _read_name(stream):
     # Names always have a size of 4 bytes
     length = _read_scalar(stream, '<u4')
-    return stream.read(length).decode('raw_unicode_escape')
+    return stream.read(length).decode('UTF-8')
 
 
 def _read_string(stream):
     # String have variable lengths
     string_length = _read_varlen(stream)
-    return stream.read(string_length).decode('raw_unicode_escape')
+    return stream.read(string_length).decode('UTF-8')
 
 
 def _read_scalar(stream, dtype):
