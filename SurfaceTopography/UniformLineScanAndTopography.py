@@ -402,6 +402,9 @@ class Topography(AbstractTopography, UniformTopographyInterface):
     def communicator(self):
         return self._communicator
 
+    def squeeze(self):
+        return self
+
 
 class DecoratedUniformTopography(DecoratedTopography,
                                  UniformTopographyInterface):
