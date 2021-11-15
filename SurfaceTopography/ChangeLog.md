@@ -7,6 +7,11 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.99.1 (15Nov21)
+-----------------
+
+- BUG: Fixed unicode conversion issue in OPDx reader
+
 v0.99.0 (11Nov21)
 -----------------
 
