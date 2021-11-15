@@ -45,3 +45,8 @@ def test_suggest_length_unit():
     assert suggest_length_unit('log', 1e-9, 100) == 'µm'
     assert suggest_length_unit('log', 1e-9, 10000) == 'mm'
     assert suggest_length_unit('log', 1e-9, 100000) == 'mm'
+
+
+def test_unit_outside_range():
+    assert suggest_length_unit('log', 1e-21, 1e-18) == 'fm'
+    assert suggest_length_unit('log', 1e12, 1e15) == 'Gm'

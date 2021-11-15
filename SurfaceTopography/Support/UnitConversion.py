@@ -162,10 +162,27 @@ def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
         raise ValueError(f"Unknown scale parameter '{scale}'.")
 
     fac = 10 ** m10
+    minfac = 1
+    minunit = 'm'
+    maxfac = 1
+    maxunit = 'm'
     for key, value in length_units.items():
+        if value < minfac:
+            minfac = value
+            minunit = key
+        if value > maxfac:
+            maxfac = value
+            maxunit = key
         if value == fac:
             return key
-    raise ValueError(f'Cannot find unit for scale prefix {fac}.')
+
+    # We could not identify any unit from our list
+    if fac < minfac:
+        return minunit
+    elif fac > maxfac:
+        return maxunit
+    else:
+        raise RuntimeError(f'Cannot find unit for scale prefix {fac}.')
 
 
 def suggest_length_unit_for_data(scale, data, unit):
