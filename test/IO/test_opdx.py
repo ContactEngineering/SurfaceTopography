@@ -107,7 +107,7 @@ def test_topography(file_format_examples):
         assert topography.unit == 'µm'  # see GH 281
 
         # Check an entry in the metadata
-        assert topography.info['acquisition_time'] == str(datetime.datetime(2018, 5, 12, 12, 53, 14))
+        assert topography.info['acquisition_time'] == str(datetime.datetime(2018, 12, 5, 12, 53, 14))
 
         # Check a height value
         np.testing.assert_allclose(topography.heights()[0, 0], -7.731534)
