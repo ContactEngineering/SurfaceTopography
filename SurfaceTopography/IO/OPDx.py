@@ -159,7 +159,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         try:
             acquisition_time = str(datetime.datetime.strptime(
                 self.manifest['/MetaData/Date'] + ' ' + self.manifest['/MetaData/Time'],
-                '%d/%m/%Y %I:%M:%S %p'))
+                '%m/%d/%Y %I:%M:%S %p'))
             info['acquisition_time'] = acquisition_time
         except KeyError:
             pass
