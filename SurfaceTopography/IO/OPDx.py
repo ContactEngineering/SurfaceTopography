@@ -25,9 +25,9 @@
 # SOFTWARE.
 #
 
-import datetime
 from collections import namedtuple
 
+import dateutil.parser
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
@@ -157,9 +157,8 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         info = {'opdx_prefix': prefix}
 
         try:
-            acquisition_time = str(datetime.datetime.strptime(
-                self.manifest['/MetaData/Date'] + ' ' + self.manifest['/MetaData/Time'],
-                '%m/%d/%Y %I:%M:%S %p'))
+            acquisition_time = str(dateutil.parser.parse(
+                self.manifest['/MetaData/Date'] + ' ' + self.manifest['/MetaData/Time']))
             info['acquisition_time'] = acquisition_time
         except KeyError:
             pass

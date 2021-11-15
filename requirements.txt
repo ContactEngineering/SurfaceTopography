@@ -21,3 +21,4 @@ numpyencoder
 pyyaml
 Pillow
 requests
+python-dateutil
