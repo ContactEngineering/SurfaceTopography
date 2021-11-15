@@ -221,3 +221,18 @@ def test_transposed_topography():
     assert sx == sy2
     assert sy == sx2
     assert (surf.heights() == surf2.heights().T).all()
+
+
+def test_undefined_data_and_squeeze():
+    nx, ny = 128, 128
+    sx, sy = 5.0, 5.0
+    rx = np.linspace(-sx/2, sx/2, nx)
+    ry = np.linspace(-sy/2, sy/2, ny)
+    rsq = rx.reshape((nx, -1)) ** 2 + ry.reshape((-1, ny)) ** 2
+    rs = 1.0
+    t = Topography(np.ma.masked_where(rsq > rs ** 2, np.zeros([nx, ny])), (sx, sy))
+    assert t.has_undefined_data
+    assert t.squeeze().has_undefined_data
+    t2 = t.fill_undefined_data(1.0)
+    assert not t2.has_undefined_data
+    assert not t2.squeeze().has_undefined_data
