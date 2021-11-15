@@ -8,6 +8,7 @@ Deprecations in version 1.0
 - `scale_factor` property for scaled topographies will disappear
 
 v0.99.3 (15Nov21)
+-----------------
 
 - BUG: Date format in OPDx can vary; use dateutil for parsing
 
