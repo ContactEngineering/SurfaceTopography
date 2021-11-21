@@ -25,6 +25,7 @@
 import numpy as np
 
 from SurfaceTopography import Topography
+from SurfaceTopography.Generation import fourier_synthesis
 
 
 def test_randomly_rough():
@@ -33,5 +34,5 @@ def test_randomly_rough():
     val = mn + (mx - mn) * 0.8
 
     h = t.heights()
-    t2 = Topography(np.ma.array(h, mask=h > val))
+    t2 = Topography(np.ma.array(h, mask=h > val), t.physical_sizes, periodic=True)
     assert t2.has_undefined_data
