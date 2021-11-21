@@ -59,7 +59,7 @@ static npy_long default_stencil[2*DEFAULT_SX] = {
 
 
 void fill_patch(npy_intp nx, npy_intp ny, npy_bool *map, std::ptrdiff_t i0, std::ptrdiff_t j0,
-                npy_int p, npy_int sx, npy_long *stencil, npy_int *id)
+                npy_int p, npy_int sx, npy_int periodic, npy_long *stencil, npy_int *id)
 {
   Stack stack(DEFAULT_STACK_SIZE);
 
@@ -78,13 +78,23 @@ void fill_patch(npy_intp nx, npy_intp ny, npy_bool *map, std::ptrdiff_t i0, std:
 
       /* Periodic boundary conditions */
       std::ptrdiff_t jj = j+dj;
-      if (jj < 0)     jj += ny;
-      if (jj > ny-1)  jj -= ny;
+      if (periodic) {
+        if (jj < 0)     jj += ny;
+        if (jj > ny-1)  jj -= ny;
+      } else {
+        if (jj < 0)     continue;
+        if (jj > ny-1)  continue;
+      }
 
       /* Periodic boundary conditions */
       std::ptrdiff_t ii = i+di;
-      if (ii < 0)     ii += nx;
-      if (ii > nx-1)  ii -= nx;
+      if (periodic) {
+        if (ii < 0)     ii += nx;
+        if (ii > nx-1)  ii -= nx;
+      } else {
+        if (ii < 0)     continue;
+        if (ii > nx-1)  continue;
+      }
 
       std::ptrdiff_t k = ii*ny+jj;
       if (map[k] && id[k] == 0) {
@@ -100,9 +110,10 @@ extern "C"
 PyObject *assign_patch_numbers(PyObject *self, PyObject *args)
 {
   PyObject *py_map, *py_stencil;
+  npy_int periodic;
 
   py_stencil = NULL;
-  if (!PyArg_ParseTuple(args, "O|O", &py_map, &py_stencil))
+  if (!PyArg_ParseTuple(args, "Op|O", &py_map, &periodic, &py_stencil))
     return NULL;
   if (!py_map)
     return NULL;
@@ -161,7 +172,7 @@ PyObject *assign_patch_numbers(PyObject *self, PyObject *args)
 
       if (map[k] && id[k] == 0) {
         p++;
-        fill_patch(nx, ny, map, i, j, p, sx, stencil, id);
+        fill_patch(nx, ny, map, i, j, p, sx, periodic, stencil, id);
       }
 
       k++;
