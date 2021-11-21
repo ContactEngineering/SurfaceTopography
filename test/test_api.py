@@ -56,6 +56,7 @@ uniform_functions = [
     "filter",
     "interpolate_bicubic",
     "interpolate_fourier",
+    "interpolate_undefined_data",
     "longcut",
     "mirror_stitch",
     "shortcut",

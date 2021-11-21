@@ -139,7 +139,7 @@ setup(
     ],
     install_requires=[
         'numpy>=1.16.3',
-        'NuMPI>=0.2.0',
+        'NuMPI>=0.3.0',
         'muFFT>=0.12.0',
         'igor',
         'h5py',

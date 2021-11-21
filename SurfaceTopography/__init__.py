@@ -53,6 +53,7 @@ import SurfaceTopography.Uniform.Autocorrelation  # noqa: F401
 import SurfaceTopography.Uniform.Converters  # noqa: F401
 import SurfaceTopography.Uniform.Derivative  # noqa: F401
 import SurfaceTopography.Uniform.Filtering  # noqa: F401
+import SurfaceTopography.Uniform.Imputation  # noqa: F401
 import SurfaceTopography.Uniform.Interpolation  # noqa: F401
 import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401

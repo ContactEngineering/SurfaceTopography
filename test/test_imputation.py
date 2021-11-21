@@ -36,3 +36,23 @@ def test_randomly_rough():
     h = t.heights()
     t2 = Topography(np.ma.array(h, mask=h > val), t.physical_sizes, periodic=True)
     assert t2.has_undefined_data
+    t3 = t2.interpolate_undefined_data()
+    assert not t3.has_undefined_data
+    h = t3.heights()
+
+    assert not np.ma.is_masked(h)
+    assert np.max(h) <= val
+    assert t3.max() <= val
+
+
+def test_linear():
+    a, b, c = -1.3, 2.7, 1.8
+    nx, ny = 128, 234
+    sx, sy = 1.3, 1.6
+    x = np.linspace(-sx / 2, sx / 2, nx).reshape(-1, 1)
+    y = np.linspace(-sy / 2, sy / 2, ny).reshape(1, -1)
+    h = a * x + b * y + c
+    t = Topography(np.ma.array(h, mask=np.logical_and(abs(x) < sx / 8, abs(y) < sy / 8)), (sx, sy))
+    assert t.has_undefined_data
+    t2 = t.interpolate_undefined_data()
+    np.testing.assert_allclose(h, t2.heights())

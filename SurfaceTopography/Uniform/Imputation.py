@@ -33,7 +33,6 @@ from _SurfaceTopography import assign_patch_numbers
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
-
 # Stencils for determining nearest-neighbor relationships on a square grid
 nn_stencil = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 nnn_stencil = [(1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
@@ -85,7 +84,7 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
         """
         Computes the topography with filled in data points.
         """
-        heights = super().heights()
+        heights = self.parent_topography.heights()
         if super().has_undefined_data:
             if self.dim != 2:
                 raise NotImplementedError('Imputation is only implemented for topographic maps')
@@ -100,7 +99,7 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
             assert np.max(patch_ids) == nb_patches
 
             # We now fill in the patches individually
-            for id in range(1, nb_patches):
+            for id in range(1, nb_patches + 1):
                 # Mask identifying undefined data points
                 patch_mask = patch_ids == id
                 patch_x = x[patch_mask]
@@ -119,10 +118,10 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
                     # Minimum image convention
                     diff_x = (diff_x + nx // 2) % nx - nx // 2
                     diff_y = (diff_y + ny // 2) % ny - ny // 2
-                distances = np.sqrt(diff_x ** 2 + diff_y ** 2)
-                
+                inv_distances_sq = 1 / (diff_x ** 2 + diff_y ** 2)
+
                 # Interpolate undefined points
-                heights[patch_mask] = distances.dot(heights[edge_mask]) / distances.sum(axis=1)
+                heights[patch_mask] = inv_distances_sq.dot(heights[edge_mask]) / inv_distances_sq.sum(axis=1)
         return heights
 
 
