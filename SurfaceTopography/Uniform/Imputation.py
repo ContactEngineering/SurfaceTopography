@@ -28,7 +28,7 @@ Filter pipelines for data imputation (filling undefined data points)
 
 import numpy as np
 
-from _SurfaceTopography import assign_patch_numbers
+from _SurfaceTopography import assign_patch_numbers as assign_patch_numbers_area
 
 from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
@@ -38,7 +38,7 @@ nn_stencil = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 nnn_stencil = [(1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
 
 
-def coordination(c, stencil=nn_stencil):
+def coordination(c, periodic, stencil=nn_stencil):
     """
     Return a map with coordination numbers, i.e. number of neighboring patches that also contact
     """
@@ -48,18 +48,27 @@ def coordination(c, stencil=nn_stencil):
         tmp = np.array(c, dtype=bool, copy=True)
         if dx != 0:
             tmp = np.roll(tmp, dx, 0)
+            if not periodic:
+                if dx > 0:
+                    tmp[:dx, :] = 0
+                else:
+                    tmp[dx:, :] = 0
         if dy != 0:
             tmp = np.roll(tmp, dy, 1)
+            if not periodic:
+                if dy > 0:
+                    tmp[:, :dy] = 0
+                else:
+                    tmp[:, dy:] = 0
         coordination += tmp
     return coordination
 
 
-def outer_perimeter(c, stencil=nn_stencil):
+def outer_perimeter_area(c, periodic, stencil=nn_stencil):
     """
     Return a map where surface points on the outer perimeter are marked.
     """
-
-    return np.logical_and(np.logical_not(c), coordination(c, stencil=stencil) > 0)
+    return np.logical_and(np.logical_not(c), coordination(c, periodic, stencil=stencil) > 0)
 
 
 def assign_patch_numbers_profile(mask, periodic):
@@ -80,6 +89,15 @@ def assign_patch_numbers_profile(mask, periodic):
         patch_ids = np.append([0], patch_ids)
     nb_patches = np.max(patch_ids)
     return nb_patches, patch_ids
+
+
+def outer_perimeter_profile(mask, periodic):
+    p_left = np.logical_and(np.roll(mask, -1), np.logical_not(mask))
+    p_right = np.logical_and(np.roll(mask, 1), np.logical_not(mask))
+    if not periodic:
+        p_left[-1] = False
+        p_right[0] = False
+    return np.logical_or(p_left, p_right)
 
 
 class InterpolateUndefinedData(DecoratedUniformTopography):
@@ -122,7 +140,7 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
             # Get undefined data points and identify continuous patches
             mask = np.ma.getmaskarray(heights)
             if dim == 2:
-                nb_patches, patch_ids = assign_patch_numbers(mask, self.is_periodic)
+                nb_patches, patch_ids = assign_patch_numbers_area(mask, self.is_periodic)
             else:
                 nb_patches, patch_ids = assign_patch_numbers_profile(mask, self.is_periodic)
             assert np.max(patch_ids) == nb_patches
@@ -137,7 +155,10 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
 
                 # Mask identifying points with existing data on the edge of
                 # the undefined patch
-                edge_mask = outer_perimeter(patch_mask)
+                if dim == 2:
+                    edge_mask = outer_perimeter_area(patch_mask, self.is_periodic)
+                else:
+                    edge_mask = outer_perimeter_profile(patch_mask, self.is_periodic)
                 edge_x = x[edge_mask]
                 if dim == 2:
                     edge_y = y[edge_mask]
