@@ -62,6 +62,26 @@ def outer_perimeter(c, stencil=nn_stencil):
     return np.logical_and(np.logical_not(c), coordination(c, stencil=stencil) > 0)
 
 
+def assign_patch_numbers_profile(mask, periodic):
+    patch_ids = np.cumsum(np.abs(np.diff(mask)))
+    if mask[0]:
+        # Patches are odd numbers
+        patch_ids += 1
+        if periodic and mask[-1]:
+            # Assign same patch id to first and last patch
+            patch_ids[patch_ids == patch_ids[-1]] = patch_ids[0]
+    # Patches are odd numbers, set even numbers to zero
+    patch_ids += 1
+    patch_ids[(patch_ids & 0x1).astype(bool)] = 0
+    patch_ids //= 2
+    if mask[0]:
+        patch_ids = np.append([1], patch_ids)
+    else:
+        patch_ids = np.append([0], patch_ids)
+    nb_patches = np.max(patch_ids)
+    return nb_patches, patch_ids
+
+
 class InterpolateUndefinedData(DecoratedUniformTopography):
     """
     Replace undefined data points by linear interpolation of neighboring
@@ -86,16 +106,25 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
         """
         heights = self.parent_topography.heights()
         if super().has_undefined_data:
-            if self.dim != 2:
-                raise NotImplementedError('Imputation is only implemented for topographic maps')
+            dim = self.dim
 
             # Coordinates for each point on the topography
-            nx, ny = self.nb_grid_pts
-            x, y = np.mgrid[:nx, :ny]
+            if dim == 1:
+                nx, = self.nb_grid_pts
+                x = np.arange(nx)
+            elif dim == 2:
+                nx, ny = self.nb_grid_pts
+                x, y = np.mgrid[:nx, :ny]
+            else:
+                # Should not happen
+                raise NotImplementedError
 
             # Get undefined data points and identify continuous patches
             mask = np.ma.getmaskarray(heights)
-            nb_patches, patch_ids = assign_patch_numbers(mask, self.is_periodic)
+            if dim == 2:
+                nb_patches, patch_ids = assign_patch_numbers(mask, self.is_periodic)
+            else:
+                nb_patches, patch_ids = assign_patch_numbers_profile(mask, self.is_periodic)
             assert np.max(patch_ids) == nb_patches
 
             # We now fill in the patches individually
@@ -103,22 +132,29 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
                 # Mask identifying undefined data points
                 patch_mask = patch_ids == id
                 patch_x = x[patch_mask]
-                patch_y = y[patch_mask]
+                if dim == 2:
+                    patch_y = y[patch_mask]
 
                 # Mask identifying points with existing data on the edge of
                 # the undefined patch
                 edge_mask = outer_perimeter(patch_mask)
                 edge_x = x[edge_mask]
-                edge_y = y[edge_mask]
+                if dim == 2:
+                    edge_y = y[edge_mask]
 
                 # Matrix with distances from undefined to defined data points
                 diff_x = patch_x.reshape(-1, 1) - edge_x.reshape(1, -1)
-                diff_y = patch_y.reshape(-1, 1) - edge_y.reshape(1, -1)
+                if dim == 2:
+                    diff_y = patch_y.reshape(-1, 1) - edge_y.reshape(1, -1)
                 if self.is_periodic:
                     # Minimum image convention
                     diff_x = (diff_x + nx // 2) % nx - nx // 2
-                    diff_y = (diff_y + ny // 2) % ny - ny // 2
-                inv_distances_sq = 1 / (diff_x ** 2 + diff_y ** 2)
+                    if dim == 2:
+                        diff_y = (diff_y + ny // 2) % ny - ny // 2
+                if dim == 2:
+                    inv_distances_sq = 1 / (diff_x ** 2 + diff_y ** 2)
+                else:
+                    inv_distances_sq = 1 / diff_x ** 2
 
                 # Interpolate undefined points
                 heights[patch_mask] = inv_distances_sq.dot(heights[edge_mask]) / inv_distances_sq.sum(axis=1)
