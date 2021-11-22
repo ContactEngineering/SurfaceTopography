@@ -289,6 +289,21 @@ def test_distance_map():
                                                [sqrt_5, 2.0, sqrt_5]]))
 
 
+def test_distance_map2():
+    cmap = np.zeros((10, 10), dtype=bool)
+    ind1 = np.random.randint(0, 10)
+    ind2 = np.random.randint(0, 10)
+    cmap[ind1, ind2] = True
+    dmap = distance_map(cmap)
+    np.testing.assert_almost_equal(np.max(dmap), 10 / np.sqrt(2))
+
+    dx = np.abs(dmap - np.roll(dmap, 1))
+    dy = np.abs(dmap - np.roll(dmap, 1, axis=1))
+
+    assert np.max(dx) < np.sqrt(2) + 1e-15
+    assert np.max(dy) < np.sqrt(2) + 1e-15
+
+
 def test_perimeter():
     m_xy = np.zeros([3, 3], dtype=bool)
     m_xy[1, 1] = True
