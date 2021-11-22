@@ -25,10 +25,16 @@
 import numpy as np
 import pytest
 
+from NuMPI import MPI
+
 from SurfaceTopography import Topography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Uniform.Imputation import assign_patch_numbers_profile, outer_perimeter_profile, \
     outer_perimeter_area
+
+pytestmark = pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 @pytest.mark.parametrize('periodic,expected_nb_patches,mask,expected_patch_ids',
