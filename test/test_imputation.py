@@ -29,110 +29,10 @@ from NuMPI import MPI
 
 from SurfaceTopography import Topography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Uniform.Imputation import assign_patch_numbers_profile, outer_perimeter_profile, \
-    outer_perimeter_area
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-
-
-@pytest.mark.parametrize('periodic,expected_nb_patches,mask,expected_patch_ids',
-                         [(False, 3,
-                           [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [0, 0, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 3, 0]),
-                          (True, 3,
-                           [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [0, 0, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 3, 0]),
-                          (False, 3,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 3, 0]),
-                          (True, 3,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 3, 0]),
-                          (False, 3,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-                           [1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 3, 3]),
-                          (True, 2,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-                           [1, 1, 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 1, 1]),
-                          ])
-def test_assign_patch_numbers_profile(periodic, expected_nb_patches, mask, expected_patch_ids):
-    mask = np.array(mask, dtype=bool)
-    expected_patch_ids = np.array(expected_patch_ids)
-    nb_patches, patch_ids = assign_patch_numbers_profile(mask, periodic)
-    assert nb_patches == expected_nb_patches
-    np.testing.assert_array_equal(patch_ids, expected_patch_ids)
-
-
-@pytest.mark.parametrize('periodic,mask,expected_outer_perimeter',
-                         [(False,
-                           [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1]),
-                          (True,
-                           [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
-                           [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1]),
-                          (False,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0]),
-                          (True,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-                           [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1]),
-                          (True,
-                           [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1],
-                           [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]),
-                          ])
-def test_outer_perimeter_profile(periodic, mask, expected_outer_perimeter):
-    mask = np.array(mask, dtype=bool)
-    expected_outer_perimeter = np.array(expected_outer_perimeter, dtype=bool)
-    outer_perimeter = outer_perimeter_profile(mask, periodic)
-    # astype(int) makes debugging easier
-    np.testing.assert_array_equal(outer_perimeter.astype(int), expected_outer_perimeter.astype(int))
-
-
-@pytest.mark.parametrize('periodic,mask,expected_outer_perimeter',
-                         [(False,
-                           [[0, 0, 0, 0],
-                            [0, 1, 1, 0],
-                            [0, 1, 1, 0],
-                            [0, 0, 0, 0]],
-                           [[0, 1, 1, 0],
-                            [1, 0, 0, 1],
-                            [1, 0, 0, 1],
-                            [0, 1, 1, 0]]),
-                          (True,
-                           [[0, 0, 0, 0],
-                            [0, 1, 1, 0],
-                            [0, 1, 1, 0],
-                            [0, 0, 0, 0]],
-                           [[0, 1, 1, 0],
-                            [1, 0, 0, 1],
-                            [1, 0, 0, 1],
-                            [0, 1, 1, 0]]),
-                          (False,
-                           [[1, 1, 0, 0],
-                            [1, 1, 0, 0],
-                            [0, 0, 0, 0],
-                            [0, 0, 0, 0]],
-                           [[0, 0, 1, 0],
-                            [0, 0, 1, 0],
-                            [1, 1, 0, 0],
-                            [0, 0, 0, 0]]),
-                          (True,
-                           [[1, 1, 0, 0],
-                            [1, 1, 0, 0],
-                            [0, 0, 0, 0],
-                            [0, 0, 0, 0]],
-                           [[0, 0, 1, 1],
-                            [0, 0, 1, 1],
-                            [1, 1, 0, 0],
-                            [1, 1, 0, 0]]),
-                          ])
-def test_outer_perimeter_area(periodic, mask, expected_outer_perimeter):
-    mask = np.array(mask, dtype=bool)
-    expected_outer_perimeter = np.array(expected_outer_perimeter, dtype=bool)
-    outer_perimeter = outer_perimeter_area(mask, periodic)
-    np.testing.assert_array_equal(outer_perimeter, expected_outer_perimeter)
 
 
 def test_randomly_rough_1d(plot=False):
@@ -141,7 +41,6 @@ def test_randomly_rough_1d(plot=False):
     val = mn + (mx - mn) * 0.8
 
     h = t.heights()
-    print((h > val).sum(), val)
     t2 = UniformLineScan(np.ma.array(h.copy(), mask=h > val), t.physical_sizes, periodic=True)
     assert t2.has_undefined_data
     t3 = t2.interpolate_undefined_data()
@@ -231,8 +130,8 @@ def test_linear_2d(plot=False):
 
 def test_laplace_2d():
     nx, ny = 127, 129
-    x = np.arange(nx).reshape(-1, 1) - nx/2
-    y = np.arange(ny).reshape(1, -1) - ny/2
+    x = np.arange(nx).reshape(-1, 1) - nx / 2
+    y = np.arange(ny).reshape(1, -1) - ny / 2
     h = x ** 2 - y ** 2  # This is a simple solution to the Laplace equation
 
     # We use this to create random cutouts
