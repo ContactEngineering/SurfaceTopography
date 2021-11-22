@@ -199,7 +199,7 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
                           np.concatenate((j0, j1, j2, np.arange(nb_patch, nb_pixels))))),
                         shape=(nb_pixels, nb_pixels))
 
-                # Solve for undefined heights
+                # Dirichlet boundary conditions (heights on perimeter)
                 rhs = np.zeros(nb_pixels)
                 rhs[nb_patch:] = heights[perimeter_mask]
 
