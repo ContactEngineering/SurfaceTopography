@@ -27,6 +27,7 @@ Filter pipelines for data imputation (filling undefined data points)
 """
 
 import numpy as np
+import scipy.sparse
 
 from _SurfaceTopography import assign_patch_numbers as assign_patch_numbers_area
 
@@ -100,13 +101,13 @@ def outer_perimeter_profile(mask, periodic):
     return np.logical_or(p_left, p_right)
 
 
-class InterpolateUndefinedData(DecoratedUniformTopography):
+class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
     """
-    Replace undefined data points by linear interpolation of neighboring
-    points.
+    Replace undefined data points by interpolation of neighboring
+    points with harmonic functions (solutions of the Laplace equation).
     """
 
-    name = 'fill_undefined_linear'
+    name = 'interpolate_undefined_data_harmonic'
 
     def __init__(self, topography, info={}):
         super().__init__(topography, info=info)
@@ -122,7 +123,7 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
         """
         Computes the topography with filled in data points.
         """
-        heights = self.parent_topography.heights()
+        heights = self.parent_topography.heights().copy()
         if super().has_undefined_data:
             dim = self.dim
 
@@ -147,39 +148,87 @@ class InterpolateUndefinedData(DecoratedUniformTopography):
 
             # We now fill in the patches individually
             for id in range(1, nb_patches + 1):
-                # Mask identifying undefined data points
+                # Create mask identifying points in patch
                 patch_mask = patch_ids == id
-                patch_x = x[patch_mask]
-                if dim == 2:
-                    patch_y = y[patch_mask]
+                nb_patch = np.sum(patch_mask)
 
-                # Mask identifying points with existing data on the edge of
-                # the undefined patch
+                # Create mask identifying perimeter points
                 if dim == 2:
-                    edge_mask = outer_perimeter_area(patch_mask, self.is_periodic)
+                    perimeter_mask = outer_perimeter_area(patch_mask, self.is_periodic)
                 else:
-                    edge_mask = outer_perimeter_profile(patch_mask, self.is_periodic)
-                edge_x = x[edge_mask]
-                if dim == 2:
-                    edge_y = y[edge_mask]
+                    perimeter_mask = outer_perimeter_profile(patch_mask, self.is_periodic)
+                nb_perimeter = np.sum(perimeter_mask)
 
-                # Matrix with distances from undefined to defined data points
-                diff_x = patch_x.reshape(-1, 1) - edge_x.reshape(1, -1)
+                # Total number of pixels
+                nb_pixels = nb_patch + nb_perimeter
+
+                # Create unique pixel indices in patch and perimeter
+                pixel_index = np.zeros_like(patch_ids)
+                pixel_index[patch_mask] = np.arange(nb_patch)
+                pixel_index[perimeter_mask] = np.arange(nb_patch, nb_pixels)
+
+                # Assemble Laplace matrix; diagonal terms
+                i0 = np.arange(nb_patch)
+                j0 = np.arange(nb_patch)
+
+                # Off-diagonal terms
+                i1 = pixel_index[patch_mask]
+                j1 = np.roll(pixel_index, 1, 0)[patch_mask]
+                i2 = pixel_index[patch_mask]
+                j2 = np.roll(pixel_index, -1, 0)[patch_mask]
+
                 if dim == 2:
-                    diff_y = patch_y.reshape(-1, 1) - edge_y.reshape(1, -1)
-                if self.is_periodic:
-                    # Minimum image convention
-                    diff_x = (diff_x + nx // 2) % nx - nx // 2
-                    if dim == 2:
-                        diff_y = (diff_y + ny // 2) % ny - ny // 2
-                if dim == 2:
-                    inv_distances_sq = 1 / (diff_x ** 2 + diff_y ** 2)
+                    i3 = pixel_index[patch_mask]
+                    j3 = np.roll(pixel_index, 1, 1)[patch_mask]
+                    i4 = pixel_index[patch_mask]
+                    j4 = np.roll(pixel_index, -1, 1)[patch_mask]
+
+                    # Laplace matrix from coordinates
+                    laplace = scipy.sparse.coo_matrix(
+                        (np.concatenate((-4 * np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_patch),
+                                         np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_perimeter))),
+                         (np.concatenate((i0, i1, i2, i3, i4, np.arange(nb_patch, nb_pixels))),
+                          np.concatenate((j0, j1, j2, j3, j4, np.arange(nb_patch, nb_pixels))))),
+                        shape=(nb_pixels, nb_pixels))
                 else:
-                    inv_distances_sq = 1 / diff_x ** 2
+                    # Laplace matrix from coordinates
+                    laplace = scipy.sparse.coo_matrix(
+                        (np.concatenate((-2 * np.ones(nb_patch), np.ones(nb_patch), np.ones(nb_patch),
+                                         np.ones(nb_perimeter))),
+                         (np.concatenate((i0, i1, i2, np.arange(nb_patch, nb_pixels))),
+                          np.concatenate((j0, j1, j2, np.arange(nb_patch, nb_pixels))))),
+                        shape=(nb_pixels, nb_pixels))
 
-                # Interpolate undefined points
-                heights[patch_mask] = inv_distances_sq.dot(heights[edge_mask]) / inv_distances_sq.sum(axis=1)
+                # Solve for undefined heights
+                rhs = np.zeros(nb_pixels)
+                rhs[nb_patch:] = heights[perimeter_mask]
+
+                # Solve for undefined heights
+                heights[patch_mask] = scipy.sparse.linalg.spsolve(laplace, rhs)[:nb_patch]
         return heights
 
 
-UniformTopographyInterface.register_function("interpolate_undefined_data", InterpolateUndefinedData)
+def interpolate_undefined_data(self, method='harmonic'):
+    """
+    Imputation of undefined data points in topography information that
+    typically occurs in optical measurements.
+
+    Parameters
+    ----------
+    self : SurfaceTopography.Topography or SurfaceTopography.UniformLineScan
+        Input topography containing undefined data points.
+    method : str
+        Imputation methods. Options
+           'harmonic': Interpolate with harmonic functions
+        (Default: 'harmonic')
+    """
+    if method == 'harmonic':
+        return self.interpolate_undefined_data_with_harmonic_function()
+    else:
+        raise ValueError(f"Unsupported imputation method '{method}'.")
+
+
+UniformTopographyInterface.register_function('interpolate_undefined_data',
+                                             interpolate_undefined_data)
+UniformTopographyInterface.register_function('interpolate_undefined_data_with_harmonic_function',
+                                             InterpolateUndefinedDataHarmonic)

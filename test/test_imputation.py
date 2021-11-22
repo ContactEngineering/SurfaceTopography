@@ -66,7 +66,7 @@ def test_assign_patch_numbers_profile(periodic, expected_nb_patches, mask, expec
                           (True,
                            [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
                            [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1]),
-                         (False,
+                          (False,
                            [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
                            [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0]),
                           (True,
@@ -94,34 +94,34 @@ def test_outer_perimeter_profile(periodic, mask, expected_outer_perimeter):
                             [1, 0, 0, 1],
                             [1, 0, 0, 1],
                             [0, 1, 1, 0]]),
-                           (True,
-                            [[0, 0, 0, 0],
-                             [0, 1, 1, 0],
-                             [0, 1, 1, 0],
-                             [0, 0, 0, 0]],
-                            [[0, 1, 1, 0],
-                             [1, 0, 0, 1],
-                             [1, 0, 0, 1],
-                             [0, 1, 1, 0]]),
-                           (False,
-                            [[1, 1, 0, 0],
-                             [1, 1, 0, 0],
-                             [0, 0, 0, 0],
-                             [0, 0, 0, 0]],
-                            [[0, 0, 1, 0],
-                             [0, 0, 1, 0],
-                             [1, 1, 0, 0],
-                             [0, 0, 0, 0]]),
-                           (True,
-                            [[1, 1, 0, 0],
-                             [1, 1, 0, 0],
-                             [0, 0, 0, 0],
-                             [0, 0, 0, 0]],
-                            [[0, 0, 1, 1],
-                             [0, 0, 1, 1],
-                             [1, 1, 0, 0],
-                             [1, 1, 0, 0]]),
-                           ])
+                          (True,
+                           [[0, 0, 0, 0],
+                            [0, 1, 1, 0],
+                            [0, 1, 1, 0],
+                            [0, 0, 0, 0]],
+                           [[0, 1, 1, 0],
+                            [1, 0, 0, 1],
+                            [1, 0, 0, 1],
+                            [0, 1, 1, 0]]),
+                          (False,
+                           [[1, 1, 0, 0],
+                            [1, 1, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 0]],
+                           [[0, 0, 1, 0],
+                            [0, 0, 1, 0],
+                            [1, 1, 0, 0],
+                            [0, 0, 0, 0]]),
+                          (True,
+                           [[1, 1, 0, 0],
+                            [1, 1, 0, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 0]],
+                           [[0, 0, 1, 1],
+                            [0, 0, 1, 1],
+                            [1, 1, 0, 0],
+                            [1, 1, 0, 0]]),
+                          ])
 def test_outer_perimeter_area(periodic, mask, expected_outer_perimeter):
     mask = np.array(mask, dtype=bool)
     expected_outer_perimeter = np.array(expected_outer_perimeter, dtype=bool)
@@ -129,7 +129,7 @@ def test_outer_perimeter_area(periodic, mask, expected_outer_perimeter):
     np.testing.assert_array_equal(outer_perimeter, expected_outer_perimeter)
 
 
-def test_randomly_rough_1d():
+def test_randomly_rough_1d(plot=False):
     t = fourier_synthesis((128,), (1.,), 0.8, rms_height=1)
     mn, mx = t.min(), t.max()
     val = mn + (mx - mn) * 0.8
@@ -142,12 +142,20 @@ def test_randomly_rough_1d():
     assert not t3.has_undefined_data
     h = t3.heights()
 
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.plot(*t.positions_and_heights(), 'ko-')
+        plt.plot(*t2.positions_and_heights(), 'rx-')
+        plt.plot(*t3.positions_and_heights(), 'b+-')
+        plt.show()
+
     assert not np.ma.is_masked(h)
+    assert np.ma.is_masked(t2.heights())
     assert np.max(h) <= val
     assert t3.max() <= val
 
 
-def test_randomly_rough_2d():
+def test_randomly_rough_2d(plot=False):
     t = fourier_synthesis((128, 128), (1., 1.), 0.8, rms_height=1)
     mn, mx = t.min(), t.max()
     val = mn + (mx - mn) * 0.8
@@ -157,14 +165,24 @@ def test_randomly_rough_2d():
     assert t2.has_undefined_data
     t3 = t2.interpolate_undefined_data()
     assert not t3.has_undefined_data
-    h = t3.heights()
+    h3 = t3.heights()
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.pcolormesh(t.heights(), vmin=mn, vmax=mx)
+        plt.show()
+        plt.pcolormesh(t2.heights(), vmin=mn, vmax=mx)
+        plt.show()
+        plt.pcolormesh(t3.heights(), vmin=mn, vmax=mx)
+        plt.show()
 
     assert not np.ma.is_masked(h)
-    assert np.max(h) <= val
+    assert np.ma.is_masked(t2.heights())
+    assert np.max(h3) <= val
     assert t3.max() <= val
 
 
-def test_linear_1d():
+def test_linear_1d(plot=False):
     a, b = -1.3, 2.7
     nx = 128
     sx = 1.3
@@ -174,16 +192,16 @@ def test_linear_1d():
     assert t.has_undefined_data
     t2 = t.interpolate_undefined_data()
 
-    import matplotlib.pyplot as plt
-    plt.plot(*t.positions_and_heights(), 'kx-')
-    plt.plot(*t2.positions_and_heights(), 'k+-')
-    plt.show()
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.plot(*t.positions_and_heights(), 'kx-')
+        plt.plot(*t2.positions_and_heights(), 'k+-')
+        plt.show()
 
-    # This is not exact, but close
-    np.testing.assert_allclose(h, t2.heights(), rtol=0.03)
+    np.testing.assert_allclose(h, t2.heights())
 
 
-def test_linear_2d():
+def test_linear_2d(plot=False):
     a, b, c = -1.3, 2.7, 1.8
     nx, ny = 128, 234
     sx, sy = 1.3, 1.6
@@ -193,5 +211,13 @@ def test_linear_2d():
     t = Topography(np.ma.array(h.copy(), mask=np.logical_and(abs(x) < sx / 8, abs(y) < sy / 8)), (sx, sy))
     assert t.has_undefined_data
     t2 = t.interpolate_undefined_data()
-    # This is not exact, but close
-    np.testing.assert_allclose(h, t2.heights(), rtol=0.03)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.pcolormesh(t.heights())
+        plt.show()
+        plt.pcolormesh(t2.heights())
+        plt.show()
+
+    assert np.ma.is_masked(t.heights())
+    np.testing.assert_allclose(h, t2.heights())
