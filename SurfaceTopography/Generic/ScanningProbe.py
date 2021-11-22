@@ -33,11 +33,11 @@ from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInte
 from ..Support import doi
 
 
-@doi('arXiv:2106.16103')
+@doi('10.1016/j.apsadv.2021.100190')
 def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     """
     Estimate a length scale below which tip radius artifacts affect the
-    measured data. See: https://arxiv.org/abs/2106.16103
+    measured data. See: 10.1016/j.apsadv.2021.100190
 
     Parameters
     ----------
@@ -49,7 +49,7 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
         Tip radius artifacts are expected to play a role for scales below
         which the minimum scale-dependent curvature drops below
         -safety_factor/radius. The `safety_factor` should be on the order of 1.
-        In https://arxiv.org/abs/2106.16103 a factor of 1/2 is estimated based
+        In 10.1016/j.apsadv.2021.100190 a factor of 1/2 is estimated based
         on synthetic (simulated) data. (Default: 1/2)
 
     Returns

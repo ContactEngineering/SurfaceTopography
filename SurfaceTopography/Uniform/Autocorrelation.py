@@ -148,7 +148,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         max_distance = sx
 
     # The factor of two comes from the fact that the short cutoff is estimated
-    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    # from the curvature but the ACF is the slope, see 10.1016/j.apsadv.2021.100190
     if resampling_method is None:
         short_cutoff = self.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
@@ -225,7 +225,7 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
     sx, sy = self.physical_sizes
 
     # The factor of two comes from the fact that the short cutoff is estimated
-    # from the curvature but the ACF is the slope, see arXiv:2106.16103
+    # from the curvature but the ACF is the slope, see 10.1016/j.apsadv.2021.100190
     short_cutoff = self.short_reliability_cutoff(np.mean(self.pixel_size)) if reliable else np.mean(self.pixel_size)
 
     # Compute FFT and normalize

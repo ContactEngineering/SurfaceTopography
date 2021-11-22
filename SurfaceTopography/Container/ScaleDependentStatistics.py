@@ -152,7 +152,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         else:
             existing_distances = np.array(distances)
             unique_distance_index = np.arange(len(distances))
-        # For the factor n see arXiv:2106.16103
+        # For the factor n see 10.1016/j.apsadv.2021.100190
         m = np.logical_and(existing_distances > n * lower, existing_distances < upper)
         existing_distances = existing_distances[m]
         unique_distance_index = unique_distance_index[m]

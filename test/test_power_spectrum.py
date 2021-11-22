@@ -329,11 +329,11 @@ def test_reliability_cutoff():
     # Reliability cutoff
     dois = set()
     surf.short_reliability_cutoff(dois=dois)
-    assert dois == {'arXiv:2106.16103'}
+    assert dois == {'10.1016/j.apsadv.2021.100190'}
 
     # 1D
     q1, C1 = surf.power_spectrum_from_profile(reliable=True)
-    assert dois == {'arXiv:2106.16103'}  # Make sure additional calls don't contaminate our dois from the previous call
+    assert dois == {'10.1016/j.apsadv.2021.100190'}  # Make sure additional calls don't contaminate our dois from the previous call
     q2, C2 = surf.power_spectrum_from_profile(reliable=False)
     assert len(q1) < len(q2)
     assert np.nanmax(q1) < np.nanmax(q2)
