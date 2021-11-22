@@ -44,6 +44,14 @@ SurfaceTopography.Uniform.Filtering module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Uniform.GeometryAnalysis module
+-------------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.GeometryAnalysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Uniform.Imputation module
 -------------------------------------------
 

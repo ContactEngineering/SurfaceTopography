@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 0.100.0 documentation</title>
+  <title>Index &mdash; SurfaceTopography 0.100.1.dev4+g425d2f35 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.100.0
+                0.100.1.dev4+g425d2f35
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -234,7 +234,7 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.assign_patch_numbers_profile">assign_patch_numbers_profile() (in module SurfaceTopography.Uniform.Imputation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.assign_patch_numbers_profile">assign_patch_numbers_profile() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -336,7 +336,7 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography">CompoundTopography (class in SurfaceTopography.UniformLineScanAndTopography)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.coordination">coordination() (in module SurfaceTopography.Uniform.Imputation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.coordination">coordination() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy">copy() (SurfaceTopography.Support.Deprecation.DeprecatedDictionary method)</a>
 </li>
@@ -600,6 +600,8 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.info_from_manifest">info_from_manifest() (SurfaceTopography.IO.OPDx.OPDxReader method)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.inner_perimeter_area">inner_perimeter_area() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_bicubic">interpolate_bicubic() (in module SurfaceTopography.Uniform.Interpolation)</a>
 </li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Interpolation.interpolate_cubic">interpolate_cubic() (in module SurfaceTopography.Nonuniform.Interpolation)</a>
@@ -832,6 +834,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.GeometryAnalysis">SurfaceTopography.Uniform.GeometryAnalysis</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation</a>
@@ -943,9 +947,9 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny">OpenFromAny (class in SurfaceTopography.IO.common)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.outer_perimeter_area">outer_perimeter_area() (in module SurfaceTopography.Uniform.Imputation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area">outer_perimeter_area() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.outer_perimeter_profile">outer_perimeter_profile() (in module SurfaceTopography.Uniform.Imputation)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_profile">outer_perimeter_profile() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -953,6 +957,8 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.patch_areas">patch_areas() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
+</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.physical_sizes">physical_sizes (SurfaceTopography.HeightContainer.AbstractTopography property)</a>
 
       <ul>
@@ -1624,6 +1630,13 @@
 
       <ul>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">module</a>
+</li>
+      </ul></li>
+      <li>
+    SurfaceTopography.Uniform.GeometryAnalysis
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.GeometryAnalysis">module</a>
 </li>
       </ul></li>
       <li>
