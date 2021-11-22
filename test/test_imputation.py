@@ -227,3 +227,24 @@ def test_linear_2d(plot=False):
 
     assert np.ma.is_masked(t.heights())
     np.testing.assert_allclose(h, t2.heights())
+
+
+def test_laplace_2d():
+    nx, ny = 127, 129
+    x = np.arange(nx).reshape(-1, 1) - nx/2
+    y = np.arange(ny).reshape(1, -1) - ny/2
+    h = x ** 2 - y ** 2  # This is a simple solution to the Laplace equation
+
+    # We use this to create random cutouts
+    t = fourier_synthesis((nx, ny), (1, 1), 0.8, rms_height=1).detrend('center')
+    mask = t.heights() > 0  # Remove half of the points
+    mask[0, :] = False  # Keep boundary points
+    mask[-1, :] = False
+    mask[:, 0] = False
+    mask[:, -1] = False
+
+    t = Topography(np.ma.array(h, mask=mask), (1, 1), periodic=False)
+    t2 = t.interpolate_undefined_data()
+    h2 = t2.heights()
+
+    np.testing.assert_allclose(h, h2, atol=1e-9)
