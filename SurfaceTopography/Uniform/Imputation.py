@@ -39,14 +39,33 @@ nn_stencil = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 nnn_stencil = [(1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1)]
 
 
-def coordination(c, periodic, stencil=nn_stencil):
+def coordination(mask, periodic, stencil=nn_stencil):
     """
-    Return a map with coordination numbers, i.e. number of neighboring patches that also contact
+    Return a map with coordination numbers, i.e. the number of neighboring
+    pixels where `mask` is true.
+
+    Parameters
+    ----------
+    mask : array of bool
+        Mask with true/false values (typically indenfying specified regions on
+        a two-dimensional map)
+    periodic : bool
+        Mask will be treated as periodic if true.
+    stencil : list of tuples
+        Stencil for determining neighborhood. Each entry of the stencil
+        contains relative coordinates of neighboring pixels, i.e. an
+        entry (1, 0) indicates the the pixel to the right is a neighbor.
+
+    Returns
+    -------
+    coordination : np.ndarray
+        For each pixel, this array contains the number of neighboring pixels
+        where mask is true.
     """
 
-    coordination = np.zeros_like(c, dtype=int)
+    coordination = np.zeros_like(mask, dtype=int)
     for dx, dy in stencil:
-        tmp = np.array(c, dtype=bool, copy=True)
+        tmp = np.array(mask, dtype=bool, copy=True)
         if dx != 0:
             tmp = np.roll(tmp, dx, 0)
             if not periodic:
