@@ -7,6 +7,11 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.100.0 (22Nov21)
+---------------------------
+
+- ENH: Filling undefined data points with harmonic functions
+
 v0.99.3 (15Nov21)
 -----------------
 

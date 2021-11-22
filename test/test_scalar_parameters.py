@@ -24,6 +24,7 @@
 # SOFTWARE.
 #
 
+import os
 import pytest
 import unittest
 import numpy as np
@@ -31,7 +32,7 @@ import numpy as np
 from NuMPI import MPI
 from muFFT import FFT
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan
+from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
@@ -228,3 +229,10 @@ def test_rms_slope_from_area():
                 rms_slope = t.rms_gradient(short_wavelength_cutoff=s[0] / r * cutoff)
                 assert rms_slope < last_rms_slope
                 last_rms_slope = rms_slope
+
+
+def test_rms_height_with_undefined_data(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'opd3.opd'))
+    assert t.has_undefined_data
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.011449207840819613)
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.011782116700392838)
