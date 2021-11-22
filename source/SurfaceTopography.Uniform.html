@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.99.3 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.100.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.99.3
+                0.100.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -63,6 +63,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a></li>
@@ -96,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a></li>
@@ -619,6 +621,107 @@ have to be provided.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cutoff_wavelength</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Uniform.Imputation">
+<span id="surfacetopography-uniform-imputation-module"></span><h2>SurfaceTopography.Uniform.Imputation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Imputation" title="Permalink to this headline"></a></h2>
+<p>Filter pipelines for data imputation (filling undefined data points)</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.coordination">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">coordination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-</span> <span class="pre">1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-</span> <span class="pre">1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.coordination" title="Permalink to this definition"></a></dt>
+<dd><p>Return a map with coordination numbers, i.e. the number of neighboring
+pixels where <cite>mask</cite> is true.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>array of bool</em>) – Mask with true/false values (typically indenfying specified regions on
+a two-dimensional map)</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em>) – Mask will be treated as periodic if true.</p></li>
+<li><p><strong>stencil</strong> (<em>list of tuples</em>) – Stencil for determining neighborhood. Each entry of the stencil
+contains relative coordinates of neighboring pixels, i.e. an
+entry (1, 0) indicates the the pixel to the right is a neighbor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>coordination</strong> – For each pixel, this array contains the number of neighboring pixels
+where mask is true.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.outer_perimeter_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">outer_perimeter_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-</span> <span class="pre">1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-</span> <span class="pre">1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.outer_perimeter_area" title="Permalink to this definition"></a></dt>
+<dd><p>Return a map where surface points on the outer perimeter are marked.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.assign_patch_numbers_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">assign_patch_numbers_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.assign_patch_numbers_profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.outer_perimeter_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">outer_perimeter_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.outer_perimeter_profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">InterpolateUndefinedDataHarmonic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography</span></code></a></p>
+<p>Replace undefined data points by interpolation of neighboring
+points with harmonic functions (solutions of the Laplace equation).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interpolate_undefined_data_harmonic'</span></em><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.has_undefined_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_undefined_data</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.has_undefined_data" title="Permalink to this definition"></a></dt>
+<dd><p>By definition, this topography has no undefined data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.heights" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the topography with filled in data points.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.interpolate_undefined_data">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Imputation.</span></span><span class="sig-name descname"><span class="pre">interpolate_undefined_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'harmonic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data" title="Permalink to this definition"></a></dt>
+<dd><p>Imputation of undefined data points in topography information that
+typically occurs in optical measurements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>SurfaceTopography.Topography</em><em> or </em><em>SurfaceTopography.UniformLineScan</em>) – Input topography containing undefined data points.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – <dl class="simple">
+<dt>Imputation methods. Options</dt><dd><p>’harmonic’: Interpolate with harmonic functions</p>
+</dd>
+</dl>
+<p>(Default: ‘harmonic’)</p>
+</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

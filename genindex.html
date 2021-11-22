@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 0.99.3 documentation</title>
+  <title>Index &mdash; SurfaceTopography 0.100.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -27,7 +27,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.99.3
+                0.100.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -179,6 +179,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.__init__">(SurfaceTopography.Uniform.Filtering.WindowedUniformTopography method)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__">(SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic method)</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography method)</a>
@@ -216,8 +218,6 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window">apply_window() (in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.UniformTopographyInterface.area_per_pt">area_per_pt (SurfaceTopography.HeightContainer.UniformTopographyInterface property)</a>
 
       <ul>
@@ -232,6 +232,10 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.area_per_pt">(SurfaceTopography.UniformLineScanAndTopography.UniformLineScan property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.assign_patch_numbers_profile">assign_patch_numbers_profile() (in module SurfaceTopography.Uniform.Imputation)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -331,6 +335,8 @@
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography">CompoundTopography (class in SurfaceTopography.UniformLineScanAndTopography)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.coordination">coordination() (in module SurfaceTopography.Uniform.Imputation)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy">copy() (SurfaceTopography.Support.Deprecation.DeprecatedDictionary method)</a>
 </li>
@@ -497,6 +503,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data">(SurfaceTopography.Uniform.common.FilledTopography property)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.has_undefined_data">(SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic property)</a>
+</li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.has_undefined_data">(SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.has_undefined_data">(SurfaceTopography.UniformLineScanAndTopography.Topography property)</a>
@@ -542,6 +550,8 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.heights">(SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights">(SurfaceTopography.Uniform.Filtering.WindowedUniformTopography method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.heights">(SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic method)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
@@ -602,6 +612,10 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_linear">(in module SurfaceTopography.Uniform.Interpolation)</a>
 </li>
       </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data">interpolate_undefined_data() (in module SurfaceTopography.Uniform.Imputation)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic">InterpolateUndefinedDataHarmonic (class in SurfaceTopography.Uniform.Imputation)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.is_binary_stream">is_binary_stream() (in module SurfaceTopography.IO.common)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.UniformTopographyInterface.is_domain_decomposed">is_domain_decomposed (SurfaceTopography.HeightContainer.UniformTopographyInterface property)</a>
@@ -818,6 +832,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum</a>
@@ -849,6 +865,8 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography.name">(SurfaceTopography.Uniform.Filtering.ShortCutTopography attribute)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name">(SurfaceTopography.Uniform.Filtering.WindowedUniformTopography attribute)</a>
+</li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.name">(SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic attribute)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.name">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography attribute)</a>
 </li>
@@ -917,13 +935,17 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.OPDReader">OPDReader (class in SurfaceTopography.IO.FromFile)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader">OPDxReader (class in SurfaceTopography.IO.OPDx)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.open_topography">open_topography() (in module SurfaceTopography.IO)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny">OpenFromAny (class in SurfaceTopography.IO.common)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.outer_perimeter_area">outer_perimeter_area() (in module SurfaceTopography.Uniform.Imputation)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.outer_perimeter_profile">outer_perimeter_profile() (in module SurfaceTopography.Uniform.Imputation)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1357,8 +1379,6 @@
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.FromFile">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     SurfaceTopography.IO.H5
 
@@ -1366,6 +1386,8 @@
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.H5">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     SurfaceTopography.IO.IBW
 
@@ -1602,6 +1624,13 @@
 
       <ul>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">module</a>
+</li>
+      </ul></li>
+      <li>
+    SurfaceTopography.Uniform.Imputation
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Imputation">module</a>
 </li>
       </ul></li>
       <li>
