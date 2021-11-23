@@ -7,9 +7,10 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
-v0.100.2 (not yet released)
----------------------------
+v0.100.2 (23Nov21)
+------------------
 
+- API: Add `has_undefined_data` property to `NonuniformLineScan`
 - MAINT: Avoid reading full file in Matlab reader
 - MAINT: Avoid reading full file in OPD reader
 
