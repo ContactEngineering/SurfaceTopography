@@ -76,6 +76,14 @@ SurfaceTopography.IO.NPY module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.OPD module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.OPD
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.OPDx module
 --------------------------------
 
