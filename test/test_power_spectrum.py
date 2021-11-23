@@ -342,7 +342,7 @@ def test_reliability_cutoff():
     # 2D
     dois = set()
     q1, C1 = surf.power_spectrum_from_area(reliable=True, dois=dois)
-    assert dois == {'arXiv:2106.16103', '10.1088/2051-672X/aa51f8'}
+    assert dois == {'10.1016/j.apsadv.2021.100190', '10.1088/2051-672X/aa51f8'}
     q2, C2 = surf.power_spectrum_from_area(reliable=False)
     assert len(q1) < len(q2)
     assert np.nanmax(q1) < np.nanmax(q2)
