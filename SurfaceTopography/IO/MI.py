@@ -45,11 +45,11 @@ magic_data_ascii = b'data          ASCII'
 
 class MIReader(ReaderBase):
     _format = 'mi'
-    _name = 'Molecular imaging data file'
+    _name = 'Molecular Imaging (MI)'
     _description = '''
-This reader opens Agilent Technologies (Molecular Imaging) AFM files saved
-in the MI format. This format contains information on the physical size of the
-topography map as well as its units.
+Agilent Technologies (Molecular Imaging) AFM saves filed in the MI format.
+This format contains information on the physical size of the topography map as
+well as its units.
 '''
 
     # Reads in the positions of all the data and metadata

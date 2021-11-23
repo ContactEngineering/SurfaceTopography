@@ -31,7 +31,7 @@ from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFix
     UnknownFileFormatGiven  # noqa: F401
 
 # Old-style readers
-from .FromFile import HGTReader, OPDReader, X3PReader
+from .FromFile import HGTReader, X3PReader
 from .Text import AscReader, XYZReader
 
 # New-style readers
@@ -42,6 +42,7 @@ from .Matlab import MatReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .ZON import ZONReader
 
@@ -62,8 +63,7 @@ readers = [
     IBWReader,
     MIReader,
     NCReader,
-    # NCReader must come before H5Reader, because NC4 *is* a specialized form
-    # of HDF5
+    # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
     ZONReader,
