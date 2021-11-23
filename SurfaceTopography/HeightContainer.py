@@ -366,6 +366,10 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
     def is_MPI(self):
         return False
 
+    @property
+    def has_undefined_data(self):
+        return False
+
     def __eq__(self, other):
         return Reduction(self._communicator).all(
             self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and

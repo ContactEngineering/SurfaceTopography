@@ -45,13 +45,13 @@ from .Reader import ReaderBase, ChannelInfo
 
 class DIReader(ReaderBase):
     _format = 'di'
-    _name = 'Bruker Dimension; Veeco/Digital Instruments Nanoscope'
+    _name = 'Bruker Dimension, Veeco Nanoscope, Digital Instruments Nanoscope'
     _description = '''
-Digitial Instruments Nanoscope files typically have a three-digit number as
-the file extension (.001, .002, .003, ...). Newer versions of this file format
-have th extension .spm. This format contains information on the physical size
-of the topography map as well as its units. The reader supports V4.3 and later
-version of the format.
+Digital Instruments Nanoscope (also Veeco Nanoscope and Bruker Dimension)
+files typically have a three-digit number as the file extension (.001, .002, .003, ...).
+Newer versions of this file format have the extension .spm. This format contains
+information on the physical size of the topography map as well as its units.
+The reader supports V4.3 and later version of the format.
 '''
 
     def __init__(self, fobj):

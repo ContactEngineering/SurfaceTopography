@@ -24,7 +24,10 @@
 # SOFTWARE.
 #
 
+from scipy.io import loadmat, whosmat
+
 from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
 
@@ -48,39 +51,29 @@ These need to be manually provided by the user.
 
         Parameters
         ----------
-        fobj: filename or file object
+        fobj : filename or file object
              File to read.
         """
-        from scipy.io import loadmat
-
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-        try:
-            data = loadmat(fobj)
+        self._fobj = fobj
+        with OpenFromAny(self._fobj, 'rb') as f:
+            header = whosmat(f)  # Only read header
             self._channels = []
-            self._height_data = []
-            for key, value in data.items():
+            for name, shape, data_class in header:
                 is_2d_array = False
                 try:
-                    nx, ny = value.shape
+                    nx, ny = shape
                     is_2d_array = True
                 except (AttributeError, ValueError):
                     pass
                 if is_2d_array:
                     channel_info = ChannelInfo(self,
                                                len(self._channels),
-                                               name=key,
-                                               dim=len(value.shape),
-                                               nb_grid_pts=value.shape)
+                                               name=name,
+                                               dim=len(shape),
+                                               nb_grid_pts=shape)
                     # no height scale factor given in mat file
 
                     self._channels.append(channel_info)
-                    self._height_data.append(value)
-        finally:
-            if close_file:
-                fobj.close()
 
     @property
     def channels(self):
@@ -97,11 +90,16 @@ These need to be manually provided by the user.
             raise RuntimeError(
                 'This reader does not support MPI parallelization.')
 
+        name = self.channels[channel_index].name
+
         info = info.copy()
-        info['data_source'] = self.channels[channel_index].name
+        info['data_source'] = name
+
+        with OpenFromAny(self._fobj, 'rb') as f:
+            height_data = loadmat(f, variable_names=[name])
 
         topography = Topography(
-            self._height_data[channel_index], physical_sizes=self._check_physical_sizes(physical_sizes), unit=unit,
+            height_data[name], physical_sizes=self._check_physical_sizes(physical_sizes), unit=unit,
             info=info, periodic=periodic)
 
         if height_scale_factor is not None:

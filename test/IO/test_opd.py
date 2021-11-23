@@ -29,8 +29,8 @@ import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography.IO.FromFile import read_opd
 from SurfaceTopography.IO import open_topography
+from SurfaceTopography.IO.OPD import OPDReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -38,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_opd(file_format_examples):
-    surface = read_opd(os.path.join(file_format_examples, 'example.opd'))
+    surface = OPDReader(os.path.join(file_format_examples, 'example.opd')).topography()
     nx, ny = surface.nb_grid_pts
     assert nx == 640
     assert ny == 480
@@ -51,7 +51,7 @@ def test_read_opd(file_format_examples):
 
 
 def test_undefined_points(file_format_examples):
-    t = read_opd(os.path.join(file_format_examples, 'example2.opd'))
+    t = OPDReader(os.path.join(file_format_examples, 'example2.opd')).topography()
     assert t.has_undefined_data
 
 

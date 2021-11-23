@@ -13,6 +13,7 @@ pytestmark = pytest.mark.skipif(
 common_properties = [
     "communicator",
     "dim",
+    "has_undefined_data",
     "info",
     "is_uniform",
     "is_periodic",
@@ -24,7 +25,6 @@ common_properties = [
 
 uniform_properties = [
     "area_per_pt",
-    "has_undefined_data",
     "is_domain_decomposed",
     "pixel_size",
 ]

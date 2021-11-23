@@ -179,6 +179,10 @@ class ChannelInfo:
         """
         return self._physical_sizes
 
+    @physical_sizes.setter
+    def physical_sizes(self, value):
+        self._physical_sizes = value
+
     @property
     def height_scale_factor(self):
         """
@@ -193,6 +197,10 @@ class ChannelInfo:
         `topography` method that returns the topography object.
         """
         return self._height_scale_factor
+
+    @height_scale_factor.setter
+    def height_scale_factor(self, value):
+        self._height_scale_factor = value
 
     @property
     def is_periodic(self):

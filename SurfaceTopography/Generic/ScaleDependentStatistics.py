@@ -31,7 +31,7 @@ from ..Support import doi
 from ..Support.Regression import make_grid
 
 
-@doi('arXiv:2106.16103')
+@doi('10.1016/j.apsadv.2021.100190')
 def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, distance=None, reliable=True,
                                          interpolation='linear', progress_callback=None,
                                          collocation='log', nb_points=None, nb_points_per_decade=10, threshold=4):
