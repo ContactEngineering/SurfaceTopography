@@ -11,6 +11,7 @@ v0.100.2 (not yet released)
 ---------------------------
 
 - MAINT: Avoid reading full file in Matlab reader
+- MAINT: Avoid reading full file in OPD reader
 
 v0.100.1 (22Nov21)
 ------------------
