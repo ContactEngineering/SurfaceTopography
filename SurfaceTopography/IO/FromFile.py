@@ -32,7 +32,6 @@ SurfaceTopography profile from file input
 import xml.etree.ElementTree as ElementTree
 from zipfile import ZipFile
 import numpy as np
-import numpy.ma as ma
 
 from .common import CHANNEL_NAME_INFO_KEY
 from .Reader import ReaderBase, ChannelInfo
