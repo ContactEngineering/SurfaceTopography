@@ -66,10 +66,12 @@ class ChannelInfo:
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
-        unit : str, optional
-            Length unit of measurement.
         uniform : bool, optional
             Data is uniform.
+        has_undefined_data : bool, optional
+            Underlying data has missing/undefined points.
+        unit : str, optional
+            Length unit of measurement.
         info : dict, optional
             Meta data found in the file. (Default: {})
         """

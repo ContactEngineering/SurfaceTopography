@@ -58,7 +58,7 @@ def binary(func):
 
 
 def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
-                        name=None, description=None, uniform=None):
+                        name=None, description=None):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
