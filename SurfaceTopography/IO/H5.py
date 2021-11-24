@@ -57,9 +57,8 @@ The original contact mechanics challenge data can be downloaded
                             dim=len(self._h5['surface'].shape),
                             nb_grid_pts=self._h5['surface'].shape)]
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, info={}, periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:
             raise RuntimeError(
@@ -69,8 +68,7 @@ The original contact mechanics challenge data can be downloaded
         if channel_index != 0:
             raise RuntimeError('HDF5 reader only supports a single channel')
         size = self._check_physical_sizes(physical_sizes)
-        t = Topography(self._h5['surface'][...], size, info=info,
-                       periodic=periodic)
+        t = Topography(self._h5['surface'][...], size, unit=unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
         return t
