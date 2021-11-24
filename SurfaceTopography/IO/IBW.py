@@ -139,8 +139,10 @@ on the physical size of the topography map as well as its units.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if unit is not None:
+        if unit is not None and self._data_unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
+        if self._data_unit is not None:
+            unit = self._data_unit
 
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile('height_scale_factor')
@@ -158,7 +160,7 @@ on the physical size of the topography map as well as its units.
         else:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        topo = Topography(height_data, physical_sizes, unit=self._data_unit, info=info, periodic=periodic)
+        topo = Topography(height_data, physical_sizes, unit=unit, info=info, periodic=periodic)
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
 
