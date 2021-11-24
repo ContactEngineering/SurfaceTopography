@@ -119,6 +119,7 @@ This reader open ZON files that are written by some Keyence instruments.
                     ChannelInfo(self, 0, name='default', dim=2, nb_grid_pts=(width, height),
                                 physical_sizes=(width * meter_per_pixel, height * meter_per_pixel),
                                 height_scale_factor=self._orig_height_scale_factor, unit='m',
+                                uniform=True,
                                 info={'data_uuid': HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]

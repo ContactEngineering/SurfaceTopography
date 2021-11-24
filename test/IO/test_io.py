@@ -335,6 +335,11 @@ def test_reader_topography_same(fn):
         if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
             assert channel.height_scale_factor == topography.scale_factor
 
+        assert channel.is_uniform == topography.is_uniform
+
+        if channel.has_undefined_data is not None:
+            assert channel.has_undefined_data == topography.has_undefined_data
+
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_reader_args_doesnt_overwrite_data_from_file(fn):

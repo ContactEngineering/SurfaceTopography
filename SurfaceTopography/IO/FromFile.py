@@ -58,7 +58,7 @@ def binary(func):
 
 
 def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
-                        name=None, description=None):
+                        name=None, description=None, uniform=None):
     class WrappedReader(ReaderBase):
         """
         emulates the new implementation of the readers
@@ -93,6 +93,8 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
                 name=self._channel_name,
                 dim=self._topography.dim,
                 unit=self._topography.unit,
+                uniform=self._topography.is_uniform,
+                undefined_data=self._topography.has_undefined_data,
                 info=self._topography.info,
                 nb_grid_pts=self._topography.nb_grid_pts,
                 physical_sizes=self._topography.physical_sizes,

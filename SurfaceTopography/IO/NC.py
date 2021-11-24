@@ -232,6 +232,7 @@ plt.show()
     def channels(self):
         if self._x_dim is not None:
             # This is a uniform topography
+            uniform = True
             try:
                 # netCDF4
                 nx = self._x_dim.size
@@ -250,6 +251,7 @@ plt.show()
                 nb_grid_pts = (nx, ny)
         else:
             # This is a nonuniform line scan
+            uniform = False
             try:
                 # netCDF4
                 nx = self._x_dim.size
@@ -263,6 +265,8 @@ plt.show()
                             nb_grid_pts=nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             periodic=self._periodic,
+                            uniform=uniform,
+                            undefined_data=self._mask_var is not None,
                             unit=self._unit,
                             info=self._info)]
 
