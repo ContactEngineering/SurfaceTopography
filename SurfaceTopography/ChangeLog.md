@@ -7,6 +7,13 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.100.3 (24Nov21)
+------------------
+
+- BUG: Allow manual specification of unit if IBW file does not provide unit
+  information
+- BUG: Missing `unit` keyword argument for HDF5 reader
+
 v0.100.2 (23Nov21)
 ------------------
 
