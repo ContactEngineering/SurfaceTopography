@@ -305,7 +305,8 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
 def test_reader_topography_same(fn):
     """
     Tests that properties like physical sizes, units and nb_grid_pts are
