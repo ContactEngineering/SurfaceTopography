@@ -95,6 +95,10 @@ binary_example_file_list = _convert_filelist([
     'example.nc',
 ] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
 
+binary_without_stream_support_example_file_list = _convert_filelist([
+    'surface.2048x2048.h5'
+])
+
 text_example_file_list = _convert_filelist([
     'example1.txt',
     'example2.txt',
@@ -236,31 +240,33 @@ def test_can_be_pickled(fn):
                 assert_array_equal(x.heights(), y.heights())
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
 def test_reader_arguments(fn):
-    """Check whether all readers have channel, physical_sizes and
-    height_scale_factor arguments. Also check whether we can execute
-    `topography` multiple times for all readers"""
+    """Check whether all readers have channel, physical_sizes, height_scale_factor
+    and unit arguments. Also check whether we can execute `topography` multiple times
+    for all readers"""
     physical_sizes0 = (1.2, 1.3)
+    unit0 = 'mm'
 
     # Test open -> topography
     r = open_topography(fn)
     physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
+    unit = None if r.channels[0].unit is not None else unit0
 
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                     height_scale_factor=None)
+                     height_scale_factor=None, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                      height_scale_factor=None)
+                      height_scale_factor=None, unit=unit)
     if physical_sizes is not None:
         assert t2.physical_sizes == physical_sizes
     assert_array_equal(t.heights(), t2.heights())
     # Test read_topography
-    t = read_topography(fn, channel_index=0,
-                        physical_sizes=physical_sizes,
-                        height_scale_factor=None)
+    t = read_topography(fn, channel_index=0, physical_sizes=physical_sizes,
+                        height_scale_factor=None, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
 
