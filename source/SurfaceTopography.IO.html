@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.100.3 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.101.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.100.3
+                0.101.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -1205,30 +1205,34 @@ channels.</p>
 <span id="surfacetopography-io-reader-module"></span><h2>SurfaceTopography.IO.Reader module<a class="headerlink" href="#module-SurfaceTopography.IO.Reader" title="Permalink to this headline"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ChannelInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.Reader.</span></span><span class="sig-name descname"><span class="pre">ChannelInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">undefined_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Information on topography channels contained within a file.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">undefined_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Initialize the channel. Use as many information from the file as
-possible by passing it in the keyword arguments.</p>
+possible by passing it in the keyword arguments. Keyword arguments
+can be None if the information cannot be determined. (This is the
+default for all keyword arguments.)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>reader</strong> (<a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><em>ReaderBase</em></a>) – Reader instance this channel is coming from.</p></li>
+<li><p><strong>reader</strong> (<a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReaderBase</span></code></a>) – Reader instance this channel is coming from.</p></li>
 <li><p><strong>index</strong> (<em>int</em>) – Index of channel in the file, where zero is the first channel.</p></li>
-<li><p><strong>name</strong> (<em>str</em>) – Name of the channel. If no name is given, “channel &lt;index&gt;” will
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the channel. If no name is given, “channel &lt;index&gt;” will
 be used, where “&lt;index&gt;” is replaced with the index.</p></li>
-<li><p><strong>dim</strong> (<em>int</em>) – Number of dimensions.</p></li>
-<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em>) – Number grid points in each dimension.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical dimensions.</p></li>
-<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Number by which all heights have been multiplied.</p></li>
-<li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
+<li><p><strong>dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of dimensions.</p></li>
+<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number grid points in each dimension.</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em><em>, </em><em>optional</em>) – Physical dimensions.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Number by which all heights have been multiplied.</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Length unit of measurement.</p></li>
-<li><p><strong>info</strong> (<em>dict</em>) – Meta data found in the file.</p></li>
+<li><p><strong>uniform</strong> (<em>bool</em><em>, </em><em>optional</em>) – Data is uniform.</p></li>
+<li><p><strong>has_undefined_data</strong> (<em>bool</em><em>, </em><em>optional</em>) – Underlying data has missing/undefined points.</p></li>
+<li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em>) – Length unit of measurement.</p></li>
+<li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – Meta data found in the file. (Default: {})</p></li>
 </ul>
 </dd>
 </dl>
@@ -1243,22 +1247,22 @@ found in the data file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em><em>, </em><em>optional</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
-<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Factor by which the heights should be multiplied.
+<li><p><strong>height_scale_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Factor by which the heights should be multiplied.
 This parameter is only available for file formats that do not provide
 metadata information about units and associated length scales.</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Length unit of measurement.</p></li>
-<li><p><strong>info</strong> (<em>dict</em>) – This dictionary will be appended to the info dictionary returned
+<li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em>) – Length unit of measurement.</p></li>
+<li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – This dictionary will be appended to the info dictionary returned
 by the reader.</p></li>
-<li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
+<li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing)</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1327,6 +1331,18 @@ overwritten by passing a <cite>height_scale_factor</cite> argument to the
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.is_periodic" title="Permalink to this definition"></a></dt>
 <dd><p>Return whether the topography is periodically repeated at the
 boundaries.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.is_uniform">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_uniform</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.is_uniform" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the topography is uniform.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.has_undefined_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_undefined_data</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.has_undefined_data" title="Permalink to this definition"></a></dt>
+<dd><p>Return whether the topography has undefined data.</p>
 </dd></dl>
 
 <dl class="py property">
