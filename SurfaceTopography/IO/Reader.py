@@ -37,37 +37,43 @@ class ChannelInfo:
     Information on topography channels contained within a file.
     """
 
-    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None,
-                 physical_sizes=None, height_scale_factor=None, periodic=None, unit=None, info={}):
+    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None,
+                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={}):
         """
         Initialize the channel. Use as many information from the file as
-        possible by passing it in the keyword arguments.
+        possible by passing it in the keyword arguments. Keyword arguments
+        can be None if the information cannot be determined. (This is the
+        default for all keyword arguments.)
 
         Arguments
         ---------
-        reader : ReaderBase
+        reader : :obj:`ReaderBase`
             Reader instance this channel is coming from.
         index : int
             Index of channel in the file, where zero is the first channel.
-        name : str
+        name : str, optional
             Name of the channel. If no name is given, "channel <index>" will
             be used, where "<index>" is replaced with the index.
-        dim : int
+        dim : int, optional
             Number of dimensions.
-        nb_grid_pts : tuple of ints
+        nb_grid_pts : tuple of ints, optional
             Number grid points in each dimension.
-        physical_sizes : tuple of floats
+        physical_sizes : tuple of floats, optional
             Physical dimensions.
-        height_scale_factor: float
+        height_scale_factor: float, optional
             Number by which all heights have been multiplied.
-        periodic : bool
+        periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing).
-        unit : str
+        uniform : bool, optional
+            Data is uniform.
+        has_undefined_data : bool, optional
+            Underlying data has missing/undefined points.
+        unit : str, optional
             Length unit of measurement.
-        info : dict
-            Meta data found in the file.
+        info : dict, optional
+            Meta data found in the file. (Default: {})
         """
         self._reader = reader
         self._index = int(index)
@@ -80,6 +86,8 @@ class ChannelInfo:
             if physical_sizes is None else tuple(np.ravel(physical_sizes))
         self._height_scale_factor = height_scale_factor
         self._periodic = periodic
+        self._uniform = uniform
+        self._undefined_data = undefined_data
         self._unit = unit
         if info is None:
             self._info = None
@@ -95,28 +103,28 @@ class ChannelInfo:
 
         Arguments
         ---------
-        physical_sizes : tuple of floats
+        physical_sizes : tuple of floats, optional
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
             physical size, then this parameter will override the physical
             size found in the data file.
-        height_scale_factor : float
+        height_scale_factor : float, optional
             Factor by which the heights should be multiplied.
             This parameter is only available for file formats that do not provide
             metadata information about units and associated length scales.
-        unit : str
+        unit : str, optional
             Length unit of measurement.
-        info : dict
+        info : dict, optional
             This dictionary will be appended to the info dictionary returned
             by the reader.
-        periodic : bool
+        periodic : bool, optional
             Whether the SurfaceTopography should be interpreted as one period of
             a periodic surface. This will affect the PSD and autocorrelation
             calculations (windowing)
-        subdomain_locations : tuple of ints
+        subdomain_locations : tuple of ints, optional
             Origin (location) of the subdomain handled by the present MPI
             process.
-        nb_subdomain_grid_pts : tuple of ints
+        nb_subdomain_grid_pts : tuple of ints, optional
             Number of grid points within the subdomain handled by the present
             MPI process.
 
@@ -209,6 +217,20 @@ class ChannelInfo:
         boundaries.
         """
         return self._periodic
+
+    @property
+    def is_uniform(self):
+        """
+        Return whether the topography is uniform.
+        """
+        return self._uniform
+
+    @property
+    def has_undefined_data(self):
+        """
+        Return whether the topography has undefined data.
+        """
+        return self._undefined_data
 
     @property
     def pixel_size(self):

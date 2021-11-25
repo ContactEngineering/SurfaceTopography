@@ -111,6 +111,7 @@ interferometer.
                                                    name=n,
                                                    dim=2,
                                                    nb_grid_pts=(nx, ny),
+                                                   uniform=True,
                                                    unit='mm',
                                                    info=dict(file_offset=f.tell(), dtype=dtype))]
                     channel_index += 1

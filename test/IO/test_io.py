@@ -305,7 +305,8 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
 def test_reader_topography_same(fn):
     """
     Tests that properties like physical sizes, units and nb_grid_pts are
@@ -334,6 +335,17 @@ def test_reader_topography_same(fn):
 
         if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
             assert channel.height_scale_factor == topography.scale_factor
+
+        if channel.is_periodic is not None:
+            assert isinstance(channel.is_periodic, (bool, np.bool_))
+            assert channel.is_periodic == topography.is_periodic
+
+        assert isinstance(channel.is_uniform, (bool, np.bool_))
+        assert channel.is_uniform == topography.is_uniform
+
+        if channel.has_undefined_data is not None:
+            assert isinstance(channel.has_undefined_data, (bool, np.bool_))
+            assert channel.has_undefined_data == topography.has_undefined_data
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)

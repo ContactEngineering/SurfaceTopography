@@ -127,7 +127,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return np.ma.getmask(self._heights) is not np.ma.nomask
+        return np.ma.getmaskarray(self._heights).sum() > 0
 
     def positions(self, meshgrid=True):
         """
@@ -361,8 +361,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def has_undefined_data(self):
-        return Reduction(self._communicator).sum(
-            np.ma.getmask(self._heights) is not np.ma.nomask and np.ma.getmask(self._heights).sum() > 0)
+        return Reduction(self._communicator).sum(np.ma.getmaskarray(self._heights).sum()) > 0
 
     def positions(self, meshgrid=True):
         """

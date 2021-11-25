@@ -7,6 +7,13 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.101.0 (25Nov21)
+------------------
+
+- API: ChannelInfo now has `is_uniform` and `has_undefined_data` properties
+  that indicate the structure of the underlying data (if known after reading
+  file headers)
+
 v0.100.3 (24Nov21)
 ------------------
 

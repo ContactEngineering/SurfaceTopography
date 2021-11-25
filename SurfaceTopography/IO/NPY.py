@@ -93,6 +93,7 @@ manually provided by the user.
         return [ChannelInfo(self, 0,
                             name='Default',
                             dim=len(self._nb_grid_pts),
+                            uniform=True,
                             nb_grid_pts=self._nb_grid_pts)]
 
     def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},

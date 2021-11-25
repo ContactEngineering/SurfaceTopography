@@ -55,6 +55,7 @@ The original contact mechanics challenge data can be downloaded
                             0,  # channel index
                             name='Default',
                             dim=len(self._h5['surface'].shape),
+                            uniform=True,
                             nb_grid_pts=self._h5['surface'].shape)]
 
     def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},

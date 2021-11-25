@@ -198,6 +198,7 @@ The reader supports V4.3 and later version of the format.
                                           physical_sizes=(sx, sy),
                                           height_scale_factor=height_scale_factor,
                                           periodic=False,
+                                          uniform=True,
                                           unit=unit,
                                           info=info)
                     self._channels.append(channel)

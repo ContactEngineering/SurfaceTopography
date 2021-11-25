@@ -70,6 +70,7 @@ These need to be manually provided by the user.
                                                len(self._channels),
                                                name=name,
                                                dim=len(shape),
+                                               uniform=True,
                                                nb_grid_pts=shape)
                     # no height scale factor given in mat file
 

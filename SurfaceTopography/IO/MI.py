@@ -190,6 +190,7 @@ well as its units.
                             dim=len(self._nb_grid_pts),
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
+                            uniform=True,
                             unit=channel.unit,
                             info=channel.meta)
                 for i, channel in enumerate(self.mifile.channels)]

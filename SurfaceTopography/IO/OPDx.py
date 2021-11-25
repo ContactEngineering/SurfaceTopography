@@ -193,6 +193,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                            dim=1,
                                            nb_grid_pts=nb_grid_pts,
                                            physical_sizes=physical_size,
+                                           uniform=True,
                                            unit=unit,
                                            height_scale_factor=height_scale_factor,
                                            info=self.info_from_manifest(prefix))]
@@ -227,6 +228,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
                                        dim=2,
                                        nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
                                        physical_sizes=(physical_size_x, physical_size_y),
+                                       uniform=True,
                                        unit=unit_x,
                                        height_scale_factor=height_scale_factor,
                                        info=self.info_from_manifest(prefix))]
