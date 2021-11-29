@@ -405,6 +405,19 @@ def test_container_mixed(file_format_examples, plot=False):
         plt.show()
 
 
+# This test is just supposed to finish without an exception
+def test_container_mixed2(file_format_examples, plot=False):
+    """This container has a mixture of maps, line scans.
+    One of the maps has undefined data points."""
+    c, = read_container(f'{file_format_examples}/container3.zip')
+    d, s = c.power_spectrum(unit='um')
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.loglog(d, s, 'o-')
+        plt.show()
+
+
 @pytest.mark.skip('Run this if you have a one of the big diamond containers downloaded from contact.engineering')
 def test_large_container_mixed(plot=True):
     c, = read_container('/home/pastewka/Downloads/surface.zip')

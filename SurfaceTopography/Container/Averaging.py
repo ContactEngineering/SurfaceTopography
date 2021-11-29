@@ -29,7 +29,7 @@ import logging
 import numpy as np
 from collections import defaultdict
 
-from ..Exceptions import NoReliableDataError
+from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..Support.Regression import resample
 from .SurfaceContainer import SurfaceContainer
 
@@ -72,6 +72,8 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
             x, y = func(reliable=reliable, resampling_method=None, **kwargs)
             has_data = True
         except NoReliableDataError:
+            has_data = False
+        except UndefinedDataError:
             has_data = False
 
         # Construct grid in this range
