@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.101.1 (30Nov21)
+------------------
+
+- BUG: Ignore if analysis fails because of undefined data when computing
+  averages
+
 v0.101.0 (25Nov21)
 ------------------
 
