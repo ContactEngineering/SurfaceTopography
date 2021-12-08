@@ -7,6 +7,11 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.101.2 (not yet released)
+---------------------------
+
+- MAINT: Explicity convert to CSR matrix to suppress spsolve warning
+
 v0.101.1 (30Nov21)
 ------------------
 

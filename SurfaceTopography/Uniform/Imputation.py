@@ -138,7 +138,7 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
                 rhs[nb_patch:] = heights[perimeter_mask]
 
                 # Solve for undefined heights
-                heights[patch_mask] = scipy.sparse.linalg.spsolve(laplace, rhs)[:nb_patch]
+                heights[patch_mask] = scipy.sparse.linalg.spsolve(laplace.tocsr(), rhs)[:nb_patch]
         return heights
 
 
