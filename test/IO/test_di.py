@@ -51,7 +51,8 @@ def test_4byte_data(file_format_examples):
     np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
     assert t.info['instrument']['name'] == 'Dimension Icon'
 
+
 def test_corrupted_file(file_format_examples):
     # Corruption should be detected when opening file; subsequent calls to `topography` must succeed
     with pytest.raises(CorruptFile):
-        r = DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))
+        DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))
