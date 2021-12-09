@@ -22,37 +22,29 @@
 # SOFTWARE.
 #
 
-import datetime
-import os
-import pytest
-
 import numpy as np
 
-from NuMPI import MPI
+from SurfaceTopography.Support.Interpolation import Bicubic
 
-from SurfaceTopography import read_topography
-from SurfaceTopography.IO import DIReader
-from SurfaceTopography.Exceptions import CorruptFile
+nx = ny = 8192
+tol = 1e-9
 
-pytestmark = pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+NPARA = 4 * 4
+print(f"Estimated memory requirement: {nx * ny * np.dtype('f8').itemsize * (NPARA + 1) / 1024. / 1024. / 1024.} GB")
 
+field = np.random.random([nx, ny])
+interp = Bicubic(field)
+for i in range(nx):
+    for j in range(ny):
+        assert abs(interp(i, j) - field[i, j]) < tol
 
-def test_di_date(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'di1.di'))
-    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
-    assert t.info['instrument']['name'] == 'Dimension V'
+x, y = np.mgrid[:nx, :ny]
 
-
-def test_4byte_data(file_format_examples):
-    r = DIReader(os.path.join(file_format_examples, 'di5.di'))
-    t = r.topography()
-    np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
-    assert t.info['instrument']['name'] == 'Dimension Icon'
-
-
-def test_corrupted_file(file_format_examples):
-    # Corruption should be detected when opening file; subsequent calls to `topography` must succeed
-    with pytest.raises(CorruptFile):
-        DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))
+for der in [0, 1, 2]:
+    if der == 0:
+        interp_field = interp(x, y, derivative=der)
+    elif der == 1:
+        interp_field, _, _ = interp(x, y, derivative=der)
+    else:
+        interp_field, _, _, _, _, _ = interp(x, y, derivative=der)
+    assert np.allclose(interp_field, field)

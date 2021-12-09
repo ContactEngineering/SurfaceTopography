@@ -300,6 +300,14 @@ class ReaderBase(metaclass=abc.ABCMeta):
     file (from filename or stream object), inspect its metadata and then
     request to load a topography from it. Metadata is typically extracted
     without reading the full file.
+
+    Readers should adhere to the following design rules:
+    1. Opening a file should be fast and therefore not read the whole data.
+       The data is read only when requesting it via the `topography` method.
+    2. Data corruption must be detected when opening the file. The
+       `topography` method must not fail because of file corruption issues.
+    These rules are important to allow smooth operation of the readers in
+    the web application `TopoBank`.
     """
 
     _format = None

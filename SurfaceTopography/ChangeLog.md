@@ -7,6 +7,12 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
+v0.101.2 (09Dec21)
+------------------
+
+- MAINT: Explicity convert to CSR matrix to suppress spsolve warning
+- MAINT: Detect file corruption in DI reader when opening the file
+
 v0.101.1 (30Nov21)
 ------------------
 
