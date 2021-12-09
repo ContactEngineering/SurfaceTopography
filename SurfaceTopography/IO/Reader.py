@@ -306,6 +306,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
        The data is read only when requesting it via the `topography` method.
     2. Data corruption must be detected when opening the file. The
        `topography` method must not fail because of file corruption issues.
+    These rules are important to allow smooth operation of the readers in
+    the web application `TopoBank`.
     """
 
     _format = None
