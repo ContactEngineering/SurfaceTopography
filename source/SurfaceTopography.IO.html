@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.101.1 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 0.101.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.101.1
+                0.101.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -1403,6 +1403,17 @@ measurement technique) to heights with the given ‘unit’.</p>
 file (from filename or stream object), inspect its metadata and then
 request to load a topography from it. Metadata is typically extracted
 without reading the full file.</p>
+<p>Readers should adhere to the following design rules:
+1. Opening a file should be fast and therefore not read the whole data.</p>
+<blockquote>
+<div><p>The data is read only when requesting it via the <cite>topography</cite> method.</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Data corruption must be detected when opening the file. The
+<cite>topography</cite> method must not fail because of file corruption issues.</p></li>
+</ol>
+<p>These rules are important to allow smooth operation of the readers in
+the web application <cite>TopoBank</cite>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ReaderBase.format">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReaderBase.format" title="Permalink to this definition"></a></dt>
