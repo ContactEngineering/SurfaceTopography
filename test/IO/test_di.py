@@ -32,6 +32,7 @@ from NuMPI import MPI
 
 from SurfaceTopography import read_topography
 from SurfaceTopography.IO import DIReader
+from SurfaceTopography.Exceptions import CorruptFile
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -49,3 +50,8 @@ def test_4byte_data(file_format_examples):
     t = r.topography()
     np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
     assert t.info['instrument']['name'] == 'Dimension Icon'
+
+def test_corrupted_file(file_format_examples):
+    # Corruption should be detected when opening file; subsequent calls to `topography` must succeed
+    with pytest.raises(CorruptFile):
+        r = DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))

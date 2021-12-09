@@ -34,7 +34,7 @@ from datetime import datetime
 
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
 
@@ -202,6 +202,18 @@ The reader supports V4.3 and later version of the format.
                                           unit=unit,
                                           info=info)
                     self._channels.append(channel)
+
+            # Check that all channels can be read
+            fobj.seek(0, 2)
+            file_size = fobj.tell()
+            for channel in self._channels:
+                offset = self._offsets[channel.index]
+                # We seek to the end of the data buffer, this should not raise an exception
+                nx, ny = channel.nb_grid_pts
+                elsize = channel.info['bytes_per_pixel']
+                if offset + nx * ny * elsize > file_size:
+                    raise CorruptFile('File is not large enough to contain all data buffers.')
+
         finally:
             if close_file:
                 fobj.close()
@@ -245,6 +257,8 @@ The reader supports V4.3 and later version of the format.
             dtype = np.dtype('<i4')
         else:
             raise IOError(f"Don't know how to handle {info['bytes_per_pixel']} bytes per pixel data.")
+
+        assert channel.info['bytes_per_pixel'] == dtype.itemsize
 
         ###################################
 
