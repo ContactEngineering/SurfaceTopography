@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 0.101.2 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 0.101.3.dev3+g7dc7346c documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.101.2
+                0.101.3.dev3+g7dc7346c
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -123,6 +123,15 @@ by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.l
 <p>If <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> is unable to find the NetCDF libraries (the <cite>FileIONetCDF</cite> class
 is missing), then set the environment variables <cite>NETCDFDIR</cite> (for serial
 compile) or <cite>PNETCDFDIR</cite> (for parallel compiles, to e.g. <cite>$USER/.local</cite>).</p>
+<p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with <cite>MPI</cite> support but not all necessary libraries are
+avaible. If you do not need <cite>MPI</cite> support, you can manually disable it in the following way:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">muFFT</span> <span class="pre">--install-options=&quot;--disable-mpi&quot;</span>
+<span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">SurfaceTopography</span>
+<span class="pre">`</span></code>
+Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly <cite>setup.py</cite>),
+pip will attempt to reinstall that dependency despite it is already installed.
+In that case you need to avoid using <cite>pip install</cite> and install SurfaceTopography from the source directory using <cite>python3 setup.py install</cite>.</p>
 </section>
 <section id="installation-from-source-directory">
 <h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Permalink to this headline"></a></h2>
