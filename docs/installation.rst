@@ -52,7 +52,7 @@ Sometimes the installation fails because muFFT_ attempts to compile with `MPI` s
 avaible. If you do not need `MPI` support, you can manually disable it in the following way:
 
 ```
-python3 -m pip install muFFT --install-options="--disable-option"
+python3 -m pip install muFFT --install-options="--disable-mpi"
 python3 -m pip install SurfaceTopography
 ```
 Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
