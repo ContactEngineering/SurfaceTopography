@@ -48,6 +48,17 @@ If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
 is missing), then set the environment variables `NETCDFDIR` (for serial
 compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
 
+Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
+avaible. If you do not need `MPI` support, you can manually disable it in the following way:
+
+```
+python3 -m pip install muFFT --install-options="--disable-option"
+python3 -m pip install SurfaceTopography
+```
+Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
+pip will attempt to reinstall that dependency despite it is already installed.
+In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
+
 Installation from source directory
 ----------------------------------
 
