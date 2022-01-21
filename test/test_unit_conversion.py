@@ -22,11 +22,12 @@
 # SOFTWARE.
 #
 
+import numpy as np
 import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography.Support.UnitConversion import suggest_length_unit
+from SurfaceTopography.Support.UnitConversion import suggest_length_unit, suggest_length_unit_for_data
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -50,3 +51,12 @@ def test_suggest_length_unit():
 def test_unit_outside_range():
     assert suggest_length_unit('log', 1e-21, 1e-18) == 'fm'
     assert suggest_length_unit('log', 1e12, 1e15) == 'Gm'
+
+
+def test_nan_and_inf():
+    assert suggest_length_unit_for_data('log', [1e-9, 10], 'm') == 'µm'
+    assert suggest_length_unit_for_data('log', [1e-9, 10, np.NaN], 'm') == 'µm'
+    assert suggest_length_unit_for_data('log', [1e-9, 10, np.Inf], 'm') == 'm'
+    assert suggest_length_unit_for_data('log', [1e-9, 10, np.Inf, np.Inf], 'm') == 'm'
+    with pytest.raises(ValueError):
+        suggest_length_unit_for_data('log', [np.NaN, np.NaN], 'm')

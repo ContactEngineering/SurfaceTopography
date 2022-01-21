@@ -204,6 +204,11 @@ def suggest_length_unit_for_data(scale, data, unit):
     unit : str
         Suggestion for the length unit
     """
-    mn, mx = np.min(data), np.max(data)
+    mn, mx = np.nanmin(data), np.nanmax(data)
+    if np.isnan(mn) or np.isnan(mx):
+        raise ValueError('Data does not contain values that are not NaN.')
+    if not (np.isfinite(mn) and np.isfinite(mx)):
+        # There are Inf or -Inf values in the data, we just return the original unit.
+        return unit
     fac = get_unit_conversion_factor(unit, 'm')
     return suggest_length_unit(scale, fac * mn, fac * mx)
