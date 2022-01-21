@@ -556,7 +556,8 @@ def test_gwyddion_txt_import(lang_filename_infix, file_format_examples):
 def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'di1.di')) == 'di'
     assert detect_format(os.path.join(file_format_examples, 'di2.di')) == 'di'
-    assert detect_format(os.path.join(file_format_examples, 'di_corrupted.di')) == 'di'
+    with pytest.raises(CannotDetectFileFormat):
+        detect_format(os.path.join(file_format_examples, 'di_corrupted.di'))
     assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
     assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
     assert detect_format(os.path.join(file_format_examples, 'example.x3p')) == 'x3p'
