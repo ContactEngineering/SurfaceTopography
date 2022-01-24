@@ -135,28 +135,36 @@ def test_nonuniform_file(file_format_examples, plot=False):
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
     c, = read_container(f'{file_format_examples}/container1.zip')
+    iterations = []
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.01, 0.1, 1.0, 10],
-                                                  unit='um')
+                                                  unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
     assert (np.diff(s) < 0).all()
     np.testing.assert_almost_equal(s, [0.0018715281899762592, 0.0006849065620048571, 0.0002991781282532277,
                                        7.224607689277936e-05])
+    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
 
     # Test that specifying distances where no data exists does not raise an exception
     iterations = []
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.00001, 1.0, 10000],
-                                                  unit='um', progress_callback=lambda i, n: iterations.append(i))
+                                                  unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
     assert s[0] is None
     assert s[2] is None
-    np.testing.assert_allclose(np.array(iterations), np.arange(len(c) + 1))
+    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
 
     # Test without specifying explicit distances
-    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=1, unit='um')
+    iterations = []
+    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=1, unit='um',
+                                                  progress_callback=lambda i, n: iterations.append((i, n)))
 
     np.testing.assert_allclose(d, [0.01, 0.1, 1, 10])
     np.testing.assert_allclose(s, [1.87152819e-03, 6.84906562e-04, 2.99178128e-04, 7.22460769e-05])
+    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
 
     # Test without specifying explicit distances and more points
-    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=5, unit='um')
+    iterations = []
+    d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=5, unit='um',
+                                                  progress_callback=lambda i, n: iterations.append((i, n)))
+    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
 
     if plot:
         import matplotlib.pyplot as plt
