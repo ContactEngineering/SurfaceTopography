@@ -7,7 +7,7 @@ Deprecations in version 1.0
 - `unit` entry for the `info` dictionary will disappear
 - `scale_factor` property for scaled topographies will disappear
 
-v0.101.3 (21Jan22)
+v0.101.3 (24Jan22)
 ------------------
 
 - BUG: Ignore NaNs when suggesting units for data
