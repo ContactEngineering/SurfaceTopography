@@ -298,7 +298,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
             x, y = self.parent_topography.positions_and_heights()
             self._coeffs = polyfit(x, y, 1)
         elif self._detrend_mode == 'slope':
-            sl = self.parent_topography.derivative().mean()
+            sl = self.parent_topography.derivative(1).mean()
             self._coeffs = [self.parent_topography.mean(), sl]
         elif self._detrend_mode == 'curvature':
             x, y = self.parent_topography.positions_and_heights()
