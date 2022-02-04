@@ -167,9 +167,16 @@ def test_detrend(file_format_examples):
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
 
+
 def test_detrend_slope(file_format_examples):
     t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
     assert not t.detrend('slope').is_periodic
+
+
+def test_detrend_curvature(file_format_examples):
+    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    assert not t.detrend('curvature').is_periodic
+
 
 def test_masked_input():
     with pytest.raises(ValueError):
