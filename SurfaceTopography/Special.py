@@ -36,6 +36,78 @@ from .UniformLineScanAndTopography import Topography, UniformLineScan, \
     DecoratedUniformTopography
 
 
+def make_topography_from_function(fun, physical_sizes,
+                                  nb_grid_pts=None,
+                                  subdomain_locations=None,
+                                  nb_subdomain_grid_pts=None,
+                                  centre=(0, 0),
+                                  **kwargs
+                                  ):
+    """
+    Parameters
+    ----------
+    fun: callable(X, Y)
+    centre: tuple or "middle"
+        (cx, cy)
+        h(X,Y) =  fun(X-cx, Y-cy)
+        default (0,0)
+    physical_sizes : tuple of floats
+        Physical physical_sizes of the topography map
+    periodic : bool
+        The topography is periodic. (Default: False)
+    decomposition : str
+        Specification of the data decomposition of the heights array. If
+        set to 'subdomain', the heights array contains only the part of
+        the full topography local to the present MPI process. If set to
+        'domain', the heights array contains the global array.
+        Default: 'serial', which fails for parallel runs.
+    nb_grid_pts : tuple of ints
+        Number of grid points for the full topography. This is only
+        required if decomposition is set to 'subdomain'.
+    subdomain_locations : tuple of ints
+        Origin (location) of the subdomain handled by the present MPI
+        process.
+    nb_subdomain_grid_pts : tuple of ints
+        Number of grid points within the subdomain handled by the present
+        MPI process. This is only required if decomposition is set to
+        'domain'.
+    communicator : mpi4py communicator or NuMPI stub communicator
+        The MPI communicator object.
+        default value is COMM_SELF because sometimes NON-MPI readers that
+        do not set the communicator value are used in MPI Programs.
+        See discussion in issue #166
+    info : dict
+        The info dictionary containing auxiliary data. This data is never
+        used by PyCo but can be used by third-party codes.
+
+    Returns
+    -------
+
+    SurfaceTopography.Topography instance
+
+    """
+    if isinstance(centre, str) and centre == "middle":
+        centre = tuple([s / 2 for s in physical_sizes])
+
+    if nb_subdomain_grid_pts is None:
+        # serial code
+        nb_subdomain_grid_pts = nb_grid_pts
+        nb_grid_pts = None
+    topography = Topography(heights=np.zeros(nb_subdomain_grid_pts),
+                            physical_sizes=physical_sizes,
+                            subdomain_locations=subdomain_locations,
+                            nb_grid_pts=nb_grid_pts,
+                            **kwargs,
+                            )
+
+    cx, cy = centre
+    x, y = topography.positions()
+
+    topography._heights = fun(x - cx, y - cy)
+
+    return topography
+
+
 def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
                 standoff="undefined",
                 offset=0, periodic=False, kind="sphere",
