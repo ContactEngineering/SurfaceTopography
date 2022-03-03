@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 0.101.4.dev4+g9ca917aa documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.101.4.dev6+g2f7b0e1c documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.101.4.dev4+g9ca917aa
+                0.101.4.dev6+g2f7b0e1c
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -1017,6 +1017,44 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <section id="module-SurfaceTopography.Special">
 <span id="surfacetopography-special-module"></span><h2>SurfaceTopography.Special module<a class="headerlink" href="#module-SurfaceTopography.Special" title="Permalink to this headline"></a></h2>
 <p>Special topographies</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Special.make_topography_from_function">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Special.</span></span><span class="sig-name descname"><span class="pre">make_topography_from_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Special.make_topography_from_function" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fun</strong> (<em>callable</em><em>(</em><em>X</em><em>, </em><em>Y</em><em>)</em>) – </p></li>
+<li><p><strong>centre</strong> (<em>tuple</em><em> or </em><em>&quot;middle&quot;</em>) – (cx, cy)
+h(X,Y) =  fun(X-cx, Y-cy)
+default (0,0)</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical physical_sizes of the topography map</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em>) – The topography is periodic. (Default: False)</p></li>
+<li><p><strong>decomposition</strong> (<em>str</em>) – Specification of the data decomposition of the heights array. If
+set to ‘subdomain’, the heights array contains only the part of
+the full topography local to the present MPI process. If set to
+‘domain’, the heights array contains the global array.
+Default: ‘serial’, which fails for parallel runs.</p></li>
+<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points for the full topography. This is only
+required if decomposition is set to ‘subdomain’.</p></li>
+<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+process.</p></li>
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+MPI process. This is only required if decomposition is set to
+‘domain’.</p></li>
+<li><p><strong>communicator</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em>) – The MPI communicator object.
+default value is COMM_SELF because sometimes NON-MPI readers that
+do not set the communicator value are used in MPI Programs.
+See discussion in issue #166</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – The info dictionary containing auxiliary data. This data is never
+used by PyCo but can be used by third-party codes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>SurfaceTopography.Topography instance</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Special.make_sphere">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Special.</span></span><span class="sig-name descname"><span class="pre">make_sphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standoff='undefined'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind='sphere'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Special.make_sphere" title="Permalink to this definition"></a></dt>
