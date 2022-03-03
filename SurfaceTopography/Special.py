@@ -97,6 +97,7 @@ def make_topography_from_function(fun, physical_sizes,
                             physical_sizes=physical_sizes,
                             subdomain_locations=subdomain_locations,
                             nb_grid_pts=nb_grid_pts,
+                            decomposition="subdomain",
                             **kwargs,
                             )
 
