@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 0.101.4.dev10+g3980b80b documentation</title>
+  <title>Installation &mdash; SurfaceTopography 0.101.4.dev12+g976c1ae0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                0.101.4.dev10+g3980b80b
+                0.101.4.dev12+g976c1ae0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -91,7 +91,7 @@
              
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
-<p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
+<p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a>, <a class="reference external" href="https://www.openblas.net/">OpenBLAS</a>, <a class="reference external" href="http://www.netlib.org/lapack/">LAPACK</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
 <section id="direct-installation-with-pip">
 <h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Permalink to this headline"></a></h2>
 <p>SurfaceTopography can be installed by invoking</p>
@@ -117,6 +117,10 @@ rm requirements.txt
 </pre></div>
 </div>
 <p>See also our <cite>singularity container &lt;https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def&gt;</cite> for an example installation on ubuntu.</p>
+<p>Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using <a class="reference external" href="https://brew.sh/">Homebrew</a>,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw3 netcdf
+</pre></div>
+</div>
 <p>Note: Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
 You can specify the directory where you installed <a class="reference external" href="http://www.fftw.org/">FFTW3</a>
 by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.local</cite>).</p>
