@@ -1,7 +1,7 @@
 Installation
 ============
 
-You need Python 3,  NetCDF_ and FFTW3_ in order to install SurfaceTopography.
+You need Python 3,  NetCDF_, OpenBLAS_, LAPACK_ and FFTW3_ in order to install SurfaceTopography.
 
 Direct installation with pip
 ----------------------------
@@ -39,6 +39,13 @@ Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
     sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
 
 See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` for an example installation on ubuntu.
+
+Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using Homebrew_, 
+
+.. code-block:: bash
+
+    brew install openblas lapack fftw3 netcdf
+
 
 Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
 You can specify the directory where you installed FFTW3_
