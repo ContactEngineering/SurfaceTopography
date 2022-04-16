@@ -68,15 +68,6 @@ class AbstractTopography(object):
         pass
 
     def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
-        if 'unit' in info:
-            if unit is None:
-                warnings.warn('Please pass units via the `unit` keyword parameter, not the info dictionary.',
-                              DeprecationWarning)
-                unit = info['unit']
-                info = info.copy()
-                del info['unit']
-            elif unit != info['unit']:
-                raise ValueError('Unit was passed via the `unit` keyword parameter and within the info dictionary.')
         self._unit = unit
         self._info = info.copy()
         self._communicator = communicator
@@ -212,10 +203,8 @@ class DecoratedTopography(AbstractTopography):
     @property
     def info(self):
         """ Return info dictionary """
-        info = DeprecatedDictionary(self.parent_topography._info, deprecated_keys=['unit'])
+        info = self.parent_topography._info.copy()
         info.update(self._info)
-        if self.unit is not None:
-            info['unit'] = self.unit
         return info
 
     @property

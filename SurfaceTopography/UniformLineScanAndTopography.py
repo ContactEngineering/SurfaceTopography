@@ -510,12 +510,6 @@ class ScaledUniformTopography(DecoratedUniformTopography):
     def height_scale_factor(self):
         return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
 
-    # For backwards compatibility
-    @property
-    @deprecated(version='0.95.0', alternative='height_scale_factor')
-    def scale_factor(self):
-        return self.height_scale_factor
-
     @property
     def position_scale_factor(self):
         return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
@@ -587,12 +581,6 @@ class StaticallyScaledUniformTopography(ScaledUniformTopography):
     @property
     def height_scale_factor(self):
         return self._height_scale_factor
-
-    # For backwards compatibility
-    @property
-    @deprecated(version='0.95.0', alternative='height_scale_factor')
-    def scale_factor(self):
-        return self.height_scale_factor
 
     @property
     def position_scale_factor(self):
