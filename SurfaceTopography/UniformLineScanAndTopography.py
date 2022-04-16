@@ -37,7 +37,6 @@ from .HeightContainer import (
     AbstractTopography,
     UniformTopographyInterface, DecoratedTopography
 )
-from .Support import deprecated
 from .Uniform.Detrending import tilt_from_height, tilt_and_curvature
 from .Support.UnitConversion import get_unit_conversion_factor
 

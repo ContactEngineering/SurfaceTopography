@@ -28,7 +28,7 @@ import pytest
 import tempfile
 
 import numpy as np
-from scipy.io.netcdf import netcdf_file
+from scipy.io import netcdf_file
 
 from muFFT import FFT
 from NuMPI import MPI

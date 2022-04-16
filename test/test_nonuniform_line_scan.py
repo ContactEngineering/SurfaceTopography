@@ -119,11 +119,6 @@ def test_setting_info_dict():
     with pytest.deprecated_call():
         assert st.info['unit'] == 'B'
 
-    #
-    # Again the info should be passed
-    #
-    dt = st.detrend(detrend_mode='center')
-
 
 def test_init_with_lists_calling_scale_and_detrend():
     # initialize with lists instead of arrays

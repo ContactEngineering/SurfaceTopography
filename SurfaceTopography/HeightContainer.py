@@ -29,7 +29,6 @@ Base class for geometric topogography descriptions
 """
 
 import abc
-import warnings
 
 import numpy as np
 
