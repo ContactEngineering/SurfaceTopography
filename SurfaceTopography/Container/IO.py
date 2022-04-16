@@ -89,6 +89,11 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
                     del info['unit']
                 except KeyError:
                     unit = None
+                try:
+                    periodic = info['is_periodic']
+                    del info['is_periodic']
+                except KeyError:
+                    periodic = False
                 datafile_key = None
                 datafiles = topo_meta['datafile']
 
@@ -137,6 +142,7 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
                 # Read the topography from the preferred data file
                 t = r.topography(
                     physical_sizes=physical_sizes,
+                    periodic=periodic,
                     unit=unit,
                     info=info
                 )
