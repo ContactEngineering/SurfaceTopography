@@ -6,7 +6,7 @@ v1.0 (not yet released)
 
 - ENH: Generalized HDF5 reader
 - MAINT: Deprecated `unit` entry of `info` dictionary
-- MAITN: Deprecated `scale_factor` property
+- MAINT: Deprecated `scale_factor` property
 
 v0.101.3 (24Jan22)
 ------------------
