@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 =============================
 
-v1.0 (not yet released)
------------------------
+v1.0 (06May22)
+--------------
 
 - ENH: Generalized HDF5 reader
 - MAINT: Removed `unit` entry of `info` dictionary
