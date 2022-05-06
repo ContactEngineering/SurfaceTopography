@@ -44,6 +44,18 @@ The original contact mechanics challenge data can be downloaded
         self._h5 = None
         import h5py
         self._h5 = h5py.File(fobj, 'r')
+        self._channels = []
+        channel_index = 0
+        for name in self._h5:
+            if len(self._h5[name].shape) == 2:
+                # This looks like a topography
+                self._channels += [ChannelInfo(self,
+                                               channel_index,  # channel index
+                                               name=name,
+                                               dim=len(self._h5[name].shape),
+                                               uniform=True,
+                                               nb_grid_pts=self._h5[name].shape)]
+                channel_index += 1
 
     def close(self):
         if self._h5 is not None:
@@ -51,12 +63,7 @@ The original contact mechanics challenge data can be downloaded
 
     @property
     def channels(self):
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name='Default',
-                            dim=len(self._h5['surface'].shape),
-                            uniform=True,
-                            nb_grid_pts=self._h5['surface'].shape)]
+        return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -66,10 +73,9 @@ The original contact mechanics challenge data can be downloaded
                 'This reader does not support MPI parallelization.')
         if channel_index is None:
             channel_index = self._default_channel_index
-        if channel_index != 0:
-            raise RuntimeError('HDF5 reader only supports a single channel')
+        channel = self._channels[channel_index]
         size = self._check_physical_sizes(physical_sizes)
-        t = Topography(self._h5['surface'][...], size, unit=unit, info=info, periodic=periodic)
+        t = Topography(self._h5[channel.name][...], size, unit=unit, info=info, periodic=periodic)
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
         return t

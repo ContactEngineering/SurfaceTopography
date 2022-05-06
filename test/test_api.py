@@ -118,7 +118,7 @@ def apply_param(topography, param):
     use_scale, use_detrend = param
     if use_scale:
         topography = topography.scale(2)
-        assert hasattr(topography, 'scale_factor')
+        assert hasattr(topography, 'height_scale_factor')
     if use_detrend:
         topography = topography.detrend('height')
         assert hasattr(topography, 'detrend_mode')

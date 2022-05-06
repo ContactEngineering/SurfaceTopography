@@ -39,6 +39,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_detect_format(file_format_examples):
     assert SurfaceTopography.IO.detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
+    assert SurfaceTopography.IO.detect_format(os.path.join(file_format_examples, 'multiple_data_sets.h5')) == 'h5'
 
 
 def test_read(file_format_examples):
@@ -50,3 +51,26 @@ def test_read(file_format_examples):
     assert ny == 2048
     assert topography.is_uniform
     assert topography.dim == 2
+
+
+def test_read_multiple(file_format_examples):
+    loader = H5Reader(os.path.join(file_format_examples, 'multiple_data_sets.h5'))
+
+    assert len(loader.channels) == 2
+
+    topography = loader.topography(channel_index=0, physical_sizes=(1., 1.))
+    nx, ny = topography.nb_grid_pts
+    assert nx == 256
+    assert ny == 256
+    assert topography.is_uniform
+    assert topography.dim == 2
+
+    topography = loader.topography(channel_index=1, physical_sizes=(1., 1.))
+    nx, ny = topography.nb_grid_pts
+    assert nx == 640
+    assert ny == 480
+    assert topography.is_uniform
+    assert topography.dim == 2
+
+    with pytest.raises(IndexError):
+        loader.topography(channel_index=2, physical_sizes=(1., 1.))

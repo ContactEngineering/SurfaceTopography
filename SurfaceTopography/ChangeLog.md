@@ -1,11 +1,12 @@
 Change log for SurfaceTopography
 =============================
 
-Deprecations in version 1.0
----------------------------
+v1.0 (not yet released)
+-----------------------
 
-- `unit` entry for the `info` dictionary will disappear
-- `scale_factor` property for scaled topographies will disappear
+- ENH: Generalized HDF5 reader
+- MAINT: Removed `unit` entry of `info` dictionary
+- MAINT: Removed `scale_factor` property
 
 v0.101.3 (24Jan22)
 ------------------
