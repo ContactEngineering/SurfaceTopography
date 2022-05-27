@@ -10,7 +10,7 @@ Handling topographies
 
 - :class:`Topography` is a representation of a two-dimensional topography map that lives on a uniform grid.
 - :class:`UniformLineScan` is a representation of a one-dimensional line-scan that lives on a uniform grid.
-- :class:`NonuniformTopography` is a representation of a one-dimensional line-scan that lives on a nonuniform grid. This class assumes that height information in between grid points can be obtained by a linear interpolation.
+- :class:`NonuniformLineScan` is a representation of a one-dimensional line-scan that lives on a nonuniform grid. This class assumes that height information in between grid points can be obtained by a linear interpolation.
 
 Nonuniform line-scans are therefore always interpreted as a set of points connected by straight lines
 (linear interpolation). No interpolation is carried out for topography maps and uniform line scans.
