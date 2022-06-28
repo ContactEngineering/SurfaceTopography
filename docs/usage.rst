@@ -29,7 +29,7 @@ The classes expose a homogeneous interface for handling topographies. Example:
 
     # each file has a list of channels (one or more)
     print(reader.channels)  # returns list of channels
-    ch = reader.channel[0]  # first channel, alternatively use ..
+    ch = reader.channels[0]  # first channel, alternatively use ..
     ch = reader.default_channel  # .. - one of the channels is the "default" channel
 
     # each channel has some defined meta data
@@ -41,7 +41,6 @@ The classes expose a homogeneous interface for handling topographies. Example:
 
     # you can get a topography from a channel
     topo = ch.topography()   # here meta data from the file is taken
-    topo = ch.topography(physical_sizes=(20,30))   # like this, you can overwrite meta data in file
 
     # each topography has a rich set of methods and properties for meta data and analysis
     print(topo.physical_sizes)  # lateral dimension
