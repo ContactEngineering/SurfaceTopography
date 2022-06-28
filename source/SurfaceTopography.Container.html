@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.1.dev2+g1bb8b224 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.1.dev6+gca6d01d5 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -30,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev2+g1bb8b224
+                1.1.dev6+gca6d01d5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -122,19 +123,19 @@
            <div itemprop="articleBody">
              
   <section id="surfacetopography-container-package">
-<h1>SurfaceTopography.Container package<a class="headerlink" href="#surfacetopography-container-package" title="Permalink to this headline"></a></h1>
+<h1>SurfaceTopography.Container package<a class="headerlink" href="#surfacetopography-container-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline"></a></h2>
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-SurfaceTopography.Container.Averaging">
-<span id="surfacetopography-container-averaging-module"></span><h2>SurfaceTopography.Container.Averaging module<a class="headerlink" href="#module-SurfaceTopography.Container.Averaging" title="Permalink to this headline"></a></h2>
+<span id="surfacetopography-container-averaging-module"></span><h2>SurfaceTopography.Container.Averaging module<a class="headerlink" href="#module-SurfaceTopography.Container.Averaging" title="Permalink to this heading"></a></h2>
 <p>Compute properties as averages over individual results.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.Averaging.log_average">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">log_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.log_average" title="Permalink to this definition"></a></dt>
 <dd><p>Return average property on a logarithmic grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>function_name</strong> (<em>str</em>) – Function for which to compute the average, e.g.
@@ -153,7 +154,7 @@ arguments for progress reporting. (Default: None)</p></li>
 
 </section>
 <section id="module-SurfaceTopography.Container.IO">
-<span id="surfacetopography-container-io-module"></span><h2>SurfaceTopography.Container.IO module<a class="headerlink" href="#module-SurfaceTopography.Container.IO" title="Permalink to this headline"></a></h2>
+<span id="surfacetopography-container-io-module"></span><h2>SurfaceTopography.Container.IO module<a class="headerlink" href="#module-SurfaceTopography.Container.IO" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.read_container">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">read_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.read_container" title="Permalink to this definition"></a></dt>
@@ -161,7 +162,7 @@ arguments for progress reporting. (Default: None)</p></li>
 container is a ZIP file with raw data files and a YAML file meta.yml
 that contains all metadata not contained in the raw data files.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream that contains the ZIP-container.</p></li>
 <li><p><strong>datafile_keys</strong> (<em>list of str</em><em>, </em><em>optional</em>) – List of possible keys in ‘meta.yml’ that contains the name of the
@@ -171,10 +172,10 @@ the metadata.
 (Default: [‘original’, ‘squeezed-netcdf’])</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>surface_containers</strong> – List of all surfaces contained in this container file.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>SurfaceContainer`s</p>
 </dd>
 </dl>
@@ -190,7 +191,7 @@ the metadata.
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.write_containers" title="Permalink to this definition"></a></dt>
 <dd><p>Write multiple surface containers into a ZIP file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>containers</strong> (list of :obj:<a href="#id3"><span class="problematic" id="id4">`</span></a>SurfaceContainer`s) – Containers to be written to the ZIP file.</p></li>
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream to write the ZIP-container to.</p></li>
@@ -201,7 +202,7 @@ the metadata.
 
 </section>
 <section id="module-SurfaceTopography.Container.ScaleDependentStatistics">
-<span id="surfacetopography-container-scaledependentstatistics-module"></span><h2>SurfaceTopography.Container.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Container.ScaleDependentStatistics" title="Permalink to this headline"></a></h2>
+<span id="surfacetopography-container-scaledependentstatistics-module"></span><h2>SurfaceTopography.Container.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Container.ScaleDependentStatistics" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.ScaleDependentStatistics.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_statistical_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property" title="Permalink to this definition"></a></dt>
@@ -220,7 +221,7 @@ statistically independent dataset.)</p>
 <p>All topographies/line scans are converted to the same unit given by the
 <cite>unit</cite> argument before analysis.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
@@ -258,14 +259,14 @@ calculate the 4th cumulant function, otherwise it returns nan or inf
 (Default: 4)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite>, average over all topographies
 and line scans. If multiple distances are provided, then this is a
 list of arrays that contains results for each distance. If no data
 exists for a certain distance, then None is returned for that
 distance.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
 </dd>
 </dl>
@@ -284,7 +285,7 @@ able to accept one argument (for line scans) and two arguments
 
 </section>
 <section id="module-SurfaceTopography.Container.SurfaceContainer">
-<span id="surfacetopography-container-surfacecontainer-module"></span><h2>SurfaceTopography.Container.SurfaceContainer module<a class="headerlink" href="#module-SurfaceTopography.Container.SurfaceContainer" title="Permalink to this headline"></a></h2>
+<span id="surfacetopography-container-surfacecontainer-module"></span><h2>SurfaceTopography.Container.SurfaceContainer module<a class="headerlink" href="#module-SurfaceTopography.Container.SurfaceContainer" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">SurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="Permalink to this definition"></a></dt>
@@ -308,7 +309,7 @@ able to accept one argument (for line scans) and two arguments
 
 </section>
 <section id="module-SurfaceTopography.Container.common">
-<span id="surfacetopography-container-common-module"></span><h2>SurfaceTopography.Container.common module<a class="headerlink" href="#module-SurfaceTopography.Container.common" title="Permalink to this headline"></a></h2>
+<span id="surfacetopography-container-common-module"></span><h2>SurfaceTopography.Container.common module<a class="headerlink" href="#module-SurfaceTopography.Container.common" title="Permalink to this heading"></a></h2>
 <p>Bin for small common helper function and classes for containers.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.common.bandwidth">
@@ -319,13 +320,13 @@ end of the bandwidth is given by the mean of the spacing of the individual
 points on the line scan. The upper bound is given by the overall length of
 the line scan.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Unit for reporting the bandwidths.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>lower_bound</strong> (<em>float</em>) – Lower bound of the bandwidth.</p></li>
 <li><p><strong>upper_bound</strong> (<em>float</em>) – Upper bound of the bandwidth.</p></li>
@@ -342,14 +343,14 @@ the line scan.</p>
 The unit is chose to minimize number of digits to the left and right of
 the decimal point.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>scale</strong> (<em>str</em>) – ‘linear’: displaying data on a linear axis
 ‘log’ displaying data on a log-space axis</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>unit</strong> – Suggestion for the length unit</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -357,7 +358,7 @@ the decimal point.</p>
 
 </section>
 <section id="module-SurfaceTopography.Container">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Container" title="Permalink to this headline"></a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Container" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 

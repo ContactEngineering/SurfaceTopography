@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; SurfaceTopography 1.1.dev2+g1bb8b224 documentation</title>
+  <title>Usage &mdash; SurfaceTopography 1.1.dev6+gca6d01d5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -30,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev2+g1bb8b224
+                1.1.dev6+gca6d01d5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -91,10 +92,10 @@
            <div itemprop="articleBody">
              
   <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h1>
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
 <p>The code is documented via Python’s documentation strings that can be accesses via the <cite>help</cite> command or by appending a questions mark <cite>?</cite> in ipython/jupyter.</p>
 <section id="handling-topographies">
-<h2>Handling topographies<a class="headerlink" href="#handling-topographies" title="Permalink to this headline"></a></h2>
+<h2>Handling topographies<a class="headerlink" href="#handling-topographies" title="Permalink to this heading"></a></h2>
 <p><cite>SurfaceTopography</cite> is designed for handling topography data, either two-dimensional topography maps or line scan. There are three basic topography classes implemented in this module:</p>
 <ul class="simple">
 <li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Topography</span></code> is a representation of a two-dimensional topography map that lives on a uniform grid.</p></li>
@@ -114,7 +115,7 @@ The classes expose a homogeneous interface for handling topographies. Example:</
 
 <span class="c1"># each file has a list of channels (one or more)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">)</span>  <span class="c1"># returns list of channels</span>
-<span class="n">ch</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># first channel, alternatively use ..</span>
+<span class="n">ch</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># first channel, alternatively use ..</span>
 <span class="n">ch</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">default_channel</span>  <span class="c1"># .. - one of the channels is the &quot;default&quot; channel</span>
 
 <span class="c1"># each channel has some defined meta data</span>
@@ -126,7 +127,6 @@ The classes expose a homogeneous interface for handling topographies. Example:</
 
 <span class="c1"># you can get a topography from a channel</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>   <span class="c1"># here meta data from the file is taken</span>
-<span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>   <span class="c1"># like this, you can overwrite meta data in file</span>
 
 <span class="c1"># each topography has a rich set of methods and properties for meta data and analysis</span>
 <span class="k">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimension</span>
@@ -141,7 +141,7 @@ For uniform topographies, these positions are uniformly spaced but for nonunifor
 such as the root mean square height of the topography, or pipeline functions that compute a new topography,
 e.g. a detrended one, from the current topography. Both are described in the section <a class="reference internal" href="#analysis-functions"><span class="std std-ref">Analysis functions</span></a> below.</p>
 <section id="data-orientation">
-<h3>Data Orientation<a class="headerlink" href="#data-orientation" title="Permalink to this headline"></a></h3>
+<h3>Data Orientation<a class="headerlink" href="#data-orientation" title="Permalink to this heading"></a></h3>
 <p>When working with 2D topographies it is useful to know, how the data in <cite>SurfaceTopography</cite> is oriented,
 also when compared against the expected image.</p>
 <p>After loading a topography, e.g. by</p>
@@ -173,7 +173,7 @@ of other software as e.g. Gwyddion, use</p>
 </div>
 </section>
 <section id="analysis-functions">
-<span id="id1"></span><h3>Analysis functions<a class="headerlink" href="#analysis-functions" title="Permalink to this headline"></a></h3>
+<span id="id1"></span><h3>Analysis functions<a class="headerlink" href="#analysis-functions" title="Permalink to this heading"></a></h3>
 <p>All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.</p>
 <ul class="simple">
 <li><p><cite>mean</cite>: Compute the mean value.</p></li>
@@ -200,7 +200,7 @@ of other software as e.g. Gwyddion, use</p>
 </div>
 </section>
 <section id="pipelines">
-<h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline"></a></h3>
+<h3>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this heading"></a></h3>
 <p>Pipeline functions return a new topography.
 This topography does not own the original data but executes the full pipeline everytime <cite>heights</cite> is executed.
 By using the pipeline, this topography is not only a (pseudo-) height container
