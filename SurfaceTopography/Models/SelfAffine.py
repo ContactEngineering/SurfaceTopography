@@ -93,6 +93,60 @@ class SelfAffinePSD():
                    )
         )
 
+    def variance_derivative(self, order, shortcut_wavelength=None, longcut_wavelength=None,):
+        r"""
+         Variance of a derivative of arbitrary (fractional) order
+
+        .. math ::
+
+            h^2_\mathrm{rms} = \frac{C_r q_r^2}{4 \pi}
+            \left[ 1 + \frac{1}{H} - \left( \frac{q_l}{q_r}\right)^2 - \left( \frac{q_s}{q_r}\right)^{-2H}\right]
+
+        Note that :math:`C_r q_r^2` can be interchanged with :math:`C_0 q_r^{-2H}`
+
+        Parameters
+        ----------
+        order: float
+             order of the derivative
+        shortcut_wavelength: float or array, optional
+            makes the result scale dependent by overriding the shortcut
+        longcut_wavelength
+            makes the result scale dependent by overriding the longcut
+
+        Returns
+        -------
+            float or array
+
+        """
+        if shortcut_wavelength is None:
+            shortcut_wavelength = self.shortcut_wavelength
+
+        if longcut_wavelength is None:
+            longcut_wavelength = self.longcut_wavelength
+
+        shortcut_wavevector = (2*np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
+        longcut_wavevector = (2*np.pi) / longcut_wavelength
+        rolloff_wavevector =  (2*np.pi) / self.rolloff_wavelength
+        # prefactor of the self-afine region:
+        c0 = self.cr * rolloff_wavevector ** (2 + 2 * self.hurst_exponent)
+
+        # We split the contributions to the integral between the rolloff and the self-affine region.
+        # rolloff region
+        rolloff = self.cr / (2 * np.pi) * (rolloff_wavevector ** (2 + 2 * order) - longcut_wavevector ** (2 + 2 * order) ) / (2 + 2 * order)
+
+        # self-affine region
+        if self.hurst_exponent == order:
+            self_affine = c0 / (2 * np.pi) * np.log(shortcut_wavevector / rolloff_wavevector)
+        else:
+            self_affine = (c0 / (2 * np.pi)
+                           * ( shortcut_wavevector ** ( 2 * (order - self.hurst_exponent) )
+                              - rolloff_wavevector ** ( 2 * (order - self.hurst_exponent) )
+                              ) /
+                           (2 * (order - self.hurst_exponent))
+                           )
+        return self_affine + rolloff
+
+
 
     #def rms_slope(self):
         # See 39fa2d84-e57d-4fc2-a0f1-31bba9233c46/Scale_dependent_slope/__init__.py
@@ -130,6 +184,8 @@ class SelfAffinePSD():
                            shortcut_wavelength=None,
                            longcut_wavelength=None):
         r"""
+        Generates a discrete random realisation of Gaussian noise with variances of the waves given by the PSD
+
         The `shortcut_wavelength` and `longcut_wavelength` parameters allow to overwrite the
         values paramtetrized in the model, since a discrete realization is often shorter.
         """

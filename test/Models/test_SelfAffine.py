@@ -19,7 +19,7 @@ import pytest
     (1e-7, 1.),
 ]
 )
-def test_elastic_energy_large_H(shortcut_wavelength, hurst_exponent):
+def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
 
     n_pixels = 1024
     physical_size = .5e-4
@@ -56,8 +56,53 @@ def test_elastic_energy_large_H(shortcut_wavelength, hurst_exponent):
 
     np.testing.assert_allclose(Eel_analytic, Eel_brute_force, rtol=1e-1)
 
+# TODO: unify and
+@pytest.mark.parametrize(
+"physical_size, rolloff_wavelength, shortcut_wavelength, hurst_exponent",
+[
+    (.5e-4, 2e-6, 2e-6, 0.), # pure flat PSD, no self-affine region
+    # purely self-affine PSD.
+    (.5e-4,.5e-4, 1e-6, 0.1),
+    (.5e-4,.5e-4, 1e-6, 0.5),
+    (.5e-4,.5e-4, 1e-6, 0.9),
+    (.5e-4,.5e-4, 1e-6, 1.,),
+    # mixture
+    (.5e-4,2e-5, 1e-6, 0.1),
+    (.5e-4,2e-5, 1e-6, 0.5),
+    (.5e-4,2e-5, 1e-6, 0.9),
+    (.5e-4,2e-5, 1e-6, 1.,),
+])
+def test_variance_derivatives(physical_size, rolloff_wavelength, shortcut_wavelength, hurst_exponent):
+    """
+    We test our formulas for the comutu
+    """
+    n_pixels = 1024
+    pixel_size = physical_size / n_pixels
+
+    # test rolloff
+    model_psd = SelfAffinePSD(**{
+             'cr':5e-27,
+             'shortcut_wavelength': shortcut_wavelength,
+             'rolloff_wavelength': rolloff_wavelength,
+             'hurst_exponent': hurst_exponent})
+
+    roughness = model_psd.generate_roughness(**{
+                'seed': 1,
+                'n_pixels': n_pixels,
+                'pixel_size': pixel_size,
+        })
+
+    variance_analytical = model_psd.variance_derivative(order=2)
+    variance_numerical = roughness.rms_laplacian() ** 2
+
+    print(variance_analytical)
+    print(variance_numerical)
+
+    np.testing.assert_allclose(variance_analytical, variance_numerical, rtol=1e-1)
 
 
+# TODO: Not yet at the right place. This is a tool to integrate log-spaced PSDs usually extracted from experimental data.
+@pytest.mark.skip
 def test_elastic_energy_from_logspaced():
 
     hurst_exponent = 0.8
