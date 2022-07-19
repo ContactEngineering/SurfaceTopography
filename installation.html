@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.1.dev6+gca6d01d5 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.1.dev8+g8d7f74b5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev6+gca6d01d5
+                1.1.dev8+g8d7f74b5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -48,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-problems-with-lapack-and-openblas">Installation problems with LAPACK and OpenBLAS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-surfacetopography">Updating SurfaceTopography</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#singularity-container">Singularity container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Singularity container</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -117,7 +117,7 @@ rm requirements.txt
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
 </pre></div>
 </div>
-<p>See also our <cite>singularity container &lt;https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def&gt;</cite> for an example installation on ubuntu.</p>
+<p>See also our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity container</a> for an example installation on ubuntu.</p>
 <p>Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using <a class="reference external" href="https://brew.sh/">Homebrew</a>,</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw3 netcdf
 </pre></div>
@@ -176,8 +176,8 @@ Here <a class="reference external" href="https://www.openblas.net/">OpenBLAS</a>
 <p>If you update SurfaceTopography (whether with pip or <cite>git pull</cite> if you cloned the repository),  you may need to
 uninstall <cite>NuMPI</cite>, <cite>muSpectre</cite> and or <cite>runtests</cite>, so that the newest version of them will be installed.</p>
 </section>
-<section id="singularity-container">
-<h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#singularity-container" title="Permalink to this heading"></a></h2>
+<section id="id1">
+<h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
 <p>We provide a definition file to build a singularity container <cite>here &lt;https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def&gt;</cite> .</p>
 </section>
 </section>
