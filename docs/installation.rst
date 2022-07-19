@@ -38,7 +38,7 @@ Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
 
     sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
 
-See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` for an example installation on ubuntu.
+See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ for an example installation on ubuntu.
 
 Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using Homebrew_, 
 
