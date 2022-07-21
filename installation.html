@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.1.dev8+g8d7f74b5 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.1.dev14+g0edd969f documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev8+g8d7f74b5
+                1.1.dev14+g0edd969f
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -45,6 +45,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#direct-installation-with-pip">Direct installation with pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-common-problems">Installation: Common problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-problems-with-lapack-and-openblas">Installation problems with LAPACK and OpenBLAS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-surfacetopography">Updating SurfaceTopography</a></li>
@@ -109,7 +110,7 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
 <span class="c1"># I found the url to the requirements files using</span>
 <span class="c1"># https://api.github.com/repos/ContactEngineering/SurfaceTopography/contents/requirements.txt</span>
-python3 -m pip install <span class="o">[</span>--user<span class="o">]</span> -r requirements.txt
+python3 -m pip install <span class="o">[</span>--user<span class="o">]</span> -r requirements.txt --no-binary numpy
 rm requirements.txt
 </pre></div>
 </div>
@@ -122,21 +123,42 @@ rm requirements.txt
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw3 netcdf
 </pre></div>
 </div>
-<p>Note: Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
+</section>
+<section id="installation-common-problems">
+<h2>Installation: Common problems<a class="headerlink" href="#installation-common-problems" title="Permalink to this heading"></a></h2>
+<ul>
+<li><p>Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
 You can specify the directory where you installed <a class="reference external" href="http://www.fftw.org/">FFTW3</a>
-by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.local</cite>).</p>
-<p>If <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> is unable to find the NetCDF libraries (the <cite>FileIONetCDF</cite> class
+by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.local</cite>).</p></li>
+<li><p>If <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> is unable to find the NetCDF libraries (the <cite>FileIONetCDF</cite> class
 is missing), then set the environment variables <cite>NETCDFDIR</cite> (for serial
-compile) or <cite>PNETCDFDIR</cite> (for parallel compiles, to e.g. <cite>$USER/.local</cite>).</p>
-<p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with <cite>MPI</cite> support but not all necessary libraries are
+compile) or <cite>PNETCDFDIR</cite> (for parallel compiles, to e.g. <cite>$USER/.local</cite>).</p></li>
+<li><p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with <cite>MPI</cite> support but not all necessary libraries are
 avaible. If you do not need <cite>MPI</cite> support, you can manually disable it in the following way:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">muFFT</span> <span class="pre">--install-options=&quot;--disable-mpi&quot;</span>
-<span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">SurfaceTopography</span>
-<span class="pre">`</span></code>
-Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly <cite>setup.py</cite>),
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install muFFT --install-options<span class="o">=</span><span class="s2">&quot;--disable-mpi&quot;</span>
+python3 -m pip install SurfaceTopography
+</pre></div>
+</div>
+</li>
+<li><p>Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly <cite>setup.py</cite>),
 pip will attempt to reinstall that dependency despite it is already installed.
-In that case you need to avoid using <cite>pip install</cite> and install SurfaceTopography from the source directory using <cite>python3 setup.py install</cite>.</p>
+In that case you need to avoid using <cite>pip install</cite> and install SurfaceTopography from the source directory using <cite>python3 setup.py install</cite>.</p></li>
+<li><p>linker cannot find lopenblas64</p>
+<p>Here an extract of the installation error:</p>
+<blockquote>
+<div><blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">pthread</span> <span class="o">-</span><span class="n">shared</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">--</span><span class="n">rpath</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8</span><span class="o">.</span><span class="mi">13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">--</span><span class="n">rpath</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8</span><span class="o">.</span><span class="mi">13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="n">bui</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">autocorrelation</span><span class="o">.</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">bicubic</span><span class="o">.</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">patchfinder</span><span class="o">.</span><span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">module</span><span class="o">.</span><span class="n">o</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8</span><span class="o">.</span><span class="mi">13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lopenblas64_</span> <span class="o">-</span><span class="n">lopenblas64_</span> <span class="o">-</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">lib</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">_SurfaceTopography</span><span class="o">.</span><span class="n">cpython</span><span class="o">-</span><span class="mi">38</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">.</span><span class="n">so</span>
+<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">ld</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">find</span> <span class="o">-</span><span class="n">lopenblas64_</span>
+<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">ld</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">find</span> <span class="o">-</span><span class="n">lopenblas64</span>   <span class="n">collect2</span><span class="p">:</span> <span class="n">error</span><span class="p">:</span> <span class="n">ld</span> <span class="n">returned</span> <span class="mi">1</span> <span class="n">exit</span> <span class="n">status</span>
+<span class="n">error</span><span class="p">:</span> <span class="n">command</span> <span class="s1">&#39;g++&#39;</span> <span class="n">failed</span> <span class="k">with</span> <span class="n">exit</span> <span class="n">status</span>    <span class="p">[</span><span class="n">end</span> <span class="n">of</span> <span class="n">output</span><span class="p">]</span>
+<span class="n">note</span><span class="p">:</span> <span class="n">This</span> <span class="n">error</span> <span class="n">originates</span> <span class="kn">from</span> <span class="nn">a</span> <span class="n">subprocess</span><span class="p">,</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">likely</span> <span class="ow">not</span> <span class="n">a</span> <span class="n">problem</span> <span class="k">with</span> <span class="n">pip</span>   <span class="n">error</span><span class="p">:</span> <span class="n">legacy</span><span class="o">-</span><span class="n">install</span><span class="o">-</span><span class="n">failure</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Solution:   reinstall numpy with <cite>–no-binary</cite> flag</p>
+</div></blockquote>
+</li>
+</ul>
 </section>
 <section id="installation-from-source-directory">
 <h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Permalink to this heading"></a></h2>
@@ -178,7 +200,7 @@ uninstall <cite>NuMPI</cite>, <cite>muSpectre</cite> and or <cite>runtests</cite
 </section>
 <section id="id1">
 <h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
-<p>We provide a definition file to build a singularity container <cite>here &lt;https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def&gt;</cite> .</p>
+<p>We provide a definition file to build a singularity container <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">here</a> .</p>
 </section>
 </section>
 
