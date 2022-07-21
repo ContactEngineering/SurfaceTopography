@@ -29,7 +29,7 @@ If you want to install all optional dependencies for full functionality:
     wget https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
     # I found the url to the requirements files using
     # https://api.github.com/repos/ContactEngineering/SurfaceTopography/contents/requirements.txt
-    python3 -m pip install [--user] -r requirements.txt
+    python3 -m pip install [--user] -r requirements.txt --no-binary numpy
     rm requirements.txt
 
 Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
@@ -46,28 +46,49 @@ Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using Homebrew_,
 
     brew install openblas lapack fftw3 netcdf
 
+Installation: Common problems
+-----------------------------
 
-Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
-You can specify the directory where you installed FFTW3_
-by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
+- Sometimes muFFT_ will not find the FFTW3 installation you expect.
+  You can specify the directory where you installed FFTW3_
+  by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
 
-If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
-is missing), then set the environment variables `NETCDFDIR` (for serial
-compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
+- If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
+  is missing), then set the environment variables `NETCDFDIR` (for serial
+  compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
 
-Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
-avaible. If you do not need `MPI` support, you can manually disable it in the following way:
+- Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
+  avaible. If you do not need `MPI` support, you can manually disable it in the following way:
 
-```
-python3 -m pip install muFFT --install-options="--disable-mpi"
-python3 -m pip install SurfaceTopography
-```
-Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
-pip will attempt to reinstall that dependency despite it is already installed.
-In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
+  .. code-block:: bash
+
+                  python3 -m pip install muFFT --install-options="--disable-mpi"
+                  python3 -m pip install SurfaceTopography
+
+
+- Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
+  pip will attempt to reinstall that dependency despite it is already installed.
+  In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
+
+- linker cannot find lopenblas64
+
+  Here an extract of the installation error:
+
+        .. code-block::
+
+            g++ -pthread -shared -Wl,--rpath=/opt/hostedtoolcache/Python/3.8.13/x64/lib -Wl,--rpath=/opt/hostedtoolcache/Python/3.8.13/x64/lib bui/temp.linux-x86_64-3.8/c/autocorrelation.o build/temp.linux-x86_64-3.8/c/bicubic.o build/temp.linux-x86_64-3.8/c/patchfinder.build/temp.linux-x86_64-3.8/c/module.o -L/usr/local/lib -L/opt/hostedtoolcache/Python/3.8.13/x64/lib -lopenblas64_ -lopenblas64_ -o build/lib.linux-x86_64-3.8/_SurfaceTopography.cpython-38-x86_64-linux-gnu.so
+            /usr/bin/ld: cannot find -lopenblas64_
+            /usr/bin/ld: cannot find -lopenblas64   collect2: error: ld returned 1 exit status
+            error: command 'g++' failed with exit status    [end of output]
+            note: This error originates from a subprocess, and is likely not a problem with pip   error: legacy-install-failure
+
+    Solution:   reinstall numpy with `--no-binary` flag
+
+    .. code-block:: bash
+        python3 -m pip install numpy --no-binary numpy
 
 Installation from source directory
-----------------------------------
+--------------------------------
 
 If you cloned the repository. You can install the dependencies with
 
@@ -118,7 +139,7 @@ uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of 
 Singularity_ container
 ----------------------
 
-We provide a definition file to build a singularity container `here <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` .
+We provide a definition file to build a singularity container `here <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ .
 
 .. _Singularity: https://sylabs.io/singularity/
 .. _FFTW3: http://www.fftw.org/
