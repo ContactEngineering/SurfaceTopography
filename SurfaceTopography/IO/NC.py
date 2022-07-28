@@ -40,7 +40,7 @@ from .Reader import ReaderBase, ChannelInfo
 
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams
-from scipy.io.netcdf import netcdf_file
+from scipy.io import netcdf_file
 
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,

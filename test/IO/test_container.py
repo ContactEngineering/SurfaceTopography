@@ -29,7 +29,7 @@ from numpy.testing import assert_allclose
 
 from NuMPI import MPI
 
-from SurfaceTopography import SurfaceContainer, read_container, read_topography  # , read_published_container
+from SurfaceTopography import SurfaceContainer, read_container, read_topography, read_published_container
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -43,6 +43,10 @@ def test_read_just_uniform(file_format_examples):
         # TODO maybe this makes the web app stall when running MPI tests von Travis, further investigation needed
     ]:
         assert len(c) == 3
+
+        assert not c[0].is_periodic
+        assert not c[1].is_periodic
+        assert not c[2].is_periodic
 
         assert c[0].nb_grid_pts == (500, 500)
         assert c[1].nb_grid_pts == (500, 500)
@@ -77,6 +81,10 @@ def test_write(file_format_examples):
 
         assert len(c2) == 3
 
+        assert not c2[0].is_periodic
+        assert not c2[1].is_periodic
+        assert not c2[2].is_periodic
+
         assert c2[0].nb_grid_pts == t1.nb_grid_pts
         assert c2[1].nb_grid_pts == t2.nb_grid_pts
         assert c2[2].nb_grid_pts == t3.nb_grid_pts
@@ -88,3 +96,12 @@ def test_write(file_format_examples):
         assert c2[0].info['unit'] == t1.info['unit']
         assert c2[1].info['unit'] == t2.info['unit']
         assert c2[2].info['unit'] == t3.info['unit']
+
+
+def test_periodic():
+    container, = read_published_container("https://contact.engineering/go/v9qwe/")
+
+    pristine = container._topographies[0]
+    convoluted = container._topographies[1]
+    assert pristine.is_periodic
+    assert convoluted.is_periodic

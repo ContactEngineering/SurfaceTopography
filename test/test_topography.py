@@ -622,9 +622,9 @@ def test_delegation():
     t3 = t2.to_nonuniform()
     t4 = t3.scale(2.0)
 
-    t4.scale_factor
+    t4.height_scale_factor
     with pytest.raises(AttributeError):
-        t2.scale_factor
+        t2.height_scale_factor
     t2.detrend_mode
     # detrend_mode should not be delegated to the parent class
     with pytest.raises(AttributeError):

@@ -79,9 +79,9 @@ def test_positions_and_heights():
 def test_attribute_error():
     t = NonuniformLineScan([1, 2, 4], [2, 4, 8])
     with pytest.raises(AttributeError):
-        t.scale_factor
+        t.height_scale_factor
     # a scaled line scan has a scale_factor
-    assert t.scale(1).scale_factor == 1
+    assert t.scale(1).height_scale_factor == 1
 
     #
     # This should also work after the topography has been pickled
@@ -90,9 +90,9 @@ def test_attribute_error():
     t2 = pickle.loads(pt)
 
     with pytest.raises(AttributeError):
-        t2.scale_factor
+        t2.height_scale_factor
     # a scaled line scan has a scale_factor
-    assert t2.scale(1).scale_factor == 1
+    assert t2.scale(1).height_scale_factor == 1
 
 
 def test_setting_info_dict():
@@ -103,11 +103,7 @@ def test_setting_info_dict():
 
     assert t.info == {}
 
-    with pytest.deprecated_call():
-        t = NonuniformLineScan(x, h, info=dict(unit='A'))
     t = NonuniformLineScan(x, h, unit='A')
-    with pytest.deprecated_call():
-        assert t.info['unit'] == 'A'
 
     #
     # This info should be inherited in the pipeline
@@ -119,24 +115,9 @@ def test_setting_info_dict():
     #
     # It should be also possible to set the info
     #
-    with pytest.deprecated_call():
-        st = t.scale(2, info=dict(unit='B'))
     st = t.scale(2, 1, unit='B')
     with pytest.deprecated_call():
         assert st.info['unit'] == 'B'
-
-    #
-    # Again the info should be passed
-    #
-    dt = st.detrend(detrend_mode='center')
-    with pytest.deprecated_call():
-        assert dt.info['unit'] == 'B'
-
-    #
-    # It can no longer be changed in detrend (you need to use scale)
-    #
-    with pytest.deprecated_call():
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
 
 
 def test_init_with_lists_calling_scale_and_detrend():

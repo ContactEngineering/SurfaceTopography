@@ -101,40 +101,26 @@ def test_setting_info_dict():
 
     assert t.info == {}
 
-    with pytest.deprecated_call():
-        t = UniformLineScan(h, 4, info=dict(unit='A'))
     t = UniformLineScan(h, 4, unit='A')
-    with pytest.deprecated_call():
-        assert t.info['unit'] == 'A'
+    assert t.unit == 'A'
 
     #
     # This info should be inherited in the pipeline
     #
     st = t.scale(2)
-    with pytest.deprecated_call():
-        assert st.info['unit'] == 'A'
+    assert st.unit == 'A'
 
     #
     # It should be also possible to set the info
     #
-    with pytest.deprecated_call():
-        st = t.scale(2, info=dict(unit='B'))
     st = t.scale(2, 2, unit='B')
-    with pytest.deprecated_call():
-        assert st.info['unit'] == 'B'
+    assert st.unit == 'B'
 
     #
     # Again the info should be passed
     #
     dt = st.detrend(detrend_mode='center')
-    with pytest.deprecated_call():
-        assert dt.info['unit'] == 'B'
-
-    #
-    # It can no longer be changed in detrend (you need to use scale)
-    #
-    with pytest.deprecated_call():
-        dt = st.detrend(detrend_mode='center', info=dict(unit='C'))
+    assert dt.unit == 'B'
 
 
 def test_init_with_lists_calling_scale_and_detrend():
