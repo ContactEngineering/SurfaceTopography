@@ -1,7 +1,30 @@
 import numpy as np
 from SurfaceTopography.Generation import fourier_synthesis
 
+# TODO abstract class for discrete and model PSDs
+# TODO all wavelengths and prefactors as properties
+#
+# TODO: think about abstract Statistical roughness hierarchy
+
+class AbstractStatisticalRoughness(object):
+    def power_spectrum():
+
+
+    
+class AbstractIsotropicRoughness(AbstractStatisticalRoughness):
+    def power_spectrum_isotropic():
+
+    def power_spectrum_profile():
+
+    #def rms_height():
+    #    raise NotImplementedError
+
+    def rms_fractional_derivative():
+
+
+
 class SelfAffinePSD():
+# TODO: rename to SefAffine
     def __init__(self,
                  cr,
                  rolloff_wavelength,
