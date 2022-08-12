@@ -1,7 +1,12 @@
 Installation
 ============
+We only support installation on recent mac and linux systems, not on windows.
 
 You need Python 3,  NetCDF_, OpenBLAS_, LAPACK_ and FFTW3_ in order to install SurfaceTopography.
+
+In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
+`singularity containers <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ 
+and our `testing workflows <https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml>`_ 
 
 Direct installation with pip
 ----------------------------
@@ -44,7 +49,7 @@ Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using Homebrew_,
 
 .. code-block:: bash
 
-    brew install openblas lapack fftw3 netcdf
+    brew install openblas lapack fftw netcdf
 
 Installation: Common problems
 -----------------------------
@@ -62,7 +67,7 @@ Installation: Common problems
 
   .. code-block:: bash
 
-                  python3 -m pip install muFFT --install-options="--disable-mpi"
+                  python3 -m pip install muFFT --install-option="--disable-mpi"
                   python3 -m pip install SurfaceTopography
 
 
@@ -86,6 +91,20 @@ Installation: Common problems
 
     .. code-block:: bash
         python3 -m pip install numpy --no-binary numpy
+
+Reporting installation problems
+-------------------------------
+
+1. Make sure that you carefully read all these instructions.
+2. Try to find similar issues in our issues or forum discussions. 
+3. If the installation problems are related to muFFT_ you can have a look at d
+4. Please open an issue or a discussion in the forum.
+
+When reporting a problem, please provide us with following information: 
+
+- your system configuration, 
+- your python3 environment (output of `python3 -m pip list`)
+- The output of the verbose installation e.g. `python3 -m pip install --verbose --global-option="--verbose"`
 
 Installation from source directory
 --------------------------------
