@@ -26,6 +26,8 @@ Installation
 
 Quick install with: `python3 -m pip install SurfaceTopgography`
 
+Requirements and more detailed instructions are in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation).
+
 Funding
 -------
 
