@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.1.dev14+g0edd969f documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.1.dev22+ga3317885 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev14+g0edd969f
+                1.1.dev22+ga3317885
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -626,7 +626,7 @@ have to be provided.</p>
 <p>Analysis of island geometries</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.GeometryAnalysis.coordination">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">coordination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-</span> <span class="pre">1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-</span> <span class="pre">1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.coordination" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">coordination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.coordination" title="Permalink to this definition"></a></dt>
 <dd><p>Return a map with coordination numbers, i.e. the number of neighboring
 pixels where <cite>mask</cite> is true.</p>
 <dl class="field-list simple">
@@ -652,13 +652,13 @@ where mask is true.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">outer_perimeter_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-</span> <span class="pre">1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-</span> <span class="pre">1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">outer_perimeter_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area" title="Permalink to this definition"></a></dt>
 <dd><p>Return a map where surface points on the outer perimeter are marked.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.GeometryAnalysis.inner_perimeter_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">inner_perimeter_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-</span> <span class="pre">1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-</span> <span class="pre">1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.inner_perimeter_area" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.GeometryAnalysis.</span></span><span class="sig-name descname"><span class="pre">inner_perimeter_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[(1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">1),</span> <span class="pre">(-1,</span> <span class="pre">0),</span> <span class="pre">(0,</span> <span class="pre">-1)]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.GeometryAnalysis.inner_perimeter_area" title="Permalink to this definition"></a></dt>
 <dd><p>Return a map where surface points on the inner perimeter are marked.</p>
 </dd></dl>
 
@@ -1263,11 +1263,11 @@ process.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">FilledTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">FilledTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">DecoratedUniformTopography</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.common.FilledTopography.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>masked (undefined) data is replaced with <cite>fill_value</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
