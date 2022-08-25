@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.1.dev22+ga3317885 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.1.dev26+gd18d08ae documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev22+ga3317885
+                1.1.dev26+gd18d08ae
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -46,6 +46,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#direct-installation-with-pip">Direct installation with pip</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-common-problems">Installation: Common problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reporting-installation-problems">Reporting installation problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-problems-with-lapack-and-openblas">Installation problems with LAPACK and OpenBLAS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-surfacetopography">Updating SurfaceTopography</a></li>
@@ -93,7 +94,11 @@
              
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>We only support installation on recent mac and linux systems, not on windows.</p>
 <p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a>, <a class="reference external" href="https://www.openblas.net/">OpenBLAS</a>, <a class="reference external" href="http://www.netlib.org/lapack/">LAPACK</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
+<p>In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
+<a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity containers</a>
+and our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml">testing workflows</a></p>
 <section id="direct-installation-with-pip">
 <h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Permalink to this heading"></a></h2>
 <p>SurfaceTopography can be installed by invoking</p>
@@ -120,7 +125,7 @@ rm requirements.txt
 </div>
 <p>See also our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity container</a> for an example installation on ubuntu.</p>
 <p>Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using <a class="reference external" href="https://brew.sh/">Homebrew</a>,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw3 netcdf
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw netcdf
 </pre></div>
 </div>
 </section>
@@ -135,7 +140,7 @@ is missing), then set the environment variables <cite>NETCDFDIR</cite> (for seri
 compile) or <cite>PNETCDFDIR</cite> (for parallel compiles, to e.g. <cite>$USER/.local</cite>).</p></li>
 <li><p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with <cite>MPI</cite> support but not all necessary libraries are
 avaible. If you do not need <cite>MPI</cite> support, you can manually disable it in the following way:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install muFFT --install-options<span class="o">=</span><span class="s2">&quot;--disable-mpi&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install muFFT --install-option<span class="o">=</span><span class="s2">&quot;--disable-mpi&quot;</span>
 python3 -m pip install SurfaceTopography
 </pre></div>
 </div>
@@ -158,6 +163,21 @@ In that case you need to avoid using <cite>pip install</cite> and install Surfac
 <p>Solution:   reinstall numpy with <cite>–no-binary</cite> flag</p>
 </div></blockquote>
 </li>
+</ul>
+</section>
+<section id="reporting-installation-problems">
+<h2>Reporting installation problems<a class="headerlink" href="#reporting-installation-problems" title="Permalink to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Make sure that you carefully read all these instructions.</p></li>
+<li><p>Try to find similar issues in our issues or forum discussions.</p></li>
+<li><p>If the installation problems are related to <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> you can have a look at d</p></li>
+<li><p>Please open an issue or a discussion in the forum.</p></li>
+</ol>
+<p>When reporting a problem, please provide us with following information:</p>
+<ul class="simple">
+<li><p>your system configuration,</p></li>
+<li><p>your python3 environment (output of <cite>python3 -m pip list</cite>)</p></li>
+<li><p>The output of the verbose installation e.g. <cite>python3 -m pip install –verbose –global-option=”–verbose”</cite></p></li>
 </ul>
 </section>
 <section id="installation-from-source-directory">
