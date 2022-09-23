@@ -26,10 +26,12 @@
 Tracing bibliography through function calls.
 """
 
+_default_dois = set()
+
 
 class doi(object):
     """
-    To add bibliography information, simply decorate the function:
+    To add bibliographic information, simply decorate the function:
 
     ```
     @doi('10.1088/2051-672X/aa51f8')
@@ -64,6 +66,8 @@ class doi(object):
                 # `dois` is present. We store a reference to this set that
                 # will be updated in subsequent function calls.
                 doi.dois = kwargs['dois']
+                # Update this with the default set of DOIs
+                doi.dois.update(_default_dois)
                 del kwargs['dois']
                 doi._n = 0
             doi.dois.update(self._add_these_dois)
