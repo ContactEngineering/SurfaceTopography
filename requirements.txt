@@ -18,5 +18,3 @@ pyyaml
 Pillow
 requests
 python-dateutil
-pytest
-runtests
