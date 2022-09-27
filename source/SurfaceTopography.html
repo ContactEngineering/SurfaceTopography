@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.1.dev26+gd18d08ae documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.1.dev30+gf60e7b4d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -32,7 +33,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev26+gd18d08ae
+                1.1.dev30+gf60e7b4d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -62,14 +63,261 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-exceptions-module">SurfaceTopography.Exceptions module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError"><code class="docutils literal notranslate"><span class="pre">CannotPerformAnalysisError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.NoReliableDataError"><code class="docutils literal notranslate"><span class="pre">NoReliableDataError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.ReentrantDataError"><code class="docutils literal notranslate"><span class="pre">ReentrantDataError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UndefinedDataError"><code class="docutils literal notranslate"><span class="pre">UndefinedDataError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError"><code class="docutils literal notranslate"><span class="pre">ReadFileError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UnknownFileFormatGiven"><code class="docutils literal notranslate"><span class="pre">UnknownFileFormatGiven</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.CannotDetectFileFormat"><code class="docutils literal notranslate"><span class="pre">CannotDetectFileFormat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.FileFormatMismatch"><code class="docutils literal notranslate"><span class="pre">FileFormatMismatch</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.CorruptFile"><code class="docutils literal notranslate"><span class="pre">CorruptFile</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile"><code class="docutils literal notranslate"><span class="pre">MetadataAlreadyFixedByFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__"><code class="docutils literal notranslate"><span class="pre">MetadataAlreadyFixedByFile.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.FFTTricks.make_fft"><code class="docutils literal notranslate"><span class="pre">make_fft()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.FFTTricks.get_window_2D"><code class="docutils literal notranslate"><span class="pre">get_window_2D()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-generation-module">SurfaceTopography.Generation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generation.self_affine_prefactor"><code class="docutils literal notranslate"><span class="pre">self_affine_prefactor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generation.fourier_synthesis"><code class="docutils literal notranslate"><span class="pre">fourier_synthesis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-heightcontainer-module">SurfaceTopography.HeightContainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography"><code class="docutils literal notranslate"><span class="pre">AbstractTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.Error"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.Error</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.__init__"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.apply"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.dim"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.unit"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.info"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.communicator"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.communicator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography.pipeline"><code class="docutils literal notranslate"><span class="pre">AbstractTopography.pipeline()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.HeightContainer.DecoratedTopography"><code class="docutils literal notranslate"><span class="pre">DecoratedTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.DecoratedTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DecoratedTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.DecoratedTopography.info"><code class="docutils literal notranslate"><span class="pre">DecoratedTopography.info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.DecoratedTopography.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">DecoratedTopography.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.DecoratedTopography.pipeline"><code class="docutils literal notranslate"><span class="pre">DecoratedTopography.pipeline()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.HeightContainer.TopographyInterface"><code class="docutils literal notranslate"><span class="pre">TopographyInterface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.TopographyInterface.register_function"><code class="docutils literal notranslate"><span class="pre">TopographyInterface.register_function()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.is_uniform"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.is_uniform</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.is_reentrant"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.is_reentrant</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.is_domain_decomposed"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.is_domain_decomposed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.communicator"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.communicator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.pixel_size"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.area_per_pt"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.positions"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.heights"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface.positions_and_heights"><code class="docutils literal notranslate"><span class="pre">UniformTopographyInterface.positions_and_heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.is_uniform"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.is_uniform</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.is_reentrant"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.is_reentrant</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.x_range"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.positions"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.heights"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.positions_and_heights"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.positions_and_heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.is_MPI"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.is_MPI</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.has_undefined_data</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-nonuniformlinescan-module">SurfaceTopography.NonuniformLineScan module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.__init__"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.dim"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.physical_sizes"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.is_periodic"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.x_range"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.positions"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.heights"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.squeeze"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScan.squeeze()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.dim"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.unit"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.info"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.x_range"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.squeeze"><code class="docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography.squeeze()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.position_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">ScaledNonuniformTopography.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledNonuniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledNonuniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledNonuniformTopography.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledNonuniformTopography.position_scale_factor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.coeffs"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.detrend_mode"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.detrend_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.x_range"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.stringify_plane"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.stringify_plane()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.curvatures"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.curvatures</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-special-module">SurfaceTopography.Special module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Special.make_topography_from_function"><code class="docutils literal notranslate"><span class="pre">make_topography_from_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Special.make_sphere"><code class="docutils literal notranslate"><span class="pre">make_sphere()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography"><code class="docutils literal notranslate"><span class="pre">PlasticTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.name"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.__init__"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.hardness"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.hardness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.plastic_displ"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.plastic_displ</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.undeformed_profile"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.undeformed_profile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.heights"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Special.PlasticTopography.plastic_area"><code class="docutils literal notranslate"><span class="pre">PlasticTopography.plastic_area</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-uniformlinescanandtopography-module">SurfaceTopography.UniformLineScanAndTopography module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><code class="docutils literal notranslate"><span class="pre">UniformLineScan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.dim"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.physical_sizes"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.is_periodic"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.is_domain_decomposed"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.is_domain_decomposed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.pixel_size"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.area_per_pt"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.positions"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.heights"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.save"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.squeeze"><code class="docutils literal notranslate"><span class="pre">UniformLineScan.squeeze()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography"><code class="docutils literal notranslate"><span class="pre">Topography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.__init__"><code class="docutils literal notranslate"><span class="pre">Topography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.dim"><code class="docutils literal notranslate"><span class="pre">Topography.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.is_periodic"><code class="docutils literal notranslate"><span class="pre">Topography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">Topography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">Topography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">Topography.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.subdomain_locations"><code class="docutils literal notranslate"><span class="pre">Topography.subdomain_locations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.subdomain_slices"><code class="docutils literal notranslate"><span class="pre">Topography.subdomain_slices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.pixel_size"><code class="docutils literal notranslate"><span class="pre">Topography.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.area_per_pt"><code class="docutils literal notranslate"><span class="pre">Topography.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">Topography.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.positions"><code class="docutils literal notranslate"><span class="pre">Topography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.heights"><code class="docutils literal notranslate"><span class="pre">Topography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.positions_and_heights"><code class="docutils literal notranslate"><span class="pre">Topography.positions_and_heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.communicator"><code class="docutils literal notranslate"><span class="pre">Topography.communicator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.squeeze"><code class="docutils literal notranslate"><span class="pre">Topography.squeeze()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.is_domain_decomposed"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.is_domain_decomposed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.dim"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.pixel_size"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.unit"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.info"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.nb_subdomain_grid_pts"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.nb_subdomain_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.subdomain_locations"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.subdomain_locations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.subdomain_slices"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.subdomain_slices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.area_per_pt"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.positions_and_heights"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.positions_and_heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.squeeze"><code class="docutils literal notranslate"><span class="pre">DecoratedUniformTopography.squeeze()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.position_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.pixel_size"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">ScaledUniformTopography.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.position_scale_factor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.coeffs"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.detrend_mode"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.detrend_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.stringify_plane"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.stringify_plane()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.curvatures"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.curvatures</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography.positions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography"><code class="docutils literal notranslate"><span class="pre">TranslatedTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.name"><code class="docutils literal notranslate"><span class="pre">TranslatedTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.__init__"><code class="docutils literal notranslate"><span class="pre">TranslatedTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.offset"><code class="docutils literal notranslate"><span class="pre">TranslatedTopography.offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.heights"><code class="docutils literal notranslate"><span class="pre">TranslatedTopography.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography"><code class="docutils literal notranslate"><span class="pre">CompoundTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.name"><code class="docutils literal notranslate"><span class="pre">CompoundTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.__init__"><code class="docutils literal notranslate"><span class="pre">CompoundTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.heights"><code class="docutils literal notranslate"><span class="pre">CompoundTopography.heights()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
@@ -112,83 +360,494 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.common">SurfaceTopography.Container.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#surfacetopography-container-averaging-module">SurfaceTopography.Container.Averaging module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.log_average"><code class="docutils literal notranslate"><span class="pre">log_average()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.IO.read_container"><code class="docutils literal notranslate"><span class="pre">read_container()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.IO.read_published_container"><code class="docutils literal notranslate"><span class="pre">read_published_container()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.IO.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property"><code class="docutils literal notranslate"><span class="pre">scale_dependent_statistical_property()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.__init__"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.register_function()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#surfacetopography-container-common-module">SurfaceTopography.Container.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.common.bandwidth"><code class="docutils literal notranslate"><span class="pre">bandwidth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.common.suggest_length_unit"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#surfacetopography-generic-curvature-module">SurfaceTopography.Generic.Curvature module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#surfacetopography-generic-reliabilitycutoff-module">SurfaceTopography.Generic.ReliabilityCutoff module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff"><code class="docutils literal notranslate"><span class="pre">short_reliability_cutoff()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#surfacetopography-generic-scanningprobe-module">SurfaceTopography.Generic.ScanningProbe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#surfacetopography-generic-slope-module">SurfaceTopography.Generic.Slope module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.FromFile">SurfaceTopography.IO.FromFile module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.IBW">SurfaceTopography.IO.IBW module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.MI">SurfaceTopography.IO.MI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Matlab">SurfaceTopography.IO.Matlab module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader"><code class="docutils literal notranslate"><span class="pre">DIReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader.__init__"><code class="docutils literal notranslate"><span class="pre">DIReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader.channels"><code class="docutils literal notranslate"><span class="pre">DIReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader.topography"><code class="docutils literal notranslate"><span class="pre">DIReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DZI.write_dzi"><code class="docutils literal notranslate"><span class="pre">write_dzi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DZI.write_topography_dzi"><code class="docutils literal notranslate"><span class="pre">write_topography_dzi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#surfacetopography-io-fromfile-module">SurfaceTopography.IO.FromFile module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.binary"><code class="docutils literal notranslate"><span class="pre">binary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.make_wrapped_reader"><code class="docutils literal notranslate"><span class="pre">make_wrapped_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_x3p"><code class="docutils literal notranslate"><span class="pre">read_x3p()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.X3PReader"><code class="docutils literal notranslate"><span class="pre">X3PReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.X3PReader.__init__"><code class="docutils literal notranslate"><span class="pre">X3PReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.X3PReader.channels"><code class="docutils literal notranslate"><span class="pre">X3PReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.X3PReader.topography"><code class="docutils literal notranslate"><span class="pre">X3PReader.topography()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_hgt"><code class="docutils literal notranslate"><span class="pre">read_hgt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.HGTReader"><code class="docutils literal notranslate"><span class="pre">HGTReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.HGTReader.__init__"><code class="docutils literal notranslate"><span class="pre">HGTReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.HGTReader.channels"><code class="docutils literal notranslate"><span class="pre">HGTReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.HGTReader.topography"><code class="docutils literal notranslate"><span class="pre">HGTReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader"><code class="docutils literal notranslate"><span class="pre">H5Reader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.__init__"><code class="docutils literal notranslate"><span class="pre">H5Reader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.close"><code class="docutils literal notranslate"><span class="pre">H5Reader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.channels"><code class="docutils literal notranslate"><span class="pre">H5Reader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.topography"><code class="docutils literal notranslate"><span class="pre">H5Reader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.IBW">SurfaceTopography.IO.IBW module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader"><code class="docutils literal notranslate"><span class="pre">IBWReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader.__init__"><code class="docutils literal notranslate"><span class="pre">IBWReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader.channels"><code class="docutils literal notranslate"><span class="pre">IBWReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader.topography"><code class="docutils literal notranslate"><span class="pre">IBWReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.MI">SurfaceTopography.IO.MI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader"><code class="docutils literal notranslate"><span class="pre">MIReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.__init__"><code class="docutils literal notranslate"><span class="pre">MIReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.process_header"><code class="docutils literal notranslate"><span class="pre">MIReader.process_header()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.topography"><code class="docutils literal notranslate"><span class="pre">MIReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.channels"><code class="docutils literal notranslate"><span class="pre">MIReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIReader.info"><code class="docutils literal notranslate"><span class="pre">MIReader.info</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.read_header_image"><code class="docutils literal notranslate"><span class="pre">read_header_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.read_header_spect"><code class="docutils literal notranslate"><span class="pre">read_header_spect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.Channel"><code class="docutils literal notranslate"><span class="pre">Channel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.Channel.__init__"><code class="docutils literal notranslate"><span class="pre">Channel.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIFile"><code class="docutils literal notranslate"><span class="pre">MIFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MI.MIFile.__init__"><code class="docutils literal notranslate"><span class="pre">MIFile.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Matlab">SurfaceTopography.IO.Matlab module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader"><code class="docutils literal notranslate"><span class="pre">MatReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader.__init__"><code class="docutils literal notranslate"><span class="pre">MatReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader.channels"><code class="docutils literal notranslate"><span class="pre">MatReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader.topography"><code class="docutils literal notranslate"><span class="pre">MatReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader"><code class="docutils literal notranslate"><span class="pre">NCReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.__init__"><code class="docutils literal notranslate"><span class="pre">NCReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.close"><code class="docutils literal notranslate"><span class="pre">NCReader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.channels"><code class="docutils literal notranslate"><span class="pre">NCReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.topography"><code class="docutils literal notranslate"><span class="pre">NCReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.communicator"><code class="docutils literal notranslate"><span class="pre">NCReader.communicator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_uniform"><code class="docutils literal notranslate"><span class="pre">write_nc_uniform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_nonuniform"><code class="docutils literal notranslate"><span class="pre">write_nc_nonuniform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#surfacetopography-io-npy-module">SurfaceTopography.IO.NPY module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader"><code class="docutils literal notranslate"><span class="pre">NPYReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.__init__"><code class="docutils literal notranslate"><span class="pre">NPYReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.channels"><code class="docutils literal notranslate"><span class="pre">NPYReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.topography"><code class="docutils literal notranslate"><span class="pre">NPYReader.topography()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.save_npy"><code class="docutils literal notranslate"><span class="pre">save_npy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.mask_undefined"><code class="docutils literal notranslate"><span class="pre">mask_undefined()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.OPDReader"><code class="docutils literal notranslate"><span class="pre">OPDReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.OPDReader.__init__"><code class="docutils literal notranslate"><span class="pre">OPDReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.OPDReader.topography"><code class="docutils literal notranslate"><span class="pre">OPDReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.OPDReader.channels"><code class="docutils literal notranslate"><span class="pre">OPDReader.channels</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader"><code class="docutils literal notranslate"><span class="pre">OPDxReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.__init__"><code class="docutils literal notranslate"><span class="pre">OPDxReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.topography"><code class="docutils literal notranslate"><span class="pre">OPDxReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.channels"><code class="docutils literal notranslate"><span class="pre">OPDxReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.info_from_manifest"><code class="docutils literal notranslate"><span class="pre">OPDxReader.info_from_manifest()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.read_linescan_channel_infos"><code class="docutils literal notranslate"><span class="pre">OPDxReader.read_linescan_channel_infos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.read_topography_channel_infos"><code class="docutils literal notranslate"><span class="pre">OPDxReader.read_topography_channel_infos()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit"><code class="docutils literal notranslate"><span class="pre">DektakUnit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit.extra"><code class="docutils literal notranslate"><span class="pre">DektakUnit.extra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit.name"><code class="docutils literal notranslate"><span class="pre">DektakUnit.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit.symbol"><code class="docutils literal notranslate"><span class="pre">DektakUnit.symbol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit.value"><code class="docutils literal notranslate"><span class="pre">DektakUnit.value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_dimension2d_content"><code class="docutils literal notranslate"><span class="pre">read_dimension2d_content()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo"><code class="docutils literal notranslate"><span class="pre">ChannelInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.__init__"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.topography"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.index"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.index</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.name"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.dim"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.physical_sizes"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.is_periodic"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.is_uniform"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.is_uniform</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.pixel_size"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.area_per_pt"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.unit"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.info"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.info</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase"><code class="docutils literal notranslate"><span class="pre">ReaderBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.format"><code class="docutils literal notranslate"><span class="pre">ReaderBase.format()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.name"><code class="docutils literal notranslate"><span class="pre">ReaderBase.name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ReaderBase.description()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ReaderBase.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.channels"><code class="docutils literal notranslate"><span class="pre">ReaderBase.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.default_channel"><code class="docutils literal notranslate"><span class="pre">ReaderBase.default_channel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.topography"><code class="docutils literal notranslate"><span class="pre">ReaderBase.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Text.write_matrix"><code class="docutils literal notranslate"><span class="pre">write_matrix()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#surfacetopography-io-zon-module">SurfaceTopography.IO.ZON module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader"><code class="docutils literal notranslate"><span class="pre">ZONReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.__init__"><code class="docutils literal notranslate"><span class="pre">ZONReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.channels"><code class="docutils literal notranslate"><span class="pre">ZONReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.topography"><code class="docutils literal notranslate"><span class="pre">ZONReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.common.is_binary_stream"><code class="docutils literal notranslate"><span class="pre">is_binary_stream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.common.text"><code class="docutils literal notranslate"><span class="pre">text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny"><code class="docutils literal notranslate"><span class="pre">OpenFromAny</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny.__init__"><code class="docutils literal notranslate"><span class="pre">OpenFromAny.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.detect_format"><code class="docutils literal notranslate"><span class="pre">detect_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.open_topography"><code class="docutils literal notranslate"><span class="pre">open_topography()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.read_topography"><code class="docutils literal notranslate"><span class="pre">read_topography()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Derivative">SurfaceTopography.Nonuniform.Derivative module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Interpolation">SurfaceTopography.Nonuniform.Interpolation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.PowerSpectrum">SurfaceTopography.Nonuniform.PowerSpectrum module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.ScalarParameters">SurfaceTopography.Nonuniform.ScalarParameters module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.VariableBandwidth">SurfaceTopography.Nonuniform.VariableBandwidth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.common">SurfaceTopography.Nonuniform.common module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-autocorrelation-module">SurfaceTopography.Nonuniform.Autocorrelation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation"><code class="docutils literal notranslate"><span class="pre">height_height_autocorrelation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation"><code class="docutils literal notranslate"><span class="pre">height_difference_autocorrelation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-converters-module">SurfaceTopography.Nonuniform.Converters module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.__init__"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.dim"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.physical_sizes"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_periodic"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_uniform"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.is_uniform</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.pixel_size"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.area_per_pt"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.positions"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.heights"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.heights()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-derivative-module">SurfaceTopography.Nonuniform.Derivative module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Derivative.derivative"><code class="docutils literal notranslate"><span class="pre">derivative()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-detrending-module">SurfaceTopography.Nonuniform.Detrending module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.polyfit"><code class="docutils literal notranslate"><span class="pre">polyfit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Interpolation">SurfaceTopography.Nonuniform.Interpolation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Interpolation.interpolate_linear"><code class="docutils literal notranslate"><span class="pre">interpolate_linear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Interpolation.interpolate_cubic"><code class="docutils literal notranslate"><span class="pre">interpolate_cubic()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-powerspectrum-module">SurfaceTopography.Nonuniform.PowerSpectrum module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.sinc"><code class="docutils literal notranslate"><span class="pre">sinc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.dsinc"><code class="docutils literal notranslate"><span class="pre">dsinc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.ft_rectangle"><code class="docutils literal notranslate"><span class="pre">ft_rectangle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.ft_one_sided_triangle"><code class="docutils literal notranslate"><span class="pre">ft_one_sided_triangle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window"><code class="docutils literal notranslate"><span class="pre">apply_window()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum"><code class="docutils literal notranslate"><span class="pre">power_spectrum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-scalarparameters-module">SurfaceTopography.Nonuniform.ScalarParameters module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_height"><code class="docutils literal notranslate"><span class="pre">rms_height()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope"><code class="docutils literal notranslate"><span class="pre">rms_slope()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature"><code class="docutils literal notranslate"><span class="pre">rms_curvature()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-variablebandwidth-module">SurfaceTopography.Nonuniform.VariableBandwidth module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.checkerboard_detrend_profile"><code class="docutils literal notranslate"><span class="pre">checkerboard_detrend_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.variable_bandwidth_from_profile"><code class="docutils literal notranslate"><span class="pre">variable_bandwidth_from_profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#surfacetopography-nonuniform-common-module">SurfaceTopography.Nonuniform.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.common.bandwidth"><code class="docutils literal notranslate"><span class="pre">bandwidth()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Bibliography">SurfaceTopography.Support.Bibliography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Interpolation">SurfaceTopography.Support.Interpolation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Regression">SurfaceTopography.Support.Regression module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.UnitConversion">SurfaceTopography.Support.UnitConversion module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#surfacetopography-support-bibliography-module">SurfaceTopography.Support.Bibliography module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Bibliography.doi"><code class="docutils literal notranslate"><span class="pre">doi</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Bibliography.doi.dois"><code class="docutils literal notranslate"><span class="pre">doi.dois</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Bibliography.doi.__init__"><code class="docutils literal notranslate"><span class="pre">doi.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.deprecated"><code class="docutils literal notranslate"><span class="pre">deprecated()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.__init__"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary.copy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#surfacetopography-support-interpolation-module">SurfaceTopography.Support.Interpolation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#surfacetopography-support-regression-module">SurfaceTopography.Support.Regression module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.make_grid"><code class="docutils literal notranslate"><span class="pre">make_grid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.gaussian_kernel"><code class="docutils literal notranslate"><span class="pre">gaussian_kernel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.gaussian_log_kernel"><code class="docutils literal notranslate"><span class="pre">gaussian_log_kernel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.suggest_kernel_for_grid"><code class="docutils literal notranslate"><span class="pre">suggest_kernel_for_grid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.bin_average"><code class="docutils literal notranslate"><span class="pre">bin_average()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.gaussian_process_regression"><code class="docutils literal notranslate"><span class="pre">gaussian_process_regression()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.resample"><code class="docutils literal notranslate"><span class="pre">resample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.resample_radial"><code class="docutils literal notranslate"><span class="pre">resample_radial()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.UnitConversion">SurfaceTopography.Support.UnitConversion module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor"><code class="docutils literal notranslate"><span class="pre">get_unit_conversion_factor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.mangle_length_unit_utf8"><code class="docutils literal notranslate"><span class="pre">mangle_length_unit_utf8()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.mangle_length_unit_ascii"><code class="docutils literal notranslate"><span class="pre">mangle_length_unit_ascii()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.suggest_length_unit"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.suggest_length_unit_for_data"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit_for_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.toiter"><code class="docutils literal notranslate"><span class="pre">toiter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.fromiter"><code class="docutils literal notranslate"><span class="pre">fromiter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.build_tuple"><code class="docutils literal notranslate"><span class="pre">build_tuple()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Converters">SurfaceTopography.Uniform.Converters module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.GeometryAnalysis">SurfaceTopography.Uniform.GeometryAnalysis module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.common">SurfaceTopography.Uniform.common module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-autocorrelation-module">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-converters-module">SurfaceTopography.Uniform.Converters module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.dim"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.physical_sizes"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.is_periodic"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.x_range"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.positions"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.heights"><code class="docutils literal notranslate"><span class="pre">WrapAsNonuniformLineScan.heights()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-derivative-module">SurfaceTopography.Uniform.Derivative module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.trim_nonperiodic"><code class="docutils literal notranslate"><span class="pre">trim_nonperiodic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.derivative"><code class="docutils literal notranslate"><span class="pre">derivative()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.fourier_derivative"><code class="docutils literal notranslate"><span class="pre">fourier_derivative()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-detrending-module">SurfaceTopography.Uniform.Detrending module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.tilt_from_height"><code class="docutils literal notranslate"><span class="pre">tilt_from_height()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.tilt_and_curvature"><code class="docutils literal notranslate"><span class="pre">tilt_and_curvature()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.shift_and_tilt"><code class="docutils literal notranslate"><span class="pre">shift_and_tilt()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.window_data"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.window_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.name"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.is_filter_isotropic"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography.is_filter_isotropic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.filter_function"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography.filter_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">FourierFilteredUniformTopography.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography"><code class="docutils literal notranslate"><span class="pre">ShortCutTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography.name"><code class="docutils literal notranslate"><span class="pre">ShortCutTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography.__init__"><code class="docutils literal notranslate"><span class="pre">ShortCutTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavevector"><code class="docutils literal notranslate"><span class="pre">ShortCutTopography.cutoff_wavevector</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography.cutoff_wavelength"><code class="docutils literal notranslate"><span class="pre">ShortCutTopography.cutoff_wavelength</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography"><code class="docutils literal notranslate"><span class="pre">LongCutTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.name"><code class="docutils literal notranslate"><span class="pre">LongCutTopography.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.__init__"><code class="docutils literal notranslate"><span class="pre">LongCutTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavevector"><code class="docutils literal notranslate"><span class="pre">LongCutTopography.cutoff_wavevector</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength"><code class="docutils literal notranslate"><span class="pre">LongCutTopography.cutoff_wavelength</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-geometryanalysis-module">SurfaceTopography.Uniform.GeometryAnalysis module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.coordination"><code class="docutils literal notranslate"><span class="pre">coordination()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area"><code class="docutils literal notranslate"><span class="pre">outer_perimeter_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.inner_perimeter_area"><code class="docutils literal notranslate"><span class="pre">inner_perimeter_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.patch_areas"><code class="docutils literal notranslate"><span class="pre">patch_areas()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.assign_patch_numbers_profile"><code class="docutils literal notranslate"><span class="pre">assign_patch_numbers_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_profile"><code class="docutils literal notranslate"><span class="pre">outer_perimeter_profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-imputation-module">SurfaceTopography.Uniform.Imputation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic"><code class="docutils literal notranslate"><span class="pre">InterpolateUndefinedDataHarmonic</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.name"><code class="docutils literal notranslate"><span class="pre">InterpolateUndefinedDataHarmonic.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__"><code class="docutils literal notranslate"><span class="pre">InterpolateUndefinedDataHarmonic.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">InterpolateUndefinedDataHarmonic.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.heights"><code class="docutils literal notranslate"><span class="pre">InterpolateUndefinedDataHarmonic.heights()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data"><code class="docutils literal notranslate"><span class="pre">interpolate_undefined_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_linear"><code class="docutils literal notranslate"><span class="pre">interpolate_linear()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_bicubic"><code class="docutils literal notranslate"><span class="pre">interpolate_bicubic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_fourier"><code class="docutils literal notranslate"><span class="pre">interpolate_fourier()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.physical_sizes"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.positions"><code class="docutils literal notranslate"><span class="pre">MirrorStichedTopography.positions()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-powerspectrum-module">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-scalarparameters-module">SurfaceTopography.Uniform.ScalarParameters module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile"><code class="docutils literal notranslate"><span class="pre">rms_height_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area"><code class="docutils literal notranslate"><span class="pre">rms_height_from_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_gradient"><code class="docutils literal notranslate"><span class="pre">rms_gradient()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile"><code class="docutils literal notranslate"><span class="pre">rms_slope_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_profile"><code class="docutils literal notranslate"><span class="pre">rms_curvature_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian"><code class="docutils literal notranslate"><span class="pre">rms_laplacian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">rms_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-variablebandwidth-module">SurfaceTopography.Uniform.VariableBandwidth module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_profile"><code class="docutils literal notranslate"><span class="pre">checkerboard_detrend_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.checkerboard_detrend_area"><code class="docutils literal notranslate"><span class="pre">checkerboard_detrend_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_profile"><code class="docutils literal notranslate"><span class="pre">variable_bandwidth_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area"><code class="docutils literal notranslate"><span class="pre">variable_bandwidth_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#surfacetopography-uniform-common-module">SurfaceTopography.Uniform.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.bandwidth"><code class="docutils literal notranslate"><span class="pre">bandwidth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.domain_decompose"><code class="docutils literal notranslate"><span class="pre">domain_decompose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.plot"><code class="docutils literal notranslate"><span class="pre">plot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography"><code class="docutils literal notranslate"><span class="pre">FilledTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography.__init__"><code class="docutils literal notranslate"><span class="pre">FilledTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography.heights"><code class="docutils literal notranslate"><span class="pre">FilledTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.common.FilledTopography.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">FilledTopography.has_undefined_data</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -197,10 +856,10 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-SurfaceTopography.Exceptions">
-<span id="surfacetopography-exceptions-module"></span><h2>SurfaceTopography.Exceptions module<a class="headerlink" href="#module-SurfaceTopography.Exceptions" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-exceptions-module">
+<h2>SurfaceTopography.Exceptions module<a class="headerlink" href="#surfacetopography-exceptions-module" title="Permalink to this heading"></a></h2>
 <p>This module contains most exceptions used in SurfaceTopography.</p>
-<dl class="py exception">
+<span class="target" id="module-SurfaceTopography.Exceptions"></span><dl class="py exception">
 <dt class="sig sig-object py" id="SurfaceTopography.Exceptions.CannotPerformAnalysisError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">CannotPerformAnalysisError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.CannotPerformAnalysisError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
@@ -325,7 +984,7 @@ then a corresponding window will be constructed. Currently the only
 support window is ‘hann’.</p></li>
 <li><p><strong>nx</strong> (<em>int</em>) – Number of grid points of the signal in x-direction</p></li>
 <li><p><strong>ny</strong> (<em>int</em>) – Number of grid points of the signal in y-direction</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of float</em>) – The physical size of the underlying signal. If None, then the number
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>float</em>) – The physical size of the underlying signal. If None, then the number
 of grid points nx, ny are used as the physical size. This parameter
 is used to adjust the aspect ratio of the signal. (Default: None)</p></li>
 </ul>
@@ -340,10 +999,10 @@ is used to adjust the aspect ratio of the signal. (Default: None)</p></li>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.Generation">
-<span id="surfacetopography-generation-module"></span><h2>SurfaceTopography.Generation module<a class="headerlink" href="#module-SurfaceTopography.Generation" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-generation-module">
+<h2>SurfaceTopography.Generation module<a class="headerlink" href="#surfacetopography-generation-module" title="Permalink to this heading"></a></h2>
 <p>Helper functions for the generation of random fractal surfaces</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.Generation"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generation.self_affine_prefactor">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generation.</span></span><span class="sig-name descname"><span class="pre">self_affine_prefactor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Hurst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms_slope</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">short_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generation.self_affine_prefactor" title="Permalink to this definition"></a></dt>
 <dd><p>Compute prefactor <span class="math notranslate nohighlight">\(C_0\)</span> for the power-spectrum density of an ideal
@@ -435,10 +1094,10 @@ useful for creating very large topography maps. (Default: None)</p></li>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.HeightContainer">
-<span id="surfacetopography-heightcontainer-module"></span><h2>SurfaceTopography.HeightContainer module<a class="headerlink" href="#module-SurfaceTopography.HeightContainer" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-heightcontainer-module">
+<h2>SurfaceTopography.HeightContainer module<a class="headerlink" href="#surfacetopography-heightcontainer-module" title="Permalink to this heading"></a></h2>
 <p>Base class for geometric topogography descriptions</p>
-<dl class="py class">
+<span class="target" id="module-SurfaceTopography.HeightContainer"></span><dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.HeightContainer.AbstractTopography">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.HeightContainer.</span></span><span class="sig-name descname"><span class="pre">AbstractTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info={}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.HeightContainer.AbstractTopography" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -713,10 +1372,10 @@ data.</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.NonuniformLineScan">
-<span id="surfacetopography-nonuniformlinescan-module"></span><h2>SurfaceTopography.NonuniformLineScan module<a class="headerlink" href="#module-SurfaceTopography.NonuniformLineScan" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-nonuniformlinescan-module">
+<h2>SurfaceTopography.NonuniformLineScan module<a class="headerlink" href="#surfacetopography-nonuniformlinescan-module" title="Permalink to this heading"></a></h2>
 <p>Support for nonuniform topogography descriptions</p>
-<dl class="py class">
+<span class="target" id="module-SurfaceTopography.NonuniformLineScan"></span><dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.NonuniformLineScan.NonuniformLineScan">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.NonuniformLineScan.</span></span><span class="sig-name descname"><span class="pre">NonuniformLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography" title="SurfaceTopography.HeightContainer.AbstractTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTopography</span></code></a>, <a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface" title="SurfaceTopography.HeightContainer.NonuniformLineScanInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NonuniformLineScanInterface</span></code></a></p>
@@ -1003,10 +1662,10 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.Special">
-<span id="surfacetopography-special-module"></span><h2>SurfaceTopography.Special module<a class="headerlink" href="#module-SurfaceTopography.Special" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-special-module">
+<h2>SurfaceTopography.Special module<a class="headerlink" href="#surfacetopography-special-module" title="Permalink to this heading"></a></h2>
 <p>Special topographies</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.Special"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Special.make_topography_from_function">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Special.</span></span><span class="sig-name descname"><span class="pre">make_topography_from_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Special.make_topography_from_function" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
@@ -1016,18 +1675,18 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <li><p><strong>centre</strong> (<em>tuple</em><em> or </em><em>&quot;middle&quot;</em>) – (cx, cy)
 h(X,Y) =  fun(X-cx, Y-cy)
 default (0,0)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical physical_sizes of the topography map</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical physical_sizes of the topography map</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – The topography is periodic. (Default: False)</p></li>
 <li><p><strong>decomposition</strong> (<em>str</em>) – Specification of the data decomposition of the heights array. If
 set to ‘subdomain’, the heights array contains only the part of
 the full topography local to the present MPI process. If set to
 ‘domain’, the heights array contains the global array.
 Default: ‘serial’, which fails for parallel runs.</p></li>
-<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points for the full topography. This is only
+<li><p><strong>nb_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points for the full topography. This is only
 required if decomposition is set to ‘subdomain’.</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process. This is only required if decomposition is set to
 ‘domain’.</p></li>
 <li><p><strong>communicator</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em>) – The MPI communicator object.
@@ -1133,10 +1792,10 @@ plastic_displ – initial plastic displacements</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.UniformLineScanAndTopography">
-<span id="surfacetopography-uniformlinescanandtopography-module"></span><h2>SurfaceTopography.UniformLineScanAndTopography module<a class="headerlink" href="#module-SurfaceTopography.UniformLineScanAndTopography" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-uniformlinescanandtopography-module">
+<h2>SurfaceTopography.UniformLineScanAndTopography module<a class="headerlink" href="#surfacetopography-uniformlinescanandtopography-module" title="Permalink to this heading"></a></h2>
 <p>Support for uniform topogography descriptions</p>
-<dl class="py class">
+<span class="target" id="module-SurfaceTopography.UniformLineScanAndTopography"></span><dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.UniformLineScanAndTopography.</span></span><span class="sig-name descname"><span class="pre">UniformLineScan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info={}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.HeightContainer.AbstractTopography" title="SurfaceTopography.HeightContainer.AbstractTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractTopography</span></code></a>, <a class="reference internal" href="#SurfaceTopography.HeightContainer.UniformTopographyInterface" title="SurfaceTopography.HeightContainer.UniformTopographyInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">UniformTopographyInterface</span></code></a></p>
@@ -1149,7 +1808,7 @@ plastic_displ – initial plastic displacements</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>profile</strong> (<em>array_like</em>) – Data containing the height information. Needs to be a
 one-dimensional array.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical physical_sizes of the topography map</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical physical_sizes of the topography map</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag setting the periodicity of the surface</p></li>
 <li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The length unit.</p></li>
 <li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – The info dictionary containing auxiliary data.</p></li>
@@ -1258,13 +1917,13 @@ topography map.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>heights</strong> (<em>array_like</em>) – Data containing the height information. Needs to be a
 two-dimensional array.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical physical_sizes of the topography map</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical physical_sizes of the topography map</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – The topography is periodic. (Default: False)</p></li>
-<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number of grid points for the full topography. This is only
+<li><p><strong>nb_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Number of grid points for the full topography. This is only
 required if decomposition is set to ‘subdomain’.</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Number of grid points within the subdomain handled by the present
 MPI process. This is only required if decomposition is set to
 ‘domain’.</p></li>
 <li><p><strong>unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The length unit.</p></li>
@@ -1794,10 +2453,10 @@ topography_b   – second topography of the compound</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography" title="Permalink to this heading"></a></h2>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
 <p>defines all surface types used in SurfaceTopography</p>
-</section>
+<span class="target" id="module-SurfaceTopography"></span></section>
 </section>
 
 

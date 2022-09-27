@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.1.dev26+gd18d08ae documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.1.dev30+gf60e7b4d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -32,7 +33,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev26+gd18d08ae
+                1.1.dev30+gf60e7b4d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -56,12 +57,12 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-generic-curvature-module">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-generic-reliabilitycutoff-module">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-generic-scanningprobe-module">SurfaceTopography.Generic.ScanningProbe module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-generic-slope-module">SurfaceTopography.Generic.Slope module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
@@ -71,25 +72,36 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-exceptions-module">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-generation-module">SurfaceTopography.Generation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-heightcontainer-module">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-nonuniformlinescan-module">SurfaceTopography.NonuniformLineScan module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-special-module">SurfaceTopography.Special module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-uniformlinescanandtopography-module">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-generic-curvature-module">SurfaceTopography.Generic.Curvature module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-generic-reliabilitycutoff-module">SurfaceTopography.Generic.ReliabilityCutoff module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff"><code class="docutils literal notranslate"><span class="pre">short_reliability_cutoff()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-generic-scanningprobe-module">SurfaceTopography.Generic.ScanningProbe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-generic-slope-module">SurfaceTopography.Generic.Slope module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
@@ -128,10 +140,10 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-SurfaceTopography.Generic.Curvature">
-<span id="surfacetopography-generic-curvature-module"></span><h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#module-SurfaceTopography.Generic.Curvature" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-generic-curvature-module">
+<h2>SurfaceTopography.Generic.Curvature module<a class="headerlink" href="#surfacetopography-generic-curvature-module" title="Permalink to this heading"></a></h2>
 <p>Scale-dependent slope</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.Generic.Curvature"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional scale-dependent curvature.</p>
@@ -190,10 +202,10 @@ bins without data points are discarded. (Default: None)</p></li>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.Generic.ReliabilityCutoff">
-<span id="surfacetopography-generic-reliabilitycutoff-module"></span><h2>SurfaceTopography.Generic.ReliabilityCutoff module<a class="headerlink" href="#module-SurfaceTopography.Generic.ReliabilityCutoff" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-generic-reliabilitycutoff-module">
+<h2>SurfaceTopography.Generic.ReliabilityCutoff module<a class="headerlink" href="#surfacetopography-generic-reliabilitycutoff-module" title="Permalink to this heading"></a></h2>
 <p>Automatic determination of the reliability of the underyling data</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.Generic.ReliabilityCutoff"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.ReliabilityCutoff.</span></span><span class="sig-name descname"><span class="pre">short_reliability_cutoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff" title="Permalink to this definition"></a></dt>
 <dd><p>Determine down to which distance scale the data is reliable, i.e. below
@@ -215,14 +227,14 @@ used to compute the reliability cutoff.</p>
 <section id="module-SurfaceTopography.Generic.ScaleDependentStatistics">
 <span id="surfacetopography-generic-scaledependentstatistics-module"></span><h2>SurfaceTopography.Generic.ScaleDependentStatistics module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-SurfaceTopography.Generic.ScanningProbe">
-<span id="surfacetopography-generic-scanningprobe-module"></span><h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#module-SurfaceTopography.Generic.ScanningProbe" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-generic-scanningprobe-module">
+<h2>SurfaceTopography.Generic.ScanningProbe module<a class="headerlink" href="#surfacetopography-generic-scanningprobe-module" title="Permalink to this heading"></a></h2>
 <p>Analysis functions related to scanning-probe microscopy</p>
-</section>
-<section id="module-SurfaceTopography.Generic.Slope">
-<span id="surfacetopography-generic-slope-module"></span><h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#module-SurfaceTopography.Generic.Slope" title="Permalink to this heading"></a></h2>
+<span class="target" id="module-SurfaceTopography.Generic.ScanningProbe"></span></section>
+<section id="surfacetopography-generic-slope-module">
+<h2>SurfaceTopography.Generic.Slope module<a class="headerlink" href="#surfacetopography-generic-slope-module" title="Permalink to this heading"></a></h2>
 <p>Scale-dependent slope</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.Generic.Slope"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Slope.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_slope_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the one-dimensional scale-dependent slope.</p>
@@ -281,11 +293,11 @@ h_\text{rms}^\prime(\lambda) = \left[2A(\lambda)\right]^{1/2}/\lambda
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.Generic">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Generic" title="Permalink to this heading"></a></h2>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
 <p>Module containing generic functions that work for both uniform and nonuniform
 topographies</p>
-</section>
+<span class="target" id="module-SurfaceTopography.Generic"></span></section>
 </section>
 
 

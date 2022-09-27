@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.1.dev26+gd18d08ae documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.1.dev30+gf60e7b4d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -31,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev26+gd18d08ae
+                1.1.dev30+gf60e7b4d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,18 +59,18 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.FromFile">SurfaceTopography.IO.FromFile module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-io-fromfile-module">SurfaceTopography.IO.FromFile module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.IBW">SurfaceTopography.IO.IBW module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.MI">SurfaceTopography.IO.MI module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Matlab">SurfaceTopography.IO.Matlab module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-io-npy-module">SurfaceTopography.IO.NPY module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-io-zon-module">SurfaceTopography.IO.ZON module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO">Module contents</a></li>
 </ul>
@@ -80,36 +81,214 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-exceptions-module">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-generation-module">SurfaceTopography.Generation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-heightcontainer-module">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-nonuniformlinescan-module">SurfaceTopography.NonuniformLineScan module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-special-module">SurfaceTopography.Special module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-uniformlinescanandtopography-module">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.IO package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.FromFile">SurfaceTopography.IO.FromFile module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.IBW">SurfaceTopography.IO.IBW module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.MI">SurfaceTopography.IO.MI module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Matlab">SurfaceTopography.IO.Matlab module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.DI">SurfaceTopography.IO.DI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DI.DIReader"><code class="docutils literal notranslate"><span class="pre">DIReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.DI.DIReader.__init__"><code class="docutils literal notranslate"><span class="pre">DIReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.DI.DIReader.channels"><code class="docutils literal notranslate"><span class="pre">DIReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.DI.DIReader.topography"><code class="docutils literal notranslate"><span class="pre">DIReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DZI.write_dzi"><code class="docutils literal notranslate"><span class="pre">write_dzi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DZI.write_topography_dzi"><code class="docutils literal notranslate"><span class="pre">write_topography_dzi()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-io-fromfile-module">SurfaceTopography.IO.FromFile module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.binary"><code class="docutils literal notranslate"><span class="pre">binary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.make_wrapped_reader"><code class="docutils literal notranslate"><span class="pre">make_wrapped_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.read_x3p"><code class="docutils literal notranslate"><span class="pre">read_x3p()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.X3PReader"><code class="docutils literal notranslate"><span class="pre">X3PReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.X3PReader.__init__"><code class="docutils literal notranslate"><span class="pre">X3PReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.X3PReader.channels"><code class="docutils literal notranslate"><span class="pre">X3PReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.X3PReader.topography"><code class="docutils literal notranslate"><span class="pre">X3PReader.topography()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.read_hgt"><code class="docutils literal notranslate"><span class="pre">read_hgt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.HGTReader"><code class="docutils literal notranslate"><span class="pre">HGTReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.HGTReader.__init__"><code class="docutils literal notranslate"><span class="pre">HGTReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.HGTReader.channels"><code class="docutils literal notranslate"><span class="pre">HGTReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.FromFile.HGTReader.topography"><code class="docutils literal notranslate"><span class="pre">HGTReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.H5.H5Reader"><code class="docutils literal notranslate"><span class="pre">H5Reader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.H5.H5Reader.__init__"><code class="docutils literal notranslate"><span class="pre">H5Reader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.H5.H5Reader.close"><code class="docutils literal notranslate"><span class="pre">H5Reader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.H5.H5Reader.channels"><code class="docutils literal notranslate"><span class="pre">H5Reader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.H5.H5Reader.topography"><code class="docutils literal notranslate"><span class="pre">H5Reader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.IBW">SurfaceTopography.IO.IBW module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.IBW.IBWReader"><code class="docutils literal notranslate"><span class="pre">IBWReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.IBW.IBWReader.__init__"><code class="docutils literal notranslate"><span class="pre">IBWReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.IBW.IBWReader.channels"><code class="docutils literal notranslate"><span class="pre">IBWReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.IBW.IBWReader.topography"><code class="docutils literal notranslate"><span class="pre">IBWReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.MI">SurfaceTopography.IO.MI module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader"><code class="docutils literal notranslate"><span class="pre">MIReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader.__init__"><code class="docutils literal notranslate"><span class="pre">MIReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader.process_header"><code class="docutils literal notranslate"><span class="pre">MIReader.process_header()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader.topography"><code class="docutils literal notranslate"><span class="pre">MIReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader.channels"><code class="docutils literal notranslate"><span class="pre">MIReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIReader.info"><code class="docutils literal notranslate"><span class="pre">MIReader.info</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.MI.read_header_image"><code class="docutils literal notranslate"><span class="pre">read_header_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.MI.read_header_spect"><code class="docutils literal notranslate"><span class="pre">read_header_spect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.MI.Channel"><code class="docutils literal notranslate"><span class="pre">Channel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.Channel.__init__"><code class="docutils literal notranslate"><span class="pre">Channel.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIFile"><code class="docutils literal notranslate"><span class="pre">MIFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.MI.MIFile.__init__"><code class="docutils literal notranslate"><span class="pre">MIFile.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Matlab">SurfaceTopography.IO.Matlab module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.Matlab.MatReader"><code class="docutils literal notranslate"><span class="pre">MatReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Matlab.MatReader.__init__"><code class="docutils literal notranslate"><span class="pre">MatReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Matlab.MatReader.channels"><code class="docutils literal notranslate"><span class="pre">MatReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Matlab.MatReader.topography"><code class="docutils literal notranslate"><span class="pre">MatReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader"><code class="docutils literal notranslate"><span class="pre">NCReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader.__init__"><code class="docutils literal notranslate"><span class="pre">NCReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader.close"><code class="docutils literal notranslate"><span class="pre">NCReader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader.channels"><code class="docutils literal notranslate"><span class="pre">NCReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader.topography"><code class="docutils literal notranslate"><span class="pre">NCReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NC.NCReader.communicator"><code class="docutils literal notranslate"><span class="pre">NCReader.communicator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NC.write_nc_uniform"><code class="docutils literal notranslate"><span class="pre">write_nc_uniform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NC.write_nc_nonuniform"><code class="docutils literal notranslate"><span class="pre">write_nc_nonuniform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-io-npy-module">SurfaceTopography.IO.NPY module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NPY.NPYReader"><code class="docutils literal notranslate"><span class="pre">NPYReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NPY.NPYReader.__init__"><code class="docutils literal notranslate"><span class="pre">NPYReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NPY.NPYReader.channels"><code class="docutils literal notranslate"><span class="pre">NPYReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NPY.NPYReader.topography"><code class="docutils literal notranslate"><span class="pre">NPYReader.topography()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NPY.save_npy"><code class="docutils literal notranslate"><span class="pre">save_npy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.OPD.mask_undefined"><code class="docutils literal notranslate"><span class="pre">mask_undefined()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.OPD.OPDReader"><code class="docutils literal notranslate"><span class="pre">OPDReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPD.OPDReader.__init__"><code class="docutils literal notranslate"><span class="pre">OPDReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPD.OPDReader.topography"><code class="docutils literal notranslate"><span class="pre">OPDReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPD.OPDReader.channels"><code class="docutils literal notranslate"><span class="pre">OPDReader.channels</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.OPDx">SurfaceTopography.IO.OPDx module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader"><code class="docutils literal notranslate"><span class="pre">OPDxReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.__init__"><code class="docutils literal notranslate"><span class="pre">OPDxReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.topography"><code class="docutils literal notranslate"><span class="pre">OPDxReader.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.channels"><code class="docutils literal notranslate"><span class="pre">OPDxReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.info_from_manifest"><code class="docutils literal notranslate"><span class="pre">OPDxReader.info_from_manifest()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.read_linescan_channel_infos"><code class="docutils literal notranslate"><span class="pre">OPDxReader.read_linescan_channel_infos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.OPDxReader.read_topography_channel_infos"><code class="docutils literal notranslate"><span class="pre">OPDxReader.read_topography_channel_infos()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakUnit"><code class="docutils literal notranslate"><span class="pre">DektakUnit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakUnit.extra"><code class="docutils literal notranslate"><span class="pre">DektakUnit.extra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakUnit.name"><code class="docutils literal notranslate"><span class="pre">DektakUnit.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakUnit.symbol"><code class="docutils literal notranslate"><span class="pre">DektakUnit.symbol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.DektakUnit.value"><code class="docutils literal notranslate"><span class="pre">DektakUnit.value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.OPDx.read_dimension2d_content"><code class="docutils literal notranslate"><span class="pre">read_dimension2d_content()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo"><code class="docutils literal notranslate"><span class="pre">ChannelInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.__init__"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.topography"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.topography()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.index"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.index</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.name"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.dim"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.physical_sizes"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.physical_sizes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.height_scale_factor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.is_periodic"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.is_uniform"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.is_uniform</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.has_undefined_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.pixel_size"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.pixel_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.area_per_pt"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.area_per_pt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.unit"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ChannelInfo.info"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.info</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase"><code class="docutils literal notranslate"><span class="pre">ReaderBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.format"><code class="docutils literal notranslate"><span class="pre">ReaderBase.format()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.name"><code class="docutils literal notranslate"><span class="pre">ReaderBase.name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ReaderBase.description()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ReaderBase.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.channels"><code class="docutils literal notranslate"><span class="pre">ReaderBase.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.default_channel"><code class="docutils literal notranslate"><span class="pre">ReaderBase.default_channel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase.topography"><code class="docutils literal notranslate"><span class="pre">ReaderBase.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.Text.write_matrix"><code class="docutils literal notranslate"><span class="pre">write_matrix()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-io-zon-module">SurfaceTopography.IO.ZON module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.ZON.ZONReader"><code class="docutils literal notranslate"><span class="pre">ZONReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.ZON.ZONReader.__init__"><code class="docutils literal notranslate"><span class="pre">ZONReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.ZON.ZONReader.channels"><code class="docutils literal notranslate"><span class="pre">ZONReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.ZON.ZONReader.topography"><code class="docutils literal notranslate"><span class="pre">ZONReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.common.is_binary_stream"><code class="docutils literal notranslate"><span class="pre">is_binary_stream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.common.text"><code class="docutils literal notranslate"><span class="pre">text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.common.OpenFromAny"><code class="docutils literal notranslate"><span class="pre">OpenFromAny</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.common.OpenFromAny.__init__"><code class="docutils literal notranslate"><span class="pre">OpenFromAny.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.detect_format"><code class="docutils literal notranslate"><span class="pre">detect_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.open_topography"><code class="docutils literal notranslate"><span class="pre">open_topography()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.read_topography"><code class="docutils literal notranslate"><span class="pre">read_topography()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
@@ -185,7 +364,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -196,9 +375,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -234,7 +413,7 @@ be used to create a zoomable topography with OpenSeadragon
 <li><p><strong>name</strong> (<em>str</em>) – Name of the exported file. This is used as a prefix. Output filter
 create the file <cite>name</cite>.xml that contains the metadata and a directory
 <a href="#id3"><span class="problematic" id="id4">`</span></a>name`_files that contains the rendered image files at different levels.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Linear physical sizes of the two-dimensional array.</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Linear physical sizes of the two-dimensional array.</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Length units of physical sizes.</p></li>
 <li><p><strong>root_directory</strong> (<em>str</em><em>, </em><em>optional</em>) – Root directory where to place <cite>name</cite>.xml and <a href="#id5"><span class="problematic" id="id6">`</span></a>name`_files.
 (Default: ‘.’)</p></li>
@@ -292,10 +471,10 @@ tiles. (Default: jpg)</p></li>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.IO.FromFile">
-<span id="surfacetopography-io-fromfile-module"></span><h2>SurfaceTopography.IO.FromFile module<a class="headerlink" href="#module-SurfaceTopography.IO.FromFile" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-io-fromfile-module">
+<h2>SurfaceTopography.IO.FromFile module<a class="headerlink" href="#surfacetopography-io-fromfile-module" title="Permalink to this heading"></a></h2>
 <p>SurfaceTopography profile from file input</p>
-<dl class="py function">
+<span class="target" id="module-SurfaceTopography.IO.FromFile"></span><dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FromFile.binary">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.FromFile.</span></span><span class="sig-name descname"><span class="pre">binary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.binary" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -346,7 +525,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -357,9 +536,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -414,7 +593,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -425,9 +604,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -484,7 +663,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -495,9 +674,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -549,7 +728,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -560,9 +739,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -612,7 +791,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -623,9 +802,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -762,7 +941,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -773,9 +952,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -832,7 +1011,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -843,9 +1022,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -900,8 +1079,8 @@ MPI process.</p></li>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.IO.NPY">
-<span id="surfacetopography-io-npy-module"></span><h2>SurfaceTopography.IO.NPY module<a class="headerlink" href="#module-SurfaceTopography.IO.NPY" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-io-npy-module">
+<h2>SurfaceTopography.IO.NPY module<a class="headerlink" href="#surfacetopography-io-npy-module" title="Permalink to this heading"></a></h2>
 <p>In MPI Parallelized programs:</p>
 <ul class="simple">
 <li><p>we have to use <cite>MPI.File.Open</cite> instead of <cite>open</cite> to allow several processors
@@ -916,7 +1095,7 @@ to access the same file simultaneously</p></li>
 </dl>
 </li>
 </ul>
-<dl class="py class">
+<span class="target" id="module-SurfaceTopography.IO.NPY"></span><dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NPY.NPYReader">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NPY.</span></span><span class="sig-name descname"><span class="pre">NPYReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NPY.NPYReader" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReaderBase</span></code></a></p>
@@ -959,7 +1138,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -970,9 +1149,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1032,7 +1211,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1043,9 +1222,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1097,7 +1276,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1108,9 +1287,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1224,8 +1403,8 @@ default for all keyword arguments.)</p>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the channel. If no name is given, “channel &lt;index&gt;” will
 be used, where “&lt;index&gt;” is replaced with the index.</p></li>
 <li><p><strong>dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of dimensions.</p></li>
-<li><p><strong>nb_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number grid points in each dimension.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em><em>, </em><em>optional</em>) – Physical dimensions.</p></li>
+<li><p><strong>nb_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Number grid points in each dimension.</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Physical dimensions.</p></li>
 <li><p><strong>height_scale_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – Number by which all heights have been multiplied.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
@@ -1248,7 +1427,7 @@ found in the data file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em><em>, </em><em>optional</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1261,9 +1440,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing)</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em><em>, </em><em>optional</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1467,7 +1646,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1478,9 +1657,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1510,10 +1689,10 @@ the heights; the physical_sizes is not contained in the file</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.IO.ZON">
-<span id="surfacetopography-io-zon-module"></span><h2>SurfaceTopography.IO.ZON module<a class="headerlink" href="#module-SurfaceTopography.IO.ZON" title="Permalink to this heading"></a></h2>
+<section id="surfacetopography-io-zon-module">
+<h2>SurfaceTopography.IO.ZON module<a class="headerlink" href="#surfacetopography-io-zon-module" title="Permalink to this heading"></a></h2>
 <p>Reader for Keyence ZON files.</p>
-<dl class="py class">
+<span class="target" id="module-SurfaceTopography.IO.ZON"></span><dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.ZON.ZONReader">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.ZON.</span></span><span class="sig-name descname"><span class="pre">ZONReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReaderBase</span></code></a></p>
@@ -1543,7 +1722,7 @@ scale factor, and if yes, an exception is raised (see below).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
 (Default: None, which load the default channel)</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size, then this parameter will override the physical
 size found in the data file.</p></li>
@@ -1554,9 +1733,9 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
 a periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing).</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
 process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
@@ -1715,7 +1894,7 @@ documentation of the respective reader on this.</p>
 <li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – specify in which format the file should be interpreted</p></li>
 <li><p><strong>communicator</strong> (<em>mpi4py</em><em> or </em><em>NuMPI communicator object</em>) – MPI communicator handling inter-process communication</p></li>
 <li><p><strong>channel</strong> (<em>int</em>) – Number of the channel to load. See also <cite>channels</cite> method.</p></li>
-<li><p><strong>physical_sizes</strong> (<em>tuple of floats</em>) – Physical size of the topography. It is necessary to specify this
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
 if no physical size is found in the data file. If there is a
 physical size in the file, then specifying this parameter will raise
 an exception.</p></li>
@@ -1725,8 +1904,8 @@ by the reader.</p></li>
 <li><p><strong>periodic</strong> (<em>bool</em>) – Wether the SurfaceTopography should be interpreted as one period of a
 periodic surface. This will affect the PSD and autocorrelation
 calculations (windowing)</p></li>
-<li><p><strong>subdomain_locations</strong> (<em>tuple of ints</em>) – Origin (location) of the subdomain handled by the present MPI process.</p></li>
-<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple of ints</em>) – Number of grid points within the subdomain handled by the present
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI process.</p></li>
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
 MPI process.</p></li>
 </ul>
 </dd>
