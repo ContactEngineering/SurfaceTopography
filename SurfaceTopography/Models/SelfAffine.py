@@ -45,7 +45,7 @@ class SelfAffine():
         self.longcut_wavevector = 2 * np.pi / self.longcut_wavelength
         self.rolloff_wavevector = 2 * np.pi / self.rolloff_wavelength
 
-    def isotropic(self, q):
+    def power_spectrum_isotropic(self, q):
         qs = self.shortcut_wavevector
         qL = self.longcut_wavevector
         qr = self.rolloff_wavevector
@@ -57,7 +57,7 @@ class SelfAffine():
                      self.cr * (q / qr) ** (-2 - 2 * self.hurst_exponent)),
             0)
 
-    def profile(self, q):
+    def power_spectrum_profile(self, q):
         # TODO:  I think this is only the simplified formula.
         # I think I could implement the Fresnel integral
 
