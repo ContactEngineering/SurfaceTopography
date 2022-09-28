@@ -2,8 +2,7 @@ import numpy as np
 from ContactMechanics import PeriodicFFTElasticHalfSpace
 
 from SurfaceTopography.Models.SelfAffine import (
-    SelfAffinePSD,
-
+    SelfAffine,
     )
 import pytest
 
@@ -26,7 +25,7 @@ def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
     pixel_size = physical_size / n_pixels
 
     # test rolloff
-    model_psd = SelfAffinePSD(**{
+    model_psd = SelfAffine(**{
              'cr':5e-27,
              'shortcut_wavelength': shortcut_wavelength,
              'rolloff_wavelength': 2e-6,
@@ -80,7 +79,7 @@ def test_variance_derivatives(physical_size, rolloff_wavelength, shortcut_wavele
     pixel_size = physical_size / n_pixels
 
     # test rolloff
-    model_psd = SelfAffinePSD(**{
+    model_psd = SelfAffine(**{
              'cr':5e-27,
              'shortcut_wavelength': shortcut_wavelength,
              'rolloff_wavelength': rolloff_wavelength,
@@ -126,7 +125,7 @@ def test_elastic_energy_from_logspaced():
 
     roughness = generate_roughness(**params)
 
-    # ideal_psd = SelfAffinePSD(**params, longcut_wavelength=n_)
+    # ideal_psd = SelfAffine(**params, longcut_wavelength=n_)
 
     # import matplotlib.pyplot as plt
 

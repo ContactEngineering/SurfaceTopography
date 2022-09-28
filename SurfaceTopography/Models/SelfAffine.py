@@ -8,23 +8,23 @@ from SurfaceTopography.Generation import fourier_synthesis
 
 class AbstractStatisticalRoughness(object):
     def power_spectrum():
-
+        raise NotImplementedError
 
     
 class AbstractIsotropicRoughness(AbstractStatisticalRoughness):
     def power_spectrum_isotropic():
+        raise NotImplementedError
 
     def power_spectrum_profile():
-
+        raise NotImplementedError
     #def rms_height():
     #    raise NotImplementedError
 
     def rms_fractional_derivative():
+        raise NotImplementedError
 
 
-
-class SelfAffinePSD():
-# TODO: rename to SefAffine
+class SelfAffine():
     def __init__(self,
                  cr,
                  rolloff_wavelength,
