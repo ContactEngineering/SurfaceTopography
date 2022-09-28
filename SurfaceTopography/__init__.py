@@ -58,6 +58,10 @@ import SurfaceTopography.Uniform.Interpolation  # noqa: F401
 import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
 import SurfaceTopography.Uniform.VariableBandwidth  # noqa: F401
+import SurfaceTopography.Support.Bibliography  # noqa: F401
+
+# Add contact.engineering paper to bibliography
+SurfaceTopography.Support.Bibliography._default_dois = set(['10.1088/2051-672X/ac860a'])
 
 try:
     from importlib.metadata import version

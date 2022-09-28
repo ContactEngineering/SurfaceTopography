@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
+v1.1 (not yet released)
+-----------------------
+
+- MAINT: Added contact.engineering paper to bibliography
+
 v1.0 (06May22)
 --------------
 
