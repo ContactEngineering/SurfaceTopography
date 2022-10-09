@@ -145,6 +145,8 @@ setup(
         'h5py',
         'defusedxml',
         'numpyencoder',
+        'openpyxl',
+        'pandas',
         'pyyaml',
         'Pillow',
         'requests',
