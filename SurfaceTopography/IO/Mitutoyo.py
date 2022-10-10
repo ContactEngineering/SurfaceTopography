@@ -95,7 +95,7 @@ surface roughness testers.
         info['acquisition_time'] = str(datetime.strptime(_date_string,
                                                          '%d-%b-%Y'))
 
-        self._physical_sizes = np.max(self._profile)
+        self._physical_sizes = np.max(_x)
 
         self._channels = [ChannelInfo(self,
                                       0,  # channel index
