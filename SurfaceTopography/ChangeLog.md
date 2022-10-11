@@ -4,6 +4,7 @@ Change log for SurfaceTopography
 v1.1 (not yet released)
 -----------------------
 
+- MAINT: Added contact.engineering paper to bibliography
 - BUG: Check for reentrant topographies in slope calculation
 
 v1.0 (06May22)
