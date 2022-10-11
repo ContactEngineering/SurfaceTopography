@@ -30,6 +30,7 @@ Functions computing scalar roughness parameters
 
 import numpy as np
 
+from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -98,6 +99,11 @@ def rms_slope(topography):
     x, h = topography.positions_and_heights()
     dh = np.diff(h)
     dx = np.diff(x)
+
+    if np.min(dx) <= 0:
+        raise ReentrantDataError('This topography is reentrant (i.e. it contains overhangs). The rms slope '
+                                 'cannot be computed for reentrant topographies.')
+
     L = x[-1] - x[0]
 
     return np.sqrt(np.sum(dh ** 2 / dx) / L)
