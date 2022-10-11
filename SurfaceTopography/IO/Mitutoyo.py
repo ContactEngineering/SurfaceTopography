@@ -32,7 +32,7 @@ from .Reader import ReaderBase, ChannelInfo
 from .common import CHANNEL_NAME_INFO_KEY
 
 
-R_metric_regex = re.compile('(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
+R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
 
 
 class MitutoyoReader(ReaderBase):
@@ -44,7 +44,7 @@ class MitutoyoReader(ReaderBase):
     _format = 'mitutoyo'
     _name = 'Mitutoyo SurfTest Excel spread sheet (xlsx)'
     _description = '''
-Load topography information stored as excel spread sheet by Mitutoyo SurfTest 
+Load topography information stored as excel spread sheet by Mitutoyo SurfTest
 surface roughness testers.
     '''
 
@@ -148,4 +148,3 @@ surface roughness testers.
 
     channels.__doc__ = ReaderBase.channels.__doc__
     topography.__doc__ = ReaderBase.topography.__doc__
-
