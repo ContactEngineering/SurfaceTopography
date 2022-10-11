@@ -70,46 +70,49 @@ surface roughness testers.
             fobj = open(fobj, 'rb')
             close_file = True
 
-        _dataset_df = pd.read_excel(fobj, sheet_name='DATA', header=None)
-        _profile_df = _dataset_df[[4, 5]]
-        _profile_df.columns = ('x', 'h')
-        _x = _profile_df[['x']].values
-        self._profile = _profile_df[['h']].values
+        try:
+            _dataset_df = pd.read_excel(fobj, sheet_name='DATA', header=None)
+            _profile_df = _dataset_df[[4, 5]]
+            _profile_df.columns = ('x', 'h')
+            _x = _profile_df[['x']].values
+            self._profile = _profile_df[['h']].values
 
-        # try extracting simple roughness metrics from first column
-        _roughness_metrics_dict = _dataset_df[~_dataset_df[0].isnull()][0].apply(
-                lambda g: {
-                    **{key: float(value) if key == 'value' else value for key, value in
-                       R_metric_regex.match(g).groupdict().items()}}
-            )
+            # try extracting simple roughness metrics from first column
+            _roughness_metrics_dict = _dataset_df[~_dataset_df[0].isnull()][0].apply(
+                    lambda g: {
+                        **{key: float(value) if key == 'value' else value for key, value in
+                           R_metric_regex.match(g).groupdict().items()}}
+                )
 
-        _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
-        _date_string = _metadata_df[4][1]
-        # remove all whitespace from date string
-        _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
+            _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
+            _date_string = _metadata_df[4][1]
+            # remove all whitespace from date string
+            _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
 
-        channel_name = 'default'
-        info = {}
-        info[CHANNEL_NAME_INFO_KEY] = channel_name
-        info['roughness_metrics'] = _roughness_metrics_dict
-        info['acquisition_time'] = str(datetime.strptime(_date_string,
-                                                         '%d-%b-%Y'))
+            channel_name = 'default'
+            info = {}
+            info[CHANNEL_NAME_INFO_KEY] = channel_name
+            info['roughness_metrics'] = _roughness_metrics_dict
+            info['acquisition_time'] = str(datetime.strptime(_date_string,
+                                                             '%d-%b-%Y'))
 
-        self._physical_sizes = np.max(_x)
+            self._physical_sizes = np.max(_x)
 
-        self._channels = [ChannelInfo(self,
-                                      0,  # channel index
-                                      name='default',
-                                      dim=1,
-                                      uniform=True,
-                                      nb_grid_pts=len(self._profile),
-                                      unit='um',
-                                      physical_sizes=self._physical_sizes,
-                                      info=info)
-                          ]
-
-        if close_file:
-            fobj.close()
+            self._channels = [ChannelInfo(self,
+                                          0,  # channel index
+                                          name='default',
+                                          dim=1,
+                                          uniform=True,
+                                          nb_grid_pts=len(self._profile),
+                                          unit='um',
+                                          physical_sizes=self._physical_sizes,
+                                          info=info)
+                              ]
+        except Exception as exc:
+            raise IOError(exc)
+        finally:
+            if close_file:
+                fobj.close()
 
     @property
     def channels(self):
@@ -122,6 +125,9 @@ surface roughness testers.
 
         if channel_index is not None and channel_index != 0:
             raise ValueError('`channel_index` must be None or 0.')
+
+        if channel_index is None:
+            channel_index = self._default_channel_index
 
         channel = self._channels[channel_index]
 
