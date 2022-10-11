@@ -22,18 +22,19 @@
 import os
 import pytest
 
+import numpy as np
+
 from SurfaceTopography.IO import MitutoyoReader
 
 
 def test_read(file_format_examples):
     reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx'))
-    nx, ny = reader.channels[0].nb_grid_pts
-    assert nx == 2048
-    assert ny == 2048
+    nx, = reader.channels[0].nb_grid_pts
+    assert nx == 960
 
     topography = reader.topography()
     nx, ny = topography.nb_grid_pts
-    assert nx == 2048
-    assert ny == 2048
-    np.testing.assert_almost_equal(topography.rms_height_from_area(), 1.234061e-07)
+    assert nx == 960
+    assert ny == 1
+    np.testing.assert_almost_equal(topography.rms_height_from_area(), 0.16866328079293708)
     assert topography.is_uniform
