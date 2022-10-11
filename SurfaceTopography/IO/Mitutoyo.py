@@ -78,11 +78,11 @@ surface roughness testers.
             self._profile = _profile_df[['h']].values
 
             # try extracting simple roughness metrics from first column
-            _roughness_metrics_dict = _dataset_df[~_dataset_df[0].isnull()][0].apply(
+            _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
                     lambda g: {
                         **{key: float(value) if key == 'value' else value for key, value in
                            R_metric_regex.match(g).groupdict().items()}}
-                )
+                ))
 
             _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
             _date_string = _metadata_df[4][1]
@@ -92,7 +92,7 @@ surface roughness testers.
             channel_name = 'default'
             info = {}
             info[CHANNEL_NAME_INFO_KEY] = channel_name
-            info['roughness_metrics'] = _roughness_metrics_dict
+            info['roughness_metrics'] = _roughness_metrics_list
             info['acquisition_time'] = str(datetime.strptime(_date_string,
                                                              '%d-%b-%Y'))
 
