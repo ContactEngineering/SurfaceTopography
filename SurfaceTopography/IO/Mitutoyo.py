@@ -55,7 +55,7 @@ surface roughness testers.
 
         The reader expects a line scan by positions and heights in columns
         5 and 6 (E, F) and tries to extract standard roughness metrics from
-        column 1 (A) on the sheet 'DATA'. The reader extracts exüects the
+        column 1 (A) on the sheet 'DATA'. The reader extracts expects the
         acquisition date on sheet in column 5 (E) row 2 on sheet 'Certificate'.
 
         Parameters
