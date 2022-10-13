@@ -102,11 +102,11 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
 
     Returns
     -------
-    statistical_fingerprint : np.ndarray or list of np.ndarray
+    statistical_fingerprint : np.ndarray or np.ma.masked_array
         Array containing the result of `func`, average over all topographies
         and line scans. If multiple distances are provided, then this is a
-        list of arrays that contains results for each distance. If no data
-        exists for a certain distance, then None is returned for that
+        masked array that contains results for each distance. If no data
+        exists for a certain distance, then the mask is set to true for that
         distance.
 
     Examples
@@ -175,10 +175,14 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         raise NoReliableDataError('Container contains no reliable data.')
 
     if distances is not None:
-        # If distances are specified by the user, we return exactly those distances with Nones where no data exists
-        return distances, [np.nanmean(results[i], axis=0)[1] if i in results else None for i in range(len(distances))]
+        # If distances are specified by the user, we return exactly those distances; whether data actually exists is
+        # indicated through the mask of a masked array
+        return distances, np.ma.masked_array(
+            [np.nanmean(results[i], axis=0)[1] if i in results else np.nan for i in range(len(distances))],
+            mask=np.array([i not in results for i in range(len(distances))])
+        )
     else:
-        # If distances are not specified by the, the distance array contains only distances where data exists
+        # If distances are not specified by the user, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
         distances, properties = np.array([np.nanmean(vals, axis=0) for i, vals in sorted_results]).T
         return distances, properties
