@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.1.dev30+gf60e7b4d documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.1.dev34+g34816d95 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.1.dev30+gf60e7b4d
+                1.1.dev34+g34816d95
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -55,11 +55,11 @@
 <li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-container-averaging-module">SurfaceTopography.Container.Averaging module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-container-common-module">SurfaceTopography.Container.common module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.common">SurfaceTopography.Container.common module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container">Module contents</a></li>
 </ul>
 </li>
@@ -71,19 +71,19 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-exceptions-module">SurfaceTopography.Exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-generation-module">SurfaceTopography.Generation module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-heightcontainer-module">SurfaceTopography.HeightContainer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-nonuniformlinescan-module">SurfaceTopography.NonuniformLineScan module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-special-module">SurfaceTopography.Special module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-uniformlinescanandtopography-module">SurfaceTopography.UniformLineScanAndTopography module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-container-averaging-module">SurfaceTopography.Container.Averaging module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.log_average"><code class="docutils literal notranslate"><span class="pre">log_average()</span></code></a></li>
 </ul>
 </li>
@@ -106,7 +106,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#surfacetopography-container-common-module">SurfaceTopography.Container.common module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.common">SurfaceTopography.Container.common module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.common.bandwidth"><code class="docutils literal notranslate"><span class="pre">bandwidth()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.common.suggest_length_unit"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit()</span></code></a></li>
 </ul>
@@ -151,10 +151,10 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="surfacetopography-container-averaging-module">
-<h2>SurfaceTopography.Container.Averaging module<a class="headerlink" href="#surfacetopography-container-averaging-module" title="Permalink to this heading"></a></h2>
+<section id="module-SurfaceTopography.Container.Averaging">
+<span id="surfacetopography-container-averaging-module"></span><h2>SurfaceTopography.Container.Averaging module<a class="headerlink" href="#module-SurfaceTopography.Container.Averaging" title="Permalink to this heading"></a></h2>
 <p>Compute properties as averages over individual results.</p>
-<span class="target" id="module-SurfaceTopography.Container.Averaging"></span><dl class="py function">
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.Averaging.log_average">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">log_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.log_average" title="Permalink to this definition"></a></dt>
 <dd><p>Return average property on a logarithmic grid.</p>
@@ -286,12 +286,12 @@ calculate the 4th cumulant function, otherwise it returns nan or inf
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite>, average over all topographies
 and line scans. If multiple distances are provided, then this is a
-list of arrays that contains results for each distance. If no data
-exists for a certain distance, then None is returned for that
+masked array that contains results for each distance. If no data
+exists for a certain distance, then the mask is set to true for that
 distance.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray or np.ma.masked_array</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -332,10 +332,10 @@ able to accept one argument (for line scans) and two arguments
 </dd></dl>
 
 </section>
-<section id="surfacetopography-container-common-module">
-<h2>SurfaceTopography.Container.common module<a class="headerlink" href="#surfacetopography-container-common-module" title="Permalink to this heading"></a></h2>
+<section id="module-SurfaceTopography.Container.common">
+<span id="surfacetopography-container-common-module"></span><h2>SurfaceTopography.Container.common module<a class="headerlink" href="#module-SurfaceTopography.Container.common" title="Permalink to this heading"></a></h2>
 <p>Bin for small common helper function and classes for containers.</p>
-<span class="target" id="module-SurfaceTopography.Container.common"></span><dl class="py function">
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.common.bandwidth">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.common.</span></span><span class="sig-name descname"><span class="pre">bandwidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.common.bandwidth" title="Permalink to this definition"></a></dt>
 <dd><p>Computes lower and upper bound of bandwidth, i.e. of the wavelengths or
