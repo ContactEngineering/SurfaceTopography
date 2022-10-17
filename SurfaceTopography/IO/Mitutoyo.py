@@ -112,7 +112,7 @@ surface roughness testers.
             # try to infer heights unit from roughness metrics
             if _roughness_metrics_list[0]['unit'] == 'µm':
                 _h_unit = 'um'
-            else: # No test case for other unit than um so far
+            else:  # No test case for other unit than um so far
                 _h_unit = _roughness_metrics_list[0]['unit']
 
             _date_string = _metadata_df[4][1]
@@ -135,7 +135,7 @@ surface roughness testers.
                     raise ValueError(
                         "Unexpected unit pairing [x] = %s and [h] = %s",
                         _x_unit, _h_unit)
-                self._x = _x*1000.0 # convert mm to um
+                self._x = _x*1000.0  # convert mm to um
 
             self._unit = _h_unit
 
@@ -146,8 +146,8 @@ surface roughness testers.
             self._info[CHANNEL_NAME_INFO_KEY] = channel_name
             self._info['roughness_metrics'] = _roughness_metrics_list
             self._info['cut_off'] = _cut_off_dict
-            self._info['acquisition_time'] = str(datetime.strptime(_date_string,
-                                                             '%d-%b-%Y'))
+            self._info['acquisition_time'] = str(datetime.strptime(
+                                                 _date_string, '%d-%b-%Y'))
             # Should the name of a single channel be 'Default'?
             # That's the case for NPY or NC
             self._channels = [ChannelInfo(self,
@@ -204,10 +204,11 @@ surface roughness testers.
         # may a reader return either NonuniformLineScan or UniformLineScan?
         if self._uniform:
             # Should a reader return Topography or UniformLineScan for uniform 1D data?
-            topography = UniformLineScan(self._profile, physical_sizes,
-                            periodic=self._periodic if periodic is None else periodic,
-                            unit=unit,
-                            info=_info)
+            topography = UniformLineScan(
+                self._profile, physical_sizes,
+                periodic=self._periodic if periodic is None else periodic,
+                unit=unit,
+                info=_info)
         else:
             topography = NonuniformLineScan(
                 self._x,
