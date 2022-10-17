@@ -129,7 +129,7 @@ surface roughness testers.
             try:
                 import pint
                 ureg = pint.UnitRegistry()
-                self._x = _x*ureg[_x_unit].to(ureg[_h_unit])
+                self._x = (_x*ureg[_x_unit].to(ureg[_h_unit])).magnitude
             except ImportError:  # if pint not available, assert it's mm to um
                 if _x_unit != 'mm' or _h_unit != 'um':
                     raise ValueError(
