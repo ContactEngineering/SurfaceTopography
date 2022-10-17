@@ -26,14 +26,26 @@ import numpy as np
 from SurfaceTopography.IO import MitutoyoReader
 
 
-def test_read(file_format_examples):
+def test_read_uniform(file_format_examples):
     reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx'))
     nx, = reader.channels[0].nb_grid_pts
     assert nx == 960
 
     topography = reader.topography()
-    nx, ny = topography.nb_grid_pts
+    nx, = topography.nb_grid_pts
     assert nx == 960
-    assert ny == 1
-    np.testing.assert_almost_equal(topography.rms_height_from_area(), 0.16866328079293708)
+    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.16866328079293708)
     assert topography.is_uniform
+
+
+def test_read_nonuniform(file_format_examples):
+    reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx'))
+    nx, = reader.channels[0].nb_grid_pts
+    assert nx == 960
+
+    topography = reader.topography()
+    nx, = topography.nb_grid_pts
+    assert nx == 960
+    # BUG: very different rms height for slightly modified position
+    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.1371261153644389)
+    assert not topography.is_uniform
