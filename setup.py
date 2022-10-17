@@ -145,12 +145,17 @@ setup(
         'h5py',
         'defusedxml',
         'numpyencoder',
-        'openpyxl',
-        'pandas',
         'pyyaml',
         'Pillow',
         'requests',
         'matplotlib>=1.0.0',
         'python-dateutil',
-    ]
+    ],
+    extras_require={
+        'mitutoyo': [
+            'openpyxl',
+            'pandas',
+            'pint',
+        ]
+    },
 )
