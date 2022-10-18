@@ -22,3 +22,5 @@ Pillow
 requests
 python-dateutil
 pandas
+pint
+openpyxl
