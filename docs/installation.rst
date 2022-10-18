@@ -1,7 +1,12 @@
 Installation
 ============
+We only support installation on recent mac and linux systems, not on windows.
 
 You need Python 3,  NetCDF_, OpenBLAS_, LAPACK_ and FFTW3_ in order to install SurfaceTopography.
+
+In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
+`singularity containers <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ 
+and our `testing workflows <https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml>`_ 
 
 Direct installation with pip
 ----------------------------
@@ -29,7 +34,7 @@ If you want to install all optional dependencies for full functionality:
     wget https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
     # I found the url to the requirements files using
     # https://api.github.com/repos/ContactEngineering/SurfaceTopography/contents/requirements.txt
-    python3 -m pip install [--user] -r requirements.txt
+    python3 -m pip install [--user] -r requirements.txt --no-binary numpy
     rm requirements.txt
 
 Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
@@ -38,36 +43,71 @@ Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use
 
     sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
 
-See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` for an example installation on ubuntu.
+See also our `singularity container <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ for an example installation on ubuntu.
 
 Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using Homebrew_, 
 
 .. code-block:: bash
 
-    brew install openblas lapack fftw3 netcdf
+    brew install openblas lapack fftw netcdf
+
+Installation: Common problems
+-----------------------------
+
+- Sometimes muFFT_ will not find the FFTW3 installation you expect.
+  You can specify the directory where you installed FFTW3_
+  by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
+
+- If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
+  is missing), then set the environment variables `NETCDFDIR` (for serial
+  compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
+
+- Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
+  avaible. If you do not need `MPI` support, you can manually disable it in the following way:
+
+  .. code-block:: bash
+
+                  python3 -m pip install muFFT --install-option="--disable-mpi"
+                  python3 -m pip install SurfaceTopography
 
 
-Note: Sometimes muFFT_ will not find the FFTW3 installation you expect.
-You can specify the directory where you installed FFTW3_
-by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
+- Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
+  pip will attempt to reinstall that dependency despite it is already installed.
+  In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
 
-If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
-is missing), then set the environment variables `NETCDFDIR` (for serial
-compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
+- linker cannot find lopenblas64
 
-Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
-avaible. If you do not need `MPI` support, you can manually disable it in the following way:
+  Here an extract of the installation error:
 
-```
-python3 -m pip install muFFT --install-options="--disable-mpi"
-python3 -m pip install SurfaceTopography
-```
-Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
-pip will attempt to reinstall that dependency despite it is already installed.
-In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
+        .. code-block::
+
+            g++ -pthread -shared -Wl,--rpath=/opt/hostedtoolcache/Python/3.8.13/x64/lib -Wl,--rpath=/opt/hostedtoolcache/Python/3.8.13/x64/lib bui/temp.linux-x86_64-3.8/c/autocorrelation.o build/temp.linux-x86_64-3.8/c/bicubic.o build/temp.linux-x86_64-3.8/c/patchfinder.build/temp.linux-x86_64-3.8/c/module.o -L/usr/local/lib -L/opt/hostedtoolcache/Python/3.8.13/x64/lib -lopenblas64_ -lopenblas64_ -o build/lib.linux-x86_64-3.8/_SurfaceTopography.cpython-38-x86_64-linux-gnu.so
+            /usr/bin/ld: cannot find -lopenblas64_
+            /usr/bin/ld: cannot find -lopenblas64   collect2: error: ld returned 1 exit status
+            error: command 'g++' failed with exit status    [end of output]
+            note: This error originates from a subprocess, and is likely not a problem with pip   error: legacy-install-failure
+
+    Solution:   reinstall numpy with `--no-binary` flag
+
+    .. code-block:: bash
+        python3 -m pip install numpy --no-binary numpy
+
+Reporting installation problems
+-------------------------------
+
+1. Make sure that you carefully read all these instructions.
+2. Try to find similar issues in our issues or forum discussions. 
+3. If the installation problems are related to muFFT_ you can have a look at d
+4. Please open an issue or a discussion in the forum.
+
+When reporting a problem, please provide us with following information: 
+
+- your system configuration, 
+- your python3 environment (output of `python3 -m pip list`)
+- The output of the verbose installation e.g. `python3 -m pip install --verbose --global-option="--verbose"`
 
 Installation from source directory
-----------------------------------
+--------------------------------
 
 If you cloned the repository. You can install the dependencies with
 
@@ -118,7 +158,7 @@ uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of 
 Singularity_ container
 ----------------------
 
-We provide a definition file to build a singularity container `here <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>` .
+We provide a definition file to build a singularity container `here <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ .
 
 .. _Singularity: https://sylabs.io/singularity/
 .. _FFTW3: http://www.fftw.org/
