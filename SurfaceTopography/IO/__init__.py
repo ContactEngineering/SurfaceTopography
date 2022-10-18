@@ -44,6 +44,7 @@ from .NC import NCReader
 from .NPY import NPYReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
+from .VK4 import VK4Reader
 from .ZON import ZONReader
 
 # Only writers
@@ -66,6 +67,7 @@ readers = [
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
+    VK4Reader,
     ZONReader,
     HGTReader,
 ]
