@@ -51,7 +51,4 @@ def test_read_filestream(file_format_examples):
         read_topography(f)
 
     f = open(file_path, 'rb')
-    read_topography(f)
-
-    # Test is successful if it reaches end of function without raising an
-    # exception
+    t = read_topography(f)
