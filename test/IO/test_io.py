@@ -93,6 +93,7 @@ binary_example_file_list = _convert_filelist([
     'N46E013.hgt',
     'example.zon',
     'example.nc',
+    'example.vk4'
 ] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
