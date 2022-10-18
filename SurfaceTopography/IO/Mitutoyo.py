@@ -65,32 +65,20 @@ surface roughness testers.
              File to read.
         """
 
-        # Should readers call constructor of base class? NPY does
-        super().__init__()
-
-        # Should these fields be initialized? NC does
-        self._physical_sizes = None
-        self._periodic = False
-        self._unit = None
-        self._info = {}
-
-        # Should the reader explicitly open the file if not yet done so? DI does
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-
         try:
-            # pandas exceptions not documented for pd.read_excel
+            # Pandas exceptions not documented for pd.read_excel
             _dataset_df = pd.read_excel(fobj, sheet_name='DATA', header=None)
             _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
             # How should a reader properly fulfill test_no_resource_warning_on_failure?
         except Exception as exc:
+            # Pass Pandas exceptions at this point on a `IOError`s
             raise IOError(exc)
         else:
             _profile_df = _dataset_df[[4, 5]]
             _profile_df.columns = ('x', 'h')
             _x = _profile_df['x'].values
+            # We store the profile (and metadata) in the object since there
+            # can only be a single data channel.
             self._profile = _profile_df['h'].values
 
             # check if positions are distributed uniformly
@@ -140,16 +128,15 @@ surface roughness testers.
             # we assume the data series to start at zero x
             self._physical_sizes = np.max(self._x)
 
-            channel_name = 'default'
-            self._info[CHANNEL_NAME_INFO_KEY] = channel_name
-            self._info['roughness_metrics'] = _roughness_metrics_list
-            self._info['cut_off'] = _cut_off_dict
-            self._info['acquisition_time'] = str(datetime.strptime(
-                                                 _date_string, '%d-%b-%Y'))
-            # Should the name of a single channel be 'Default'?
-            # That's the case for NPY or NC
+            self._info = {
+                'roughness_metrics': _roughness_metrics_list,
+                'cut_off': _cut_off_dict,
+                'acquisition_time': str(datetime.strptime(_date_string, '%d-%b-%Y'))
+            }
             self._channels = [ChannelInfo(self,
                                           0,  # channel index
+                                          # Since the is only a single channel and the file has no channel information,
+                                          # the name is 'Default'
                                           name='Default',
                                           dim=1,
                                           uniform=self._uniform,
@@ -158,11 +145,8 @@ surface roughness testers.
                                           physical_sizes=self._physical_sizes,
                                           info=self._info)
                               ]
-        finally:
-            if close_file:
-                fobj.close()
 
-    # must a reader define this property? most do
+    # Return list of channels (here only a single one)
     @property
     def channels(self):
         return self._channels
@@ -172,48 +156,49 @@ surface roughness testers.
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
 
-        # Should a reader check on this? NPY does
+        # Check that channel_index is valid
         if channel_index is not None and channel_index != 0:
             raise ValueError('`channel_index` must be None or 0.')
 
-        # Should a reader assume a default channel index? DI does
+        # If no channel index is given, we use the default index
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        # Should a reader prohibit overriding unit in this way? DI does
+        # Units are specified in the XLSX file and cannot be overriden
         if unit is not None:
-            if self._unit is not None:
-                raise MetadataAlreadyFixedByFile('unit')
-        else:
-            unit = self._unit
+            raise MetadataAlreadyFixedByFile('unit')
 
-        # Should a reader augment its info like this? NC does
+        # Augment info dictionary with user-specified data
         _info = self._info.copy()
         _info.update(info)
 
+        # Get channel information (there is only one)
         channel = self._channels[channel_index]
 
-        # Should a reader retrieve physical_sizes like this? NC does ...
+        # Make sure `physical_sizes` is present, either fixed by the file
+        # or given by the user. Also make sure that if the user specifies it
+        # it cannot be set in the file. (We cannot override metadata from
+        # files.)
         physical_sizes = self._check_physical_sizes(physical_sizes,
                                                     channel.physical_sizes)
-        # .. but NPY only does
-        # physical_sizes = self._check_physical_sizes(physical_sizes)
 
         # may a reader return either NonuniformLineScan or UniformLineScan?
         if self._uniform:
-            # Should a reader return Topography or UniformLineScan for uniform 1D data?
+            # Return a uniform line scan if data is equally spaced
             topography = UniformLineScan(
                 self._profile, physical_sizes,
                 periodic=self._periodic if periodic is None else periodic,
                 unit=unit,
                 info=_info)
         else:
+            # Return a nonuniform line scan otherwise
             topography = NonuniformLineScan(
                 self._x,
                 self._profile,
                 unit=unit,
                 info=_info)
 
+        # Check if there is a user-specified height scale factor
         if height_scale_factor is not None:
             topography = topography.scale(height_scale_factor)
 
