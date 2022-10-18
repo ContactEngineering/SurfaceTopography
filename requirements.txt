@@ -21,3 +21,4 @@ pyyaml
 Pillow
 requests
 python-dateutil
+pandas

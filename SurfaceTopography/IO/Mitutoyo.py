@@ -23,14 +23,11 @@
 import numpy as np
 import pandas as pd
 import re
-# from ..Exceptions import FileFormatMismatch
 
 from datetime import datetime
 
 from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, ChannelInfo
-from .common import CHANNEL_NAME_INFO_KEY
-
 
 R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
 
@@ -44,7 +41,7 @@ class MitutoyoReader(ReaderBase):
     _format = 'mitutoyo'
     _name = 'Mitutoyo SurfTest Excel spread sheet (xlsx)'
     _description = '''
-Load topography information stored as excel spread sheet by Mitutoyo SurfTest
+Load topography information stored as Excel spread sheet by Mitutoyo SurfTest
 surface roughness testers.
     '''
 
@@ -72,47 +69,46 @@ surface roughness testers.
 
         try:
             _dataset_df = pd.read_excel(fobj, sheet_name='DATA', header=None)
-            _profile_df = _dataset_df[[4, 5]]
-            _profile_df.columns = ('x', 'h')
-            _x = _profile_df[['x']].values
-            self._profile = _profile_df[['h']].values
-
-            # try extracting simple roughness metrics from first column
-            _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
-                    lambda g: {
-                        **{key: float(value) if key == 'value' else value for key, value in
-                           R_metric_regex.match(g).groupdict().items()}}
-                ))
-
-            _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
-            _date_string = _metadata_df[4][1]
-            # remove all whitespace from date string
-            _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
-
-            channel_name = 'default'
-            info = {}
-            info[CHANNEL_NAME_INFO_KEY] = channel_name
-            info['roughness_metrics'] = _roughness_metrics_list
-            info['acquisition_time'] = str(datetime.strptime(_date_string,
-                                                             '%d-%b-%Y'))
-
-            self._physical_sizes = np.max(_x)
-
-            self._channels = [ChannelInfo(self,
-                                          0,  # channel index
-                                          name='default',
-                                          dim=1,
-                                          uniform=True,
-                                          nb_grid_pts=len(self._profile),
-                                          unit='um',
-                                          physical_sizes=self._physical_sizes,
-                                          info=info)
-                              ]
         except Exception as exc:
             raise IOError(exc)
-        finally:
-            if close_file:
-                fobj.close()
+
+        _profile_df = _dataset_df[[4, 5]]
+        _profile_df.columns = ('x', 'h')
+        _x = _profile_df[['x']].values
+        self._profile = _profile_df[['h']].values
+
+        # try extracting simple roughness metrics from first column
+        _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
+            lambda g: {
+                **{key: float(value) if key == 'value' else value for key, value in
+                   R_metric_regex.match(g).groupdict().items()}}
+        ))
+
+        _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
+        _date_string = _metadata_df[4][1]
+        # remove all whitespace from date string
+        _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
+
+        info = {}
+        info['roughness_metrics'] = _roughness_metrics_list
+        info['acquisition_time'] = str(datetime.strptime(_date_string,
+                                                         '%d-%b-%Y'))
+
+        self._physical_sizes = np.max(_x)
+
+        self._channels = [ChannelInfo(self,
+                                      0,  # channel index - there is only a single one
+                                      name='default',
+                                      dim=1,
+                                      uniform=True,
+                                      nb_grid_pts=len(self._profile),
+                                      unit='um',
+                                      physical_sizes=self._physical_sizes,
+                                      info=info)
+                          ]
+
+        if close_file:
+            fobj.close()
 
     @property
     def channels(self):
