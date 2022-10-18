@@ -243,7 +243,6 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
                 zfac = length_units[zunit] / length_units[unit]
             else:
                 zfac *= length_units[zunit] / length_units[unit]
-        info['unit'] = unit
 
     # handle channel name
     # we use the info dict here to transfer the channel name
