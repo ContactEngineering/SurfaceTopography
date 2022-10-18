@@ -156,6 +156,12 @@ surface roughness testers.
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
 
+        # Check if only a subdomain should be loaded
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError(
+                'This reader does not support MPI parallelization.')
+
         # Check that channel_index is valid
         if channel_index is not None and channel_index != 0:
             raise ValueError('`channel_index` must be None or 0.')
