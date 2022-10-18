@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
+v1.1 (not yet released)
+-----------------------
+
+- ENH: Reader for the Mitutoyo SurfTest Excel spread sheet format
+
 v1.0 (06May22)
 --------------
 
