@@ -569,6 +569,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk4')) == 'vk4'
 
 
 def test_to_matrix():

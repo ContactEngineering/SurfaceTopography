@@ -24,6 +24,7 @@
 
 import os
 
+import numpy as np
 import pytest
 
 from NuMPI import MPI
@@ -47,5 +48,23 @@ def test_read_filestream(file_format_examples):
     with open(file_path, 'r') as f:
         read_topography(f)
 
+    # This test just needs to arrive here without raising an exception
+
+
+def test_vk4_metatdata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example.vk4')
+
     f = open(file_path, 'rb')
     t = read_topography(f)
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1024
+    assert ny == 768
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_almost_equal(sx, 1396330551)
+    np.testing.assert_almost_equal(sy, 1046906679)
+
+    assert t.unit == 'pm'
+
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 302497762.3406505)

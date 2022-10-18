@@ -158,5 +158,5 @@ File format of the Keyence laser conformal microscope.
         info = self._info.copy()
         info.update(info)
 
-        topo = Topography(height_data.astype(np.float), self._physical_sizes, unit=self._unit, periodic=True, info=info)
-        return topo.scale(self._height_scale_factor)
+        topo = Topography(height_data, self._physical_sizes, unit=self._unit, periodic=True, info=info)
+        return topo.scale(float(self._height_scale_factor))
