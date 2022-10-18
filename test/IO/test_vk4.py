@@ -22,16 +22,13 @@
 # SOFTWARE.
 #
 
-import datetime
 import os
 
-import numpy as np
 import pytest
 
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO.OPDx import OPDxReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,

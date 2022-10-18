@@ -160,7 +160,3 @@ File format of the Keyence laser conformal microscope.
 
         topo = Topography(height_data.astype(np.float), self._physical_sizes, unit=self._unit, periodic=True, info=info)
         return topo.scale(self._height_scale_factor)
-
-    @property
-    def channels(self):
-        return self._channels
