@@ -8,6 +8,7 @@ v1.1 (not yet released)
   returns either `np.ndarray` or `np.ma.masked_array` 
 - MAINT: Added contact.engineering paper to bibliography
 - BUG: Check for reentrant topographies in slope calculation
+- BUG: Fixed aspect ratio used in convenience plotting function
 
 v1.0 (06May22)
 --------------
