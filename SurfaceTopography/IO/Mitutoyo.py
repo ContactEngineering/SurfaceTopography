@@ -79,7 +79,7 @@ surface roughness testers.
             _x = _profile_df['x'].values
             # We store the profile (and metadata) in the object since there
             # can only be a single data channel.
-            self._profile = _profile_df['h'].values
+            self._h = _profile_df['h'].values
 
             # check if positions are distributed uniformly
             _diff = np.diff(_x)
@@ -87,6 +87,10 @@ surface roughness testers.
                 self._uniform = True
             else:
                 self._uniform = False
+                # height values are assigned to the "end" of each "pixel" in the
+                # xlsx format, starting at non-zero x. Here we shift positions
+                # by half a distance each to have non-uniform profiles centered
+                _x =  _x - np.insert(_diff, 0, _x[0]) * 0.5
 
             # try extracting simple roughness metrics from first column
             _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
@@ -96,10 +100,7 @@ surface roughness testers.
                 ))
 
             # try to infer heights unit from roughness metrics
-            if _roughness_metrics_list[0]['unit'] == 'µm':
-                _h_unit = 'um'
-            else:  # No test case for other unit than um so far
-                _h_unit = _roughness_metrics_list[0]['unit']
+            _h_unit = _roughness_metrics_list[0]['unit']
 
             _date_string = _metadata_df[4][1]
 
@@ -117,7 +118,7 @@ surface roughness testers.
                 ureg = pint.UnitRegistry()
                 self._x = (_x*ureg[_x_unit].to(ureg[_h_unit])).magnitude
             except ImportError:  # if pint not available, assert it's mm to um
-                if _x_unit != 'mm' or _h_unit != 'um':
+                if _x_unit != 'mm' or _h_unit not in set(['µm', 'um']):
                     raise ValueError(
                         "Unexpected unit pairing [x] = %s and [h] = %s",
                         _x_unit, _h_unit)
@@ -126,7 +127,7 @@ surface roughness testers.
             self._unit = _h_unit
 
             # we assume the data series to start at zero x
-            self._physical_sizes = np.max(self._x)
+            self._physical_sizes = np.max(self._x) - np.min(self._x)
 
             self._info = {
                 'roughness_metrics': _roughness_metrics_list,
@@ -140,7 +141,7 @@ surface roughness testers.
                                           name='Default',
                                           dim=1,
                                           uniform=self._uniform,
-                                          nb_grid_pts=len(self._profile),
+                                          nb_grid_pts=len(self._h),
                                           unit=self._unit,
                                           physical_sizes=self._physical_sizes,
                                           info=self._info)
@@ -194,7 +195,7 @@ surface roughness testers.
         if self._uniform:
             # Return a uniform line scan if data is equally spaced
             topography = UniformLineScan(
-                self._profile, physical_sizes,
+                self._h, physical_sizes,
                 periodic=self._periodic if periodic is None else periodic,
                 unit=unit,
                 info=_info)
@@ -202,7 +203,8 @@ surface roughness testers.
             # Return a nonuniform line scan otherwise
             topography = NonuniformLineScan(
                 self._x,
-                self._profile,
+                self._h,
+                periodic=self._periodic if periodic is None else periodic,
                 unit=unit,
                 info=_info)
 

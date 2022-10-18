@@ -41,7 +41,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     Nonuniform topography with point list consisting of static numpy arrays.
     """
 
-    def __init__(self, x, y, unit=None, info={}):
+    def __init__(self, x, y, periodic=False, unit=None, info={}):
         """
         Constructor.
 
@@ -51,6 +51,8 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
             x-positions of the data points that sample the line scan.
         y : array_like
             y-positions of the data points that sample the line scan.
+        periodic : bool, optional
+            Flag setting the periodicity of the surface
         unit : str, optional
             The length unit.
         info : dict, optional
@@ -61,12 +63,13 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
             raise ValueError('Storage arrays for nonuniform line scans cannot be masked.')
         self._x = np.asarray(x)
         self._h = np.asarray(y)
+        self._periodic = periodic
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
             the instance
         """
-        state = super().__getstate__(), self._x, self._h
+        state = super().__getstate__(), self._x, self._h, self._periodic
         return state
 
     def __setstate__(self, state):
@@ -74,7 +77,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._x, self._h = state
+        superstate, self._x, self._h , self._periodic = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
@@ -92,7 +95,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     def is_periodic(self):
         """Return whether the topography is periodically repeated at the
         boundaries."""
-        return False
+        return self._periodic
 
     # Implement uniform line scan interface
 
