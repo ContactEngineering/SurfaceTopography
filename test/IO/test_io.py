@@ -90,6 +90,8 @@ binary_example_file_list = _convert_filelist([
     'opdx2.OPDx',
     'opdx3.OPDx',
     'mi1.mi',
+    'mitutoyo_mock.xlsx',
+    'mitutoyo_nonuniform_mock.xlsx',
     'N46E013.hgt',
     'example.zon',
     'example.nc',

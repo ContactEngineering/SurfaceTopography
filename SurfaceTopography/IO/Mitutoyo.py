@@ -164,10 +164,12 @@ surface roughness testers.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        # Units are specified in the XLSX file and cannot be overriden
+        # Units are specified in the XLSX file and cannot be overridden
         if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-
+            if self._unit is not None:
+                raise MetadataAlreadyFixedByFile('unit')
+        else:
+            unit = self._unit
         # Augment info dictionary with user-specified data
         _info = self._info.copy()
         _info.update(info)
