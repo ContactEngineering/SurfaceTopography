@@ -398,12 +398,17 @@ class ReaderBase(metaclass=abc.ABCMeta):
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
-        contains the topography data. The method allows to override data
-        found in the data file by giving appropriate arguments.
+        contains the topography data. Which specific type of height container
+        (1D, 2D, uniform, nonuniform) is returned may depend on the file
+        content and is determined dynamically.
 
-        For some of the given arguments it is checked whether they
-        have already been defined in the file, e.g. the height
-        scale factor, and if yes, an exception is raised (see below).
+        The returned object needs to have `physical_sizes` and periodicity
+        information. If this information is not provided by the data file,
+        then the user must specify it when calling this method. Conversely,
+        metadata that is present in the file cannot be overridden but needs to
+        lead to a `MetadataAlreadyFixedByFile` exception. The user can check
+        if the metadata is present by inspecting the `ChannelInfo` of the
+        respective data channel.
 
         Arguments
         ---------
@@ -440,8 +445,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
         Raises
         ------
-        MetadataAlreadyDefined
-            Raised if `physical_sizes` or `height_scale_factor` have already
-            been defined in the file, because they should not be overridden.
+        MetadataAlreadyFixedByFile
+            Raised if `physical_sizes`, `unit or `height_scale_factor` have
+            already been defined in the file, because they should not be
+            overridden by the user.
         """
         raise NotImplementedError

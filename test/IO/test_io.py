@@ -93,6 +93,8 @@ binary_example_file_list = _convert_filelist([
     'N46E013.hgt',
     'example.zon',
     'example.nc',
+    'mitutoyo_mock.xlsx',
+    'mitutoyo_nonuniform_mock.xlsx'
 ] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
@@ -385,11 +387,18 @@ def test_periodic_flag(fn):
     physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
     physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
-    assert t.is_periodic, fn
+    value_error_thrown = False
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
+        assert t.is_periodic, fn
+    except ValueError:
+        value_error_thrown = True
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
-    assert not t.is_periodic, fn
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
+        assert not t.is_periodic, fn
+    except ValueError:
+        assert not value_error_thrown
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
@@ -568,6 +577,8 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
+    assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
+    assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
 
 
 def test_to_matrix():
