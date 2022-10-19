@@ -60,6 +60,14 @@ SurfaceTopography.IO.Matlab module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.Mitutoyo module
+------------------------------------
+
+.. automodule:: SurfaceTopography.IO.Mitutoyo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.NC module
 ------------------------------
 
