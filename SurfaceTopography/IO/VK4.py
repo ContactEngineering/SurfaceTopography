@@ -91,10 +91,10 @@ File format of the Keyence laser conformal microscope.
 
             self._info = {
                 'acquisition_time':
-                    datetime.datetime(
+                    str(datetime.datetime(
                         year, month, day, hour, minute, second,
                         tzinfo=datetime.timezone(datetime.timedelta(minutes=diff_utc_by_minutes))
-                    )
+                    ))
             }
 
     @property
@@ -110,7 +110,7 @@ File format of the Keyence laser conformal microscope.
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None,
+                   periodic=None, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:
@@ -140,8 +140,12 @@ File format of the Keyence laser conformal microscope.
             height_data = np.fromfile(f, dtype=dtype, count=self._width * self._height) \
                 .reshape((self._height, self._width)).T
 
-        info = self._info.copy()
-        info.update(info)
+        _info = self._info.copy()
+        _info.update(info)
 
-        topo = Topography(height_data, self._physical_sizes, unit=self._unit, periodic=True, info=info)
+        topo = Topography(height_data,
+                          self._physical_sizes,
+                          unit=self._unit,
+                          periodic=False if periodic is None else periodic,
+                          info=_info)
         return topo.scale(float(self._height_scale_factor))
