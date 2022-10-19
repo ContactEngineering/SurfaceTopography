@@ -47,5 +47,5 @@ def test_read_nonuniform(file_format_examples):
     nx, = topography.nb_grid_pts
     assert nx == 960
     # BUG: very different rms height for slightly modified position
-    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.1371261153644389)
+    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.13711646786253162)
     assert not topography.is_uniform
