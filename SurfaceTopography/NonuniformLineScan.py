@@ -77,7 +77,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._x, self._h , self._periodic = state
+        superstate, self._x, self._h, self._periodic = state
         super().__setstate__(superstate)
 
     # Implement abstract methods of AbstractHeightContainer
