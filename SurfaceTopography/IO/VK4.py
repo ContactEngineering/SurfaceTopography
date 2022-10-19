@@ -97,6 +97,7 @@ File format of the Keyence laser conformal microscope.
                     )
             }
 
+    @property
     def channels(self):
         return [ChannelInfo(self,
                             0,  # channel index
