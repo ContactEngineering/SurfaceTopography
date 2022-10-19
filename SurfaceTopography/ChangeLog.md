@@ -5,7 +5,7 @@ v1.1 (not yet released)
 -----------------------
 
 - API: `scale_dependent_statistical_property` of a `SurfaceContainer` now
-  returns either `np.ndarray` or `np.ma.masked_array` 
+  returns either `np.ndarray` or `np.ma.masked_array`
 - ENH: Reader for the Mitutoyo SurfTest Excel spread sheet format
 - MAINT: Added contact.engineering paper to bibliography
 - BUG: Check for reentrant topographies in slope calculation

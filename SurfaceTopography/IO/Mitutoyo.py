@@ -153,7 +153,7 @@ surface roughness testers.
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None,
+                   periodic=None, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
 
         # Check if only a subdomain should be loaded
@@ -193,10 +193,14 @@ surface roughness testers.
             # Return a uniform line scan if data is equally spaced
             topography = UniformLineScan(
                 self._profile, physical_sizes,
-                periodic=self._periodic if periodic is None else periodic,
+                periodic=False if periodic is None else periodic,
                 unit=unit,
                 info=_info)
         else:
+            if periodic is not None and periodic:
+                raise ValueError('Mitutoyo reader found nonuniform data, and the user specified that it is periodic. '
+                                 'Nonuniform line scans cannot be periodic.')
+
             # Return a nonuniform line scan otherwise
             topography = NonuniformLineScan(
                 self._x,

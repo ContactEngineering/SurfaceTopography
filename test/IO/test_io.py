@@ -387,11 +387,18 @@ def test_periodic_flag(fn):
     physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
     physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
-    assert t.is_periodic, fn
+    value_error_thrown = False
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
+        assert t.is_periodic, fn
+    except ValueError:
+        value_error_thrown = True
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
-    assert not t.is_periodic, fn
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
+        assert not t.is_periodic, fn
+    except ValueError:
+        assert not value_error_thrown
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
