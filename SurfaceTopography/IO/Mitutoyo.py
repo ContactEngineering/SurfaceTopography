@@ -208,7 +208,6 @@ surface roughness testers.
             topography = NonuniformLineScan(
                 self._x,
                 self._h,
-                periodic=False,
                 unit=unit,
                 info=_info)
 
