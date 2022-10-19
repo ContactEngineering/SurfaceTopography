@@ -39,6 +39,7 @@ from .DI import DIReader
 from .H5 import H5Reader
 from .IBW import IBWReader
 from .Matlab import MatReader
+from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
@@ -63,6 +64,7 @@ readers = [
     X3PReader,
     IBWReader,
     MIReader,
+    MitutoyoReader,
     NCReader,
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,

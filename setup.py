@@ -150,5 +150,12 @@ setup(
         'requests',
         'matplotlib>=1.0.0',
         'python-dateutil',
-    ]
+    ],
+    extras_require={
+        'mitutoyo': [
+            'openpyxl',
+            'pandas',
+            'pint',
+        ]
+    },
 )
