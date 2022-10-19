@@ -90,14 +90,14 @@ surface roughness testers.
                 # height values are assigned to the "end" of each "pixel" in the
                 # xlsx format, starting at non-zero x. Here we shift positions
                 # by half a distance each to have non-uniform profiles centered
-                _x =  _x - np.insert(_diff, 0, _x[0]) * 0.5
+                _x = _x - np.insert(_diff, 0, _x[0]) * 0.5
 
             # try extracting simple roughness metrics from first column
             _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
-                    lambda g: {
-                        **{key: float(value) if key == 'value' else value for key, value in
-                           R_metric_regex.match(g).groupdict().items()}}
-                ))
+                lambda g: {
+                    **{key: float(value) if key == 'value' else value for key, value in
+                       R_metric_regex.match(g).groupdict().items()}}
+            ))
 
             # try to infer heights unit from roughness metrics
             _h_unit = _roughness_metrics_list[0]['unit']
@@ -116,13 +116,13 @@ surface roughness testers.
             try:
                 import pint
                 ureg = pint.UnitRegistry()
-                self._x = (_x*ureg[_x_unit].to(ureg[_h_unit])).magnitude
+                self._x = (_x * ureg[_x_unit].to(ureg[_h_unit])).magnitude
             except ImportError:  # if pint not available, assert it's mm to um
                 if _x_unit != 'mm' or _h_unit not in set(['µm', 'um']):
                     raise ValueError(
                         "Unexpected unit pairing [x] = %s and [h] = %s",
                         _x_unit, _h_unit)
-                self._x = _x*1000.0  # convert mm to um
+                self._x = _x * 1000.0  # convert mm to um
 
             self._unit = _h_unit
 
