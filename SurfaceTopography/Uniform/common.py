@@ -115,7 +115,7 @@ def plot(topography, subplot_location=111):
         sx, sy = topography.nb_grid_pts
     nx, ny = topography.nb_grid_pts
 
-    ax = plt.subplot(subplot_location, aspect=sx / sy)
+    ax = plt.subplot(subplot_location, aspect=1)
     Y, X = np.meshgrid(np.arange(ny + 1) * sy / ny,
                        np.arange(nx + 1) * sx / nx)
     Z = topography[...]
