@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 =============================
 
-v1.1 (not yet released)
+v1.1 (20Oct22)
 -----------------------
 
 - API: `scale_dependent_statistical_property` of a `SurfaceContainer` now
