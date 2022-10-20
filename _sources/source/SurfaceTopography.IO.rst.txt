@@ -116,6 +116,14 @@ SurfaceTopography.IO.Text module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.VK4 module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.VK4
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.ZON module
 -------------------------------
 
