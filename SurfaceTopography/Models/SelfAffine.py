@@ -155,18 +155,24 @@ class SelfAffine():
 
         # We split the contributions to the integral between the rolloff and the self-affine region.
         # rolloff region
-        rolloff = self.cr / (2 * np.pi) * (rolloff_wavevector ** (2 + 2 * order) - longcut_wavevector ** (2 + 2 * order) ) / (2 + 2 * order)
+        rolloff = self.cr / (2 * np.pi) * (
+            min(rolloff_wavevector, shortcut_wavevector) ** (2 + 2 * order)
+            - longcut_wavevector ** (2 + 2 * order)
+        ) / (2 + 2 * order)
 
-        # self-affine region
-        if self.hurst_exponent == order:
-            self_affine = c0 / (2 * np.pi) * np.log(shortcut_wavevector / rolloff_wavevector)
+        if shortcut_wavevector > rolloff_wavevector:
+            # self-affine region
+            if self.hurst_exponent == order:
+                self_affine = c0 / (2 * np.pi) * np.log(shortcut_wavevector / rolloff_wavevector)
+            else:
+                self_affine = (c0 / (2 * np.pi)
+                            * ( shortcut_wavevector ** ( 2 * (order - self.hurst_exponent) )
+                                - rolloff_wavevector ** ( 2 * (order - self.hurst_exponent) )
+                                ) /
+                            (2 * (order - self.hurst_exponent))
+                            )
         else:
-            self_affine = (c0 / (2 * np.pi)
-                           * ( shortcut_wavevector ** ( 2 * (order - self.hurst_exponent) )
-                              - rolloff_wavevector ** ( 2 * (order - self.hurst_exponent) )
-                              ) /
-                           (2 * (order - self.hurst_exponent))
-                           )
+            self_affine = 0
         return self_affine + rolloff
 
 
