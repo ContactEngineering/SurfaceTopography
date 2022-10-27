@@ -40,6 +40,7 @@ import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
 import SurfaceTopography.Generic.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
+import SurfaceTopography.Generic.Fractional  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
 import SurfaceTopography.Nonuniform.Converters  # noqa: F401

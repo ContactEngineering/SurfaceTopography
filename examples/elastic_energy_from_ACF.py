@@ -63,7 +63,13 @@ np.testing.assert_allclose(Eel_analytic, Eel_brute_force, rtol=1e-1)
 #
 
 # %%
-pixel_spacing, sdrp_slope = roughness.scale_dependent_slope_from_area()
+r, slope = pixel_spacing, sdrp_slope = roughness.scale_dependent_slope_from_area()
+
+# %%
+scipy.integrate.trapz(slope**2, x=r)
+
+# %%
+r[0] * slope[0]**2
 
 # %%
 fig, ax = plt.subplots()
