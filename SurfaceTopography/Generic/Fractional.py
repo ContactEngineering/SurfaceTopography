@@ -4,6 +4,7 @@ import scipy.integrate
 from ..Support import doi
 
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
+from ..Container import SurfaceContainer
 
 def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs):
     r"""
@@ -24,7 +25,7 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
 
     Parameters
     ----------
-    topography : SurfaceTopography or UniformLineScan
+    topography : SurfaceTopography or UniformLineScan or Container
         Container storing the uniform topography map
     **kwargs : dict
         Additional keyword parameters are passed on to
@@ -61,3 +62,4 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
 UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)
 NonuniformLineScanInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)
 UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_area', variance_half_derivative_via_autocorrelation_from_area)
+SurfaceContainer.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)

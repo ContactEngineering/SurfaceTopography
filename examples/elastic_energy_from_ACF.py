@@ -115,4 +115,32 @@ model_psd.variance_half_derivative()
 # %% [markdown]
 # fits pretty well indeed
 
+# %% [markdown]
+# ## Example on UNCD
+
 # %%
+from SurfaceTopography import read_published_container, read_container
+
+# %% [raw]
+# read_published_container("https://contact.engineering/manager/surface/1306/")
+#
+
+# %% [raw]
+# uncd = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
+#
+
+# %% [raw]
+# [containers = c for url in 
+# [
+# "https://contact.engineering/go/wcqj3/",
+# "https://contact.engineering/go/8sc7t/",
+# "https://contact.engineering/go/cjy6s/",
+# "https://contact.engineering/go/mz7z5/",
+# ]]
+
+# %% [raw]
+# uncd = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
+#
+
+# %%
+uncd.variance
