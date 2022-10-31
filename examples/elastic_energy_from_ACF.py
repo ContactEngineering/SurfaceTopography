@@ -1,3 +1,6 @@
+# %% [markdown]
+# This is WIP.
+
 # %%
 import matplotlib.pyplot as plt
 
@@ -13,28 +16,32 @@ from SurfaceTopography.Models.SelfAffine import (
 
 
 # %%
-shortcut_wavelength, hurst_exponent = (2e-6, 0.8)
+rolloff_wavelength, shortcut_wavelength, hurst_exponent = (1e-5, 5e-7, 0.6)
 
-# %%
 n_pixels = 1024
 physical_size = .5e-4
 pixel_size = physical_size / n_pixels
 
-# %%
-# test rolloff
+
 model_psd = SelfAffine(**{
             'cr':5e-27,
             'shortcut_wavelength': shortcut_wavelength,
-            'rolloff_wavelength': 2e-6,
+            'rolloff_wavelength': rolloff_wavelength,
             'hurst_exponent': hurst_exponent})
 
-# %%
 Es = 1e6 / (1-0.5**2)
 roughness = model_psd.generate_roughness(**{
         'seed': 1,
         'n_pixels': n_pixels,
         'pixel_size': pixel_size,
 })
+
+fig, ax = plt.subplots()
+
+q, c = roughness.power_spectrum_from_area()
+ax.loglog(q,c)
+ax.loglog(q, model_psd.power_spectrum_isotropic(q))
+
 
 # %%
 # deterministic, brute force computation of the elastic energy
@@ -91,16 +98,43 @@ fig
 large_scale_slope_integral = - scipy.integrate.cumtrapz(sdrp_slope[::-1] ** 2, x = pixel_spacing[::-1])[::-1]
 flat_cutoff_contribution = (sdrp_slope**2 * pixel_spacing)[:-1] # todo is this the right index ?  
 
-large_scale_elastic_energy = large_scale_slope_integral + flat_cutoff_contribution
+large_scale_variance_half_derivative = 0.5 * (large_scale_slope_integral + flat_cutoff_contribution)
+
+# %%
+large_scale_slope_integral
+
+# %%
+large_scale_variance_half_derivative[0]
+
+# %%
+large_scale_variance_half_derivative[0]
 
 # %%
 fig, ax = plt.subplots()
 
-ax.plot(pixel_spacing[1:], large_scale_elastic_energy)
+ax.axhline(large_scale_variance_half_derivative[0])
+ax.set_xlabel(r"pixel spacing $\ell$")
+ax.axhline(model_psd.variance_derivative(order=0.5,), c = "r", ls = "--")
+ax.plot(pixel_spacing[1:], large_scale_variance_half_derivative)
+
+ax.plot(pixel_spacing, 
+       [model_psd.variance_derivative(order=0.5, shortcut_wavelength= dx * 2 ) for dx in pixel_spacing]
+       )
+
+
+# %%
+flat_cutoff_contribution
+
+# %%
+model_psd.variance_derivative(order=0.5, shortcut_wavelength= dx * 2 ) 
 
 # %%
 ax.set_xscale("log")
 ax.set_yscale("log")
+
+ax.set_xlabel(r"pixel spacing $\ell$")
+ax.set_ylabel(r" $\ell$")
+
 fig
 
 # %%
@@ -112,8 +146,72 @@ scipy.integrate.cumtrapz
 # %%
 model_psd.variance_half_derivative()
 
+# %%
+model_psd.variance_derivative(order=0.5)
+
 # %% [markdown]
 # fits pretty well indeed
+
+# %% [markdown]
+# ## Do the curves collapse for a large enough self-affine region ? 
+
+# %%
+rolloff_wavelength, shortcut_wavelength, hurst_exponent = (1e-5, 4e-7, 0.6)
+
+n_pixels = 2048
+physical_size = .5e-4
+pixel_size = physical_size / n_pixels
+
+
+model_psd = SelfAffine(**{
+            'cr':5e-27,
+            'shortcut_wavelength': shortcut_wavelength,
+            'rolloff_wavelength': rolloff_wavelength,
+            'hurst_exponent': hurst_exponent})
+
+Es = 1e6 / (1-0.5**2)
+roughness = model_psd.generate_roughness(**{
+        'seed': 1,
+        'n_pixels': n_pixels,
+        'pixel_size': pixel_size,
+})
+
+fig, ax = plt.subplots()
+
+q, c = roughness.power_spectrum_from_area()
+ax.loglog(q,c)
+ax.loglog(q, model_psd.power_spectrum_isotropic(q))
+
+
+# %%
+r, slope = pixel_spacing, sdrp_slope = roughness.scale_dependent_slope_from_area()
+large_scale_slope_integral = - scipy.integrate.cumtrapz(sdrp_slope[::-1] ** 2, x = pixel_spacing[::-1])[::-1]
+flat_cutoff_contribution = (sdrp_slope**2 * pixel_spacing)[:-1] # todo is this the right index ?  
+
+large_scale_variance_half_derivative = 0.5 * (large_scale_slope_integral + flat_cutoff_contribution)
+
+# %%
+fig, ax = plt.subplots()
+
+ax.axhline(large_scale_variance_half_derivative[0])
+ax.set_xlabel(r"pixel spacing $\ell$")
+ax.axhline(model_psd.variance_derivative(order=0.5,), c = "r", ls = "--")
+ax.plot(pixel_spacing[1:], large_scale_variance_half_derivative)
+
+ax.plot(pixel_spacing, 
+       [model_psd.variance_derivative(order=0.5, shortcut_wavelength= dx * 2 ) for dx in pixel_spacing]
+       )
+
+ax.set_xscale("log")
+
+ax.set_xlabel(r"pixel spacing $\ell$")
+ax.set_ylabel(r" $\ell$")
+
+
+# %%
+
+ax.set_yscale("log")
+fig
 
 # %% [markdown]
 # ## Example on UNCD
@@ -138,9 +236,11 @@ from SurfaceTopography import read_published_container, read_container
 # "https://contact.engineering/go/mz7z5/",
 # ]]
 
-# %% [raw]
-# uncd = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
-#
+# %%
+uncd = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")[0]
+
 
 # %%
-uncd.variance
+uncd.autocorrelation(unit="m")
+
+# %%

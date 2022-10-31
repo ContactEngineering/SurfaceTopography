@@ -120,12 +120,32 @@ class SelfAffine():
         r"""
          Variance of a derivative of arbitrary (fractional) order
 
+        The contribution for an isotropic flat PSD with amplite :math:`C_r` between the wavevectors :math:`[q_L, q_s]` is
+
         .. math ::
 
-            h^2_\mathrm{rms} = \frac{C_r q_r^2}{4 \pi}
-            \left[ 1 + \frac{1}{H} - \left( \frac{q_l}{q_r}\right)^2 - \left( \frac{q_s}{q_r}\right)^{-2H}\right]
+            \left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_r}{2 \pi}
+                \left[ q_s^{2 + 2\alpha } - q_L ^{2 + 2\alpha} \right] / (2 + 2 \alpha)
+
+        The contribution for a power-law PSD between :math:`[q_L, q_s]`
+
+        For  :math:`\alpha \neq H`
+
+        .. math ::
+
+
+                \left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_0}{2 \pi}
+                            \left[ q_s^{ 2\alpha - 2H} - q_L ^{2\alpha - 2H} \right] / (2\alpha - 2 H)
+
+        and for  :math:`\alpha = H`
+
+        .. math ::
+
+            \left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_0}{2 \pi}
+                \ln\left( q_s/ q_L \right)
 
         Note that :math:`C_r q_r^2` can be interchanged with :math:`C_0 q_r^{-2H}`
+
 
         Parameters
         ----------
