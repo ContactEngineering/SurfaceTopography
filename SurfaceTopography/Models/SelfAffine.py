@@ -143,15 +143,18 @@ class SelfAffine():
         """
         if shortcut_wavelength is None:
             shortcut_wavelength = self.shortcut_wavelength
-
+        else:
+            shortcut_wavelength = max(shortcut_wavelength, self.shortcut_wavelength)
         if longcut_wavelength is None:
             longcut_wavelength = self.longcut_wavelength
+        else:
+            longcut_wavelength = min(longcut_wavelength, self.longcut_wavelength)
 
         shortcut_wavevector = (2*np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
         longcut_wavevector = (2*np.pi) / longcut_wavelength
-        rolloff_wavevector =  (2*np.pi) / self.rolloff_wavelength
+        rolloff_wavevector =  self.rolloff_wavevector
         # prefactor of the self-afine region:
-        c0 = self.cr * rolloff_wavevector ** (2 + 2 * self.hurst_exponent)
+        c0 = self.cr * self.rolloff_wavevector ** (2 + 2 * self.hurst_exponent)
 
         # We split the contributions to the integral between the rolloff and the self-affine region.
         # rolloff region
@@ -167,7 +170,7 @@ class SelfAffine():
             else:
                 self_affine = (c0 / (2 * np.pi)
                             * ( shortcut_wavevector ** ( 2 * (order - self.hurst_exponent) )
-                                - rolloff_wavevector ** ( 2 * (order - self.hurst_exponent) )
+                                - max(rolloff_wavevector, longcut_wavevector) ** ( 2 * (order - self.hurst_exponent) )
                                 ) /
                             (2 * (order - self.hurst_exponent))
                             )
