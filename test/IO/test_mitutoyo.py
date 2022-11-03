@@ -35,6 +35,7 @@ def test_read_uniform(file_format_examples):
     nx, = topography.nb_grid_pts
     assert nx == 960
     np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.16866328079293708)
+
     assert topography.is_uniform
 
 
@@ -46,6 +47,39 @@ def test_read_nonuniform(file_format_examples):
     topography = reader.topography()
     nx, = topography.nb_grid_pts
     assert nx == 960
-    # BUG: very different rms height for slightly modified position
+    # very different rms height for slightly modified position compared to uniform line scan
+    # This is not a bug, but due to approximation methods
     np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.13711646786253162)
     assert not topography.is_uniform
+
+
+def test_uniform_vs_nonuniform(file_format_examples):
+    """Uniform and nonuniform reader positions should be equal with one exemption."""
+    nonuniform_reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx'))
+    uniform_reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx'))
+
+    uniform_topography = uniform_reader.topography()
+    nonuniform_topography = nonuniform_reader.topography()
+
+    uniform_x, uniform_h = uniform_topography.positions_and_heights()
+    nonuniform_x, nonuniform_h = nonuniform_topography.positions_and_heights()
+
+    # I'd like
+    #   np.testing.assert_almost_equal(uniform_topography.physical_sizes, nonuniform_topography.physical_sizes)
+    # but currently it must be
+    np.testing.assert_almost_equal(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5)
+
+    # Convention is to have uniform linescan begin at zero, nonuniform linescan built from Mitutoyo file
+    # chooses positions element-centered, i.e. assumes the initial element to stretch from 0 (zero) to 0.5
+    # and places the grid point centered at 0.25. Similarly, the end point is placed at 479.75 um.
+    np.testing.assert_almost_equal(uniform_x[:99], nonuniform_x[:99] - 0.25)
+
+    # the 100th positions has been slightly shifted by 0.1 um in the nonuniform mock file
+    # hence centered positions are off at index 100 and 101 by half the shift, 0.05 um:
+    np.testing.assert_almost_equal(uniform_x[99], nonuniform_x[99] - 0.25 - 0.05)
+    np.testing.assert_almost_equal(uniform_x[100], nonuniform_x[100] - 0.25 - 0.05)
+
+    np.testing.assert_almost_equal(uniform_x[101:], nonuniform_x[101:] - 0.25)
+
+    # heights must be the same
+    np.testing.assert_almost_equal(nonuniform_h, nonuniform_h)
