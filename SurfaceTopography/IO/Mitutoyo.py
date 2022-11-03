@@ -56,8 +56,8 @@ surface roughness testers.
 
         The reader expects a line scan by positions and heights in columns
         5 and 6 (E, F) and tries to extract standard roughness metrics from
-        column 1 (A) on the sheet 'DATA'. The reader extracts expects the
-        acquisition date on sheet in column 5 (E) row 2 on sheet 'Certificate'.
+        column 1 (A) on the sheet 'DATA'. The reader expects the
+        acquisition date in column 5 (E) row 2 on sheet 'Certificate'.
 
         Parameters
         ----------
@@ -126,8 +126,11 @@ surface roughness testers.
 
             self._unit = _h_unit
 
-            # we assume the data series to start at zero x
-            self._physical_sizes = np.max(self._x) - np.min(self._x)
+            # with n data points spaced by distance dx,
+            #   internal format of positions in uniform line scan is [0, dx, 2*dx, ... (n-1)*dx]
+            #   Mitutoyo format of positions is [dx, 2*dx, ..., n*dx]
+            # _physical_sizes must capture n*dx to result in valid zero-initiated uniform distribution
+            self._physical_sizes = np.max(self._x)
 
             self._info = {
                 'roughness_metrics': _roughness_metrics_list,
@@ -185,7 +188,7 @@ surface roughness testers.
         channel = self._channels[channel_index]
 
         # Make sure `physical_sizes` is present, either fixed by the file
-        # or given by the user. Also make sure that if the user specifies it
+        # or given by the user. Also make sure that if the user specifies it,
         # it cannot be set in the file. (We cannot override metadata from
         # files.)
         physical_sizes = self._check_physical_sizes(physical_sizes,
