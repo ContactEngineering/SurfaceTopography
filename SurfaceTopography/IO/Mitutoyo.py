@@ -88,9 +88,14 @@ surface roughness testers.
             else:
                 self._uniform = False
                 # height values are assigned to the "end" of each "pixel" in the
-                # xlsx format, starting at non-zero x. Here we shift positions
-                # by half a distance each to have non-uniform profiles centered
-                _x = _x - np.insert(_diff, 0, _x[0]) * 0.5
+                # xlsx format, starting at non-zero x. Here we used to shift
+                # positions by half a distance each to have non-uniform profiles
+                # element-centered positions:
+                # _x = _x - np.insert(_diff, 0, _x[0]) * 0.5
+                # Howver, UniformLinescan always starts at x0 = 0
+                # To conform with this convention, here we now simply remove the
+                # first grid point's absolute position.
+                _x -= _x[0]
 
             # try extracting simple roughness metrics from first column
             _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(

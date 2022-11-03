@@ -49,7 +49,7 @@ def test_read_nonuniform(file_format_examples):
     assert nx == 960
     # very different rms height for slightly modified position compared to uniform line scan
     # This is not a bug, but due to approximation methods
-    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.13711646786253162)
+    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.1371261153644389)
     assert not topography.is_uniform
 
 
@@ -69,17 +69,16 @@ def test_uniform_vs_nonuniform(file_format_examples):
     # but currently it must be
     np.testing.assert_almost_equal(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5)
 
-    # Convention is to have uniform linescan begin at zero, nonuniform linescan built from Mitutoyo file
-    # chooses positions element-centered, i.e. assumes the initial element to stretch from 0 (zero) to 0.5
-    # and places the grid point centered at 0.25. Similarly, the end point is placed at 479.75 um.
-    np.testing.assert_almost_equal(uniform_x[:99], nonuniform_x[:99] - 0.25)
+    # Convention is to have uniform linescan begin at zero, nonuniform linescan
+    # built from Mitutoyo file follows this convention as well by removing the
+    # initial grid point's absolute position
+    np.testing.assert_almost_equal(uniform_x[:99], nonuniform_x[:99])
 
-    # the 100th positions has been slightly shifted by 0.1 um in the nonuniform mock file
-    # hence centered positions are off at index 100 and 101 by half the shift, 0.05 um:
-    np.testing.assert_almost_equal(uniform_x[99], nonuniform_x[99] - 0.25 - 0.05)
-    np.testing.assert_almost_equal(uniform_x[100], nonuniform_x[100] - 0.25 - 0.05)
+    # the 100th positions has been slightly shifted by 0.1 um in the nonuniform
+    # mock file hence the position is off at index 99
+    np.testing.assert_almost_equal(uniform_x[99], nonuniform_x[99] - 0.1)
 
-    np.testing.assert_almost_equal(uniform_x[101:], nonuniform_x[101:] - 0.25)
+    np.testing.assert_almost_equal(uniform_x[100:], nonuniform_x[100:])
 
     # heights must be the same
     np.testing.assert_almost_equal(nonuniform_h, nonuniform_h)
