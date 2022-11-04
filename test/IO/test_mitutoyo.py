@@ -97,9 +97,15 @@ def test_read_uniform(file_format_examples):
 
     # test a few channel properties
     assert reader.default_channel.unit == 'µm'
-    assert reader.default_channel.area_per_pt == 0.5
+
+    np.testing.assert_almost_equal(reader.default_channel.area_per_pt, 0.5)
+
     assert reader.default_channel.dim == 1
-    assert reader.default_channel.physical_sizes == (480.,)
+
+    physical_sizes = reader.default_channel.physical_sizes
+    assert len(physical_sizes) == 1
+    np.testing.assert_almost_equal(physical_sizes[0], 480.)
+
     nx, = reader.channels[0].nb_grid_pts
     assert nx == 960
 
@@ -129,7 +135,10 @@ def test_read_nonuniform(file_format_examples):
     assert reader.default_channel.unit == 'µm'
     assert reader.default_channel.dim == 1
     # ATTENTION: physical_sizes differs from uniform linescan above
-    assert reader.default_channel.physical_sizes == (479.5,)
+    physical_sizes = reader.default_channel.physical_sizes
+    assert len(physical_sizes) == 1
+    np.testing.assert_almost_equal(physical_sizes[0], 479.5)
+
     nx, = reader.channels[0].nb_grid_pts
     assert nx == 960
 
