@@ -154,7 +154,6 @@ setup(
     extras_require={
         'mitutoyo': [
             'openpyxl',
-            'pandas',
             'pint',
         ]
     },
