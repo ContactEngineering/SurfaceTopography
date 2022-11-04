@@ -21,7 +21,7 @@
 #
 
 import numpy as np
-import pandas as pd
+import openpyxl
 import re
 
 from datetime import datetime
@@ -30,6 +30,7 @@ from ..Exceptions import MetadataAlreadyFixedByFile
 
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import UniformLineScan
+from ..Support.UnitConversion import get_unit_conversion_factor
 from .Reader import ReaderBase, ChannelInfo
 
 R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
@@ -39,19 +40,19 @@ cut_off_regex = re.compile(r'(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\
 class MitutoyoReader(ReaderBase):
     """
     Mitutoyo SurfTest surface roughness testers produce specifically formatted
-    Excel spread sheets.
+    Excel spreadsheets.
     """
 
     _format = 'mitutoyo'
-    _name = 'Mitutoyo SurfTest Excel spread sheet (xlsx)'
+    _name = 'Mitutoyo SurfTest Excel spreadsheet (xlsx)'
     _description = '''
-Load topography information stored as Excel spread sheet by Mitutoyo SurfTest
+Load topography information stored as Excel spreadsheet by Mitutoyo SurfTest
 surface roughness testers.
     '''
 
     def __init__(self, fobj):
         """
-        Open Excel spread sheet produced by Mitutoyo SurfTest surface roughness
+        Open Excel spreadsheet produced by Mitutoyo SurfTest surface roughness
         testers.
 
         The reader expects a line scan by positions and heights in columns
@@ -66,20 +67,19 @@ surface roughness testers.
         """
 
         try:
-            # Pandas exceptions not documented for pd.read_excel
-            _dataset_df = pd.read_excel(fobj, sheet_name='DATA', header=None)
-            _metadata_df = pd.read_excel(fobj, sheet_name='Certificate', header=None)
+            wb = openpyxl.load_workbook(fobj)
+            _data = wb['DATA']
+            _metadata = wb['Certificate']
             # How should a reader properly fulfill test_no_resource_warning_on_failure?
-        except Exception as exc:
-            # Pass Pandas exceptions at this point on a `IOError`s
+        except openpyxl.utils.exceptions.InvalidFileException as exc:
+            # reraise openpyxl exceptions as IOError
             raise IOError(exc)
         else:
-            _profile_df = _dataset_df[[4, 5]]
-            _profile_df.columns = ('x', 'h')
-            _x = _profile_df['x'].values
+            _x_cells, _h_cells = _data['E:F']
+            _x = np.array([cell.value for cell in _x_cells if cell.value is not None])
             # We store the profile (and metadata) in the object since there
             # can only be a single data channel.
-            self._h = _profile_df['h'].values
+            self._h = np.array([cell.value for cell in _h_cells if cell.value is not None])
 
             # check if positions are distributed uniformly
             _diff = np.diff(_x)
@@ -92,43 +92,43 @@ surface roughness testers.
                 # positions by half a distance each to have non-uniform profiles
                 # element-centered positions:
                 # _x = _x - np.insert(_diff, 0, _x[0]) * 0.5
-                # Howver, UniformLinescan always starts at x0 = 0
+                # However, UniformLinescan always starts at x0 = 0
                 # To conform with this convention, here we now simply remove the
                 # first grid point's absolute position.
                 _x -= _x[0]
 
             # try extracting simple roughness metrics from first column
-            _roughness_metrics_list = list(_dataset_df[~_dataset_df[0].isnull()][0].apply(
-                lambda g: {
-                    **{key: float(value) if key == 'value' else value for key, value in
-                       R_metric_regex.match(g).groupdict().items()}}
-            ))
+
+            _roughness_metrics_cells = _data['A']
+            _roughness_metrics_list = []
+            for cell in _roughness_metrics_cells:
+                # iterate until first empty row
+                if cell.value is None:
+                    break
+
+                _roughness_metrics_record = {
+                    key: float(value) if key == 'value' else value
+                    for key, value in R_metric_regex.match(cell.value).groupdict().items()
+                }
+
+                _roughness_metrics_list.append(_roughness_metrics_record)
 
             # try to infer heights unit from roughness metrics
             _h_unit = _roughness_metrics_list[0]['unit']
 
-            _date_string = _metadata_df[4][1]
+            # get creation date
+            _date_string = _metadata['E2'].value
 
             # remove all whitespace from date string
             _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
 
             # try to infer x unit from cut off
-            _cut_off_string = _metadata_df[4][47]
+            _cut_off_string = _metadata['E48'].value
             _cut_off_dict = cut_off_regex.match(_cut_off_string).groupdict()
             _x_unit = _cut_off_dict['unit']
 
-            # try to convert x unit to h unit if pint available
-            try:
-                import pint
-                ureg = pint.UnitRegistry()
-                self._x = (_x * ureg[_x_unit].to(ureg[_h_unit])).magnitude
-            except ImportError:  # if pint not available, assert it's mm to um
-                if _x_unit != 'mm' or _h_unit not in set(['µm', 'um']):
-                    raise ValueError(
-                        "Unexpected unit pairing [x] = %s and [h] = %s",
-                        _x_unit, _h_unit)
-                self._x = _x * 1000.0  # convert mm to um
-
+            # convert x unit to h unit
+            self._x = _x*get_unit_conversion_factor(_x_unit, _h_unit)
             self._unit = _h_unit
 
             # with n data points spaced by distance dx,
