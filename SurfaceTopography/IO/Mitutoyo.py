@@ -30,6 +30,7 @@ from ..Exceptions import MetadataAlreadyFixedByFile
 
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import UniformLineScan
+from ..Support.UnitConversion import get_unit_conversion_factor
 from .Reader import ReaderBase, ChannelInfo
 
 R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
@@ -126,18 +127,8 @@ surface roughness testers.
             _cut_off_dict = cut_off_regex.match(_cut_off_string).groupdict()
             _x_unit = _cut_off_dict['unit']
 
-            # try to convert x unit to h unit if pint available
-            try:
-                import pint
-                ureg = pint.UnitRegistry()
-                self._x = (_x * ureg[_x_unit].to(ureg[_h_unit])).magnitude
-            except ImportError:  # if pint not available, assert it's mm to um
-                if _x_unit != 'mm' or _h_unit not in set(['µm', 'um']):
-                    raise ValueError(
-                        "Unexpected unit pairing [x] = %s and [h] = %s",
-                        _x_unit, _h_unit)
-                self._x = _x * 1000.0  # convert mm to um
-
+            # convert x unit to h unit
+            self._x = _x*get_unit_conversion_factor(_x_unit, _h_unit)
             self._unit = _h_unit
 
             # with n data points spaced by distance dx,
