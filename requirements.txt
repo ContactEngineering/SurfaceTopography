@@ -21,3 +21,4 @@ python-dateutil
 pandas
 pint
 openpyxl
+tiffile

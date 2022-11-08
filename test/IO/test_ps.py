@@ -29,42 +29,30 @@ import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography import read_topography
+from SurfaceTopography.IO import PSReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial funcionalities, please execute with pytest")
 
 
-def test_read_filestream(file_format_examples):
-    """
-    The reader has to work when the file was already opened as binary for
-    it to work in topobank.
-    """
-    file_path = os.path.join(file_format_examples, 'example.vk4')
+def test_ps_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example_ps.tiff')
 
-    read_topography(file_path)
+    r = PSReader(file_path)
 
-    with open(file_path, 'r') as f:
-        read_topography(f)
+    assert r.channels[0].name == 'Z Height'
 
-    # This test just needs to arrive here without raising an exception
-
-
-def test_vk4_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk4')
-
-    f = open(file_path, 'rb')
-    t = read_topography(f)
+    t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 1024
-    assert ny == 768
+    assert nx == 512
+    assert ny == 512
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1396330551)
-    np.testing.assert_almost_equal(sy, 1046906679)
+    np.testing.assert_almost_equal(sx, 1.0)
+    np.testing.assert_almost_equal(sy, 1.0)
 
-    assert t.unit == 'pm'
+    assert t.unit == 'um'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 302497762.3406505)
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 0.003933333499668988)

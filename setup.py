@@ -156,6 +156,9 @@ setup(
             'openpyxl',
             'pandas',
             'pint',
+        ],
+        'ps': [
+            'tiffile'
         ]
     },
 )
