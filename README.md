@@ -25,9 +25,21 @@ This README file contains a brief introduction into the code. The full documenta
 Installation
 ------------
 
-Quick install with: `python3 -m pip install SurfaceTopgography`
+Installation is only possible on unix/linux systems and cumbersome on macOSX. 
+For a quick start and if your OS is windows, consider running SurfaceTopography via our [Docker container]().
 
-Requirements and more detailed instructions are in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation).
+You first need to install requirements following our detailed instruction in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation).
+
+Once the requirements are installed, 
+quick install with: `python3 -m pip install SurfaceTopgography`
+
+Running SurfaceTopography via a Docker container
+------------------------------------------------
+
+1. Install and start [Docker](https://www.docker.com/)
+2. start one of our [docker images](https://hub.docker.com/r/imteksim/jupyterlab-surfacetopography/tags), e.g. via the commandline `docker run -d -p 8888:8888 imteksim/jupyterlab-surfacetopography:0.3.0`
+3. The terminal output will prompt you how to open the jupyterlab server in your browser
+4. Open a notebook with the kernel called `SurfaceTopography`
 
 Funding
 -------
