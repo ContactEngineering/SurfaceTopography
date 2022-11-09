@@ -186,7 +186,9 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
                                      'seems this is not the case.')
                 self.read_vk34(f)
             else:
-                # VK6/7 contains a .zip file that has VK4 file name 'Vk4File'
+                # VK6/7 contains a .zip file that has VK4 file name 'Vk4File'.
+                # ZipFile gracefully skips VK6 header information before the
+                # zip actually starts.
                 with ZipFile(f, 'r') as z:
                     self.read_vk3467(z.open('Vk4File'))
 
@@ -271,6 +273,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
             if self._file_version in [3, 4]:  # VK3 or VK4
                 height_data = self.read_height_data(f)
             else:  # VK6 or VK7
+                # ZipFile gracefully skips VK6 header information before the
+                # zip actually starts.
                 with ZipFile(f) as z:
                     height_data = self.read_height_data(z.open('Vk4File'))
 
