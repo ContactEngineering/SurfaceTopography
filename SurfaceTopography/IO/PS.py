@@ -22,13 +22,10 @@
 # SOFTWARE.
 #
 
-import datetime
-
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/psia.c
 
 import io
-from struct import unpack
 
 import numpy as np
 
@@ -202,10 +199,9 @@ TIFF-based file format of Park Systems instruments.
                 raw_data = t.pages[0].tags[self._TAG_DATA].value
                 t = self._header['data_type']
                 dtype = np.int16 if t == self._DATA_TYPE_INT16 else \
-                    np.int32 if t == self._DATA_TYPE_INT32 else \
-                        np.single
-                height_data = np.frombuffer(raw_data, dtype=dtype, count=np.prod(self._nb_grid_pts)) \
-                    .reshape(self._nb_grid_pts).T
+                    np.int32 if t == self._DATA_TYPE_INT32 else np.single
+                height_data = \
+                    np.frombuffer(raw_data, dtype=dtype, count=np.prod(self._nb_grid_pts)).reshape(self._nb_grid_pts).T
 
         _info = self._info.copy()
         _info.update(info)
