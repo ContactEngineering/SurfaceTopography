@@ -1,8 +1,13 @@
 Change log for SurfaceTopography
 =============================
 
-v1.1 (20Oct22)
+v1.2 (not yet released)
 -----------------------
+
+- ENH: Reader for Park Systems TIFF
+
+v1.1 (20Oct22)
+--------------
 
 - API: `scale_dependent_statistical_property` of a `SurfaceContainer` now
   returns either `np.ndarray` or `np.ma.masked_array`

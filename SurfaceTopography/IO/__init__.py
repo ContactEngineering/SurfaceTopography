@@ -43,6 +43,7 @@ from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .VK4 import VK4Reader
@@ -69,6 +70,7 @@ readers = [
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
+    PSReader,
     VK4Reader,
     ZONReader,
     HGTReader,

@@ -153,6 +153,8 @@ setup(
         'python-dateutil',
     ],
     extras_require={
-        'mitutoyo': []
+        'ps': [
+            'tiffile'
+        ]
     },
 )
