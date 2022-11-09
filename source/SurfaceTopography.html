@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.2.dev17+gacd5d6ee documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.2.dev21+gd75ca1eb documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -33,7 +33,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.dev17+gacd5d6ee
+                1.2.dev21+gd75ca1eb
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -558,6 +558,15 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_dimension2d_content"><code class="docutils literal notranslate"><span class="pre">read_dimension2d_content()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.PS">SurfaceTopography.IO.PS module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader"><code class="docutils literal notranslate"><span class="pre">PSReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader.__init__"><code class="docutils literal notranslate"><span class="pre">PSReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader.channels"><code class="docutils literal notranslate"><span class="pre">PSReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader.topography"><code class="docutils literal notranslate"><span class="pre">PSReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo"><code class="docutils literal notranslate"><span class="pre">ChannelInfo</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.__init__"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.__init__()</span></code></a></li>
@@ -609,6 +618,10 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.topography"><code class="docutils literal notranslate"><span class="pre">ZONReader.topography()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.binary">SurfaceTopography.IO.binary module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.binary.decode"><code class="docutils literal notranslate"><span class="pre">decode()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a><ul>
@@ -1201,6 +1214,9 @@ standardized keys, listed in the following.</p>
 </ul>
 </dd>
 </dl>
+</dd>
+<dt>‘raw_metadata’<span class="classifier">dict</span></dt><dd><p>Dictionary containing the raw (non-standardized) metadata as
+extracted during reading of the topography.</p>
 </dd>
 </dl>
 </section>

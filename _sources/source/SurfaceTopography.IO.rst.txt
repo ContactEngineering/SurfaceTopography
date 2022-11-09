@@ -100,6 +100,14 @@ SurfaceTopography.IO.OPDx module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.PS module
+------------------------------
+
+.. automodule:: SurfaceTopography.IO.PS
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.Reader module
 ----------------------------------
 
@@ -128,6 +136,14 @@ SurfaceTopography.IO.ZON module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.ZON
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.binary module
+----------------------------------
+
+.. automodule:: SurfaceTopography.IO.binary
    :members:
    :undoc-members:
    :show-inheritance:
