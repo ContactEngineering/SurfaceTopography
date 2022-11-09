@@ -145,6 +145,7 @@ setup(
         'h5py',
         'defusedxml',
         'numpyencoder',
+        'openpyxl',
         'pyyaml',
         'Pillow',
         'requests',
@@ -152,11 +153,6 @@ setup(
         'python-dateutil',
     ],
     extras_require={
-        'mitutoyo': [
-            'openpyxl',
-            'pandas',
-            'pint',
-        ],
         'ps': [
             'tiffile'
         ]
