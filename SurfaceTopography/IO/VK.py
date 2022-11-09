@@ -157,13 +157,21 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
         ('height_effective_bit_depth', 'I'),
     ]
 
+    _image_structure = [
+        ('width', 'I'),
+        ('height', 'I'),
+        ('itemsize', 'I'),
+        ('compression', 'I'),
+        ('byte_size', 'I'),
+    ]
+
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
         self.file_path = file_path
         self._file_version = None
-        self.read_vk3467(file_path)
+        self.read_vk3467_header(file_path)
 
-    def read_vk3467(self, file_path):
+    def read_vk3467_header(self, file_path):
         with OpenFromAny(file_path, 'rb') as f:
             # Detect file version
             magic = f.read(7)
@@ -188,15 +196,15 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
                 if f.read(len(self._MAGIC0)) != self._MAGIC0:  # All zeros
                     raise ValueError('File magic does not match. I thought this was a Keyence VK3 or VK4 file, but it '
                                      'seems this is not the case.')
-                self.read_vk34(f)
+                self.read_vk34_header(f)
             else:
                 # VK6/7 contains a .zip file that has VK4 file name 'Vk4File'.
                 # ZipFile gracefully skips VK6 header information before the
                 # zip actually starts.
                 with ZipFile(f, 'r') as z:
-                    self.read_vk3467(z.open('Vk4File'))
+                    self.read_vk3467_header(z.open('Vk4File'))
 
-    def read_vk34(self, f):
+    def read_vk34_header(self, f):
         # Offset table
         self._offset_table = decode(f, self._offset_table_structure, '<')
 
@@ -208,16 +216,17 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
 
         # Height data
         f.seek(self._offset_table['height1'])
-        self._width, self._height, self._itemsize, compression, byte_size = unpack('<IIIII', f.read(20))
+        self._data = decode(f, self._image_structure, '<')
 
-        if byte_size != self._width * self._height * self._itemsize // 8:
+        if self._data['byte_size'] != self._data['width'] * self._data['height'] * self._data['itemsize'] // 8:
             raise CorruptFile('Reported size does not match image dimensions.')
 
-        if self._itemsize not in [8, 16, 32]:
-            raise CorruptFile(f'Reported item size is {self._itemsize} bits, expected 8, 16 or 32 bits.')
+        if self._data['itemsize'] not in [8, 16, 32]:
+            raise CorruptFile('Reported item size is {} bits, expected 8, 16 or 32 bits.'
+                              .format(self._data['itemsize']))
 
-        self._physical_sizes = ((self._width - 1) * self._header['x_length_per_pixel'],
-                                (self._height - 1) * self._header['y_length_per_pixel'])
+        self._physical_sizes = ((self._data['width'] - 1) * self._header['x_length_per_pixel'],
+                                (self._data['height'] - 1) * self._header['y_length_per_pixel'])
         self._unit = 'pm'
 
         self._info = {
@@ -235,9 +244,9 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
                + 7 * 8  # width, height, bit depth, compression, byte size, palette min, palette max
                + 768  # palette
                )
-        dtype = np.uint8 if self._itemsize == 8 else np.uint16 if self._itemsize == 16 else np.uint32
-        buffer = f.read(self._width * self._height * np.dtype(dtype).itemsize)
-        return np.frombuffer(buffer, dtype=dtype).reshape((self._height, self._width)).T
+        dtype = np.uint8 if self._data['itemsize'] == 8 else np.uint16 if self._data['itemsize'] == 16 else np.uint32
+        buffer = f.read(self._data['width'] * self._data['height'] * np.dtype(dtype).itemsize)
+        return np.frombuffer(buffer, dtype=dtype).reshape((self._data['height'], self._data['width'])).T
 
     @property
     def channels(self):
@@ -245,7 +254,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
                             0,  # channel index
                             name='Default',
                             dim=2,
-                            nb_grid_pts=(self._width, self._height),
+                            nb_grid_pts=(self._data['width'], self._data['height']),
                             physical_sizes=self._physical_sizes,
                             uniform=True,
                             unit=self._unit)]
