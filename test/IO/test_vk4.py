@@ -30,6 +30,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
+from SurfaceTopography.IO import VK4Reader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -54,8 +55,27 @@ def test_read_filestream(file_format_examples):
 def test_vk4_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'example.vk4')
 
-    f = open(file_path, 'rb')
-    t = read_topography(f)
+    r = VK4Reader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1024
+    assert ny == 768
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_almost_equal(sx, 1396330551)
+    np.testing.assert_almost_equal(sy, 1046906679)
+
+    assert t.unit == 'pm'
+
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 302497762.3406505)
+
+
+def test_vk6_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example.vk6')
+
+    r = VK4Reader(file_path)
+    t = r.topography()
 
     nx, ny = t.nb_grid_pts
     assert nx == 1024
