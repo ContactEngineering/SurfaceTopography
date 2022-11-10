@@ -37,7 +37,7 @@ import numpy as np
 from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
 
@@ -185,7 +185,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
             elif magic.startswith(self._MAGIC7):  # 'VK7'
                 file_version = 7
             else:
-                raise ValueError('File magic does not match. This is not a Keyence VK file.')
+                raise FileFormatMismatch('File magic does not match. This is not a Keyence VK file.')
 
             if self._file_version is None:
                 self._file_version = file_version
@@ -193,8 +193,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
             if file_version in [3, 4]:
                 f.read(1)  # skip dll version
                 if f.read(len(self._MAGIC0)) != self._MAGIC0:  # All zeros
-                    raise ValueError('File magic does not match. I thought this was a Keyence VK3 or VK4 file, but it '
-                                     'seems this is not the case.')
+                    raise FileFormatMismatch('File magic does not match. I thought this was a Keyence VK3 or VK4 file, '
+                                             'but it seems this is not the case.')
                 self.read_vk34_header(f)
             else:
                 # VK6/7 contains a .zip file that has VK4 file name 'Vk4File'.
