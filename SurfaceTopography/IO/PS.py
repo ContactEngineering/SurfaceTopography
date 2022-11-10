@@ -100,10 +100,10 @@ TIFF-based file format of Park Systems instruments.
     ]
 
     _version2_header_structure = [
-        ('z_servo_gain', 'd'),
-        ('z_scanner_range', 'd'),
+        ('data_servo_gain', 'd'),
+        ('data_scanner_range', 'd'),
         ('xy_voltage_mode', '8U'),
-        ('z_voltage_mode', '8U'),
+        ('data_voltage_mode', '8U'),
         ('xy_servo_mode', '8U'),
         ('data_type', 'I'),
         ('reserved1', 'I'),
