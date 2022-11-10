@@ -160,7 +160,6 @@ TIFF-based file format of Park Systems instruments.
             except TiffFileError:
                 raise FileFormatMismatch('This is not a TIFF file, so it cannot be a Park Systems TIFF.')
 
-
     @property
     def channels(self):
         return [ChannelInfo(self,
