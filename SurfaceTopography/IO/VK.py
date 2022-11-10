@@ -30,7 +30,6 @@
 #
 
 import datetime
-from struct import unpack
 from zipfile import ZipFile
 
 import numpy as np
