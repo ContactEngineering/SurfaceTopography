@@ -5,6 +5,7 @@ v1.2 (not yet released)
 -----------------------
 
 - ENH: Reader for Park Systems TIFF
+- END: Reader for Alicona Imaging AL3D files
 
 v1.1 (20Oct22)
 --------------
