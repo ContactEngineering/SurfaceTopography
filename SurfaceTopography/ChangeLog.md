@@ -6,6 +6,7 @@ v1.2 (not yet released)
 
 - ENH: Reader for Park Systems TIFF
 - ENH: Reader for Keyence VK6
+- MAINT: Removed pandas dependency
 - BUG: Fixed bug in VK4 reader
 
 v1.1 (20Oct22)
