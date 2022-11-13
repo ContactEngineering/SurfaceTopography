@@ -68,9 +68,7 @@ def test_vk4_metadata(file_format_examples):
 
     assert t.unit == 'pm'
 
-    print(t.min(), t.max())
-
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 302497762.3406505)
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 54193042.85097)
 
 
 def test_vk6_metadata(file_format_examples):
@@ -89,4 +87,4 @@ def test_vk6_metadata(file_format_examples):
 
     assert t.unit == 'pm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 98703536.92279597)
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 1061663.7395845044)

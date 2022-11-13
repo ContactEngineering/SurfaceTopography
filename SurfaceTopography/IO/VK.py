@@ -152,8 +152,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
         ('light_lut_out4', 'I'),
         ('upper_position', 'I'),
         ('lower_position', 'I'),
-        ('light_effective_bit_depth', 'I'),
-        ('height_effective_bit_depth', 'I'),
+        ('light_effective_itemsize', 'I'),
+        ('height_effective_itemsize', 'I'),
     ]
 
     _image_structure = [
@@ -162,6 +162,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
         ('itemsize', 'I'),
         ('compression', 'I'),
         ('byte_size', 'I'),
+        ('palette_range_min', 'I'),
+        ('palette_range_max', 'I'),
     ]
 
     # Reads in the positions of all the data and metadata
@@ -239,10 +241,11 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
         }
 
     def read_height_data(self, f):
-        f.seek(self._offset_table['height1']
-               + 7 * 8  # width, height, bit depth, compression, byte size, palette min, palette max
-               + 768  # palette
-               )
+        f.seek(self._offset_table['height1'])
+        image_header = decode(f, self._image_structure, '<')
+        f.seek(768, 1)  # Skip palette
+        assert image_header['width'] == self._data['width']
+        assert image_header['height'] == self._data['height']
         dtype = np.uint8 if self._data['itemsize'] == 8 else np.uint16 if self._data['itemsize'] == 16 else np.uint32
         buffer = f.read(self._data['width'] * self._data['height'] * np.dtype(dtype).itemsize)
         return np.frombuffer(buffer, dtype=dtype).reshape((self._data['height'], self._data['width'])).T
