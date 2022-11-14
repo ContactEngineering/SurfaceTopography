@@ -29,12 +29,12 @@ import io
 
 import numpy as np
 
-from tiffile import TiffFile
+from tiffile import TiffFile, TiffFileError
 
 from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor
 
@@ -100,10 +100,10 @@ TIFF-based file format of Park Systems instruments.
     ]
 
     _version2_header_structure = [
-        ('z_servo_gain', 'd'),
-        ('z_scanner_range', 'd'),
+        ('data_servo_gain', 'd'),
+        ('data_scanner_range', 'd'),
         ('xy_voltage_mode', '8U'),
-        ('z_voltage_mode', '8U'),
+        ('data_voltage_mode', '8U'),
         ('xy_servo_mode', '8U'),
         ('data_type', 'I'),
         ('reserved1', 'I'),
@@ -115,47 +115,50 @@ TIFF-based file format of Park Systems instruments.
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
-        self.file_path = file_path
-        with OpenFromAny(file_path, 'rb') as f:
-            with TiffFile(f) as t:
-                if len(t.pages) != 1:
-                    raise CorruptFile('More than one image in TIFF.')
-                p = t.pages[0]
+        self._file_path = file_path
+        with OpenFromAny(self._file_path, 'rb') as f:
+            try:
+                with TiffFile(f) as t:
+                    if len(t.pages) != 1:
+                        raise FileFormatMismatch('More than one image in TIFF.')
+                    p = t.pages[0]
 
-                # Check file magic and version information
-                if p.tags[self._TAG_MAGIC].value != self._MAGIC:
-                    raise CorruptFile('This is not a Park Systems TIFF.')
-                self._version = p.tags[self._TAG_VERSION].value
-                if self._version not in [self._VERSION1, self._VERSION2]:
-                    raise CorruptFile('Only version 1 and 2 of Park Systems TIFFs are supported.')
+                    # Check file magic and version information
+                    if p.tags[self._TAG_MAGIC].value != self._MAGIC:
+                        raise FileFormatMismatch('This is not a Park Systems TIFF.')
+                    self._version = p.tags[self._TAG_VERSION].value
+                    if self._version not in [self._VERSION1, self._VERSION2]:
+                        raise CorruptFile('Only version 1 and 2 of Park Systems TIFFs are supported.')
 
-                # Parse header
-                header_data = p.tags[self._TAG_HEADER].value
-                if (self._version == self._VERSION1 and len(header_data) < 356) or (
-                        self._version == self._VERSION2 and len(header_data) < 580):
-                    raise CorruptFile('Header too short.')
+                    # Parse header
+                    header_data = p.tags[self._TAG_HEADER].value
+                    if (self._version == self._VERSION1 and len(header_data) < 356) or (
+                            self._version == self._VERSION2 and len(header_data) < 580):
+                        raise CorruptFile('Header too short.')
 
-                header_stream = io.BytesIO(header_data)
-                self._header = decode(header_stream, self._header_structure, '<')
+                    header_stream = io.BytesIO(header_data)
+                    self._header = decode(header_stream, self._header_structure, '<')
 
-                if self._version == self._VERSION2:
-                    self._header.update(decode(header_stream, self._version2_header_structure, '<'))
-                else:
-                    self._header['data_type'] = self._DATA_TYPE_INT16
+                    if self._version == self._VERSION2:
+                        self._header.update(decode(header_stream, self._version2_header_structure, '<'))
+                    else:
+                        self._header['data_type'] = self._DATA_TYPE_INT16
 
-                if self._header['data_type'] not in [self._DATA_TYPE_INT16, self._DATA_TYPE_INT32,
-                                                     self._DATA_TYPE_FLOAT]:
-                    raise CorruptFile('Cannot handle data type {}'.format(self._header['data_type']))
+                    if self._header['data_type'] not in [self._DATA_TYPE_INT16, self._DATA_TYPE_INT32,
+                                                         self._DATA_TYPE_FLOAT]:
+                        raise CorruptFile('Cannot handle data type {}'.format(self._header['data_type']))
 
-                self._nb_grid_pts = (self._header['nb_grid_pts_x'], self._header['nb_grid_pts_y'])
-                self._physical_sizes = (self._header['physical_size_x'], self._header['physical_size_y'])
-                self._unit = 'um'
+                    self._nb_grid_pts = (self._header['nb_grid_pts_x'], self._header['nb_grid_pts_y'])
+                    self._physical_sizes = (self._header['physical_size_x'], self._header['physical_size_y'])
+                    self._unit = 'µm'
 
-                unit_conversion_factor = get_unit_conversion_factor(self._header['data_unit'], 'um')
-                self._height_scale_factor = \
-                    self._header['data_scale_factor'] * self._header['data_gain'] * unit_conversion_factor
+                    unit_conversion_factor = get_unit_conversion_factor(self._header['data_unit'], 'µm')
+                    self._height_scale_factor = \
+                        self._header['data_scale_factor'] * self._header['data_gain'] * unit_conversion_factor
 
-                self._info = {'raw_metadata': self._header}
+                    self._info = {'raw_metadata': self._header}
+            except TiffFileError:
+                raise FileFormatMismatch('This is not a TIFF file, so it cannot be a Park Systems TIFF.')
 
     @property
     def channels(self):
@@ -193,7 +196,7 @@ TIFF-based file format of Park Systems instruments.
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
 
-        with OpenFromAny(self.file_path, 'rb') as f:
+        with OpenFromAny(self._file_path, 'rb') as f:
             with TiffFile(f) as t:
                 # The data itself is not the image, but inside a tag
                 raw_data = t.pages[0].tags[self._TAG_DATA].value

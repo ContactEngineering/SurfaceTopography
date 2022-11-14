@@ -53,6 +53,6 @@ def test_ps_metadata(file_format_examples):
     np.testing.assert_almost_equal(sx, 1.0)
     np.testing.assert_almost_equal(sy, 1.0)
 
-    assert t.unit == 'um'
+    assert t.unit == 'µm'
 
     np.testing.assert_almost_equal(t.rms_height_from_area(), 0.003933333499668988)
