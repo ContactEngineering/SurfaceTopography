@@ -84,7 +84,6 @@ AL3D format of Alicona Imaging.
                 if tag['crlf'] != '\r\n':
                     raise CorruptFile('CRLF tag terminator missing.')
                 self._header[tag['key']] = tag['value']
-            print(self._header)
 
             nx, ny = int(self._header['Cols']), int(self._header['Rows'])
             self._nb_grid_pts = (nx, ny)
