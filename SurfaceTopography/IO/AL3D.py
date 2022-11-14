@@ -27,9 +27,6 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/alicona.c
 #
 
-import datetime
-from zipfile import ZipFile
-
 import numpy as np
 
 from .binary import decode
