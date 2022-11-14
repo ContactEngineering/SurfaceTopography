@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2 (not yet released)
------------------------
+v1.2 (14Nov22)
+--------------
 
 - ENH: Reader for Park Systems TIFF
 - ENH: Reader for Keyence VK3 and VK6
