@@ -49,14 +49,18 @@ def decode(stream_obj, structure_format, byte_order='@'):
     """
     def mogrify_format(format):
         return_format = format
-        if format.endswith('u'):  # UTF-8
-            return_format[-1] = 's'
+        if format.endswith('b'):  # bytes
+            return_format = format[:-1] + 's'
+        elif format.endswith('u'):  # UTF-8
+            return_format = format[:-1] + 's'
         elif format.endswith('U'):  # UTF-16
             return_format = str(2*int(format[:-1])) + 's'
         return return_format
 
     def decode_data(data, format):
-        if format.endswith('u'):
+        if format.endswith('s'):
+            return data.decode('latin1').strip('\x00')
+        elif format.endswith('u'):
             return data.decode('utf-8').strip('\x00')
         elif format.endswith('U'):
             return data.decode('utf-16').strip('\x00')

@@ -585,6 +585,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
+    assert detect_format(os.path.join(file_format_examples, 'example.al3d')) == 'al3d'
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
 
 

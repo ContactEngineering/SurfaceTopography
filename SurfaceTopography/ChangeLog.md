@@ -6,6 +6,7 @@ v1.2 (not yet released)
 
 - ENH: Reader for Park Systems TIFF
 - ENH: Reader for Keyence VK3 and VK6
+- ENH: Reader for Alicona Imaging AL3D files
 - MAINT: Removed pandas dependency
 - BUG: Fixed bug in VK4 reader
 
