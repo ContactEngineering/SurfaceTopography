@@ -4,6 +4,14 @@ SurfaceTopography.IO package
 Submodules
 ----------
 
+SurfaceTopography.IO.AL3D module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.AL3D
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.DI module
 ------------------------------
 
