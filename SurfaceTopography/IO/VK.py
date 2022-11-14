@@ -214,8 +214,6 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
         # Measurement conditions
         self._header = decode(f, self._header_structure, '<')
 
-        print(self._header)
-
         # Right now, we are assuming that there is only a single (height)
         # channel per VK4 file. Not sure if this is correct.
 
