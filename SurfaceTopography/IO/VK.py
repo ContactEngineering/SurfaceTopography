@@ -232,8 +232,6 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                                 (self._data['height'] - 1) * self._header['y_length_per_pixel'])
         self._unit = 'pm'
 
-        print(self._header)
-
         self._info = {
             'acquisition_time':
                 str(datetime.datetime(
