@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.2.dev21+gd75ca1eb documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.2.dev52+g5ca1e15e documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.dev21+gd75ca1eb
+                1.2.dev52+g5ca1e15e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -72,7 +72,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.PS">SurfaceTopography.IO.PS module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.VK4">SurfaceTopography.IO.VK4 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.VK">SurfaceTopography.IO.VK module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.binary">SurfaceTopography.IO.binary module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.common">SurfaceTopography.IO.common module</a></li>
@@ -287,11 +287,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.Text.write_matrix"><code class="docutils literal notranslate"><span class="pre">write_matrix()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.VK4">SurfaceTopography.IO.VK4 module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.VK4.VK4Reader"><code class="docutils literal notranslate"><span class="pre">VK4Reader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK4.VK4Reader.__init__"><code class="docutils literal notranslate"><span class="pre">VK4Reader.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK4.VK4Reader.channels"><code class="docutils literal notranslate"><span class="pre">VK4Reader.channels</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK4.VK4Reader.topography"><code class="docutils literal notranslate"><span class="pre">VK4Reader.topography()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.VK">SurfaceTopography.IO.VK module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader"><code class="docutils literal notranslate"><span class="pre">VKReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.__init__"><code class="docutils literal notranslate"><span class="pre">VKReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.read_vk3467_header"><code class="docutils literal notranslate"><span class="pre">VKReader.read_vk3467_header()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.read_vk34_header"><code class="docutils literal notranslate"><span class="pre">VKReader.read_vk34_header()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.read_height_data"><code class="docutils literal notranslate"><span class="pre">VKReader.read_height_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.channels"><code class="docutils literal notranslate"><span class="pre">VKReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.VK.VKReader.topography"><code class="docutils literal notranslate"><span class="pre">VKReader.topography()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1951,27 +1954,42 @@ the heights; the physical_sizes is not contained in the file</p>
 </dd></dl>
 
 </section>
-<section id="module-SurfaceTopography.IO.VK4">
-<span id="surfacetopography-io-vk4-module"></span><h2>SurfaceTopography.IO.VK4 module<a class="headerlink" href="#module-SurfaceTopography.IO.VK4" title="Permalink to this heading"></a></h2>
+<section id="module-SurfaceTopography.IO.VK">
+<span id="surfacetopography-io-vk-module"></span><h2>SurfaceTopography.IO.VK module<a class="headerlink" href="#module-SurfaceTopography.IO.VK" title="Permalink to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.VK4.VK4Reader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.VK4.</span></span><span class="sig-name descname"><span class="pre">VK4Reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK4.VK4Reader" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.VK.</span></span><span class="sig-name descname"><span class="pre">VKReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReaderBase</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.VK4.VK4Reader.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK4.VK4Reader.__init__" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.read_vk3467_header">
+<span class="sig-name descname"><span class="pre">read_vk3467_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.read_vk3467_header" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.read_vk34_header">
+<span class="sig-name descname"><span class="pre">read_vk34_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.read_vk34_header" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.read_height_data">
+<span class="sig-name descname"><span class="pre">read_height_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.read_height_data" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.VK4.VK4Reader.channels">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.VK4.VK4Reader.channels" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.channels">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.channels" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of :obj:<a href="#id37"><span class="problematic" id="id38">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.IO.VK4.VK4Reader.topography">
-<span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK4.VK4Reader.topography" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.topography">
+<span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.topography" title="Permalink to this definition"></a></dt>
 <dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
 contains the topography data. Which specific type of height container
 (1D, 2D, uniform, nonuniform) is returned may depend on the file

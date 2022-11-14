@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 1.2.dev21+gd75ca1eb documentation</title>
+  <title>Index &mdash; SurfaceTopography 1.2.dev52+g5ca1e15e documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.dev21+gd75ca1eb
+                1.2.dev52+g5ca1e15e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -155,7 +155,7 @@
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.__init__">(SurfaceTopography.IO.Reader.ChannelInfo method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK4.VK4Reader.__init__">(SurfaceTopography.IO.VK4.VK4Reader method)</a>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.__init__">(SurfaceTopography.IO.VK.VKReader method)</a>
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.__init__">(SurfaceTopography.IO.ZON.ZONReader method)</a>
 </li>
@@ -309,7 +309,7 @@
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.channels">(SurfaceTopography.IO.Reader.ReaderBase property)</a>
 </li>
-        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK4.VK4Reader.channels">(SurfaceTopography.IO.VK4.VK4Reader property)</a>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.channels">(SurfaceTopography.IO.VK.VKReader property)</a>
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.channels">(SurfaceTopography.IO.ZON.ZONReader property)</a>
 </li>
@@ -816,7 +816,7 @@
 </li>
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.Text">SurfaceTopography.IO.Text</a>
 </li>
-        <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.VK4">SurfaceTopography.IO.VK4</a>
+        <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.VK">SurfaceTopography.IO.VK</a>
 </li>
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.ZON">SurfaceTopography.IO.ZON</a>
 </li>
@@ -1127,6 +1127,8 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.read_header_spect">read_header_spect() (in module SurfaceTopography.IO.MI)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.read_height_data">read_height_data() (SurfaceTopography.IO.VK.VKReader method)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_hgt">read_hgt() (in module SurfaceTopography.IO.FromFile)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.read_linescan_channel_infos">read_linescan_channel_infos() (SurfaceTopography.IO.OPDx.OPDxReader method)</a>
@@ -1137,16 +1139,20 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.OPDxReader.read_topography_channel_infos">read_topography_channel_infos() (SurfaceTopography.IO.OPDx.OPDxReader method)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.read_vk3467_header">read_vk3467_header() (SurfaceTopography.IO.VK.VKReader method)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.read_vk34_header">read_vk34_header() (SurfaceTopography.IO.VK.VKReader method)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.read_x3p">read_x3p() (in module SurfaceTopography.IO.FromFile)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase">ReaderBase (class in SurfaceTopography.IO.Reader)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.ReadFileError">ReadFileError</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.ReentrantDataError">ReentrantDataError</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.ReentrantDataError">ReentrantDataError</a>
+</li>
       <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function">register_function() (SurfaceTopography.Container.SurfaceContainer.SurfaceContainer class method)</a>
 
       <ul>
@@ -1505,10 +1511,10 @@
 </li>
       </ul></li>
       <li>
-    SurfaceTopography.IO.VK4
+    SurfaceTopography.IO.VK
 
       <ul>
-        <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.VK4">module</a>
+        <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.VK">module</a>
 </li>
       </ul></li>
       <li>
@@ -1791,7 +1797,7 @@
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.topography">(SurfaceTopography.IO.Reader.ReaderBase method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK4.VK4Reader.topography">(SurfaceTopography.IO.VK4.VK4Reader method)</a>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.topography">(SurfaceTopography.IO.VK.VKReader method)</a>
 </li>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.ZON.ZONReader.topography">(SurfaceTopography.IO.ZON.ZONReader method)</a>
 </li>
@@ -1854,7 +1860,7 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_profile">(in module SurfaceTopography.Uniform.VariableBandwidth)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK4.VK4Reader">VK4Reader (class in SurfaceTopography.IO.VK4)</a>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader">VKReader (class in SurfaceTopography.IO.VK)</a>
 </li>
   </ul></td>
 </tr></table>

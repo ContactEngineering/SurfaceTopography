@@ -124,10 +124,10 @@ SurfaceTopography.IO.Text module
    :undoc-members:
    :show-inheritance:
 
-SurfaceTopography.IO.VK4 module
--------------------------------
+SurfaceTopography.IO.VK module
+------------------------------
 
-.. automodule:: SurfaceTopography.IO.VK4
+.. automodule:: SurfaceTopography.IO.VK
    :members:
    :undoc-members:
    :show-inheritance:
