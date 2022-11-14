@@ -35,6 +35,7 @@ from .FromFile import HGTReader, X3PReader
 from .Text import AscReader, XYZReader
 
 # New-style readers
+from .AL3D import AL3DReader
 from .DI import DIReader
 from .H5 import H5Reader
 from .IBW import IBWReader
@@ -73,6 +74,8 @@ readers = [
     PSReader,
     VKReader,
     ZONReader,
+    AL3DReader,
+    # HGT reader should come last as there is no file magic
     HGTReader,
 ]
 
