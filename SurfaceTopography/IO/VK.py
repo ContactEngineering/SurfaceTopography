@@ -207,12 +207,14 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
         # Offset table
         self._offset_table = decode(f, self._offset_table_structure, '<')
 
-        # File version 4 has an additional entry here
-        if self._file_version == 4:
+        # File version 4 (and 6, 7, which is 4) have an additional entry here
+        if self._file_version in [4, 6, 7]:
             f.read(4)
 
         # Measurement conditions
         self._header = decode(f, self._header_structure, '<')
+
+        print(self._header)
 
         # Right now, we are assuming that there is only a single (height)
         # channel per VK4 file. Not sure if this is correct.
