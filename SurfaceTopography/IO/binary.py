@@ -27,7 +27,8 @@ from struct import calcsize, unpack
 
 def decode(stream_obj, structure_format, byte_order='@'):
     """
-    Decode a binary stream given the sequence of binary entries.
+    Decode a binary stream given the sequence of binary entries. Strings are
+    stripped of zeros and white spaces.
 
     Parameters
     ----------
@@ -59,11 +60,11 @@ def decode(stream_obj, structure_format, byte_order='@'):
 
     def decode_data(data, format):
         if format.endswith('s'):
-            return data.decode('latin1').strip('\x00')
+            return data.decode('latin1').strip('\x00').strip(' ')
         elif format.endswith('u'):
-            return data.decode('utf-8').strip('\x00')
+            return data.decode('utf-8').strip('\x00').strip(' ')
         elif format.endswith('U'):
-            return data.decode('utf-16').strip('\x00')
+            return data.decode('utf-16').strip('\x00').strip(' ')
         else:
             return data
 

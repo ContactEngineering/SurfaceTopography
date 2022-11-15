@@ -248,7 +248,9 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
         f.seek(768, 1)  # Skip palette
         assert image_header['width'] == self._data['width']
         assert image_header['height'] == self._data['height']
-        dtype = np.uint8 if self._data['itemsize'] == 8 else np.uint16 if self._data['itemsize'] == 16 else np.uint32
+        dtype = np.dtype('<u1') if self._data['itemsize'] == 8 \
+            else np.dtype('<u2') if self._data['itemsize'] == 16 \
+            else np.dtype('<u4')
         buffer = f.read(self._data['width'] * self._data['height'] * np.dtype(dtype).itemsize)
         return np.frombuffer(buffer, dtype=dtype).reshape((self._data['height'], self._data['width'])).T
 

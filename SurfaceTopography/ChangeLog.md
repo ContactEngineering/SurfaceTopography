@@ -1,12 +1,13 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2 (14Nov22)
+v1.2 (15Nov22)
 --------------
 
-- ENH: Reader for Park Systems TIFF
-- ENH: Reader for Keyence VK3 and VK6
+- ENH: Reader for Park Systems TIFF files
+- ENH: Reader for Keyence VK3 and VK6 files
 - ENH: Reader for Alicona Imaging AL3D files
+- ENH: Reader for Digital Surf SUR files
 - MAINT: Removed pandas dependency
 - BUG: Fixed bug in VK4 reader
 
