@@ -124,6 +124,14 @@ SurfaceTopography.IO.Reader module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.SUR module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.SUR
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.Text module
 --------------------------------
 
