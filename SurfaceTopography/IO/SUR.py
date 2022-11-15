@@ -146,8 +146,8 @@ This reader imports Digital Surf SUR data files.
         # All good, now initialize some convenience variables
 
         self._nb_grid_pts = (nx, ny)
-        self._physical_sizes = (fac_x * self._header['grid_spacing_x'] * nx,
-                                fac_y * self._header['grid_spacing_y'] * ny)
+        self._physical_sizes = \
+            (fac_x * self._header['grid_spacing_x'] * nx, fac_y * self._header['grid_spacing_y'] * ny)
 
         self._info = {
             'acquisition_time':
