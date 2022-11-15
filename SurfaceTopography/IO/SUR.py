@@ -151,13 +151,9 @@ This reader imports Digital Surf SUR data files.
 
         self._info = {
             'acquisition_time':
-                str(datetime.datetime(
-                    self._header['year'], self._header['month'], self._header['day'],
-                    self._header['hour'], self._header['minute'], self._header['second'])
-                ),
-            'instrument': {
-                'name': self._header['instrument_name']
-            },
+                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
+                                      self._header['hour'], self._header['minute'], self._header['second'])),
+            'instrument': {'name': self._header['instrument_name']},
             'raw_metadata': self._header
         }
 
