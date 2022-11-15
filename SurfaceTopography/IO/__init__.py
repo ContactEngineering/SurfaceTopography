@@ -46,6 +46,7 @@ from .NPY import NPYReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
+from .SUR import SURReader
 from .VK import VKReader
 from .ZON import ZONReader
 
@@ -71,6 +72,7 @@ readers = [
     H5Reader,
     NPYReader,
     PSReader,
+    SURReader,
     VKReader,
     ZONReader,
     HGTReader,
