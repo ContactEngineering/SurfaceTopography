@@ -52,6 +52,25 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
+def test_vk3_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'example.vk3')
+
+    r = VKReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1024
+    assert ny == 768
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_almost_equal(sx, 704847000)
+    np.testing.assert_almost_equal(sy, 528463000)
+
+    assert t.unit == 'pm'
+
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 1223148.5774419378)
+
+
 def test_vk4_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'example.vk4')
 

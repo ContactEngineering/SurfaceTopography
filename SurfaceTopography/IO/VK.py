@@ -45,16 +45,15 @@ class VKReader(ReaderBase):
     _format = 'vk'
     _name = 'Keyence VK'
     _description = '''
-VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
+VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
 '''
 
-    _MAGIC3 = b'VK4_'
+    _MAGIC3 = b'VK3_'
     _MAGIC4 = b'VK4_'
     _MAGIC0 = b'\x00\x00\x00\x00'
 
     _MAGIC6 = b'VK6'
     _MAGIC7 = b'VK7'
-    _MAGICBMP = b''
 
     _offset_table_structure = [
         ('setting', 'I'),
@@ -74,7 +73,6 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
         ('line_measure', 'I'),
         ('line_thickness', 'I'),
         ('string_data', 'I'),
-        ('reserved', 'I'),
     ]
 
     _header_structure = [
@@ -175,7 +173,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
     def read_vk3467_header(self, file_path):
         with OpenFromAny(file_path, 'rb') as f:
             # Detect file version
-            magic = f.read(7)
+            magic = f.read(4)
 
             # Check VK* file magic
             if magic.startswith(self._MAGIC3):  # 'VK3_'
@@ -193,14 +191,14 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
                 self._file_version = file_version
 
             if file_version in [3, 4]:
-                f.read(1)  # skip dll version
+                f.read(4)  # skip dll version
                 if f.read(len(self._MAGIC0)) != self._MAGIC0:  # All zeros
                     raise FileFormatMismatch('File magic does not match. I thought this was a Keyence VK3 or VK4 file, '
                                              'but it seems this is not the case.')
                 self.read_vk34_header(f)
             else:
                 # VK6/7 contains a .zip file that has VK4 file name 'Vk4File'.
-                # ZipFile gracefully skips VK6 header information before the
+                # ZipFile gracefully skips VK6/7 header information before the
                 # zip actually starts.
                 with ZipFile(f, 'r') as z:
                     self.read_vk3467_header(z.open('Vk4File'))
@@ -208,6 +206,10 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser conformal microscope.
     def read_vk34_header(self, f):
         # Offset table
         self._offset_table = decode(f, self._offset_table_structure, '<')
+
+        # File version 4 (and 6, 7, which is 4) have an additional entry here
+        if self._file_version in [4, 6, 7]:
+            f.read(4)
 
         # Measurement conditions
         self._header = decode(f, self._header_structure, '<')
