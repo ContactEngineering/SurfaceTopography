@@ -68,5 +68,4 @@ def test_sur_metadata(file_format_examples):
 
     assert t.unit == 'mm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 54193042.85097)
-
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 0.00029098752636393403)

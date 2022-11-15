@@ -43,7 +43,7 @@ class SURReader(ReaderBase):
     _format = 'sur'
     _name = 'Digital Surf'
     _description = '''
-This reader imports Digital Surf SPM data files.
+This reader imports Digital Surf SUR data files.
 '''
 
     _MAGIC = b'DIGITAL SURF'
