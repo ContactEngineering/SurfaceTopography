@@ -33,13 +33,16 @@ You first need to install requirements following our detailed instruction in the
 Once the requirements are installed, 
 quick install with: `python3 -m pip install SurfaceTopgography`
 
-Running SurfaceTopography via a Docker container
-------------------------------------------------
+Containerized SurfaceTopography
+-------------------------------
 
-1. Install and start [Docker](https://www.docker.com/)
-2. start one of our [docker images](https://hub.docker.com/r/imteksim/jupyterlab-surfacetopography/tags), e.g. via the commandline `docker run -d -p 8888:8888 imteksim/jupyterlab-surfacetopography:0.3.0`
-3. The terminal output will prompt you how to open the jupyterlab server in your browser
-4. Open a notebook with the kernel called `SurfaceTopography`
+*ContactEngineering* provides container descriptions at the [ce-container-stack](https://github.com/ContactEngineering/ce-container-stack).
+
+For getting started quickly with [Docker](https://www.docker.com/) and `SurfaceTopography` in a ready-to-run JupyterLab environment, try
+
+    docker run -p 8888:8888 imteksim/jupyterlab-surfacetopography:latest
+
+Navigate to the JupyterLab server in your browser as instructed by the terminal output and launch a notebook with the `SurfaceTopography` kernel.
 
 Funding
 -------
