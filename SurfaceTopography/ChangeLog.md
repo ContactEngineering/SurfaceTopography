@@ -4,6 +4,7 @@ Change log for SurfaceTopography
 v1.2.1 (19Nov22)
 ----------------
 
+- ENH: Extract X3P metadata
 - MAINT: Converted X3P reader to new style
 - BUG: X3P data was read in the wrong storage order
 
