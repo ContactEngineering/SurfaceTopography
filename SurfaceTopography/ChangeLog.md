@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
+v1.2.1 (19Nov22)
+----------------
+
+- MAINT: Converted X3P reader to new style
+
 v1.2 (15Nov22)
 --------------
 

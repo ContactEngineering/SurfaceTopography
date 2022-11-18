@@ -181,9 +181,10 @@ data. The full specification of the format can be found
 
         with OpenFromAny(self.file_path, 'rb') as f:
             with ZipFile(f, 'r') as x3p:
+                nx, ny = self._nb_grid_pts
                 rawdata = x3p.open(self._name_of_binary_file).read(np.prod(self._nb_grid_pts) * self._dtype.itemsize)
                 height_data = np.frombuffer(rawdata, count=np.prod(self._nb_grid_pts), dtype=self._dtype) \
-                    .reshape(*self._nb_grid_pts).T
+                    .reshape(ny, nx).T
 
         topo = Topography(
             height_data,

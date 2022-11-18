@@ -41,14 +41,15 @@ pytestmark = pytest.mark.skipif(
 def test_read(file_format_examples):
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-1.x3p')).topography()
     nx, ny = surface.nb_grid_pts
-    assert nx == 777
-    assert ny == 1035
+    assert nx == 1035
+    assert ny == 777
     sx, sy = surface.physical_sizes
     np.testing.assert_almost_equal(sx, 0.00068724)
     np.testing.assert_almost_equal(sy, 0.00051593)
     assert surface.unit == 'm'
     assert surface.is_uniform
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 9.528212249587946e-05)
+    np.testing.assert_almost_equal(surface.fill_undefined_data().rms_gradient(), 9.528212249587946e-05)
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-2.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -60,28 +61,31 @@ def test_read(file_format_examples):
     assert surface.unit == 'm'
     assert surface.is_uniform
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 7.728033273597876e-08)
+    np.testing.assert_almost_equal(surface.rms_gradient(), 9.528212249587946e-05)
 
-    # surface = X3PReader(os.path.join(file_format_examples, 'x3p-3.x3p')).topography()
-    # nx, ny = surface.nb_grid_pts
-    # assert nx == 1199
-    # assert ny == 1199
-    # sx, sy = surface.physical_sizes
-    # np.testing.assert_almost_equal(sx, 0.0016148791409228245)
-    # np.testing.assert_almost_equal(sy, 0.001612325270929275)
-    # assert surface.unit == 'm'
-    # assert surface.is_uniform
-    # np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6982281692457683e-06)
-    #
-    # surface = X3PReader(os.path.join(file_format_examples, 'x3p-4.x3p')).topography()
-    # nx, ny = surface.nb_grid_pts
-    # assert nx == 3463
-    # assert ny == 3427
-    # sx, sy = surface.physical_sizes
-    # np.testing.assert_almost_equal(sx, 0.004615672073346555)
-    # np.testing.assert_almost_equal(sy, 0.004656782663242769)
-    # assert surface.unit == 'm'
-    # assert surface.is_uniform
-    # np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6582125376441385e-06)
+    surface = X3PReader(os.path.join(file_format_examples, 'x3p-3.x3p')).topography()
+    nx, ny = surface.nb_grid_pts
+    assert nx == 1199
+    assert ny == 1199
+    sx, sy = surface.physical_sizes
+    np.testing.assert_almost_equal(sx, 0.0016148791409228245)
+    np.testing.assert_almost_equal(sy, 0.001612325270929275)
+    assert surface.unit == 'm'
+    assert surface.is_uniform
+    np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6982281692457683e-06)
+    np.testing.assert_almost_equal(surface.rms_gradient(), 9.528212249587946e-05)
+
+    surface = X3PReader(os.path.join(file_format_examples, 'x3p-4.x3p')).topography()
+    nx, ny = surface.nb_grid_pts
+    assert nx == 3463
+    assert ny == 3427
+    sx, sy = surface.physical_sizes
+    np.testing.assert_almost_equal(sx, 0.004615672073346555)
+    np.testing.assert_almost_equal(sy, 0.004656782663242769)
+    assert surface.unit == 'm'
+    assert surface.is_uniform
+    np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6582125376441385e-06)
+    np.testing.assert_almost_equal(surface.fill_undefined_data().rms_gradient(), 9.528212249587946e-05)
 
 
 def test_points_for_uniform_topography(file_format_examples):
