@@ -48,8 +48,9 @@ def test_read(file_format_examples):
     np.testing.assert_almost_equal(sy, 0.00051593)
     assert surface.unit == 'm'
     assert surface.is_uniform
+    assert surface.has_undefined_data
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 9.528212249587946e-05)
-    np.testing.assert_almost_equal(surface.fill_undefined_data().rms_gradient(), 9.528212249587946e-05)
+    np.testing.assert_almost_equal(surface.interpolate_undefined_data().rms_gradient(), 0.15300265543799388)
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-2.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -60,8 +61,9 @@ def test_read(file_format_examples):
     np.testing.assert_almost_equal(sy, 0.0002044783737930349)
     assert surface.unit == 'm'
     assert surface.is_uniform
+    assert not surface.has_undefined_data
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 7.728033273597876e-08)
-    np.testing.assert_almost_equal(surface.rms_gradient(), 9.528212249587946e-05)
+    np.testing.assert_almost_equal(surface.rms_gradient(), 0.062070073998443276)
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-3.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -72,20 +74,22 @@ def test_read(file_format_examples):
     np.testing.assert_almost_equal(sy, 0.001612325270929275)
     assert surface.unit == 'm'
     assert surface.is_uniform
+    assert not surface.has_undefined_data
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6982281692457683e-06)
-    np.testing.assert_almost_equal(surface.rms_gradient(), 9.528212249587946e-05)
+    np.testing.assert_almost_equal(surface.rms_gradient(), 1.102796882522711)
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-4.x3p')).topography()
     nx, ny = surface.nb_grid_pts
-    assert nx == 3463
-    assert ny == 3427
+    assert nx == 3427
+    assert ny == 3463
     sx, sy = surface.physical_sizes
     np.testing.assert_almost_equal(sx, 0.004615672073346555)
     np.testing.assert_almost_equal(sy, 0.004656782663242769)
     assert surface.unit == 'm'
     assert surface.is_uniform
+    assert surface.has_undefined_data
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 3.6582125376441385e-06)
-    np.testing.assert_almost_equal(surface.fill_undefined_data().rms_gradient(), 9.528212249587946e-05)
+    np.testing.assert_almost_equal(surface.interpolate_undefined_data().rms_gradient(), 1.124560711465191)
 
 
 def test_points_for_uniform_topography(file_format_examples):
