@@ -329,6 +329,7 @@ def test_reader_topography_same(fn):
             else None,
             info=dict(foo=foo_str))
         assert channel.nb_grid_pts == topography.nb_grid_pts
+        assert topography.nb_grid_pts == topography.heights().shape
 
         # some checks on info dict in channel and topography
         assert topography.info['foo'] == foo_str
