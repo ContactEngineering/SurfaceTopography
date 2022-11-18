@@ -29,17 +29,12 @@
 SurfaceTopography profile from file input
 """
 
-import xml.etree.ElementTree as ElementTree
-from zipfile import ZipFile
 import numpy as np
 
 from .common import CHANNEL_NAME_INFO_KEY
 from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 
-
-###
 
 def binary(func):
     def func_wrapper(fobj, *args, **kwargs):

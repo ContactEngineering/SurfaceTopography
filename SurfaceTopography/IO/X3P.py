@@ -27,8 +27,6 @@
 # https://sourceforge.net/p/open-gps/mwiki
 #
 
-import datetime
-
 import numpy as np
 import xml.etree.ElementTree as ElementTree
 from zipfile import ZipFile, BadZipFile
