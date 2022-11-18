@@ -29,9 +29,11 @@
 
 import datetime
 
+import numpy as np
 import xml.etree.ElementTree as ElementTree
 from zipfile import ZipFile, BadZipFile
-import numpy as np
+
+import dateutil.parser
 
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
@@ -73,7 +75,9 @@ data. The full specification of the format can be found
                         raise FileFormatMismatch("ZIP file does not have 'main.xml'.")
 
                     xmlroot = ElementTree.parse(main_xml).getroot()
+                    # Information on the measurement (grid points, size, etc.)
                     record1 = xmlroot.find('Record1')
+                    # Information on the data file
                     record3 = xmlroot.find('Record3')
 
                     if record1 is None:
@@ -128,19 +132,60 @@ data. The full specification of the format can be found
                         raise CorruptFile(f'Binary file is too small. It has size if {binary_info.file_size} bytes, '
                                           f'but I expected a size of {expected_file_size} bytes.')
 
+                    # Unit is always meters
+                    self._unit = 'm'
+                    self._info = {}
+
+                    # Metadata; if this record is missing, we just don't extract metadata
+                    record2 = xmlroot.find('Record2')
+                    if record2 is not None:
+                        raw_metadata = {}
+
+                        date = record2.find('Date')
+                        if date is not None:
+                            raw_metadata['Date'] = date.text
+                            self._info['acquisition_time'] = str(dateutil.parser.parse(date.text))
+
+                        calibration_date = record2.find('CalibrationDate')
+                        if calibration_date is not None:
+                            raw_metadata['CalibrationDate'] = calibration_date.text
+
+                        instrument = record2.find('Instrument')
+                        if instrument is not None:
+                            instrument_metadata = {child.tag: child.text for child in instrument}
+                            raw_metadata['Instrument'] = instrument_metadata
+                            model = manufacturer = version = None
+                            if 'Model' in instrument_metadata:
+                                model = instrument_metadata['Model']
+                            if 'Manufacturer' in instrument_metadata:
+                                manufacturer = instrument_metadata['Manufacturer']
+                            if 'Version' in instrument_metadata:
+                                version = instrument_metadata['Version']
+
+                            instrument_info = {}
+                            if model == 'unknown':
+                                if manufacturer != 'unknown':
+                                    if version != 'unknown':
+                                        instrument_info['name'] = f'{manufacturer} (version {version})'
+                                    else:
+                                        instrument_info['name'] = manufacturer
+                            else:
+                                if manufacturer != 'unknown':
+                                    if version != 'unknown':
+                                        instrument_info['name'] = f'{model} ({manufacturer}, version {version})'
+                                    else:
+                                        instrument_info['name'] = f'{model} ({manufacturer})'
+                                else:
+                                    if version != 'unknown':
+                                        instrument_info['name'] = f'{model} (version {version})'
+                                    else:
+                                        instrument_info['name'] = model
+                            if instrument_info != {}:
+                                self._info['instrument'] = instrument_info
+
             except BadZipFile:
                 # This is not an X3P
                 raise FileFormatMismatch('This is not a ZIP file.')
-
-        self._unit = 'm'
-
-        self._info = {
-            #            'acquisition_time':
-            #                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
-            #                                      self._header['hour'], self._header['minute'], self._header['second'])),
-            #            'instrument': {'name': self._header['instrument_name']},
-            #            'raw_metadata': self._header
-        }
 
     @property
     def channels(self):
@@ -151,7 +196,8 @@ data. The full specification of the format can be found
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             uniform=True,
-                            unit=self._unit)]
+                            unit=self._unit,
+                            info=self._info)]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -190,6 +236,6 @@ data. The full specification of the format can be found
             height_data,
             self._physical_sizes,
             unit=self._unit,
-            info=info,
+            info=_info,
             periodic=periodic)
         return topo
