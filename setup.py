@@ -110,9 +110,5 @@ extensions = [
 
 setup(
     cmdclass={'build_ext': CustomBuildExtCommand} if np else {},
-#    packages=find_packages(),
-    ext_modules=extensions,
-    # metadata for upload to PyPI
-#    long_description=(Path(__file__).parent / "README.md").read_text(),
-#    long_description_content_type='text/markdown',
+    ext_modules=extensions
 )
