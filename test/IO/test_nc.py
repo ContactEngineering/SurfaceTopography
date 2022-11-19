@@ -81,10 +81,6 @@ def test_save_and_load(comm):
 
     assert t3.is_periodic
 
-    comm.barrier()
-    if comm.rank == 0:
-        os.remove('parallel_save_test.nc')
-
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -104,8 +100,6 @@ def test_save_and_load_no_unit():
     assert t.physical_sizes == t2.physical_sizes
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
-
-    os.remove('no_unit.nc')
 
 
 @pytest.mark.skipif(
@@ -135,8 +129,6 @@ def test_load_no_physical_sizes():
     assert t.physical_sizes == t2.physical_sizes
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
-
-    os.remove('no_physical_sizes.nc')
 
 
 @pytest.mark.skipif(
