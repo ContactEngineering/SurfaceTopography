@@ -54,8 +54,6 @@ def test_save_and_load(comm):
                             communicator=comm)
     assert t.unit == 'µm'
     assert dt.unit == 'µm'
-    assert t.info['unit'] == 'µm'
-    assert dt.info['unit'] == 'µm'
     if comm.size > 1:
         assert dt.is_domain_decomposed
 
@@ -67,7 +65,6 @@ def test_save_and_load(comm):
 
     assert t.physical_sizes == t2.physical_sizes
     assert t.unit == t2.unit
-    assert t.info['unit'] == t2.info['unit']
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
     # Attempt to open file in parallel
@@ -80,14 +77,9 @@ def test_save_and_load(comm):
 
     assert t.physical_sizes == t3.physical_sizes
     assert t.unit == t3.unit
-    assert t.info['unit'] == t3.info['unit']
     np.testing.assert_array_almost_equal(dt.heights(), t3.heights())
 
     assert t3.is_periodic
-
-    comm.barrier()
-    if comm.rank == 0:
-        os.remove('parallel_save_test.nc')
 
 
 @pytest.mark.skipif(
@@ -108,8 +100,6 @@ def test_save_and_load_no_unit():
     assert t.physical_sizes == t2.physical_sizes
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
-
-    os.remove('no_unit.nc')
 
 
 @pytest.mark.skipif(
@@ -139,8 +129,6 @@ def test_load_no_physical_sizes():
     assert t.physical_sizes == t2.physical_sizes
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
-
-    os.remove('no_physical_sizes.nc')
 
 
 @pytest.mark.skipif(

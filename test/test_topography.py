@@ -101,7 +101,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
         with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'nm')
+            self.assertEqual(surf.unit, 'nm')
 
     def test_example2(self):
         surf = read_asc(os.path.join(DATADIR, 'example2.txt'))
@@ -113,7 +113,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
         with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'm')
+            self.assertEqual(surf.unit, 'm')
 
     def test_example3(self):
         surf = read_asc(os.path.join(DATADIR, 'example3.txt'))
@@ -125,7 +125,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
         with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'm')
+            self.assertEqual(surf.unit, 'm')
 
     def test_example4(self):
         surf = read_asc(os.path.join(DATADIR, 'example4.txt'))
@@ -137,7 +137,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.info['unit'], 'm')
+        self.assertEqual(surf.unit, 'm')
 
         # test setting the physical_sizes
         with self.assertRaises(AttributeError):
@@ -566,10 +566,10 @@ class diSurfaceTest(unittest.TestCase):
                 self.assertEqual(nx, n)
                 self.assertEqual(ny, n)
                 sx, sy = surface.physical_sizes
-                if type(surface.info['unit']) is tuple:
-                    unit, dummy = surface.info['unit']
+                if type(surface.unit) is tuple:
+                    unit, dummy = surface.unit
                 else:
-                    unit = surface.info['unit']
+                    unit = surface.unit
                 self.assertAlmostEqual(
                     sx * get_unit_conversion_factor(unit, 'nm'), s)
                 self.assertAlmostEqual(
