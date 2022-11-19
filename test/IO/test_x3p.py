@@ -51,7 +51,6 @@ def test_read(file_format_examples):
     assert surface.has_undefined_data
     np.testing.assert_almost_equal(surface.rms_height_from_area(), 9.528212249587946e-05)
     np.testing.assert_almost_equal(surface.interpolate_undefined_data().rms_gradient(), 0.15300265543799388)
-    print(surface.info)
     assert surface.info['instrument']['name'] == 'Mountains Map Technology Software (DIGITAL SURF, version 6.2)'
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-2.x3p')).topography()
