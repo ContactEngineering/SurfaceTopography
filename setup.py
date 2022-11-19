@@ -31,13 +31,21 @@ import re
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 
-import numpy as np
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
+    print('numpy not found, ignoring. (This may happen when building the source package.)')
+
 
 
 class CustomBuildExtCommand(build_ext):
     """build_ext command for use when numpy headers are needed."""
 
     def run(self):
+        if np is None:
+            raise RuntimeError('numpy is needed for building the extension module.')
+
         # Add numpy headers to include_dirs
         self.include_dirs.append(np.get_include())
 
