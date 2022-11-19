@@ -110,7 +110,7 @@ data. The full specification of the format can be found
 
                     increment = cz.find('Increment')
                     if increment is not None:
-                        # We have no proper test for this, as all files that
+                        # We have no proper test for this, as in all files that
                         # we have, the z-increment is either missing or unity.
                         self._height_scale_factor = float(increment.text)
                     else:
