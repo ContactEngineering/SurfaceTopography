@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
+v1.3 (not yet released)
+-----------------------
+
+- MAINT: Added pyproject.toml and switched to declarative setup.cfg
+
 v1.2 (15Nov22)
 --------------
 
