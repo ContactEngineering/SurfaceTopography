@@ -575,7 +575,8 @@ def test_detect_format(file_format_examples):
         detect_format(os.path.join(file_format_examples, 'di_corrupted.di'))
     assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
     assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
-    assert detect_format(os.path.join(file_format_examples, 'example.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-1.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-2.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
     assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
