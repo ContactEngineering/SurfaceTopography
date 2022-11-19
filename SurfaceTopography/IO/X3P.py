@@ -108,6 +108,14 @@ data. The full specification of the format can be found
                     datatype = cz.find('DataType').text
                     self._dtype = self._DTYPE_MAP[datatype]
 
+                    increment = cz.find('Increment')
+                    if increment is not None:
+                        # We have no proper test for this, as all files that
+                        # we have, the z-increment is either missing or unity.
+                        self._height_scale_factor = float(increment.text)
+                    else:
+                        self._height_scale_factor = None
+
                     # Parse record3
                     matrix_dimension = record3.find('MatrixDimension')
                     nb_grid_pts_x = int(matrix_dimension.find('SizeX').text)
@@ -214,7 +222,7 @@ data. The full specification of the format can be found
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        if height_scale_factor is not None:
+        if height_scale_factor is not None and self._height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile('height_scale_factor')
 
         if unit is not None:
@@ -236,4 +244,9 @@ data. The full specification of the format can be found
             unit=self._unit,
             info=_info,
             periodic=periodic)
-        return topo
+        if self._height_scale_factor is not None:
+            return topo.scale(self._height_scale_factor)
+        elif height_scale_factor is not None:
+            return topo.scale(height_scale_factor)
+        else:
+            return topo
