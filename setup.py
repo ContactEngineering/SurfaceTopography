@@ -26,35 +26,24 @@
 #
 
 import glob
-from pathlib import Path
 import re
 
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+
+import numpy as np
+
 
 class CustomBuildExtCommand(build_ext):
     """build_ext command for use when numpy headers are needed."""
 
     def run(self):
-        # Import numpy here, only when headers are needed
-        import numpy
-
         # Add numpy headers to include_dirs
-        self.include_dirs.append(numpy.get_include())
+        self.include_dirs.append(np.get_include())
 
         # Call original build_ext command
         build_ext.run(self)
 
-
-#
-# Optain LAPACK configuration from numpy
-#
-
-try:
-    import numpy as np
-except ImportError:
-    print("WARNING: Could not find numpy, skipping LAPACK detection.")
-    np = None
 
 lib_dirs = []
 libs = []
@@ -65,7 +54,7 @@ if np is not None:
         if re.match('lapack_.*_info', k):
             if v:
                 print("* Using LAPACK information from '{}' dictionary in " \
-                    "numpy.__config__".format(k))
+                      "numpy.__config__".format(k))
                 try:
                     print("    library_dirs = {}".format(v['library_dirs']))
                     lib_dirs += v['library_dirs']
@@ -87,11 +76,9 @@ if np is not None:
     if len(libs) == 0:
         # No entries from np.__config__
         print("* Using lapack_lite")
-        extra_objects += [glob.glob(np.linalg.__path__[0]+'/lapack_lite*.so')[0]]
-
+        extra_objects += [glob.glob(np.linalg.__path__[0] + '/lapack_lite*.so')[0]]
 
 extra_compile_args = ["-std=c++11"]
-print(extra_objects)
 
 extensions = [
     Extension(
