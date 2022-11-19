@@ -93,8 +93,6 @@ if np is not None:
 extra_compile_args = ["-std=c++11"]
 print(extra_objects)
 
-scripts = []
-
 extensions = [
     Extension(
         name='_SurfaceTopography',
@@ -111,46 +109,10 @@ extensions = [
 ]
 
 setup(
-    name="SurfaceTopography",
     cmdclass={'build_ext': CustomBuildExtCommand} if np else {},
-    scripts=scripts,
-    packages=find_packages(),
-    package_data={'': ['ChangeLog.md']},
-    include_package_data=True,
+#    packages=find_packages(),
     ext_modules=extensions,
     # metadata for upload to PyPI
-    author='Lars Pastewka',
-    author_email='lars.pastewka@imtek.uni-freiburg.de',
-    description='Read and analyze surface topographies',
-    long_description=(Path(__file__).parent / "README.md").read_text(),
-    long_description_content_type='text/markdown',
-    license='MIT',
-    test_suite='tests',
-    # dependencies
-    python_requires='>=3.5.0',
-    use_scm_version=True,
-    zip_safe=False,
-    setup_requires=[
-        'setuptools_scm>=3.5.0',
-        'pytest-runner',
-    ],
-    tests_require=[
-        'pytest',
-    ],
-    install_requires=[
-        'numpy>=1.16.3',
-        'NuMPI>=0.3.0',
-        'muFFT>=0.12.0',
-        'igor',
-        'h5py',
-        'defusedxml',
-        'numpyencoder',
-        'openpyxl',
-        'pyyaml',
-        'Pillow',
-        'requests',
-        'matplotlib>=1.0.0',
-        'python-dateutil',
-        'tiffile',
-    ]
+#    long_description=(Path(__file__).parent / "README.md").read_text(),
+#    long_description_content_type='text/markdown',
 )

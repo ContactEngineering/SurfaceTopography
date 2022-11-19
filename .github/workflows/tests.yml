@@ -46,7 +46,7 @@ jobs:
     - name: Build extension module
       run: |
         python3 setup.py sdist
-        python3 -m pip install dist/*.tar.gz
+        python3 -m pip install --no-binary numpy dist/*.tar.gz
 
     - name: Test with pytest
       run: |
