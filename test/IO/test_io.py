@@ -86,6 +86,8 @@ binary_example_file_list = _convert_filelist([
                                                  'opd3.opd',
                                                  'x3p-1.x3p',
                                                  'x3p-2.x3p',
+                                                 'x3p-3.x3p',
+                                                 'x3p-4.x3p',
                                                  'opdx1.OPDx',
                                                  'opdx2.OPDx',
                                                  'opdx3.OPDx',
@@ -577,6 +579,8 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
     assert detect_format(os.path.join(file_format_examples, 'x3p-1.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-2.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
     assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
