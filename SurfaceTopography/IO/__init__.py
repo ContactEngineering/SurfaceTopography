@@ -35,6 +35,7 @@ from .FromFile import HGTReader, X3PReader
 from .Text import AscReader, XYZReader
 
 # New-style readers
+from .AL3D import AL3DReader
 from .DI import DIReader
 from .H5 import H5Reader
 from .IBW import IBWReader
@@ -43,9 +44,11 @@ from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
-from .VK4 import VK4Reader
+from .SUR import SURReader
+from .VK import VKReader
 from .ZON import ZONReader
 
 # Only writers
@@ -69,8 +72,12 @@ readers = [
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
     H5Reader,
     NPYReader,
-    VK4Reader,
+    PSReader,
+    SURReader,
+    VKReader,
     ZONReader,
+    AL3DReader,
+    # HGT reader should come last as there is no file magic
     HGTReader,
 ]
 

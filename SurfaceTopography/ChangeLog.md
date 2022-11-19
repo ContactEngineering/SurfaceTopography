@@ -1,8 +1,18 @@
 Change log for SurfaceTopography
 =============================
 
+v1.2 (15Nov22)
+--------------
+
+- ENH: Reader for Park Systems TIFF files
+- ENH: Reader for Keyence VK3 and VK6 files
+- ENH: Reader for Alicona Imaging AL3D files
+- ENH: Reader for Digital Surf SUR files
+- MAINT: Removed pandas dependency
+- BUG: Fixed bug in VK4 reader
+
 v1.1 (20Oct22)
------------------------
+--------------
 
 - API: `scale_dependent_statistical_property` of a `SurfaceContainer` now
   returns either `np.ndarray` or `np.ma.masked_array`

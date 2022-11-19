@@ -71,32 +71,36 @@ def _convert_filelist(filelist):
 
 
 binary_example_file_list = _convert_filelist([
-    'di1.di',
-    'di2.di',
-    'di3.di',
-    'di4.di',
-    'di5.di',
-    'example.ibw',
-    'spot_1-1000nm.ibw',
-    # 'surface.2048x2048.h5',
-    '10x10-one_channel_without_name.ibw',
-    'example1.mat',
-    'example.opd',
-    'example2.opd',
-    'opd3.opd',
-    'example.x3p',
-    'example2.x3p',
-    'opdx1.OPDx',
-    'opdx2.OPDx',
-    'opdx3.OPDx',
-    'mi1.mi',
-    'N46E013.hgt',
-    'example.zon',
-    'example.nc',
-    'example.vk4',
-    'mitutoyo_mock.xlsx',
-    'mitutoyo_nonuniform_mock.xlsx'
-] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
+                                                 'di1.di',
+                                                 'di2.di',
+                                                 'di3.di',
+                                                 'di4.di',
+                                                 'di5.di',
+                                                 'example.ibw',
+                                                 'spot_1-1000nm.ibw',
+                                                 # 'surface.2048x2048.h5',
+                                                 '10x10-one_channel_without_name.ibw',
+                                                 'example1.mat',
+                                                 'example.opd',
+                                                 'example2.opd',
+                                                 'opd3.opd',
+                                                 'example.x3p',
+                                                 'example2.x3p',
+                                                 'opdx1.OPDx',
+                                                 'opdx2.OPDx',
+                                                 'opdx3.OPDx',
+                                                 'mi1.mi',
+                                                 'N46E013.hgt',
+                                                 'example.zon',
+                                                 'example.nc',
+                                                 'example.vk3',
+                                                 'example.vk4',
+                                                 'example.vk6',
+                                                 'mitutoyo_mock.xlsx',
+                                                 'mitutoyo_nonuniform_mock.xlsx',
+                                                 'example_ps.tiff',
+                                             ] + [] if NuMPI._has_mpi4py else [
+    'example-2d.npy'])  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
     'surface.2048x2048.h5'
@@ -578,9 +582,13 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
-    assert detect_format(os.path.join(file_format_examples, 'example.vk4')) == 'vk4'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk3')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk4')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
+    assert detect_format(os.path.join(file_format_examples, 'example.al3d')) == 'al3d'
+    assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
 
 
 def test_to_matrix():
