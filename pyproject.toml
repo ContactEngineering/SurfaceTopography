@@ -1,3 +1,51 @@
 [build-system]
-requires = ['setuptools>=40.8.0', 'wheel', 'numpy>=1.16.3']
+requires = ['setuptools>=40.8.0', 'setuptools_scm[toml]', 'wheel', 'numpy>=1.16.3']
 build-backend = 'setuptools.build_meta'
+
+[project]
+name = "SurfaceTopography"
+version = "2020.0.0"
+description = "Read and analyze surface topographies"
+readme = "README.md"
+requires-python = ">=3.5.0"
+license = { file = "LICENSE.md" }
+authors = [
+    { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" }
+]
+maintainers = [
+    { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" }
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python"
+]
+
+dependencies = [
+    'numpy>=1.16.3',
+    'NuMPI>=0.3.0',
+    'muFFT>=0.12.0',
+    'igor',
+    'h5py',
+    'defusedxml',
+    'numpyencoder',
+    'openpyxl',
+    'pyyaml',
+    'Pillow',
+    'requests',
+    'matplotlib>=1.0.0',
+    'python-dateutil',
+    'tiffile',
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest < 5.0.0",
+    "pytest-cov[all]"
+]
+
+[project.urls]
+documentation = "https://contactengineering.github.io/SurfaceTopography/"
+repository = "https://github.com/ContactEngineering/SurfaceTopography"
+changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
+
+[tool.setuptools_scm]
