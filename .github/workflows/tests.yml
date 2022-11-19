@@ -34,11 +34,12 @@ jobs:
       run: |
         sudo apt-get update -qy
         sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
-        if [ "${{ matrix.mpi }}" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
-        # We need to install a couple of packages without wheel, since they must properly link to system libraries
-        if [ "${{ matrix.mpi }}" == "yes" ]; then CC=mpicc python3 -m pip install -v --no-binary mpi4py mpi4py==${{ matrix.mpi4py-version }}; fi
-        python3 -m pip install numpy --no-binary numpy
-        if [ "${{ matrix.mpi }}" == "yes" ]; then NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf CC=mpicc python3 -m pip install -v --no-binary netCDF4 netCDF4==${{ matrix.netcdf4-python-version }}; fi
+        if [ "${{ matrix.mpi }}" == "yes" ]; then
+          sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
+          # We need to install a couple of packages without wheel, since they must properly link to system libraries
+          CC=mpicc python3 -m pip install -v --no-binary numpy --no-binary mpi4py  mpi4py==${{ matrix.mpi4py-version }}
+          NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf CC=mpicc python3 -m pip install -v --no-binary netCDF4 netCDF4==${{ matrix.netcdf4-python-version }}
+        fi
 
     - name: Test building source package
       run: |
@@ -51,4 +52,8 @@ jobs:
     - name: Test with pytest
       run: |
         python3 .check_netcdf_capabilities.py ${{ matrix.mpi }}
-        if [ "${{ matrix.mpi }}" == "yes" ]; then python3 run-tests.py --no-build --verbose --full-trace; else python3 -m pytest --verbose --full-trace -s; fi
+        if [ "${{ matrix.mpi }}" == "yes" ]; then
+          python3 run-tests.py --no-build --verbose --full-trace
+        else
+          python3 -m pytest --verbose --full-trace -s
+        fi
