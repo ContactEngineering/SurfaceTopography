@@ -23,7 +23,6 @@
 # SOFTWARE.
 #
 
-import os
 import pytest
 import tempfile
 
