@@ -39,6 +39,9 @@ from SurfaceTopography.Generation import fourier_synthesis
 from .test_io import binary_example_file_list, explicit_physical_sizes
 
 
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 def test_save_and_load(comm):
     nb_grid_pts = (128, 128)
     size = (3, 3)
