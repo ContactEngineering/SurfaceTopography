@@ -34,9 +34,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -qy
-        sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
         if [ "${{ matrix.mpi }}" == "yes" ]; then
-          sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev
+          sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf sudo python3 -m pip install -v \
             --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binard netCDF4 \
             -r requirements.txt \
@@ -44,10 +43,11 @@ jobs:
             netCDF4==${{ matrix.netcdf4-python-version }} \
             pytest runtests>=0.0.28
         else
+          sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev 
           sudo python3 -m pip install \
             --no-binary setuptools_scm --no-binary numpy \
             -r requirements.txt \
-            numpy pytest runtests>=0.0.28
+            pytest runtests>=0.0.28
         fi
         python3 -m pip list
 
