@@ -36,9 +36,6 @@ jobs:
         sudo apt-get update -qy
         if [ "${{ matrix.mpi }}" == "yes" ]; then
           sudo apt-get install -y \
-            python3-dev \
-            python3-pip \
-            python3-virtualenv \
             libfftw3-dev \
             libopenblas-dev \
             openmpi-bin \
@@ -47,7 +44,7 @@ jobs:
             libhdf5-mpi-dev \
             libpnetcdf-dev \
             libnetcdf-pnetcdf-dev
-          python3 -m virtualenv venv
+          python3 -m venv venv
           source venv/bin/activate
           CC=mpicc python3 -m pip install -v \
             --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy \
@@ -60,12 +57,9 @@ jobs:
             netCDF4==${{ matrix.netcdf4-python-version }}
         else
           sudo apt-get install -y \
-            python3-dev \
-            python3-pip \
-            python3-virtualenv \
             libfftw3-dev \
             libopenblas-dev 
-          python3 -m virtualenv venv
+          python3 -m venv venv
           source venv/bin/activate
           python3 -m pip install \
             --no-binary setuptools_scm --no-binary numpy \
