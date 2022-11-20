@@ -38,14 +38,14 @@ jobs:
         if [ "${{ matrix.mpi }}" == "yes" ]; then
           sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf sudo python3 -m pip install -v \
-            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binard netCDF \
+            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binard netCDF4 \
             -r requirements.txt \
             mpi4py==${{ matrix.mpi4py-version }} \
             netCDF4==${{ matrix.netcdf4-python-version }} \
             pytest runtests>=0.0.28
         else
           sudo python3 -m pip install \
-            --no-binary setuptools_scm --no-binary \
+            --no-binary setuptools_scm --no-binary numpy \
             -r requirements.txt \
             numpy pytest runtests>=0.0.28
         fi
