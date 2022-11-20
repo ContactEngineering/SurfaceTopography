@@ -21,7 +21,7 @@ jobs:
         mpi: ['yes', 'no']
         python-version: ['3.7', '3.8', '3.9', '3.10']
         mpi4py-version: [3.1.4]
-        netcdf4-python-version: [1.6.2]
+        netcdf4-python-version: [1.6.1]
 
     steps:
     - uses: actions/checkout@v2
