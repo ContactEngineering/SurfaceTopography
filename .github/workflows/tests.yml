@@ -43,7 +43,7 @@ jobs:
             pytest runtests>=0.0.28
           # We need to install separate as it complains about missing mpi4py otherwise
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf sudo -E python3 -m pip install -v \
-            --no-binary netCDF4 \
+            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
         else
           sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev 
