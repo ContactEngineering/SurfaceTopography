@@ -24,14 +24,12 @@
 #
 
 import numpy as np
-import pytest
 
 from muFFT import FFT
 
 from SurfaceTopography import make_sphere
 
 
-@pytest.mark.skip
 def test_sphere(comm):
     nx = 33
     ny = 11
@@ -52,7 +50,6 @@ def test_sphere(comm):
         (X - center[0]) ** 2 + (Y - center[1]) ** 2 + (R + Z) ** 2, R ** 2)
 
 
-@pytest.mark.skip
 def test_sphere_periodic(comm):
     nx = 33
     ny = 11
@@ -79,7 +76,6 @@ def test_sphere_periodic(comm):
         + (R + Z) ** 2, R ** 2)
 
 
-@pytest.mark.skip
 def test_sphere_standoff(comm):
     nx = 33
     ny = 11
