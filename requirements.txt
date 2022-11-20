@@ -8,7 +8,7 @@ pep8>=0.6
 scipy>=1.2.0
 h5py
 sphinx>=1.8.2
-sphinx_rtd_theme=1.1.1
+sphinx_rtd_theme==1.1.1
 docutils<0.18
 NuMPI>=0.3.0
 setuptools_scm>=3.5.0
