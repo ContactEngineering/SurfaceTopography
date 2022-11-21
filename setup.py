@@ -145,12 +145,13 @@ setup(
         'h5py',
         'defusedxml',
         'numpyencoder',
-        'openpyxl',
+        'openpyxl',  # for Mitutoyo files
         'pyyaml',
         'Pillow',
         'requests',
         'matplotlib>=1.0.0',
         'python-dateutil',
-        'tiffile',
+        'tiffile',  # for Park Systems files
+        'scipy',  # for interpolating missing data points
     ]
 )

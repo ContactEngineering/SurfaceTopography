@@ -100,8 +100,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_gradient(), 0.4560243831362324)
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'nm')
+        self.assertEqual(surf.unit, 'nm')
 
     def test_example2(self):
         surf = read_asc(os.path.join(DATADIR, 'example2.txt'))
@@ -112,8 +111,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_gradient(), 0.35152685030417763)
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'm')
+        self.assertEqual(surf.unit, 'm')
 
     def test_example3(self):
         surf = read_asc(os.path.join(DATADIR, 'example3.txt'))
@@ -124,8 +122,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_gradient(), 0.19235602282848963)
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        with pytest.deprecated_call():
-            self.assertEqual(surf.info['unit'], 'm')
+        self.assertEqual(surf.unit, 'm')
 
     def test_example4(self):
         surf = read_asc(os.path.join(DATADIR, 'example4.txt'))
@@ -137,7 +134,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.info['unit'], 'm')
+        self.assertEqual(surf.unit, 'm')
 
         # test setting the physical_sizes
         with self.assertRaises(AttributeError):

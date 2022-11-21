@@ -280,9 +280,6 @@ class ChannelInfo:
         SurfaceTopography itself, but required by third-party application.
 
         Presently, the following entries have been standardized:
-        'unit':
-            This is the unit of the physical size (if given in the file) and
-            the units of the heights.
         'height_scale_factor':
             Factor which was used to scale the raw numbers from file (which
             can be voltages or some other quantity actually acquired in the

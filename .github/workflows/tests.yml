@@ -14,13 +14,14 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-20.04
+    timeout-minutes: 30
 
     strategy:
       matrix:
         mpi: ['yes', 'no']
-        python-version: [3.7, 3.8, 3.9]
-        mpi4py-version: [3.0.3]
-        netcdf4-python-version: [1.5.7]
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+        mpi4py-version: [3.1.4]
+        netcdf4-python-version: [1.6.1]
 
     steps:
     - uses: actions/checkout@v2
@@ -33,21 +34,50 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -qy
-        sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
-        if [ "${{ matrix.mpi }}" == "yes" ]; then sudo apt-get install openmpi-bin libopenmpi-dev libfftw3-mpi-dev libhdf5-mpi-dev libpnetcdf-dev libnetcdf-pnetcdf-dev; fi
-        if [ "${{ matrix.mpi }}" == "yes" ]; then CC=mpicc python3 -m pip install -v --no-binary mpi4py mpi4py==${{ matrix.mpi4py-version }}; fi
-        python3 -m pip install -r requirements.txt --no-binary setuptools_scm --no-binary numpy
-        if [ "${{ matrix.mpi }}" == "yes" ]; then NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf CC=mpicc python3 -m pip install -v --no-binary netCDF4 netCDF4==${{ matrix.netcdf4-python-version }}; fi
-        # Testing requirements
-        python3 -m pip install pytest runtests>=0.0.28
+        if [ "${{ matrix.mpi }}" == "yes" ]; then
+          sudo apt-get install -y \
+            libfftw3-dev \
+            libopenblas-dev \
+            openmpi-bin \
+            libopenmpi-dev \
+            libfftw3-mpi-dev \
+            libhdf5-mpi-dev \
+            libpnetcdf-dev \
+            libnetcdf-pnetcdf-dev
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip
+          CC=mpicc python3 -m pip install -v \
+            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy \
+            -r requirements.txt \
+            mpi4py==${{ matrix.mpi4py-version }} \
+            pytest runtests>=0.0.28
+          # We need to install separate as it complains about missing mpi4py otherwise
+          CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
+            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binary netCDF4 \
+            netCDF4==${{ matrix.netcdf4-python-version }}
+        else
+          sudo apt-get install -y \
+            libfftw3-dev \
+            libopenblas-dev 
+          python3 -m venv venv
+          source venv/bin/activate
+          python3 -m pip install --upgrade pip
+          python3 -m pip install \
+            --no-binary setuptools_scm --no-binary numpy \
+            -r requirements.txt \
+            pytest runtests>=0.0.28
+        fi
         python3 -m pip list
 
     - name: Build extension module
       run: |
+        source venv/bin/activate
         python3 setup.py sdist
         python3 -m pip install dist/*.tar.gz
 
     - name: Test with pytest
       run: |
+        source venv/bin/activate
         python3 .check_netcdf_capabilities.py ${{ matrix.mpi }}
         if [ "${{ matrix.mpi }}" == "yes" ]; then python3 run-tests.py --no-build --verbose --full-trace; else python3 -m pytest --verbose --full-trace -s; fi
