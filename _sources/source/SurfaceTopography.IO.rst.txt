@@ -148,6 +148,14 @@ SurfaceTopography.IO.VK module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.X3P module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.X3P
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.ZON module
 -------------------------------
 
