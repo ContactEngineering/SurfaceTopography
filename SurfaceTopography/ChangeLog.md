@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2.1 (19Nov22)
+v1.2.1 (21Nov22)
 ----------------
 
 - ENH: Extract X3P metadata
