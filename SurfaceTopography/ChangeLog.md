@@ -1,11 +1,13 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2.1 (21Nov22)
+v1.2.1 (22Nov22)
 ----------------
 
 - ENH: Extract X3P metadata
 - MAINT: Converted X3P reader to new style
+- MAINT: Bumped muFFT require to 0.24.0 - this avoids installation problems
+  downstream, but disables automatic MPI detection 
 - BUG: X3P data was read in the wrong storage order
 
 v1.2 (15Nov22)
