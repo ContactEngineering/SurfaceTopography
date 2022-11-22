@@ -140,7 +140,7 @@ setup(
     install_requires=[
         'numpy>=1.16.3',
         'NuMPI>=0.3.0',
-        'muFFT>=0.12.0',
+        'muFFT>=0.24.0',
         'igor',
         'h5py',
         'defusedxml',

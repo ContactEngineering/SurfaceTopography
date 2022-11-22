@@ -12,7 +12,7 @@ sphinx_rtd_theme==1.1.1
 docutils<0.18
 NuMPI>=0.3.0
 setuptools_scm>=3.5.0
-muFFT>=0.12.0
+muFFT>=0.24.0
 defusedxml
 numpyencoder
 pyyaml
