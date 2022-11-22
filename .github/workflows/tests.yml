@@ -63,8 +63,7 @@ jobs:
           pip download ${MUFFT_VERSION}
           tar -zvxf muFFT-*.tar.gz
           cd muFFT-*/
-          python3 setup.py build --force --mpi
-          python3 setup.py install --force
+          python3 setup.py install --mpi --force
           cd ${WD}
           # Install the rest
           pip install -r requirements.txt pytest runtests>=0.0.28
@@ -92,4 +91,5 @@ jobs:
       run: |
         source venv/bin/activate
         python3 .check_netcdf_capabilities.py ${{ matrix.mpi }}
+        python3 .check_mufft_capabilities.py ${{ matrix.mpi }}
         if [ "${{ matrix.mpi }}" == "yes" ]; then python3 run-tests.py --no-build --verbose --full-trace; else python3 -m pytest --verbose --full-trace -s; fi
