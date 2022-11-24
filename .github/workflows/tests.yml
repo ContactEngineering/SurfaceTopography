@@ -84,8 +84,8 @@ jobs:
     - name: Build extension module
       run: |
         source venv/bin/activate
-        python3 setup.py sdist
-        python3 -m pip install dist/*.tar.gz
+        python3 -m pip wheel .
+        python3 -m pip install *.whl
 
     - name: Test with pytest
       run: |
