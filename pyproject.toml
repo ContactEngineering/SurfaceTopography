@@ -1,5 +1,5 @@
 [build-system]
-requires = ["mesonpep517>=0.2", "ninja"]
+requires = ["mesonpep517>=0.2", "ninja", "numpy"]
 build-backend = "mesonpep517.buildapi"
 
 [project]
