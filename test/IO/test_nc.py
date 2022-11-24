@@ -39,21 +39,21 @@ from SurfaceTopography.Generation import fourier_synthesis
 from .test_io import binary_example_file_list, explicit_physical_sizes
 
 
-def test_save_and_load(comm):
+def test_save_and_load(maxcomm):
     nb_grid_pts = (128, 128)
     size = (3, 3)
 
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
-    fft = FFT(nb_grid_pts, communicator=comm, fft="mpi")
+    fft = FFT(nb_grid_pts, communicator=maxcomm, fft="mpi")
     fft.create_plan(1)
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
-                            communicator=comm)
+                            communicator=maxcomm)
     assert t.unit == 'µm'
     assert dt.unit == 'µm'
-    if comm.size > 1:
+    if maxcomm.size > 1:
         assert dt.is_domain_decomposed
 
     # Save file
@@ -67,7 +67,7 @@ def test_save_and_load(comm):
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
     # Attempt to open file in parallel
-    r = NCReader('parallel_save_test.nc', communicator=comm)
+    r = NCReader('parallel_save_test.nc', communicator=maxcomm)
 
     assert r.channels[0].nb_grid_pts == nb_grid_pts
 
@@ -138,8 +138,7 @@ def test_save_and_load_line_scan():
     size = (3,)
 
     np.random.seed(1)
-    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
-    t.info['unit'] = 'µm'
+    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
     with tempfile.TemporaryDirectory() as d:
         tmpfn = f'{d}/line_scan.nc'

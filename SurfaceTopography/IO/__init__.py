@@ -31,7 +31,7 @@ from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFix
     UnknownFileFormatGiven  # noqa: F401
 
 # Old-style readers
-from .FromFile import HGTReader, X3PReader
+from .FromFile import HGTReader
 from .Text import AscReader, XYZReader
 
 # New-style readers
@@ -49,6 +49,7 @@ from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .SUR import SURReader
 from .VK import VKReader
+from .X3P import X3PReader
 from .ZON import ZONReader
 
 # Only writers

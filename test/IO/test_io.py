@@ -84,8 +84,10 @@ binary_example_file_list = _convert_filelist([
                                                  'example.opd',
                                                  'example2.opd',
                                                  'opd3.opd',
-                                                 'example.x3p',
-                                                 'example2.x3p',
+                                                 'x3p-1.x3p',
+                                                 'x3p-2.x3p',
+                                                 'x3p-3.x3p',
+                                                 'x3p-4.x3p',
                                                  'opdx1.OPDx',
                                                  'opdx2.OPDx',
                                                  'opdx3.OPDx',
@@ -329,6 +331,7 @@ def test_reader_topography_same(fn):
             else None,
             info=dict(foo=foo_str))
         assert channel.nb_grid_pts == topography.nb_grid_pts
+        assert topography.nb_grid_pts == topography.heights().shape
 
         # some checks on info dict in channel and topography
         assert topography.info['foo'] == foo_str
@@ -574,7 +577,10 @@ def test_detect_format(file_format_examples):
         detect_format(os.path.join(file_format_examples, 'di_corrupted.di'))
     assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
     assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
-    assert detect_format(os.path.join(file_format_examples, 'example.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-1.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-2.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
     assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'

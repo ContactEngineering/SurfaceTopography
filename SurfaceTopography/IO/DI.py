@@ -34,6 +34,7 @@ from datetime import datetime
 
 import numpy as np
 
+from .common import OpenFromAny
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
@@ -54,21 +55,17 @@ information on the physical size of the topography map as well as its units.
 The reader supports V4.3 and later version of the format.
 '''
 
-    def __init__(self, fobj):
+    def __init__(self, file_path):
         """
         Load Digital Instrument's Nanoscope files.
 
         Arguments
         ---------
-        fobj : filename or file object
+        file_path : filename or file object
              File or data stream to open.
         """
-        self._fobj = fobj
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'rb')
-            close_file = True
-        try:
+        self._file_path = file_path
+        with OpenFromAny(self._file_path, 'rb') as fobj:
             parameters = []
             section_name = None
             section_dict = {}
@@ -214,10 +211,6 @@ The reader supports V4.3 and later version of the format.
                 if offset + nx * ny * elsize > file_size:
                     raise CorruptFile('File is not large enough to contain all data buffers.')
 
-        finally:
-            if close_file:
-                fobj.close()
-
     @property
     def channels(self):
         return self._channels
@@ -233,38 +226,33 @@ The reader supports V4.3 and later version of the format.
                 nb_subdomain_grid_pts is not None:
             raise RuntimeError(
                 'This reader does not support MPI parallelization.')
-        close_file = False
-        if not hasattr(self._fobj, 'read'):
-            fobj = open(self._fobj, 'rb')
-            close_file = True
-        else:
-            fobj = self._fobj
 
-        channel = self._channels[channel_index]
+        with OpenFromAny(self._file_path, 'rb') as fobj:
+            channel = self._channels[channel_index]
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            if unit is not None:
+                raise MetadataAlreadyFixedByFile('unit')
 
-        sx, sy = self._check_physical_sizes(physical_sizes,
-                                            channel.physical_sizes)
+            sx, sy = self._check_physical_sizes(physical_sizes,
+                                                channel.physical_sizes)
 
-        nx, ny = channel.nb_grid_pts
+            nx, ny = channel.nb_grid_pts
 
-        offset = self._offsets[channel_index]
-        if channel.info['bytes_per_pixel'] == 2:
-            dtype = np.dtype('<i2')
-        elif channel.info['bytes_per_pixel'] == 4:
-            dtype = np.dtype('<i4')
-        else:
-            raise IOError(f"Don't know how to handle {info['bytes_per_pixel']} bytes per pixel data.")
+            offset = self._offsets[channel_index]
+            if channel.info['bytes_per_pixel'] == 2:
+                dtype = np.dtype('<i2')
+            elif channel.info['bytes_per_pixel'] == 4:
+                dtype = np.dtype('<i4')
+            else:
+                raise IOError(f"Don't know how to handle {info['bytes_per_pixel']} bytes per pixel data.")
 
-        assert channel.info['bytes_per_pixel'] == dtype.itemsize
+            assert channel.info['bytes_per_pixel'] == dtype.itemsize
 
-        ###################################
+            ###################################
 
-        fobj.seek(offset)
-        rawdata = fobj.read(nx * ny * dtype.itemsize)
-        unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(nx, ny)
+            fobj.seek(offset)
+            rawdata = fobj.read(nx * ny * dtype.itemsize)
+            unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(nx, ny)
 
         # internal information from file
         _info = dict(data_source=channel.name)
@@ -295,9 +283,6 @@ The reader supports V4.3 and later version of the format.
             raise MetadataAlreadyFixedByFile('height_scale_factor')
         if height_scale_factor is not None:
             surface = surface.scale(height_scale_factor)
-
-        if close_file:
-            fobj.close()
 
         return surface
 
