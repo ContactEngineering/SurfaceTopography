@@ -1,5 +1,42 @@
 [build-system]
-requires = ['setuptools>=40.8.0', 'setuptools_scm[toml]', 'wheel', 'numpy>=1.16.3']
-build-backend = 'setuptools.build_meta'
+requires = ["mesonpep517>=0.2"]
+build-backend = "mesonpep517.buildapi"
 
-[tool.setuptools_scm]
+[project]
+name = "SurfaceTopography"
+description = "Read and analyze surface topographies"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+authors = [
+    { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" }
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python"
+]
+requires-python = ">=3.7.0"
+dependencies = [
+    "defusedxml",
+    "h5py",
+    "igor",
+    "matplotlib>=1.0.0",
+    "muFFT>=0.12.0",
+    "NuMPI>=0.3.0",
+    "numpyencoder",
+    "openpyxl",
+    "Pillow",
+    "python-dateutil",
+    "pyyaml",
+    "requests",
+    "scipy",
+    "tiffile"
+]
+dynamic = [ "version" ]
+
+[project.urls]
+documentation = "https://contactengineering.github.io/SurfaceTopography/"
+repository = "https://github.com/ContactEngineering/SurfaceTopography"
+changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
+
+[tool.mesonpep517.metadata]
+summary = "Read and analyze surface topographies"  # This should actually be deprecated
