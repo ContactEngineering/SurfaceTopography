@@ -8,7 +8,7 @@ project(
 # https://mesonbuild.com/Python-module.html
 pymod = import('python')
 python = pymod.find_installation(
-    required: true,W
+    required: true,
 )
 
 subdir('c')

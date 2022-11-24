@@ -67,8 +67,8 @@ jobs:
     - name: Build extension module
       run: |
         source venv/bin/activate
-        python3 -m pip wheel .
-        python3 -m pip install *.whl
+        python3 -m pip wheel . -w dist
+        python3 -m pip install dist/*.whl
 
     - name: Test with pytest
       run: |
