@@ -67,6 +67,7 @@ jobs:
 
     - name: Build wheel
       run: |
+        source venv/bin/activate
         python3 -m pip build . -w
 
     - name: Install extension module
