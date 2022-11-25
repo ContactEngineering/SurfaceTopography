@@ -52,6 +52,7 @@ jobs:
             netCDF4==${{ matrix.netcdf4-python-version }}
           # Compute muFFT version
           pip-compile -q pyproject.toml
+          cat requirements.txt
           MUFFT_VERSION=$(grep mufft requirements.txt)
           # Manually install muFFT with MPI enabled
           WD=$(pwd)
@@ -60,7 +61,7 @@ jobs:
           tar -zvxf muFFT-*.tar.gz
           cd muFFT-*/
           python3 setup.py install --mpi --force
-          cd ${WD} 
+          cd ${WD}
         else
           sudo apt-get install -y \
             libfftw3-dev \
