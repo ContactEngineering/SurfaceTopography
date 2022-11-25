@@ -51,8 +51,8 @@ jobs:
             --no-binary mpi4py --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
           # Compute muFFT version
-          pip-compile pyproject.toml
-          MUFFT_VERSION=${grep mufft requirements.txt}
+          pip-compile -q pyproject.toml
+          MUFFT_VERSION=$(grep mufft requirements.txt)
           # Manually install muFFT with MPI enabled
           WD=$(pwd)
           cd ..
