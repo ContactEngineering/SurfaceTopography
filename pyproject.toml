@@ -1,5 +1,5 @@
 [build-system]
-requires = ["mesonpep517>=0.2", "ninja", "numpy"]
+requires = ["meson>=0.46.0", "mesonpep517>=0.2", "ninja", "numpy"]
 build-backend = "mesonpep517.buildapi"
 
 [project]
@@ -29,9 +29,19 @@ dependencies = [
     "pyyaml",
     "requests",
     "scipy",
-    "tiffile"
+    "tiffile",
+    "numpy"
 ]
 dynamic = [ "version" ]
+
+[project.optional-dependencies]
+test = [
+    "flake8<5",
+    "pytest",
+    "pytest-cov",
+    "pytest-flake8",
+    "runtests"
+]
 
 [project.urls]
 documentation = "https://contactengineering.github.io/SurfaceTopography/"

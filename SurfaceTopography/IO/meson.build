@@ -30,6 +30,5 @@ python_sources = [
 # Install pure Python
 python.install_sources(
     python_sources,
-    pure: false, # Will be installed next to binaries
-    subdir: 'SurfaceTopography'  # Folder relative to site-packages to install to
+    pure: false # Will be installed next to binaries
 )
