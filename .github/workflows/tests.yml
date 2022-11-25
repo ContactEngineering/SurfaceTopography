@@ -65,15 +65,10 @@ jobs:
         python3 -m pip install build
         python3 -m pip list
 
-    - name: Build wheel
-      run: |
-        source venv/bin/activate
-        python3 -m build . -w
-
     - name: Install extension module
       run: |
         source venv/bin/activate
-        python3 -m pip install dist/*.whl
+        python3 -m pip install .[test]
 
     - name: Test with pytest
       run: |
