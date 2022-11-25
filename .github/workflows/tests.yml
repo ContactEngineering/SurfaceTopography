@@ -64,11 +64,12 @@ jobs:
         fi
         python3 -m pip list
 
-    - name: Build extension module
+    - name: Build and install extension module
       run: |
         source venv/bin/activate
-        python3 -m pip wheel . -w dist
-        python3 -m pip install dist/*.whl
+        #python3 -m pip wheel . -w dist
+        #python3 -m pip install dist/*.whl
+        python3 -m pip install .
 
     - name: Test with pytest
       run: |
