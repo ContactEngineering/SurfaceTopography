@@ -6,6 +6,9 @@ include_numpy = run_command(python,
   check : true
 ).stdout().strip()
 
+# Find LAPACK
+lapack = dependency('lapack')
+
 # Build and install the extension module
 module = python.extension_module(
     '_SurfaceTopography', # Name of the module
@@ -18,6 +21,7 @@ module = python.extension_module(
     install: true,  # Install it
     include_directories: include_directories(include_numpy),
     dependencies: [ # List of dependencies
-        python.dependency() # Add Python.h as dependency
+        python.dependency(), # Add Python.h as dependency
+        lapack
     ]
 )
