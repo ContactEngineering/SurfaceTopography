@@ -20,7 +20,7 @@ jobs:
       matrix:
         mpi: ['yes', 'no']
         python-version: ['3.7', '3.8', '3.9', '3.10']
-        mpi4py-version: [3.1.4]
+        mufft-version: [0.24.0]
         netcdf4-python-version: [1.6.1]
 
     steps:
@@ -52,10 +52,9 @@ jobs:
             --no-binary mpi4py --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
           # Manually install muFFT with MPI enabled
-          MUFFT_VERSION=$(grep muFFT requirements.txt)
           WD=$(pwd)
           cd ..
-          pip download ${MUFFT_VERSION}
+          pip download muFFT=${{ matrix.mufft_version }}
           tar -zvxf muFFT-*.tar.gz
           cd muFFT-*/
           python3 setup.py install --mpi --force
