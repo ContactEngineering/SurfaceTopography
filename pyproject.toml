@@ -50,3 +50,4 @@ changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master
 
 [tool.mesonpep517.metadata]
 summary = "Read and analyze surface topographies"  # This should actually be deprecated
+meson-python-option-name = "python3"

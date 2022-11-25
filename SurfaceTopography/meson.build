@@ -15,5 +15,13 @@ python_sources = [
 # Install pure Python
 python.install_sources(
     python_sources,
-    pure: false # Will be installed next to binaries
+    subdir: 'SurfaceTopography'
 )
+
+subdir('Container')
+subdir('Generic')
+subdir('IO')
+subdir('Nonuniform')
+subdir('Support')
+subdir('Uniform')
+
