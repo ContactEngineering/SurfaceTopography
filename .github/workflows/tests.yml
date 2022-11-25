@@ -45,7 +45,7 @@ jobs:
             libnetcdf-pnetcdf-dev
           python3 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip pip-tools
           # Install netCDF4 with MPI support
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
             --no-binary mpi4py --no-binary netCDF4 \
@@ -67,7 +67,7 @@ jobs:
             libopenblas-dev 
           python3 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip pip-tools
         fi
         python3 -m pip install build
         python3 -m pip list
