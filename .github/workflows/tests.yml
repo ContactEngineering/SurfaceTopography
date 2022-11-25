@@ -47,13 +47,13 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           python3 -m pip install --upgrade pip
-          CC=mpicc python3 -m pip install -v \
-            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy \
-            mpi4py==${{ matrix.mpi4py-version }}
+          #CC=mpicc python3 -m pip install -v \
+          #  --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy \
+          #  mpi4py==${{ matrix.mpi4py-version }}
           # Install netCDF4
-          CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
-            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binary netCDF4 \
-            netCDF4==${{ matrix.netcdf4-python-version }}
+          #CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
+          #  --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binary netCDF4 \
+          #  netCDF4==${{ matrix.netcdf4-python-version }}
         else
           sudo apt-get install -y \
             libfftw3-dev \
