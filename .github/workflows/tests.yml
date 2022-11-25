@@ -60,7 +60,7 @@ jobs:
           tar -zvxf muFFT-*.tar.gz
           cd muFFT-*/
           python3 setup.py install --mpi --force
-          cd ${WD}
+          cd ${WD} 
         else
           sudo apt-get install -y \
             libfftw3-dev \
