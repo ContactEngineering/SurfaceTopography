@@ -47,18 +47,21 @@ jobs:
           source venv/bin/activate
           python3 -m pip install --upgrade pip pip-tools
           # Compute mpi4py and muFFT versions
-          pip-compile -q pyproject.toml
+          pip-compile pyproject.toml
           MPI4PY_VERSION=$(grep mpi4py requirements.txt)
           MUFFT_VERSION=$(grep mufft requirements.txt)
           # Install mpi4py
+          echo "Installing ${MPIPY_VERSION}"
           CC=mpicc python3 -m pip install -v \
             --no-binary mpi4py \
             ${MPI4PY_VERSION}
           # Install netCDF4 with MPI support
+          echo "Installing ${{ matrix.netcdf4-python-version }}"
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
             --no-binary mpi4py --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
           # Manually install muFFT with MPI enabled
+          echo "Installing ${MUFFT_VERSION}"
           WD=$(pwd)
           cd ..
           pip download ${MUFFT_VERSION}
