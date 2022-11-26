@@ -20,6 +20,7 @@ jobs:
       matrix:
         mpi: ['yes', 'no']
         python-version: ['3.7', '3.8', '3.9', '3.10']
+        mpi4py-version: [3.1.4]
         netcdf4-python-version: [1.6.1]
 
     steps:
@@ -48,13 +49,12 @@ jobs:
           python3 -m pip install --upgrade pip pip-tools
           # Compute mpi4py and muFFT versions
           pip-compile pyproject.toml
-          MPI4PY_VERSION=$(grep mpi4py requirements.txt)
           MUFFT_VERSION=$(grep mufft requirements.txt)
           # Install mpi4py
-          echo "Installing ${MPIPY_VERSION}"
+          echo "Installing ${{ matrix.mpi4py-version }}"
           CC=mpicc python3 -m pip install -v \
             --no-binary mpi4py \
-            ${MPI4PY_VERSION}
+            ${{ matrix.mpi4py-version }}
           # Install netCDF4 with MPI support
           echo "Installing ${{ matrix.netcdf4-python-version }}"
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
