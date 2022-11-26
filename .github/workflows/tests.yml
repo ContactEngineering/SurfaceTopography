@@ -51,12 +51,12 @@ jobs:
           pip-compile pyproject.toml
           MUFFT_VERSION=$(grep mufft requirements.txt)
           # Install mpi4py
-          echo "Installing ${{ matrix.mpi4py-version }}"
+          echo "Installing mpi4py==${{ matrix.mpi4py-version }}"
           CC=mpicc python3 -m pip install -v \
             --no-binary mpi4py \
-            ${{ matrix.mpi4py-version }}
+            mpi4py==${{ matrix.mpi4py-version }}
           # Install netCDF4 with MPI support
-          echo "Installing ${{ matrix.netcdf4-python-version }}"
+          echo "Installing netCD4==${{ matrix.netcdf4-python-version }}"
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
             --no-binary mpi4py --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
