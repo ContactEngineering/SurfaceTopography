@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
+v1.3 (not yet released)
+-----------------------
+
+- MAINT: Switched build system to Meson 
+
 v1.2.1 (22Nov22)
 ----------------
 

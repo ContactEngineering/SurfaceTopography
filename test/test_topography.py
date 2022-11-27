@@ -563,10 +563,10 @@ class diSurfaceTest(unittest.TestCase):
                 self.assertEqual(nx, n)
                 self.assertEqual(ny, n)
                 sx, sy = surface.physical_sizes
-                if type(surface.info['unit']) is tuple:
-                    unit, dummy = surface.info['unit']
+                if type(surface.unit) is tuple:
+                    unit, dummy = surface.unit
                 else:
-                    unit = surface.info['unit']
+                    unit = surface.unit
                 self.assertAlmostEqual(
                     sx * get_unit_conversion_factor(unit, 'nm'), s)
                 self.assertAlmostEqual(

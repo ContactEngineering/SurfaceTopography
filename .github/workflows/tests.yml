@@ -46,18 +46,22 @@ jobs:
             libnetcdf-pnetcdf-dev
           python3 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip pip-tools
+          # Compute mpi4py and muFFT versions
+          pip-compile pyproject.toml
+          MUFFT_VERSION=$(grep mufft requirements.txt)
+          # Install mpi4py
+          echo "Installing mpi4py==${{ matrix.mpi4py-version }}"
           CC=mpicc python3 -m pip install -v \
-            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy \
-            mpi4py==${{ matrix.mpi4py-version }} \
-            $(grep setuptools_scm requirements.txt) \
-            $(grep numpy requirements.txt)
-          # Install netCDF4
+            --no-binary mpi4py \
+            mpi4py==${{ matrix.mpi4py-version }}
+          # Install netCDF4 with MPI support
+          echo "Installing netCD4==${{ matrix.netcdf4-python-version }}"
           CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
-            --no-binary mpi4py --no-binary setuptools_scm --no-binary numpy --no-binary netCDF4 \
+            --no-binary mpi4py --no-binary netCDF4 \
             netCDF4==${{ matrix.netcdf4-python-version }}
           # Manually install muFFT with MPI enabled
-          MUFFT_VERSION=$(grep muFFT requirements.txt)
+          echo "Installing ${MUFFT_VERSION}"
           WD=$(pwd)
           cd ..
           pip download ${MUFFT_VERSION}
@@ -65,27 +69,21 @@ jobs:
           cd muFFT-*/
           python3 setup.py install --mpi --force
           cd ${WD}
-          # Install the rest
-          pip install -r requirements.txt pytest runtests>=0.0.28
         else
           sudo apt-get install -y \
             libfftw3-dev \
             libopenblas-dev 
           python3 -m venv venv
           source venv/bin/activate
-          python3 -m pip install --upgrade pip
-          python3 -m pip install \
-            --no-binary setuptools_scm --no-binary numpy \
-            -r requirements.txt \
-            pytest runtests>=0.0.28
+          python3 -m pip install --upgrade pip pip-tools
         fi
+        python3 -m pip install build
         python3 -m pip list
 
-    - name: Build extension module
+    - name: Install extension module
       run: |
         source venv/bin/activate
-        python3 setup.py sdist
-        python3 -m pip install dist/*.tar.gz
+        python3 -m pip install .[test]
 
     - name: Test with pytest
       run: |
