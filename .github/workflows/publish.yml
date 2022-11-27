@@ -1,11 +1,13 @@
 name: CI
 
-#on:
-#  push:
-#    branches:
-#      - master
-#    tags:
-#      - '*'
+on:
+  push:
+    branches:
+      #- master
+      - '**'
+    tags:
+      #- '*'
+      - '**'
 
 jobs:
   build:
