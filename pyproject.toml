@@ -42,9 +42,6 @@ test = [
     "pytest-flake8",
     "runtests"
 ]
-doc = [
-    "sphinx"
-]
 
 [project.urls]
 documentation = "https://contactengineering.github.io/SurfaceTopography/"
