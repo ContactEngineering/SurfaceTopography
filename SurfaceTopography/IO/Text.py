@@ -262,7 +262,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
         surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
-    if zfac is not None and zfac != 1:
+    if zfac is not None:
         surface = surface.scale(zfac)
     return surface
 
