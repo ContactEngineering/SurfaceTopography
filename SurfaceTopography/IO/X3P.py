@@ -201,6 +201,7 @@ data. The full specification of the format can be found
                             dim=2,
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
+                            height_scale_factor=self._height_scale_factor,
                             uniform=True,
                             unit=self._unit,
                             info=self._info)]
