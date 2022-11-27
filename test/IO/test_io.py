@@ -257,27 +257,41 @@ def test_reader_arguments(fn):
     for all readers"""
     physical_sizes0 = (1.2, 1.3)
     unit0 = 'mm'
+    height_scale_factor0 = 1
 
     # Test open -> topography
     r = open_topography(fn)
     physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
     unit = None if r.channels[0].unit is not None else unit0
+    height_scale_factor = None if r.channels[0].height_scale_factor is not None else height_scale_factor0
 
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                     height_scale_factor=None, unit=unit)
+                     height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                      height_scale_factor=None, unit=unit)
+                      height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t2.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t2.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
     assert_array_equal(t.heights(), t2.heights())
     # Test read_topography
     t = read_topography(fn, channel_index=0, physical_sizes=physical_sizes,
-                        height_scale_factor=None, unit=unit)
+                        height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
