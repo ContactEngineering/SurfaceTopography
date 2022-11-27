@@ -1,10 +1,11 @@
 Change log for SurfaceTopography
 =============================
 
-v1.3 (not yet released)
+v1.2.2 (28Nov22)
 -----------------------
 
-- MAINT: Switched build system to Meson 
+- MAINT: Switched build system to Meson
+- BUG: Fixed multiple bugs in handling of `height_scale_factor` by readers
 
 v1.2.1 (22Nov22)
 ----------------
