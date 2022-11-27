@@ -38,6 +38,11 @@ jobs:
         source venv/bin/activate
         python3 -m build .
 
+    - name: Install extension module
+      run: |
+        source venv/bin/activate
+        pip install .
+
     - name: Install sphinx
       run: |
         source venv/bin/activate
