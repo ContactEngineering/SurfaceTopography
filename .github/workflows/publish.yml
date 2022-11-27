@@ -46,7 +46,7 @@ jobs:
     - name: Install sphinx
       run: |
         source venv/bin/activate
-        pip install sphinx
+        pip install sphinx sphinx_rtd_theme
 
     - name: Build documentation
       run: |
