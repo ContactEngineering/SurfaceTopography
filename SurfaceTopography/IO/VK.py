@@ -262,6 +262,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                             dim=2,
                             nb_grid_pts=(self._data['width'], self._data['height']),
                             physical_sizes=self._physical_sizes,
+                            height_scale_factor=self._header['height_scale_factor'],
                             uniform=True,
                             unit=self._unit)]
 
