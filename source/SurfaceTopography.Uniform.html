@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.2.1 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.3 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.1
+                1.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -271,7 +271,7 @@ representations.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography to wrap.</p></li>
 <li><p><strong>info</strong> (<em>dict</em>) – Additional entries for the info dictionary.</p></li>
@@ -334,7 +334,7 @@ boundaries.</p>
 the assumption of periodicity. (These values at the outer edge will simply
 be wrong.)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array to be trimmed.</p></li>
 <li><p><strong>scale_factor</strong> (<em>int</em><em>, </em><em>optional</em>) – Integer factor that scales the stencil difference.</p></li>
@@ -350,7 +350,7 @@ stencil.</p></li>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.derivative" title="Permalink to this definition"></a></dt>
 <dd><p>Compute derivative of topography or line scan stored on a uniform grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
 <li><p><strong>n</strong> (<em>int</em>) – Order of the derivative.</p></li>
@@ -397,7 +397,7 @@ care. (Default: ‘linear’)</p></li>
 arguments for progress reporting. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. If dimension of the topography is
 unity (line scan), then an array of the same shape as the
 topography is returned. Otherwise, the first array index contains
@@ -405,7 +405,7 @@ the direction of the derivative. If the topgography is nonperiodic,
 then all returning array with have shape one less than the input
 arrays.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>array or tuple of arrays</p>
 </dd>
 </dl>
@@ -426,7 +426,7 @@ Niquist frequency is ambiguous (we are free to choose amplitude or phase)
 Following (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>),
 we assume it is cosinusoidal.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Surface topography object containing height information.</p></li>
 <li><p><strong>scale_factor</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>ints</em><em> or </em><em>list</em><em> of </em><em>tuples</em><em> of </em><em>ints</em><em>, </em><em>optional</em>) – <p>Integer factor that scales the stencil difference, i.e.
@@ -458,7 +458,7 @@ topography. This can be used to implement Fourier filtering before
 computing the derivative. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. If dimension of the topography is
 unity (line scan), then an array of the same shape as the
 topography is returned. Otherwise, the first array index contains
@@ -466,7 +466,7 @@ the direction of the derivative. If the topgography is nonperiodic,
 then all returning array with have shape one less than the input
 arrays.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>array or tuple of arrays</p>
 </dd>
 </dl>
@@ -497,10 +497,10 @@ function.</p>
 </div></blockquote>
 <p>solution X_s = arg_min ((arr - ň.x + d)^2).sum()</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>arr</strong> (<em>UniformTopography</em>) – Height information.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>m</strong> (<em>float</em>) – Slope in x-direction.</p></li>
 <li><p><strong>n</strong> (<em>float</em>) – Slope in y-direction.</p></li>
@@ -596,7 +596,7 @@ scans and ‘radial’ for topographies. (Default: None)</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_function=&lt;function</span> <span class="pre">FourierFilteredUniformTopography.&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isotropic=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info={}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
 </dd>
 </dl>
@@ -611,7 +611,7 @@ scans and ‘radial’ for topographies. (Default: None)</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.filter_function">
 <span class="sig-name descname"><span class="pre">filter_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.filter_function" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>isotropic</strong> (<em>if dim = 2 and filter is not</em>) – qx, qy</p></li>
 <li><p><strong>1</strong> (<em>if dim =</em>) – q</p></li>
@@ -649,7 +649,7 @@ scans and ‘radial’ for topographies. (Default: None)</p>
 <cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
 have to be provided.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
 <li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
@@ -659,7 +659,7 @@ have to be provided.</p>
 <li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Topography with filtered heights</p>
 </dd>
 </dl>
@@ -703,7 +703,7 @@ have to be provided.</p>
 <cite>cutoff_wavevector</cite> <span class="math notranslate nohighlight">\(= 2 pi /\)</span> <cite>cutoff_wavelength</cite>
 have to be provided.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
 <li><p><strong>cutoff_wavevector</strong> (<em>float</em>) – </p></li>
@@ -713,7 +713,7 @@ have to be provided.</p>
 <li><p><strong>kind</strong> (<em>{&quot;circular step&quot;</em><em>, </em><em>&quot;square step&quot;}</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>Topography with filtered heights</p>
 </dd>
 </dl>
@@ -746,7 +746,7 @@ have to be provided.</p>
 <dd><p>Return a map with coordination numbers, i.e. the number of neighboring
 pixels where <cite>mask</cite> is true.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mask</strong> (<em>array</em><em> of </em><em>bool</em>) – Mask with true/false values (typically indenfying specified regions on
 a two-dimensional map)</p></li>
@@ -756,11 +756,11 @@ contains relative coordinates of neighboring pixels, i.e. an
 entry (1, 0) indicates the the pixel to the right is a neighbor.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>coordination</strong> – For each pixel, this array contains the number of neighboring pixels
 where mask is true.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -813,7 +813,7 @@ points with harmonic functions (solutions of the Laplace equation).</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
 </dd>
 </dl>
@@ -839,7 +839,7 @@ points with harmonic functions (solutions of the Laplace equation).</p>
 <dd><p>Imputation of undefined data points in topography information that
 typically occurs in optical measurements.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<em>SurfaceTopography.Topography</em><em> or </em><em>SurfaceTopography.UniformLineScan</em>) – Input topography containing undefined data points.</p></li>
 <li><p><strong>method</strong> (<em>str</em>) – <dl class="simple">
@@ -889,13 +889,13 @@ physical domain of the topography is smaller than the nominal domain.</p>
 interpolation, i.e. we assume a cosine wave
 (<a class="reference external" href="https://math.mit.edu/~stevenj/fft-deriv.pdf">https://math.mit.edu/~stevenj/fft-deriv.pdf</a>).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – </p></li>
 <li><p><strong>nb_grid_pts</strong> (<em>tuple</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>SurfaceTopography with interolated values</p>
 </dd>
 </dl>
@@ -911,7 +911,7 @@ topography, making it kind of periodic</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
 </dd>
 </dl>
@@ -964,13 +964,13 @@ boundaries.</p>
 line scan stored on a uniform grid from individual profiles.
 (This is the Rq value.)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -983,13 +983,13 @@ line scan stored on a uniform grid from individual profiles.
 line scan stored on a uniform grid from the whole areal data.
 (This is the Sq value.)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_height</strong> – Root mean square height value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1002,7 +1002,7 @@ line scan stored on a uniform grid from the whole areal data.
 topography stored on a uniform grid. The topography must be
 two-dimensional (i.e. a topography map).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
@@ -1016,10 +1016,10 @@ scans and ‘radial’ for topographies. Only used if short wavelength
 cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1033,7 +1033,7 @@ topography or line scan stored on a uniform grid. If the topography is two
 dimensional (i.e. a topography map), the derivative is computed in the
 x-direction.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
@@ -1047,10 +1047,10 @@ scans and ‘radial’ for topographies. Only used if short wavelength
 cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root mean square slope value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1064,7 +1064,7 @@ curvature) of a topography or line scan stored on a uniform grid. If the
 topography is two-dimensional (i.e. a topography map), then the rms curvature
 is computed only along the x-direction.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
@@ -1078,10 +1078,10 @@ scans and ‘radial’ for topographies. Only used if short wavelength
 cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_curvature</strong> – Root mean square curvature value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1094,7 +1094,7 @@ cutoff is set. (Default: None)</p></li>
 second derivatives in x- and y-directions) of a topography on a uniform
 grid. The topography must be two-dimensional (i.e. a topography map).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
@@ -1108,10 +1108,10 @@ scans and ‘radial’ for topographies. Only used if short wavelength
 cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_laplacian</strong> – Root mean square Laplacian value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1125,7 +1125,7 @@ topography stored on a uniform grid. The topography must be
 two-dimensional (i.e. a topography map). This function returns
 half the Laplacian.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>short_wavelength_cutoff</strong> (<em>float</em>) – All wavelengths below this cutoff will be set to zero amplitude.</p></li>
@@ -1139,10 +1139,10 @@ scans and ‘radial’ for topographies. Only used if short wavelength
 cutoff is set. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_curvature</strong> – Root mean square curvature value.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1162,7 +1162,7 @@ decomposition is carried out for each slice.</p>
 <p>The main application of this function is to carry out a variable
 bandwidth analysis of the surface.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>subdivisions</strong> (<em>int</em>) – Number of subdivision, i.e. physical_sizes of the
@@ -1171,7 +1171,7 @@ checkerboard.</p></li>
 <li><p><strong>return_plane</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return parameters of the detrending plane. (Default: False)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array with height information, tilt-corrected within each
 checkerboard.</p></li>
@@ -1194,7 +1194,7 @@ rectangles and performing individual tilt corrections on them.</p>
 <p>The main application of this function is to carry out a variable
 bandwidth analysis of the surface.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>subdivisions</strong> (<em>tuple</em>) – Number of subdivision per dimension, i.e. physical_sizes of the
@@ -1203,7 +1203,7 @@ checkerboard.</p></li>
 <li><p><strong>return_plane</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return parameters of the detrending plane. (Default: False)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array with height information, tilt-corrected within each
 checkerboard.</p></li>
@@ -1223,7 +1223,7 @@ parameters.</p></li>
 root-mean-square height within increasingly finer subdivisions of the
 profiles (line scans).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map or line scan.</p></li>
 <li><p><strong>quantities</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Specification of return tuple, where each string character
@@ -1248,7 +1248,7 @@ automatically analyze subdivision down to this nb_grid_pts.
 (Default: 4)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>magnifications</strong> (<em>np.ndarray</em>) – Array containing the magnifications.</p></li>
 <li><p><strong>bandwidths</strong> (<em>np.ndarray</em>) – Array containing the bandwidths, here the physical sizes of the
@@ -1271,7 +1271,7 @@ to the respective magnification.</p></li>
 root-mean-square height within increasingly finer subdivisions of the
 surface topography.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map.</p></li>
 <li><p><strong>quantities</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Specification of return tuple, where each string character
@@ -1296,7 +1296,7 @@ automatically analyze subdivision down to this nb_grid_pts.
 (Default: 4)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>magnifications</strong> (<em>array</em>) – Array containing the magnifications.</p></li>
 <li><p><strong>bandwidths</strong> (<em>array</em>) – Array containing the bandwidths, here the physical sizes of the
@@ -1326,7 +1326,7 @@ given by the pixel size, the upper end by the physical dimension. For
 topographies with an aspect ratio that is not unity, this function returns
 the mean value of the two Cartesian directions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><ul class="simple">
 <li><p><strong>lower_bound</strong> (<em>float</em>) – Lower bound of the bandwidth.</p></li>
 <li><p><strong>upper_bound</strong> (<em>float</em>) – Upper bound of the bandwidth.</p></li>
@@ -1342,7 +1342,7 @@ the mean value of the two Cartesian directions.</p>
 <dd><p>Turn a topography that is defined over the whole domain into one that is
 decomposed for each individual MPI process.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
@@ -1356,11 +1356,11 @@ present. (Default: None)</p></li>
 present. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>decomposed_topography</strong> – SurfaceTopography object that now holds only data local the MPI
 process.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>array</p>
 </dd>
 </dl>
@@ -1371,7 +1371,7 @@ process.</p>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.common.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplot_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">111</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot an image of the topography using matplotlib.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Height information</p>
 </dd>
 </dl>
@@ -1386,7 +1386,7 @@ process.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.common.FilledTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>masked (undefined) data is replaced with <cite>fill_value</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a><em> or </em><em>UniformLineScan instance</em>) – </p></li>
 <li><p><strong>fill_value</strong> (<em>float</em><em> or </em><em>array</em><em> of </em><em>floats</em>) – masked value in topography will be replaced</p></li>

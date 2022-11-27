@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.2.1 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.3 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.1
+                1.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -159,7 +159,7 @@
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">log_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.log_average" title="Permalink to this definition"></a></dt>
 <dd><p>Return average property on a logarithmic grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>function_name</strong> (<em>str</em>) – Function for which to compute the average, e.g.
@@ -186,7 +186,7 @@ arguments for progress reporting. (Default: None)</p></li>
 container is a ZIP file with raw data files and a YAML file meta.yml
 that contains all metadata not contained in the raw data files.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream that contains the ZIP-container.</p></li>
 <li><p><strong>datafile_keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of possible keys in ‘meta.yml’ that contains the name of the
@@ -196,10 +196,10 @@ the metadata.
 (Default: [‘original’, ‘squeezed-netcdf’])</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>surface_containers</strong> – List of all surfaces contained in this container file.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>SurfaceContainer`s</p>
 </dd>
 </dl>
@@ -215,7 +215,7 @@ the metadata.
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.write_containers" title="Permalink to this definition"></a></dt>
 <dd><p>Write multiple surface containers into a ZIP file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>containers</strong> (list of :obj:<a href="#id3"><span class="problematic" id="id4">`</span></a>SurfaceContainer`s) – Containers to be written to the ZIP file.</p></li>
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream to write the ZIP-container to.</p></li>
@@ -245,7 +245,7 @@ statistically independent dataset.)</p>
 <p>All topographies/line scans are converted to the same unit given by the
 <cite>unit</cite> argument before analysis.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>func</strong> (<em>callable</em>) – <p>The function that computes the statistical properties:</p>
@@ -283,14 +283,14 @@ calculate the 4th cumulant function, otherwise it returns nan or inf
 (Default: 4)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>statistical_fingerprint</strong> – Array containing the result of <cite>func</cite>, average over all topographies
 and line scans. If multiple distances are provided, then this is a
 masked array that contains results for each distance. If no data
 exists for a certain distance, then the mask is set to true for that
 distance.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray or np.ma.masked_array</p>
 </dd>
 </dl>
@@ -344,13 +344,13 @@ end of the bandwidth is given by the mean of the spacing of the individual
 points on the line scan. The upper bound is given by the overall length of
 the line scan.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Unit for reporting the bandwidths.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>lower_bound</strong> (<em>float</em>) – Lower bound of the bandwidth.</p></li>
 <li><p><strong>upper_bound</strong> (<em>float</em>) – Upper bound of the bandwidth.</p></li>
@@ -367,14 +367,14 @@ the line scan.</p>
 The unit is chose to minimize number of digits to the left and right of
 the decimal point.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>scale</strong> (<em>str</em>) – ‘linear’: displaying data on a linear axis
 ‘log’ displaying data on a log-space axis</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>unit</strong> – Suggestion for the length unit</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
