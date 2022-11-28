@@ -34,7 +34,7 @@ jobs:
     - name: Build package
       run: |
         source venv/bin/activate
-        python3 -m build .
+        python3 -m build . -s
 
     - name: Install extension module
       run: |
