@@ -6,6 +6,8 @@ v1.2.2 (28Nov22)
 
 - MAINT: Switched build system to Meson
 - BUG: Fixed multiple bugs in handling of `height_scale_factor` by readers
+- BUG: Fixed handling of no scale factor in ASC reader
+- TST: Added test for proper handling of `height_scale_factor` by readers
 
 v1.2.1 (22Nov22)
 ----------------
