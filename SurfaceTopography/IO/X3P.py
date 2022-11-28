@@ -201,7 +201,9 @@ data. The full specification of the format can be found
                             dim=2,
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
+                            height_scale_factor=self._height_scale_factor,
                             uniform=True,
+                            periodic=False,
                             unit=self._unit,
                             info=self._info)]
 
@@ -243,7 +245,7 @@ data. The full specification of the format can be found
             self._physical_sizes,
             unit=self._unit,
             info=_info,
-            periodic=periodic)
+            periodic=False if periodic is None else periodic)
         if self._height_scale_factor is not None:
             return topo.scale(self._height_scale_factor)
         elif height_scale_factor is not None:

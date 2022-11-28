@@ -3,6 +3,7 @@ import numpy as np
 
 from NuMPI import MPI
 
+import SurfaceTopography
 from SurfaceTopography import UniformLineScan, NonuniformLineScan, Topography
 
 pytestmark = pytest.mark.skipif(
@@ -187,6 +188,11 @@ def checkattr(obj, attr):
         assert isinstance(getattr(type(obj), attr), property)
     if attr in functions:
         assert callable(getattr(obj, attr))
+
+
+def test_version():
+    """Test that SurfaceTopography.__version__ exists"""
+    SurfaceTopography.__version__
 
 
 @pytest.mark.parametrize('expected_attribute',
