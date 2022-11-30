@@ -70,6 +70,8 @@ def test_vk3_metadata(file_format_examples):
 
     np.testing.assert_almost_equal(t.rms_height_from_area(), 1223148.5774419378)
 
+    assert t.info['acquisition_time'] == '2022-10-28 09:51:59+02:00'
+
 
 def test_vk4_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'example.vk4')
@@ -89,6 +91,8 @@ def test_vk4_metadata(file_format_examples):
 
     np.testing.assert_almost_equal(t.rms_height_from_area(), 54193042.85097)
 
+    assert t.info['acquisition_time'] == '2022-10-14 09:23:04+02:00'
+
 
 def test_vk6_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'example.vk6')
@@ -107,3 +111,5 @@ def test_vk6_metadata(file_format_examples):
     assert t.unit == 'pm'
 
     np.testing.assert_almost_equal(t.rms_height_from_area(), 1061663.7395845044)
+
+    assert t.info['acquisition_time'] == '2022-10-23 12:13:10-04:00'
