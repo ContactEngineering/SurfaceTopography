@@ -167,7 +167,7 @@ well as its units.
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
         info = info.copy()
-        info.update(joined_meta)
+        info.update({'raw_metadata': joined_meta})
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
@@ -192,7 +192,7 @@ well as its units.
                             physical_sizes=self._physical_sizes,
                             uniform=True,
                             unit=channel.unit,
-                            info=channel.meta)
+                            info={'raw_metadata': {**self.mifile.meta, **channel.meta}})
                 for i, channel in enumerate(self.mifile.channels)]
 
     @property

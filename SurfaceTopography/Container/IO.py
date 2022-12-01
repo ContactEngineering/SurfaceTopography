@@ -165,14 +165,29 @@ def read_container(fn, datafile_keys=['original', 'squeezed-netcdf']):
     return surfaces
 
 
-def read_published_container(publication_url):
+def read_published_container(publication_url, **request_args):
+    """
+    Download a container from a URL.
+
+    Parameters
+    ----------
+    publication_url : str
+        Full URL of container location.
+    request_args : dict
+        Additional dictionary passed to `request.get`.
+
+    Returns
+    -------
+    container : SurfaceContainer
+        Surface container object read from URL.
+    """
     # First get the page for the publication in order
     # to get the download URL
     publication_response = requests.get(publication_url)
     download_url = publication_response.url + "download/"
 
     # Then download and read container
-    container_response = requests.get(download_url)
+    container_response = requests.get(download_url, **request_args)
     container_file = io.BytesIO(container_response.content)
     return read_container(container_file)
 

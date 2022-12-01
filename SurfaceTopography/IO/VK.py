@@ -264,6 +264,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                             physical_sizes=self._physical_sizes,
                             height_scale_factor=self._header['height_scale_factor'],
                             uniform=True,
+                            info=self._info,
                             unit=self._unit)]
 
     def topography(self, channel_index=None, physical_sizes=None,

@@ -38,9 +38,10 @@ class ChannelInfo:
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None,
-                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={}):
+                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={},
+                 tags={}):
         """
-        Initialize the channel. Use as many information from the file as
+        Initialize the channel. Use as much information from the file as
         possible by passing it in the keyword arguments. Keyword arguments
         can be None if the information cannot be determined. (This is the
         default for all keyword arguments.)
@@ -74,6 +75,8 @@ class ChannelInfo:
             Length unit of measurement.
         info : dict, optional
             Meta data found in the file. (Default: {})
+        tags : dict, optional
+            Additional meta data required internally by the reader
         """
         self._reader = reader
         self._index = int(index)
@@ -90,9 +93,13 @@ class ChannelInfo:
         self._undefined_data = undefined_data
         self._unit = unit
         if info is None:
-            self._info = None
+            self._info = {}
         else:
             self._info = info.copy()
+        if tags is None:
+            self._tags = {}
+        else:
+            self._tags = tags.copy()
 
     def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -289,6 +296,14 @@ class ChannelInfo:
         if self.unit is not None:
             info.update(dict(unit=self.unit))
         return info
+
+    @property
+    def tags(self):
+        """
+        A dictionary containing additional information (metadata) used
+        internally by the reader.
+        """
+        return self._tags
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
