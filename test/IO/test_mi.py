@@ -79,6 +79,7 @@ def test_read_header():
     # Some metadata value
     assert loader.info['biasSample'] == 'TRUE'
 
+
 def test_topography():
     file_path = os.path.join(DATADIR, 'mi1.mi')
 

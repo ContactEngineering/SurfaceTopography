@@ -269,7 +269,7 @@ def test_reader_arguments(fn):
     # The `info` dict of the topography has the 'unit' entry,
     # which will be removed in future versions.
     info.update({'unit': r.channels[0].unit if r.channels[0].unit is not None else unit0})
-    #assert 'unit' not in info
+    # assert 'unit' not in info
 
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=height_scale_factor, unit=unit)
