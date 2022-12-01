@@ -98,6 +98,7 @@ def test_write(file_format_examples):
         assert c2[2].info['unit'] == t3.info['unit']
 
 
+@pytest.mark.skip
 def test_periodic():
     container, = read_published_container("https://contact.engineering/go/v9qwe/")
 
