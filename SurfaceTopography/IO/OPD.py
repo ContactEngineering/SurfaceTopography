@@ -113,7 +113,7 @@ interferometer.
                                                    nb_grid_pts=(nx, ny),
                                                    uniform=True,
                                                    unit='mm',
-                                                   info=dict(file_offset=f.tell(), dtype=dtype))]
+                                                   tags=dict(file_offset=f.tell(), dtype=dtype))]
                     channel_index += 1
 
                     # Skip over data buffer
@@ -155,9 +155,9 @@ interferometer.
         channel = self._channels[channel_index]
 
         nb_pixels = np.prod(channel.nb_grid_pts)
-        dtype = channel.info['dtype']
+        dtype = channel.tags['dtype']
         with OpenFromAny(self._fobj, 'rb') as f:
-            f.seek(channel.info['file_offset'])
+            f.seek(channel.tags['file_offset'])
             rawdata = f.read(nb_pixels * dtype.itemsize)
         data = np.frombuffer(rawdata, count=nb_pixels, dtype=dtype)
         data = mask_undefined(data)

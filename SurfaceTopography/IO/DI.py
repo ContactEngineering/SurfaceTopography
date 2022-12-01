@@ -118,6 +118,8 @@ The reader supports V4.3 and later version of the format.
                     image_data_key = re.match(r'^S \[(.*?)\] ',
                                               p['@2:image data']).group(1)
 
+                    info['raw_metadata'] = p
+
                     nx = int(p['samps/line'])
                     ny = int(p['number of lines'])
 
@@ -132,7 +134,6 @@ The reader supports V4.3 and later version of the format.
                     length = int(p['data length'])
                     elsize = int(p['bytes/pixel'])
                     binary_scale = 1
-                    info['bytes_per_pixel'] = elsize
                     if elsize == 4:
                         binary_scale = 1 / 65536  # Rescale 32-bit integer to a 16-bit range
                     elif elsize != 2:
@@ -197,7 +198,8 @@ The reader supports V4.3 and later version of the format.
                                           periodic=False,
                                           uniform=True,
                                           unit=unit,
-                                          info=info)
+                                          info=info,
+                                          tags={'elsize': elsize})
                     self._channels.append(channel)
 
             # Check that all channels can be read
@@ -207,7 +209,7 @@ The reader supports V4.3 and later version of the format.
                 offset = self._offsets[channel.index]
                 # We seek to the end of the data buffer, this should not raise an exception
                 nx, ny = channel.nb_grid_pts
-                elsize = channel.info['bytes_per_pixel']
+                elsize = channel.tags['elsize']
                 if offset + nx * ny * elsize > file_size:
                     raise CorruptFile('File is not large enough to contain all data buffers.')
 
@@ -239,14 +241,15 @@ The reader supports V4.3 and later version of the format.
             nx, ny = channel.nb_grid_pts
 
             offset = self._offsets[channel_index]
-            if channel.info['bytes_per_pixel'] == 2:
+            elsize = channel.tags['elsize']
+            if elsize == 2:
                 dtype = np.dtype('<i2')
-            elif channel.info['bytes_per_pixel'] == 4:
+            elif elsize == 4:
                 dtype = np.dtype('<i4')
             else:
-                raise IOError(f"Don't know how to handle {info['bytes_per_pixel']} bytes per pixel data.")
+                raise IOError(f"Don't know how to handle {elsize} bytes per pixel data.")
 
-            assert channel.info['bytes_per_pixel'] == dtype.itemsize
+            assert elsize == dtype.itemsize
 
             ###################################
 
@@ -255,16 +258,8 @@ The reader supports V4.3 and later version of the format.
             unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(nx, ny)
 
         # internal information from file
-        _info = dict(data_source=channel.name)
+        _info = channel.info.copy()
         _info.update(info)
-        if 'acquisition_time' in channel.info:
-            _info['acquisition_time'] = channel.info['acquisition_time']
-        if 'instrument' in channel.info:
-            try:
-                # This can be a nested dictionary!
-                _info['instrument'].update(channel.info['instrument'])
-            except KeyError:
-                _info['instrument'] = channel.info['instrument']
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:

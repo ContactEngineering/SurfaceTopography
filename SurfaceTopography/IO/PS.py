@@ -170,6 +170,7 @@ TIFF-based file format of Park Systems instruments.
                             physical_sizes=self._physical_sizes,
                             height_scale_factor=self._height_scale_factor,
                             uniform=True,
+                            info=self._info,
                             unit=self._unit)]
 
     def topography(self, channel_index=None, physical_sizes=None,

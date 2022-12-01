@@ -265,6 +265,12 @@ def test_reader_arguments(fn):
     unit = None if r.channels[0].unit is not None else unit0
     height_scale_factor = None if r.channels[0].height_scale_factor is not None else height_scale_factor0
 
+    info = r.channels[0].info.copy()
+    # The `info` dict of the topography has the 'unit' entry,
+    # which will be removed in future versions.
+    info.update({'unit': r.channels[0].unit if r.channels[0].unit is not None else unit0})
+    # assert 'unit' not in info
+
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
@@ -273,6 +279,7 @@ def test_reader_arguments(fn):
         assert t.unit == unit
     if height_scale_factor is not None:
         assert t.height_scale_factor == height_scale_factor
+    assert t.info == info
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
                       height_scale_factor=height_scale_factor, unit=unit)
@@ -283,6 +290,7 @@ def test_reader_arguments(fn):
     if height_scale_factor is not None:
         assert t.height_scale_factor == height_scale_factor
     assert_array_equal(t.heights(), t2.heights())
+    assert t2.info == info
     # Test read_topography
     t = read_topography(fn, channel_index=0, physical_sizes=physical_sizes,
                         height_scale_factor=height_scale_factor, unit=unit)
@@ -292,6 +300,7 @@ def test_reader_arguments(fn):
         assert t.unit == unit
     if height_scale_factor is not None:
         assert t.height_scale_factor == height_scale_factor
+    assert t.info == info
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
