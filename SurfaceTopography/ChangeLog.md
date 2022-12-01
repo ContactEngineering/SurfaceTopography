@@ -4,8 +4,10 @@ Change log for SurfaceTopography
 v1.2.3 (not yet released)
 -------------------------
 
+
 - BUG: Make sure all readers return the same info dictionary for channels
   and the final topography
+- MAINT: Automatic version discovery for Meson build
 
 v1.2.2 (28Nov22)
 ----------------
