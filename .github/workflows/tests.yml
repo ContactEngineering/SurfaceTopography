@@ -24,7 +24,9 @@ jobs:
         netcdf4-python-version: [1.6.1]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Set up python3 ${{ matrix.python-version }}
       uses: actions/setup-python@v2
