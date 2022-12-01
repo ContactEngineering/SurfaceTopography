@@ -26,10 +26,11 @@
 # SOFTWARE.
 #
 
-import unittest
 import os
 
+import numpy as np
 import pytest
+
 from NuMPI import MPI
 
 from SurfaceTopography.IO.MI import MIReader
@@ -45,60 +46,54 @@ DATADIR = os.path.join(
     'file_format_examples')
 
 
-class MISurfaceTest(unittest.TestCase):
-    def setUp(self):
-        pass
+def test_read_header():
+    file_path = os.path.join(DATADIR, 'mi1.mi')
 
-    def test_read_header(self):
-        file_path = os.path.join(DATADIR, 'mi1.mi')
+    loader = MIReader(file_path)
 
-        loader = MIReader(file_path)
+    # Like in Gwyddion, there should be 4 channels in total
+    assert len(loader.channels) == 4
+    assert [ch.name for ch in loader.channels] == ['Topography',
+                                                   'Deflection',
+                                                   'Friction', 'Friction']
 
-        # Like in Gwyddion, there should be 4 channels in total
-        assert len(loader.channels) == 4
-        assert [ch.name for ch in loader.channels] == ['Topography',
-                                                       'Deflection',
-                                                       'Friction', 'Friction']
+    # Check if metadata has been read in correctly
+    assert loader.channels[0].dim == 2
+    assert loader.channels[0].nb_grid_pts == (256, 256)
+    assert loader.channels[0].physical_sizes == (2e-05, 2e-05)
+    assert loader.channels[0].info['raw_metadata']['DisplayOffset'] == '8.8577270507812517e-004'
+    assert loader.channels[0].info['raw_metadata']['DisplayRange'] == '1.3109436035156252e-002'
+    assert loader.channels[0].info['raw_metadata']['acqMode'] == 'Main'
+    assert loader.channels[0].info['raw_metadata']['label'] == 'Topography'
+    assert loader.channels[0].info['raw_metadata']['range'] == '2.9025000000000003e+000'
+    assert loader.channels[0].info['raw_metadata']['direction'] == 'Trace'
+    assert loader.channels[0].info['raw_metadata']['filter'] == '3rd_order'
+    assert loader.channels[0].info['raw_metadata']['name'] == 'Topography'
+    assert loader.channels[0].info['raw_metadata']['trace'] == 'Trace'
+    assert loader.channels[0].info['unit'] == 'µm'
+    assert loader.channels[0].unit == 'µm'
 
-        # Check if metadata has been read in correctly
-        self.assertEqual(loader.channels[0].dim, 2)
-        self.assertEqual(loader.channels[0].nb_grid_pts, (256, 256))
-        self.assertEqual(loader.channels[0].physical_sizes, (2e-05, 2e-05))
-        self.assertEqual(loader.channels[0].info,
-                         {'DisplayOffset': '8.8577270507812517e-004',
-                          'DisplayRange': '1.3109436035156252e-002',
-                          'acqMode': 'Main',
-                          'label': 'Topography',
-                          'range': '2.9025000000000003e+000',
-                          'direction': 'Trace',
-                          'filter': '3rd_order',
-                          'name': 'Topography',
-                          'trace': 'Trace',
-                          'unit': 'µm'})
-        self.assertEqual(loader.channels[0].unit, 'µm')
+    assert loader.default_channel.index == 0
+    assert loader.default_channel.nb_grid_pts == (256, 256)
 
-        self.assertEqual(loader.default_channel.index, 0)
-        self.assertEqual(loader.default_channel.nb_grid_pts, (256, 256))
+    # Some metadata value
+    assert loader.info['biasSample'] == 'TRUE'
 
-        # Some metadata value
-        self.assertEqual(loader.info['biasSample'], 'TRUE')
+def test_topography():
+    file_path = os.path.join(DATADIR, 'mi1.mi')
 
-    def test_topography(self):
-        file_path = os.path.join(DATADIR, 'mi1.mi')
+    loader = MIReader(file_path)
 
-        loader = MIReader(file_path)
+    topography = loader.topography()
 
-        topography = loader.topography()
+    # Check one height value
+    np.testing.assert_almost_equal(topography._heights[0, 0], -0.4986900329589844)
 
-        # Check one height value
-        self.assertAlmostEqual(topography._heights[0, 0], -0.4986900329589844,
-                               places=9)
+    # Check out if metadata from global and the channel are both in the
+    # result from channel metadata
+    assert 'direction' in topography.info['raw_metadata'].keys()
+    # From global metadata
+    assert 'zDacRange' in topography.info['raw_metadata'].keys()
 
-        # Check out if metadata from global and the channel are both in the
-        # result from channel metadata
-        self.assertTrue('direction' in topography.info.keys())
-        # From global metadata
-        self.assertTrue('zDacRange' in topography.info.keys())
-
-        # Check the value of one of the metadata
-        self.assertEqual(topography.info['unit'], 'µm')
+    # Check the value of one of the metadata
+    assert topography.info['unit'] == 'µm'
