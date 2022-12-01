@@ -1,8 +1,14 @@
 Change log for SurfaceTopography
 =============================
 
+v1.2.3 (not yet released)
+-------------------------
+
+- BUG: Make sure all readers return the same info dictionary for channels
+  and the final topography
+
 v1.2.2 (28Nov22)
------------------------
+----------------
 
 - MAINT: Switched build system to Meson
 - BUG: Fixed multiple bugs in handling of `height_scale_factor` by readers
