@@ -24,6 +24,9 @@
 
 import subprocess
 
+archived_version = '$Format: %D'
+archived_hash = '$Format: %H'
+
 
 def get_version_from_git():
     """
