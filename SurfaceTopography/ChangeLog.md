@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2.3 (01Dec22)
+v1.2.3 (02Dec22)
 ----------------
 
 - BUG: Make sure all readers return the same info dictionary for channels

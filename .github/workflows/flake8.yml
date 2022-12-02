@@ -1,4 +1,4 @@
-name: Flake8
+name: Check coding conventions with flake8
 
 on:
   push:
