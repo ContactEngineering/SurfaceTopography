@@ -1,8 +1,7 @@
 name: Test build and install of source package
 
 jobs:
-  build:
-
+  tests:
     runs-on: ubuntu-20.04
 
     steps:
