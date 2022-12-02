@@ -23,8 +23,8 @@
 #
 
 #
-# This is a minimal-idiotic way of discovering the version. It deals with the
-# following issues:
+# This is the most minimal-idiotic way of discovering the version that I
+# could come up with. It deals with the following issues:
 # * If we are installed, we can get the version from package metadata,
 #   either via importlib.metadata or from pkg_resources. This also holds for
 #   wheels that contain the metadata. We are good! Yay!
@@ -38,10 +38,12 @@
 #   Fortunately, Meson uses git archive to create the source tarball, which
 #   replaces certain tags with commit information. Unfortunately, what this
 #   yields is different from git describe - in particular, it only yields the
-#   tag is we are exactly on the tag commit. We need to extract the version
-#   information from the string provided, but if we are not on the tag we can
-#   only return a bogus version (here 0.0.0.0). It works for releases, but I
-#   am not happy generally.
+#   tag (which contains the version information) if we are *exactly* on the
+#   tag commit. (git describe tells us the distance from the latest tag.) We
+#   need to extract the version information from the string provided, but if
+#   we are not on the tag we can only return a bogus version (here 0.0.0.0).
+#   It works for releases, but not for a tarball generated from a random
+#   commit. I am not happy and open for suggestions.
 #
 
 import re
