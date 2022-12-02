@@ -1,0 +1,36 @@
+name: Flake8
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qy
+        sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
+        sudo pip install cibuildwheel
+
+    - name: Build wheels
+      run: |
+        if [[ "{{ runner.os }}" == "Linux" ]]; then
+          for image in manylinux2010 manylinux2014; do
+            CIBW_MANYLINUX_X86_64_IMAGE=$image python3 -m cibuildwheel --output-dir wheelhouse
+          done
+        else
+          python3 -m cibuildwheel --output-dir wheelhouse
+        fi
