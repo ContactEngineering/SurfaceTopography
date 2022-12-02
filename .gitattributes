@@ -1,1 +1,3 @@
-PyCo/_version.py export-subst
+# Meson dist uses git to create the package - we don't want file format
+# examples in the packages as those are > 100 MB.
+test/file_format_examples export-ignore
