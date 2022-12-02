@@ -22,6 +22,28 @@
 # SOFTWARE.
 #
 
+#
+# This is a minimal-idiotic way of discovering the version. It deals with the
+# following issues:
+# * If we are installed, we can get the version from package metadata,
+#   either via importlib.metadata or from pkg_resources. This also holds for
+#   wheels that contain the metadata. We are good! Yay!
+# * If we are not installed, there are two options:
+#   - We are working wihtin the source git repository. Then
+#        git describe --tags --always
+#     yields a reasonable version descriptor, but that is unfortunately not
+#     PEP 440 compatible (see https://peps.python.org/pep-0440/). We need to
+#     mangle the version string to yield something compatible.
+# - If we install from a source tarball, all version information is lost.
+#   Fortunately, Meson uses git archive to create the source tarball, which
+#   replaces certain tags with commit information. Unfortunately, what this
+#   yields is different from git describe - in particular, it only yields the
+#   tag is we are exactly on the tag commit. We need to extract the version
+#   information from the string provided, but if we are not on the tag we can
+#   only return a bogus version (here 0.0.0.0). It works for releases, but I
+#   am not happy generally.
+#
+
 import re
 import subprocess
 
