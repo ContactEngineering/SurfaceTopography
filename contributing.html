@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.2.3 documentation</title>
+  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.2.3.dev13+gb518cea0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.3
+                1.2.3.dev13+gb518cea0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -122,21 +122,26 @@ a parameter after a symbol (e.g. <cite>lambda</cite>) but rather say that it is
 </section>
 <section id="development-branches">
 <h2>Development branches<a class="headerlink" href="#development-branches" title="Permalink to this heading"></a></h2>
-<p>New features should be developed always in its own branch. When creating your own branch,
-please suffix that branch by the year of creation on a description of what is contains.
-For example, if you are working on an implementation for line scans and you started that
-work in 2018, the branch could be called “18_line_scans”.</p>
+<p>New features should be developed always in its own branch. When creating your
+own branch, please suffix that branch by the year of creation on a
+description of what is contains. For example, if you are working on an
+implementation for hyperdimensional scans and you started that work in 2048,
+the branch could be called “48_hyperdimensional_scans”.</p>
 </section>
 <section id="commits">
 <h2>Commits<a class="headerlink" href="#commits" title="Permalink to this heading"></a></h2>
-<p>Prepend you commits with a shortcut indicating the type of changes they contain:</p>
+<p>Prepend your commits and merge requests with a shortcut indicating the type
+of changes they contain:</p>
 <ul class="simple">
-<li><p>ENH: Enhancement (e.g. a new feature)</p></li>
-<li><p>MAINT: Maintenance (e.g. fixing a typo)</p></li>
-<li><p>DOC: Changes to documentation strings</p></li>
+<li><p>API: changes to the user exposed API</p></li>
 <li><p>BUG: Bug fix</p></li>
-<li><p>TST: Changes to the unit test environment</p></li>
+<li><p>BUILD: Changes to the build system</p></li>
 <li><p>CI: Changes to the CI configuration</p></li>
+<li><p>DOC: Changes to documentation strings or documentation in general (not only typos)</p></li>
+<li><p>ENH: Enhancement (e.g. a new feature)</p></li>
+<li><p>MAINT: Maintenance (e.g. fixing a typo, or changing code without affecting function)</p></li>
+<li><p>TST: Changes to the unit test environment</p></li>
+<li><p>WIP: Work in progress</p></li>
 </ul>
 <p>The changelog will be based on the content of the commits with tag BUG, API and ENH.</p>
 <p>Examples:</p>
