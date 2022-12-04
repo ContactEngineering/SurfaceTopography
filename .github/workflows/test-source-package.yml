@@ -1,0 +1,42 @@
+name: Test build and install of source package
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Installing Python
+      run: |
+        sudo apt-get update -qy
+        sudo apt-get install -y \
+          python3-dev \
+          python3-pip \
+          python3-venv \
+          libxml2-dev \
+          libxslt-dev \
+          zlib1g-dev \
+          libfftw3-dev \
+          libopenblas-dev
+        sudo pip install build
+
+    - name: Build package
+      run: |
+        python3 -m build . -s
+
+    - name: Install package
+      run: |
+        pip install dist/*.tar.gz
