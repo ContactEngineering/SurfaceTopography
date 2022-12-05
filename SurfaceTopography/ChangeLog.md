@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 =============================
 
-v1.2.6 (05Dec22)
-----------------
+v1.2.6 (not yet released)
+-------------------------
 
 - BUILD: Yet another fix for version discovery when installing from source 
   package

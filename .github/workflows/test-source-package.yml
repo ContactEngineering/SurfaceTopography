@@ -42,4 +42,4 @@ jobs:
 
     - name: Install package
       run: |
-        pip install build/*.tar.gz
+        pip install dist/*.tar.gz
