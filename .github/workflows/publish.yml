@@ -29,11 +29,14 @@ jobs:
           libfftw3-dev \
           libopenblas-dev
         python3 -m venv venv
+        source venv/bin/activate
+        pip install pip-tools
+        pip-compile -q pyproject.toml
+        pip install -r requirements.txt
 
     - name: Build package
       run: |
-        source venv/bin/activate
-        pip install -e .
+        source venv/bin/activate       
         mkdir dist
         meson setup build
         cd build
