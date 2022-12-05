@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.2.4 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.0.0.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.4
+                0.0.0.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -243,7 +243,7 @@ regression.</p>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">make_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dectol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.make_grid" title="Permalink to this definition"></a></dt>
 <dd><p>Create collocation points.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em>) – Resampling grid. Specifying ‘log’ yields collocation points
 equally spaced on a log scale, ‘quadratic’ yields bins with
@@ -262,7 +262,7 @@ to None. (Default: None)</p></li>
 the edges. (Default: 0.01)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – List of collocation points.</p></li>
 <li><p><strong>bin_edges</strong> (<em>np.ndarray</em>) – List of bins edges; collocations points are located within the
@@ -292,7 +292,7 @@ locations on a specific grid. The length scale (smoothening scale)
 of the kernel is set to the characteristic spacing between the sampling
 output points.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em>) – Resampling grid. Specifying ‘log’ yields collocation points
 equally spaced on a log scale, ‘quadratic’ yields bins with
@@ -306,10 +306,10 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <li><p><strong>max_value</strong> (<em>float</em>) – Maximum value.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>kernel</strong> – Kernel function.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>func</p>
 </dd>
 </dl>
@@ -320,7 +320,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">bin_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collocation_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.bin_average" title="Permalink to this definition"></a></dt>
 <dd><p>Average values over bins. Returns NaN for bins without data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – Collocation points.</p></li>
 <li><p><strong>bin_edges</strong> (<em>array_like</em>) – Edges of bins.</p></li>
@@ -328,7 +328,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <li><p><strong>values</strong> (<em>array_like</em>) – Function values/variates.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>resampled_collocation_points</strong> (<em>np.ndarray</em>) – Collocation points, resampled as average over input <cite>x</cite> if data is present.</p></li>
 <li><p><strong>resampled_values</strong> (<em>np.ndarray</em>) – Resampled/averaged values.</p></li>
@@ -344,7 +344,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">gaussian_process_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel=&lt;function</span> <span class="pre">gaussian_kernel&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_variance=1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.gaussian_process_regression" title="Permalink to this definition"></a></dt>
 <dd><p>Gaussian process regression for resampling a simple function.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>output_x</strong> (<em>array_like</em>) – Collocation points for resampled values.</p></li>
 <li><p><strong>x</strong> (<em>array_like</em>) – Collocation points for <cite>values</cite> array.</p></li>
@@ -355,10 +355,10 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 (Default: 1e-6)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>resampled_values</strong> – Resampled/averaged values.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -369,7 +369,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin-average'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.resample" title="Permalink to this definition"></a></dt>
 <dd><p>Resample noisy function data set onto a specific grid.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array_like</em>) – Evaluation points.</p></li>
 <li><p><strong>values</strong> (<em>array_like</em>) – Function values.</p></li>
@@ -392,7 +392,7 @@ if not provided. (Default: None)</p></li>
 (Default: ‘bin-average’)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – Points where the data has been collected.</p></li>
 <li><p><strong>bin_edges</strong> (<em>np.ndarray</em>) – Bin edges.</p></li>
@@ -410,7 +410,7 @@ if not provided. (Default: None)</p></li>
 <dd><p>Compute radial average of quantities reported on a 2D grid and collect
 results of collocation points.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>array_like</em>) – 2D-array of values to be averaged.</p></li>
 <li><p><strong>physical_sizes</strong> (<em>(</em><em>float</em><em>, </em><em>float</em><em>)</em><em>, </em><em>optional</em>) – Physical size of the 2D grid. (Default: Size is equal to number of
@@ -438,7 +438,7 @@ average from 0 to pi/2.
 (Default: ‘bin-average’)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – Points where the data has been collected.</p></li>
 <li><p><strong>bin_edges</strong> (<em>np.ndarray</em>) – Bin edges.</p></li>
@@ -458,17 +458,17 @@ average from 0 to pi/2.
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">get_unit_conversion_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit1_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit2_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor" title="Permalink to this definition"></a></dt>
 <dd><p>Compute factor for conversion from unit1 to unit2.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>unit1_str</strong> (<em>str</em>) – Name of source unit</p></li>
 <li><p><strong>unit2_str</strong> (<em>str</em>) – Name of targe unit</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>fac</strong> – Unit conversion factors. A quantity in unit1 is converted to unit2
 by multiplication with this factor.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -481,13 +481,13 @@ by multiplication with this factor.</p>
 to ‘µm’ and makes sure ‘µ’ is MICRO SIGN (00B5) and not GREEK SMALL LETTER
 MU (03BC).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>unit</strong> (<em>str</em>) – Name of unit</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>output_unit</strong> – Mangled name of unit</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -499,13 +499,13 @@ MU (03BC).</p>
 <dd><p>Convert unit string to ASCII representation, e.g. converts ‘µm’
 to ‘um’.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>unit</strong> (<em>str</em>) – Name of unit</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>output_unit</strong> – Mangled name of unit</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -517,7 +517,7 @@ to ‘um’.</p>
 <dd><p>Suggest a length unit for representing data in a certain range.
 E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scale</strong> (<em>str</em>) – ‘linear’: displaying data on a linear axis
 ‘log’ displaying data on a log-space axis</p></li>
@@ -525,10 +525,10 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <li><p><strong>upper_in_meters</strong> (<em>float</em>) – Upper bound of range in meters</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>unit</strong> – Suggestion for the length unit</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -539,7 +539,7 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">suggest_length_unit_for_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.suggest_length_unit_for_data" title="Permalink to this definition"></a></dt>
 <dd><p>Suggest a length unit for representing a data set.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scale</strong> (<em>str</em>) – ‘linear’: displaying data on a linear axis
 ‘log’ displaying data on a log-space axis</p></li>
@@ -547,10 +547,10 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <li><p><strong>unit</strong> (<em>str</em>) – Unit of the data set</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>unit</strong> – Suggestion for the length unit</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -577,17 +577,17 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <dd><p>Build a custom tuple, where each of the characters in quantities
 represents a certain datum.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>quantities</strong> (<em>str</em>) – String with quantities, e.g. ‘dhj’ returns a 3-tuple with the
 datums associated with the characters ‘d’, ‘h’ and ‘j’.</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Individual datums, e.g. <cite>d=…, h=…, j=…</cite>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>datum</strong> – Tuple of length <cite>quantities</cite>.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>

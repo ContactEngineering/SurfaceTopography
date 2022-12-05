@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.2.4 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.0.0.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -33,7 +33,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.4
+                0.0.0.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -199,7 +199,7 @@
 straight lines between the data points. The ACF is computed exactly for
 this piece-wise linear interpolation of the data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
 <li><p><strong>r</strong> (<em>array_like</em>) – Array containing distances for which to compute the ACF. If no array
@@ -207,7 +207,7 @@ is given, the function will automatically construct an array with
 equally spaced distances. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>distances</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
 <li><p><strong>A</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
@@ -226,7 +226,7 @@ equally spaced distances. (Default: None)</p></li>
 straight lines between the data points. The ACF is computed exactly for
 this piece-wise linear interpolation of the data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
@@ -264,7 +264,7 @@ to None. (Default: None)</p></li>
 (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>distances</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
 <li><p><strong>acf</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
@@ -292,7 +292,7 @@ linear interpolation between the discrete coordinates of the
 nonuniform scan.</p>
 <p><cite>nb_points</cite>, <cite>nb_interpolate</cite> or <cite>pixel_size</cite> needs to be specified.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – SurfaceTopography to interpolate.</p></li>
 <li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of equidistant grid points. Number of points will be
@@ -383,7 +383,7 @@ spacing <span class="math notranslate nohighlight">\(\Delta x_+\)</span> and <sp
 <div class="math notranslate nohighlight">
 \[\frac{d^2h}{dx^2} \approx 2 \frac{\Delta x_-\left[f(x+\Delta x_+)-f(x)\right] + \Delta x_+\left[f(x+\Delta x_-)-f(x)\right]}{\Delta x_+\Delta x_-(\Delta x_++\Delta x_-)}\]</div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan" title="SurfaceTopography.NonuniformLineScan"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan</span></code></a>) – Object containing height information.</p></li>
 <li><p><strong>n</strong> (<em>int</em>) – Number of times the derivative is taken.</p></li>
@@ -401,11 +401,11 @@ order of the derivative and px the grid spacing.
 arguments for progress reporting. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>derivative</strong> – Array with derivative values. Length of array is reduced by <span class="math notranslate nohighlight">\(n\)</span> with
 respect to the input array for the <span class="math notranslate nohighlight">\(n\)</span>-th derivative.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -433,7 +433,7 @@ of the surface. The detrending plane is parameterized as a polynomial:</p>
 <div class="math notranslate nohighlight">
 \[\sum_{i=0}^{N-2} \left( \left[ 2h_i + h_{i+1} \right] x_i^k + \left[ 2h_{i+1} + h_i \right] x_{i+1}^k \right) \Delta x_i = \sum_{l=0}^n a_l \sum_{i=0}^{N-2} \left( 2x_i^{k+l} + 2x_{i+1}^{k+l} + x_i^k x_{i+1}^l + x_{i+1}^k x_i^l \right) \Delta x_i\]</div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array_like</em>) – Array containing positions. This function assumes that this array is
 sorted in ascending order.</p></li>
@@ -441,10 +441,10 @@ sorted in ascending order.</p></li>
 <li><p><strong>deg</strong> (<em>int</em>) – Degree of polynomial <span class="math notranslate nohighlight">\(n\)</span>.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>a</strong> – Array with coefficients <span class="math notranslate nohighlight">\(a_k\)</span>.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>array</p>
 </dd>
 </dl>
@@ -512,7 +512,7 @@ function is real-valued.</p>
 topography is assumed to be given by a series of points connected by
 straight lines.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the nonuniform line scan.</p></li>
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
@@ -555,7 +555,7 @@ to None. (Default: None)</p></li>
 (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>wavevectors</strong> (<em>array</em>) – Wavevector array at which the PSD has been computed. (Unit: length)</p></li>
 <li><p><strong>psd</strong> (<em>array</em>) – PSD values. (Unit: length**-3)</p></li>
@@ -582,13 +582,13 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 \[\int_{0}^{\Delta x_i} dx\, \left( h_i + \frac{\Delta h_i}{\Delta x_i} x \right)^2 = \frac{1}{3} \left( h_i^2 + h_{i+1}^2 + h_i h_{i+1} \right) \Delta x_i\]</div>
 <p>to the above integral, where <span class="math notranslate nohighlight">\(\Delta x_i=x_{i+1}-x_i\)</span> and <span class="math notranslate nohighlight">\(\Delta h_i=h_{i+1}-h_i\)</span>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>rms_height</strong> – Root-mean square height.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float or array</p>
 </dd>
 </dl>
@@ -607,13 +607,13 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 \[\int_{0}^{\Delta x_i} dx\, \left( \frac{\Delta h_i}{\Delta x_i} \right)^2 = \frac{\Delta h_i^2}{\Delta x_i}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\Delta x_i=x_{i+1}-x_i\)</span> and <span class="math notranslate nohighlight">\(\Delta h_i=h_{i+1}-h_i\)</span> to the above integral.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -624,13 +624,13 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Permalink to this definition"></a></dt>
 <dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -650,7 +650,7 @@ rectangles and performing individual tilt corrections on them.</p>
 <p>The main application of this function is to carry out a variable
 bandwidth analysis of the surface.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
 <li><p><strong>subdivisions</strong> (<em>int</em>) – Number of subdivisions.</p></li>
@@ -658,10 +658,10 @@ bandwidth analysis of the surface.</p>
 (Default: 1e-6)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>subdivided_line_scans</strong> – List with new, subdivided and detrended line scans.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list of <code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code></p>
 </dd>
 </dl>
@@ -674,7 +674,7 @@ bandwidth analysis of the surface.</p>
 root-mean-square height within increasingly finer subdivisions of the
 line scan.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (obj:<cite>NonuniformLineScan</cite>) – Container storing the uniform topography map</p></li>
 <li><p><strong>quantities</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Specification of return tuple, where each string character
@@ -697,7 +697,7 @@ magnification, bandwidth, rms height.
 will automatically analyze subdivision down to this nb_grid_pts.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>magnifications</strong> (<em>array</em>) – Array containing the magnifications.</p></li>
 <li><p><strong>bandwidths</strong> (<em>array</em>) – Array containing the bandwidths, here the physical_sizes of the
@@ -723,7 +723,7 @@ length scales occurring on a topography. The lower end of the bandwidth is
 given by the mean of the spacing of the individual points on the line
 scan. The upper bound is given by the overall length of the line scan.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
 <li><p><strong>lower_bound</strong> (<em>float</em>) – Lower bound of the bandwidth.</p></li>
 <li><p><strong>upper_bound</strong> (<em>float</em>) – Upper bound of the bandwidth.</p></li>

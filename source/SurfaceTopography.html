@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.2.4 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 0.0.0.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -33,7 +33,7 @@
             <a href="../index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.4
+                0.0.0.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -993,7 +993,7 @@ it is already fixed by the file contents.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_msg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>kw</strong> (<em>str</em>) – Name of the keyword argument to .topography().</p></li>
 <li><p><strong>alt_msg</strong> (<em>str</em><em> or </em><em>None</em>) – If not None, use this as error message instead of
@@ -1015,7 +1015,7 @@ the default one.</p></li>
 topography and has the same decomposition layout (or raise an error if
 this is not the case).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the topography map.</p></li>
 <li><p><strong>communicator</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em>) – Communicator object. Use communicator from topography object if not
@@ -1033,7 +1033,7 @@ present. (Default: None)</p></li>
 <dd><p>Construct a rotationally symmetric window for windowing two-dimensional
 signals (fields).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>window</strong> (<em>str</em><em> or </em><em>np.ndarray</em>) – If window is an np.ndarray, it is just passed through (i.e.
 immediately returned) from this function. If window is a string,
@@ -1046,10 +1046,10 @@ of grid points nx, ny are used as the physical size. This parameter
 is used to adjust the aspect ratio of the signal. (Default: None)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>window</strong> – Numerical window, multiply the signal with this window</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -1079,7 +1079,7 @@ In the 2D case:</p>
 \[h^2_{rms} = \frac{1}{\pi} \int_{0}^{\infty} C^{1D}(q) dq\]</div>
 <p>See Equations (1) and (4) in [1].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nb_grid_pts</strong> (<em>array_like</em>) – Resolution of the topography map or the line scan.</p></li>
 <li><p><strong>physical_sizes</strong> (<em>array_like</em>) – Physical physical_sizes of the topography map or the line scan.</p></li>
@@ -1090,10 +1090,10 @@ In the 2D case:</p>
 <li><p><strong>long_cutoff</strong> (<em>float</em>) – Long-wavelength cutoff.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>prefactor</strong> – Prefactor <span class="math notranslate nohighlight">\(\sqrt{C_0}\)</span></p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -1110,7 +1110,7 @@ algorithm. The algorithm is described in:
 Ramisetti et al., J. Phys.: Condens. Matter 23, 215004 (2011);
 Jacobs, Junge, Pastewka, Surf. Topgogr.: Metrol. Prop. 5, 013001 (2017)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>nb_grid_pts</strong> (<em>array_like</em>) – Resolution of the topography map.</p></li>
 <li><p><strong>physical_sizes</strong> (<em>array_like</em>) – Physical physical_sizes of the topography map.</p></li>
@@ -1141,10 +1141,10 @@ useful for creating very large topography maps. (Default: None)</p></li>
 <li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – Initial info dictionary.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>topography</strong> – The topography.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>UniformTopography or <a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan">UniformLineScan</a></p>
 </dd>
 </dl>
@@ -1274,7 +1274,7 @@ own physical_sizes etc. but pass this information through to the parent.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.HeightContainer.DecoratedTopography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.HeightContainer.DecoratedTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>topography</strong> (<em>SurfaceTopography</em>) – The parent topography.</p>
 </dd>
 </dl>
@@ -1448,7 +1448,7 @@ data.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Constructor.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>array_like</em>) – x-positions of the data points that sample the line scan.</p></li>
 <li><p><strong>y</strong> (<em>array_like</em>) – y-positions of the data points that sample the line scan.</p></li>
@@ -1576,7 +1576,7 @@ boundaries.</p>
 <dd><p>This topography wraps a parent topography and rescales x and z
 coordinates according to certain rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformTopographyInterface</span></code>) – Parent topography</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Target unit.</p></li>
@@ -1627,7 +1627,7 @@ coordinates according to certain rules.</p>
 <dd><p>This topography wraps a parent topography and rescales x and z
 coordinates according to certain rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformTopographyInterface</span></code>) – Parent topography</p></li>
 <li><p><strong>height_scale_factor</strong> (<em>float</em>) – Factor to scale heights with.</p></li>
@@ -1664,7 +1664,7 @@ is then detrended by substracting these trend lines.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detrend_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'height'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<em>SurfaceTopography</em>) – SurfaceTopography to be detrended.</p></li>
 <li><p><strong>detrend_mode</strong> (<em>str</em>) – ‘center’: center the topography, no trend correction.
@@ -1732,7 +1732,7 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.Special.make_topography_from_function">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Special.</span></span><span class="sig-name descname"><span class="pre">make_topography_from_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Special.make_topography_from_function" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fun</strong> (<em>callable</em><em>(</em><em>X</em><em>, </em><em>Y</em><em>)</em>) – </p></li>
 <li><p><strong>centre</strong> (<em>tuple</em><em> or </em><em>&quot;middle&quot;</em>) – (cx, cy)
@@ -1760,7 +1760,7 @@ See discussion in issue #166</p></li>
 used by PyCo but can be used by third-party codes.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dt class="field-even">Return type</dt>
 <dd class="field-even"><p>SurfaceTopography.Topography instance</p>
 </dd>
 </dl>
@@ -1780,7 +1780,7 @@ used by PyCo but can be used by third-party codes.</p></li>
 \[h = \frac{r^2}{2 \cdot \text{radius}}\]</div>
 <p><span class="math notranslate nohighlight">\(r^2 = x^2 + y^2\)</span></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>radius</strong> (<em>float</em>) – self-explanatory</p></li>
 <li><p><strong>nb_grid_pts</strong> (<em>float</em>) – self-explanatory</p></li>
@@ -1867,7 +1867,7 @@ plastic_displ – initial plastic displacements</p>
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info={}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>profile</strong> (<em>array_like</em>) – Data containing the height information. Needs to be a
 one-dimensional array.</p></li>
@@ -1934,13 +1934,13 @@ boundaries.</p>
 <span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.positions" title="Permalink to this definition"></a></dt>
 <dd><p>Return grid positions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>meshgrid</strong> (<em>bool</em><em>, </em><em>optional</em>) – Ignore, for compatibility with two-dimensional topographies</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>x</strong> – X-positions</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
@@ -1976,7 +1976,7 @@ topography map.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.Topography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info={}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomposition='serial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator=&lt;NuMPI.MPIStub.Intracomm</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>heights</strong> (<em>array_like</em>) – Data containing the height information. Needs to be a
 two-dimensional array.</p></li>
@@ -2027,7 +2027,7 @@ subdomain_locations, nb_grid_pts, comm,
 </dd>
 </dl>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>code</strong> (<em>3. Parallel</em>) – </p></li>
 <li><p><strong>data</strong> (<em>providing full</em>) – </p></li>
@@ -2111,11 +2111,11 @@ compatible</p>
 <span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.Topography.positions" title="Permalink to this definition"></a></dt>
 <dd><p>Return grid positions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>meshgrid</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, return the position on the same grid as the heights.
 Otherwise, return one-dimensional position arrays. (Default: True)</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>x</strong> (<em>np.ndarray</em>) – X-positions</p></li>
 <li><p><strong>y</strong> (<em>np.ndarray</em>) – Y-positions</p></li>
@@ -2259,7 +2259,7 @@ data.</p>
 <dd><p>This topography wraps a parent topography and rescales x, y and z
 coordinates according to certain rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformTopographyInterface</span></code>) – Parent topography</p></li>
 <li><p><strong>unit</strong> (<em>str</em>) – Target unit.</p></li>
@@ -2316,7 +2316,7 @@ coordinates according to certain rules.</p>
 <dd><p>This topography wraps a parent topography and rescales x, y and z
 coordinates according to certain rules.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformTopographyInterface</span></code>) – Parent topography</p></li>
 <li><p><strong>height_scale_factor</strong> (<em>float</em>) – Factor to scale heights with.</p></li>
@@ -2357,7 +2357,7 @@ will have <cite>is_periodic</cite> property set to False.</p>
 <dd><p>Note on periodicity: Detrended Topographies with mode other than
 “center” will have <cite>is_periodic</cite> property set to False.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – SurfaceTopography to be detrended.</p></li>
 <li><p><strong>detrend_mode</strong> (<em>str</em>) – ‘center’: center the topography, no trend correction.
@@ -2405,7 +2405,7 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">curvatures</span></span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.curvatures" title="Permalink to this definition"></a></dt>
 <dd><p>Curvature(s) of the fitted plane.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><span class="math notranslate nohighlight">\(\rho = 1 / R\)</span> for line scans or tuple <span class="math notranslate nohighlight">\(\rho_{xx}, \rho_{yy}, \rho_{xy}\)</span> for topographies</p>
 </dd>
 </dl>
@@ -2422,7 +2422,7 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <dt class="sig sig-object py" id="SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography.__init__" title="Permalink to this definition"></a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformTopography</span></code>) – SurfaceTopography to transpose</p></li>
 <li><p><strong>info</strong> (<em>dict</em>) – Additional entries for the info dictionary</p></li>
