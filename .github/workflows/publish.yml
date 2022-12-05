@@ -37,6 +37,9 @@ jobs:
         mkdir dist
         meson setup build
         cd build
+        # We need to build the source package with Meson, because otherwise
+        # replacing version information in `discover_version.py` with
+        # `export-subst` does not work.
         meson dist --formats gztar
         cp meson-dist/*.tar.gz ../dist
 
