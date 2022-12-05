@@ -27,7 +27,8 @@ jobs:
           libxslt-dev \
           zlib1g-dev \
           libfftw3-dev \
-          libopenblas-dev
+          libopenblas-dev \
+          meson
         python3 -m venv venv
         source venv/bin/activate
         pip install pip-tools
