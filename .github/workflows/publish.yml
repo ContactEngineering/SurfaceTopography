@@ -28,16 +28,14 @@ jobs:
           zlib1g-dev \
           libfftw3-dev \
           libopenblas-dev \
-          meson
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install pip-tools
+          meson \
+          ninja-build
+        sudo pip install pip-tools
         pip-compile -q pyproject.toml
-        pip install -r requirements.txt
+        sudo pip install -r requirements.txt
 
     - name: Build package
       run: |
-        source venv/bin/activate       
         mkdir dist
         meson setup build
         cd build
@@ -49,17 +47,14 @@ jobs:
 
     - name: Install extension module
       run: |
-        source venv/bin/activate
-        pip install dist/*.tar.gz
+        sudo pip install dist/*.tar.gz
 
     - name: Install sphinx
       run: |
-        source venv/bin/activate
-        pip install sphinx sphinx_rtd_theme
+        sudo pip install sphinx sphinx_rtd_theme
 
     - name: Build documentation
       run: |
-        source venv/bin/activate
         cd docs
         sphinx-apidoc -o source/ ../SurfaceTopography
         make html

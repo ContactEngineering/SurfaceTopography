@@ -31,16 +31,14 @@ jobs:
           zlib1g-dev \
           libfftw3-dev \
           libopenblas-dev \
-          meson
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install pip-tools
+          meson \
+          ninja-build
+        sudo pip install pip-tools
         pip-compile -q pyproject.toml
-        pip install -r requirements.txt
+        sudo pip install -r requirements.txt
 
     - name: Build package
       run: |
-        source venv/bin/activate
         meson setup build
         cd build
         meson dist --formats gztar
