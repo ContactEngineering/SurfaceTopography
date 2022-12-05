@@ -30,21 +30,16 @@ jobs:
           libxslt-dev \
           zlib1g-dev \
           libfftw3-dev \
-          libopenblas-dev \
-          meson
+          libopenblas-dev
         python3 -m venv ../venv
         source ../venv/bin/activate
-        pip install pip-tools
-        pip-compile -q pyproject.toml
-        pip install -r requirements.txt
+        pip install build
 
     - name: Build package
       run: |
         source ../venv/bin/activate
-        meson setup build
-        cd build
-        meson dist --formats gztar
+        python3 -m build . -s
 
     - name: Install package
       run: |
-        pip install build/meson-dist/*.tar.gz
+        pip install build/*.tar.gz
