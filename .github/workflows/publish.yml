@@ -28,11 +28,11 @@ jobs:
           zlib1g-dev \
           libfftw3-dev \
           libopenblas-dev
-        source venv/bin/activate
-        pip install build
+        python3 -m venv venv
 
     - name: Build package
       run: |
+        source venv/bin/activate
         pip install -e .
         mkdir dist
         meson setup build
@@ -45,7 +45,6 @@ jobs:
 
     - name: Install extension module
       run: |
-        python3 -m venv venv
         source venv/bin/activate
         pip install dist/*.tar.gz
 
