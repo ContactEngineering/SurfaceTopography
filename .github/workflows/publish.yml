@@ -27,13 +27,13 @@ jobs:
           libxslt-dev \
           zlib1g-dev \
           libfftw3-dev \
-          libopenblas-dev \
-          meson 
+          libopenblas-dev
         source venv/bin/activate
         pip install build
 
     - name: Build package
       run: |
+        pip install -e .
         mkdir dist
         meson setup build
         cd build

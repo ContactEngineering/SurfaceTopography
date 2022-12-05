@@ -30,11 +30,11 @@ jobs:
           libxslt-dev \
           zlib1g-dev \
           libfftw3-dev \
-          libopenblas-dev \
-          meson
+          libopenblas-dev
 
     - name: Build package
       run: |
+        pip install -e .
         meson setup build
         cd build
         meson dist --formats gztar
