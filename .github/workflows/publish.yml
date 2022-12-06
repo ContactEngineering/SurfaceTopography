@@ -27,25 +27,15 @@ jobs:
           libxslt-dev \
           zlib1g-dev \
           libfftw3-dev \
-          libopenblas-dev \
-          meson
+          libopenblas-dev
         python3 -m venv ../venv
         source ../venv/bin/activate
-        pip install pip-tools
-        pip-compile -q pyproject.toml
-        pip install -r requirements.txt
+        pip install build
 
     - name: Build package
       run: |
-        source ../venv/bin/activate       
-        mkdir dist
-        meson setup build
-        cd build
-        # We need to build the source package with Meson, because otherwise
-        # replacing version information in `discover_version.py` with
-        # `export-subst` does not work.
-        meson dist --formats gztar
-        cp meson-dist/*.tar.gz ../dist
+        source ../venv/bin/activate
+        python3 -m build . -s
 
     - name: Install extension module
       run: |
