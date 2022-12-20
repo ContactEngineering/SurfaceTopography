@@ -37,7 +37,6 @@
 # - If we install from a source tarball, we need to parse PKG-INFO manually.
 #
 
-import re
 import subprocess
 
 class CannotDiscoverVersion(Exception):
