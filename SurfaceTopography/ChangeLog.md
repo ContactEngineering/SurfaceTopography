@@ -4,6 +4,7 @@ Change log for SurfaceTopography
 v1.2.6 (not yet released)
 -------------------------
 
+- BUG: SUR reader reported wrong `height_scale_factor` in channel info  
 - BUILD: Yet another fix for version discovery when installing from source 
   package
 
