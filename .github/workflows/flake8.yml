@@ -25,11 +25,11 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -qy
-        sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev
+        sudo apt-get install -y python3-dev python3-pip libfftw3-dev libopenblas-dev meson
 
     - name: Build extension module
       run: |
-        python3 -m pip install --no-binary numpy ".[test]"
+        python3 -m pip install ".[test]"
 
     - name: Flake8 via pytest
       run: |
