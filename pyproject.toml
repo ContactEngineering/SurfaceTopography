@@ -19,7 +19,7 @@ dynamic = [ "version" ]
 dependencies = [
     "defusedxml",
     "h5py",
-    "igor",
+    "git+https://github.com/AurelienJaquier/igor.git@numpy-update",
     "matplotlib>=1.0.0",
     "muFFT>=0.24.0",
     "NuMPI>=0.3.1",
