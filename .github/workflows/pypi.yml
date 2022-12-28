@@ -1,11 +1,11 @@
 name: PyPI
 
-on:
-  push:
-    branches:
-      - master
-    tags:
-      - '*'
+#on:
+#  push:
+#    branches:
+#      - master
+#    tags:
+#      - '*'
 
 jobs:
   build_wheels:
