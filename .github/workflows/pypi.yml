@@ -7,6 +7,16 @@ name: PyPI
 #    tags:
 #      - '*'
 
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
 jobs:
   build_wheels:
     name: Build wheel for ${{ matrix.python }}-${{ matrix.buildplat[1] }} ${{ matrix.buildplat[2] }}
