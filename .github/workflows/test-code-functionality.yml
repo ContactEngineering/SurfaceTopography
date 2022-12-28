@@ -46,7 +46,9 @@ jobs:
             libfftw3-mpi-dev \
             libhdf5-mpi-dev \
             libpnetcdf-dev \
-            libnetcdf-pnetcdf-dev
+            libnetcdf-pnetcdf-dev \
+            meson \
+            ninja-build
           python3 -m venv venv
           source venv/bin/activate
           python3 -m pip install --upgrade pip pip-tools
