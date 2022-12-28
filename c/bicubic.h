@@ -36,10 +36,12 @@ SOFTWARE.
 #include <cstddef>
 #include <vector>
 
+#include <Eigen/Dense>
+
 #include <Python.h>
 
-#define NPARA (4*4)   // 4^dim
-#define NCORN 4
+constexpr int NPARA{4*4};   // 4^dim
+constexpr int NCORN{4};
 
 inline int
 _wrap(int x, int nx) { while (x >= nx) x -= nx; while (x < 0) x += nx; return x; }
@@ -83,34 +85,40 @@ class Bicubic {
   /* interpolate derivatives */
   bool interp_;
 
+  /* use slow, but low memory implementation */
+  bool lowmem_;
+
   /* values */
-  double *values_;
+  const Eigen::Map<Eigen::ArrayXd> values_;
 
   /* derivatives */
-  double *derivativex_, *derivativey_;
+  bool has_derivativex_, has_derivativey_;
+  const Eigen::Map<Eigen::ArrayXd> derivativex_, derivativey_;
 
   /* spline coefficients */
-  std::vector<double> coeff_;
+  Eigen::Array<double, NPARA, Eigen::Dynamic> coeff_;
 
   /* spline coefficients if lowmem is true */
-  std::vector<double> coeff_lowmem_;
+  Eigen::ArrayXd coeff_lowmem_;
 
   /* lhs matrix */
-  double A_[NPARA][NPARA];
+  Eigen::Matrix<double, NPARA, NPARA> A_;
 
-  const double *get_spline_coefficients(int i1, int i2) {
+  Eigen::Array<double, NPARA, 1>
+  get_spline_coefficients(int i1, int i2) {
     if (this->coeff_.size() > 0) {
-      return &this->coeff_[_row_major(i1, i2, this->n1_, this->n2_)*NPARA];
+      return this->coeff_.col(_row_major(i1, i2, this->n1_, this->n2_));
     }
     else {
-      compute_spline_coefficients(i1, i2, this->values_, this->derivativex_, this->derivativey_,
-                                  this->coeff_lowmem_.data());
-      return this->coeff_lowmem_.data();
+      return compute_spline_coefficients(i1, i2, this->values_, this->has_derivativex_, this->derivativex_,
+                                         this->has_derivativey_, this->derivativey_);
     }
   }
 
-  void compute_spline_coefficients(int i1, int i2, double *values, double *derivativex, double *derivativey,
-                                   double *coeff);
+  Eigen::Matrix<double, NPARA, 1>
+  compute_spline_coefficients(int, int, const Eigen::Ref<Eigen::ArrayXd> &,
+                              bool, const Eigen::Ref<Eigen::ArrayXd> &,
+                              bool, const Eigen::Ref<Eigen::ArrayXd> &);
 };
 
 typedef struct {
