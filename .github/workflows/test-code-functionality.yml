@@ -54,7 +54,7 @@ jobs:
             ninja-build
           # Compute mpi4py and muSpectre versions
           pip-compile pyproject.toml
-          MUSPECTRE_VERSION=$(grep muspectre requirements.txt)
+          MUSPECTRE_VERSION=$(grep 'muspectre==' requirements.txt)
           # Install mpi4py
           echo "Installing mpi4py==${{ matrix.mpi4py-version }}"
           CC=mpicc python3 -m pip install -v \
