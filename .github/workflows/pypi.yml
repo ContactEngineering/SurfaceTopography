@@ -7,15 +7,15 @@ name: PyPI
 #    tags:
 #      - '*'
 
-#on:
-#  push:
-#    branches:
-#      - '**'
-#    tags:
-#      - '**'
-#  pull_request:
-#    branches:
-#      - '**'
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   build_wheels:
@@ -36,8 +36,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      with:
+        fetch-depth: 0
+        submodules: recursive
 
       - uses: actions/setup-python@v2
         with:
