@@ -62,26 +62,22 @@ Installation: Common problems
   is missing), then set the environment variables `NETCDFDIR` (for serial
   compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
 
-- Sometimes the installation fails because muFFT_ attempts to compile with `MPI` support but not all necessary libraries are
-  avaible. If you do not need `MPI` support, you can manually disable it in the following way:
+- Sometimes the installation fails because muFFT_ attempts to compile with
+  `MPI` support but not all necessary libraries are available.
 
-  .. code-block:: bash
-
-                  python3 -m pip install muFFT --install-option="--disable-mpi"
-                  python3 -m pip install SurfaceTopography
-
-
-- Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly `setup.py`),
-  pip will attempt to reinstall that dependency despite it is already installed.
-  In that case you need to avoid using `pip install` and install SurfaceTopography from the source directory using `python3 setup.py install`.
+- Note that if you do not install a tagged version of a dependency
+  (e.g. because you install from the master branch via`git+` or
+  from source using directly `setup.py`), pip will attempt to reinstall
+  that dependency despite it is already installed. In that case you need to
+  avoid using `pip install` and install `SurfaceTopography from the source
+  directory using `Meson`.
 
 Reporting installation problems
 -------------------------------
 
 1. Make sure that you carefully read all these instructions.
 2. Try to find similar issues in our issues or forum discussions. 
-3. If the installation problems are related to muFFT_ you can have a look at d
-4. Please open an issue or a discussion in the forum.
+3. Please open an issue or a discussion in the forum.
 
 When reporting a problem, please provide us with following information: 
 
@@ -92,13 +88,7 @@ When reporting a problem, please provide us with following information:
 Installation from source directory
 --------------------------------
 
-If you cloned the repository. You can install the dependencies with
-
-.. code-block:: bash
-
-    python3 -m pip install -r requirements.txt
-
-in the source directory. SurfaceTopography can be installed by invoking
+SurfaceTopography can be installed by invoking
 
 .. code-block:: bash
 
@@ -108,15 +98,19 @@ or
 
 .. code-block:: bash
 
-   python3 setup.py install [--user]
+   meson setup build
+   cd build
+   meson compile
+   meson install
 
-in the source directoy. The command line parameter `--user` is optional and leads to a local installation in the current user's `$HOME/.local` directory.
+in the source directoy. The command line parameter `--user` is optional and
+leads to a local installation in the current user's `$HOME/.local` directory.
 
 Updating SurfaceTopography
 --------------------------
 
 If you update SurfaceTopography (whether with pip or `git pull` if you cloned the repository),  you may need to
-uninstall `NuMPI`, `muSpectre` and or `runtests`, so that the newest version of them will be installed.
+uninstall `NuMPI`, `muFFT` and or `runtests`, so that the newest version of them will be installed.
 
 Singularity_ container
 ----------------------
