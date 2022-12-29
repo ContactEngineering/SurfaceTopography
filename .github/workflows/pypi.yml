@@ -28,7 +28,7 @@ jobs:
         # - [macos-10.15, macosx, x86_64]
         # - [windows-2019, win, AMD64]
 
-        python: ["cp38", "cp39", "cp310", "cp311"]
+        python: ["cp37", "cp38", "cp39", "cp310"]
       fail-fast: false
 
     env:
