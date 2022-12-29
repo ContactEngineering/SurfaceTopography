@@ -5,7 +5,7 @@ import muFFT
 mpi_required = sys.argv[1] in ["yes", "1"]
 
 print('`muFFT` FFT engines:')
-for engine, a, b in muFFT.fft_engines:
+for engine, (a, b, c) in muFFT.fft_engines.items():
     print(f'* {engine}')
 
 if mpi_required:
