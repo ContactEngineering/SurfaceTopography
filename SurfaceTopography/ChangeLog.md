@@ -1,6 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+v1.3.0 (29Dec22)
+----------------
+
+- BUILD: Replaced LAPACK with Eigen3, removing external dependency
+- CI: Building and publishing of binary wheels (currently manylinux
+  and Python 3.7, 3.8, 3.9 and 3.10 only)
+
 v1.2.6 (29Dec22)
 ----------------
 
