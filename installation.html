@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.2.6 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.2.6.dev29+gcf61ff83 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -32,7 +32,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.2.6
+                1.2.6.dev29+gcf61ff83
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,7 +49,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#installation-common-problems">Installation: Common problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reporting-installation-problems">Reporting installation problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation-problems-with-lapack-and-openblas">Installation problems with LAPACK and OpenBLAS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-surfacetopography">Updating SurfaceTopography</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id1">Singularity container</a></li>
 </ul>
@@ -96,7 +95,7 @@
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <p>We only support installation on recent mac and linux systems, not on windows.</p>
-<p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a>, <a class="reference external" href="https://www.openblas.net/">OpenBLAS</a>, <a class="reference external" href="http://www.netlib.org/lapack/">LAPACK</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
+<p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
 <p>In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
 <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity containers</a>
 and our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml">testing workflows</a></p>
@@ -120,50 +119,33 @@ python3 -m pip install <span class="o">[</span>--user<span class="o">]</span> -r
 rm requirements.txt
 </pre></div>
 </div>
-<p>Tip: to install FFTW3, NetCDF and BLAS/LAPACK on ubuntu, you can for example use</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libfftw3-dev libopenblas-dev libnetcdf-dev
+<p>Tip: to install NetCDF on ubuntu, you can for example use</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libnetcdf-dev
 </pre></div>
 </div>
 <p>See also our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity container</a> for an example installation on ubuntu.</p>
-<p>Tip: to install FFTW3, NetCDF and BLAS/LAPACK on mac using <a class="reference external" href="https://brew.sh/">Homebrew</a>,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install openblas lapack fftw netcdf
+<p>Tip: to install NetCDF on mac using <a class="reference external" href="https://brew.sh/">Homebrew</a>,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew install netcdf
 </pre></div>
 </div>
 </section>
 <section id="installation-common-problems">
 <h2>Installation: Common problems<a class="headerlink" href="#installation-common-problems" title="Permalink to this heading"></a></h2>
-<ul>
+<ul class="simple">
 <li><p>Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
 You can specify the directory where you installed <a class="reference external" href="http://www.fftw.org/">FFTW3</a>
 by setting the environment variable <cite>FFTWDIR</cite> (e.g. to <cite>$USER/.local</cite>).</p></li>
 <li><p>If <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> is unable to find the NetCDF libraries (the <cite>FileIONetCDF</cite> class
 is missing), then set the environment variables <cite>NETCDFDIR</cite> (for serial
 compile) or <cite>PNETCDFDIR</cite> (for parallel compiles, to e.g. <cite>$USER/.local</cite>).</p></li>
-<li><p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with <cite>MPI</cite> support but not all necessary libraries are
-avaible. If you do not need <cite>MPI</cite> support, you can manually disable it in the following way:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install muFFT --install-option<span class="o">=</span><span class="s2">&quot;--disable-mpi&quot;</span>
-python3 -m pip install SurfaceTopography
-</pre></div>
-</div>
-</li>
-<li><p>Note that if you do not install a tagged version of a dependency (e.g. because you install from the master branch via`git+` or from source using directly <cite>setup.py</cite>),
-pip will attempt to reinstall that dependency despite it is already installed.
-In that case you need to avoid using <cite>pip install</cite> and install SurfaceTopography from the source directory using <cite>python3 setup.py install</cite>.</p></li>
-<li><p>linker cannot find lopenblas64</p>
-<p>Here an extract of the installation error:</p>
-<blockquote>
-<div><blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">pthread</span> <span class="o">-</span><span class="n">shared</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">--</span><span class="n">rpath</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8.13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">--</span><span class="n">rpath</span><span class="o">=/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8.13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="n">bui</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">autocorrelation</span><span class="o">.</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">bicubic</span><span class="o">.</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">patchfinder</span><span class="o">.</span><span class="n">build</span><span class="o">/</span><span class="n">temp</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">c</span><span class="o">/</span><span class="n">module</span><span class="o">.</span><span class="n">o</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.8.13</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lopenblas64_</span> <span class="o">-</span><span class="n">lopenblas64_</span> <span class="o">-</span><span class="n">o</span> <span class="n">build</span><span class="o">/</span><span class="n">lib</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="mf">3.8</span><span class="o">/</span><span class="n">_SurfaceTopography</span><span class="o">.</span><span class="n">cpython</span><span class="o">-</span><span class="mi">38</span><span class="o">-</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">.</span><span class="n">so</span>
-<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">ld</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">find</span> <span class="o">-</span><span class="n">lopenblas64_</span>
-<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">ld</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">find</span> <span class="o">-</span><span class="n">lopenblas64</span>   <span class="n">collect2</span><span class="p">:</span> <span class="n">error</span><span class="p">:</span> <span class="n">ld</span> <span class="n">returned</span> <span class="mi">1</span> <span class="n">exit</span> <span class="n">status</span>
-<span class="n">error</span><span class="p">:</span> <span class="n">command</span> <span class="s1">&#39;g++&#39;</span> <span class="n">failed</span> <span class="k">with</span> <span class="n">exit</span> <span class="n">status</span>    <span class="p">[</span><span class="n">end</span> <span class="n">of</span> <span class="n">output</span><span class="p">]</span>
-<span class="n">note</span><span class="p">:</span> <span class="n">This</span> <span class="n">error</span> <span class="n">originates</span> <span class="kn">from</span> <span class="nn">a</span> <span class="n">subprocess</span><span class="p">,</span> <span class="ow">and</span> <span class="ow">is</span> <span class="n">likely</span> <span class="ow">not</span> <span class="n">a</span> <span class="n">problem</span> <span class="k">with</span> <span class="n">pip</span>   <span class="n">error</span><span class="p">:</span> <span class="n">legacy</span><span class="o">-</span><span class="n">install</span><span class="o">-</span><span class="n">failure</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p>Solution:   reinstall numpy with <cite>–no-binary</cite> flag</p>
-</div></blockquote>
-</li>
+<li><p>Sometimes the installation fails because <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> attempts to compile with
+<cite>MPI</cite> support but not all necessary libraries are available.</p></li>
+<li><p>Note that if you do not install a tagged version of a dependency
+(e.g. because you install from the master branch via`git+` or
+from source using directly <cite>setup.py</cite>), pip will attempt to reinstall
+that dependency despite it is already installed. In that case you need to
+avoid using <cite>pip install</cite> and install <cite>SurfaceTopography from the source
+directory using `Meson</cite>.</p></li>
 </ul>
 </section>
 <section id="reporting-installation-problems">
@@ -171,7 +153,6 @@ In that case you need to avoid using <cite>pip install</cite> and install Surfac
 <ol class="arabic simple">
 <li><p>Make sure that you carefully read all these instructions.</p></li>
 <li><p>Try to find similar issues in our issues or forum discussions.</p></li>
-<li><p>If the installation problems are related to <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> you can have a look at d</p></li>
 <li><p>Please open an issue or a discussion in the forum.</p></li>
 </ol>
 <p>When reporting a problem, please provide us with following information:</p>
@@ -183,41 +164,24 @@ In that case you need to avoid using <cite>pip install</cite> and install Surfac
 </section>
 <section id="installation-from-source-directory">
 <h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Permalink to this heading"></a></h2>
-<p>If you cloned the repository. You can install the dependencies with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install -r requirements.txt
-</pre></div>
-</div>
-<p>in the source directory. SurfaceTopography can be installed by invoking</p>
+<p>SurfaceTopography can be installed by invoking</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install <span class="o">[</span>--user<span class="o">]</span> .
 </pre></div>
 </div>
 <p>or</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 setup.py install <span class="o">[</span>--user<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>meson setup build
+<span class="nb">cd</span> build
+meson compile
+meson install
 </pre></div>
 </div>
-<p>in the source directoy. The command line parameter <cite>–user</cite> is optional and leads to a local installation in the current user’s <cite>$HOME/.local</cite> directory.</p>
-</section>
-<section id="installation-problems-with-lapack-and-openblas">
-<h2>Installation problems with LAPACK and OpenBLAS<a class="headerlink" href="#installation-problems-with-lapack-and-openblas" title="Permalink to this heading"></a></h2>
-<p><cite>bicubic.cpp</cite> is linked with <cite>lapack</cite>, that is already available as a dependency of <cite>numpy</cite>.
-If during build, <cite>setup.py</cite> fails to link to one of the lapack implementations
-provided by <cite>numpy</cite>, as often experienced on macOS, try providing following environment variables:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">LDFLAGS</span><span class="o">=</span><span class="s2">&quot;-L/usr/local/opt/openblas/lib </span><span class="nv">$LDFLAGS</span><span class="s2">&quot;</span>
-<span class="nb">export</span> <span class="nv">CPPFLAGS</span><span class="o">=</span><span class="s2">&quot;-I/usr/local/opt/openblas/include </span><span class="nv">$CPPFLAGS</span><span class="s2">&quot;</span>
-<span class="nb">export</span> <span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span><span class="s2">&quot;/usr/local/opt/openblas/lib/pkgconfig:</span><span class="nv">$PKG_CONFIG_PATH</span><span class="s2">&quot;</span>
-
-<span class="nb">export</span> <span class="nv">LDFLAGS</span><span class="o">=</span><span class="s2">&quot;-L/usr/local/opt/lapack/lib </span><span class="nv">$LDFLAGS</span><span class="s2">&quot;</span>
-<span class="nb">export</span> <span class="nv">CPPFLAGS</span><span class="o">=</span><span class="s2">&quot;-I/usr/local/opt/lapack/include </span><span class="nv">$CPPFLAGS</span><span class="s2">&quot;</span>
-<span class="nb">export</span> <span class="nv">PKG_CONFIG_PATH</span><span class="o">=</span><span class="s2">&quot;/usr/local/opt/lapack/lib/pkgconfig:</span><span class="nv">$PKG_CONFIG_PATH</span><span class="s2">&quot;</span>
-</pre></div>
-</div>
-<p>where the paths have probably to be adapted to your particular installation method.
-Here <a class="reference external" href="https://www.openblas.net/">OpenBLAS</a> and <a class="reference external" href="http://www.netlib.org/lapack/">LAPACK</a> was installed via <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
+<p>in the source directoy. The command line parameter <cite>–user</cite> is optional and
+leads to a local installation in the current user’s <cite>$HOME/.local</cite> directory.</p>
 </section>
 <section id="updating-surfacetopography">
 <h2>Updating SurfaceTopography<a class="headerlink" href="#updating-surfacetopography" title="Permalink to this heading"></a></h2>
 <p>If you update SurfaceTopography (whether with pip or <cite>git pull</cite> if you cloned the repository),  you may need to
-uninstall <cite>NuMPI</cite>, <cite>muSpectre</cite> and or <cite>runtests</cite>, so that the newest version of them will be installed.</p>
+uninstall <cite>NuMPI</cite>, <cite>muFFT</cite> and or <cite>runtests</cite>, so that the newest version of them will be installed.</p>
 </section>
 <section id="id1">
 <h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
