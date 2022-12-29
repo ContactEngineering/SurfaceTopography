@@ -179,6 +179,7 @@ This reader imports Digital Surf SUR data files.
                             dim=2,
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
+                            height_scale_factor=float(self._header['height_scale_factor']),
                             uniform=True,
                             unit=self._unit)]
 
