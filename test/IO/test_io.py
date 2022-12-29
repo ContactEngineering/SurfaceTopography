@@ -98,6 +98,7 @@ binary_example_file_list = _convert_filelist([
                                                  'example.vk3',
                                                  'example.vk4',
                                                  'example.vk6',
+                                                 'example.sur',
                                                  'mitutoyo_mock.xlsx',
                                                  'mitutoyo_nonuniform_mock.xlsx',
                                                  'example_ps.tiff',
@@ -339,7 +340,7 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
                          binary_without_stream_support_example_file_list)
-def test_reader_topography_same(fn):
+def test_channel_info_and_topography_have_same_metadata(fn):
     """
     Tests that properties like physical sizes, units and nb_grid_pts are
     the same in the ChannelInfo and the loaded topography.
@@ -366,8 +367,10 @@ def test_reader_topography_same(fn):
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
 
-        if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
-            assert channel.height_scale_factor == topography.scale_factor
+        if channel.height_scale_factor is not None:
+            assert channel.height_scale_factor == topography.height_scale_factor
+        else:
+            assert not hasattr(topography, 'height_scale_factor')
 
         if channel.is_periodic is not None:
             assert isinstance(channel.is_periodic, (bool, np.bool_))

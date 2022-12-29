@@ -19,7 +19,7 @@ dynamic = [ "version" ]
 dependencies = [
     "defusedxml",
     "h5py",
-    "igor",
+    "igor",  # FIXME! Igor no longer works with numpy 1.24.0 or later
     "matplotlib>=1.0.0",
     "muSpectre>=0.25.1",
     "NuMPI>=0.3.1",

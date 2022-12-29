@@ -191,7 +191,7 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
         L = x[-1] - x[0]
         if wavevectors is None:
             wavevectors = 2 * np.pi * np.arange(int(L / np.diff(x).min())) / L
-        y_q = np.zeros_like(wavevectors, dtype=np.complex128)
+        y_q = np.zeros_like(wavevectors, dtype=complex)
         for x1, x2, y1, y2 in zip(x[:-1], x[1:], y[:-1], y[1:]):
             dx = x2 - x1
             if dx > 0:
