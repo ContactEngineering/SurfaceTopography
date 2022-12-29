@@ -1,11 +1,4 @@
-name: PyPI
-
-#on:
-#  push:
-#    branches:
-#      - master
-#    tags:
-#      - '*'
+name: Wheels
 
 on:
   push:
