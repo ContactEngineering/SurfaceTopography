@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.4.0 (not yet released)
+-------------------------
+
+- API: Removed all toplevel imports; need to import from full module names
+
 v1.3.0 (29Dec22)
 ----------------
 

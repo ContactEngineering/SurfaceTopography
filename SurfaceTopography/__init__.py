@@ -28,12 +28,6 @@
 defines all surface types used in SurfaceTopography
 """
 
-from .Container import SurfaceContainer, read_container, read_published_container  # noqa: F401
-from .IO import open_topography, read_topography  # noqa: F401
-from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
-from .Special import make_sphere, PlasticTopography  # noqa: F401
-from .UniformLineScanAndTopography import Topography, UniformLineScan  # noqa: F401
-
 from .DiscoverVersion import __version__  # noqa: F401
 
 # These imports are required to register the analysis functions!
