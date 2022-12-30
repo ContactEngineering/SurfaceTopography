@@ -8,7 +8,10 @@ description = "Read and analyze surface topographies"
 readme = "README.md"
 license = { file = "LICENSE.md" }
 authors = [
-    { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" }
+    { name = "Till Junge", email = "till.junge@altermail.ch" },
+    { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" },
+    { name = "Michael Röttger", email = "info@michael-roettger.de" }
+    { name = "Antoine Sanner", email = "antoine.sanner@imtek.uni-freiburg.de" },
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
