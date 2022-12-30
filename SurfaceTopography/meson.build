@@ -3,6 +3,7 @@
 # Pure Python sources
 python_sources = [
     '__init__.py',
+    'DiscoverVersion.py',
     'Exceptions.py',
     'FFTTricks.py',
     'Generation.py',
