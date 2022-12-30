@@ -47,7 +47,3 @@ test = [
 documentation = "https://contactengineering.github.io/SurfaceTopography/"
 repository = "https://github.com/ContactEngineering/SurfaceTopography"
 changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
-
-[tool.mesonpep517.metadata]
-summary = "Read and analyze surface topographies"  # This should actually be deprecated
-meson-python-option-name = "python3"
