@@ -34,6 +34,8 @@ from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
 from .Special import make_sphere, PlasticTopography  # noqa: F401
 from .UniformLineScanAndTopography import Topography, UniformLineScan  # noqa: F401
 
+from .DiscoverVersion import __version__
+
 # These imports are required to register the analysis functions!
 import SurfaceTopography.Generic.Curvature  # noqa: F401
 import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
@@ -62,12 +64,3 @@ import SurfaceTopography.Support.Bibliography  # noqa: F401
 
 # Add contact.engineering paper to bibliography
 SurfaceTopography.Support.Bibliography._default_dois = set(['10.1088/2051-672X/ac860a'])
-
-try:
-    from importlib.metadata import version
-
-    __version__ = version(__name__)
-except ImportError:
-    from pkg_resources import get_distribution
-
-    __version__ = get_distribution(__name__).version
