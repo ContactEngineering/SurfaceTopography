@@ -100,12 +100,13 @@ if __version__ is None:
 
 # Not sure the mechanisms below are much different from parsing PKG-INFO...
 
+pkg_name = __name__.replace('.DiscoverVersion', '')
 if __version__ is None:
     # importlib is present in Python >= 3.8
     try:
         from importlib.metadata import version
 
-        __version__ = version('SurfaceTopography')
+        __version__ = version(pkg_name)
     except ImportError:
         __version__ = None
 
@@ -114,7 +115,7 @@ if __version__ is None:
     try:
         from pkg_resources import get_distribution
 
-        __version__ = get_distribution('SurfaceTopography').version
+        __version__ = get_distribution(pkg_name).version
     except ImportError:
         __version__ = None
 
