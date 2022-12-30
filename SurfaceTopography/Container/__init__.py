@@ -27,6 +27,7 @@
 from .IO import read_container, read_published_container  # noqa: F401
 from .SurfaceContainer import SurfaceContainer  # noqa: F401
 
+# These imports are required to register the analysis functions!
 import SurfaceTopography.Container.common  # noqa: F401
 import SurfaceTopography.Container.Averaging  # noqa: F401
 import SurfaceTopography.Container.ScaleDependentStatistics  # noqa: F401
