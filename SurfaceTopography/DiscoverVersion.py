@@ -50,7 +50,10 @@ def get_version_from_pkg_info():
     """
     Discover version from PKG-INFO file.
     """
-    fobj = open('PKG-INFO', 'r')
+    try:
+        fobj = open('PKG-INFO', 'r')
+    except FileNotFoundError:
+        raise CannotDiscoverVersion("Could not find 'PKG-INFO' file.")
     line = fobj.readline()
     while line:
         if line.startswith('Version:'):
