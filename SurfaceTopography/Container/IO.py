@@ -31,15 +31,7 @@ import numpy as np
 from datetime import datetime
 from zipfile import ZipFile
 
-try:
-    from importlib.metadata import version
-
-    __version__ = version('SurfaceTopography')
-except ImportError:
-    from pkg_resources import get_distribution
-
-    __version__ = get_distribution('SurfaceTopography').version
-
+from ..DiscoverVersion import __version__
 from ..IO import open_topography
 from .SurfaceContainer import SurfaceContainer
 
