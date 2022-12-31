@@ -17,6 +17,14 @@ Subpackages
 Submodules
 ----------
 
+SurfaceTopography.DiscoverVersion module
+----------------------------------------
+
+.. automodule:: SurfaceTopography.DiscoverVersion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Exceptions module
 -----------------------------------
 
