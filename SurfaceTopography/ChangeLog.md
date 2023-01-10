@@ -4,7 +4,7 @@ Change log for SurfaceTopography
 v1.3.1 (not yet released)
 -------------------------
 
-- BUG: AL3D reader reported wrong unit in channel info
+- BUG: AL3D reader reported wrong unit in channel info (#276)
 - BUG: SUR reader reported wrong info dictionary in channel info
 
 v1.3.0 (29Dec22)
