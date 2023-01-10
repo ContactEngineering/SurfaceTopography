@@ -181,7 +181,8 @@ This reader imports Digital Surf SUR data files.
                             physical_sizes=self._physical_sizes,
                             height_scale_factor=float(self._header['height_scale_factor']),
                             uniform=True,
-                            unit=self._unit)]
+                            unit=self._unit,
+                            info=self._info)]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
