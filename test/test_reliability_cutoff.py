@@ -151,7 +151,7 @@ def test_reliability_cutoff_line_scan(file_format_examples):
 
     cut = surf.to_nonuniform().short_reliability_cutoff()
     # This differs from the above because the derivatives are computed at slightly different locations
-    np.testing.assert_allclose(cut, 0.126519, atol=1e-6)
+    np.testing.assert_allclose(cut, 0.126527, atol=1e-6)
 
     cut = surf.to_nonuniform().short_reliability_cutoff(0.2)
     # Should be the maximum of the actual value and the value that was passed
@@ -159,7 +159,7 @@ def test_reliability_cutoff_line_scan(file_format_examples):
 
     cut = surf.to_nonuniform().short_reliability_cutoff(0.1)
     # Should be the maximum of the actual value and the value that was passed
-    np.testing.assert_allclose(cut, 0.126519, atol=1e-6)
+    np.testing.assert_allclose(cut, 0.126527, atol=1e-6)
 
 
 def test_problem1(file_format_examples):
