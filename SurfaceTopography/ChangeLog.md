@@ -21,7 +21,7 @@ v1.2.6 (29Dec22)
 - BUILD: Yet another fix for version discovery when installing from source 
   package
 
-- v1.2.5 (05Dec22)
+v1.2.5 (05Dec22)
 ----------------
 
 - BUILD: Another fix for version discovery when installing from source package
