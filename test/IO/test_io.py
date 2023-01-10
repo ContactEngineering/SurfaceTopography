@@ -101,7 +101,7 @@ binary_example_file_list = _convert_filelist(['di1.di',
                                               'mitutoyo_mock.xlsx',
                                               'mitutoyo_nonuniform_mock.xlsx',
                                               'example_ps.tiff',
-                                              'example.al3d'
+                                              'al3d-1.al3d'
                                               ] + [] if NuMPI._has_mpi4py else [
     'example-2d.npy'])  # MPI I/O does not support Python streams
 
@@ -619,7 +619,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
-    assert detect_format(os.path.join(file_format_examples, 'example.al3d')) == 'al3d'
+    assert detect_format(os.path.join(file_format_examples, 'al3d-1.al3d')) == 'al3d'
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
 
 
