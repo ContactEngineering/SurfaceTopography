@@ -55,6 +55,17 @@ def test_scanning_probe_reliability_cutoff(file_format_examples):
     np.testing.assert_almost_equal(cut, 0.2)
 
 
+@pytest.mark.parametrize('unit,fac', [('pm', 1e-3), ('nm', 1.0), ('um', 1e3), ('mm', 1e6)])
+def test_unit_invariance(file_format_examples, unit, fac):
+    """Test that we get the same reliability cutoff if we rescale the topography"""
+    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+
+    ref_value = 90.700854
+
+    np.testing.assert_allclose(surf.to_unit(unit).scanning_probe_reliability_cutoff(40 / fac) * fac, ref_value,
+                               rtol=1e-3)
+
+
 def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_examples):
     surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
         'instrument': {
