@@ -59,33 +59,36 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
         Note that this is the length of the stencil for the second derivative
         used to compute the reliability cutoff.
     """
-    target_curvature = safety_factor / tip_radius
+    lower, upper = self.bandwidth()
+    # We need to normalize the bracket search to avoid numerical issues
+    fac = np.exp((np.log(lower) + np.log(upper) / 2))
+
+    target_curvature = fac * safety_factor / tip_radius
 
     def objective(distance):
-        d = self.derivative(n=2, distance=distance)
+        d = self.derivative(n=2, distance=fac * distance)
         if self.dim == 1:
             if len(d) == 0:
                 return target_curvature
-            return target_curvature + np.min(d)
+            return target_curvature + fac * np.min(d)
         elif self.dim == 2:
             if len(d[0]) == 0:
                 return target_curvature
-            return target_curvature + np.min(d[0])
+            return target_curvature + fac * np.min(d[0])
         else:
             raise ValueError(f'Cannot handle a {self.dim}-dimensional topography.')
 
-    lower, upper = self.bandwidth()
-    if objective(2 * lower) > 0:
+    if objective(2 * lower / fac) > 0:
         # Curvature is at lower end is smaller than tip curvature
         return None
-    elif objective(upper / 2) < 0:
+    elif objective(upper / (2 * fac)) < 0:
         # Curvature at upper end is larger than tip curvature;
         # None of the data is reliable
         return upper
     else:
-        return scipy.optimize.brentq(objective,
-                                     2 * lower, upper / 2,  # bounds
-                                     xtol=1e-4)
+        return fac * scipy.optimize.brentq(objective,
+                                           2 * lower / fac, upper / (2 * fac),  # bounds
+                                           xtol=1e-4)
 
 
 UniformTopographyInterface.register_function('scanning_probe_reliability_cutoff', scanning_probe_reliability_cutoff)
