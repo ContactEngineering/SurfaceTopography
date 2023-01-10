@@ -4,7 +4,7 @@ Change log for SurfaceTopography
 v1.3.1 (not yet released)
 -------------------------
 
-- BUG: Increased numerical robustness of scanning probe artifact anlaysis
+- BUG: Increased numerical robustness of scanning probe artifact analysis
   (#275)
 
 v1.3.0 (29Dec22)
