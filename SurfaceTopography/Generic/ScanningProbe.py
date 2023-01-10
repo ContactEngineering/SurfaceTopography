@@ -88,7 +88,7 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
     else:
         return fac * scipy.optimize.brentq(objective,
                                            2 * lower / fac, upper / (2 * fac),  # bounds
-                                           xtol=1e-4)
+                                           xtol=1e-5)
 
 
 UniformTopographyInterface.register_function('scanning_probe_reliability_cutoff', scanning_probe_reliability_cutoff)
