@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Testing &mdash; SurfaceTopography 1.3.0.dev16+gc7dbaab1 documentation</title>
+  <title>Testing &mdash; SurfaceTopography 1.3.0.dev23+g789810c9 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.3.0.dev16+gc7dbaab1
+                1.3.0.dev23+g789810c9
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -88,7 +88,7 @@
 </pre></div>
 </div>
 <p>Tests that are parallelizable have to run with <a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python run-tests.py --no-build
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>run-tests.py<span class="w"> </span>--no-build
 </pre></div>
 </div>
 <p>You can choose the number of processors with the option <cite>–mpirun=”mpirun -np 4”</cite>. For development purposes you can go beyond the number of processors of your computer using <cite>–mpirun=”mpirun -np 10 –oversubscribe”</cite></p>
