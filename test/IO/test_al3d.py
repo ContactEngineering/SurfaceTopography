@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'example.al3d')
+    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
 
     read_topography(file_path)
 
@@ -53,7 +53,7 @@ def test_read_filestream(file_format_examples):
 
 
 def test_al3d_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.al3d')
+    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
 
     r = AL3DReader(file_path)
     t = r.topography()

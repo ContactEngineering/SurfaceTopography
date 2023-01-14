@@ -70,39 +70,39 @@ def _convert_filelist(filelist):
     return [os.path.join(DATADIR, fn) for fn in filelist]
 
 
-binary_example_file_list = _convert_filelist([
-                                                 'di1.di',
-                                                 'di2.di',
-                                                 'di3.di',
-                                                 'di4.di',
-                                                 'di5.di',
-                                                 'example.ibw',
-                                                 'spot_1-1000nm.ibw',
-                                                 # 'surface.2048x2048.h5',
-                                                 '10x10-one_channel_without_name.ibw',
-                                                 'example1.mat',
-                                                 'example.opd',
-                                                 'example2.opd',
-                                                 'opd3.opd',
-                                                 'x3p-1.x3p',
-                                                 'x3p-2.x3p',
-                                                 'x3p-3.x3p',
-                                                 'x3p-4.x3p',
-                                                 'opdx1.OPDx',
-                                                 'opdx2.OPDx',
-                                                 'opdx3.OPDx',
-                                                 'mi1.mi',
-                                                 'N46E013.hgt',
-                                                 'example.zon',
-                                                 'example.nc',
-                                                 'example.vk3',
-                                                 'example.vk4',
-                                                 'example.vk6',
-                                                 'example.sur',
-                                                 'mitutoyo_mock.xlsx',
-                                                 'mitutoyo_nonuniform_mock.xlsx',
-                                                 'example_ps.tiff',
-                                             ] + [] if NuMPI._has_mpi4py else [
+binary_example_file_list = _convert_filelist(['di1.di',
+                                              'di2.di',
+                                              'di3.di',
+                                              'di4.di',
+                                              'di5.di',
+                                              'example.ibw',
+                                              'spot_1-1000nm.ibw',
+                                              # 'surface.2048x2048.h5',
+                                              '10x10-one_channel_without_name.ibw',
+                                              'example1.mat',
+                                              'example.opd',
+                                              'example2.opd',
+                                              'opd3.opd',
+                                              'x3p-1.x3p',
+                                              'x3p-2.x3p',
+                                              'x3p-3.x3p',
+                                              'x3p-4.x3p',
+                                              'opdx1.OPDx',
+                                              'opdx2.OPDx',
+                                              'opdx3.OPDx',
+                                              'mi1.mi',
+                                              'N46E013.hgt',
+                                              'example.zon',
+                                              'example.nc',
+                                              'example.vk3',
+                                              'example.vk4',
+                                              'example.vk6',
+                                              'example.sur',
+                                              'mitutoyo_mock.xlsx',
+                                              'mitutoyo_nonuniform_mock.xlsx',
+                                              'example_ps.tiff',
+                                              'al3d-1.al3d'
+                                              ] + [] if NuMPI._has_mpi4py else [
     'example-2d.npy'])  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
@@ -619,7 +619,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
-    assert detect_format(os.path.join(file_format_examples, 'example.al3d')) == 'al3d'
+    assert detect_format(os.path.join(file_format_examples, 'al3d-1.al3d')) == 'al3d'
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
 
 

@@ -117,7 +117,9 @@ AL3D format of Alicona Imaging.
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             uniform=True,
-                            unit={'raw_metadata': self._header})]
+                            unit=self._unit,
+                            height_scale_factor=1,
+                            info={'raw_metadata': self._header})]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -153,4 +155,4 @@ AL3D format of Alicona Imaging.
                           unit=self._unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo
+        return topo.scale(1)
