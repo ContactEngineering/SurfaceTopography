@@ -6,6 +6,40 @@ from SurfaceTopography.Models.SelfAffine import (
     )
 import pytest
 
+
+
+def test_shortcut_derivative():
+    rolloff_wavelength, shortcut_wavelength, hurst_exponent = (1e-4, 2e-6, 0.8)
+    derivative_order = 1
+    n_pixels = 1024
+    physical_size = .5e-4
+    pixel_size = physical_size / n_pixels
+
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()
+
+    model_psd = SelfAffine(**{
+            'cr':5e-27,
+            'shortcut_wavelength': shortcut_wavelength,
+           # 'longcut_wavelength': rolloff_wavelength,
+            'rolloff_wavelength': rolloff_wavelength,
+            'hurst_exponent': hurst_exponent})
+
+
+    roughness = model_psd.generate_roughness(**{
+        'seed': 1,
+        'n_pixels': n_pixels,
+        'pixel_size': pixel_size,
+    })
+
+    r, s = roughness.scale_dependent_slope_from_area()
+    ax.plot(r, s**2, "--")
+    ax.axhline(model_psd.variance_derivative(order=1) )
+    ax.plot(r, [model_psd.variance_derivative(order=1, shortcut_wavelength= dx * 2 ) for dx in r])
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+
+    fig.savefig("test_der.png")
 @pytest.mark.parametrize(
 "shortcut_wavelength, hurst_exponent",
 [
