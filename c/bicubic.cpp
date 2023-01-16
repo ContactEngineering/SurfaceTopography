@@ -41,57 +41,15 @@ SOFTWARE.
 
 #include "bicubic.h"
 
-#define DGESV dgesv_
-#define DGEMV dgemv_
-
-/*
- * signature of dgesv. This should be present once numpy is loaded.
- */
-extern "C" void
-DGESV(int const* n, int const* nrhs, double* A, int const* lda, int* ipiv, double* B, int const* ldb, int* info);
-
-/*
- * signature of dgemv. This should be present once numpy is loaded.
- */
-extern "C" void
-DGEMV(char const* trans, int const* m, int const* n, double const* alpha, double const* A, int const* lda,
-      double const* x, int const* incx, double const* beta, double *y, int const* incy);
-
-
-/*
- * invert a square matrix
- */
-int invert_matrix(int n, double *mat)
-{
-  int n_sq = n*n;
-
-  int ipiv[n];
-  int info = 0;
-
-  double tmp1[n_sq], tmp2[n_sq];
-
-  memcpy(tmp1, mat, n_sq*sizeof(double));
-  memset(tmp2, 0, n_sq*sizeof(double));
-  /* initialize identity matrix */
-  for (int i = 0; i < n; i++) {
-    tmp2[_row_major(i, i, n, n)] = 1.0;
-  }
-
-  DGESV(&n, &n, tmp1, &n, ipiv, tmp2, &n, &info);
-
-  if (info)
-    return info;
-
-  memcpy(mat, tmp2, n_sq*sizeof(double));
-  return info; /* should be zero */
-}
 
 /*
  * values are supposed to be of size [0:nx][0:ny] and stored in row-major order
  */
 Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *derivativey, bool interp, bool lowmem)
-  : n1_{n1}, n2_{n2}, values_{values}, derivativex_{derivativex}, derivativey_{derivativey}, interp_{interp}, coeff_{},
-    coeff_lowmem_{}
+  : n1_{n1}, n2_{n2}, interp_{interp}, lowmem_{lowmem}, values_{values, n1*n2},
+    has_derivativex_{derivativex != nullptr}, has_derivativey_{derivativey != nullptr},
+    derivativex_{derivativex, n1*n2}, derivativey_{derivativey, n1*n2},
+    coeff_(NPARA, lowmem ? 0 : n1*n2), coeff_lowmem_(lowmem ? NPARA : 0)
 {
   const int box1[NCORN] = { 0,1,1,0 };
   const int box2[NCORN] = { 0,0,1,1 };
@@ -107,21 +65,6 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
    */
 
   /* --- */
-
-  /*
-   * if lowmem = true then spline coefficients will be computed each
-   * time eval is called
-   */
-
-  if (lowmem) {
-    this->coeff_lowmem_.resize(NPARA*NPARA);
-  }
-  else {
-    this->values_ = NULL; // this indicates that we have precomputed coefficients
-    this->derivativex_ = NULL;
-    this->derivativey_ = NULL;
-    this->coeff_.resize(static_cast<ptrdiff_t>(this->n1_)*this->n2_*NPARA);
-  }
 
   /*
    * for each box, create and solve the matrix equation.
@@ -151,10 +94,10 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
         int icol = _row_major(npow1, npow2, 4, 4);
 
         /* values of products within cubic and derivatives. */
-        A_[irow   ][icol] = 1.0*(      pow(ci1,npow1 )      *pow(ci2,npow2 ) );
-        A_[irow+4 ][icol] = 1.0*(npow1*pow(ci1,npow1m)      *pow(ci2,npow2 ) );
-        A_[irow+8 ][icol] = 1.0*(      pow(ci1,npow1 )*npow2*pow(ci2,npow2m) );
-        A_[irow+12][icol] = 1.0*(npow1*pow(ci1,npow1m)*npow2*pow(ci2,npow2m) );
+        A_(irow   , icol) = 1.0*(      pow(ci1, npow1 )      *pow(ci2, npow2 ) );
+        A_(irow+4 , icol) = 1.0*(npow1*pow(ci1, npow1m)      *pow(ci2, npow2 ) );
+        A_(irow+8 , icol) = 1.0*(      pow(ci1, npow1 )*npow2*pow(ci2, npow2m) );
+        A_(irow+12, icol) = 1.0*(npow1*pow(ci1, npow1m)*npow2*pow(ci2, npow2m) );
       }
     }
   }
@@ -162,10 +105,7 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
   /*
    * invert A matrix.
    */
-
-  if (invert_matrix(NPARA, this->A_[0])) {
-    throw std::runtime_error("Could not compute spline coefficients.");
-  }
+  this->A_ = this->A_.inverse();
 
   /*
    * if low mem is not requested, we compute all spline coefficients here and store them.
@@ -174,8 +114,9 @@ Bicubic::Bicubic(int n1, int n2, double *values, double *derivativex, double *de
   if (this->coeff_.size()) {
     for (int i1 = 0; i1 < this->n1_; i1++) {
       for (int i2 = 0; i2 < this->n2_; i2++) {
-        compute_spline_coefficients(i1, i2, values, derivativex, derivativey,
-                                    &this->coeff_[_row_major(i1, i2, this->n1_, this->n2_)*NPARA]);
+        this->coeff_.col(_row_major(i1, i2, this->n1_, this->n2_)) =
+            compute_spline_coefficients(i1, i2, this->values_, this->has_derivativex_, this->derivativex_,
+                                        this->has_derivativey_, this->derivativey_);
       }
     }
   }
@@ -187,9 +128,10 @@ Bicubic::~Bicubic()
 }
 
 
-void
-Bicubic::compute_spline_coefficients(int i1, int i2, double *values, double *derivativex, double *derivativey,
-                                     double *coeff) {
+Eigen::Matrix<double, NPARA, 1>
+Bicubic::compute_spline_coefficients(int i1, int i2, const Eigen::Ref<Eigen::ArrayXd> &values,
+                                     bool has_derivativex, const Eigen::Ref<Eigen::ArrayXd> &derivativex,
+                                     bool has_derivativey, const Eigen::Ref<Eigen::ArrayXd> &derivativey) {
   const int box1[NCORN] = { 0,1,1,0 };
   const int box2[NCORN] = { 0,0,1,1 };
 
@@ -198,7 +140,7 @@ Bicubic::compute_spline_coefficients(int i1, int i2, double *values, double *der
    * loop through boxes.
    */
 
-  double B[NPARA];
+  Eigen::Matrix<double, NPARA, 1> B;
 
   for (int irow = 0; irow < NCORN; irow++) {
     int ci1 = box1[irow]+i1;
@@ -207,9 +149,9 @@ Bicubic::compute_spline_coefficients(int i1, int i2, double *values, double *der
     ci1 = _wrap(ci1, this->n1_);
     ci2 = _wrap(ci2, this->n2_);
     /* values of function and derivatives at corner. */
-    B[irow   ] = values[_row_major(ci1, ci2, this->n1_, this->n2_)];
+    B(irow) = values(_row_major(ci1, ci2, this->n1_, this->n2_));
     /* interpolate derivatives */
-    if (interp_) {
+    if (this->interp_) {
       int ci1p = ci1+1;
       int ci1m = ci1-1;
       int ci2p = ci2+1;
@@ -218,35 +160,33 @@ Bicubic::compute_spline_coefficients(int i1, int i2, double *values, double *der
       ci1m = _wrap(ci1m, this->n1_);
       ci2p = _wrap(ci2p, this->n2_);
       ci2m = _wrap(ci2m, this->n2_);
-      B[irow+4 ] = (
-        values[_row_major(ci1p, ci2, this->n1_, this->n2_)] -
-        values[_row_major(ci1m, ci2, this->n1_, this->n2_)]
+      B(irow+4) = (
+        values(_row_major(ci1p, ci2, this->n1_, this->n2_)) -
+        values(_row_major(ci1m, ci2, this->n1_, this->n2_))
         )/2;
-      B[irow+8 ] = (
-        values[_row_major(ci1, ci2p, this->n1_, this->n2_)] -
-        values[_row_major(ci1, ci2m, this->n1_, this->n2_)]
+      B(irow+8) = (
+        values(_row_major(ci1, ci2p, this->n1_, this->n2_)) -
+        values(_row_major(ci1, ci2m, this->n1_, this->n2_))
         )/2;
     }
     else {
-      if (derivativex) {
-        B[irow+4 ] = derivativex[_row_major(ci1, ci2, this->n1_, this->n2_)];
+      if (has_derivativex) {
+        B(irow+4) = derivativex(_row_major(ci1, ci2, this->n1_, this->n2_));
       }
       else {
-        B[irow+4 ] = 0.0;
+        B(irow+4) = 0.0;
       }
-      if (derivativey) {
-        B[irow+8 ] = derivativey[_row_major(ci1, ci2, this->n1_, this->n2_)];
+      if (has_derivativey) {
+        B(irow+8) = derivativey(_row_major(ci1, ci2, this->n1_, this->n2_));
       }
       else {
-        B[irow+8 ] = 0.0;
+        B(irow+8) = 0.0;
       }
     }
-    B[irow+12] = 0.0;
+    B(irow+12) = 0.0;
   }
 
-  int npara{NPARA}, inc{1};
-  double alpha{1}, beta{0};
-  DGEMV("T", &npara, &npara, &alpha, this->A_[0], &npara, B, &inc, &beta, coeff, &inc);
+  return this->A_ * B;
 }
 
 
@@ -267,7 +207,7 @@ Bicubic::eval(double x, double y, double &f)
   /*
    * get spline coefficients
    */
-  const double *coeffi = get_spline_coefficients(xbox, ybox);
+  const auto coeffi{get_spline_coefficients(xbox, ybox)};
 
   /*
    * compute splines
@@ -276,7 +216,7 @@ Bicubic::eval(double x, double y, double &f)
   for (int i = 3; i >= 0; i--) {
     double sf = 0.0;
     for (int j = 3; j >= 0; j--) {
-      sf = sf*dy + coeffi[_row_major(i, j, 4, 4)];
+      sf = sf*dy + coeffi(_row_major(i, j, 4, 4));
     }
     f = f*dx + sf;
   }
@@ -300,25 +240,25 @@ Bicubic::eval(double x, double y, double &f, double &dfdx, double &dfdy)
   /*
    * get spline coefficients
    */
-  const double *coeffi = get_spline_coefficients(xbox, ybox);
+  const auto coeffi{get_spline_coefficients(xbox, ybox)};
 
   /*
    * compute splines
    */
-  f    = 0.0;
+  f = 0.0;
   dfdx = 0.0;
   dfdy = 0.0;
   for (int i = 3; i >= 0; i--) {
     double sf   = 0.0;
     double sfdy = 0.0;
     for (int j = 3; j >= 0; j--) {
-      double      coefij = coeffi[_row_major(i, j, 4, 4)];
-                  sf   =   sf*dy +   coefij;
+      double coefij{coeffi(_row_major(i, j, 4, 4))};
+      sf = sf*dy + coefij;
       if (j > 0)  sfdy = sfdy*dy + j*coefij;
     }
-                f    = f   *dx +   sf;
+    f = f*dx + sf;
     if (i > 0)  dfdx = dfdx*dx + i*sf;
-                dfdy = dfdy*dx +   sfdy;
+    dfdy = dfdy*dx + sfdy;
   }
 }
 
@@ -343,32 +283,32 @@ Bicubic::eval(double x, double y, double &f,
   /*
    * get spline coefficients
    */
-  const double *coeffi = get_spline_coefficients(xbox, ybox);
+  const auto coeffi{get_spline_coefficients(xbox, ybox)};
 
   /*
    * compute splines
    */
-  f       = 0.0;
-  dfdx    = 0.0;
-  dfdy    = 0.0;
+  f = 0.0;
+  dfdx = 0.0;
+  dfdy = 0.0;
   d2fdxdx = 0.0;
   d2fdydy = 0.0;
   d2fdxdy = 0.0;
   for (int i = 3; i >= 0; i--) {
-    double sf      = 0.0;
-    double sfdy    = 0.0;
-    double s2fdydy = 0.0;
+    double sf{0.0};
+    double sfdy{0.0};
+    double s2fdydy{0.0};
     for (int j = 3; j >= 0; j--) {
-      double      coefij  = coeffi[_row_major(i, j, 4, 4)];
-                  sf      =   sf   *dy +         coefij;
-      if (j > 0)  sfdy    = sfdy   *dy + j*      coefij;
+      double coefij = coeffi(_row_major(i, j, 4, 4));
+      sf = sf*dy + coefij;
+      if (j > 0)  sfdy = sfdy*dy + j*coefij;
       if (j > 1)  s2fdydy = s2fdydy*dy + j*(j-1)*coefij;
     }
-                  f       = f      *dx +         sf;
-    if (i > 0)    dfdx    = dfdx   *dx + i*      sf;
-    if (i > 1)    d2fdxdx = d2fdxdx*dx + i*(i-1)*sf;
-                  dfdy    = dfdy   *dx +         sfdy;
-    if (i > 0)    d2fdxdy = d2fdxdy*dx + i*      sfdy;
+    f = f*dx + sf;
+    if (i > 0)  dfdx = dfdx*dx + i*sf;
+    if (i > 1)  d2fdxdx = d2fdxdx*dx + i*(i-1)*sf;
+    dfdy = dfdy*dx + sfdy;
+    if (i > 0)  d2fdxdy = d2fdxdy*dx + i*sfdy;
   }
 }
 

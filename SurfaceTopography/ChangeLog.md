@@ -1,10 +1,80 @@
 Change log for SurfaceTopography
-=============================
+================================
 
-v1.1 (not yet released)
------------------------
+v1.3.1 (not yet released)
+-------------------------
 
+- BUG: Increased numerical robustness of scanning probe artifact analysis
+  (#275)
+
+v1.3.0 (29Dec22)
+----------------
+
+- BUILD: Replaced LAPACK with Eigen3, removing external dependency
+- CI: Building and publishing of binary wheels (currently manylinux
+  and Python 3.7, 3.8, 3.9 and 3.10 only)
+
+v1.2.6 (29Dec22)
+----------------
+
+- BUG: SUR reader reported wrong `height_scale_factor` in channel info  
+- BUILD: Yet another fix for version discovery when installing from source 
+  package
+
+- v1.2.5 (05Dec22)
+----------------
+
+- BUILD: Another fix for version discovery when installing from source package
+
+v1.2.4 (04Dec22)
+----------------
+
+- BUILD: Fixed version discovery when installing from source package
+
+v1.2.3 (02Dec22)
+----------------
+
+- BUG: Make sure all readers return the same info dictionary for channels
+  and the final topography
+- MAINT: Automatic version discovery for Meson build
+
+v1.2.2 (28Nov22)
+----------------
+
+- MAINT: Switched build system to Meson
+- BUG: Fixed multiple bugs in handling of `height_scale_factor` by readers
+- BUG: Fixed handling of no scale factor in ASC reader
+- TST: Added test for proper handling of `height_scale_factor` by readers
+
+v1.2.1 (22Nov22)
+----------------
+
+- ENH: Extract X3P metadata
+- MAINT: Converted X3P reader to new style
+- MAINT: Bumped muFFT require to 0.24.0 - this avoids installation problems
+  downstream, but disables automatic MPI detection 
+- BUG: X3P data was read in the wrong storage order
+
+v1.2 (15Nov22)
+--------------
+
+- ENH: Reader for Park Systems TIFF files
+- ENH: Reader for Keyence VK3 and VK6 files
+- ENH: Reader for Alicona Imaging AL3D files
+- ENH: Reader for Digital Surf SUR files
+- MAINT: Removed pandas dependency
+- BUG: Fixed bug in VK4 reader
+
+v1.1 (20Oct22)
+--------------
+
+- API: `scale_dependent_statistical_property` of a `SurfaceContainer` now
+  returns either `np.ndarray` or `np.ma.masked_array`
+- ENH: Reader for the Mitutoyo SurfTest Excel spread sheet format
+- ENH: Reader for Keyence VK4
 - MAINT: Added contact.engineering paper to bibliography
+- BUG: Check for reentrant topographies in slope calculation
+- BUG: Fixed aspect ratio used in convenience plotting function
 
 v1.0 (06May22)
 --------------
@@ -315,6 +385,9 @@ v0.90.0 (17Jun20)
   SurfaceTopography, ContactMechanics and Adhesion
 - muFFT dependency updated to muFFT-0.9.1
 - Moved documentation from README.md to the docs folder 
+
+Change log for PyCo (previous name of the package)
+==================================================
 
 v0.57.0 (15May20)
 -----------------

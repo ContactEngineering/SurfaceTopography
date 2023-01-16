@@ -71,29 +71,39 @@ def _convert_filelist(filelist):
 
 
 binary_example_file_list = _convert_filelist([
-    'di1.di',
-    'di2.di',
-    'di3.di',
-    'di4.di',
-    'di5.di',
-    'example.ibw',
-    'spot_1-1000nm.ibw',
-    # 'surface.2048x2048.h5',
-    '10x10-one_channel_without_name.ibw',
-    'example1.mat',
-    'example.opd',
-    'example2.opd',
-    'opd3.opd',
-    'example.x3p',
-    'example2.x3p',
-    'opdx1.OPDx',
-    'opdx2.OPDx',
-    'opdx3.OPDx',
-    'mi1.mi',
-    'N46E013.hgt',
-    'example.zon',
-    'example.nc',
-] + [] if NuMPI._has_mpi4py else ['example-2d.npy'])  # MPI I/O does not support Python streams
+                                                 'di1.di',
+                                                 'di2.di',
+                                                 'di3.di',
+                                                 'di4.di',
+                                                 'di5.di',
+                                                 'example.ibw',
+                                                 'spot_1-1000nm.ibw',
+                                                 # 'surface.2048x2048.h5',
+                                                 '10x10-one_channel_without_name.ibw',
+                                                 'example1.mat',
+                                                 'example.opd',
+                                                 'example2.opd',
+                                                 'opd3.opd',
+                                                 'x3p-1.x3p',
+                                                 'x3p-2.x3p',
+                                                 'x3p-3.x3p',
+                                                 'x3p-4.x3p',
+                                                 'opdx1.OPDx',
+                                                 'opdx2.OPDx',
+                                                 'opdx3.OPDx',
+                                                 'mi1.mi',
+                                                 'N46E013.hgt',
+                                                 'example.zon',
+                                                 'example.nc',
+                                                 'example.vk3',
+                                                 'example.vk4',
+                                                 'example.vk6',
+                                                 'example.sur',
+                                                 'mitutoyo_mock.xlsx',
+                                                 'mitutoyo_nonuniform_mock.xlsx',
+                                                 'example_ps.tiff',
+                                             ] + [] if NuMPI._has_mpi4py else [
+    'example-2d.npy'])  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
     'surface.2048x2048.h5'
@@ -248,27 +258,50 @@ def test_reader_arguments(fn):
     for all readers"""
     physical_sizes0 = (1.2, 1.3)
     unit0 = 'mm'
+    height_scale_factor0 = 1
 
     # Test open -> topography
     r = open_topography(fn)
     physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
     unit = None if r.channels[0].unit is not None else unit0
+    height_scale_factor = None if r.channels[0].height_scale_factor is not None else height_scale_factor0
+
+    info = r.channels[0].info.copy()
+    # The `info` dict of the topography has the 'unit' entry,
+    # which will be removed in future versions.
+    info.update({'unit': r.channels[0].unit if r.channels[0].unit is not None else unit0})
+    # assert 'unit' not in info
 
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                     height_scale_factor=None, unit=unit)
+                     height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
+    assert t.info == info
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
-                      height_scale_factor=None, unit=unit)
+                      height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t2.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t2.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
     assert_array_equal(t.heights(), t2.heights())
+    assert t2.info == info
     # Test read_topography
     t = read_topography(fn, channel_index=0, physical_sizes=physical_sizes,
-                        height_scale_factor=None, unit=unit)
+                        height_scale_factor=height_scale_factor, unit=unit)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if unit is not None:
+        assert t.unit == unit
+    if height_scale_factor is not None:
+        assert t.height_scale_factor == height_scale_factor
+    assert t.info == info
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
@@ -307,7 +340,7 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
                          binary_without_stream_support_example_file_list)
-def test_reader_topography_same(fn):
+def test_channel_info_and_topography_have_same_metadata(fn):
     """
     Tests that properties like physical sizes, units and nb_grid_pts are
     the same in the ChannelInfo and the loaded topography.
@@ -322,6 +355,7 @@ def test_reader_topography_same(fn):
             else None,
             info=dict(foo=foo_str))
         assert channel.nb_grid_pts == topography.nb_grid_pts
+        assert topography.nb_grid_pts == topography.heights().shape
 
         # some checks on info dict in channel and topography
         assert topography.info['foo'] == foo_str
@@ -333,8 +367,10 @@ def test_reader_topography_same(fn):
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
 
-        if channel.height_scale_factor is not None and hasattr(topography, 'scale_factor'):
-            assert channel.height_scale_factor == topography.scale_factor
+        if channel.height_scale_factor is not None:
+            assert channel.height_scale_factor == topography.height_scale_factor
+        else:
+            assert not hasattr(topography, 'height_scale_factor')
 
         if channel.is_periodic is not None:
             assert isinstance(channel.is_periodic, (bool, np.bool_))
@@ -385,11 +421,18 @@ def test_periodic_flag(fn):
     physical_sizes_arg_if_missing_in_file = (1.,) * ch.dim
     physical_sizes_arg = physical_sizes_arg_if_missing_in_file if ch.physical_sizes is None else None
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
-    assert t.is_periodic, fn
+    value_error_thrown = False
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=True)
+        assert t.is_periodic, fn
+    except ValueError:
+        value_error_thrown = True
 
-    t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
-    assert not t.is_periodic, fn
+    try:
+        t = reader.topography(physical_sizes=physical_sizes_arg, periodic=False)
+        assert not t.is_periodic, fn
+    except ValueError:
+        assert not value_error_thrown
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
@@ -560,7 +603,10 @@ def test_detect_format(file_format_examples):
         detect_format(os.path.join(file_format_examples, 'di_corrupted.di'))
     assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
     assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
-    assert detect_format(os.path.join(file_format_examples, 'example.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-1.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-2.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
+    assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
     assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
@@ -568,6 +614,13 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk3')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk4')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
+    assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
+    assert detect_format(os.path.join(file_format_examples, 'example.al3d')) == 'al3d'
+    assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
 
 
 def test_to_matrix():

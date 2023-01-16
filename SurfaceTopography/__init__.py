@@ -28,6 +28,10 @@
 defines all surface types used in SurfaceTopography
 """
 
+# This needs to be the first import, because __version__ is needed in the
+# packages that are subsequently imported.
+from .DiscoverVersion import __version__  # noqa: F401
+
 from .Container import SurfaceContainer, read_container, read_published_container  # noqa: F401
 from .IO import open_topography, read_topography  # noqa: F401
 from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
@@ -63,12 +67,3 @@ import SurfaceTopography.Support.Bibliography  # noqa: F401
 
 # Add contact.engineering paper to bibliography
 SurfaceTopography.Support.Bibliography._default_dois = set(['10.1088/2051-672X/ac860a'])
-
-try:
-    from importlib.metadata import version
-
-    __version__ = version(__name__)
-except ImportError:
-    from pkg_resources import get_distribution
-
-    __version__ = get_distribution(__name__).version

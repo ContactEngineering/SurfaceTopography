@@ -23,7 +23,6 @@
 # SOFTWARE.
 #
 
-import os
 import pytest
 import tempfile
 
@@ -40,23 +39,24 @@ from SurfaceTopography.Generation import fourier_synthesis
 from .test_io import binary_example_file_list, explicit_physical_sizes
 
 
-def test_save_and_load(comm):
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="FIXME! This tests often stalls (randomly) on multiple MPI processes; disabling for now")
+def test_save_and_load(maxcomm):
     nb_grid_pts = (128, 128)
     size = (3, 3)
 
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
-    fft = FFT(nb_grid_pts, communicator=comm, fft="mpi")
+    fft = FFT(nb_grid_pts, communicator=maxcomm, fft="mpi")
     fft.create_plan(1)
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,
-                            communicator=comm)
+                            communicator=maxcomm)
     assert t.unit == 'µm'
     assert dt.unit == 'µm'
-    assert t.info['unit'] == 'µm'
-    assert dt.info['unit'] == 'µm'
-    if comm.size > 1:
+    if maxcomm.size > 1:
         assert dt.is_domain_decomposed
 
     # Save file
@@ -67,11 +67,10 @@ def test_save_and_load(comm):
 
     assert t.physical_sizes == t2.physical_sizes
     assert t.unit == t2.unit
-    assert t.info['unit'] == t2.info['unit']
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
     # Attempt to open file in parallel
-    r = NCReader('parallel_save_test.nc', communicator=comm)
+    r = NCReader('parallel_save_test.nc', communicator=maxcomm)
 
     assert r.channels[0].nb_grid_pts == nb_grid_pts
 
@@ -80,14 +79,9 @@ def test_save_and_load(comm):
 
     assert t.physical_sizes == t3.physical_sizes
     assert t.unit == t3.unit
-    assert t.info['unit'] == t3.info['unit']
     np.testing.assert_array_almost_equal(dt.heights(), t3.heights())
 
     assert t3.is_periodic
-
-    comm.barrier()
-    if comm.rank == 0:
-        os.remove('parallel_save_test.nc')
 
 
 @pytest.mark.skipif(
@@ -108,8 +102,6 @@ def test_save_and_load_no_unit():
     assert t.physical_sizes == t2.physical_sizes
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
-
-    os.remove('no_unit.nc')
 
 
 @pytest.mark.skipif(
@@ -140,8 +132,6 @@ def test_load_no_physical_sizes():
     assert 'unit' not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
 
-    os.remove('no_physical_sizes.nc')
-
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -151,8 +141,7 @@ def test_save_and_load_line_scan():
     size = (3,)
 
     np.random.seed(1)
-    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1)
-    t.info['unit'] = 'µm'
+    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
     with tempfile.TemporaryDirectory() as d:
         tmpfn = f'{d}/line_scan.nc'

@@ -93,12 +93,15 @@ class OpenFromAny(object):
         # depending from where this function is called, self._fobj might already
         # be a filestream
         self._already_open = False
+        self._prior_position = None
         if not hasattr(self._fobj, 'read'):
             # This is a string
             self._fstream = open(self._fobj, self._mode)
         else:
             # This is a stream that is already open
             self._already_open = True
+            if hasattr(self._fobj, 'tell'):
+                self._prior_position = self._fobj.tell()
             if self._mode == 'rb':
                 # Turn this into a binary stream, if it is a text stream
                 if isinstance(self._fobj, io.TextIOBase):
@@ -119,7 +122,10 @@ class OpenFromAny(object):
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # Close file, unless it was already open when this object was constructed
-        if not self._already_open:
+        if self._already_open:
+            if self._prior_position is not None:
+                self._fobj.seek(self._prior_position)
+        else:
             self._fstream.close()
 
         # Reset internal state

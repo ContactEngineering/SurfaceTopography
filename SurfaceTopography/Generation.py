@@ -263,13 +263,13 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
 
     # Create in-memory or memory-mapped arrays as storage buffers
     if rfn is None:
-        rarr = np.empty(nb_grid_pts, dtype=np.float64)
+        rarr = np.empty(nb_grid_pts, dtype=float)
     else:
-        rarr = np.memmap(rfn, np.float64, 'w+', shape=nb_grid_pts)
+        rarr = np.memmap(rfn, float, 'w+', shape=nb_grid_pts)
     if kfn is None:
-        karr = np.empty(kshape, dtype=np.complex128)
+        karr = np.empty(kshape, dtype=complex)
     else:
-        karr = np.memmap(kfn, np.complex128, 'w+', shape=kshape)
+        karr = np.memmap(kfn, complex, 'w+', shape=kshape)
 
     qy = 2 * np.pi * np.arange(kny) / sy
     for x in range(nx):

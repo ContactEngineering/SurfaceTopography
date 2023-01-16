@@ -103,6 +103,8 @@ This reader open ZON files that are written by some Keyence instruments.
 
         self._channels = []
         with OpenFromAny(self._file_path, 'rb') as f:
+            # ZipFile gracefully skips ZON header information before the
+            # zip actually starts.
             with ZipFile(f, 'r') as z:
                 # Parse unit information
                 root = ElementTree.parse(z.open(UNIT_UUID)).getroot()

@@ -199,11 +199,11 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
             nx, ny = self.parent_topography.nb_grid_pts
             sx, sy = self.parent_topography.physical_sizes
 
-            qx = np.arange(0, nx, dtype=np.float64).reshape(-1, 1)
+            qx = np.arange(0, nx, dtype=float).reshape(-1, 1)
             qx = np.where(qx <= nx // 2, qx / sx,  (qx - nx) / sx)
             qx *= 2 * np.pi
 
-            qy = np.arange(0, ny // 2 + 1, dtype=np.float64).reshape(1, -1)
+            qy = np.arange(0, ny // 2 + 1, dtype=float).reshape(1, -1)
             qy *= 2 * np.pi / sy
 
             if self.is_filter_isotropic:

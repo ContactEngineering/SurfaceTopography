@@ -38,9 +38,10 @@ class ChannelInfo:
     """
 
     def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None,
-                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={}):
+                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={},
+                 tags={}):
         """
-        Initialize the channel. Use as many information from the file as
+        Initialize the channel. Use as much information from the file as
         possible by passing it in the keyword arguments. Keyword arguments
         can be None if the information cannot be determined. (This is the
         default for all keyword arguments.)
@@ -74,6 +75,8 @@ class ChannelInfo:
             Length unit of measurement.
         info : dict, optional
             Meta data found in the file. (Default: {})
+        tags : dict, optional
+            Additional meta data required internally by the reader
         """
         self._reader = reader
         self._index = int(index)
@@ -90,9 +93,13 @@ class ChannelInfo:
         self._undefined_data = undefined_data
         self._unit = unit
         if info is None:
-            self._info = None
+            self._info = {}
         else:
             self._info = info.copy()
+        if tags is None:
+            self._tags = {}
+        else:
+            self._tags = tags.copy()
 
     def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -280,9 +287,6 @@ class ChannelInfo:
         SurfaceTopography itself, but required by third-party application.
 
         Presently, the following entries have been standardized:
-        'unit':
-            This is the unit of the physical size (if given in the file) and
-            the units of the heights.
         'height_scale_factor':
             Factor which was used to scale the raw numbers from file (which
             can be voltages or some other quantity actually acquired in the
@@ -292,6 +296,14 @@ class ChannelInfo:
         if self.unit is not None:
             info.update(dict(unit=self.unit))
         return info
+
+    @property
+    def tags(self):
+        """
+        A dictionary containing additional information (metadata) used
+        internally by the reader.
+        """
+        return self._tags
 
 
 class ReaderBase(metaclass=abc.ABCMeta):
@@ -398,12 +410,17 @@ class ReaderBase(metaclass=abc.ABCMeta):
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
-        contains the topography data. The method allows to override data
-        found in the data file by giving appropriate arguments.
+        contains the topography data. Which specific type of height container
+        (1D, 2D, uniform, nonuniform) is returned may depend on the file
+        content and is determined dynamically.
 
-        For some of the given arguments it is checked whether they
-        have already been defined in the file, e.g. the height
-        scale factor, and if yes, an exception is raised (see below).
+        The returned object needs to have `physical_sizes` and periodicity
+        information. If this information is not provided by the data file,
+        then the user must specify it when calling this method. Conversely,
+        metadata that is present in the file cannot be overridden but needs to
+        lead to a `MetadataAlreadyFixedByFile` exception. The user can check
+        if the metadata is present by inspecting the `ChannelInfo` of the
+        respective data channel.
 
         Arguments
         ---------
@@ -440,8 +457,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
         Raises
         ------
-        MetadataAlreadyDefined
-            Raised if `physical_sizes` or `height_scale_factor` have already
-            been defined in the file, because they should not be overridden.
+        MetadataAlreadyFixedByFile
+            Raised if `physical_sizes`, `unit or `height_scale_factor` have
+            already been defined in the file, because they should not be
+            overridden by the user.
         """
         raise NotImplementedError

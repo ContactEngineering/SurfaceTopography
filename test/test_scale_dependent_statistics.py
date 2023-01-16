@@ -147,8 +147,8 @@ def test_container_uniform(file_format_examples, plot=False):
     iterations = []
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.00001, 1.0, 10000],
                                                   unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
-    assert s[0] is None
-    assert s[2] is None
+    assert np.ma.getmask(s)[0]
+    assert np.ma.getmask(s)[2]
     np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
 
     # Test without specifying explicit distances

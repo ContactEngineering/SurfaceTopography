@@ -240,10 +240,10 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
             ysiz *= length_units[yunit] / length_units[unit]
         if zunit is not None:
             if zfac is None:
-                zfac = length_units[zunit] / length_units[unit]
+                if length_units[zunit] != length_units[unit]:
+                    zfac = length_units[zunit] / length_units[unit]
             else:
                 zfac *= length_units[zunit] / length_units[unit]
-        info['unit'] = unit
 
     # handle channel name
     # we use the info dict here to transfer the channel name
@@ -263,7 +263,7 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
         surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:
         zfac = height_scale_factor
-    if zfac is not None and zfac != 1:
+    if zfac is not None:
         surface = surface.scale(zfac)
     return surface
 
@@ -298,7 +298,7 @@ When writing your own ASCII files, we recommend to prepent the header with a
 
 
 @text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of
     (x,y)-positions.
@@ -329,9 +329,12 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
                 physical_sizes = d_uniform * len(x)
             else:
                 raise MetadataAlreadyFixedByFile('physical_sizes')
-            t = UniformLineScan(z, physical_sizes, unit=unit, info=info, periodic=periodic)
+            t = UniformLineScan(z, physical_sizes,
+                                periodic=False if periodic is None else periodic,
+                                unit=unit,
+                                info=info)
         else:
-            if periodic:
+            if periodic is not None and periodic:
                 raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
                                  'Nonuniform line scans cannot be periodic.')
             t = NonuniformLineScan(x, z, unit=unit, info=info)

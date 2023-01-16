@@ -94,7 +94,6 @@ These need to be manually provided by the user.
         name = self.channels[channel_index].name
 
         info = info.copy()
-        info['data_source'] = name
 
         with OpenFromAny(self._fobj, 'rb') as f:
             height_data = loadmat(f, variable_names=[name])

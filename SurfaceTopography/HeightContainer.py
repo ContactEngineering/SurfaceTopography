@@ -148,6 +148,9 @@ class AbstractTopography(object):
                     - 'tip_radius' : dict - Tip radius for tip based techniques
                         - 'value' : float - Value of tip radius
                         - 'unit' : str - Unit of tip radius
+        'raw_metadata' : dict
+            Dictionary containing the raw (non-standardized) metadata as
+            extracted during reading of the topography.
         """
         info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
         if self.unit is not None:
