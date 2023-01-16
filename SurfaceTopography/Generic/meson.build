@@ -7,7 +7,8 @@ python_sources = [
     'ReliabilityCutoff.py',
     'ScaleDependentStatistics.py',
     'ScanningProbe.py',
-    'Slope.py'
+    'Slope.py',
+    'Fractional.py'
 ]
 
 # Install pure Python

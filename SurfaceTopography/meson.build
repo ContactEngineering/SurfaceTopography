@@ -24,6 +24,7 @@ install_data(
     'ChangeLog.md'
 )
 
+subdir('Models')
 subdir('Container')
 subdir('Generic')
 subdir('IO')
