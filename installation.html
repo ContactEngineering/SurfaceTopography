@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.3.1 documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.3.1.dev2+g335dfd02 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="index.html" class="icon icon-home"> SurfaceTopography
           </a>
               <div class="version">
-                1.3.1
+                1.3.1.dev2+g335dfd02
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -42,11 +42,14 @@
               <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#optional-dependencies">Optional dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#direct-installation-with-pip">Direct installation with pip</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-common-problems">Installation: Common problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reporting-installation-problems">Reporting installation problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#updating-surfacetopography">Updating SurfaceTopography</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-from-source-directory">Installation from source directory</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alternative-build-and-installation-options">Alternative build and installation options</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#id1">Singularity container</a></li>
 </ul>
 </li>
@@ -92,10 +95,14 @@
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <p>We only support installation on recent mac and linux systems, not on windows.</p>
-<p>You need Python 3,  <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a> in order to install SurfaceTopography.</p>
-<p>In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
+<p>You need Python 3 in order to install SurfaceTopography.</p>
+<p>In complement to the instructions below, you will find examples of system setups and intallation workflows in our singularity containers
 <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity containers</a>
 and our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml">testing workflows</a></p>
+<section id="optional-dependencies">
+<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a></p>
+</section>
 <section id="direct-installation-with-pip">
 <h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Permalink to this heading"></a></h2>
 <p>SurfaceTopography can be installed by invoking</p>
@@ -106,7 +113,7 @@ and our <a class="reference external" href="https://github.com/ContactEngineerin
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w">  </span>install<span class="w"> </span><span class="o">[</span>--user<span class="o">]</span><span class="w"> </span>git+https://github.com/ContactEngineering/SurfaceTopography.git
 </pre></div>
 </div>
-<p>The command will install other dependencies including <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a>, <a class="reference external" href="https://github.com/IMTEK-Simulation/NuMPI.git">NuMPI</a> and
+<p>The command will install other dependencies including <a href="#id2"><span class="problematic" id="id3">muSpectre_</span></a>, <a class="reference external" href="https://github.com/IMTEK-Simulation/NuMPI.git">NuMPI</a> and
 <a class="reference external" href="https://github.com/bccp/runtests">runtests</a>.</p>
 <p>If you want to install all optional dependencies for full functionality:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://raw.githubusercontent.com/ContactEngineering/SurfaceTopography/master/requirements.txt
@@ -161,24 +168,55 @@ directory using `Meson</cite>.</p></li>
 </section>
 <section id="installation-from-source-directory">
 <h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Permalink to this heading"></a></h2>
-<p>SurfaceTopography can be installed by invoking</p>
+<p>First you need to run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+</pre></div>
+</div>
+<p>in the source directory.</p>
+<p>SurfaceTopography can be installed from source by invoking</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>--user<span class="o">]</span><span class="w"> </span>.
 </pre></div>
 </div>
-<p>or</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>meson<span class="w"> </span>setup<span class="w"> </span>build
+<p>in the source directoy. The command line parameter <cite>–user</cite> is optional and
+leads to a local installation in the current user’s <cite>$HOME/.local</cite> directory.</p>
+<section id="alternative-build-and-installation-options">
+<h3>Alternative build and installation options<a class="headerlink" href="#alternative-build-and-installation-options" title="Permalink to this heading"></a></h3>
+<ul>
+<li><dl>
+<dt>meson build</dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>meson<span class="w"> </span>setup<span class="w"> </span>build
 <span class="nb">cd</span><span class="w"> </span>build
 meson<span class="w"> </span>compile
 meson<span class="w"> </span>install
 </pre></div>
 </div>
-<p>in the source directoy. The command line parameter <cite>–user</cite> is optional and
-leads to a local installation in the current user’s <cite>$HOME/.local</cite> directory.</p>
+</dd>
+</dl>
+<p>on mac meson install has issues with finding the correct installation directories. You have to specify them manually:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">SITEPACK</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-m<span class="w"> </span>site<span class="w"> </span>--user-site<span class="k">)</span>
+
+<span class="w">    </span>meson<span class="w"> </span>setup<span class="w">  </span>--prefix<span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-m<span class="w"> </span>site<span class="w"> </span>--user-base<span class="k">)</span><span class="w"> </span>.<span class="w">  </span>builiddir<span class="w"> </span>--python.purelibdir<span class="w"> </span><span class="nv">$SITEPACK</span><span class="w"> </span>--python.platlibdir<span class="w"> </span><span class="nv">$SITEPACK</span>
+</pre></div>
+</div>
+</li>
+<li><p>Editable mode installations are supported by new versions of meson. However there are bugs on mac still.</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p>Building and installing a wheel:</p>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>-rf<span class="w"> </span>dist
+python3<span class="w"> </span>-m<span class="w"> </span>build<span class="w"> </span>-w<span class="w"> </span>-n<span class="w"> </span>.
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>uninstall<span class="w"> </span>-y<span class="w"> </span>SurfaceTopography
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>dist/*.whl
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
 </section>
-<section id="updating-surfacetopography">
-<h2>Updating SurfaceTopography<a class="headerlink" href="#updating-surfacetopography" title="Permalink to this heading"></a></h2>
-<p>If you update SurfaceTopography (whether with pip or <cite>git pull</cite> if you cloned the repository),  you may need to
-uninstall <cite>NuMPI</cite>, <cite>muFFT</cite> and or <cite>runtests</cite>, so that the newest version of them will be installed.</p>
 </section>
 <section id="id1">
 <h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
