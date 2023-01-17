@@ -4,6 +4,8 @@ Change log for SurfaceTopography
 v1.3.1 (not yet released)
 -------------------------
 
+- ENH: pipeline function superpose
+- BUG: repair CompoundTopography and TranslatedTopography
 - BUG: Increased numerical robustness of scanning probe artifact analysis
   (#275)
 
