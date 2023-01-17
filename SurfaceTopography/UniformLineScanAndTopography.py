@@ -855,9 +855,9 @@ class TranslatedTopography(DecoratedUniformTopography):
     @offset.setter
     def offset(self, offset, offsety=None):
         if offsety is None:
-            self.offset = offset
+            self._offset = offset
         else:
-            self.offset = (offset, offsety)
+            self._offset = (offset, offsety)
 
     def heights(self):
         """ Computes the translated profile.

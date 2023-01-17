@@ -63,6 +63,18 @@ def test_translate():
             np.array([[1, 0, 0],
                       [0, 0, 0]])).all()
 
+def test_translate_setter():
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.))
+
+    translated_t = topography.translate()
+
+    translated_t.offset=(1, 0)
+    assert (translated_t.heights()
+            ==
+            np.array([[0, 0, 0],
+                      [0, 1, 0]])).all()
+
 def test_superpose():
     topography_a = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
                             physical_sizes=(4., 3.))
