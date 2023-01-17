@@ -873,13 +873,14 @@ class CompoundTopography(DecoratedUniformTopography):
     """
     name = 'compound_topography'
 
-    def __init__(self, topography_a, topography_b):
+    def __init__(self, topography_a, topography_b, info={}):
         """ Behaves like a topography that is a sum of two Topographies
         Keyword Arguments:
         topography_a   -- first topography of the compound
         topography_b   -- second topography of the compound
         """
-        super().__init__()
+
+        super().__init__(topography_a, info=info)
 
         def combined_val(prop_a, prop_b, propname):
             """
@@ -929,3 +930,5 @@ UniformTopographyInterface.register_function('scale', StaticallyScaledUniformTop
 UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
 UniformTopographyInterface.register_function('transpose', TransposedUniformTopography)
 UniformTopographyInterface.register_function('translate', TranslatedTopography)
+
+UniformTopographyInterface.register_function('superpose', CompoundTopography)
