@@ -1,6 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+
+
+v1.3.2 (18Jan22)
+----------------
+- ENH: pipeline function superpose
+- BUG: repair CompoundTopography and TranslatedTopography
+
 v1.3.1 (14Jan22)
 ----------------
 
