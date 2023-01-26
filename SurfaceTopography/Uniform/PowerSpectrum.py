@@ -249,19 +249,7 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True,):
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
 
-    try:
-        nx, ny = self.nb_grid_pts
-        sx, sy = self.physical_sizes
-    except ValueError:
-        nx, = self.nb_grid_pts
-        sx, = self.physical_sizes
-
     h = self.window(window).heights()
-
-    # Compute FFT and normalize following the conventions in jacobs_quantitative_2017
-    # if self.dim ==
-    # qx, qy = self.fftfreq()
-
 
     fourier_topography = np.prod(self.physical_sizes) / np.prod(self.nb_grid_pts) * np.fft.fftn(h)
 
