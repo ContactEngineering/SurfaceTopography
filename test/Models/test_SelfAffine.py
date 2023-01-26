@@ -8,7 +8,7 @@ import pytest
 
 def test_shortcut_derivative():
     rolloff_wavelength, shortcut_wavelength, hurst_exponent = (1e-4, 2e-6, 0.8)
-    derivative_order = 1
+    # derivative_order = 1
     n_pixels = 1024
     physical_size = .5e-4
     pixel_size = physical_size / n_pixels

@@ -1,6 +1,7 @@
 import numpy as np
 from SurfaceTopography.Generation import fourier_synthesis
 
+
 # TODO abstract class for discrete and model PSDs
 # TODO all wavelengths and prefactors as properties
 #
@@ -10,14 +11,15 @@ class AbstractStatisticalRoughness(object):
     def power_spectrum():
         raise NotImplementedError
 
-    
+
 class AbstractIsotropicRoughness(AbstractStatisticalRoughness):
     def power_spectrum_isotropic():
         raise NotImplementedError
 
     def power_spectrum_profile():
         raise NotImplementedError
-    #def rms_height():
+
+    # def rms_height():
     #    raise NotImplementedError
 
     def rms_fractional_derivative():
@@ -31,7 +33,7 @@ class SelfAffine():
                  hurst_exponent,
                  longcut_wavelength=np.infty,
                  shortcut_wavelength=0, ):
-        self.cr = cr # Ampliture of the PSD at and below the rolloff wavevector
+        self.cr = cr  # Ampliture of the PSD at and below the rolloff wavevector
         self.rolloff_wavelength = rolloff_wavelength
         self.longcut_wavelength = longcut_wavelength
         self.shortcut_wavelength = shortcut_wavelength
@@ -104,23 +106,24 @@ class SelfAffine():
         if longcut_wavelength is None:
             longcut_wavelength = self.longcut_wavelength
 
-        shortcut_wavevector = (2*np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
-        longcut_wavevector = (2*np.pi) / longcut_wavelength
+        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
+        longcut_wavevector = (2 * np.pi) / longcut_wavelength
 
         # see labbook of 220304
         return np.sqrt(
-                self.cr * self.rolloff_wavevector ** 2 / (4 * np.pi)
-                * (1 + 1 / self.hurst_exponent
-                   - (longcut_wavevector / self.rolloff_wavevector) ** 2
-                   - (shortcut_wavevector / self.rolloff_wavevector) ** (- 2 * self.hurst_exponent)
-                   )
+            self.cr * self.rolloff_wavevector ** 2 / (4 * np.pi)
+            * (1 + 1 / self.hurst_exponent
+               - (longcut_wavevector / self.rolloff_wavevector) ** 2
+               - (shortcut_wavevector / self.rolloff_wavevector) ** (- 2 * self.hurst_exponent)
+               )
         )
 
-    def variance_derivative(self, order, shortcut_wavelength=None, longcut_wavelength=None,):
+    def variance_derivative(self, order, shortcut_wavelength=None, longcut_wavelength=None, ):
         r"""
          Variance of a derivative of arbitrary (fractional) order
 
-        The contribution for an isotropic flat PSD with amplite :math:`C_r` between the wavevectors :math:`[q_L, q_s]` is
+        The contribution for an isotropic flat PSD with
+        amplite :math:`C_r` between the wavevectors :math:`[q_L, q_s]` is
 
         .. math ::
 
@@ -170,9 +173,9 @@ class SelfAffine():
         else:
             longcut_wavelength = min(longcut_wavelength, self.longcut_wavelength)
 
-        shortcut_wavevector = (2*np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
-        longcut_wavevector = (2*np.pi) / longcut_wavelength
-        rolloff_wavevector =  self.rolloff_wavevector
+        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
+        longcut_wavevector = (2 * np.pi) / longcut_wavelength
+        rolloff_wavevector = self.rolloff_wavevector
         # prefactor of the self-afine region:
         c0 = self.cr * self.rolloff_wavevector ** (2 + 2 * self.hurst_exponent)
 
@@ -180,8 +183,8 @@ class SelfAffine():
             # We split the contributions to the integral between the rolloff and the self-affine region.
             # rolloff region
             rolloff = self.cr / (2 * np.pi) * (
-                min(rolloff_wavevector, shortcut_wavevector) ** (2 + 2 * order)
-                - longcut_wavevector ** (2 + 2 * order)
+                    min(rolloff_wavevector, shortcut_wavevector) ** (2 + 2 * order)
+                    - longcut_wavevector ** (2 + 2 * order)
             ) / (2 + 2 * order)
         else:
             rolloff = 0
@@ -191,32 +194,30 @@ class SelfAffine():
                 self_affine = c0 / (2 * np.pi) * np.log(shortcut_wavevector / rolloff_wavevector)
             else:
                 self_affine = (c0 / (2 * np.pi)
-                            * ( shortcut_wavevector ** ( 2 * (order - self.hurst_exponent) )
-                                - max(rolloff_wavevector, longcut_wavevector) ** ( 2 * (order - self.hurst_exponent) )
-                                ) /
-                            (2 * (order - self.hurst_exponent))
-                            )
+                               * (shortcut_wavevector ** (2 * (order - self.hurst_exponent))
+                                  - max(rolloff_wavevector, longcut_wavevector) ** (2 * (order - self.hurst_exponent))
+                                  ) /
+                               (2 * (order - self.hurst_exponent))
+                               )
         else:
             self_affine = 0
         return self_affine + rolloff
 
-
-
-    #def rms_slope(self):
-        # See 39fa2d84-e57d-4fc2-a0f1-31bba9233c46/Scale_dependent_slope/__init__.py
-        #
-        # def self_affine_scale_dependent_rms_slope(q_max, hurst=0.6,c0=1., q_rolloff = 1e-10):
-        #
-        #     return np.sqrt(np.where(
-        #     q_max < q_rolloff,
-        #     1 / (3 * np.pi) * c0 * q_rolloff ** (-1 - 2*hurst) * q_max **3,
-        #     1 / (3 * np.pi) * c0 * q_rolloff ** (2 - 2*hurst)
-        #     + (c0 / (2-2 * hurst) / np.pi) * (q_max**(2-2*hurst) - q_rolloff**(2-2*hurst))
-        #     ))
-        #
+    # def rms_slope(self):
+    # See 39fa2d84-e57d-4fc2-a0f1-31bba9233c46/Scale_dependent_slope/__init__.py
+    #
+    # def self_affine_scale_dependent_rms_slope(q_max, hurst=0.6,c0=1., q_rolloff = 1e-10):
+    #
+    #     return np.sqrt(np.where(xa
+    #     q_max < q_rolloff,
+    #     1 / (3 * np.pi) * c0 * q_rolloff ** (-1 - 2*hurst) * q_max **3,
+    #     1 / (3 * np.pi) * c0 * q_rolloff ** (2 - 2*hurst)
+    #     + (c0 / (2-2 * hurst) / np.pi) * (q_max**(2-2*hurst) - q_rolloff**(2-2*hurst))
+    #     ))
+    #
 
     def variance_half_derivative(self, shortcut_wavelength=None,
-                                longcut_wavelength=None):
+                                 longcut_wavelength=None):
         if shortcut_wavelength is None:
             shortcut_wavelength = self.shortcut_wavelength
 
@@ -229,7 +230,7 @@ class SelfAffine():
             self.hurst_exponent,
             longcut_wavelength=longcut_wavelength,
             shortcut_wavelength=shortcut_wavelength,
-            )
+        )
 
     def generate_roughness(self,
                            pixel_size,
@@ -250,10 +251,9 @@ class SelfAffine():
         if longcut_wavelength is None:
             longcut_wavelength = self.longcut_wavelength
 
-
         nx = n_pixels
         dx = pixel_size
-        sx = sy = nx * dx
+        sx = nx * dx
 
         c0 = self.cr * (2 * np.pi / self.rolloff_wavelength) ** (2 + 2 * self.hurst_exponent)
 
@@ -265,7 +265,6 @@ class SelfAffine():
                                       long_cutoff=self.rolloff_wavelength,
                                       )
         return roughness
-
 
 
 def _variance_half_derivative(
@@ -280,7 +279,8 @@ def _variance_half_derivative(
 
     :: math ..
 
-        \left(h_\mathrm{rms}^{(1/2)}\right)^{2}&= \frac{1}{4\pi^{2}}\iint \dif q_{x}\dif q_{y} C^{\mathrm{2D}}(q_{x}, q_{y}) |q|
+        \left(h_\mathrm{rms}^{(1/2)}\right)^{2}
+        &= \frac{1}{4\pi^{2}}\iint \dif q_{x}\dif q_{y} C^{\mathrm{2D}}(q_{x}, q_{y}) |q|
 
 
     Parameters:
