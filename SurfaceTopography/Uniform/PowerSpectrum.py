@@ -215,15 +215,14 @@ def fftfreq(t, meshgrid=True):
 
     """
 
-
     # if t.dim == 1:
     #     nb_grid_pts = [t.nb_grid_pts]
     #     physical_sizes = [t.physical_sizes]
 
     qx = 2 * np.pi * np.fft.fftfreq(
-            t.nb_grid_pts[0],
-            t.physical_sizes[0] / t.nb_grid_pts[0])
-    if t.dim ==1:
+        t.nb_grid_pts[0],
+        t.physical_sizes[0] / t.nb_grid_pts[0])
+    if t.dim == 1:
         return qx
     elif t.dim == 2:
         qy = 2 * np.pi * np.fft.fftfreq(
@@ -234,17 +233,20 @@ def fftfreq(t, meshgrid=True):
             qx, qy = np.meshgrid(qx, qy, indexing='ij')
         return qx, qy
 
+
 def wavevectors_norm2(t, meshgrid=True):
     if t.dim == 1:
         return np.abs(t.fftfreq(meshgrid=meshgrid))
     else:
         qx, qy = t.fftfreq(meshgrid=meshgrid)
-        return np.sqrt(qx**2 + qy**2)
+        return np.sqrt(qx ** 2 + qy ** 2)
+
 
 UniformTopographyInterface.register_function("fftfreq", fftfreq)
 UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_norm2)
 
-def moment_power_spectrum(self, order=0, window=None, reliable=True,):
+
+def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
@@ -265,12 +267,11 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True,):
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw[mask]
 
-    return np.sum(C_raw * q**order) / np.prod(self.physical_sizes)
+    return np.sum(C_raw * q ** order) / np.prod(self.physical_sizes)
 
 
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
 UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)
-
 
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)

@@ -39,6 +39,7 @@ def test_shortcut_derivative():
     fig.savefig("test_der.png")
     # TODO: make a quantitative assertion ?
 
+
 @pytest.mark.parametrize(
     "shortcut_wavelength, hurst_exponent",
     [
