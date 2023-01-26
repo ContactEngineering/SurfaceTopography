@@ -1,6 +1,6 @@
 
 import numpy as np
-from ContactMechanics import PeriodicFFTElasticHalfSpace
+
 
 from SurfaceTopography import read_container, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
@@ -29,6 +29,7 @@ pytestmark = pytest.mark.skipif(
 ]
 )
 def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
+    from ContactMechanics import PeriodicFFTElasticHalfSpace
 
     n_pixels = 2048 # We need a good discretisation
     physical_size = .5e-4
