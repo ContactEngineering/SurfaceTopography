@@ -11,18 +11,24 @@ To compute the moments of the power_spectrum
 import numpy as np
 import scipy.integrate
 
+
 def compute_1d_moment(q, C1d, order=1):
     power = order
     variance = np.trapz(C1d * q ** power, q) / np.pi
     return variance
 
+
 def compute_1d_moment_cumulative(q, C1d, order=1):
     power = order
     return scipy.integrate.cumtrapz(C1d * q ** power, q) / np.pi
+
+
 def compute_iso_moment(q, Ciso, order=1):
     power = order + 1
     variance = np.trapz(Ciso * q ** power / (2 * np.pi), q)
     return variance
+
+
 def compute_iso_moment_cumulative(q, Ciso, order=1):
     power = order + 1
     return scipy.integrate.cumtrapz(Ciso * q ** power / (2 * np.pi), q)
