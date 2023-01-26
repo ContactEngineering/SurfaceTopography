@@ -240,10 +240,9 @@ def test_rms_height_with_undefined_data(file_format_examples):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-@pytest.mark.parametrize("nx", (255, 256))
+@pytest.mark.parametrize("nx", (255, 256),)
 def test_moment_0_1d(nx, ):
     sx = 1
-    nx = 256
     t = fourier_synthesis((nx,), (sx,), hurst=0.8, rms_height=1, short_cutoff=4 * (sx / nx),
                           long_cutoff=sx / 4).detrend(detrend_mode="center")
     hrms_r = t.rms_height_from_profile()
@@ -251,6 +250,35 @@ def test_moment_0_1d(nx, ):
 
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("nx", (255, 256),)
+def test_moment_1_2d(nx,):
+    sx = 1
+    t = fourier_synthesis((nx,), (sx,), hurst=0.8, rms_height=1, short_cutoff=16 * (sx / nx),
+                          long_cutoff=sx / 4).detrend(detrend_mode="center")
+    hrms_r = t.rms_slope_from_profile()
+    hrms_f = np.sqrt(t.moment_power_spectrum(order=2))
+
+    assert abs(1 - hrms_r / hrms_f) < 0.01
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255)))
+@pytest.mark.parametrize("physical_sizes", ((1, 1), (1, 2)))
+def test_moment_2_2d(nb_grid_pts, physical_sizes):
+    sx, sy = physical_sizes
+    nx, ny = nb_grid_pts
+    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.8, rms_height=1,
+                          short_cutoff=16 * (sx / nx),
+                          long_cutoff=sx / 4).detrend(detrend_mode="center")
+    hrms_r = t.rms_gradient()
+    hrms_f = np.sqrt(t.moment_power_spectrum(order=2))
+
+    assert abs(1 - hrms_r / hrms_f) < 0.01
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
