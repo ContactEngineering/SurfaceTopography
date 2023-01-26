@@ -209,6 +209,80 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         return q_val, C_val
 
 
+def fftfreq(t, meshgrid=True):
+    """
+    computes and returns the grid of wavevectors corresponding to np.fft.fft
+
+    """
+
+
+    # if t.dim == 1:
+    #     nb_grid_pts = [t.nb_grid_pts]
+    #     physical_sizes = [t.physical_sizes]
+
+    qx = 2 * np.pi * np.fft.fftfreq(
+            t.nb_grid_pts[0],
+            t.physical_sizes[0] / t.nb_grid_pts[0])
+    if t.dim ==1:
+        return qx
+    elif t.dim == 2:
+        qy = 2 * np.pi * np.fft.fftfreq(
+            t.nb_grid_pts[1],
+            t.physical_sizes[1] / t.nb_grid_pts[1])
+
+        if meshgrid:
+            qx, qy = np.meshgrid(qx, qy, indexing='ij')
+        return qx, qy
+
+def wavevectors_norm2(t, meshgrid=True):
+    if t.dim == 1:
+        return np.abs(t.fftfreq(meshgrid=meshgrid))
+    else:
+        qx, qy = t.fftfreq(meshgrid=meshgrid)
+        return np.sqrt(qx**2 + qy**2)
+
+UniformTopographyInterface.register_function("fftfreq", fftfreq)
+UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_norm2)
+
+def moment_power_spectrum(self, order=0, window=None, reliable=True,):
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
+                                 'computed for topographies with missing data points.')
+
+    try:
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
+    except ValueError:
+        nx, = self.nb_grid_pts
+        sx, = self.physical_sizes
+
+    h = self.window(window).heights()
+
+    # Compute FFT and normalize following the conventions in jacobs_quantitative_2017
+    # if self.dim ==
+    # qx, qy = self.fftfreq()
+
+
+    fourier_topography = np.prod(self.physical_sizes) / np.prod(self.nb_grid_pts) * np.fft.fftn(h)
+
+    # This is the raw power spectral density
+    C_raw = (np.abs(fourier_topography) ** 2) / np.prod(self.physical_sizes)
+    q = self.wavevectors_norm2()
+
+    # Only keep reliable data
+    short_cutoff = self.short_reliability_cutoff() if reliable else None
+    if short_cutoff is not None:
+        mask = q < 2 * np.pi / short_cutoff
+        if mask.sum() <= 1:  # There is always q=0 in there
+            raise NoReliableDataError('Dataset contains no reliable data.')
+        C_raw = C_raw[mask]
+
+    return np.sum(C_raw * q**order) / np.prod(self.physical_sizes)
+
+
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
 UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)
+
+
+UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
