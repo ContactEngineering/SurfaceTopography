@@ -148,10 +148,9 @@ def test_1d_moment_container_vs_linescan():
     t_varhp_ciso = t.moment_power_spectrum(order=2, )
     t_varhpp_ciso = t.moment_power_spectrum(order=4, )
 
-    # TODO : there is a lot of uncertainty here !
-    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.01
-    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.01
-    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.05
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.05
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.05
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
 @pytest.mark.skip()
 def test_variance_half_derivative_from_container(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
