@@ -7,6 +7,8 @@ from SurfaceTopography.Models.SelfAffine import (
     SelfAffine,
     )
 import pytest
+from NuMPI import MPI
+
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -25,7 +27,7 @@ pytestmark = pytest.mark.skipif(
     (1e-7, 1.),
 ]
 )
-def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
+def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
 
     n_pixels = 2048 # We need a good discretisation
     physical_size = .5e-4
@@ -70,6 +72,32 @@ def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
 
     np.testing.assert_allclose(Eel_from_acf_profile, Eel_brute_force, rtol=1e-1)
     np.testing.assert_allclose(Eel_from_acf_area, Eel_brute_force, rtol=1e-1)
+
+
+def test_ciso_moment_from_container(file_format_examples):
+    c, = read_container(f'{file_format_examples}/container1.zip')
+
+    unit="m"
+    varh_ciso = c.ciso_moment(order=0, unit=unit)
+    varhp_ciso = c.ciso_moment(order=2, unit=unit)
+    varhpp_ciso = c.ciso_moment(order=4, unit=unit)
+    l, vbm = c.variable_bandwidth(unit=unit)
+
+    error_hrms = (abs(vbm[-1] - np.sqrt(varh_ciso)) / vbm[-1]  )
+    assert error_hrms < 0.1
+
+    # topography with the smallest pixel size
+    pixel_sizes = [min(t.pixel_size) for t in c._topographies]
+    small_scale_topo = c._topographies[np.argmin(pixel_sizes)]
+
+    hprms = small_scale_topo.to_unit(unit).rms_gradient()
+    hpprms = small_scale_topo.to_unit(unit).rms_curvature_from_area()
+
+    error_hprms = (abs(hprms - np.sqrt(varhp_ciso)) / hprms)
+    assert error_hprms < 0.1
+
+    error_hpprms = (abs(hpprms - np.sqrt(varhpp_ciso)) / hpprms)
+    assert error_hpprms < 0.1
 
 @pytest.mark.skip()
 def test_variance_half_derivative_from_container(file_format_examples):
