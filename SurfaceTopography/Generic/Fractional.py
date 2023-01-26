@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy.integrate
 from ..Support import doi
@@ -6,6 +5,8 @@ from ..Support import doi
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 from ..Container import SurfaceContainer
 
+
+@doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs):
     r"""
 
@@ -20,6 +21,7 @@ def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs)
     r, s = topography.scale_dependent_slope_from_area(**kwargs)
     return variance_half_derivative_via_scale_dependent_slope(r, s)
 
+@doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwargs):
     r"""
 
