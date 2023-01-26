@@ -1,15 +1,12 @@
-
 import numpy as np
-
 
 from SurfaceTopography import read_container, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Models.SelfAffine import (
     SelfAffine,
-    )
+)
 import pytest
 from NuMPI import MPI
-
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -17,36 +14,36 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.mark.parametrize(
-"shortcut_wavelength, hurst_exponent",
-[
-    (2e-6, 0.8),
-    (2e-6, 0.5),
-    (2e-6, 0.3),
-    (1e-7, 0.1),
-    (1e-7, 0.5),
-    (1e-7, 0.9),
-    (1e-7, 1.),
-]
+    "shortcut_wavelength, hurst_exponent",
+    [
+        (2e-6, 0.8),
+        (2e-6, 0.5),
+        (2e-6, 0.3),
+        (1e-7, 0.1),
+        (1e-7, 0.5),
+        (1e-7, 0.9),
+        (1e-7, 1.),
+    ]
 )
 def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
     from ContactMechanics import PeriodicFFTElasticHalfSpace
 
-    n_pixels = 2048 # We need a good discretisation
+    n_pixels = 2048  # We need a good discretisation
     physical_size = .5e-4
     pixel_size = physical_size / n_pixels
 
     # test rolloff
     model_psd = SelfAffine(**{
-             'cr':5e-27,
-             'shortcut_wavelength': shortcut_wavelength,
-             'rolloff_wavelength': 2e-6,
-             'hurst_exponent': hurst_exponent})
+        'cr': 5e-27,
+        'shortcut_wavelength': shortcut_wavelength,
+        'rolloff_wavelength': 2e-6,
+        'hurst_exponent': hurst_exponent})
 
-    Es = 1e6 / (1-0.5**2)
+    Es = 1e6 / (1 - 0.5 ** 2)
     roughness = model_psd.generate_roughness(**{
-            'seed': 1,
-            'n_pixels': n_pixels,
-            'pixel_size': pixel_size,
+        'seed': 1,
+        'n_pixels': n_pixels,
+        'pixel_size': pixel_size,
     })
 
     # deterministic, brute force computation of the elastic energy
@@ -79,13 +76,13 @@ def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
 def test_ciso_moment_from_container(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
 
-    unit="m"
+    unit = "m"
     varh_ciso = c.ciso_moment(order=0, unit=unit)
     varhp_ciso = c.ciso_moment(order=2, unit=unit)
     varhpp_ciso = c.ciso_moment(order=4, unit=unit)
     l, vbm = c.variable_bandwidth(unit=unit)
 
-    error_hrms = (abs(vbm[-1] - np.sqrt(varh_ciso)) / vbm[-1]  )
+    error_hrms = (abs(vbm[-1] - np.sqrt(varh_ciso)) / vbm[-1])
     assert error_hrms < 0.1
 
     # topography with the smallest pixel size
@@ -107,13 +104,13 @@ def test_ciso_moment_container_vs_topography():
     sx, sy = physical_sizes = 2, 3
     nx, ny = nb_grid_pts = 1024, 1023
 
-    unit="m"
+    unit = "m"
     t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.8, rms_height=1,
                           short_cutoff=4 * (sx / nx),
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t,])
+    c = SurfaceContainer([t, ])
     c_varh_ciso = c.ciso_moment(order=0, unit=unit, nb_points_per_decade=20)
     c_varhp_ciso = c.ciso_moment(order=2, unit=unit, nb_points_per_decade=20)
     c_varhpp_ciso = c.ciso_moment(order=4, unit=unit, nb_points_per_decade=20)
@@ -123,11 +120,11 @@ def test_ciso_moment_container_vs_topography():
     t_varhp_ciso = t.moment_power_spectrum(order=2, )
     t_varhpp_ciso = t.moment_power_spectrum(order=4, )
 
-
     # TODO : there is a lot of uncertainty here !
-    assert abs( 1 - c_varhp_ciso / t_varhp_ciso) < 0.5
-    assert abs( 1 - c_varhpp_ciso / t_varhpp_ciso) < 0.5
-    assert abs( 1 - c_varh_ciso / t_varh_ciso) < 0.5
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.5
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.5
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.5
+
 
 def test_1d_moment_container_vs_linescan():
     sx = 2
@@ -152,8 +149,10 @@ def test_1d_moment_container_vs_linescan():
     assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.05
     assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.05
     assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
+
+
 @pytest.mark.skip()
 def test_variance_half_derivative_from_container(file_format_examples):
     c, = read_container(f'{file_format_examples}/container1.zip')
-    #c, = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
+    # c, = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
     c.variance_half_derivative_via_autocorrelation_from_profile()

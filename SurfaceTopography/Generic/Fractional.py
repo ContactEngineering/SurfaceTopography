@@ -21,6 +21,7 @@ def variance_half_derivative_via_autocorrelation_from_area(topography, **kwargs)
     r, s = topography.scale_dependent_slope_from_area(**kwargs)
     return variance_half_derivative_via_scale_dependent_slope(r, s)
 
+
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwargs):
     r"""
@@ -35,6 +36,7 @@ def variance_half_derivative_via_autocorrelation_from_profile(topography, **kwar
     """
     r, s = topography.scale_dependent_slope_from_profile(**kwargs)
     return variance_half_derivative_via_scale_dependent_slope(r, s)
+
 
 @doi("10.1016/j.apsadv.2021.100190")
 def variance_half_derivative_via_scale_dependent_slope(r, slope):
@@ -56,12 +58,15 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
     nan_args = np.isnan(slope)
     r = np.delete(r, nan_args)
     slope = np.delete(slope, nan_args)
-    return 0.5 * (r[0] * slope[0]**2 + scipy.integrate.trapz(slope**2, x=r))
-
+    return 0.5 * (r[0] * slope[0] ** 2 + scipy.integrate.trapz(slope ** 2, x=r))
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)
-NonuniformLineScanInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)
-UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_area', variance_half_derivative_via_autocorrelation_from_area)
-SurfaceContainer.register_function('variance_half_derivative_via_autocorrelation_from_profile', variance_half_derivative_via_autocorrelation_from_profile)
+UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile',
+                                             variance_half_derivative_via_autocorrelation_from_profile)
+NonuniformLineScanInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile',
+                                              variance_half_derivative_via_autocorrelation_from_profile)
+UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_area',
+                                             variance_half_derivative_via_autocorrelation_from_area)
+SurfaceContainer.register_function('variance_half_derivative_via_autocorrelation_from_profile',
+                                   variance_half_derivative_via_autocorrelation_from_profile)

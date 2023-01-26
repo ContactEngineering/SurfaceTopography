@@ -39,6 +39,7 @@
 
 import subprocess
 
+
 class CannotDiscoverVersion(Exception):
     pass
 

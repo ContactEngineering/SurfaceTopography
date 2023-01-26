@@ -52,7 +52,7 @@ def sinewave2D(comm=None):
                      subdomain_locations=fftengine.subdomain_locations,
                      physical_sizes=size, communicator=MPI.COMM_SELF if comm is None else comm)
 
-    return (L, hm, top)
+    return L, hm, top
 
 
 def test_rms_curvature(comm):
@@ -237,10 +237,11 @@ def test_rms_height_with_undefined_data(file_format_examples):
     np.testing.assert_allclose(t.rms_height_from_profile(), 0.011449207840819613)
     np.testing.assert_allclose(t.rms_height_from_area(), 0.011782116700392838)
 
+
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-@pytest.mark.parametrize("nx", (255, 256),)
+@pytest.mark.parametrize("nx", (255, 256), )
 def test_moment_0_1d(nx, ):
     sx = 1
     t = fourier_synthesis((nx,), (sx,), hurst=0.8, rms_height=1, short_cutoff=4 * (sx / nx),
@@ -254,8 +255,8 @@ def test_moment_0_1d(nx, ):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-@pytest.mark.parametrize("nx", (255, 256),)
-def test_moment_1_2d(nx,):
+@pytest.mark.parametrize("nx", (255, 256), )
+def test_moment_1_2d(nx, ):
     sx = 1
     t = fourier_synthesis((nx,), (sx,), hurst=0.8, rms_height=1, short_cutoff=16 * (sx / nx),
                           long_cutoff=sx / 4).detrend(detrend_mode="center")
@@ -263,6 +264,7 @@ def test_moment_1_2d(nx,):
     hrms_f = np.sqrt(t.moment_power_spectrum(order=2))
 
     assert abs(1 - hrms_r / hrms_f) < 0.01
+
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -279,6 +281,7 @@ def test_moment_2_2d(nb_grid_pts, physical_sizes):
     hrms_f = np.sqrt(t.moment_power_spectrum(order=2))
 
     assert abs(1 - hrms_r / hrms_f) < 0.01
+
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -299,5 +302,7 @@ def test_moment_0_2d(nb_grid_pts, physical_sizes):
 
 def test_moment_2d_reliable():
     pass
+
+
 def test_moment_1d_reliable():
     pass

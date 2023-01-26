@@ -1,7 +1,8 @@
 from ..Generic.Moments import (compute_iso_moment, compute_iso_moment_cumulative,
-                                  compute_1d_moment, compute_1d_moment_cumulative, )
+                               compute_1d_moment, compute_1d_moment_cumulative, )
 import numpy as np
 from ..Container import SurfaceContainer
+
 
 def ciso_moment(c, order=1, **kwargs):
     """
