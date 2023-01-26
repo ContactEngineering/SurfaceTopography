@@ -1,5 +1,4 @@
 import numpy as np
-from ContactMechanics import PeriodicFFTElasticHalfSpace
 
 from SurfaceTopography.Models.SelfAffine import (
     SelfAffine,
@@ -53,7 +52,7 @@ def test_shortcut_derivative():
 ]
 )
 def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
-
+    from ContactMechanics import PeriodicFFTElasticHalfSpace
     n_pixels = 1024
     physical_size = .5e-4
     pixel_size = physical_size / n_pixels
