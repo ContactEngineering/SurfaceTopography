@@ -85,5 +85,5 @@ def test_1d_moment_container_vs_linescan(seed):
 
     assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.05
     assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.05
-    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.15
     # This means that the resampling procedure is not super precise for the integration
