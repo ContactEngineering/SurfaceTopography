@@ -8,7 +8,8 @@ python_sources = [
     'ScaleDependentStatistics.py',
     'ScanningProbe.py',
     'Slope.py',
-    'Fractional.py'
+    'Fractional.py',
+    'Moments.py'
 ]
 
 # Install pure Python
