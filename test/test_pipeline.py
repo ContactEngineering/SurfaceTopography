@@ -169,6 +169,7 @@ def test_uniform_unit_conversion():
     np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
     np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
 
+
 def test_nonuniform_scaled_topography(file_format_examples):
     surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
     sx, = surf.physical_sizes
@@ -178,7 +179,7 @@ def test_nonuniform_scaled_topography(file_format_examples):
                                        surf2.rms_height_from_profile())
         np.testing.assert_almost_equal(surf.positions(), surf2.positions())
 
-        surf2 = surf.scale(fac, 2*fac)
+        surf2 = surf.scale(fac, 2 * fac)
         np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
                                        surf2.rms_height_from_profile())
         np.testing.assert_almost_equal(2 * fac * surf.positions(), surf2.positions())
