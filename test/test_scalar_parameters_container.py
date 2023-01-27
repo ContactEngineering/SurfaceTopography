@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from SurfaceTopography import read_container, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
@@ -31,7 +32,9 @@ def test_ciso_moment_from_container(file_format_examples):
     assert error_hpprms < 1
 
 
-def test_ciso_moment_container_vs_topography():
+@pytest.mark.parametrize("seed", range(3))
+def test_ciso_moment_container_vs_topography(seed):
+    np.random.seed(seed)
     sx, sy = physical_sizes = 2, 3
     nx, ny = nb_grid_pts = 1024, 1023
 
@@ -52,12 +55,15 @@ def test_ciso_moment_container_vs_topography():
     t_varhpp_ciso = t.moment_power_spectrum(order=4, )
 
     # TODO : there is a lot of uncertainty here !
+    # some of the discrepancies might come from the conversion C1D to Ciso
     assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.5
     assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.5
     assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.5
 
 
-def test_1d_moment_container_vs_linescan():
+@pytest.mark.parametrize("seed", range(3))
+def test_1d_moment_container_vs_linescan(seed):
+    np.random.seed(seed)
     sx = 2
     nx = 1024
 
@@ -80,3 +86,4 @@ def test_1d_moment_container_vs_linescan():
     assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.05
     assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.05
     assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
+    # This means that the resampling procedure is not super precise for the integration
