@@ -523,6 +523,11 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         """Compute rescaled physical sizes."""
         return tuple(self.position_scale_factor * s for s in super().physical_sizes)
 
+    @property
+    def area_per_pt(self):
+        """Compute rescaled physical sizes."""
+        return np.prod(self.pixel_size)
+
     def positions(self, **kwargs):
         """Compute the rescaled positions."""
         if self.dim == 1:
