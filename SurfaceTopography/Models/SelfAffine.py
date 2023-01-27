@@ -47,7 +47,8 @@ class SelfAffine():
         self.longcut_wavevector = 2 * np.pi / self.longcut_wavelength
         self.rolloff_wavevector = 2 * np.pi / self.rolloff_wavelength
 
-        self.unit=unit
+        self.unit = unit
+
     def power_spectrum_isotropic(self, q):
         qs = self.shortcut_wavevector
         qL = self.longcut_wavevector

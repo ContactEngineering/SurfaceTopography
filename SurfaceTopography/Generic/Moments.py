@@ -12,6 +12,7 @@ To compute the moments of the power_spectrum
 import numpy as np
 import scipy.integrate
 
+
 # TODO: cumulative as option argument
 def compute_1d_moment(q, C1d, order=1):
     power = order
