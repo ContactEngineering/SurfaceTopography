@@ -164,10 +164,10 @@ def test_uniform_unit_conversion():
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.pixel_size), surf2.pixel_size)
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.area_per_pt / 1000 ** 2, surf2.area_per_pt)
     np.testing.assert_almost_equal(surf.rms_height_from_area() / 1000, surf2.rms_height_from_area())
     np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
     np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
-
 
 def test_nonuniform_scaled_topography(file_format_examples):
     surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
