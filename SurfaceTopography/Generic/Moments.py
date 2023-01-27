@@ -1,6 +1,7 @@
 """
 To compute the moments of the power_spectrum
 
+# TODO: Outdated ! 
 >>> from SurfaceTopography.Generation import fourier_synthesis
 >>> t = fourier_synthesis((256, 256), (256,256), hurst=0.8, rms_height=1, short_cutoff=4, long_cutoff=64)
 >>> hrms = t.rms_height_from_profile()
