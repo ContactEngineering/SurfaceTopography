@@ -32,7 +32,7 @@ class SelfAffine():
                  rolloff_wavelength,
                  hurst_exponent,
                  longcut_wavelength=np.infty,
-                 shortcut_wavelength=0, ):
+                 shortcut_wavelength=0, unit=None):
         self.cr = cr  # Ampliture of the PSD at and below the rolloff wavevector
         self.rolloff_wavelength = rolloff_wavelength
         self.longcut_wavelength = longcut_wavelength
@@ -47,6 +47,7 @@ class SelfAffine():
         self.longcut_wavevector = 2 * np.pi / self.longcut_wavelength
         self.rolloff_wavevector = 2 * np.pi / self.rolloff_wavelength
 
+        self.unit=unit
     def power_spectrum_isotropic(self, q):
         qs = self.shortcut_wavevector
         qL = self.longcut_wavevector
@@ -237,12 +238,15 @@ class SelfAffine():
                            n_pixels,
                            seed,
                            shortcut_wavelength=None,
-                           longcut_wavelength=None):
+                           longcut_wavelength=None,
+                           **kwargs):
         r"""
         Generates a discrete random realisation of Gaussian noise with variances of the waves given by the PSD
 
         The `shortcut_wavelength` and `longcut_wavelength` parameters allow to overwrite the
         values paramtetrized in the model, since a discrete realization is often shorter.
+
+        See fourier synthesis for more arguments
         """
 
         if shortcut_wavelength is None:
@@ -263,6 +267,8 @@ class SelfAffine():
                                       c0=c0,
                                       short_cutoff=self.shortcut_wavelength,
                                       long_cutoff=self.rolloff_wavelength,
+                                      unit=self.unit,
+                                      **kwargs
                                       )
         return roughness
 

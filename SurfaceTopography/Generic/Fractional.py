@@ -61,6 +61,42 @@ def variance_half_derivative_via_scale_dependent_slope(r, slope):
     return 0.5 * (r[0] * slope[0] ** 2 + scipy.integrate.trapz(slope ** 2, x=r))
 
 
+def container_variance_half_derivative_from_autocorrelation(container, scale_dependent=False, **kwargs):
+    """
+
+    The scale-dependence is introduced by considering only the ACF below the distance scale.
+
+    This is the definition of scale-dependent elastic energy as in Wang and Müser equation 44
+
+    see container.autocorrelation concerning further arguments
+
+    Returns
+    ------
+
+    if scale_dependent
+    r: array of floats
+    distance scale
+    variance_half_derivative: array of floats
+
+
+    """
+
+    # This is how martin Mueser defines the SDRP elastic energy
+
+    r, acf = container.autocorrelation(**kwargs)
+    r = r[~np.isnan(acf)]
+    acf = acf[~np.isnan(acf)]
+
+    # we assume continuity below the smallest distance, i.e. that the slope is constant
+    small_scale_contrib = (acf[0] / r[0])
+    if scale_dependent:
+        return r, small_scale_contrib + np.concatenate([[0], scipy.integrate.cumtrapz(acf / r ** 2, x=r)])
+    else:
+        return small_scale_contrib + scipy.integrate.trapz(acf / r ** 2, x=r)
+
+
+SurfaceContainer.register_function("variance_half_derivative_from_autocorrelation",
+                                   container_variance_half_derivative_from_autocorrelation)
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('variance_half_derivative_via_autocorrelation_from_profile',
                                              variance_half_derivative_via_autocorrelation_from_profile)

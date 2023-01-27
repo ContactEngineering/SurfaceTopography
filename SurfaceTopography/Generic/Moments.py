@@ -1,7 +1,7 @@
 """
 To compute the moments of the power_spectrum
 
-# TODO: Outdated ! 
+# TODO: Outdated !
 >>> from SurfaceTopography.Generation import fourier_synthesis
 >>> t = fourier_synthesis((256, 256), (256,256), hurst=0.8, rms_height=1, short_cutoff=4, long_cutoff=64)
 >>> hrms = t.rms_height_from_profile()
@@ -12,7 +12,7 @@ To compute the moments of the power_spectrum
 import numpy as np
 import scipy.integrate
 
-
+# TODO: cumulative as option argument
 def compute_1d_moment(q, C1d, order=1):
     power = order
     variance = np.trapz(C1d * q ** power, q) / np.pi

@@ -1,7 +1,6 @@
 import numpy as np
 
-from SurfaceTopography import read_container, SurfaceContainer
-from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography import SurfaceContainer
 from SurfaceTopography.Models.SelfAffine import (
     SelfAffine,
 )
@@ -25,8 +24,13 @@ pytestmark = pytest.mark.skipif(
         (1e-7, 1.),
     ]
 )
-def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
+def test_variance_half_derivative_topography_and_container(shortcut_wavelength, hurst_exponent):
+    """
+    Tests different methods to compute the variance of the half-deriavative against
+    the elastic energy in a contact mechanics simulation in full contact
+    """
     from ContactMechanics import PeriodicFFTElasticHalfSpace
+    unit = "m"
 
     n_pixels = 2048  # We need a good discretisation
     physical_size = .5e-4
@@ -37,7 +41,8 @@ def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
         'cr': 5e-27,
         'shortcut_wavelength': shortcut_wavelength,
         'rolloff_wavelength': 2e-6,
-        'hurst_exponent': hurst_exponent})
+        'hurst_exponent': hurst_exponent,
+        'unit': unit})
 
     Es = 1e6 / (1 - 0.5 ** 2)
     roughness = model_psd.generate_roughness(**{
@@ -55,29 +60,34 @@ def test_variance_half_derivative_from_acf(shortcut_wavelength, hurst_exponent):
     forces = hs.evaluate_force(roughness.heights())
 
     # Elastic energy per surface area
-    Eel_brute_force = hs.evaluate_elastic_energy(forces, roughness.heights()) / np.prod(roughness.physical_sizes)
+    eel_brute_force = hs.evaluate_elastic_energy(forces, roughness.heights()) / np.prod(roughness.physical_sizes)
 
-    Eel_analytic = Es / 4 * model_psd.variance_half_derivative()
-    Eel_from_acf_profile = Es / 4 * roughness.variance_half_derivative_via_autocorrelation_from_profile()
+    eel_analytic = Es / 4 * model_psd.variance_half_derivative()
 
-    Eel_from_acf_area = Es / 4 * roughness.variance_half_derivative_via_autocorrelation_from_area()
+    eel_2d_psd = Es / 4 * roughness.moment_power_spectrum(order=1)
 
-    print("brute force contact mechanics:", Eel_brute_force)
-    print("analytic from PSD:", Eel_analytic)
-    print("profile ACF:", Eel_from_acf_profile)
-    print("areal ACF:", Eel_from_acf_area)
+    # eel_1d_psd =
+    eel_from_acf_profile = Es / 4 * roughness.variance_half_derivative_via_autocorrelation_from_profile()
+    eel_from_acf_area = Es / 4 * roughness.variance_half_derivative_via_autocorrelation_from_area()
 
-    np.testing.assert_allclose(Eel_analytic, Eel_brute_force, rtol=1e-1)
+    c = SurfaceContainer([roughness, ])
+    eel_container_psd = Es / 4 * c.ciso_moment(unit=unit)
+    eel_container_acf = Es / 4 * c.variance_half_derivative_from_autocorrelation(unit=unit)
 
-    np.testing.assert_allclose(Eel_from_acf_profile, Eel_brute_force, rtol=1e-1)
-    np.testing.assert_allclose(Eel_from_acf_area, Eel_brute_force, rtol=1e-1)
+    print("brute force contact mechanics:", eel_brute_force)
+    print("analytic from PSD:", eel_analytic)
+    print("realisation 2d PSD", eel_2d_psd)
 
+    print("realisation profile ACF:", eel_from_acf_profile)
+    print("realisation areal ACF:", eel_from_acf_area)
 
+    print("container PSD", eel_container_psd)
+    print("container acf", eel_container_acf)
 
+    np.testing.assert_allclose(eel_analytic, eel_brute_force, rtol=1e-1)
+    np.testing.assert_allclose(eel_2d_psd, eel_brute_force, rtol=1e-1)
+    np.testing.assert_allclose(eel_from_acf_profile, eel_brute_force, rtol=1e-1)
+    np.testing.assert_allclose(eel_from_acf_area, eel_brute_force, rtol=1e-1)
 
-
-@pytest.mark.skip()
-def test_variance_half_derivative_from_container(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container1.zip')
-    # c, = read_container("/Users/antoines/Downloads/ce-5cz7a.zip")
-    c.variance_half_derivative_via_autocorrelation_from_profile()
+    np.testing.assert_allclose(eel_container_psd, eel_brute_force, rtol=1e-1)
+    np.testing.assert_allclose(eel_container_acf, eel_brute_force, rtol=1e-1)
