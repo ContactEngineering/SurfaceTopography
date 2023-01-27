@@ -13,24 +13,14 @@ import numpy as np
 import scipy.integrate
 
 
-# TODO: cumulative as option argument
-def compute_1d_moment(q, C1d, order=1):
+def compute_1d_moment(q, C1d, order=1, cumulative=False):
     power = order
-    variance = np.trapz(C1d * q ** power, q) / np.pi
-    return variance
+    integ = scipy.integrate.cumtrapz if cumulative else np.trapz
+    return integ(C1d * q ** power, q) / np.pi
 
 
-def compute_1d_moment_cumulative(q, C1d, order=1):
-    power = order
-    return scipy.integrate.cumtrapz(C1d * q ** power, q) / np.pi
-
-
-def compute_iso_moment(q, Ciso, order=1):
+def compute_iso_moment(q, Ciso, order=1, cumulative=False):
     power = order + 1
-    variance = np.trapz(Ciso * q ** power / (2 * np.pi), q)
+    integ = scipy.integrate.cumtrapz if cumulative else np.trapz
+    return integ(Ciso * q ** power / (2 * np.pi), q)
     return variance
-
-
-def compute_iso_moment_cumulative(q, Ciso, order=1):
-    power = order + 1
-    return scipy.integrate.cumtrapz(Ciso * q ** power / (2 * np.pi), q)
