@@ -68,7 +68,7 @@ def get_version_from_git():
     Discover version from git repository.
     """
     if not os.path.exists('.git'):
-        rasise CannotDiscoverVersion('.git subdirectory does not exist.')
+        raise CannotDiscoverVersion('.git subdirectory does not exist.')
 
     try:
         git_describe = subprocess.run(
