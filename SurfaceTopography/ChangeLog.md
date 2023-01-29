@@ -1,14 +1,18 @@
 Change log for SurfaceTopography
 ================================
 
+v1.3.3 (29Jan23)
+----------------
 
+- BUG: Fixed discover of version when in a git repository that is not the
+  source directory of SurfaceTopography
 
-v1.3.2 (18Jan22)
+v1.3.2 (18Jan23)
 ----------------
 - ENH: pipeline function superpose
 - BUG: repair CompoundTopography and TranslatedTopography
 
-v1.3.1 (14Jan22)
+v1.3.1 (14Jan23)
 ----------------
 
 - BUG: AL3D reader reported wrong unit in channel info (#276)
