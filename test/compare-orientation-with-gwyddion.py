@@ -34,10 +34,10 @@ from SurfaceTopography import open_topography
 
 # plt.ion()
 # fn='../data/issues/230/di1.txt'
-# fn='tests/file_format_examples/opdx2.OPDx'
-# fn='tests/file_format_examples/example.opd'
+# fn='tests/file_format_examples/opdx-2.opdx'
+# fn='tests/file_format_examples/opd-1.opd'
 # fn='tests/file_format_examples/example2.x3p'
-# fn='tests/file_format_examples/mi1.mi'
+# fn='tests/file_format_examples/mi-1.mi'
 
 def plot(fn):
     r = open_topography(fn)
@@ -88,12 +88,12 @@ if __name__ == '__main__':
     filenames = [
         # '../data/issues/230/di1.txt',  # this file you have to export
         # yourself with gwyddion
-        'tests/file_format_examples/di1.di',
-        'tests/file_format_examples/opdx2.OPDx',
-        'tests/file_format_examples/example.opd',
+        'tests/file_format_examples/di-1.di',
+        'tests/file_format_examples/opdx-2.opdx',
+        'tests/file_format_examples/opd-1.opd',
         'tests/file_format_examples/example2.x3p',
-        'tests/file_format_examples/mi1.mi',
-        'tests/file_format_examples/example.ibw',
+        'tests/file_format_examples/mi-1.mi',
+        'tests/file_format_examples/ibw-1.ibw',
     ]
 
     for fn in filenames:

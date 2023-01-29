@@ -31,7 +31,7 @@ from SurfaceTopography import open_topography
 
 def test_usage_sample(file_format_examples):
     # get a handle to the file ("reader")
-    reader = open_topography(os.path.join(file_format_examples, "example.opd"))
+    reader = open_topography(os.path.join(file_format_examples, "opd-1.opd"))
 
     # each file has a list of channels (one or more)
     print(reader.channels)  # returns list of channels

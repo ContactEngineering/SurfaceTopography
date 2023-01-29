@@ -195,7 +195,7 @@ def test_container_mixed(file_format_examples, plot=False):
 
 
 def test_missing_data_points(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'opd3.opd'))
+    t = read_topography(os.path.join(file_format_examples, 'opd-3.opd'))
     assert t.has_undefined_data
     with pytest.raises(UndefinedDataError):
         t.variable_bandwidth_from_profile()

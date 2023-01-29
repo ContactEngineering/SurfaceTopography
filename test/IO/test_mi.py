@@ -47,7 +47,7 @@ DATADIR = os.path.join(
 
 
 def test_read_header():
-    file_path = os.path.join(DATADIR, 'mi1.mi')
+    file_path = os.path.join(DATADIR, 'mi-1.mi')
 
     loader = MIReader(file_path)
 
@@ -81,7 +81,7 @@ def test_read_header():
 
 
 def test_topography():
-    file_path = os.path.join(DATADIR, 'mi1.mi')
+    file_path = os.path.join(DATADIR, 'mi-1.mi')
 
     loader = MIReader(file_path)
 
