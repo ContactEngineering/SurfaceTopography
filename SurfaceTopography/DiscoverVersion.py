@@ -39,6 +39,7 @@
 # - If this fails, ask pkg_resources
 #
 
+import os
 import subprocess
 
 
@@ -66,6 +67,9 @@ def get_version_from_git():
     """
     Discover version from git repository.
     """
+    if not os.path.exists('.git'):
+        rasise CannotDiscoverVersion('.git subdirectory does not exist.')
+
     try:
         git_describe = subprocess.run(
             ['git', 'describe', '--tags', '--dirty', '--always'],
