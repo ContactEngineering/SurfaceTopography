@@ -165,7 +165,7 @@ def test_self_affine_topography_2d():
 
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
     d, s = c.variable_bandwidth(unit='um', nb_points_per_decade=2)
 
     if plot:
@@ -183,7 +183,7 @@ def test_container_uniform(file_format_examples, plot=False):
 # This test is just supposed to finish without an exception
 def test_container_mixed(file_format_examples, plot=False):
     """This container has a mixture of maps and line scans"""
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
     d, s = c.variable_bandwidth(unit='um')
 
     if plot:

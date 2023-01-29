@@ -156,7 +156,7 @@ def test_opdx_txt_heights_lateral_consistency(file_format_examples):
 
 
 def test_opdx3(file_format_examples):
-    r = OPDxReader(f'{file_format_examples}/opdx3.OPDx')
+    r = OPDxReader(f'{file_format_examples}/opdx-3.opdx')
     t = r.topography()
     assert t.info['instrument']['name'] == 'Dektak Profiler'
 
