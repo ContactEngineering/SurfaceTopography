@@ -104,15 +104,6 @@ try:
 except ImportError:
     __version__ = None
 
-if __version__ is None:
-    # pkg_resources is part of setuptools
-    try:
-        from pkg_resources import get_distribution
-
-        __version__ = get_distribution(_pkg_name).version
-    except ImportError:
-        __version__ = None
-
 # Not sure this mechanisms below is much different from the above two
 if __version__ is None:
     try:
