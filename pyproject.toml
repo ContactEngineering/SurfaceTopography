@@ -17,11 +17,11 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python"
 ]
-requires-python = ">=3.7.0"
+requires-python = ">=3.8.0"
 dynamic = [ "version" ]
 dependencies = [
     "numpy<1.24.0",  # FIXME! Igor no longer works with numpy 1.24.0 or later
-    "scipy>=1.7.3",   # latest that suppports Python 3.7
+    "scipy>=1.9.0",
     "defusedxml",
     "h5py",
     "igor",  # FIXME! Igor no longer works with numpy 1.24.0 or later
