@@ -189,6 +189,7 @@ def test_uniform_unit_conversion():
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.physical_sizes), surf2.physical_sizes)
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.pixel_size), surf2.pixel_size)
     np.testing.assert_almost_equal(tuple(p / 1000 for p in surf.positions()), surf2.positions())
+    np.testing.assert_almost_equal(surf.area_per_pt / 1000 ** 2, surf2.area_per_pt)
     np.testing.assert_almost_equal(surf.rms_height_from_area() / 1000, surf2.rms_height_from_area())
     np.testing.assert_almost_equal(surf.rms_gradient(), surf2.rms_gradient())
     np.testing.assert_almost_equal(surf.rms_laplacian() * 1000, surf2.rms_laplacian())
@@ -203,7 +204,7 @@ def test_nonuniform_scaled_topography(file_format_examples):
                                        surf2.rms_height_from_profile())
         np.testing.assert_almost_equal(surf.positions(), surf2.positions())
 
-        surf2 = surf.scale(fac, 2*fac)
+        surf2 = surf.scale(fac, 2 * fac)
         np.testing.assert_almost_equal(fac * surf.rms_height_from_profile(),
                                        surf2.rms_height_from_profile())
         np.testing.assert_almost_equal(2 * fac * surf.positions(), surf2.positions())
@@ -251,8 +252,8 @@ def test_transposed_topography():
 def test_undefined_data_and_squeeze():
     nx, ny = 128, 128
     sx, sy = 5.0, 5.0
-    rx = np.linspace(-sx/2, sx/2, nx)
-    ry = np.linspace(-sy/2, sy/2, ny)
+    rx = np.linspace(-sx / 2, sx / 2, nx)
+    ry = np.linspace(-sy / 2, sy / 2, ny)
     rsq = rx.reshape((nx, -1)) ** 2 + ry.reshape((-1, ny)) ** 2
     rs = 1.0
     t = Topography(np.ma.masked_where(rsq > rs ** 2, np.zeros([nx, ny])), (sx, sy))
