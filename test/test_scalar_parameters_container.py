@@ -196,7 +196,7 @@ def test_bandwidth_count():
 
 
 @pytest.mark.parametrize("seed", range(10))
-def test_integrate_psd_nb_topographies(seed):
+def test_integrate_psd_different_bandwidths(seed):
     np.random.seed(seed)
     sx = 2
     nx = 1024 * 16
