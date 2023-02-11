@@ -246,7 +246,17 @@ UniformTopographyInterface.register_function("fftfreq", fftfreq)
 UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_norm2)
 
 
-def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
+
+def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
+    """
+
+    factor: function
+        Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)
+
+        or the two components of the wavevector qx and qy
+
+        # TODO: In future we might want to allow for giving
+    """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
                                  'computed for topographies with missing data points.')
@@ -267,7 +277,15 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw[mask]
 
-    return np.sum(C_raw * q ** order) / np.prod(self.physical_sizes)
+    qvec = self.fftfreq()
+    try:
+        return np.sum(C_raw * factor(*qvec)) / np.prod(self.physical_sizes)
+    except TypeError:
+        return np.sum(C_raw * factor(q)) / np.prod(self.physical_sizes)
+
+
+def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
+    return integrate_psd(self, lambda q: q ** order, window=None, reliable=True, )
 
 
 # Register analysis functions from this module
@@ -275,3 +293,6 @@ UniformTopographyInterface.register_function('power_spectrum_from_profile', powe
 UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)
 
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
+UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
+
+

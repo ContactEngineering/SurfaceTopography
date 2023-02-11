@@ -3,6 +3,7 @@ import pytest
 
 from SurfaceTopography import read_container, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Container.Moments import _bandwidth_count
 
 
 def test_ciso_moment_from_container(file_format_examples):
@@ -28,6 +29,7 @@ def test_ciso_moment_from_container(file_format_examples):
     assert error_hprms < 0.1
 
     # TODO : there is a lot of uncertainty here !
+    # However that might because of the difference between Fourier derivative and finite difference derivative
     error_hpprms = (abs(hpprms - np.sqrt(varhpp_ciso)) / hpprms)
     assert error_hpprms < 1
 
@@ -86,4 +88,188 @@ def test_1d_moment_container_vs_linescan(seed):
     assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.05
     assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.05
     assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.15
+    # This means that the resampling procedure is not super precise for the integration
+
+
+@pytest.mark.parametrize("seed", range(3))
+def test_1d_moment_container_vs_linescan_integrate_psd(seed):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024
+
+    unit = "m"
+    t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t, ])
+    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+
+    # Moments from full integration of the 2D spectrum of the topopography
+    t_varh_ciso = t.moment_power_spectrum(order=0, )
+    t_varhp_ciso = t.moment_power_spectrum(order=2, )
+    t_varhpp_ciso = t.moment_power_spectrum(order=4, )
+
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 1e-10
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 1e-10
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 1e-10
+    # This means that the resampling procedure is not super precise for the integration
+
+
+@pytest.mark.parametrize("n_topographies", [1, 3])
+@pytest.mark.parametrize("seed", range(3))
+def test_1d_moment_container_vs_linescan_integrate_psd_q0_mode(seed, n_topographies):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024
+
+    unit = "m"
+    t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center").squeeze()
+    # Introduce a significant offset in the heights that will affect the rms heights
+    t._heights += t.rms_height_from_profile()
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t, ] * n_topographies)
+    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
+
+    # Moments from full integration of the 2D spectrum of the topopography
+    t_varh_ciso = t.moment_power_spectrum(order=0, )
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 1e-10
+    # This means that the resampling procedure is not super precise for the integration
+
+
+@pytest.mark.parametrize("seed", range(3))
+def test_integrate_psd_nb_topographies(seed):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024
+
+    unit = "m"
+
+    t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t] * 3)
+    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+
+    # Moments from full integration of the 2D spectrum of the topopography
+    t_varh_ciso = t.moment_power_spectrum(order=0, )
+    t_varhp_ciso = t.moment_power_spectrum(order=2, )
+    t_varhpp_ciso = t.moment_power_spectrum(order=4, )
+
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 1e-10
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 1e-10
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 1e-10
+    # This means that the resampling procedure is not super precise for the integration
+
+
+def test_bandwidth_count():
+    sx = 2
+    nx = 1024
+
+    unit = "m"
+
+    t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t] * 3)
+
+    qmin = 2 * np.pi / sx
+    assert _bandwidth_count(c, qmin, unit=unit) == 3
+
+    assert _bandwidth_count(c, qmin * 2, unit=unit) == 3
+
+    qmax = np.pi / (sx / nx)
+    assert _bandwidth_count(c, qmax, unit=unit) == 3
+    assert _bandwidth_count(c, 2 * qmax, unit=unit) == 0
+    assert _bandwidth_count(c, 0.5 * qmin, unit=unit) == 0
+
+
+@pytest.mark.parametrize("seed", range(10))
+def test_integrate_psd_nb_topographies(seed):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024 * 16
+    long_cutoff = sx / 64
+    unit = "m"
+
+    t_varh_ciso = 0
+    t_varhp_ciso = 0
+    t_varhpp_ciso = 0
+
+    # reference a large scan encompassing the whole PSD
+    # need to average the results to get rid of the fluctuations
+    n_av = 30
+    for i in range(n_av):
+        t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, c0=1,
+                              short_cutoff=4 * (sx / nx),
+                              long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center")
+
+        # Moments from full integration of the 2D spectrum of the large topopography
+        t_varh_ciso += t.moment_power_spectrum(order=0, )
+        t_varhp_ciso += t.moment_power_spectrum(order=2, )
+        t_varhpp_ciso += t.moment_power_spectrum(order=4, )
+
+    t_varh_ciso /= n_av
+    t_varhp_ciso /= n_av
+    t_varhpp_ciso /= n_av
+
+    # create smaller topographies with same nominal PSD
+
+    ts = []
+    for i in range(10):
+        ts += [fourier_synthesis((1024,), physical_sizes=(sx,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((512,), physical_sizes=(sx,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((2048,), physical_sizes=(sx,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((1024,), physical_sizes=(sx / 4,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((2048,), physical_sizes=(sx / 8,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((512,), physical_sizes=(sx / 32,), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               ]
+
+    c = SurfaceContainer(ts)
+    if False:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.power_spectrum_from_profile(0), "k")
+
+        for _t in c._topographies:
+            ax.loglog(*_t.power_spectrum_from_profile(0))
+
+        fig, ax = plt.subplots()
+        q = np.logspace(np.log(2 * np.pi / sx), np.log(np.pi / (sx / nx)))
+        ax.plot(q, _bandwidth_count(c, q, unit, ))
+        ax.set_xscale("log")
+        plt.show(block=True)
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+
+    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.1
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.1
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
     # This means that the resampling procedure is not super precise for the integration
