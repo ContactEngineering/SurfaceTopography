@@ -62,6 +62,18 @@ def test_squeeze():
     np.testing.assert_allclose(surface.heights(), surface2.heights())
 
 
+def test_squeeze_unit():
+    x = np.linspace(0, 4 * np.pi, 101) ** (1.3)
+    h = np.sin(x)
+    surface = NonuniformLineScan(x, h, unit="m").scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface2.unit == surface.unit
+
+    surface = NonuniformLineScan(x, h, ).scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface2.unit == surface.unit
+
+
 def test_positions_and_heights():
     x = np.array((0, 1, 1.5, 2, 3))
     h = 2 * x

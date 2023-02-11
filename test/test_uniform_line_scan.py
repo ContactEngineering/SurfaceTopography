@@ -53,10 +53,24 @@ def test_properties():
 def test_squeeze():
     x = np.linspace(0, 4 * np.pi, 101)
     h = np.sin(x)
-    surface = UniformLineScan(h, 4 * np.pi).scale(2.0)
+    surface = UniformLineScan(h, 4 * np.pi, unit=unit).scale(2.0)
     surface2 = surface.squeeze()
     assert isinstance(surface2, UniformLineScan)
     np.testing.assert_allclose(surface.heights(), surface2.heights())
+    assert surface.unit == surface2.unit
+
+
+def test_squeeze_unit():
+    x = np.linspace(0, 4 * np.pi, 101)
+    h = np.sin(x)
+
+    surface = UniformLineScan(h, 4 * np.pi).scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface.unit == surface2.unit
+
+    surface = UniformLineScan(h, 4 * np.pi, unit="m").scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface.unit == surface2.unit
 
 
 def test_positions_and_heights():
