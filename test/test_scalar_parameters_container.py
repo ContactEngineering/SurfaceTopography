@@ -3,7 +3,7 @@ import pytest
 
 from SurfaceTopography import read_container, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Container.Moments import _bandwidth_count
+from SurfaceTopography.Container.Moments import _bandwidth_count_from_profile
 
 
 def test_ciso_moment_from_container(file_format_examples):
@@ -104,9 +104,9 @@ def test_1d_moment_container_vs_linescan_integrate_psd(seed):
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
     c = SurfaceContainer([t, ])
-    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
-    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
-    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+    c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
 
     # Moments from full integration of the 2D spectrum of the topopography
     t_varh_ciso = t.moment_power_spectrum(order=0, )
@@ -134,7 +134,7 @@ def test_1d_moment_container_vs_linescan_integrate_psd_q0_mode(seed, n_topograph
     t._heights += t.rms_height_from_profile()
     # Moment of the isotropic PSD computed from the 1D power spectrum
     c = SurfaceContainer([t, ] * n_topographies)
-    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
+    c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
 
     # Moments from full integration of the 2D spectrum of the topopography
     t_varh_ciso = t.moment_power_spectrum(order=0, )
@@ -156,9 +156,9 @@ def test_integrate_psd_nb_topographies(seed):
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
     c = SurfaceContainer([t] * 3)
-    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
-    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
-    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+    c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
 
     # Moments from full integration of the 2D spectrum of the topopography
     t_varh_ciso = t.moment_power_spectrum(order=0, )
@@ -185,14 +185,14 @@ def test_bandwidth_count():
     c = SurfaceContainer([t] * 3)
 
     qmin = 2 * np.pi / sx
-    assert _bandwidth_count(c, qmin, unit=unit) == 3
+    assert _bandwidth_count_from_profile(c, qmin, unit=unit) == 3
 
-    assert _bandwidth_count(c, qmin * 2, unit=unit) == 3
+    assert _bandwidth_count_from_profile(c, qmin * 2, unit=unit) == 3
 
     qmax = np.pi / (sx / nx)
-    assert _bandwidth_count(c, qmax, unit=unit) == 3
-    assert _bandwidth_count(c, 2 * qmax, unit=unit) == 0
-    assert _bandwidth_count(c, 0.5 * qmin, unit=unit) == 0
+    assert _bandwidth_count_from_profile(c, qmax, unit=unit) == 3
+    assert _bandwidth_count_from_profile(c, 2 * qmax, unit=unit) == 0
+    assert _bandwidth_count_from_profile(c, 0.5 * qmin, unit=unit) == 0
 
 
 @pytest.mark.parametrize("seed", range(10))
@@ -267,14 +267,14 @@ def test_integrate_psd_different_bandwidths(seed):
 
         fig, ax = plt.subplots()
         q = np.logspace(np.log(2 * np.pi / sx), np.log(np.pi / (sx / nx)))
-        ax.plot(q, _bandwidth_count(c, q, unit, ))
+        ax.plot(q, _bandwidth_count_from_profile(c, q, unit, ))
         ax.set_xscale("log")
         plt.show(block=True)
     # Moment of the isotropic PSD computed from the 1D power spectrum
 
-    c_varh_c1d = c.integrate_psd(factor=lambda q: 1, unit=unit)
-    c_varhp_c1d = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
-    c_varhpp_c1d = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+    c_varh_c1d = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_c1d = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_c1d = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
 
     assert abs(1 - c_varhp_c1d / t_varhp_c1d_mean) < 0.1
     assert abs(1 - c_varhpp_c1d / t_varhpp_c1d_mean) < 0.1

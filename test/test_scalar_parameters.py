@@ -251,6 +251,12 @@ def test_moment_0_1d(nx, ):
 
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
+    hrms_f = np.sqrt(t.integrate_psd(lambda qx: 1))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
+
+    hrms_f = np.sqrt(t.integrate_psd_from_profile(lambda qx: 1))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
+
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -263,6 +269,12 @@ def test_moment_1_2d(nx, ):
     hrms_r = t.rms_slope_from_profile()
     hrms_f = np.sqrt(t.moment_power_spectrum(order=2))
 
+    assert abs(1 - hrms_r / hrms_f) < 0.01
+
+    hrms_f = np.sqrt(t.integrate_psd(lambda qx: qx ** 2))
+    assert abs(1 - hrms_r / hrms_f) < 0.01
+
+    hrms_f = np.sqrt(t.integrate_psd_from_profile(lambda qx: qx ** 2))
     assert abs(1 - hrms_r / hrms_f) < 0.01
 
 
@@ -282,6 +294,9 @@ def test_moment_2_2d(nb_grid_pts, physical_sizes):
 
     assert abs(1 - hrms_r / hrms_f) < 0.01
 
+    hrms_f = np.sqrt(t.integrate_psd(lambda qx, qy: qx ** 2 + qy ** 2))
+    assert abs(1 - hrms_r / hrms_f) < 0.01
+
 
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -299,6 +314,8 @@ def test_moment_0_2d(nb_grid_pts, physical_sizes):
 
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
+    hrms_f = np.sqrt(t.integrate_psd(lambda qx, qy: 1))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
 
 def test_moment_2d_reliable():
     pass

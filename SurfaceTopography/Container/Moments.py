@@ -4,36 +4,36 @@ import numpy as np
 from ..Container import SurfaceContainer
 
 
-def _bandwidth_count(self, q, unit, reliable=True):
+def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     """
-    Return number of topographies that include q in their bandwidth.
+    Return number of topographies that include qx in their bandwidth.
     """
-    factor = np.zeros_like(q)
+    qx = np.abs(qx)
+    factor = np.zeros_like(qx)
     for t in self._topographies:
-        # TODO: adapt to 2D topographies
         t = t.to_unit(unit)
 
-        qmax = np.pi / t.pixel_size[0]
+        qxmax = np.pi / t.pixel_size[0]
         short_cutoff = t.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
 
-            qmax = min(2 * np.pi / short_cutoff, qmax)
+            qxmax = min(2 * np.pi / short_cutoff, qxmax)
 
 
         factor += np.logical_and(
-            q >= 2 * np.pi / t.physical_sizes[0],
-            q <= qmax,
+            qx >= 2 * np.pi / t.physical_sizes[0],
+            qx <= qxmax,
         )
-    # All topographies have q == 0 wavevector
-    factor = np.where(q==0, len(self._topographies), factor)
+    # All topographies have qx == 0 wavevector
+    factor = np.where(qx == 0, len(self._topographies), factor)
     return factor
 
 
-def integrate_psd(self, factor, unit, window=None, reliable=True):
+def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     integ = 0
     for t in self._topographies:
         t = t.to_unit(unit)
-        integ += t.integrate_psd(lambda q: factor(q) / _bandwidth_count(self, q, unit, reliable),
+        integ += t.integrate_psd_from_profile(lambda qx,: factor(qx) / _bandwidth_count_from_profile(self, qx, unit, reliable),
                                  window=window, reliable=reliable)
 
     return integ
@@ -88,4 +88,4 @@ def c1d_moment(c, order=1, cumulative=False, **kwargs):
 
 SurfaceContainer.register_function("ciso_moment", ciso_moment)
 SurfaceContainer.register_function("c1d_moment", c1d_moment)
-SurfaceContainer.register_function("integrate_psd", integrate_psd)
+SurfaceContainer.register_function("integrate_psd_from_profile", integrate_psd_from_profile)

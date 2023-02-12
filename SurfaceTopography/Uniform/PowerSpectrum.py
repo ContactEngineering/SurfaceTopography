@@ -283,6 +283,48 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     except TypeError:
         return np.sum(C_raw * factor(q)) / np.prod(self.physical_sizes)
 
+def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=True, ):
+    """
+
+    factor: function
+        Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)
+
+        or the two components of the wavevector qx and qy
+
+        # TODO: In future we might want to allow for giving
+    """
+    if self.has_undefined_data:
+        raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
+                                 'computed for topographies with missing data points.')
+
+    h = self.window(window).heights()
+
+    sx = self.physical_sizes[0]
+    nx = self.nb_grid_pts[0]
+
+    fourier_topography = sx / nx * np.fft.fftn(h)
+
+    # This is the raw power spectral density
+    C_raw = (np.abs(fourier_topography) ** 2) / sx
+    q = self.wavevectors_norm2()
+
+
+    # Only keep reliable data
+    short_cutoff = self.short_reliability_cutoff() if reliable else None
+    if short_cutoff is not None:
+        mask = q < 2 * np.pi / short_cutoff
+        if mask.sum() <= 1:  # There is always q=0 in there
+            raise NoReliableDataError('Dataset contains no reliable data.')
+        C_raw = C_raw[mask]
+
+    if self.dim==2:
+        qx, qy = self.fftfreq()
+        return np.sum(C_raw * factor(qx)) / sx / self.nb_grid_pts[1]
+
+    else:
+        qx = self.fftfreq()
+        return np.sum(C_raw * factor(qx)) / sx
+
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
     return integrate_psd(self, lambda q: q ** order, window=None, reliable=True, )
@@ -294,5 +336,5 @@ UniformTopographyInterface.register_function('power_spectrum_from_area', power_s
 
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
 UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
-
+UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile)
 
