@@ -203,9 +203,9 @@ def test_integrate_psd_different_bandwidths(seed):
     long_cutoff = sx / 64
     unit = "m"
 
-    t_varh_ciso = 0
-    t_varhp_ciso = 0
-    t_varhpp_ciso = 0
+    t_varh_c1d = []
+    t_varhp_c1d = []
+    t_varhpp_c1d = []
 
     # reference a large scan encompassing the whole PSD
     # need to average the results to get rid of the fluctuations
@@ -216,14 +216,21 @@ def test_integrate_psd_different_bandwidths(seed):
                               long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center")
 
         # Moments from full integration of the 2D spectrum of the large topopography
-        t_varh_ciso += t.moment_power_spectrum(order=0, )
-        t_varhp_ciso += t.moment_power_spectrum(order=2, )
-        t_varhpp_ciso += t.moment_power_spectrum(order=4, )
+        t_varh_c1d += [t.moment_power_spectrum(order=0, )]
+        t_varhp_c1d += [t.moment_power_spectrum(order=2, )]
+        t_varhpp_c1d += [t.moment_power_spectrum(order=4, )]
 
-    t_varh_ciso /= n_av
-    t_varhp_ciso /= n_av
-    t_varhpp_ciso /= n_av
+    t_varh_c1d_var = np.var(t_varh_c1d)
+    t_varhp_c1d_var = np.var(t_varhp_c1d)
+    t_varhpp_c1d_var = np.var(t_varhpp_c1d)
 
+    t_varh_c1d_mean = np.mean(t_varh_c1d)
+    t_varhp_c1d_mean = np.mean(t_varhp_c1d)
+    t_varhpp_c1d_mean = np.mean(t_varhpp_c1d)
+
+    print("relative fluctuations of var h", np.sqrt(t_varh_c1d_var) / t_varh_c1d_mean)
+    print("relative fluctuations of var hp", np.sqrt(t_varhp_c1d_var) / t_varhp_c1d_mean)
+    print("relative fluctuations of var hpp", np.sqrt(t_varhpp_c1d_var) / t_varhpp_c1d_mean)
     # create smaller topographies with same nominal PSD
 
     ts = []
@@ -265,11 +272,11 @@ def test_integrate_psd_different_bandwidths(seed):
         plt.show(block=True)
     # Moment of the isotropic PSD computed from the 1D power spectrum
 
-    c_varh_ciso = c.integrate_psd(factor=lambda q: 1, unit=unit)
-    c_varhp_ciso = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
-    c_varhpp_ciso = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
+    c_varh_c1d = c.integrate_psd(factor=lambda q: 1, unit=unit)
+    c_varhp_c1d = c.integrate_psd(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_c1d = c.integrate_psd(factor=lambda q: q ** 4, unit=unit, )
 
-    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 0.1
-    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 0.1
-    assert abs(1 - c_varh_ciso / t_varh_ciso) < 0.1
-    # This means that the resampling procedure is not super precise for the integration
+    assert abs(1 - c_varhp_c1d / t_varhp_c1d_mean) < 0.1
+    assert abs(1 - c_varhpp_c1d / t_varhpp_c1d_mean) < 0.1
+    assert abs(1 - c_varh_c1d / t_varh_c1d_mean) < 0.1
+    # The tolerance is not that small but it is understandable since t_varhp_c1d still has a nonneglidgible variance.
