@@ -16,9 +16,7 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
         qxmax = np.pi / t.pixel_size[0]
         short_cutoff = t.short_reliability_cutoff() if reliable else None
         if short_cutoff is not None:
-
             qxmax = min(2 * np.pi / short_cutoff, qxmax)
-
 
         factor += np.logical_and(
             qx >= 2 * np.pi / t.physical_sizes[0],
@@ -31,12 +29,19 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
 def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     integ = 0
+
+    def average(qx):
+        count = _bandwidth_count_from_profile(self, qx, unit, reliable)
+        return np.where(count > 0, factor(qx) / count, 0)
+
     for t in self._topographies:
         t = t.to_unit(unit)
-        integ += t.integrate_psd_from_profile(lambda qx,: factor(qx) / _bandwidth_count_from_profile(self, qx, unit, reliable),
-                                 window=window, reliable=reliable)
+
+        integ += t.integrate_psd_from_profile(average,
+                                              window=window, reliable=reliable)
 
     return integ
+
 
 def ciso_moment(c, order=1, cumulative=False, **kwargs):
     """

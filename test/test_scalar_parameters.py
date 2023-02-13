@@ -32,8 +32,11 @@ import numpy as np
 from NuMPI import MPI
 from muFFT import FFT
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography
+from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, SurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
+
+# import necessary to get tip artefact emulation function
+import ContactMechanics  # noqa: F401
 
 
 def sinewave2D(comm=None):
@@ -343,9 +346,144 @@ def test_integrate_psd_from_profile_2d(nb_grid_pts, physical_sizes):
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
 
-def test_moment_2d_reliable():
-    pass
+@pytest.mark.parametrize("seed", range(4))
+def test_integrate_psd_remove_tip_artefacts_profile(seed):
+    """
+    Makes sure that the tip radius removal is actually applied when integrating the psd
 
+    Also tests that it is still applied when the topography is inside a container.
+    """
+    np.random.seed(seed)
+    unit = "m"
+    nx = 16384
+    sx = 1
 
-def test_moment_1d_reliable():
-    pass
+    t = fourier_synthesis((nx,), (sx,), hurst=0.8, rms_slope=0.1, short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 4, unit=unit).detrend(detrend_mode="center")
+
+    R = 1 / t.rms_curvature_from_profile() * 10
+
+    t_artefacted = t.scan_with_rigid_sphere(R)
+
+    plot = False
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.plot(*t.positions_and_heights(), c="k")
+        ax.plot(*t_artefacted.positions_and_heights(), c="cyan")
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+
+        def func(dx, dy=None):
+            return -np.min(dx)
+
+        l, c = t.scale_dependent_statistical_property(
+            n=2, func=func, reliable=True)
+        ax.loglog(l, c, "+k", label="original")
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            l, c = t_artefacted.scale_dependent_statistical_property(
+                n=2, func=func, reliable=reliable)
+            ax.loglog(l, c, ".", c=color, label=label)
+
+        ax.legend()
+
+        ax.axhline(1 / R)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*t.power_spectrum_from_profile(resampling_method=None), "+k", label="original")
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.power_spectrum_from_profile(reliable=reliable, resampling_method=None), ".",
+                      c=color, label=label)
+        ax.legend()
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*t.autocorrelation_from_profile(resampling_method=None), "+k", label="original")
+
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.autocorrelation_from_profile(reliable=reliable, resampling_method=None), ".",
+                      c=color, label=label)
+        ax.legend()
+
+    hrms_r = [t.rms_height_from_profile(), t.rms_slope_from_profile(), t.rms_curvature_from_profile()]
+    # hrms_artefacted = [t_artefacted.rms_slope_from_profile(),
+    #                    t_artefacted.rms_slope_from_profile(),
+    #                    t_artefacted.rms_curvature_from_profile()]
+
+    hrms_tip_artefacts_removed = [
+        np.max(t_artefacted.autocorrelation_from_profile(reliable=True, resampling_method=None)[1]),
+        np.max(t_artefacted.scale_dependent_slope_from_profile(reliable=True, resampling_method=None)[1]),
+        np.max(t_artefacted.scale_dependent_curvature_from_profile(reliable=True, resampling_method=None)[1]),
+    ]
+
+    # dx = sx / nx
+    # hrms_ffd_unreliable, hrms_ffd_reliable = [
+    #     [
+    #         np.sqrt(t_artefacted.integrate_psd_from_profile(fun, reliable=reliable)) for fun in [
+    #         lambda qx: 1,
+    #         lambda qx: np.abs((np.exp(1j * qx * dx) - 1) / dx) ** 2,
+    #         lambda qx: np.abs((np.exp(1j * qx * dx) - 2 + np.exp(-1j * qx * dx)) / dx ** 2) ** 2
+    #     ]
+    #     ] for reliable in [False, True]
+    #
+    # ]
+
+    hrms_f_unreliable, hrms_f_reliable = [
+        [
+            np.sqrt(t_artefacted.integrate_psd_from_profile(fun, reliable=reliable)) for fun in [
+            lambda qx: 1,
+            lambda qx: qx ** 2,
+            lambda qx: qx ** 4
+        ]
+        ] for reliable in [False, True]
+    ]
+
+    c_artefacted = SurfaceContainer([t_artefacted, ])
+    c_hrms_f_unreliable, c_hrms_f_reliable = [
+        [
+            np.sqrt(c_artefacted.integrate_psd_from_profile(fun, reliable=reliable, unit=unit)) for fun in [
+            lambda qx: 1,
+            lambda qx: qx ** 2,
+            lambda qx: qx ** 4
+        ]
+        ] for reliable in [False, True]
+    ]
+
+    assert c_hrms_f_unreliable == hrms_f_unreliable
+    assert c_hrms_f_reliable == hrms_f_reliable
+
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*t.scale_dependent_curvature_from_profile(resampling_method=None), "+k", label="original")
+
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.scale_dependent_curvature_from_profile(reliable=reliable, resampling_method=None),
+                      ".", c=color, label=label)
+        ax.axhline(hrms_f_unreliable[2])
+        ax.axhline(hrms_f_reliable[2])
+
+        ax.legend()
+        plt.show(block=True)
+
+    for derivative in [1, 2]:
+        assert hrms_f_unreliable[derivative] < hrms_r[derivative]
+
+    for derivative in [0, 1, 2]:
+        assert hrms_f_reliable[derivative] < hrms_f_unreliable[derivative]
+
+    # Makes sure there is a significant difference by removing tip artefacts, so we are doing a meaningful test
+    assert hrms_r[1] / hrms_tip_artefacts_removed[1] > 1.5
+    # now we test that we indeed removed the tip artefacts when integrating the PSD
+    assert abs(hrms_f_reliable[1] / hrms_tip_artefacts_removed[1] - 1) < 0.2
+
+    # Makes sure there is a significant difference by removing tip artefacts, so we are doing a meaningful test
+    assert hrms_r[2] / hrms_tip_artefacts_removed[2] > 4
+    # now we test that we indeed removed the tip artefacts when integrating the PSD
+    assert abs(hrms_f_reliable[2] / hrms_tip_artefacts_removed[2] - 1) < 0.2

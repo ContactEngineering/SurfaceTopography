@@ -275,7 +275,7 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
         mask = q < 2 * np.pi / short_cutoff
         if mask.sum() <= 1:  # There is always q=0 in there
             raise NoReliableDataError('Dataset contains no reliable data.')
-        C_raw = C_raw[mask]
+        C_raw = C_raw * mask
 
     qvec = self.fftfreq()
     try:
@@ -315,7 +315,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
         mask = q < 2 * np.pi / short_cutoff
         if mask.sum() <= 1:  # There is always q=0 in there
             raise NoReliableDataError('Dataset contains no reliable data.')
-        C_raw = C_raw[mask]
+        C_raw = C_raw * mask
 
     if self.dim==2:
         qx, qy = self.fftfreq()

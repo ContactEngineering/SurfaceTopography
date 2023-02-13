@@ -63,6 +63,7 @@ uniform_functions = [
     "mirror_stitch",
     "shortcut",
     "window",
+    "integrate_psd_from_profile",
 ]
 
 nonuniform_functions = [
@@ -91,6 +92,7 @@ area_functions = [
     "power_spectrum_from_area",
     "power_spectrum_from_profile",
     "to_dzi",
+    "integrate_psd"
 ]
 
 functions = common_functions + uniform_functions + nonuniform_functions + profile_functions + area_functions

@@ -403,3 +403,37 @@ def test_integrate_psd_different_bandwidths_2d(seed):
     assert h_error < 0.15  # h has relatively large errors because it contains not that many wavevectors and fluctuates a lot
     assert hp_error < 0.05
     assert hpp_error < 0.05
+
+
+@pytest.mark.parametrize("seed", range(3))
+def test_integrate_psd_different_units(seed):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024
+
+    unit = "m"
+
+    t = fourier_synthesis((nx,), physical_sizes=(sx,), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
+
+    t2 = fourier_synthesis((nx // 2,), physical_sizes=(sx / 3,), hurst=0.8, rms_height=1,
+                           short_cutoff=4 * (sx / nx),
+                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    cref = SurfaceContainer([t] * 2 + [t2])
+    cref_varh_ciso = cref.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    cref_varhp_ciso = cref.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    cref_varhpp_ciso = cref.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t, t.to_unit("µm"), ] + [t2])
+    c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
+
+    assert abs(1 - c_varhp_ciso / cref_varhp_ciso) < 1e-10
+    assert abs(1 - c_varhpp_ciso / cref_varhpp_ciso) < 1e-10
+    assert abs(1 - c_varh_ciso / cref_varh_ciso) < 1e-10
+    # This means that the resampling procedure is not super precise for the integration
