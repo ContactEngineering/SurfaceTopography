@@ -437,10 +437,10 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
     hrms_f_unreliable, hrms_f_reliable = [
         [
             np.sqrt(t_artefacted.integrate_psd_from_profile(fun, reliable=reliable)) for fun in [
-            lambda qx: 1,
-            lambda qx: qx ** 2,
-            lambda qx: qx ** 4
-        ]
+                lambda qx: 1,
+                lambda qx: qx ** 2,
+                lambda qx: qx ** 4
+            ]
         ] for reliable in [False, True]
     ]
 
@@ -448,10 +448,10 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
     c_hrms_f_unreliable, c_hrms_f_reliable = [
         [
             np.sqrt(c_artefacted.integrate_psd_from_profile(fun, reliable=reliable, unit=unit)) for fun in [
-            lambda qx: 1,
-            lambda qx: qx ** 2,
-            lambda qx: qx ** 4
-        ]
+                lambda qx: 1,
+                lambda qx: qx ** 2,
+                lambda qx: qx ** 4
+            ]
         ] for reliable in [False, True]
     ]
 
