@@ -196,7 +196,7 @@ def test_bandwidth_count():
 
 
 @pytest.mark.parametrize("seed", range(10))
-def test_integrate_psd_different_bandwidths(seed):
+def test_integrate_psd_different_bandwidths_profiles(seed):
     np.random.seed(seed)
     sx = 2
     nx = 1024 * 16
@@ -270,7 +270,6 @@ def test_integrate_psd_different_bandwidths(seed):
         ax.plot(q, _bandwidth_count_from_profile(c, q, unit, ))
         ax.set_xscale("log")
         plt.show(block=True)
-    # Moment of the isotropic PSD computed from the 1D power spectrum
 
     c_varh_c1d = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     c_varhp_c1d = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
@@ -280,3 +279,127 @@ def test_integrate_psd_different_bandwidths(seed):
     assert abs(1 - c_varhpp_c1d / t_varhpp_c1d_mean) < 0.1
     assert abs(1 - c_varh_c1d / t_varh_c1d_mean) < 0.1
     # The tolerance is not that small but it is understandable since t_varhp_c1d still has a nonneglidgible variance.
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_integrate_psd_from_profile_2d_container_vs_topography(seed):
+    np.random.seed(seed)
+    sx, sy = (2, 1)
+    nx, ny = (1024, 675)
+
+    unit = "m"
+    t = fourier_synthesis((nx, ny), physical_sizes=(sx, sy), hurst=0.8, rms_height=1,
+                          short_cutoff=4 * max(sx / nx, sy / ny),
+                          long_cutoff=min(sx, sy) / 8, unit=unit).detrend(detrend_mode="center")
+
+    # Moment of the isotropic PSD computed from the 1D power spectrum
+    c = SurfaceContainer([t, ])
+    c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
+
+    # Moments from full integration of the 2D spectrum of the topopography
+    t_varh_ciso = t.integrate_psd_from_profile(factor=lambda q: 1)
+    t_varhp_ciso = t.integrate_psd_from_profile(factor=lambda q: q ** 2, )
+    t_varhpp_ciso = t.integrate_psd_from_profile(factor=lambda q: q ** 4, )
+
+    assert abs(1 - c_varhp_ciso / t_varhp_ciso) < 1e-10
+    assert abs(1 - c_varhpp_ciso / t_varhpp_ciso) < 1e-10
+    assert abs(1 - c_varh_ciso / t_varh_ciso) < 1e-10
+
+
+@pytest.mark.parametrize("seed", range(3))
+def test_integrate_psd_different_bandwidths_2d(seed):
+    np.random.seed(seed)
+    sx = 2
+    nx = 1024 * 4
+    long_cutoff = sx / 64
+    unit = "m"
+
+    t_varh_c1d = []
+    t_varhp_c1d = []
+    t_varhpp_c1d = []
+
+    # reference a large scan encompassing the whole PSD
+    # need to average the results to get rid of the fluctuations
+    n_av = 4
+    for i in range(n_av):
+        t = fourier_synthesis((nx, nx), physical_sizes=(sx, sx), hurst=0.8, c0=1,
+                              short_cutoff=4 * (sx / nx),
+                              long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center")
+
+        # Moments from full integration of the 2D spectrum of the large topopography
+        t_varh_c1d += [t.integrate_psd_from_profile(factor=lambda q: 1)]
+        t_varhp_c1d += [t.integrate_psd_from_profile(factor=lambda q: q ** 2, )]
+        t_varhpp_c1d += [t.integrate_psd_from_profile(factor=lambda q: q ** 4, )]
+
+    t_varh_c1d_var = np.var(t_varh_c1d)
+    t_varhp_c1d_var = np.var(t_varhp_c1d)
+    t_varhpp_c1d_var = np.var(t_varhpp_c1d)
+
+    t_varh_c1d_mean = np.mean(t_varh_c1d)
+    t_varhp_c1d_mean = np.mean(t_varhp_c1d)
+    t_varhpp_c1d_mean = np.mean(t_varhpp_c1d)
+
+    print("relative fluctuations of var h", np.sqrt(t_varh_c1d_var) / t_varh_c1d_mean)
+    print("relative fluctuations of var hp", np.sqrt(t_varhp_c1d_var) / t_varhp_c1d_mean)
+    print("relative fluctuations of var hpp", np.sqrt(t_varhpp_c1d_var) / t_varhpp_c1d_mean)
+    # create smaller topographies with same nominal PSD
+
+    ts = []
+    for i in range(3):
+        ts += [fourier_synthesis((1024, 1024), physical_sizes=(sx, sx), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((512, 512), physical_sizes=(sx, sx), hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((2048, 2048), physical_sizes=(sx,) * 2, hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((1024, 1024), physical_sizes=(sx / 4,) * 2, hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((512, 512), physical_sizes=(sx / 8,) * 2, hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((128, 128), physical_sizes=(sx / 32,) * 2, hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               fourier_synthesis((128, 128), physical_sizes=(sx / 25,) * 2, hurst=0.8, c0=1,
+                                 short_cutoff=4 * (sx / nx),
+                                 long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
+               ]
+
+    c = SurfaceContainer(ts)
+    if False:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.power_spectrum_from_profile(), "k")
+
+        for _t in c._topographies:
+            ax.loglog(*_t.power_spectrum_from_profile())
+
+        fig, ax = plt.subplots()
+        q = np.logspace(np.log(2 * np.pi / sx), np.log(np.pi / (sx / nx)))
+        ax.plot(q, _bandwidth_count_from_profile(c, q, unit, ))
+        ax.set_xscale("log")
+        plt.show(block=True)
+
+    c_varh_c1d = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
+    c_varhp_c1d = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
+    c_varhpp_c1d = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
+
+    h_error = abs(1 - c_varh_c1d / t_varh_c1d_mean)
+    hp_error = abs(1 - c_varhp_c1d / t_varhp_c1d_mean)
+    hpp_error = abs(1 - c_varhpp_c1d / t_varhpp_c1d_mean)
+
+    print("var h relative error", h_error)
+    print("var hp relative error", hp_error)
+    print("var hpp relative error", hpp_error)
+
+    # The tolerance is not that small but it is understandable since t_varhp_c1d still has a nonneglidgible variance.
+    assert h_error < 0.15  # h has relatively large errors because it contains not that many wavevectors and fluctuates a lot
+    assert hp_error < 0.05
+    assert hpp_error < 0.05

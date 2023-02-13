@@ -302,7 +302,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     sx = self.physical_sizes[0]
     nx = self.nb_grid_pts[0]
 
-    fourier_topography = sx / nx * np.fft.fftn(h)
+    fourier_topography = sx / nx * np.fft.fft(h, axis=0)
 
     # This is the raw power spectral density
     C_raw = (np.abs(fourier_topography) ** 2) / sx

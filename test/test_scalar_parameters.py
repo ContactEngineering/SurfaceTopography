@@ -317,6 +317,32 @@ def test_moment_0_2d(nb_grid_pts, physical_sizes):
     hrms_f = np.sqrt(t.integrate_psd(lambda qx, qy: 1))
     assert abs(1 - hrms_r / hrms_f) < 0.001
 
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255)))
+@pytest.mark.parametrize("physical_sizes", ((1, 1), (1, 2)))
+def test_integrate_psd_from_profile_2d(nb_grid_pts, physical_sizes):
+    sx, sy = physical_sizes
+    nx, ny = nb_grid_pts
+    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 4).detrend(detrend_mode="center")
+    hrms_r = t.rms_height_from_area()
+    hrms_f = np.sqrt(t.integrate_psd_from_profile(lambda qx: 1))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
+
+    hrms_r = t.rms_slope_from_profile()
+    dx = sx / nx
+    #                     finite difference stencil in fourier space   -v
+    hrms_f = np.sqrt(t.integrate_psd_from_profile(lambda qx: np.abs((np.exp(1j * qx * dx) - 1) / dx) ** 2))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
+
+    hrms_f = np.sqrt(t.integrate_psd(lambda qx, qy: np.abs((np.exp(1j * qx * dx) - 1) / dx) ** 2))
+    assert abs(1 - hrms_r / hrms_f) < 0.001
+
+
 def test_moment_2d_reliable():
     pass
 
