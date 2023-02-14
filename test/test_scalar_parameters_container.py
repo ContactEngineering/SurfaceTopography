@@ -523,10 +523,6 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
         ]
     ]
 
-    hrms_f
-
-    c_hrms_f
-
     np.testing.assert_allclose(hrms_f, c_hrms_f, rtol=0.2)
 
     # %%
