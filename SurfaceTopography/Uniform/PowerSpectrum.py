@@ -246,7 +246,6 @@ UniformTopographyInterface.register_function("fftfreq", fftfreq)
 UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_norm2)
 
 
-
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     """
 
@@ -283,6 +282,7 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     except TypeError:
         return np.sum(C_raw * factor(q)) / np.prod(self.physical_sizes)
 
+
 def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=True, ):
     """
 
@@ -308,7 +308,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
     C_raw = (np.abs(fourier_topography) ** 2) / sx
 
     # Short reliability cutoff on the 1D PSDs
-    if self.dim==2:
+    if self.dim == 2:
         qx, qy = self.fftfreq()
         # note that qy is meaningless here since we didn't fourier transform along the y direction.
     else:
@@ -339,4 +339,3 @@ UniformTopographyInterface.register_function('power_spectrum_from_area', power_s
 UniformTopographyInterface.register_function('moment_power_spectrum', moment_power_spectrum)
 UniformTopographyInterface.register_function('integrate_psd', integrate_psd)
 UniformTopographyInterface.register_function('integrate_psd_from_profile', integrate_psd_from_profile)
-

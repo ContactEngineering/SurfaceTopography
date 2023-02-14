@@ -46,7 +46,9 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 def ciso_moment(c, order=1, cumulative=False, **kwargs):
     """
 
-    Computes
+    trapz integration of the moments of the averaged PSD.
+
+    This
 
     Containers only implement the 1D power-spectrum, so that we use the approximation
 
