@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from SurfaceTopography import read_container, SurfaceContainer
+from SurfaceTopography import read_container, SurfaceContainer, Topography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Container.Moments import _bandwidth_count_from_profile
 
@@ -437,3 +437,98 @@ def test_integrate_psd_different_units(seed):
     assert abs(1 - c_varhpp_ciso / cref_varhpp_ciso) < 1e-10
     assert abs(1 - c_varh_ciso / cref_varh_ciso) < 1e-10
     # This means that the resampling procedure is not super precise for the integration
+
+@pytest.mark.parametrize("seed", range(5))
+def test_integrate_psd_from_non_periodic_subsections(seed):
+    """
+    Sample subsection of a topography and put them together in a container.
+    Make sure that the result is close to the original full topography
+    """
+    np.random.seed(seed)
+    sx, sy = 0.512, 0.512
+    nx, ny = 1024, 1024
+    unit = "µm"
+    t = fourier_synthesis((nx, ny ), physical_sizes=(sx, sy), hurst=0.8, rms_height=1e-3,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 4).detrend(detrend_mode="center")
+
+
+
+    topographies = [Topography(t.heights()[::8, ::8],
+                               t.physical_sizes, periodic=True, unit=unit, ), ]
+    plot = False
+    if plot:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.loglog(*t.power_spectrum_from_profile(resampling_method=None), c="gray")
+        ax.set_ylim(bottom=1e-15)
+        def show():
+            ax.loglog(*topographies[-1].power_spectrum_from_profile(reliable=True, resampling_method=None), ".", )
+            plt.pause(0.5)
+    nx, ny = t.nb_grid_pts
+    sx, sy = t.physical_sizes
+
+    topographies.append(Topography(t.heights()[:nx // 4:2, :nx // 8:2],
+                                   (sx / 4, sx / 8), periodic=False, unit=unit))
+
+    show()
+
+    start = 46
+    length_fac = 8
+    topographies.append(UniformLineScan(
+        t.heights()[start:start + nx // length_fac, 256],
+        sx / length_fac, periodic=False, unit=unit, ).detrend())
+    show()
+
+
+    start = 124
+    length_fac = 8
+    samplefac = 4
+    topographies.append(UniformLineScan(
+        t.heights()[start:start + nx // length_fac:samplefac, 1000],
+        sx / length_fac, periodic=False, unit=unit).detrend())
+
+    show()
+
+    start = 376
+    length_fac = 8
+    topographies.append(UniformLineScan(
+        t.heights()[start:start + nx // length_fac, 945],
+        sx / length_fac, periodic=False, unit=unit, ).detrend())
+
+    show()
+
+    dx = sx / nx
+    length = 900
+    start = 4
+    topographies.append(UniformLineScan(
+        t.heights()[start:start + length, 900],
+        dx * length, periodic=False, unit=unit, ).detrend())
+    show()
+
+    c = SurfaceContainer(topographies)
+
+    hrms_f = [
+        np.sqrt(t.integrate_psd_from_profile(fun)) for fun in [
+            lambda qx: 1,
+            lambda qx: qx ** 2,
+            lambda qx: qx ** 4
+        ]
+    ]
+
+    c_hrms_f = [
+        np.sqrt(c.integrate_psd_from_profile(fun, unit=unit)) for fun in [
+            lambda qx: 1,
+            lambda qx: qx ** 2,
+            lambda qx: qx ** 4
+        ]
+    ]
+
+    hrms_f
+
+    c_hrms_f
+
+    np.testing.assert_allclose(hrms_f, c_hrms_f, rtol=0.2)
+
+    # %%
+
