@@ -306,28 +306,30 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
     # This is the raw power spectral density
     C_raw = (np.abs(fourier_topography) ** 2) / sx
-    q = self.wavevectors_norm2()
 
+    # Short reliability cutoff on the 1D PSDs
+    if self.dim==2:
+        qx, qy = self.fftfreq()
+        # note that qy is meaningless here since we didn't fourier transform along the y direction.
+    else:
+        qx = self.fftfreq()
 
     # Only keep reliable data
     short_cutoff = self.short_reliability_cutoff() if reliable else None
     if short_cutoff is not None:
-        mask = q < 2 * np.pi / short_cutoff
+        mask = abs(qx) < 2 * np.pi / short_cutoff
         if mask.sum() <= 1:  # There is always q=0 in there
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw * mask
 
-    if self.dim==2:
-        qx, qy = self.fftfreq()
+    if self.dim == 2:
         return np.sum(C_raw * factor(qx)) / sx / self.nb_grid_pts[1]
-
     else:
-        qx = self.fftfreq()
         return np.sum(C_raw * factor(qx)) / sx
 
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
-    return integrate_psd(self, lambda q: q ** order, window=None, reliable=True, )
+    return integrate_psd(self, lambda q: q ** order, window=window, reliable=reliable, )
 
 
 # Register analysis functions from this module

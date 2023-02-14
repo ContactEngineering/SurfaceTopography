@@ -32,7 +32,8 @@ import numpy as np
 from NuMPI import MPI
 from muFFT import FFT
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, SurfaceContainer
+from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, SurfaceContainer, \
+    read_published_container
 from SurfaceTopography.Generation import fourier_synthesis
 
 # import necessary to get tip artefact emulation function
@@ -487,3 +488,182 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
     assert hrms_r[2] / hrms_tip_artefacts_removed[2] > 4
     # now we test that we indeed removed the tip artefacts when integrating the PSD
     assert abs(hrms_f_reliable[2] / hrms_tip_artefacts_removed[2] - 1) < 0.2
+
+
+def test_integrate_psd_from_profile_remove_tip_artefacts_areal_scan():
+
+    data_container = read_published_container("https://doi.org/10.57703/ce-v9qwe")[0]
+
+    for i in [0, 1]: # workaround for wrong height scale factor
+        data_container._topographies[i] = data_container._topographies[i].scale(1e-3).squeeze()
+        assert data_container._topographies[i].rms_height_from_area() < 0.01
+        assert data_container._topographies[i].rms_height_from_area() > 0.0005
+
+    # workaround for tip radius not specified
+    data_container._topographies[1]._info.update(dict(instrument=dict(name="Scanning rigid sphere simulation",
+                                                                      parameters=dict(
+                                                                          tip_radius=dict(value=40, unit="nm")))))
+
+    # %% tags=[]
+    plot = False
+    if plot:
+        import matplotlib.pyplot as plt
+
+        data_container._topographies[0].plot()
+
+        # %%
+        data_container._topographies[1].plot()
+
+        # %%
+
+        plt.plot(np.concatenate([data_container._topographies[1].heights()[0, :]] * 2))
+        plt.plot(np.concatenate([data_container._topographies[0].heights()[0, :]] * 2))
+        ax = plt.gca()
+
+        # %%
+
+        ax.set_xlim(1000, 1100)
+        ax.figure
+
+        # %% [markdown]
+        # The two plot seem to be indeed perfectly periodic
+
+    # %%
+    t = t_original = data_container._topographies[0]
+    t_artefacted = data_container._topographies[1]
+
+    # %%
+    if plot:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        def func(dx, dy=None):
+            return -np.min(dx)
+
+
+        l, c = t.scale_dependent_statistical_property(
+            n=2, func=func, reliable=True)
+        ax.loglog(l, c, "+k", label="original")
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            l, c = t_artefacted.scale_dependent_statistical_property(
+                n=2, func=func, reliable=reliable)
+            ax.loglog(l, c, ".", c=color, label=label)
+
+        ax.legend()
+        # When the topographies are well interpolated
+        # below the short cutoff the scanned topography
+        # has a higher rms height because of the
+        # cusps introdyced by the tip artefacts
+
+    # %%
+    if plot:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.power_spectrum_from_profile(resampling_method=None), "+k", label="original")
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.power_spectrum_from_profile(reliable=reliable, resampling_method=None), ".", c=color,
+                      label=label)
+        ax.legend()
+
+    # %%
+    if plot:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.scale_dependent_slope_from_profile(resampling_method=None), "+k", label="original")
+
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.scale_dependent_slope_from_profile(reliable=reliable, resampling_method=None), ".",
+                      c=color, label=label)
+        ax.legend()
+
+    # %%
+    if plot:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.scale_dependent_curvature_from_profile(resampling_method=None), "+k", label="original")
+
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.scale_dependent_curvature_from_profile(reliable=reliable, resampling_method=None), ".",
+                      c=color, label=label)
+        ax.legend()
+
+    # %%
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        ax.loglog(*t.autocorrelation_from_profile(resampling_method=None), "+k", label="original")
+
+        for reliable, color, label in [[False, "cyan", "scanned all"], [True, "k", "scann reliable"]]:
+            ax.loglog(*t_artefacted.autocorrelation_from_profile(reliable=reliable, resampling_method=None), ".", c=color,
+                      label=label)
+        ax.legend()
+
+    if plot:
+        plt.show()
+    # %%
+    hrms_r = [t.rms_height_from_area(), t.rms_slope_from_profile(), t.rms_curvature_from_area()]
+
+    # %%
+    hrms_artefacted = [t_artefacted.rms_height_from_area(),
+                       t_artefacted.rms_gradient() / np.sqrt(2),
+                       t_artefacted.rms_curvature_from_area()]
+
+    hrms_tip_artefacts_removed = [
+        np.max(t_artefacted.autocorrelation_from_profile(reliable=True, resampling_method=None)[1]),
+        np.max(t_artefacted.scale_dependent_slope_from_profile(reliable=True, resampling_method=None)[1]),
+        np.max(t_artefacted.scale_dependent_curvature_from_profile(reliable=True, resampling_method=None)[1]),
+    ]
+
+    hrms_f_unreliable, hrms_f_reliable = [
+        [
+            np.sqrt(t_artefacted.integrate_psd_from_profile(fun, reliable=reliable)) for fun in [
+            lambda qx: 1,
+            lambda qx: qx ** 2,
+            lambda qx: qx ** 4
+        ]
+        ] for reliable in [False, True]
+    ]
+
+    for derivative in [0, 1]:
+        assert hrms_f_unreliable[derivative] < hrms_r[derivative]
+
+    for derivative in [0, 1]:
+        assert hrms_f_reliable[derivative] < hrms_f_unreliable[derivative]
+
+    # Because of the well resolved cusps introduced by the tip artefacts
+    assert hrms_f_reliable[2] < hrms_f_unreliable[2]
+
+    # %%
+    # Makes sure there is a significant difference by removing tip artefacts, so we are doing a meaningful test
+    assert hrms_r[1] / hrms_tip_artefacts_removed[1] > 1.5
+    # now we test that we indeed removed the tip artefacts when integrating the PSD
+    assert abs(hrms_f_reliable[1] / hrms_tip_artefacts_removed[1] - 1) < 0.2
+
+
+    # Makes sure there is a significant difference by removing tip artefacts, so we are doing a meaningful test
+    assert hrms_r[2] / hrms_tip_artefacts_removed[2] > 4
+    # now we test that we indeed removed the tip artefacts when integrating the PSD,
+    # i.e. that reliable PSD integration is approx equivalent to reliable SDRPs
+    assert abs(hrms_f_reliable[2] / hrms_tip_artefacts_removed[2] - 1) < 0.2
+
+
+    # Assert the container gives the same results:
+    c_artefacted = SurfaceContainer([t_artefacted, ])
+    c_hrms_f_unreliable, c_hrms_f_reliable = [
+        [
+            np.sqrt(c_artefacted.integrate_psd_from_profile(fun, reliable=reliable, unit=t_artefacted.unit)) for fun in [
+                lambda qx: 1,
+                lambda qx: qx ** 2,
+                lambda qx: qx ** 4
+            ]
+        ] for reliable in [False, True]
+    ]
+
+    np.testing.assert_allclose(c_hrms_f_unreliable, hrms_f_unreliable)
+    np.testing.assert_allclose(c_hrms_f_reliable, hrms_f_reliable)
+
