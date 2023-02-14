@@ -400,7 +400,8 @@ def test_integrate_psd_different_bandwidths_2d(seed):
     print("var hpp relative error", hpp_error)
 
     # The tolerance is not that small but it is understandable since t_varhp_c1d still has a nonneglidgible variance.
-    assert h_error < 0.15  # h has relatively large errors because it contains not that many wavevectors and fluctuates a lot
+    assert h_error < 0.15
+    # h has relatively large errors because it contains not that many wavevectors and fluctuates a lot
     assert hp_error < 0.05
     assert hpp_error < 0.05
 

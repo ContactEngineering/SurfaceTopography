@@ -23,4 +23,3 @@ def compute_iso_moment(q, Ciso, order=1, cumulative=False):
     power = order + 1
     integ = scipy.integrate.cumtrapz if cumulative else np.trapz
     return integ(Ciso * q ** power / (2 * np.pi), q)
-    return variance
