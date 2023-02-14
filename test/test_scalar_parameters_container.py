@@ -438,6 +438,7 @@ def test_integrate_psd_different_units(seed):
     assert abs(1 - c_varh_ciso / cref_varh_ciso) < 1e-10
     # This means that the resampling procedure is not super precise for the integration
 
+
 @pytest.mark.parametrize("seed", range(5))
 def test_integrate_psd_from_non_periodic_subsections(seed):
     """
@@ -448,11 +449,9 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
     sx, sy = 0.512, 0.512
     nx, ny = 1024, 1024
     unit = "µm"
-    t = fourier_synthesis((nx, ny ), physical_sizes=(sx, sy), hurst=0.8, rms_height=1e-3,
+    t = fourier_synthesis((nx, ny), physical_sizes=(sx, sy), hurst=0.8, rms_height=1e-3,
                           short_cutoff=4 * (sx / nx),
                           long_cutoff=sx / 4).detrend(detrend_mode="center")
-
-
 
     topographies = [Topography(t.heights()[::8, ::8],
                                t.physical_sizes, periodic=True, unit=unit, ), ]
@@ -462,6 +461,7 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
         fig, ax = plt.subplots()
         ax.loglog(*t.power_spectrum_from_profile(resampling_method=None), c="gray")
         ax.set_ylim(bottom=1e-15)
+
         def show():
             ax.loglog(*topographies[-1].power_spectrum_from_profile(reliable=True, resampling_method=None), ".", )
             plt.pause(0.5)
@@ -479,7 +479,6 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
         t.heights()[start:start + nx // length_fac, 256],
         sx / length_fac, periodic=False, unit=unit, ).detrend())
     show()
-
 
     start = 124
     length_fac = 8
@@ -531,4 +530,3 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
     np.testing.assert_allclose(hrms_f, c_hrms_f, rtol=0.2)
 
     # %%
-
