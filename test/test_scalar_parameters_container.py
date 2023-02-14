@@ -466,6 +466,10 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
         def show():
             ax.loglog(*topographies[-1].power_spectrum_from_profile(reliable=True, resampling_method=None), ".", )
             plt.pause(0.5)
+    else:
+        def show():
+            pass
+
     nx, ny = t.nb_grid_pts
     sx, sy = t.physical_sizes
 
