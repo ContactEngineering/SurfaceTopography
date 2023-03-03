@@ -92,10 +92,10 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
 
         # Acquisition time
         acquisition_time = \
-            datetime.datetime.combine(
+            str(datetime.datetime.combine(
                 datetime.datetime.strptime(metadata['DataSet-Info']['Date'], r"%d-%m-%Y").date(),
                 datetime.datetime.strptime(metadata['DataSet-Info']['Time'], r"%H:%M:%S").time()
-            )
+            ))
 
         # Turn metadata in channel information
         self._channels = []
