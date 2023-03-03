@@ -36,6 +36,7 @@ from .Text import AscReader, XYZReader
 
 # New-style readers
 from .AL3D import AL3DReader
+from .BCR import BCRReader
 from .DI import DIReader
 from .EZD import EZDReader
 from .H5 import H5Reader
@@ -80,6 +81,7 @@ readers = [
     ZONReader,
     AL3DReader,
     EZDReader,
+    BCRReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
