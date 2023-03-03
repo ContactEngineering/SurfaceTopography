@@ -31,7 +31,7 @@ import datetime
 import numpy as np
 
 from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import is_length_unit
 
@@ -64,24 +64,24 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
         # The start of the file is textual with metadata; we need to parse it
         with OpenFromAny(self._file_path, 'rb') as fobj:
             metadata = {}
-            l = fobj.readline()
-            if l == self._MAGIC:
+            line = fobj.readline()
+            if line == self._MAGIC:
                 raise FileFormatMismatch('This is not a NanoSurf easyScan data file')
 
             section_name = 'DataSet'
             section_metadata = {}
             p = fobj.peek(2)
             while p and not p[:len(self._DATA_MAGIC)] == self._DATA_MAGIC:
-                l = fobj.readline().decode('latin-1').strip()
-                if len(l) > 0:
-                    if l.startswith('[') and l.endswith(']'):
+                line = fobj.readline().decode('latin-1').strip()
+                if len(line) > 0:
+                    if line.startswith('[') and line.endswith(']'):
                         # This starts a new section
                         metadata[section_name] = section_metadata
                         # Store new section header
-                        section_name = l[1:-1]
+                        section_name = line[1:-1]
                         section_metadata = {}
                     else:
-                        key, value = l.split('=', 1)
+                        key, value = line.split('=', 1)
                         section_metadata[key] = value
 
                 # Store file position where binary data blocks start
@@ -206,7 +206,7 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
         # with inverted y axis (cartesian coordinate system)
 
         topography = Topography(np.fliplr(unscaleddata.T), physical_sizes=(sx, sy), unit=channel.unit, info=_info,
-                             periodic=periodic)
+                                periodic=periodic)
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:
