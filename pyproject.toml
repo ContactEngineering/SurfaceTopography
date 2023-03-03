@@ -35,7 +35,8 @@ dependencies = [
     "pyyaml",
     "requests",
     "tiffile",
-    "numpy<1.24.0"
+    "numpy<1.24.0",
+    "olefile"
 ]
 
 [project.optional-dependencies]

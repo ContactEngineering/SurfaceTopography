@@ -44,6 +44,7 @@ from .IBW import IBWReader
 from .Matlab import MatReader
 from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
+from .MNT import MNTReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .PS import PSReader
@@ -82,6 +83,7 @@ readers = [
     AL3DReader,
     EZDReader,
     BCRReader,
+    MNTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
