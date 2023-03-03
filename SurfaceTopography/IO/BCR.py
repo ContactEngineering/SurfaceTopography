@@ -65,7 +65,6 @@ BCR-STM and BCRF file formats
 
         # The start of the file is textual with metadata; we need to parse it
         with OpenFromAny(self._file_path, 'rb') as fobj:
-            metadata = {}
             buffer = fobj.peek(2048)  # Header is either 2048 or 4096 bytes
 
             # Check what type of file we are dealing with
