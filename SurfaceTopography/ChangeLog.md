@@ -5,6 +5,7 @@ v1.4.0 (not yet released)
 -------------------------
 
 - ENH: Reader for NanoSurf easyScan (NID/EZD)
+- BUG: Wrong data layout in AL3D reader
 
 v1.3.3 (29Jan23)
 ----------------
