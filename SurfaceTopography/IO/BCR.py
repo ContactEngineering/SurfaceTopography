@@ -22,8 +22,6 @@
 # SOFTWARE.
 #
 
-import datetime
-
 #
 # Reference information and implementations:
 # http://www.imagemet.com/WebHelp6/Default.htm#Reference_Guide/BCR_STM_File_Format.htm

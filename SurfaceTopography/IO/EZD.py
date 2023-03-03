@@ -21,12 +21,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-import datetime
 
 #
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/ezdfile.c
 #
+
+import datetime
 
 import numpy as np
 
