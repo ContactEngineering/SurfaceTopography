@@ -270,6 +270,7 @@ def test_undefined_data_and_squeeze():
 def scale_by_x(self, factor):
     return self.heights() * factor
 
+
 def test_pipeline_decorators():
     t = fourier_synthesis((128, 128), (1, 1), 0.8, rms_height=1)
     t2 = t.scale_by_x(2)
@@ -280,5 +281,6 @@ def test_pipeline_decorators():
     assert t2.dim == t.dim
     assert t2.nb_grid_pts == t.nb_grid_pts
     np.testing.assert_almost_equal(t2.physical_sizes, t.physical_sizes)
+
 
 UniformTopographyInterface.register_function('scale_by_x', scale_by_x)

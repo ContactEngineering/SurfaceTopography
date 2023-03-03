@@ -22,14 +22,13 @@
 # SOFTWARE.
 #
 
-import inspect
-
 
 def pipeline_function(parent):
     """
     Simple convenience decorator that turns a function into a pipeline
     function with delayed (lazy) execution of the pipeline.
     """
+
     def _pipeline_function(func):
         class PipelineClass(parent):
             def __init__(self, topography, *args, **kwargs):
