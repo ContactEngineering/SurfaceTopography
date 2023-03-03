@@ -22,51 +22,71 @@
 # SOFTWARE.
 #
 
+import inspect
 
-def pipeline_function(func, parent, parameters=[]):
-    class PipelineClass(parent):
-        """Scale heights, positions or both."""
 
-        def __init__(self, topography, **kwargs):
-            """
-            This topography wraps a parent topography and applies the pipeline
-            function.
+def pipeline_function(parent):
+    """
+    Simple convenience decorator that turns a function into a pipeline
+    function with delayed (lazy) execution of the pipeline.
+    """
+    def _pipeline_function(func):
+        class PipelineClass(parent):
+            def __init__(self, topography, *args, **kwargs):
+                """
+                This topography wraps a parent topography and applies the pipeline
+                function.
 
-            Arguments
-            ---------
-            topography : :obj:`UniformTopographyInterface`
-                Parent topography
-            unit : str, optional
-                Target unit. This is simply used to update the metadata, not for
-                determining scale factors. (Default: None)
-            info : dict, optional
-                Updated entries to the info dictionary. (Default: {})
-            """
-            super().__init__(topography, unit=unit, info=info)
-            self._height_scale_factor = height_scale_factor
-            self._position_scale_factor = position_scale_factor
+                Arguments
+                ---------
+                topography : :obj:`UniformTopographyInterface`
+                    Parent topography
+                unit : str, optional
+                    Target unit. This is simply used to update the metadata, not for
+                    determining scale factors. (Default: None)
+                info : dict, optional
+                    Updated entries to the info dictionary. (Default: {})
+                """
+                if 'unit' in kwargs:
+                    unit = kwargs['unit']
+                    del kwargs['unit']
+                else:
+                    unit = None
 
-        def __getstate__(self):
-            """ is called and the returned object is pickled as the contents for
-                the instance
-            """
-            state = super().__getstate__(), self._height_scale_factor, self._position_scale_factor
-            return state
+                if 'info' in kwargs:
+                    info = kwargs['info']
+                    del kwargs['info']
+                else:
+                    info = {}
 
-        def __setstate__(self, state):
-            """ Upon unpickling, it is called with the unpickled state
-            Keyword Arguments:
-            state -- result of __getstate__
-            """
-            superstate, self._height_scale_factor, self._position_scale_factor = state
-            super().__setstate__(superstate)
+                super().__init__(topography, unit=unit, info=info)
+                self._args = args
+                self._kwargs = kwargs
 
-        @property
-        def height_scale_factor(self):
-            return self._height_scale_factor
+            def __getstate__(self):
+                """ is called and the returned object is pickled as the contents for
+                    the instance
+                """
+                state = super().__getstate__(), self._kwargs
+                return state
 
-        @property
-        def position_scale_factor(self):
-            return self._position_scale_factor
+            def __setstate__(self, state):
+                """ Upon unpickling, it is called with the unpickled state
+                Keyword Arguments:
+                state -- result of __getstate__
+                """
+                superstate, self._kwargs = state
+                super().__setstate__(superstate)
 
-    return PipelineClass
+            def __getattr__(self, name):
+                if name in self._kwargs:
+                    return self._kwargs[name]
+                else:
+                    return getattr(self.parent_topography, name)
+
+            def heights(self):
+                return func(self.parent_topography, *self._args, **self._kwargs)
+
+        return PipelineClass
+
+    return _pipeline_function
