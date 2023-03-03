@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.4.0 (not yet released)
+--------------------------
+
+- ENH: Convenience decorator for creating simple pipeline functions
+
 v1.3.3 (29Jan23)
 ----------------
 
