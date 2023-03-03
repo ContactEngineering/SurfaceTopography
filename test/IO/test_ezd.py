@@ -72,6 +72,9 @@ def test_ezd_metadata(file_format_examples):
 
     assert r.channels[0].name == 'Scan forward (Z-Axis)'
     np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_area(), 2.395896706764167e-07)
+    np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_profile(), 2.294702406191355e-07)
+    np.testing.assert_almost_equal(r.topography(channel_index=0).transpose().rms_height_from_profile(),
+                                   6.891854644154332e-08)
     assert r.channels[1].name == 'Scan forward (Z-AxisSensor)'
     np.testing.assert_almost_equal(r.topography(channel_index=1).rms_height_from_area(), 3.026701737129839e-07)
     assert r.channels[2].name == 'Scan backward (Z-Axis)'

@@ -69,3 +69,5 @@ def test_al3d_metadata(file_format_examples):
     assert t.unit == 'm'
 
     np.testing.assert_almost_equal(t.rms_height_from_area(), 7.688266102603082e-06)
+    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.915731160953795e-06)
+    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 6.620876133506353e-06)
