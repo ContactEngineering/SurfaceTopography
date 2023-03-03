@@ -37,6 +37,7 @@ from .Text import AscReader, XYZReader
 # New-style readers
 from .AL3D import AL3DReader
 from .DI import DIReader
+from .EZD import EZDReader
 from .H5 import H5Reader
 from .IBW import IBWReader
 from .Matlab import MatReader
@@ -78,6 +79,7 @@ readers = [
     VKReader,
     ZONReader,
     AL3DReader,
+    EZDReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

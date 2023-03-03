@@ -8,6 +8,7 @@ python_sources = [
     'common.py',
     'DI.py',
     'DZI.py',
+    'EZD.py',
     'FromFile.py',
     'H5.py',
     'IBW.py',
