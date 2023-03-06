@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.4.0 (not yet released)
--------------------------
+v1.4.0 (6Mar23)
+---------------
 
 - MAINT: Dropped Python 3.7 support (missing importlib)
 - MAINT: Unified file naming schemes in file format examples
