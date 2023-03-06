@@ -6,6 +6,7 @@ v1.4.0 (not yet released)
 
 - MAINT: Dropped Python 3.7 support (missing importlib)
 - MAINT: Unified file naming schemes in file format examples
+- ENH: Convenience decorator for creating simple pipeline functions
 
 v1.3.3 (29Jan23)
 ----------------
