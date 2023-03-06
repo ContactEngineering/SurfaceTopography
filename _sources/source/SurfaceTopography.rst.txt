@@ -65,6 +65,14 @@ SurfaceTopography.NonuniformLineScan module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Pipeline module
+---------------------------------
+
+.. automodule:: SurfaceTopography.Pipeline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Special module
 --------------------------------
 
