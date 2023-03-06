@@ -6,6 +6,7 @@ v1.4.1 (6Mar22)
 
 - BUG: Do not use `peek`, since some stream objects do not support this
   operation
+- BUG: DI files sometimes report more data than they hold
 
 v1.4.0 (6Mar23)
 ---------------
