@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.4.1 (6Mar22)
+---------------
+
+- BUG: Do not use `peek`, since some stream objects do not support this
+  operation
+
 v1.4.0 (6Mar23)
 ---------------
 
