@@ -38,6 +38,8 @@ from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO.Text import read_xyz
+from SurfaceTopography.Pipeline import pipeline_function
+from SurfaceTopography.UniformLineScanAndTopography import DecoratedUniformTopography, UniformTopographyInterface
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -262,3 +264,23 @@ def test_undefined_data_and_squeeze():
     t2 = t.fill_undefined_data(1.0)
     assert not t2.has_undefined_data
     assert not t2.squeeze().has_undefined_data
+
+
+@pipeline_function(DecoratedUniformTopography)
+def scale_by_x(self, factor):
+    return self.heights() * factor
+
+
+def test_pipeline_decorators():
+    t = fourier_synthesis((128, 128), (1, 1), 0.8, rms_height=1)
+    t2 = t.scale_by_x(2)
+    t3 = t.scale_by_x(3)
+    np.testing.assert_almost_equal(2 * t.heights(), t2.heights())
+    np.testing.assert_almost_equal(3 * t.heights(), t3.heights())
+    assert len(t2.pipeline()) == 2
+    assert t2.dim == t.dim
+    assert t2.nb_grid_pts == t.nb_grid_pts
+    np.testing.assert_almost_equal(t2.physical_sizes, t.physical_sizes)
+
+
+UniformTopographyInterface.register_function('scale_by_x', scale_by_x)
