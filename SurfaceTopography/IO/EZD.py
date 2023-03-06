@@ -71,9 +71,9 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
 
             section_name = 'DataSet'
             section_metadata = {}
-            p = fobj.peek(2)
+            p = fobj.read(2)
             while p and not p[:len(self._DATA_MAGIC)] == self._DATA_MAGIC:
-                line = fobj.readline().decode('latin-1').strip()
+                line = (p + fobj.readline()).decode('latin-1').strip()
                 if len(line) > 0:
                     if line.startswith('[') and line.endswith(']'):
                         # This starts a new section
@@ -88,7 +88,7 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
                 # Store file position where binary data blocks start
                 self._start_of_data = fobj.tell() + 2
 
-                p = fobj.peek(2)
+                p = fobj.read(2)
             metadata[section_name] = section_metadata
 
         # Acquisition time
