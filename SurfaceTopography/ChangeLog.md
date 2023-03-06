@@ -1,14 +1,16 @@
 Change log for SurfaceTopography
 ================================
 
-v1.4.0 (not yet released)
--------------------------
+v1.4.0 (6Mar23)
+---------------
 
+- MAINT: Dropped Python 3.7 support (missing importlib)
+- MAINT: Unified file naming schemes in file format examples
 - ENH: Convenience decorator for creating simple pipeline functions
 - ENH: Reader for NanoSurf easyScan (NID/EZD)
 - ENH: Reader for BCR-STM/BCRF files
 - BUG: Wrong data layout in AL3D reader
-
+- BUG: Do not fail if SUR files have not acquisition time
 
 v1.3.3 (29Jan23)
 ----------------

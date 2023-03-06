@@ -81,4 +81,4 @@ if __version__ is None:
 # Nope. Out of options.
 
 if __version__ is None:
-    raise CannotDiscoverVersion('Tried importlib, pkg_resources, PKG-INFO and git')
+    raise CannotDiscoverVersion('Tried importlib and git')

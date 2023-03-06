@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'example.vk4')
+    file_path = os.path.join(file_format_examples, 'vk4-1.vk4')
 
     read_topography(file_path)
 
@@ -53,7 +53,7 @@ def test_read_filestream(file_format_examples):
 
 
 def test_vk3_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk3')
+    file_path = os.path.join(file_format_examples, 'vk3-1.vk3')
 
     r = VKReader(file_path)
     t = r.topography()
@@ -74,7 +74,7 @@ def test_vk3_metadata(file_format_examples):
 
 
 def test_vk4_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk4')
+    file_path = os.path.join(file_format_examples, 'vk4-1.vk4')
 
     r = VKReader(file_path)
     t = r.topography()
@@ -95,7 +95,7 @@ def test_vk4_metadata(file_format_examples):
 
 
 def test_vk6_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk6')
+    file_path = os.path.join(file_format_examples, 'vk6-1.vk6')
 
     r = VKReader(file_path)
     t = r.topography()

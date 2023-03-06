@@ -134,7 +134,7 @@ def test_nonuniform_file(file_format_examples, plot=False):
 
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
     iterations = []
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.01, 0.1, 1.0, 10],
                                                   unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
@@ -180,7 +180,7 @@ def test_container_uniform(file_format_examples, plot=False):
 
 def test_container_mixed(file_format_examples):
     """This container has a mixture of maps and line scans"""
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
     _, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
 

@@ -150,12 +150,17 @@ This reader imports Digital Surf SUR data files.
             (fac_x * self._header['grid_spacing_x'] * nx, fac_y * self._header['grid_spacing_y'] * ny)
 
         self._info = {
-            'acquisition_time':
-                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
-                                      self._header['hour'], self._header['minute'], self._header['second'])),
             'instrument': {'name': self._header['instrument_name']},
             'raw_metadata': self._header
         }
+
+        try:
+            self._info['acquisition_time'] = \
+                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
+                                      self._header['hour'], self._header['minute'], self._header['second']))
+        except ValueError:
+            # This can fail if the date is not valid, e.g. if there are just zeros
+            pass
 
     def read_height_data(self, f):
         if self._header['itemsize'] == 16:
