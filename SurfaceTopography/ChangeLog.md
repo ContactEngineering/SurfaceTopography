@@ -7,6 +7,9 @@ v1.4.0 (6Mar23)
 - MAINT: Dropped Python 3.7 support (missing importlib)
 - MAINT: Unified file naming schemes in file format examples
 - ENH: Convenience decorator for creating simple pipeline functions
+- ENH: Reader for NanoSurf easyScan (NID/EZD)
+- ENH: Reader for BCR-STM/BCRF files
+- BUG: Wrong data layout in AL3D reader
 
 v1.3.3 (29Jan23)
 ----------------
@@ -16,8 +19,8 @@ v1.3.3 (29Jan23)
 
 v1.3.2 (18Jan23)
 ----------------
-- ENH: pipeline function superpose
-- BUG: repair CompoundTopography and TranslatedTopography
+- ENH: Pipeline function superpose
+- BUG: Repair CompoundTopography and TranslatedTopography
 
 v1.3.1 (14Jan23)
 ----------------

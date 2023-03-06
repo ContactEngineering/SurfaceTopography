@@ -105,8 +105,9 @@ AL3D format of Alicona Imaging.
         invalid_pixel_value = float(self._header['InvalidPixelValue'])
         dtype = np.single
         buffer = f.read(np.prod(self._nb_grid_pts) * np.dtype(dtype).itemsize)
-        data = np.frombuffer(buffer, dtype=dtype).reshape(self._nb_grid_pts)
-        return np.ma.masked_array(data, mask=data == invalid_pixel_value)
+        nx, ny = self._nb_grid_pts
+        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx))
+        return np.ma.masked_array(data.T, mask=data == invalid_pixel_value)
 
     @property
     def channels(self):
