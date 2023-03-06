@@ -52,6 +52,8 @@ BCR-STM and BCRF file formats
     _MAGIC_BCRSTM_UNICODE = 'fileformat = bcrstm_unicode'
     _MAGIC_BCRF_UNICODE = 'fileformat = bcrf_unicode'  # we currently only have an example for this type
 
+    _MIN_HEADER_SIZE = 2048
+
     def __init__(self, file_path):
         """
         Load NanoSurf easyScan data files.
@@ -65,7 +67,7 @@ BCR-STM and BCRF file formats
 
         # The start of the file is textual with metadata; we need to parse it
         with OpenFromAny(self._file_path, 'rb') as fobj:
-            buffer = fobj.peek(2048)  # Header is either 2048 or 4096 bytes
+            buffer = fobj.read(self._MIN_HEADER_SIZE)  # Header is either 2048 or 4096 bytes
 
             # Check what type of file we are dealing with
             if buffer.decode('latin-1').startswith(self._MAGIC_BCRSTM):
@@ -114,7 +116,10 @@ BCR-STM and BCRF file formats
                 self._headersize *= 2
 
             # We can now read and parse the full header
-            buffer_str = fobj.read(self._headersize).decode(self._encoding)
+            if self._headersize > self._MIN_HEADER_SIZE:
+                # Read rest of header
+                buffer += fobj.read(self._headersize - self._MIN_HEADER_SIZE)
+            buffer_str = buffer.decode(self._encoding)
             line, buffer_str = buffer_str.split('\n', 1)
             line = line.strip()
             self._metadata = {}
