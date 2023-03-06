@@ -4,10 +4,12 @@
 python_sources = [
     '__init__.py',
     'AL3D.py',
+    'BCR.py',
     'binary.py',
     'common.py',
     'DI.py',
     'DZI.py',
+    'EZD.py',
     'FromFile.py',
     'H5.py',
     'IBW.py',

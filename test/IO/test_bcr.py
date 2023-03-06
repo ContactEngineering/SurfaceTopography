@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -30,11 +30,11 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import AL3DReader
+from SurfaceTopography.IO import BCRReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_read_filestream(file_format_examples):
@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
+    file_path = os.path.join(file_format_examples, 'bcrf-1.bcrf')
 
     read_topography(file_path)
 
@@ -52,22 +52,25 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
-def test_al3d_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
+def test_bcr_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'bcrf-1.bcrf')
 
-    r = AL3DReader(file_path)
+    r = BCRReader(file_path)
+    assert len(r.channels) == 1
+
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 200
-    assert ny == 296
+    assert nx == 960
+    assert ny == 600
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 8.76054e-05)
-    np.testing.assert_almost_equal(sy, 0.000129655992)
+    np.testing.assert_almost_equal(sx, 1777404)
+    np.testing.assert_almost_equal(sy, 1110878)
 
-    assert t.unit == 'm'
+    assert t.unit == 'nm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 7.688266102603082e-06)
-    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.915731160953795e-06)
-    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 6.620876133506353e-06)
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 24.560207201442292)
+
+    np.testing.assert_almost_equal(t.rms_height_from_profile(), 24.009754961959388)
+    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 24.134045799796326)

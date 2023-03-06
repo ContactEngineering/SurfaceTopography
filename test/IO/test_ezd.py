@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -30,11 +30,11 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import AL3DReader
+from SurfaceTopography.IO import EZDReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_read_filestream(file_format_examples):
@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
+    file_path = os.path.join(file_format_examples, 'nid-1.nid')
 
     read_topography(file_path)
 
@@ -52,22 +52,32 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
-def test_al3d_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'al3d-1.al3d')
+def test_ezd_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'nid-1.nid')
 
-    r = AL3DReader(file_path)
+    r = EZDReader(file_path)
+    assert len(r.channels) == 4
+
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 200
-    assert ny == 296
+    assert nx == 256
+    assert ny == 256
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 8.76054e-05)
-    np.testing.assert_almost_equal(sy, 0.000129655992)
+    np.testing.assert_almost_equal(sx, 2e-5)
+    np.testing.assert_almost_equal(sy, 2e-5)
 
     assert t.unit == 'm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 7.688266102603082e-06)
-    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.915731160953795e-06)
-    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 6.620876133506353e-06)
+    assert r.channels[0].name == 'Scan forward (Z-Axis)'
+    np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_area(), 2.395896706764167e-07)
+    np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_profile(), 2.294702406191355e-07)
+    np.testing.assert_almost_equal(r.topography(channel_index=0).transpose().rms_height_from_profile(),
+                                   6.891854644154332e-08)
+    assert r.channels[1].name == 'Scan forward (Z-AxisSensor)'
+    np.testing.assert_almost_equal(r.topography(channel_index=1).rms_height_from_area(), 3.026701737129839e-07)
+    assert r.channels[2].name == 'Scan backward (Z-Axis)'
+    np.testing.assert_almost_equal(r.topography(channel_index=2).rms_height_from_area(), 2.3941867686171115e-07)
+    assert r.channels[3].name == 'Scan backward (Z-AxisSensor)'
+    np.testing.assert_almost_equal(r.topography(channel_index=3).rms_height_from_area(), 3.029781629305204e-07)

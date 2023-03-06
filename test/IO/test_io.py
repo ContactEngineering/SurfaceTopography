@@ -101,7 +101,8 @@ binary_example_file_list = _convert_filelist(['di1.di',
                                               'mitutoyo_mock.xlsx',
                                               'mitutoyo_nonuniform_mock.xlsx',
                                               'example_ps.tiff',
-                                              'al3d-1.al3d'
+                                              'al3d-1.al3d',
+                                              'nid-1.nid'
                                               ] + [] if NuMPI._has_mpi4py else [
     'example-2d.npy'])  # MPI I/O does not support Python streams
 
