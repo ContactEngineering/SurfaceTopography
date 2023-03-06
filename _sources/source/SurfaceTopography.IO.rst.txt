@@ -12,6 +12,14 @@ SurfaceTopography.IO.AL3D module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.BCR module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.BCR
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.DI module
 ------------------------------
 
@@ -24,6 +32,14 @@ SurfaceTopography.IO.DZI module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.DZI
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.EZD module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.EZD
    :members:
    :undoc-members:
    :show-inheritance:
