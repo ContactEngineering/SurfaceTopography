@@ -42,9 +42,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class BCRReader(ReaderBase):
     _format = 'bcr'
-    _name = 'BCR-STM file format'
+    _name = 'Image Metrology'
     _description = '''
-BCR-STM and BCRF file formats
+Image Metrology SPIP binary BCR-STM and BCRF file formats
 '''
 
     _MAGIC_BCRSTM = 'fileformat = bcrstm'
