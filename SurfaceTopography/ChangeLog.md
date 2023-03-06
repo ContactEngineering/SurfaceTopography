@@ -10,6 +10,7 @@ v1.4.0 (6Mar23)
 - ENH: Reader for NanoSurf easyScan (NID/EZD)
 - ENH: Reader for BCR-STM/BCRF files
 - BUG: Wrong data layout in AL3D reader
+- BUG: Do not fail if SUR files have not acquisition time
 
 v1.3.3 (29Jan23)
 ----------------
