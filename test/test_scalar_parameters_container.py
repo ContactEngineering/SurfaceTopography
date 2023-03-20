@@ -3,7 +3,7 @@ import pytest
 
 from SurfaceTopography import read_container, SurfaceContainer, Topography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Container.Moments import _bandwidth_count_from_profile
+from SurfaceTopography.Container.Integration import _bandwidth_count_from_profile
 
 
 def test_ciso_moment_from_container(file_format_examples):
