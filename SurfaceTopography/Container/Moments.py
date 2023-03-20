@@ -7,6 +7,21 @@ from ..Container import SurfaceContainer
 def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     """
     Return number of topographies that include qx in their bandwidth.
+
+    Parameters:
+    -----------
+
+    qx: np.ndarrau of floats
+        wavevector
+    unit : str
+        Unit of lengths in which the wavevector is defined.
+    reliable : bool, optional
+        Only incorporate data deemed reliable. (Default: True)
+
+    Returns
+    -------
+    number: np.ndarray
+        number of topographies having qx in their bandwidth
     """
     qx = np.abs(qx)
     factor = np.zeros_like(qx)
@@ -44,14 +59,15 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
 
 def ciso_moment(c, order=1, cumulative=False, **kwargs):
-    """
-
+    r"""
     trapz integration of the moments of the averaged PSD.
 
-    This
+    Containers only implement the 1D power-spectrum, so that we use the approximation mapping
+    the 1d PSD to the isotropic PSD
 
-    Containers only implement the 1D power-spectrum, so that we use the approximation
+    ..math::
 
+        C^\mathrm{iso} = \frac{\pi}{q} C^\mathrm{1D}
 
 
     Parameters
