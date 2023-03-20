@@ -1,8 +1,6 @@
 import numpy as np
 
-from SurfaceTopography.Models.SelfAffine import (
-    SelfAffine,
-)
+from SurfaceTopography.Models.SelfAffine import SelfAffine
 import pytest
 
 

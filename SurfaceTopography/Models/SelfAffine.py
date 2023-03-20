@@ -8,25 +8,22 @@ from SurfaceTopography.Generation import fourier_synthesis
 # TODO: think about abstract Statistical roughness hierarchy
 
 class AbstractStatisticalRoughness(object):
-    def power_spectrum():
+    def power_spectrum(seld):
+        raise NotImplementedError
+
+    def power_spectrum_profile(seld):
         raise NotImplementedError
 
 
 class AbstractIsotropicRoughness(AbstractStatisticalRoughness):
-    def power_spectrum_isotropic():
+    def power_spectrum_isotropic(self):
         raise NotImplementedError
 
-    def power_spectrum_profile():
-        raise NotImplementedError
-
-    # def rms_height():
-    #    raise NotImplementedError
-
-    def rms_fractional_derivative():
+    def variance_derivatice(self):
         raise NotImplementedError
 
 
-class SelfAffine():
+class SelfAffine(AbstractIsotropicRoughness):
     def __init__(self,
                  cr,
                  rolloff_wavelength,
