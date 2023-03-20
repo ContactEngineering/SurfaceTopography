@@ -10,7 +10,8 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
     Parameters:
     -----------
-
+    self : SurfaceContainer
+        Collection of Height containers
     qx: np.ndarrau of floats
         wavevector
     unit : str
@@ -22,9 +23,6 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     -------
     number: np.ndarray
         number of topographies having qx in their bandwidth
-
-
-
     """
     qx = np.abs(qx)
     factor = np.zeros_like(qx)
@@ -77,7 +75,8 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
     Parameters:
     -----------
-    self: container
+    self : SurfaceContainer
+        Collection of Height containers
     factor: callable
         Function taking as argument the wavevector in the fast scan direction qx
 
@@ -113,7 +112,7 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     return integ
 
 
-def ciso_moment(c, order=1, cumulative=False, **kwargs):
+def ciso_moment(self, order=1, cumulative=False, **kwargs):
     r"""
     trapz integration of the moments of the averaged isotropic PSD.
 
@@ -127,7 +126,8 @@ def ciso_moment(c, order=1, cumulative=False, **kwargs):
 
     Parameters
     ----------
-    c : container or topography
+    self : SurfaceContainer or HeightContainer
+        Container with height information or collection of height containsers
     order : float
         order of moment of the PDF to compute
     Further parameters are passed to the power_spectrum method, see the documentation of the corresponding method
@@ -136,7 +136,7 @@ def ciso_moment(c, order=1, cumulative=False, **kwargs):
     -------
     float
     """
-    power_spectrum = c.power_spectrum(**kwargs)  #
+    power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum
     q = q[~np.isnan(C1D)]
     C1D = C1D[~np.isnan(C1D)]
@@ -144,13 +144,14 @@ def ciso_moment(c, order=1, cumulative=False, **kwargs):
     return compute_iso_moment(q, Ciso, order, cumulative=cumulative)
 
 
-def c1d_moment(c, order=1, cumulative=False, **kwargs):
+def c1d_moment(self, order=1, cumulative=False, **kwargs):
     """
     trapz integration of
 
     Parameters
     ----------
-    c : container or topography
+    self : SurfaceContainer or HeightContainer
+        Container with height information or collection of height containsers
     order : float
         order of moment of the PDF to compute
     Further parameters are passed to the power_spectrum method, see the documentation of the corresponding method
@@ -159,7 +160,7 @@ def c1d_moment(c, order=1, cumulative=False, **kwargs):
     -------
     float
     """
-    power_spectrum = c.power_spectrum(**kwargs)  #
+    power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum
     q = q[~np.isnan(C1D)]
     C1D = C1D[~np.isnan(C1D)]

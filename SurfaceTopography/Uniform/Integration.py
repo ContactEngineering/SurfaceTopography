@@ -25,6 +25,7 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
         or the two components of the wavevector qx and qy
 
             ``func(np.ndarray: qx, np.ndarray:qy) -> np.ndarray``
+
     window : str, optional
         Window for eliminating edge effect. See scipy.signal.get_window.
         (Default: None)
