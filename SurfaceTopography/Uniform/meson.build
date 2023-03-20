@@ -15,7 +15,7 @@ python_sources = [
     'PowerSpectrum.py',
     'ScalarParameters.py',
     'VariableBandwidth.py',
-    'Integragtion.py'
+    'Integration.py'
 ]
 
 # Install pure Python
