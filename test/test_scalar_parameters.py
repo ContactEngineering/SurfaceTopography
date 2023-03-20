@@ -37,7 +37,7 @@ from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, r
 from SurfaceTopography.Generation import fourier_synthesis
 
 # import necessary to get tip artefact emulation function
-import ContactMechanics  # noqa: F401
+# import Sura  # noqa: F401
 
 
 def sinewave2D(comm=None):

@@ -22,10 +22,13 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
     -------
     number: np.ndarray
         number of topographies having qx in their bandwidth
+
+
+
     """
     qx = np.abs(qx)
     factor = np.zeros_like(qx)
-    for t in self._topographies:
+    for t in self:
         t = t.to_unit(unit)
 
         qxmax = np.pi / t.pixel_size[0]
@@ -38,7 +41,8 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
             qx <= qxmax,
         )
     # All topographies have qx == 0 wavevector
-    factor = np.where(qx == 0, len(self._topographies), factor)
+    factor = np.where(qx == 0, len(self), factor)
+    # TODO: This will be very slow on Topobank
     return factor
 
 
@@ -91,11 +95,16 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
     """
     integ = 0
 
+    # TODO: faster: precompute _bandwidth_count_from_profile (defining a piecewise constant function, )
+    # a table with bins and number of topographies inside the bins
+    # this will make us only loop 2N times through the topographies instead of N^2
+    # with N the total number of topographies
+
     def average(qx):
         count = _bandwidth_count_from_profile(self, qx, unit, reliable)
         return np.where(count > 0, factor(qx) / count, 0)
 
-    for t in self._topographies:
+    for t in self:
         t = t.to_unit(unit)
 
         integ += t.integrate_psd_from_profile(average,
