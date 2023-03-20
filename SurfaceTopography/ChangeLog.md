@@ -1,9 +1,40 @@
 Change log for SurfaceTopography
 ================================
 
-v1.3.1 (not yet released)
--------------------------
+v1.4.1 (6Mar22)
+---------------
 
+- BUG: Do not use `peek`, since some stream objects do not support this
+  operation
+- BUG: DI files sometimes report more data than they hold
+
+v1.4.0 (6Mar23)
+---------------
+
+- MAINT: Dropped Python 3.7 support (missing importlib)
+- MAINT: Unified file naming schemes in file format examples
+- ENH: Convenience decorator for creating simple pipeline functions
+- ENH: Reader for NanoSurf easyScan (NID/EZD)
+- ENH: Reader for BCR-STM/BCRF files
+- BUG: Wrong data layout in AL3D reader
+- BUG: Do not fail if SUR files have not acquisition time
+
+v1.3.3 (29Jan23)
+----------------
+
+- BUG: Fixed discover of version when in a git repository that is not the
+  source directory of SurfaceTopography
+
+v1.3.2 (18Jan23)
+----------------
+- ENH: Pipeline function superpose
+- BUG: Repair CompoundTopography and TranslatedTopography
+
+v1.3.1 (14Jan23)
+----------------
+
+- BUG: AL3D reader reported wrong unit in channel info (#276)
+- BUG: SUR reader reported wrong info dictionary in channel info
 - BUG: Increased numerical robustness of scanning probe artifact analysis
   (#275)
 
@@ -21,7 +52,7 @@ v1.2.6 (29Dec22)
 - BUILD: Yet another fix for version discovery when installing from source 
   package
 
-- v1.2.5 (05Dec22)
+v1.2.5 (05Dec22)
 ----------------
 
 - BUILD: Another fix for version discovery when installing from source package

@@ -37,7 +37,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_header(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.zon')
+    file_path = os.path.join(file_format_examples, 'zon-1.zon')
 
     loader = ZONReader(file_path)
 
@@ -56,7 +56,7 @@ def test_read_header(file_format_examples):
 
 
 def test_topography(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.zon')
+    file_path = os.path.join(file_format_examples, 'zon-1.zon')
 
     loader = ZONReader(file_path)
 

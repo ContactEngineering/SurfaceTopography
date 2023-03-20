@@ -39,7 +39,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read(file_format_examples):
-    reader = MatReader(os.path.join(file_format_examples, 'example1.mat'))
+    reader = MatReader(os.path.join(file_format_examples, 'mat-1.mat'))
     nx, ny = reader.channels[0].nb_grid_pts
     assert nx == 2048
     assert ny == 2048

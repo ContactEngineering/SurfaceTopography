@@ -48,7 +48,7 @@ DATADIR = os.path.join(
 class IBWSurfaceTest(unittest.TestCase):
 
     def setUp(self):
-        self.file_path = os.path.join(DATADIR, 'example.ibw')
+        self.file_path = os.path.join(DATADIR, 'ibw-1.ibw')
 
     def test_read_filestream(self):
         """
@@ -184,7 +184,7 @@ class ibwSurfaceTest2(unittest.TestCase):
         pass
 
     def test_read(self):
-        reader = IBWReader(os.path.join(DATADIR, 'example.ibw'))
+        reader = IBWReader(os.path.join(DATADIR, 'ibw-1.ibw'))
         surface = reader.topography()
         nx, ny = surface.nb_grid_pts
         self.assertEqual(nx, 512)
@@ -198,7 +198,7 @@ class ibwSurfaceTest2(unittest.TestCase):
         self.assertTrue(surface.is_uniform)
 
     def test_detect_format_then_read(self):
-        f = open(os.path.join(DATADIR, 'example.ibw'), 'rb')
+        f = open(os.path.join(DATADIR, 'ibw-1.ibw'), 'rb')
         fmt = detect_format(f)
         self.assertTrue(fmt, 'ibw')
         open_topography(f, format=fmt).topography()

@@ -105,8 +105,9 @@ AL3D format of Alicona Imaging.
         invalid_pixel_value = float(self._header['InvalidPixelValue'])
         dtype = np.single
         buffer = f.read(np.prod(self._nb_grid_pts) * np.dtype(dtype).itemsize)
-        data = np.frombuffer(buffer, dtype=dtype).reshape(self._nb_grid_pts)
-        return np.ma.masked_array(data, mask=data == invalid_pixel_value)
+        nx, ny = self._nb_grid_pts
+        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx))
+        return np.ma.masked_array(data.T, mask=data == invalid_pixel_value)
 
     @property
     def channels(self):
@@ -117,7 +118,9 @@ AL3D format of Alicona Imaging.
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
                             uniform=True,
-                            unit={'raw_metadata': self._header})]
+                            unit=self._unit,
+                            height_scale_factor=1,
+                            info={'raw_metadata': self._header})]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -153,4 +156,4 @@ AL3D format of Alicona Imaging.
                           unit=self._unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo
+        return topo.scale(1)

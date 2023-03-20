@@ -535,19 +535,19 @@ class diSurfaceTest(unittest.TestCase):
     def test_read(self):
         # All units are nm
         for (fn, n, s, rmslist) in [
-            ('di1.di', 512, 500.0, [(9.9459868005603909, "Height"),
-                                    (114.01328027385664, "Height"),
-                                    (None, "Phase"),
-                                    (None, "AmplitudeError")]),
-            ('di2.di', 512, 300.0, [(24.721922008645919, "Height"),
-                                    (24.807150576054838, "Height"),
-                                    (0.13002312109876774, "Deflection")]),
-            ('di3.di', 256, 10000.0, [(226.42539668457405, "ZSensor"),
-                                      (None, "AmplitudeError"),
-                                      (None, "Phase"),
-                                      (264.00285276203158, "Height")]),
+            ('di-1.di', 512, 500.0, [(9.9459868005603909, "Height"),
+                                     (114.01328027385664, "Height"),
+                                     (None, "Phase"),
+                                     (None, "AmplitudeError")]),
+            ('di-2.di', 512, 300.0, [(24.721922008645919, "Height"),
+                                     (24.807150576054838, "Height"),
+                                     (0.13002312109876774, "Deflection")]),
+            ('di-3.di', 256, 10000.0, [(226.42539668457405, "ZSensor"),
+                                       (None, "AmplitudeError"),
+                                       (None, "Phase"),
+                                       (264.00285276203158, "Height")]),
             # Height
-            ('di4.di', 512, 10000.0,
+            ('di-4.di', 512, 10000.0,
              [(81.622909804184744, "ZSensor"),  # ZSensor
               (0.83011806260022758, "AmplitudeError"),  # AmplitudeError
               (None, "Phase")])  # Phase
@@ -589,7 +589,7 @@ def test_di_orientation():
     # This is given when reading di.txt, see test elsewhere.
     #
     # The heights should be equal to those from txt reader
-    di_fn = os.path.join(DATADIR, "di1.di")
+    di_fn = os.path.join(DATADIR, "di-1.di")
 
     di_t = read_topography(di_fn)
 
@@ -695,7 +695,7 @@ def test_fourier_interpolate_transpose_symmetry(nx, ny, fine_nx, fine_ny):
 
 class PickeTest(unittest.TestCase):
     def test_detrended(self):
-        t1 = read_topography(os.path.join(DATADIR, 'di1.di'))
+        t1 = read_topography(os.path.join(DATADIR, 'di-1.di'))
 
         dt1 = t1.detrend(detrend_mode="center")
 

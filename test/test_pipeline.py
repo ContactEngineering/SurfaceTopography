@@ -38,6 +38,8 @@ from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO.Text import read_xyz
+from SurfaceTopography.Pipeline import pipeline_function
+from SurfaceTopography.UniformLineScanAndTopography import DecoratedUniformTopography, UniformTopographyInterface
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -62,6 +64,31 @@ def test_translate():
             ==
             np.array([[1, 0, 0],
                       [0, 0, 0]])).all()
+
+
+def test_translate_setter():
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.))
+
+    translated_t = topography.translate()
+
+    translated_t.offset = (1, 0)
+    assert (translated_t.heights()
+            ==
+            np.array([[0, 0, 0],
+                      [0, 1, 0]])).all()
+
+
+def test_superpose():
+    topography_a = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                              physical_sizes=(4., 3.))
+
+    topography_b = Topography(np.array([[1, 1, 0], [0, 0, 1]]),
+                              physical_sizes=(4., 3.))
+
+    topography_c = topography_a.superpose(topography_b)
+
+    assert (topography_c.heights() == np.array([[1, 2, 0], [0, 0, 1]])).all()
 
 
 def test_pipeline():
@@ -227,8 +254,8 @@ def test_transposed_topography():
 def test_undefined_data_and_squeeze():
     nx, ny = 128, 128
     sx, sy = 5.0, 5.0
-    rx = np.linspace(-sx/2, sx/2, nx)
-    ry = np.linspace(-sy/2, sy/2, ny)
+    rx = np.linspace(-sx / 2, sx / 2, nx)
+    ry = np.linspace(-sy / 2, sy / 2, ny)
     rsq = rx.reshape((nx, -1)) ** 2 + ry.reshape((-1, ny)) ** 2
     rs = 1.0
     t = Topography(np.ma.masked_where(rsq > rs ** 2, np.zeros([nx, ny])), (sx, sy))
@@ -237,3 +264,23 @@ def test_undefined_data_and_squeeze():
     t2 = t.fill_undefined_data(1.0)
     assert not t2.has_undefined_data
     assert not t2.squeeze().has_undefined_data
+
+
+@pipeline_function(DecoratedUniformTopography)
+def scale_by_x(self, factor):
+    return self.heights() * factor
+
+
+def test_pipeline_decorators():
+    t = fourier_synthesis((128, 128), (1, 1), 0.8, rms_height=1)
+    t2 = t.scale_by_x(2)
+    t3 = t.scale_by_x(3)
+    np.testing.assert_almost_equal(2 * t.heights(), t2.heights())
+    np.testing.assert_almost_equal(3 * t.heights(), t3.heights())
+    assert len(t2.pipeline()) == 2
+    assert t2.dim == t.dim
+    assert t2.nb_grid_pts == t.nb_grid_pts
+    np.testing.assert_almost_equal(t2.physical_sizes, t.physical_sizes)
+
+
+UniformTopographyInterface.register_function('scale_by_x', scale_by_x)

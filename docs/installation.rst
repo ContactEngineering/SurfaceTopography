@@ -2,11 +2,17 @@ Installation
 ============
 We only support installation on recent mac and linux systems, not on windows.
 
-You need Python 3,  NetCDF_ and FFTW3_ in order to install SurfaceTopography.
+You need Python 3 in order to install SurfaceTopography.
 
-In complement to the instructions bellow, you will find examples of system setups and intallation workflows in our singularity containers
-`singularity containers <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_ 
-and our `testing workflows <https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml>`_ 
+In complement to the instructions below, you will find examples of system setups and intallation workflows in our singularity containers
+`singularity containers <https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def>`_
+and our `testing workflows <https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml>`_
+
+Optional dependencies
+---------------------
+
+NetCDF_ and FFTW3_
+
 
 Direct installation with pip
 ----------------------------
@@ -24,7 +30,7 @@ Or if you want the latest unreleased version
     python3 -m pip  install [--user] git+https://github.com/ContactEngineering/SurfaceTopography.git
 
 
-The command will install other dependencies including muFFT_, NuMPI_ and
+The command will install other dependencies including muSpectre_, NuMPI_ and
 runtests_.
 
 If you want to install all optional dependencies for full functionality:
@@ -86,31 +92,62 @@ When reporting a problem, please provide us with following information:
 - The output of the verbose installation e.g. `python3 -m pip install --verbose --global-option="--verbose"`
 
 Installation from source directory
---------------------------------
+----------------------------------
 
-SurfaceTopography can be installed by invoking
+First you need to run
+
+.. code-block:: bash
+
+    git submodule update --init --recursive
+
+in the source directory.
+
+SurfaceTopography can be installed from source by invoking
 
 .. code-block:: bash
 
    python3 -m pip install [--user] .
 
-or
-
-.. code-block:: bash
-
-   meson setup build
-   cd build
-   meson compile
-   meson install
-
 in the source directoy. The command line parameter `--user` is optional and
 leads to a local installation in the current user's `$HOME/.local` directory.
 
-Updating SurfaceTopography
---------------------------
 
-If you update SurfaceTopography (whether with pip or `git pull` if you cloned the repository),  you may need to
-uninstall `NuMPI`, `muFFT` and or `runtests`, so that the newest version of them will be installed.
+Alternative build and installation options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- meson build
+    .. code-block:: bash
+
+        meson setup build
+        cd build
+        meson compile
+        meson install
+
+  on mac meson install has issues with finding the correct installation directories. You have to specify them manually:
+
+  .. code-block:: bash
+
+    SITEPACK=$(python3 -m site --user-site)
+
+        meson setup  --prefix=$(python3 -m site --user-base) .  builiddir --python.purelibdir $SITEPACK --python.platlibdir $SITEPACK
+
+- Editable mode installations are supported by new versions of meson. However there are bugs on mac still.
+
+    .. code-block:: bash
+
+        python3 -m pip install -e .
+
+- Building and installing a wheel:
+
+    .. code-block:: bash
+
+        rm -rf dist
+        python3 -m build -w -n .
+        python3 -m pip uninstall -y SurfaceTopography
+        python3 -m pip install dist/*.whl
+
+
+
 
 Singularity_ container
 ----------------------

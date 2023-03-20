@@ -236,7 +236,7 @@ def test_rms_slope_from_area():
 
 
 def test_rms_height_with_undefined_data(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'opd3.opd'))
+    t = read_topography(os.path.join(file_format_examples, 'opd-3.opd'))
     assert t.has_undefined_data
     np.testing.assert_allclose(t.rms_height_from_profile(), 0.011449207840819613)
     np.testing.assert_allclose(t.rms_height_from_area(), 0.011782116700392838)

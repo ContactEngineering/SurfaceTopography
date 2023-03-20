@@ -38,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_opd(file_format_examples):
-    surface = OPDReader(os.path.join(file_format_examples, 'example.opd')).topography()
+    surface = OPDReader(os.path.join(file_format_examples, 'opd-1.opd')).topography()
     nx, ny = surface.nb_grid_pts
     assert nx == 640
     assert ny == 480
@@ -51,12 +51,12 @@ def test_read_opd(file_format_examples):
 
 
 def test_undefined_points(file_format_examples):
-    t = OPDReader(os.path.join(file_format_examples, 'example2.opd')).topography()
+    t = OPDReader(os.path.join(file_format_examples, 'opd-2.opd')).topography()
     assert t.has_undefined_data
 
 
 def test_reader(file_format_examples):
-    reader = open_topography(os.path.join(file_format_examples, 'example.opd'))
+    reader = open_topography(os.path.join(file_format_examples, 'opd-1.opd'))
     assert len(reader.channels) == 1
     ch = reader.default_channel
     assert ch.physical_sizes == pytest.approx((0.125909140, 0.094431855))

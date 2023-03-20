@@ -32,6 +32,10 @@ voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV'
 units = dict(length=length_units, voltage=voltage_units)
 
 
+def is_length_unit(s):
+    return s in length_units.keys()
+
+
 def get_unit_conversion_factor(unit1_str, unit2_str):
     """
     Compute factor for conversion from unit1 to unit2.
