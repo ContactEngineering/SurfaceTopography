@@ -7,7 +7,7 @@ from SurfaceTopography.Container.Moments import _bandwidth_count_from_profile
 
 
 def test_ciso_moment_from_container(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
 
     unit = "m"
     varh_ciso = c.ciso_moment(order=0, unit=unit)
