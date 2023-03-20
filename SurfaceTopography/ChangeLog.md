@@ -1,6 +1,14 @@
 Change log for SurfaceTopography
 ================================
 
+v1.5 (20Mar22)
+---------------
+- ENH: analytical model self-affine psd
+- ENH: weighted integrals of the PSDs of containers 
+- ENH: scanning probe artefact simulations transfered from ContactMechanics
+- TST: remove dependency of test-suite on ContactMechanics 
+
+
 v1.4.1 (6Mar22)
 ---------------
 
