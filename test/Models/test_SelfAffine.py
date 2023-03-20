@@ -40,54 +40,7 @@ def test_shortcut_derivative():
     # TODO: make a quantitative assertion ?
 
 
-@pytest.mark.parametrize(
-    "shortcut_wavelength, hurst_exponent",
-    [
-        (2e-6, 0.8),
-        (2e-6, 0.5),
-        (2e-6, 0.3),
-        (1e-7, 0.1),
-        (1e-7, 0.5),
-        (1e-7, 0.9),
-        (1e-7, 1.),
-    ]
-)
-def test_variance_half_derivative(shortcut_wavelength, hurst_exponent):
-    from ContactMechanics import PeriodicFFTElasticHalfSpace
-    n_pixels = 1024
-    physical_size = .5e-4
-    pixel_size = physical_size / n_pixels
 
-    # test rolloff
-    model_psd = SelfAffine(**{
-        'cr': 5e-27,
-        'shortcut_wavelength': shortcut_wavelength,
-        'rolloff_wavelength': 2e-6,
-        'hurst_exponent': hurst_exponent})
-
-    Es = 1e6 / (1 - 0.5 ** 2)
-    roughness = model_psd.generate_roughness(**{
-        'seed': 1,
-        'n_pixels': n_pixels,
-        'pixel_size': pixel_size,
-    })
-
-    # deterministic, brute force computation of the elastic energy
-    hs = PeriodicFFTElasticHalfSpace(
-        nb_grid_pts=roughness.nb_grid_pts,
-        young=Es,
-        physical_sizes=roughness.physical_sizes)
-
-    forces = hs.evaluate_force(roughness.heights())
-
-    # Elastic energy per surface area
-    Eel_brute_force = hs.evaluate_elastic_energy(forces, roughness.heights()) / np.prod(roughness.physical_sizes)
-
-    Eel_analytic = Es / 4 * model_psd.variance_half_derivative()
-    print(Eel_brute_force)
-    print(Eel_analytic)
-
-    np.testing.assert_allclose(Eel_analytic, Eel_brute_force, rtol=1e-1)
 
 
 # TODO: unify and

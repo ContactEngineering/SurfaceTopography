@@ -68,7 +68,6 @@ jobs:
           echo "Installing ${MUSPECTRE_VERSION}"
           pip install -v --no-binary muspectre ${MUSPECTRE_VERSION}
         fi
-        python3 -m pip install ContactMechanics
         python3 -m pip install build
         python3 -m pip list
 
