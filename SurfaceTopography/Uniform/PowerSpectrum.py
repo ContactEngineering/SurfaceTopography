@@ -304,7 +304,7 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
 
 
 def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=True, ):
-    """
+    r"""
 
     Computes the integral of the 1D PSD weighted by "factor"
 
@@ -373,7 +373,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
-    """
+    r"""
 
     Computes
 

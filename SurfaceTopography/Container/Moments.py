@@ -5,7 +5,7 @@ from ..Container import SurfaceContainer
 
 
 def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
-    """
+    r"""
     Return number of topographies that include qx in their bandwidth.
 
     Parameters:
@@ -43,7 +43,7 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
 
 def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
-    """
+    r"""
 
     Computes the integral of the 1D PSD weighted by "factor"
 
