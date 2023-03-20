@@ -43,6 +43,52 @@ def _bandwidth_count_from_profile(self, qx, unit, reliable=True):
 
 
 def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
+    """
+
+    Computes the integral of the 1D PSD weighted by "factor"
+
+    The integral is computed by adding up the discrete sum for each topography.
+
+    The summand for each topography is weighted by the number of topographies having this wavevector in their bandwidth
+
+    Hence for a container containing only one topogaphy,
+    this method is identical to calling `topography.integrate_psd_from_profile()`
+
+    Continuum:
+
+    ..math::
+
+        \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
+
+    Discrete
+
+    ..math::
+
+         m_\alpha = \sum_i \frac{1}{L_{x, i}} \sum_{q_x} \frac{factor(q_x) C^{1D}_{i}(q_x)}{N(q_x)}
+
+
+    Where the index :math:`i` runs over all topographies and :math:`N(q_x)` is the number
+    of topographies having the wavevector `q_x` in their bandwidth
+
+
+    Parameters:
+    -----------
+    self: container
+    factor: callable
+        Function taking as argument the wavevector in the fast scan direction qx
+
+            ``func(np.ndarray: qx) -> np.ndarray``
+
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        (Default: None)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+
+    Returns:
+    --------
+    weighted_integral: float
+    """
     integ = 0
 
     def average(qx):
@@ -60,7 +106,7 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
 def ciso_moment(c, order=1, cumulative=False, **kwargs):
     r"""
-    trapz integration of the moments of the averaged PSD.
+    trapz integration of the moments of the averaged isotropic PSD.
 
     Containers only implement the 1D power-spectrum, so that we use the approximation mapping
     the 1d PSD to the isotropic PSD
@@ -91,6 +137,8 @@ def ciso_moment(c, order=1, cumulative=False, **kwargs):
 
 def c1d_moment(c, order=1, cumulative=False, **kwargs):
     """
+    trapz integration of
+
     Parameters
     ----------
     c : container or topography

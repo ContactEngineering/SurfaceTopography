@@ -249,12 +249,32 @@ UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_no
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     """
 
+    ..math::
+
+        m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y factor(q_x, q_y) C^{2D}(q_x, q_y)
+
+    Discrete
+
+          m_\alpha = \frac{1}{L_x L_y} \sum_{q_x, q_y} factor(q_x, q_y) C^{2D}_{q_x, q_y}
+
+    Parameters:
+    -----------
     factor: function
         Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)
 
+            ``func(np.ndarray: q) -> np.ndarray``
+
         or the two components of the wavevector qx and qy
 
-        # TODO: In future we might want to allow for giving
+            ``func(np.ndarray: qx, np.ndarray:qy) -> np.ndarray``
+    window : str, optional
+        Window for eliminating edge effect. See scipy.signal.get_window.
+        (Default: None)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    Returns:
+    --------
+        weighted_integral: float
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -286,12 +306,36 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
 def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=True, ):
     """
 
-    factor: function
-        Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)
+    Computes the integral of the 1D PSD weighted by "factor"
 
-        or the two components of the wavevector qx and qy
+    Continuum:
 
-        # TODO: In future we might want to allow for giving
+    ..math::
+
+        \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
+
+    Discrete
+
+    ..math::
+
+         m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}
+
+
+    Parameters:
+    -----------
+        factor: callable
+            Function taking as argument the wavevector in the fast scan direction qx
+
+                ``func(np.ndarray: qx) -> np.ndarray``
+        window : str, optional
+            Window for eliminating edge effect. See scipy.signal.get_window.
+            (Default: None)
+        reliable : bool, optional
+            Only return data deemed reliable. (Default: True)
+
+    Returns:
+    --------
+        weighted_integral: float
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -329,6 +373,43 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
 
 def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
+    """
+
+    Computes
+
+    For 2D Topographies, continuum:
+
+    ..math::
+
+        m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y |q|^{\alpha} C^{2D}(q_x, q_y)
+
+    Discrete
+
+          m_\alpha = \frac{1}{L_x L_y} \sum_{q_x, q_y} |q|^{\alpha} C^{2D}_{q_x, q_y}
+        
+    For line scans, continuum:
+
+    ..math::
+
+        \frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
+
+    Discrete
+
+    ..math::
+
+         m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}
+
+    Parameters:
+    -----------
+        order: int
+            order of the moment to compute
+        window : str, optional
+            Window for eliminating edge effect. See scipy.signal.get_window.
+            (Default: None)
+        reliable : bool, optional
+            Only return data deemed reliable. (Default: True)
+
+    """
     return integrate_psd(self, lambda q: q ** order, window=window, reliable=reliable, )
 
 
