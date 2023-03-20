@@ -1,11 +1,11 @@
-
 import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 
+
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
-    """
+    r"""
 
     ..math::
 

@@ -38,9 +38,6 @@ def test_shortcut_derivative():
     # TODO: make a quantitative assertion ?
 
 
-
-
-
 # TODO: unify and
 @pytest.mark.parametrize(
     "physical_size, rolloff_wavelength, shortcut_wavelength, hurst_exponent",

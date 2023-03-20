@@ -24,7 +24,6 @@
 
 import numpy as np
 from .. import UniformLineScan, NonuniformLineScan
-from ..Pipeline import pipeline_function
 
 
 def scan_with_rigid_sphere(topography, radius):
