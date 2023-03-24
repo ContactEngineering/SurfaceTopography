@@ -3,9 +3,9 @@ Change log for SurfaceTopography
 
 v1.5 (20Mar22)
 ---------------
-- ENH: analytical model self-affine psd
+- ENH: analytical computation of scalar roughness parameters of  ideal self-affine psd  
 - ENH: weighted integrals of the PSDs of containers 
-- ENH: scanning probe artefact simulations transfered from ContactMechanics
+- ENH: scanning probe artefact simulations
 - TST: remove dependency of test-suite on ContactMechanics 
 
 
