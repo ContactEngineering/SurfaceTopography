@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.4.1.dev2+g7a75df9b documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.4.1.dev85+g7fe11bd0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -33,7 +33,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.4.1.dev2+g7a75df9b
+                1.4.1.dev85+g7fe11bd0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -57,7 +57,9 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -68,6 +70,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.GeometryAnalysis">SurfaceTopography.Uniform.GeometryAnalysis module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Imputation">SurfaceTopography.Uniform.Imputation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Integration">SurfaceTopography.Uniform.Integration module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a></li>
@@ -177,6 +180,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data"><code class="docutils literal notranslate"><span class="pre">interpolate_undefined_data()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Integration">SurfaceTopography.Uniform.Integration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.integrate_psd"><code class="docutils literal notranslate"><span class="pre">integrate_psd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.integrate_psd_from_profile"><code class="docutils literal notranslate"><span class="pre">integrate_psd_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Integration.moment_power_spectrum"><code class="docutils literal notranslate"><span class="pre">moment_power_spectrum()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.interpolate_linear"><code class="docutils literal notranslate"><span class="pre">interpolate_linear()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Interpolation.interpolate_bicubic"><code class="docutils literal notranslate"><span class="pre">interpolate_bicubic()</span></code></a></li>
@@ -192,7 +201,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.fftfreq"><code class="docutils literal notranslate"><span class="pre">fftfreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2"><code class="docutils literal notranslate"><span class="pre">wavevectors_norm2()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile"><code class="docutils literal notranslate"><span class="pre">rms_height_from_profile()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area"><code class="docutils literal notranslate"><span class="pre">rms_height_from_area()</span></code></a></li>
@@ -225,6 +238,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 </ul>
 
         </div>
@@ -493,7 +507,7 @@ function.</p>
 <li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
 <li><p>arr_out.sum() = 0</p></li>
 </ol>
-<p>3) <a href="#id7"><span class="problematic" id="id8">|ň|</span></a> = 1
+<p>3) <a href="#id13"><span class="problematic" id="id14">|ň|</span></a> = 1
 =&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
 <blockquote>
 <div><p>dofs = n_x, n_y, d = X</p>
@@ -524,7 +538,7 @@ surface.</p>
 <li><p>arr = arr_out + (ň.x + d)/ň_z</p></li>
 <li><p>arr_out.sum() = 0</p></li>
 </ol>
-<p>3) <a href="#id9"><span class="problematic" id="id10">|ň|</span></a> = 1
+<p>3) <a href="#id15"><span class="problematic" id="id16">|ň|</span></a> = 1
 =&gt; n_z = sqrt(1 - n_x^2 - n_y^2) (for 2D, but you get the idea)</p>
 <blockquote>
 <div><p>dofs = n_x, n_y, d = X</p>
@@ -857,6 +871,125 @@ typically occurs in optical measurements.</p>
 </dd></dl>
 
 </section>
+<section id="module-SurfaceTopography.Uniform.Integration">
+<span id="surfacetopography-uniform-integration-module"></span><h2>SurfaceTopography.Uniform.Integration module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Integration" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.integrate_psd">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">integrate_psd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.integrate_psd" title="Permalink to this definition"></a></dt>
+<dd><p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{(</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">}</span> \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">dq_y</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Discrete</p>
+<blockquote>
+<div><p><a href="#id17"><span class="problematic" id="id18">m_</span></a>alpha = frac{1}{L_x L_y} sum_{q_x, q_y} factor(q_x, q_y) C^{2D}_{q_x, q_y}</p>
+</div></blockquote>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>factor: function</dt><dd><p>Function taking as argument the 2 norm of the wavevector (if it accepts only one argument)</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(np.ndarray:</span> <span class="pre">q)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+<p>or the two components of the wavevector qx and qy</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(np.ndarray:</span> <span class="pre">qx,</span> <span class="pre">np.ndarray:qy)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+</dd>
+<dt>window<span class="classifier">str, optional</span></dt><dd><p>Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: None)</p>
+</dd>
+<dt>reliable<span class="classifier">bool, optional</span></dt><dd><p>Only return data deemed reliable. (Default: True)</p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>Returns:<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>weighted_integral: float</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.integrate_psd_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">integrate_psd_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.integrate_psd_from_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the integral of the 1D PSD weighted by “factor”</p>
+<p>Continuum:</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Discrete</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_x</span><span class="p">}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span>
+</pre></div>
+</div>
+<section id="id8">
+<h3>Parameters:<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><dl>
+<dt>factor: callable</dt><dd><p>Function taking as argument the wavevector in the fast scan direction qx</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(np.ndarray:</span> <span class="pre">qx)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+</dd>
+<dt>window<span class="classifier">str, optional</span></dt><dd><p>Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: None)</p>
+</dd>
+<dt>reliable<span class="classifier">bool, optional</span></dt><dd><p>Only return data deemed reliable. (Default: True)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+<section id="id9">
+<h3>Returns:<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>weighted_integral: float</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.moment_power_spectrum">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">moment_power_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.moment_power_spectrum" title="Permalink to this definition"></a></dt>
+<dd><p>Computes</p>
+<p>For 2D Topographies, continuum:</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{(</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">}</span> \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">dq_y</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Discrete</p>
+<blockquote>
+<div><p><a href="#id19"><span class="problematic" id="id20">m_</span></a>alpha = frac{1}{L_x L_y} sum_{q_x, q_y} <a href="#id10"><span class="problematic" id="id11">|</span></a>q|^{alpha} C^{2D}_{q_x, q_y}</p>
+</div></blockquote>
+<p>For line scans, continuum:</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Discrete</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_x</span><span class="p">}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span>
+</pre></div>
+</div>
+<section id="id12">
+<h3>Parameters:<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>order: int</dt><dd><p>order of the moment to compute</p>
+</dd>
+<dt>window<span class="classifier">str, optional</span></dt><dd><p>Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: None)</p>
+</dd>
+<dt>reliable<span class="classifier">bool, optional</span></dt><dd><p>Only return data deemed reliable. (Default: True)</p>
+</dd>
+</dl>
+</div></blockquote>
+</section>
+</dd></dl>
+
+</section>
 <section id="module-SurfaceTopography.Uniform.Interpolation">
 <span id="surfacetopography-uniform-interpolation-module"></span><h2>SurfaceTopography.Uniform.Interpolation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Interpolation" title="Permalink to this heading"></a></h2>
 <dl class="py function">
@@ -956,6 +1089,17 @@ boundaries.</p>
 <section id="module-SurfaceTopography.Uniform.PowerSpectrum">
 <span id="surfacetopography-uniform-powerspectrum-module"></span><h2>SurfaceTopography.Uniform.PowerSpectrum module<a class="headerlink" href="#module-SurfaceTopography.Uniform.PowerSpectrum" title="Permalink to this heading"></a></h2>
 <p>Power-spectral density for uniform topographies.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.fftfreq">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">fftfreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.fftfreq" title="Permalink to this definition"></a></dt>
+<dd><p>computes and returns the grid of wavevectors corresponding to np.fft.fft</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">wavevectors_norm2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.ScalarParameters">
 <span id="surfacetopography-uniform-scalarparameters-module"></span><h2>SurfaceTopography.Uniform.ScalarParameters module<a class="headerlink" href="#module-SurfaceTopography.Uniform.ScalarParameters" title="Permalink to this heading"></a></h2>

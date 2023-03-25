@@ -1,0 +1,21 @@
+SurfaceTopography.Models package
+================================
+
+Submodules
+----------
+
+SurfaceTopography.Models.SelfAffine module
+------------------------------------------
+
+.. automodule:: SurfaceTopography.Models.SelfAffine
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Models
+   :members:
+   :undoc-members:
+   :show-inheritance:

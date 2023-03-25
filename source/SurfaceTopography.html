@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.4.1.dev2+g7a75df9b documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.4.1.dev85+g7fe11bd0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -34,7 +34,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.4.1.dev2+g7a75df9b
+                1.4.1.dev85+g7fe11bd0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,7 +58,9 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
@@ -334,6 +336,7 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 </ul>
 
         </div>
@@ -378,6 +381,12 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.IO.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Integration.integrate_psd_from_profile"><code class="docutils literal notranslate"><span class="pre">integrate_psd_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Integration.ciso_moment"><code class="docutils literal notranslate"><span class="pre">ciso_moment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Integration.c1d_moment"><code class="docutils literal notranslate"><span class="pre">c1d_moment()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property"><code class="docutils literal notranslate"><span class="pre">scale_dependent_statistical_property()</span></code></a></li>
 </ul>
@@ -404,6 +413,15 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_profile()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.container_variance_half_derivative_from_autocorrelation"><code class="docutils literal notranslate"><span class="pre">container_variance_half_derivative_from_autocorrelation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Moments.compute_1d_moment"><code class="docutils literal notranslate"><span class="pre">compute_1d_moment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Moments.compute_iso_moment"><code class="docutils literal notranslate"><span class="pre">compute_iso_moment()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a><ul>
@@ -693,6 +711,34 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Models.html#module-SurfaceTopography.Models.SelfAffine">SurfaceTopography.Models.SelfAffine module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness.power_spectrum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum_profile"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness.power_spectrum_profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.power_spectrum_isotropic"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness.power_spectrum_isotropic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.variance_derivatice"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness.variance_derivatice()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine"><code class="docutils literal notranslate"><span class="pre">SelfAffine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.__init__"><code class="docutils literal notranslate"><span class="pre">SelfAffine.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_isotropic"><code class="docutils literal notranslate"><span class="pre">SelfAffine.power_spectrum_isotropic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_profile"><code class="docutils literal notranslate"><span class="pre">SelfAffine.power_spectrum_profile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.rms_height"><code class="docutils literal notranslate"><span class="pre">SelfAffine.rms_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_derivative"><code class="docutils literal notranslate"><span class="pre">SelfAffine.variance_derivative()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_half_derivative"><code class="docutils literal notranslate"><span class="pre">SelfAffine.variance_half_derivative()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness"><code class="docutils literal notranslate"><span class="pre">SelfAffine.generate_roughness()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Models.html#module-SurfaceTopography.Models">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a><ul>
@@ -755,6 +801,16 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html#module-SurfaceTopography.ScanningProbe.RigidScan">SurfaceTopography.ScanningProbe.RigidScan module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html#SurfaceTopography.ScanningProbe.RigidScan.scan_with_rigid_sphere"><code class="docutils literal notranslate"><span class="pre">scan_with_rigid_sphere()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html#SurfaceTopography.ScanningProbe.RigidScan.pipeline_scan_with_rigid_sphere"><code class="docutils literal notranslate"><span class="pre">pipeline_scan_with_rigid_sphere()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html#module-SurfaceTopography.ScanningProbe">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a><ul>
@@ -886,6 +942,12 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data"><code class="docutils literal notranslate"><span class="pre">interpolate_undefined_data()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Integration">SurfaceTopography.Uniform.Integration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Integration.integrate_psd"><code class="docutils literal notranslate"><span class="pre">integrate_psd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Integration.integrate_psd_from_profile"><code class="docutils literal notranslate"><span class="pre">integrate_psd_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Integration.moment_power_spectrum"><code class="docutils literal notranslate"><span class="pre">moment_power_spectrum()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_linear"><code class="docutils literal notranslate"><span class="pre">interpolate_linear()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_bicubic"><code class="docutils literal notranslate"><span class="pre">interpolate_bicubic()</span></code></a></li>
@@ -901,7 +963,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.fftfreq"><code class="docutils literal notranslate"><span class="pre">fftfreq()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2"><code class="docutils literal notranslate"><span class="pre">wavevectors_norm2()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile"><code class="docutils literal notranslate"><span class="pre">rms_height_from_profile()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area"><code class="docutils literal notranslate"><span class="pre">rms_height_from_area()</span></code></a></li>

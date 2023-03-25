@@ -60,6 +60,14 @@ SurfaceTopography.Uniform.Imputation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Uniform.Integration module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.Integration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Uniform.Interpolation module
 ----------------------------------------------
 

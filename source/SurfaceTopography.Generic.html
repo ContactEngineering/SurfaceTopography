@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.4.1.dev2+g7a75df9b documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.4.1.dev85+g7fe11bd0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -34,7 +34,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.4.1.dev2+g7a75df9b
+                1.4.1.dev85+g7fe11bd0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -59,6 +59,8 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Generic package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Curvature">SurfaceTopography.Generic.Curvature module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
@@ -67,7 +69,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
@@ -93,6 +97,15 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_curvature_from_area()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Fractional.container_variance_half_derivative_from_autocorrelation"><code class="docutils literal notranslate"><span class="pre">container_variance_half_derivative_from_autocorrelation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Moments.compute_1d_moment"><code class="docutils literal notranslate"><span class="pre">compute_1d_moment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.Moments.compute_iso_moment"><code class="docutils literal notranslate"><span class="pre">compute_iso_moment()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff"><code class="docutils literal notranslate"><span class="pre">short_reliability_cutoff()</span></code></a></li>
 </ul>
@@ -111,6 +124,7 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 </ul>
 
         </div>
@@ -202,6 +216,112 @@ bins without data points are discarded. (Default: None)</p></li>
 </p>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Generic.Fractional">
+<span id="surfacetopography-generic-fractional-module"></span><h2>SurfaceTopography.Generic.Fractional module<a class="headerlink" href="#module-SurfaceTopography.Generic.Fractional" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Fractional.container_variance_half_derivative_from_autocorrelation">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Fractional.</span></span><span class="sig-name descname"><span class="pre">container_variance_half_derivative_from_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">container</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_dependent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Fractional.container_variance_half_derivative_from_autocorrelation" title="Permalink to this definition"></a></dt>
+<dd><p>The scale-dependence is introduced by considering only the ACF below the distance scale.</p>
+<p>This is the definition of scale-dependent elastic energy as in Wang and Müser equation 44</p>
+<p>see container.autocorrelation concerning further arguments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>if scale_dependent</em></p></li>
+<li><p><strong>r</strong> (<em>array of floats</em>)</p></li>
+<li><p><em>distance scale</em></p></li>
+<li><p><strong>variance_half_derivative</strong> (<em>array of floats</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Generic.Moments">
+<span id="surfacetopography-generic-moments-module"></span><h2>SurfaceTopography.Generic.Moments module<a class="headerlink" href="#module-SurfaceTopography.Generic.Moments" title="Permalink to this heading"></a></h2>
+<p>Computation of moments of a discrete curve, e.g. the PSD</p>
+<p>The example below computes the PSD of a surface topography and integrates it to obtain the RMS height.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">SurfaceTopography.Generation</span> <span class="kn">import</span> <span class="n">fourier_synthesis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">fourier_synthesis</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="n">hurst</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">rms_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hrms</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">rms_height_from_profile</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hrms_from_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">compute_1d_moment</span><span class="p">(,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hrms_from_psd</span> <span class="o">/</span> <span class="n">hrms</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="o">&lt;</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<p>However, because the averaging of the PSD before integration introduces errors,
+it is better to sum directly the raw spectum,
+see the methods <cite>integrate_psd</cite> of the topographies and the container.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Moments.compute_1d_moment">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Moments.</span></span><span class="sig-name descname"><span class="pre">compute_1d_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Moments.compute_1d_moment" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span></p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="nb">int</span> <span class="n">dx</span> <span class="n">y</span> <span class="n">x</span><span class="o">^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>using trapezoidal interpolation of the integrand</p>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>sample points</p>
+</dd>
+<dt>y: np.ndarray</dt><dd><p>values of the function sampled at x</p>
+</dd>
+<dt>order: float, default=1</dt><dd><p>order of the moment</p>
+</dd>
+<dt>cumulative: bool, default=True</dt><dd><p>if True returns the cumulative value of this integral for each x (uses cumtrapz instead of trapz)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>If <cite>cumulative</cite> is <cite>False</cite> (Default)</p></li>
+<li><p><strong>integral</strong> (<em>float</em>)</p></li>
+<li><p>If <cite>cumulative</cite> is <cite>True</cite></p></li>
+<li><p><strong>integral</strong> (<em>np.ndarray of length</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.Moments.compute_iso_moment">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Moments.</span></span><span class="sig-name descname"><span class="pre">compute_iso_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Moments.compute_iso_moment" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span> of the 2D isotropic funtion <span class="math notranslate nohighlight">\(y_{2D}(x)\)</span></p>
+<p><span class="math notranslate nohighlight">\(y\)</span> is the 1D representation of the isotropic function <span class="math notranslate nohighlight">\(y_{2D}(x_1, x_2) = y(|\vec x|)\)</span></p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="nb">int</span> <span class="n">dx_1</span> <span class="n">dx_2</span> <span class="n">y_</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_2</span><span class="p">)</span> <span class="o">|</span>\<span class="n">vec</span>  <span class="n">x</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="o">=</span> <span class="mi">2</span>\<span class="n">pi</span> \<span class="nb">int</span> <span class="n">dx</span> <span class="n">y</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span><span class="o">^</span><span class="p">{</span>\<span class="n">alpha</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>using trapezoidal interpolation of the integrand</p>
+<section id="id1">
+<h3>Parameters:<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>sample points</p>
+</dd>
+<dt>y: np.ndarray</dt><dd><p>values of the function sampled at x</p>
+</dd>
+<dt>order: float, default=1</dt><dd><p>order of the moment</p>
+</dd>
+<dt>cumulative: bool, default=True</dt><dd><p>if True returns the cumulative value of this integral for each x (uses cumtrapz instead of trapz)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">returns<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>If <cite>cumulative</cite> is <cite>False</cite> (Default)</p></li>
+<li><p><strong>integral</strong> (<em>float</em>)</p></li>
+<li><p>If <cite>cumulative</cite> is <cite>True</cite></p></li>
+<li><p><strong>integral</strong> (<em>np.ndarray of length</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</section>
 </dd></dl>
 
 </section>

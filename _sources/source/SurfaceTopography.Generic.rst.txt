@@ -12,6 +12,22 @@ SurfaceTopography.Generic.Curvature module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Generic.Fractional module
+-------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.Fractional
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Generic.Moments module
+----------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.Moments
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generic.ReliabilityCutoff module
 --------------------------------------------------
 

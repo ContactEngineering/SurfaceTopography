@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SurfaceTopography.Models package &mdash; SurfaceTopography 1.4.1.dev85+g7fe11bd0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SurfaceTopography.Nonuniform package" href="SurfaceTopography.Nonuniform.html" />
+    <link rel="prev" title="SurfaceTopography.IO package" href="SurfaceTopography.IO.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            SurfaceTopography
+          </a>
+              <div class="version">
+                1.4.1.dev85+g7fe11bd0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Models.SelfAffine">SurfaceTopography.Models.SelfAffine module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.DiscoverVersion">SurfaceTopography.DiscoverVersion module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-pipeline-module">SurfaceTopography.Pipeline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Models.SelfAffine">SurfaceTopography.Models.SelfAffine module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness.power_spectrum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum_profile"><code class="docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness.power_spectrum_profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.power_spectrum_isotropic"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness.power_spectrum_isotropic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.variance_derivatice"><code class="docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness.variance_derivatice()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine"><code class="docutils literal notranslate"><span class="pre">SelfAffine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.__init__"><code class="docutils literal notranslate"><span class="pre">SelfAffine.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_isotropic"><code class="docutils literal notranslate"><span class="pre">SelfAffine.power_spectrum_isotropic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_profile"><code class="docutils literal notranslate"><span class="pre">SelfAffine.power_spectrum_profile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.rms_height"><code class="docutils literal notranslate"><span class="pre">SelfAffine.rms_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_derivative"><code class="docutils literal notranslate"><span class="pre">SelfAffine.variance_derivative()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_half_derivative"><code class="docutils literal notranslate"><span class="pre">SelfAffine.variance_half_derivative()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness"><code class="docutils literal notranslate"><span class="pre">SelfAffine.generate_roughness()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Models">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SurfaceTopography</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="SurfaceTopography.html">SurfaceTopography package</a></li>
+      <li class="breadcrumb-item active">SurfaceTopography.Models package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/SurfaceTopography.Models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="surfacetopography-models-package">
+<h1>SurfaceTopography.Models package<a class="headerlink" href="#surfacetopography-models-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-SurfaceTopography.Models.SelfAffine">
+<span id="surfacetopography-models-selfaffine-module"></span><h2>SurfaceTopography.Models.SelfAffine module<a class="headerlink" href="#module-SurfaceTopography.Models.SelfAffine" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Models.SelfAffine.</span></span><span class="sig-name descname"><span class="pre">AbstractStatisticalRoughness</span></span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum">
+<span class="sig-name descname"><span class="pre">power_spectrum</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum_profile">
+<span class="sig-name descname"><span class="pre">power_spectrum_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum_profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Models.SelfAffine.</span></span><span class="sig-name descname"><span class="pre">AbstractIsotropicRoughness</span></span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness" title="SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractStatisticalRoughness</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.power_spectrum_isotropic">
+<span class="sig-name descname"><span class="pre">power_spectrum_isotropic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.power_spectrum_isotropic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.variance_derivatice">
+<span class="sig-name descname"><span class="pre">variance_derivatice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.variance_derivatice" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Models.SelfAffine.</span></span><span class="sig-name descname"><span class="pre">SelfAffine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolloff_wavelength</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hurst_exponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness" title="SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractIsotropicRoughness</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolloff_wavelength</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hurst_exponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_isotropic">
+<span class="sig-name descname"><span class="pre">power_spectrum_isotropic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_isotropic" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_profile">
+<span class="sig-name descname"><span class="pre">power_spectrum_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.power_spectrum_profile" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.rms_height">
+<span class="sig-name descname"><span class="pre">rms_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.rms_height" title="Permalink to this definition"></a></dt>
+<dd><p>See 10.1088/2051-672X/aa51f8 equations 4, 10 and 11</p>
+<div class="math notranslate nohighlight">
+\[h^2_\mathrm{rms} = \frac{C_r q_r^2}{4 \pi}
+\left[ 1 + \frac{1}{H} - \left( \frac{q_l}{q_r}\right)^2 - \left( \frac{q_s}{q_r}\right)^{-2H}\right]\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(C_r q_r^2\)</span> can be interchanged with <span class="math notranslate nohighlight">\(C_0 q_r^{-2H}\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shortcut_wavelength</strong> (<em>float</em><em> or </em><em>array</em><em>, </em><em>optional</em>) – makes the rms-height scale dependent by overriding the shortcut</p></li>
+<li><p><strong>longcut_wavelength</strong> – makes the rms-height scale dependent by overriding the longcut</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.variance_derivative">
+<span class="sig-name descname"><span class="pre">variance_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_derivative" title="Permalink to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Variance of a derivative of arbitrary (fractional) order</p>
+</div></blockquote>
+<p>The contribution for an isotropic flat PSD with
+amplite <span class="math notranslate nohighlight">\(C_r\)</span> between the wavevectors <span class="math notranslate nohighlight">\([q_L, q_s]\)</span> is</p>
+<div class="math notranslate nohighlight">
+\[\left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_r}{2 \pi}
+    \left[ q_s^{2 + 2\alpha } - q_L ^{2 + 2\alpha} \right] / (2 + 2 \alpha)\]</div>
+<p>The contribution for a power-law PSD between <span class="math notranslate nohighlight">\([q_L, q_s]\)</span></p>
+<p>For  <span class="math notranslate nohighlight">\(\alpha \neq H\)</span></p>
+<div class="math notranslate nohighlight">
+\[\left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_0}{2 \pi}
+            \left[ q_s^{ 2\alpha - 2H} - q_L ^{2\alpha - 2H} \right] / (2\alpha - 2 H)\]</div>
+<p>and for  <span class="math notranslate nohighlight">\(\alpha = H\)</span></p>
+<div class="math notranslate nohighlight">
+\[\left[h^{(\alpha)}_\mathrm{rms}\right]^2 = \frac{C_0}{2 \pi}
+    \ln\left( q_s/ q_L \right)\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(C_r q_r^2\)</span> can be interchanged with <span class="math notranslate nohighlight">\(C_0 q_r^{-2H}\)</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> (<em>float</em>) – order of the derivative</p></li>
+<li><p><strong>shortcut_wavelength</strong> (<em>float</em><em> or </em><em>array</em><em>, </em><em>optional</em>) – makes the result scale dependent by overriding the shortcut</p></li>
+<li><p><strong>longcut_wavelength</strong> – makes the result scale dependent by overriding the longcut</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.variance_half_derivative">
+<span class="sig-name descname"><span class="pre">variance_half_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_half_derivative" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness">
+<span class="sig-name descname"><span class="pre">generate_roughness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pixels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longcut_wavelength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a discrete random realisation of Gaussian noise with variances of the waves given by the PSD</p>
+<p>The <cite>shortcut_wavelength</cite> and <cite>longcut_wavelength</cite> parameters allow to overwrite the
+values paramtetrized in the model, since a discrete realization is often shorter.</p>
+<p>See fourier synthesis for more arguments</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Models" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SurfaceTopography.IO.html" class="btn btn-neutral float-left" title="SurfaceTopography.IO package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SurfaceTopography.Nonuniform.html" class="btn btn-neutral float-right" title="SurfaceTopography.Nonuniform package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

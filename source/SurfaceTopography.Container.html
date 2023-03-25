@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.4.1.dev2+g7a75df9b documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.4.1.dev85+g7fe11bd0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -33,7 +34,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.4.1.dev2+g7a75df9b
+                1.4.1.dev85+g7fe11bd0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,6 +59,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.common">SurfaceTopography.Container.common module</a></li>
@@ -66,7 +68,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
@@ -96,6 +100,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.IO.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Integration.integrate_psd_from_profile"><code class="docutils literal notranslate"><span class="pre">integrate_psd_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Integration.ciso_moment"><code class="docutils literal notranslate"><span class="pre">ciso_moment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Integration.c1d_moment"><code class="docutils literal notranslate"><span class="pre">c1d_moment()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property"><code class="docutils literal notranslate"><span class="pre">scale_dependent_statistical_property()</span></code></a></li>
 </ul>
@@ -122,6 +132,7 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 </ul>
 
         </div>
@@ -238,6 +249,96 @@ the metadata.
 <li><p><strong>containers</strong> (list of :obj:<a href="#id3"><span class="problematic" id="id4">`</span></a>SurfaceContainer`s) – Containers to be written to the ZIP file.</p></li>
 <li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream to write the ZIP-container to.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Container.Integration">
+<span id="surfacetopography-container-integration-module"></span><h2>SurfaceTopography.Container.Integration module<a class="headerlink" href="#module-SurfaceTopography.Container.Integration" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Integration.integrate_psd_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Integration.</span></span><span class="sig-name descname"><span class="pre">integrate_psd_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Integration.integrate_psd_from_profile" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the integral of the 1D PSD weighted by “factor”</p>
+<p>The integral is computed by adding up the discrete sum for each topography.</p>
+<p>The summand for each topography is weighted by the number of topographies having this wavevector in their bandwidth</p>
+<p>Hence for a container containing only one topogaphy,
+this method is identical to calling <cite>topography.integrate_psd_from_profile()</cite></p>
+<p>Continuum:</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Discrete</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">sum_i</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_</span><span class="p">{</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">}}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> \<span class="n">frac</span><span class="p">{</span><span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">i</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)}{</span><span class="n">N</span><span class="p">(</span><span class="n">q_x</span><span class="p">)}</span>
+</pre></div>
+</div>
+<p>Where the index <span class="math notranslate nohighlight">\(i\)</span> runs over all topographies and <span class="math notranslate nohighlight">\(N(q_x)\)</span> is the number
+of topographies having the wavevector <cite>q_x</cite> in their bandwidth</p>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
+<dl>
+<dt>self<span class="classifier">SurfaceContainer</span></dt><dd><p>Collection of Height containers</p>
+</dd>
+<dt>factor: callable</dt><dd><p>Function taking as argument the wavevector in the fast scan direction qx</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">func(np.ndarray:</span> <span class="pre">qx)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code></p>
+</div></blockquote>
+</dd>
+<dt>window<span class="classifier">str, optional</span></dt><dd><p>Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: None)</p>
+</dd>
+<dt>reliable<span class="classifier">bool, optional</span></dt><dd><p>Only return data deemed reliable. (Default: True)</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Permalink to this heading"></a></h3>
+<p>weighted_integral: float</p>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Integration.ciso_moment">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Integration.</span></span><span class="sig-name descname"><span class="pre">ciso_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Integration.ciso_moment" title="Permalink to this definition"></a></dt>
+<dd><p>trapz integration of the moments of the averaged isotropic PSD.</p>
+<p>Containers only implement the 1D power-spectrum, so that we use the approximation mapping
+the 1d PSD to the isotropic PSD</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="o">^</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">iso</span><span class="p">}</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span>\<span class="n">pi</span><span class="p">}{</span><span class="n">q</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span>\<span class="n">mathrm</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a><em> or </em><em>HeightContainer</em>) – Container with height information or collection of height containsers</p></li>
+<li><p><strong>order</strong> (<em>float</em>) – order of moment of the PDF to compute</p></li>
+<li><p><strong>method</strong> (<em>see the documentation</em><em> of </em><em>the corresponding</em>) – </p></li>
+<li><p><strong>method</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Integration.c1d_moment">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Integration.</span></span><span class="sig-name descname"><span class="pre">c1d_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Integration.c1d_moment" title="Permalink to this definition"></a></dt>
+<dd><p>trapz integration of</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a><em> or </em><em>HeightContainer</em>) – Container with height information or collection of height containsers</p></li>
+<li><p><strong>order</strong> (<em>float</em>) – order of moment of the PDF to compute</p></li>
+<li><p><strong>method</strong> (<em>see the documentation</em><em> of </em><em>the corresponding</em>) – </p></li>
+<li><p><strong>method</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>

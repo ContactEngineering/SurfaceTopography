@@ -1,0 +1,21 @@
+SurfaceTopography.ScanningProbe package
+=======================================
+
+Submodules
+----------
+
+SurfaceTopography.ScanningProbe.RigidScan module
+------------------------------------------------
+
+.. automodule:: SurfaceTopography.ScanningProbe.RigidScan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.ScanningProbe
+   :members:
+   :undoc-members:
+   :show-inheritance:

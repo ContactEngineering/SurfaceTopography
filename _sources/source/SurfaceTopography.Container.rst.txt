@@ -20,6 +20,14 @@ SurfaceTopography.Container.IO module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Container.Integration module
+----------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.Integration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Container.ScaleDependentStatistics module
 -----------------------------------------------------------
 

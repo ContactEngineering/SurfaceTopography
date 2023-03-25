@@ -10,7 +10,9 @@ Subpackages
    SurfaceTopography.Container
    SurfaceTopography.Generic
    SurfaceTopography.IO
+   SurfaceTopography.Models
    SurfaceTopography.Nonuniform
+   SurfaceTopography.ScanningProbe
    SurfaceTopography.Support
    SurfaceTopography.Uniform
 
