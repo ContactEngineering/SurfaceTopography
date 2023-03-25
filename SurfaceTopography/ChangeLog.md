@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.5.0 (not yet released)
+-------------------------
+
+- MAINT: Switched from igor to igor2 which supports latest numpy
+
 v1.4.1 (6Mar22)
 ---------------
 
