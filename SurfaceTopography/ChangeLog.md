@@ -1,15 +1,16 @@
 Change log for SurfaceTopography
 ================================
 
-v1.5 (20Mar22)
----------------
+v1.5.0 (25Mar23)
+----------------
+
 - ENH: analytical computation of scalar roughness parameters of  ideal self-affine psd  
 - ENH: weighted integrals of the PSDs of containers 
 - ENH: scanning probe artefact simulations
 - TST: remove dependency of test-suite on ContactMechanics 
+- MAINT: Switched from igor to igor2 which supports latest numpy
 
-
-v1.4.1 (6Mar22)
+v1.4.1 (6Mar23)
 ---------------
 
 - BUG: Do not use `peek`, since some stream objects do not support this

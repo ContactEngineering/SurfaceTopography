@@ -20,11 +20,11 @@ classifiers = [
 requires-python = ">=3.8.0"
 dynamic = [ "version" ]
 dependencies = [
-    "numpy<1.24.0",  # FIXME! Igor no longer works with numpy 1.24.0 or later
+    "numpy",
     "scipy>=1.9.0",
     "defusedxml",
     "h5py",
-    "igor",  # FIXME! Igor no longer works with numpy 1.24.0 or later
+    "igor2",
     "matplotlib>=1.0.0",
     "muSpectre>=0.25.1",
     "NuMPI>=0.3.1",

@@ -26,7 +26,7 @@
 
 import numpy as np
 
-from igor.binarywave import load as loadibw
+from igor2.binarywave import load as loadibw
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
