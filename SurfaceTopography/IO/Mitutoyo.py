@@ -128,7 +128,7 @@ surface roughness testers.
             _x_unit = _cut_off_dict['unit']
 
             # convert x unit to h unit
-            self._x = _x*get_unit_conversion_factor(_x_unit, _h_unit)
+            self._x = _x * get_unit_conversion_factor(_x_unit, _h_unit)
             self._unit = _h_unit
 
             # with n data points spaced by distance dx,

@@ -480,10 +480,10 @@ class DecoratedUniformTopography(DecoratedTopography,
     def squeeze(self):
         if self.dim == 1:
             return UniformLineScan(self.heights(), self.physical_sizes,
-                                   periodic=self.is_periodic, info=self.info)
+                                   periodic=self.is_periodic, info=self.info, unit=self.unit)
         else:
             return Topography(self.heights(), self.physical_sizes,
-                              periodic=self.is_periodic, info=self.info)
+                              periodic=self.is_periodic, info=self.info, unit=self.unit)
 
 
 class ScaledUniformTopography(DecoratedUniformTopography):

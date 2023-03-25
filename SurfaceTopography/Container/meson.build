@@ -7,7 +7,8 @@ python_sources = [
     'common.py',
     'IO.py',
     'ScaleDependentStatistics.py',
-    'SurfaceContainer.py'
+    'SurfaceContainer.py',
+    'Integration.py'
 ]
 
 # Install pure Python

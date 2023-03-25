@@ -44,6 +44,8 @@ import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
 import SurfaceTopography.Generic.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
+import SurfaceTopography.Generic.Fractional  # noqa: F401
+# import SurfaceTopography.Models # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
 import SurfaceTopography.Nonuniform.Converters  # noqa: F401
@@ -63,6 +65,9 @@ import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
 import SurfaceTopography.Uniform.VariableBandwidth  # noqa: F401
 import SurfaceTopography.Support.Bibliography  # noqa: F401
+import SurfaceTopography.ScanningProbe  # noqa: F401
+import SurfaceTopography.Uniform.Integration  # noqa: F401
+
 
 # Add contact.engineering paper to bibliography
 SurfaceTopography.Support.Bibliography._default_dois = set(['10.1088/2051-672X/ac860a'])

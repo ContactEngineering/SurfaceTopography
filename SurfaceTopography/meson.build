@@ -24,6 +24,8 @@ install_data(
     'ChangeLog.md'
 )
 
+subdir('ScanningProbe')
+subdir('Models')
 subdir('Container')
 subdir('Generic')
 subdir('IO')
