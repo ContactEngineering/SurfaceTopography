@@ -42,6 +42,7 @@ from .EZD import EZDReader
 from .H5 import H5Reader
 from .IBW import IBWReader
 from .Matlab import MatReader
+from .MetroPro import MetroProReader
 from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
@@ -82,6 +83,7 @@ readers = [
     AL3DReader,
     EZDReader,
     BCRReader,
+    MetroProReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
