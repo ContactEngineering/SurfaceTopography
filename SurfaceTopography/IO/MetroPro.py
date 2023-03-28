@@ -141,7 +141,7 @@ This reader imports Zygo MetroPro data files.
         ('fda_res', '>h'),
         ('scan_descr', '20s'),
         ('n_fiducials_a', '>h'),
-        ('fiducials_a',  '14f'),
+        ('fiducials_a', '14f'),
         ('pixel_width', '>f'),
         ('pixel_height', '>f'),
         ('exit_pupil_diam', '>f'),
@@ -336,8 +336,10 @@ This reader imports Zygo MetroPro data files.
         self._nb_grid_pts = (nx, ny)
         self._physical_sizes = (self._header['lateral_res'] * nx, self._header['lateral_res'] * ny)
         max_phase = self._MAX_PHASE[self._header['phase_res']]
-        self._height_scale_factor = self._header['intf_scale_factor'] * self._header['obliquity_factor'] * \
-                                    self._header['wavelength_in'] / max_phase
+        self._height_scale_factor = \
+            self._header['intf_scale_factor'] * \
+            self._header['obliquity_factor'] * \
+            self._header['wavelength_in'] / max_phase
         if self._header['sign']:
             self._height_scale_factor *= -1
         self._unit = 'm'

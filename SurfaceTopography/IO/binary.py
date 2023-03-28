@@ -22,7 +22,7 @@
 # SOFTWARE.
 #
 
-from struct import calcsize, unpack, pack
+from struct import calcsize, unpack
 
 
 def decode(stream_obj, structure_format, byte_order='@', return_size=False):
@@ -97,11 +97,3 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         return data_dict, total_size
     else:
         return data_dict
-
-    #format_str = byte_order + ''.join([mogrify_format(format) for name, format in structure_format])
-    #unpacked_data = unpack(format_str, stream_obj.read(calcsize(format_str)))
-    #print(calcsize(format_str))
-    #for (name, format), data in zip(structure_format, unpacked_data):
-    #    print(name, format, mogrify_format(format), data)
-    #    print('--->', decode_data(data, format))
-    #return {name: decode_data(data, format) for (name, format), data in zip(structure_format, unpacked_data)}
