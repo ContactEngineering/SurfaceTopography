@@ -84,6 +84,14 @@ SurfaceTopography.IO.Matlab module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.MetroPro module
+------------------------------------
+
+.. automodule:: SurfaceTopography.IO.MetroPro
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.Mitutoyo module
 ------------------------------------
 
