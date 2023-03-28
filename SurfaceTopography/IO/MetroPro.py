@@ -335,7 +335,10 @@ This reader imports Zygo MetroPro data files.
         # All good, now initialize some convenience variables
         self._nb_grid_pts = (nx, ny)
         self._physical_sizes = (self._header['lateral_res'] * nx, self._header['lateral_res'] * ny)
+
+        # `phase_res` should only have values 0, 1 or 2. If this fails, the file is likely corrupt.
         max_phase = self._MAX_PHASE[self._header['phase_res']]
+
         self._height_scale_factor = \
             self._header['intf_scale_factor'] * \
             self._header['obliquity_factor'] * \
