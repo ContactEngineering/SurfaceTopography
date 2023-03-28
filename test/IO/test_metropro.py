@@ -59,13 +59,22 @@ def test_metropro_metadata(file_format_examples):
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 2560
-    assert ny == 2560
+    assert nx == 640
+    assert ny == 480
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 0.631917268037796)
-    np.testing.assert_almost_equal(sy, 0.631917268037796)
+    np.testing.assert_almost_equal(sx, 0.0007028812979115173)
+    np.testing.assert_almost_equal(sy, 0.000527160973433638)
 
-    assert t.unit == 'mm'
+    assert t.unit == 'm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 0.00029098752636393403)
+    import matplotlib.pyplot as plt
+    t.plot()
+    plt.show()
+
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 7.528822204734589e-08)
+    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.911386124282179e-09)
+
+    t = t.detrend('curvature')
+    np.testing.assert_almost_equal(t.rms_height_from_area(), 3.911386124282179e-09)
+    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.868312608029904e-09)

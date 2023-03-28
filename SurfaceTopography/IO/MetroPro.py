@@ -29,6 +29,7 @@
 #
 
 import datetime
+import os
 
 import numpy as np
 
@@ -37,7 +38,6 @@ from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 class MetroProReader(ReaderBase):
@@ -58,6 +58,12 @@ This reader imports Zygo MetroPro data files.
         _MAGIC1: _HEADER_SIZE12,
         _MAGIC2: _HEADER_SIZE12,
         _MAGIC3: _HEADER_SIZE3
+    }
+
+    _MAX_PHASE = {
+        0: 4096,
+        1: 32768,
+        2: 131072
     }
 
     _header_structure1 = [
@@ -217,6 +223,72 @@ This reader imports Zygo MetroPro data files.
         ('', '4b')
     ]
 
+    _header_structure3 = [
+        ('films_mode', '>h'),
+        ('films_reflectivity_ratio', '>h'),
+        ('films_obliquity_correction', '>f'),
+        ('films_refraction_index', '>f'),
+        ('films_min_mod', '>f'),
+        ('films_min_thickness', '>f'),
+        ('films_max_thickness', '>f'),
+        ('films_min_refl_ratio', '>f'),
+        ('films_max_refl_ratio', '>f'),
+        ('films_sys_char_file_name', '28s'),
+        ('films_dfmt', '>h'),
+        ('films_merit_mode', '>h'),
+        ('films_h2g', '>h'),
+        ('anti_vibration_cal_file_name', '28s'),
+        ('', '2b'),
+        ('films_fringe_remove_perc', '>f'),
+        ('asphere_job_file_name', '28s'),
+        ('asphere_test_plan_name', '28s'),
+        ('', '4b'),
+        ('asphere_nzones', '>f'),
+        ('asphere_rv', '>f'),
+        ('asphere_voffset', '>f'),
+        ('asphere_att4', '>f'),
+        ('asphere_r0', '>f'),
+        ('asphere_att6', '>f'),
+        ('asphere_r0_optimization', '>f'),
+        ('asphere_att8', '>f'),
+        ('asphere_aperture_pct', '>f'),
+        ('asphere_optimized_r0', '>f'),
+        ('iff_state', 'gint16_le'),
+        ('iff_idr_filename', '42s'),
+        ('iff_ise_filename', '42s'),
+        ('', '2s'),
+        ('asphere_eqn_r0', '>f'),
+        ('asphere_eqn_k', '>f'),
+        ('asphere_eqn_coef', '>21f'),
+        ('awm_enable', '<i'),
+        ('awm_vacuum_wavelength_nm', '<f'),
+        ('awm_air_wavelength_nm', '<f'),
+        ('awm_air_temperature_degc', '<f'),
+        ('awm_air_pressure_mmhg', '<f'),
+        ('awm_air_rel_humidity_pct', '<f'),
+        ('awm_air_quality', '<f'),
+        ('awm_input_power_mw', '<f'),
+        ('asphere_optimizations', '>i'),
+        ('asphere_optimization_mode', '>i'),
+        ('asphere_optimized_k', '>f'),
+        ('', '2b'),
+        ('n_fiducials_b', '>h'),
+        ('fiducials_b', '>14f'),
+        ('', '2b'),
+        ('n_fiducials_c', '>h'),
+        ('fiducials_c', '>14f'),
+        ('', '2b'),
+        ('n_fiducials_d', '>h'),
+        ('fiducials_d', '>14f'),
+        ('gpi_enc_zoom_mag', '<f'),
+        ('asphere_max_distortion', '>f'),
+        ('asphere_distortion_uncert', '>f'),
+        ('field_stop_name', '12s'),
+        ('apert_stop_name', '12s'),
+        ('illum_filt_name', '12s'),
+        ('', '2606b')
+    ]
+
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
         self.file_path = file_path
@@ -230,8 +302,9 @@ This reader imports Zygo MetroPro data files.
             elif magic == self._MAGIC3:
                 self._file_version = 3
             else:
-                raise FileFormatMismatch('File magic does not match. This is not a Digital Surf file.')
+                raise FileFormatMismatch('File magic does not match. This is not a Zygo MetroPro file.')
 
+            # Decode header
             self._header, size = decode(f, self._header_structure1, return_size=True)
             # Idiot check, should not fail
             assert size == self._HEADER_SIZE12
@@ -242,68 +315,50 @@ This reader imports Zygo MetroPro data files.
             else:
                 if self._header['header_size'] != self._HEADER_SIZE3:
                     raise CorruptFile('Reported header size does not match expected header size.')
-                # TODO: Read rest of header
+                # TODO: We have no example file to actually test this code
+                header, size3 = decode(f, self._header_structure3, return_size=True)
+                assert size + size3 == self._HEADER_SIZE3
+                self._header.update(header)
 
-            # Convert time stamp to datetime object
-            self._header['time_stamp'] = datetime.datetime.fromtimestamp(self._header['time_stamp'])
-
-        nx = self._header['nb_grid_pts_x']
-        ny = self._header['nb_grid_pts_y']
-        if nx * ny != self._header['nb_points']:
-            raise CorruptFile(
-                'The file reported a grid of {} x {} data points and a total number of {} data points, which is '
-                'inconsistent'.format(self._nb_grid_pts[0], self._nb_grid_pts[1], self._header['nb_points']))
-
-        if self._header['itemsize'] not in [16, 32]:
-            raise CorruptFile('The file reported an item size of {} bits, which I cannot read.'
-                              .format(self._header['itemsize']))
-
-        # Check that units and delta units are the same. Not sure if they differ and why there are two different sets
-        # of units provided.
-        unit_x = self._header['unit_x']
-        unit_y = self._header['unit_y']
-        self._unit = self._header['data_unit']  # We use the data unit as the primary unit for topography objects
-
-        if self._header['unit_delta_x'] != unit_x or self._header['unit_delta_y'] != unit_y or \
-                self._header['delta_data_unit'] != self._unit:
-            raise CorruptFile('Units and delta units differ. Not sure how to handle this.')
-
-        # Get the conversion factors for converting x,y to the main system of units
-        fac_x = get_unit_conversion_factor(unit_x, self._unit)
-        fac_y = get_unit_conversion_factor(unit_y, self._unit)
+            # Check that file size is large enough to hold data
+            ac_nb_pixels = self._header['ac_org_width'] * self._header['ac_org_height']
+            nx, ny = self._header['cn_org_width'], self._header['cn_org_height']
+            cn_nb_pixels = nx * ny
+            self._data_offset = \
+                self._header['header_size'] + \
+                2 * self._header['ac_n_buckets'] * ac_nb_pixels
+            expected_file_size = self._data_offset + 4 * cn_nb_pixels
+            actual_file_size = f.seek(0, os.SEEK_END)
+            if actual_file_size < expected_file_size:
+                raise CorruptFile('File is too small to hold reported data buffers.')
 
         # All good, now initialize some convenience variables
-
         self._nb_grid_pts = (nx, ny)
-        self._physical_sizes = \
-            (fac_x * self._header['grid_spacing_x'] * nx, fac_y * self._header['grid_spacing_y'] * ny)
-
+        self._physical_sizes = (self._header['lateral_res'] * nx, self._header['lateral_res'] * ny)
+        max_phase = self._MAX_PHASE[self._header['phase_res']]
+        self._height_scale_factor = self._header['intf_scale_factor'] * self._header['obliquity_factor'] * \
+                                    self._header['wavelength_in'] / max_phase
+        if self._header['sign']:
+            self._height_scale_factor *= -1
+        self._unit = 'm'
         self._info = {
-            'instrument': {'name': self._header['instrument_name']},
+            'acquisition_time': str(datetime.datetime.fromtimestamp(self._header['time_stamp'])),
             'raw_metadata': self._header
         }
 
-        try:
-            self._info['acquisition_time'] = \
-                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
-                                      self._header['hour'], self._header['minute'], self._header['second']))
-        except ValueError:
-            # This can fail if the date is not valid, e.g. if there are just zeros
-            pass
-
     def read_height_data(self, f):
-        if self._header['itemsize'] == 16:
-            dtype = np.dtype('<i2')
-        elif self._header['itemsize'] == 32:
-            dtype = np.dtype('<i4')
-        else:
-            raise RuntimeError('Unknown itemsize')  # Should not happen because we check this in the constructor
+        f.seek(self._data_offset)
 
-        f.seek(512)
+        dtype = np.dtype('>i')
 
         nx, ny = self._nb_grid_pts
-        buffer = f.read(nx * ny * np.dtype(dtype).itemsize)
-        return np.frombuffer(buffer, dtype=dtype).reshape(self._nb_grid_pts)
+        buffer = f.read(nx * ny * dtype.itemsize)
+        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx)).T
+        mask = data >= 2147483640
+        if mask.sum() > 0:
+            return np.ma.masked_array(data, mask=mask)
+        else:
+            return data
 
     @property
     def channels(self):
@@ -313,7 +368,7 @@ This reader imports Zygo MetroPro data files.
                             dim=2,
                             nb_grid_pts=self._nb_grid_pts,
                             physical_sizes=self._physical_sizes,
-                            height_scale_factor=float(self._header['height_scale_factor']),
+                            height_scale_factor=self._height_scale_factor,
                             uniform=True,
                             unit=self._unit,
                             info=self._info)]
@@ -352,4 +407,4 @@ This reader imports Zygo MetroPro data files.
                           unit=self._unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo.scale(float(self._header['height_scale_factor']))
+        return topo.scale(self._height_scale_factor)
