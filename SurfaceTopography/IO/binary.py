@@ -25,7 +25,7 @@
 from struct import calcsize, unpack
 
 
-def decode(stream_obj, structure_format, byte_order='@'):
+def decode(stream_obj, structure_format, byte_order='@', return_size=False):
     """
     Decode a binary stream given the sequence of binary entries. Strings are
     stripped of zeros and white spaces.
@@ -40,25 +40,40 @@ def decode(stream_obj, structure_format, byte_order='@'):
             (name, format)
         that give the name of the entry and the format. We support the format
         defined in the `struct` module, plus 'u' for UTF-8 and 'U' for UTF-16.
-    byte_order : str
-        Byte order (see `struct.unpack`).
+        Decoder also supports per-entry endianness.
+    byte_order : str, optional
+        Byte order (see `struct.unpack`). (Default: '@')
+    return_size : bool, optional
+        Return the total size the structure in addition to the decoded data.
+        (Default: False)
 
     Returns
     -------
     data : dict
         Dictionary with decoded data entries.
+    size : int
+        Size of the structure in the native binary form. (Only returned
+        if `return_size` is True.)
     """
     def mogrify_format(format):
-        return_format = format
+        """Convert format string into something that struct.unpack can parse"""
         if format.endswith('b'):  # bytes
-            return_format = format[:-1] + 's'
+            return format[:-1] + 's'
         elif format.endswith('u'):  # UTF-8
-            return_format = format[:-1] + 's'
+            return format[:-1] + 's'
         elif format.endswith('U'):  # UTF-16
-            return_format = str(2*int(format[:-1])) + 's'
-        return return_format
+            return str(2*int(format[:-1])) + 's'
+        else:
+            if format.startswith('>') or format.startswith('<'):
+                return format
+            else:
+                return byte_order + format
 
     def decode_data(data, format):
+        """Perform additional decoding step on top of struct.unpack"""
+        if len(data) == 1:
+            # Data is always a tuple or list
+            data, = data
         if format.endswith('s'):
             return data.decode('latin1').strip('\x00').strip(' ')
         elif format.endswith('u'):
@@ -68,6 +83,17 @@ def decode(stream_obj, structure_format, byte_order='@'):
         else:
             return data
 
-    format_str = byte_order + ''.join([mogrify_format(format) for name, format in structure_format])
-    unpacked_data = unpack(format_str, stream_obj.read(calcsize(format_str)))
-    return {name: decode_data(data, format) for (name, format), data in zip(structure_format, unpacked_data)}
+    data_dict = {}
+    total_size = 0
+    for name, format in structure_format:
+        native_format = mogrify_format(format)
+        size = calcsize(native_format)
+        total_size += size
+
+        data = decode_data(unpack(native_format, stream_obj.read(size)), format)
+        data_dict[name] = data
+
+    if return_size:
+        return data_dict, total_size
+    else:
+        return data_dict

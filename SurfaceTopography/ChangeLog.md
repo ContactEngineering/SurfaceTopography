@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.6.0 (not yet released)
+-------------------------
+
+- ENH: Reader for the Zygo MetroPro
+
 v1.5.0 (25Mar23)
 ----------------
 

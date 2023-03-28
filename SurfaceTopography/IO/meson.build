@@ -15,6 +15,7 @@ python_sources = [
     'IBW.py',
     'Matlab.py',
     'MI.py',
+    'MetroPro.py',
     'Mitutoyo.py',
     'NC.py',
     'NPY.py',
