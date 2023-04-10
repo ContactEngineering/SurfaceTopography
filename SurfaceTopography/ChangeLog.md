@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.6.1 (10Apr23)
+----------------
+
+- BUG: More robust catching of invalid values in AL3D reader
+
 v1.6.0 (05Apr23)
 ----------------
 
