@@ -113,7 +113,7 @@ AL3D format of Alicona Imaging.
         mask = np.isnan(data)
         if not np.isnan(invalid_pixel_value):
             mask = np.logical_or(mask, np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * invalid_pixel_value)
-        return np.ma.masked_array(data.T, mask=mask)
+        return np.ma.masked_array(data.T, mask=mask.T)
 
     @property
     def channels(self):
