@@ -45,6 +45,9 @@ AL3D format of Alicona Imaging.
 
     _MAGIC = b'AliconaImaging\x00\r\n'
 
+    # Relative tolerance for catching invalid pixels
+    _INVALID_RELTOL = 1.5e-7
+
     _tag_structure = [
         ('key', '20s'),
         ('value', '30s'),
@@ -107,7 +110,10 @@ AL3D format of Alicona Imaging.
         buffer = f.read(np.prod(self._nb_grid_pts) * np.dtype(dtype).itemsize)
         nx, ny = self._nb_grid_pts
         data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx))
-        return np.ma.masked_array(data.T, mask=data == invalid_pixel_value)
+        mask = np.isnan(data)
+        if not np.isnan(invalid_pixel_value):
+            mask = np.logical_or(mask, np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * invalid_pixel_value)
+        return np.ma.masked_array(data.T, mask=mask.T)
 
     @property
     def channels(self):
