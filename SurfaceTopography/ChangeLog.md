@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.6.2 (17Apr23)
+----------------
+
+- BUG: MetroPro info dictionary is now JSON serializable
+
 v1.6.1 (10Apr23)
 ----------------
 
