@@ -106,8 +106,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'al3d-1.al3d',
                                               'nid-1.nid',
                                               'metropro-1.dat'
-                                              ] + ([] if NuMPI._has_mpi4py else [
-    'example-2d.npy']))  # MPI I/O does not support Python streams
+                                              # MPI I/O does not support Python streams
+                                              ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
 binary_without_stream_support_example_file_list = _convert_filelist([
     'surface.2048x2048.h5'
