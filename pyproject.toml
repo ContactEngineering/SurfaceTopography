@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson>=0.46.0", "meson-python>=0.11.0", "ninja", "numpy<1.24.0"]
+requires = ["meson>=0.46.0", "meson-python>=0.11.0", "ninja", "numpy"]
 build-backend = "mesonpy"
 
 [project]
@@ -34,8 +34,7 @@ dependencies = [
     "python-dateutil",
     "pyyaml",
     "requests",
-    "tiffile",
-    "numpy<1.24.0"
+    "tiffile"
 ]
 
 [project.optional-dependencies]

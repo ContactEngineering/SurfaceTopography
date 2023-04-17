@@ -91,7 +91,14 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         total_size += size
 
         data = decode_data(unpack(native_format, stream_obj.read(size)), format)
-        data_dict[name] = data
+        # `unpack` returns tuples, but when we serialize to JSON this will be
+        # turned into a list. To make sure serialization and deserialization
+        # is idempotent, we return only lists here.
+        if type(data) is tuple:
+            data = list(data)
+
+        if name is not None:
+            data_dict[name] = data
 
     if return_size:
         return data_dict, total_size
