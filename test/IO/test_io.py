@@ -26,6 +26,7 @@
 #
 
 import io
+import json
 import os
 import pickle
 import tempfile
@@ -105,8 +106,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'al3d-1.al3d',
                                               'nid-1.nid',
                                               'metropro-1.dat'
-                                              ] + [] if NuMPI._has_mpi4py else [
-    'example-2d.npy'])  # MPI I/O does not support Python streams
+                                              ] + ([] if NuMPI._has_mpi4py else [
+    'example-2d.npy']))  # MPI I/O does not support Python streams
 
 binary_without_stream_support_example_file_list = _convert_filelist([
     'surface.2048x2048.h5'
@@ -639,3 +640,24 @@ def test_to_matrix():
         t.detrend('center').to_matrix(f'{d}/topo.txt')
         t2 = read_matrix(f'{d}/topo.txt')
         np.testing.assert_allclose(t.detrend('center').heights(), t2.heights())
+
+
+@pytest.mark.parametrize('fn',
+                         text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
+def test_json_encode_info(fn):
+    """Check that info dictionary can be serialized to JSON"""
+    physical_sizes0 = (1.2, 1.3)
+    unit0 = 'mm'
+    height_scale_factor0 = 1
+
+    r = open_topography(fn)
+    physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
+    unit = None if r.channels[0].unit is not None else unit0
+    height_scale_factor = None if r.channels[0].height_scale_factor is not None else height_scale_factor0
+
+    t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                     height_scale_factor=height_scale_factor, unit=unit)
+
+    # This should simply pass without an exception
+    json.dumps(t.info)
