@@ -34,8 +34,7 @@ dependencies = [
     "python-dateutil",
     "pyyaml",
     "requests",
-    "tiffile",
-    "numpy<1.24.0"
+    "tiffile"
 ]
 
 [project.optional-dependencies]
