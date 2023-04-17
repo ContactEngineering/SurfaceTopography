@@ -91,7 +91,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         total_size += size
 
         data = decode_data(unpack(native_format, stream_obj.read(size)), format)
-        data_dict[name] = data
+
+        if name is not None:
+            data_dict[name] = data
 
     if return_size:
         return data_dict, total_size
