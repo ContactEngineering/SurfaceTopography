@@ -202,7 +202,6 @@ class SelfAffine(AbstractIsotropicRoughness):
             self_affine = 0
         return self_affine + rolloff
 
-
     def generate_roughness(self,
                            pixel_size,
                            n_pixels,
