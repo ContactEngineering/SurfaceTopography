@@ -235,7 +235,7 @@ class SelfAffine(AbstractIsotropicRoughness):
         roughness = fourier_synthesis((n_pixels, n_pixels), (sx, sx),
                                       hurst=self.hurst_exponent,
                                       c0=c0,
-                                      short_cutoff=self.shortcut_wavelength,
+                                      short_cutoff=shortcut_wavelength,
                                       long_cutoff=self.rolloff_wavelength,
                                       unit=self.unit,
                                       **kwargs
