@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.6.3 (not yet released)
+-------------------------
+
+- MAINT: More robust date parsing for DI reader
+
 v1.6.2 (17Apr23)
 ----------------
 
