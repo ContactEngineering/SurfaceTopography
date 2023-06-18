@@ -175,8 +175,13 @@ def read_published_container(publication_url, **request_args):
     """
     # First get the page for the publication in order
     # to get the download URL
+    _html = 'html/'
     publication_response = requests.get(publication_url)
     download_url = publication_response.url + "download/"
+    i = download_url.find(_html)
+    if i >= 0:
+        # Newer versions of topobank have specific html links; we need to cut 'html/'
+        download_url = download_url[:i] + download_url[i+len(_html):]
 
     # Then download and read container
     container_response = requests.get(download_url, **request_args)
