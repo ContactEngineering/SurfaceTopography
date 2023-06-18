@@ -30,7 +30,7 @@
 #
 
 import re
-from datetime import datetime
+import dateutil.parser
 
 import numpy as np
 
@@ -109,7 +109,7 @@ The reader supports V4.3 and later version of the format.
             for n, p in parameters:
                 if n == 'file list':
                     if 'date' in p:
-                        info['acquisition_time'] = str(datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y'))
+                        info['acquisition_time'] = str(dateutil.parser.parse(p['date']))
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'equipment list':
