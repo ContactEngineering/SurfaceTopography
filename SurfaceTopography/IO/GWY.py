@@ -42,7 +42,7 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 def _read_null_terminated_string(f):
-    return ''.join(iter(lambda: f.read(1).decode('ascii'), '\x00'))
+    return b''.join(iter(lambda: f.read(1), b'\x00')).decode('utf-8')
 
 
 def _gwy_read_atomic(f, atomic_type):
