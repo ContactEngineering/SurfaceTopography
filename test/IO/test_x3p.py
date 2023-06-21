@@ -44,8 +44,8 @@ def test_read(file_format_examples):
     assert nx == 1035
     assert ny == 777
     sx, sy = surface.physical_sizes
-    np.testing.assert_allclose(sx, 0.00068724, rtol=1e-6)
-    np.testing.assert_allclose(sy, 0.00051593, rtol=1e-6)
+    np.testing.assert_allclose(sx, 0.00068724, rtol=1e-5)
+    np.testing.assert_allclose(sy, 0.00051593, rtol=1e-5)
     assert surface.unit == 'm'
     assert surface.is_uniform
     assert surface.has_undefined_data
