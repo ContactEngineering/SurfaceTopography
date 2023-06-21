@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 ================================
 
-v1.6.0 (not yet released)
+v1.7.0 (not yet released)
 -------------------------
 
 - ENH: Support for Gwyddion's native file format (#307)
