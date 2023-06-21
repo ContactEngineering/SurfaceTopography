@@ -38,7 +38,7 @@ from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
+from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
 
 
 def _read_null_terminated_string(f):
@@ -196,20 +196,22 @@ visualization and analysis software Gwyddion.
                         xyunit = data['si_unit_xy']['GwySIUnit']['unitstr']
                         zunit = data['si_unit_z']['GwySIUnit']['unitstr']
 
-                        self._channels[index] = ChannelInfo(
-                            self,
-                            index,
-                            name=self._metadata[f'/{index}/data/title'],
-                            dim=len(nb_grid_pts),
-                            nb_grid_pts=tuple(nb_grid_pts),
-                            physical_sizes=tuple(physical_sizes),
-                            unit=xyunit,
-                            height_scale_factor=get_unit_conversion_factor(zunit, xyunit),
-                            info={key: value
-                                  for key, value in self._metadata.items()
-                                  if key.startswith(f'/{index}/')},
-                            tags=data['data']
-                        )
+                        if is_length_unit(zunit):
+                            # This is height data!
+                            self._channels[index] = ChannelInfo(
+                                self,
+                                index,
+                                name=self._metadata[f'/{index}/data/title'],
+                                dim=len(nb_grid_pts),
+                                nb_grid_pts=tuple(nb_grid_pts),
+                                physical_sizes=tuple(physical_sizes),
+                                unit=xyunit,
+                                height_scale_factor=get_unit_conversion_factor(zunit, xyunit),
+                                info={key: value
+                                      for key, value in self._metadata.items()
+                                      if key.startswith(f'/{index}/')},
+                                tags=data['data']
+                            )
 
     @property
     def channels(self):
