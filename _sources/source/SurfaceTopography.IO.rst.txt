@@ -52,6 +52,14 @@ SurfaceTopography.IO.FromFile module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.GWY module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.GWY
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.H5 module
 ------------------------------
 
