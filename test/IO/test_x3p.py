@@ -100,8 +100,6 @@ def test_points_for_uniform_topography(file_format_examples):
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-1.x3p')).topography()
     x, y, z = surface.positions_and_heights()
     np.testing.assert_allclose(np.mean(np.diff(x[:, 0])),
-                                   surface.physical_sizes[0] / surface.nb_grid_pts[
-                                       0])
+                               surface.physical_sizes[0] / surface.nb_grid_pts[0])
     np.testing.assert_allclose(np.mean(np.diff(y[0, :])),
-                                   surface.physical_sizes[1] / surface.nb_grid_pts[
-                                       1])
+                               surface.physical_sizes[1] / surface.nb_grid_pts[1])

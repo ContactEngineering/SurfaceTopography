@@ -36,7 +36,7 @@ import numpy as np
 
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
 
@@ -175,7 +175,7 @@ visualization and analysis software Gwyddion.
             self._channels = {}
             for key, value in self._metadata.items():
                 if key.endswith('/data'):
-                    index = int(re.match('\/([0-9])\/data', key)[1])
+                    index = int(re.match(r'\/([0-9])\/data', key)[1])
                     assert index not in self._channels.keys()
                     data = value['GwyDataField']
 

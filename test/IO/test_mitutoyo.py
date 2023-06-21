@@ -26,7 +26,6 @@ import numpy as np
 
 from SurfaceTopography.IO import MitutoyoReader
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -174,7 +173,8 @@ def test_uniform_vs_nonuniform(file_format_examples):
     # I'd like
     #   np.testing.assert_allclose(uniform_topography.physical_sizes, nonuniform_topography.physical_sizes)
     # but currently it must be
-    np.testing.assert_allclose(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5, rtol=1e-6)
+    np.testing.assert_allclose(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5,
+                               rtol=1e-6)
 
     # Convention is to have uniform linescan begin at zero, nonuniform linescan
     # built from Mitutoyo file follows this convention as well by removing the
