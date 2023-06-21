@@ -105,7 +105,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'example_ps.tiff',
                                               'al3d-1.al3d',
                                               'nid-1.nid',
-                                              'metropro-1.dat'
+                                              'metropro-1.dat',
+                                              'gwy-1.gwy'
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -627,6 +628,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'sur-1.sur')) == 'sur'
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
     assert detect_format(os.path.join(file_format_examples, 'metropro-1.dat')) == 'metropro'
+    assert detect_format(os.path.join(file_format_examples, 'gwy-1.gwy')) == 'gwy'
 
 
 def test_to_matrix():
