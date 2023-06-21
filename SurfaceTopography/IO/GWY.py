@@ -70,7 +70,7 @@ def _gwy_read_array(f, atomic_type, skip_arrays=False):
     if skip_arrays:
         # Skip reading this data
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
-        return {'offset': offset, 'type': type}  # If we skip reading the array, return the file offset
+        return {'offset': offset, 'type': atomic_type}  # If we skip reading the array, return the file offset
     else:
         return np.fromfile(f, dtype=type, count=nb_items)
 
@@ -174,11 +174,11 @@ visualization and analysis software Gwyddion.
             self._metadata = gwy['GwyContainer']
 
             # Construct channels
-            self._channels = {}
+            channels = {}
             for key, value in self._metadata.items():
                 if key.endswith('/data'):
                     index = int(re.match(r'\/([0-9])\/data', key)[1])
-                    assert index not in self._channels.keys()
+                    assert index not in channels.keys()
                     data = value['GwyDataField']
 
                     # It's not height data if 'si_unit_z' is missing.
@@ -200,7 +200,7 @@ visualization and analysis software Gwyddion.
 
                         if is_length_unit(zunit):
                             # This is height data!
-                            self._channels[index] = ChannelInfo(
+                            channels[index] = ChannelInfo(
                                 self,
                                 index,
                                 name=self._metadata[f'/{index}/data/title'],
@@ -209,11 +209,21 @@ visualization and analysis software Gwyddion.
                                 physical_sizes=tuple(physical_sizes),
                                 unit=xyunit,
                                 height_scale_factor=get_unit_conversion_factor(zunit, xyunit),
+                                periodic=False,
+                                uniform=True,
                                 info={key: value
                                       for key, value in self._metadata.items()
                                       if key.startswith(f'/{index}/')},
                                 tags=data['data']
                             )
+
+            # Turn dictionary into a list
+            self._channels = []
+            for i in range(max(channels.keys())+1):
+                if i in channels:
+                    self._channels += [channels[i]]
+                else:
+                    self._channels += [None]
 
     @property
     def channels(self):
