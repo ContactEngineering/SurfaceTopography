@@ -28,16 +28,124 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/gwyfile.c
 #
 
-import datetime
 import os
+import re
+from struct import calcsize, unpack
 
 import numpy as np
 
-from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
+from ..Support.UnitConversion import get_unit_conversion_factor
+
+
+def _read_null_terminated_string(f):
+    return ''.join(iter(lambda: f.read(1).decode('ascii'), '\x00'))
+
+
+def _gwy_read_atomic(f, atomic_type):
+    atomic_size = calcsize('<' + atomic_type)
+    value, = unpack('<' + atomic_type, f.read(atomic_size))
+    if atomic_type == 'b':  # booleans are special
+        return value != 0
+    return value
+
+
+_gwy_atomic_readers = {
+    'b': lambda f, **kwargs: _gwy_read_atomic(f, 'b'),
+    'c': lambda f, **kwargs: _gwy_read_atomic(f, 'c'),
+    'i': lambda f, **kwargs: _gwy_read_atomic(f, 'i'),
+    'q': lambda f, **kwargs: _gwy_read_atomic(f, 'q'),
+    'd': lambda f, **kwargs: _gwy_read_atomic(f, 'd'),
+    's': lambda f, **kwargs: _read_null_terminated_string(f)
+}
+
+
+def _gwy_read_array(f, atomic_type, skip_arrays=False):
+    offset = f.tell()
+    nb_items, = unpack('<L', f.read(4))
+    type = np.dtype(atomic_type)
+    if skip_arrays:
+        # Skip reading this data
+        f.seek(type.itemsize * nb_items, os.SEEK_CUR)
+        return {'offset': offset, 'type': type}  # If we skip reading the array, return the file offset
+    else:
+        return np.fromfile(f, dtype=type, count=nb_items)
+
+
+def _gwy_read_string_array(f):
+    nb_items, = unpack('<L', f.read(4))
+    return [_read_null_terminated_string(f) for i in range(nb_items)]
+
+
+_gwy_array_readers = {
+    'C': lambda f, **kwargs: _gwy_read_array(f, 'c', **kwargs),
+    'I': lambda f, **kwargs: _gwy_read_array(f, 'i', **kwargs),
+    'Q': lambda f, **kwargs: _gwy_read_array(f, 'q', **kwargs),
+    'D': lambda f, **kwargs: _gwy_read_array(f, 'd', **kwargs),
+    'S': lambda f, **kwargs: _gwy_read_string_array(f)
+}
+
+
+def _gwy_read_component(f, skip_arrays=False):
+    """
+    Read a single component from a GWY file.
+
+    Parameters
+    ----------
+    f : stream-like
+        The file stream to read from.
+    skip_arrays : bool, optional
+        Skip reading arrays to avoid reading image data.
+        (Default: False)
+
+    Returns
+    -------
+    data : dict
+        Dictionary containing the decoded data.
+    """
+    name = _read_null_terminated_string(f)
+    type = f.read(1).decode('ascii')
+    return {name: _gwy_readers[type](f, skip_arrays=skip_arrays)}
+
+
+def _gwy_read_object(f, skip_arrays=False):
+    """
+    Read a single object from a GWY file.
+
+    Parameters
+    ----------
+    f : stream-like
+        The file stream to read from.
+    skip_arrays : bool, optional
+        Skip reading arrays to avoid reading image data.
+        (Default: False)
+
+    Returns
+    -------
+    data : dict
+        Dictionary containing the decoded data.
+    """
+    name = _read_null_terminated_string(f)
+    size, = unpack('<L', f.read(4))
+    start = f.tell()
+    data = {}
+    while f.tell() < start + size:
+        data |= _gwy_read_component(f, skip_arrays=skip_arrays)
+    return {name: data}
+
+
+def _gwy_read_object_array(f):
+    nb_items = unpack('<L', f.read(4))
+    return [_gwy_read_object(f) for i in range(nb_items)]
+
+
+_gwy_readers = _gwy_atomic_readers | _gwy_array_readers | {
+    'o': _gwy_read_object,
+    'O': _gwy_read_object_array
+}
 
 
 class GWYReader(ReaderBase):
@@ -59,18 +167,53 @@ visualization and analysis software Gwyddion.
             if magic != self._MAGIC:
                 raise FileFormatMismatch('File magic does not match. This is not Gwyddion file.')
 
+            # Read native metadata dictionary
+            gwy = _gwy_read_object(f, skip_arrays=True)
+            self._metadata = gwy['GwyContainer']
+
+            # Construct channels
+            self._channels = {}
+            for key, value in self._metadata.items():
+                if key.endswith('/data'):
+                    index = int(re.match('\/([0-9])\/data', key)[1])
+                    assert index not in self._channels.keys()
+                    data = value['GwyDataField']
+
+                    # It's not height data if 'si_unit_z' is missing.
+                    if 'si_unit_z' in data:
+                        # Get number of grid points
+                        nb_grid_pts = [data['xres']]
+                        if 'yres' in data:
+                            nb_grid_pts += [data['yres']]
+
+                        # Get physical sizes
+                        physical_sizes = [data['xreal']]
+                        if 'yreal' in data:
+                            physical_sizes += [data['yreal']]
+
+                        assert len(nb_grid_pts) == len(physical_sizes)
+
+                        xyunit = data['si_unit_xy']['GwySIUnit']['unitstr']
+                        zunit = data['si_unit_z']['GwySIUnit']['unitstr']
+
+                        self._channels[index] = ChannelInfo(
+                            self,
+                            index,
+                            name=self._metadata[f'/{index}/data/title'],
+                            dim=len(nb_grid_pts),
+                            nb_grid_pts=tuple(nb_grid_pts),
+                            physical_sizes=tuple(physical_sizes),
+                            unit=xyunit,
+                            height_scale_factor=get_unit_conversion_factor(zunit, xyunit),
+                            info={key: value
+                                  for key, value in self._metadata.items()
+                                  if key.startswith(f'/{index}/')},
+                            tags=data['data']
+                        )
+
     @property
     def channels(self):
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name='Default',
-                            dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
-                            height_scale_factor=self._height_scale_factor,
-                            uniform=True,
-                            unit=self._unit,
-                            info=self._info)]
+        return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -95,15 +238,17 @@ visualization and analysis software Gwyddion.
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
 
+        channel = self._channels[channel_index]
         with OpenFromAny(self.file_path, 'rb') as f:
-            height_data = self.read_height_data(f)
+            f.seek(channel.tags['offset'])
+            height_data = _gwy_read_array(f, channel.tags['type']).reshape(channel.nb_grid_pts)
 
-        _info = self._info.copy()
+        _info = channel.info.copy()
         _info.update(info)
 
         topo = Topography(height_data,
-                          self._physical_sizes,
-                          unit=self._unit,
+                          channel.physical_sizes,
+                          unit=channel.unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo.scale(self._height_scale_factor)
+        return topo.scale(channel.height_scale_factor)

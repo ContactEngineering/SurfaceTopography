@@ -65,19 +65,20 @@ def test_ezd_metadata(file_format_examples):
     assert ny == 256
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 2e-5)
-    np.testing.assert_almost_equal(sy, 2e-5)
+    np.testing.assert_allclose(sx, 2e-5, rtol=1e-6)
+    np.testing.assert_allclose(sy, 2e-5, rtol=1e-6)
 
     assert t.unit == 'm'
 
     assert r.channels[0].name == 'Scan forward (Z-Axis)'
-    np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_area(), 2.395896706764167e-07)
-    np.testing.assert_almost_equal(r.topography(channel_index=0).rms_height_from_profile(), 2.294702406191355e-07)
-    np.testing.assert_almost_equal(r.topography(channel_index=0).transpose().rms_height_from_profile(),
-                                   6.891854644154332e-08)
+    np.testing.assert_allclose(r.topography(channel_index=0).rms_height_from_area(), 2.395896706764167e-07, rtol=1e-6)
+    np.testing.assert_allclose(r.topography(channel_index=0).rms_height_from_profile(), 2.294702406191355e-07,
+                               rtol=1e-6)
+    np.testing.assert_allclose(r.topography(channel_index=0).transpose().rms_height_from_profile(),
+                               6.891854644154332e-08, rtol=1e-6)
     assert r.channels[1].name == 'Scan forward (Z-AxisSensor)'
-    np.testing.assert_almost_equal(r.topography(channel_index=1).rms_height_from_area(), 3.026701737129839e-07)
+    np.testing.assert_allclose(r.topography(channel_index=1).rms_height_from_area(), 3.026701737129839e-07, rtol=1e-6)
     assert r.channels[2].name == 'Scan backward (Z-Axis)'
-    np.testing.assert_almost_equal(r.topography(channel_index=2).rms_height_from_area(), 2.3941867686171115e-07)
+    np.testing.assert_allclose(r.topography(channel_index=2).rms_height_from_area(), 2.3941867686171115e-07, rtol=1e-6)
     assert r.channels[3].name == 'Scan backward (Z-AxisSensor)'
-    np.testing.assert_almost_equal(r.topography(channel_index=3).rms_height_from_area(), 3.029781629305204e-07)
+    np.testing.assert_allclose(r.topography(channel_index=3).rms_height_from_area(), 3.029781629305204e-07, rtol=1e-6)

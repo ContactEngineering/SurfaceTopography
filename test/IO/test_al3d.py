@@ -63,11 +63,11 @@ def test_al3d_metadata(file_format_examples):
     assert ny == 296
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 8.76054e-05)
-    np.testing.assert_almost_equal(sy, 0.000129655992)
+    np.testing.assert_allclose(sx, 8.76054e-05, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.000129655992, rtol=1e-6)
 
     assert t.unit == 'm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 7.688266102603082e-06)
-    np.testing.assert_almost_equal(t.rms_height_from_profile(), 3.915731160953795e-06)
-    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 6.620876133506353e-06)
+    np.testing.assert_allclose(t.rms_height_from_area(), 7.688266102603082e-06, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 3.915731160953795e-06, rtol=1e-6)
+    np.testing.assert_allclose(t.transpose().rms_height_from_profile(), 6.620876133506353e-06, rtol=1e-6)

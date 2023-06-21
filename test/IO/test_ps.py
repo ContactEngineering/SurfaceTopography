@@ -50,9 +50,9 @@ def test_ps_metadata(file_format_examples):
     assert ny == 512
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1.0)
-    np.testing.assert_almost_equal(sy, 1.0)
+    np.testing.assert_allclose(sx, 1.0, rtol=1e-6)
+    np.testing.assert_allclose(sy, 1.0, rtol=1e-6)
 
     assert t.unit == 'µm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 0.003933333499668988)
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.003933333499668988, rtol=1e-6)

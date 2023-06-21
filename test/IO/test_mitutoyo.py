@@ -98,13 +98,13 @@ def test_read_uniform(file_format_examples):
     # test a few channel properties
     assert reader.default_channel.unit == 'µm'
 
-    np.testing.assert_almost_equal(reader.default_channel.area_per_pt, 0.5)
+    np.testing.assert_allclose(reader.default_channel.area_per_pt, 0.5)
 
     assert reader.default_channel.dim == 1
 
     physical_sizes = reader.default_channel.physical_sizes
     assert len(physical_sizes) == 1
-    np.testing.assert_almost_equal(physical_sizes[0], 480.)
+    np.testing.assert_allclose(physical_sizes[0], 480.)
 
     nx, = reader.channels[0].nb_grid_pts
     assert nx == 960
@@ -119,7 +119,7 @@ def test_read_uniform(file_format_examples):
     assert nx == 960
 
     # test rms roughness
-    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.16866328079293708)
+    np.testing.assert_allclose(topography.rms_height_from_profile(), 0.16866328079293708)
 
     # test for uniform flag
     assert topography.is_uniform
@@ -137,7 +137,7 @@ def test_read_nonuniform(file_format_examples):
     # ATTENTION: physical_sizes differs from uniform linescan above
     physical_sizes = reader.default_channel.physical_sizes
     assert len(physical_sizes) == 1
-    np.testing.assert_almost_equal(physical_sizes[0], 479.5)
+    np.testing.assert_allclose(physical_sizes[0], 479.5)
 
     nx, = reader.channels[0].nb_grid_pts
     assert nx == 960
@@ -154,7 +154,7 @@ def test_read_nonuniform(file_format_examples):
     # test rms roughness
     # very different rms height for slightly modified position compared to uniform line scan
     # This is not a bug, but due to approximation methods
-    np.testing.assert_almost_equal(topography.rms_height_from_profile(), 0.1371261153644389)
+    np.testing.assert_allclose(topography.rms_height_from_profile(), 0.1371261153644389)
 
     # test for uniform flag
     assert not topography.is_uniform
@@ -172,20 +172,20 @@ def test_uniform_vs_nonuniform(file_format_examples):
     nonuniform_x, nonuniform_h = nonuniform_topography.positions_and_heights()
 
     # I'd like
-    #   np.testing.assert_almost_equal(uniform_topography.physical_sizes, nonuniform_topography.physical_sizes)
+    #   np.testing.assert_allclose(uniform_topography.physical_sizes, nonuniform_topography.physical_sizes)
     # but currently it must be
-    np.testing.assert_almost_equal(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5)
+    np.testing.assert_allclose(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5, rtol=1e-6)
 
     # Convention is to have uniform linescan begin at zero, nonuniform linescan
     # built from Mitutoyo file follows this convention as well by removing the
     # initial grid point's absolute position
-    np.testing.assert_almost_equal(uniform_x[:99], nonuniform_x[:99])
+    np.testing.assert_allclose(uniform_x[:99], nonuniform_x[:99], rtol=1e-6)
 
     # the 100th positions has been slightly shifted by 0.1 um in the nonuniform
     # mock file hence the position is off at index 99
-    np.testing.assert_almost_equal(uniform_x[99], nonuniform_x[99] - 0.1)
+    np.testing.assert_allclose(uniform_x[99], nonuniform_x[99] - 0.1, rtol=1e-6)
 
-    np.testing.assert_almost_equal(uniform_x[100:], nonuniform_x[100:])
+    np.testing.assert_allclose(uniform_x[100:], nonuniform_x[100:], rtol=1e-6)
 
     # heights must be the same
-    np.testing.assert_almost_equal(nonuniform_h, nonuniform_h)
+    np.testing.assert_allclose(nonuniform_h, nonuniform_h, rtol=1e-6)

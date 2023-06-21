@@ -63,9 +63,9 @@ def test_sur_metadata(file_format_examples):
     assert ny == 2560
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 0.631917268037796)
-    np.testing.assert_almost_equal(sy, 0.631917268037796)
+    np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
 
     assert t.unit == 'mm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 0.00029098752636393403)
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6)
