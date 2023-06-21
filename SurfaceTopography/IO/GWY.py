@@ -133,7 +133,7 @@ def _gwy_read_object(f, skip_arrays=False):
     start = f.tell()
     data = {}
     while f.tell() < start + size:
-        data |= _gwy_read_component(f, skip_arrays=skip_arrays)
+        data.update(_gwy_read_component(f, skip_arrays=skip_arrays))
     return {name: data}
 
 
@@ -142,7 +142,9 @@ def _gwy_read_object_array(f):
     return [_gwy_read_object(f) for i in range(nb_items)]
 
 
-_gwy_readers = _gwy_atomic_readers | _gwy_array_readers | {
+_gwy_readers = {
+    **_gwy_atomic_readers,
+    **_gwy_array_readers,
     'o': _gwy_read_object,
     'O': _gwy_read_object_array
 }
