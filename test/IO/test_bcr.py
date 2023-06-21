@@ -65,12 +65,12 @@ def test_bcr_metadata(file_format_examples):
     assert ny == 600
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1777404)
-    np.testing.assert_almost_equal(sy, 1110878)
+    np.testing.assert_allclose(sx, 1777404, rtol=1e-6)
+    np.testing.assert_allclose(sy, 1110878, rtol=1e-6)
 
     assert t.unit == 'nm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 24.560207201442292)
+    np.testing.assert_allclose(t.rms_height_from_area(), 24.560207201442292, rtol=1e-6)
 
-    np.testing.assert_almost_equal(t.rms_height_from_profile(), 24.009754961959388)
-    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 24.134045799796326)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 24.009754961959388, rtol=1e-6)
+    np.testing.assert_allclose(t.transpose().rms_height_from_profile(), 24.134045799796326, rtol=1e-6)

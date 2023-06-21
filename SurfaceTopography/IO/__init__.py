@@ -27,6 +27,9 @@
 
 import os
 
+# Registers DZI writers with Topography class
+import SurfaceTopography.IO.DZI  # noqa: F401
+
 from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFixedByFile, ReadFileError, \
     UnknownFileFormatGiven  # noqa: F401
 
@@ -39,6 +42,7 @@ from .AL3D import AL3DReader
 from .BCR import BCRReader
 from .DI import DIReader
 from .EZD import EZDReader
+from .GWY import GWYReader
 from .H5 import H5Reader
 from .IBW import IBWReader
 from .Matlab import MatReader
@@ -54,9 +58,6 @@ from .SUR import SURReader
 from .VK import VKReader
 from .X3P import X3PReader
 from .ZON import ZONReader
-
-# Only writers
-import SurfaceTopography.IO.DZI  # noqa: F401
 
 from .Reader import ReaderBase  # noqa: F401
 
@@ -84,6 +85,7 @@ readers = [
     EZDReader,
     BCRReader,
     MetroProReader,
+    GWYReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

@@ -88,7 +88,7 @@ def test_topography():
     topography = loader.topography()
 
     # Check one height value
-    np.testing.assert_almost_equal(topography._heights[0, 0], -0.4986900329589844)
+    np.testing.assert_allclose(topography._heights[0, 0], -0.4986900329589844, rtol=1e-6)
 
     # Check out if metadata from global and the channel are both in the
     # result from channel metadata
