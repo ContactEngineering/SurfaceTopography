@@ -51,6 +51,7 @@ from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .PLU import PLUReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
@@ -86,6 +87,7 @@ readers = [
     BCRReader,
     MetroProReader,
     GWYReader,
+    PLUReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
