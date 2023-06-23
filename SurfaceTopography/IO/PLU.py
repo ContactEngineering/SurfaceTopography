@@ -43,6 +43,8 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 class PLUReader(ReaderBase):
     _format = 'plu'
     _mime_type = 'application/x-sensofar-spm'
+    _file_extensions = []
+
     _name = 'Sensorfar SPM'
     _description = '''
 This reader imports Sensofar's SPM file format.
@@ -53,6 +55,12 @@ This reader imports Sensofar's SPM file format.
     _HEADER_SIZE = 500
 
     _AREA_COORDINATES = 6
+
+    _UNDEFINED_DATA = 1000001
+
+    # Measurement types
+    _TYPE_PROFILE = 1
+    _TYPE_TOPOGRAPHY = 3
 
     _fov_scan_settings_structure = [
         ('xres_area', 'I'),
@@ -94,20 +102,20 @@ This reader imports Sensofar's SPM file format.
         ('config_hardware', 'B'),
         ('num_images', 'B'),
         ('reserved', '3B'),
-        ('factor_delmacio', 'B')
+        ('factor_delmacio', 'I')
     ]
 
     _calibration_structure = [
-        ('yres', 'I'),
-        ('xres', 'I'),
+        ('nb_grid_pts_y', 'I'),
+        ('nb_grid_pts_x', 'I'),
         ('N_tall', 'I'),
         ('dy_multip', 'f'),
-        ('mppx', 'f'),
-        ('mppy', 'f'),
-        ('x_0', 'f'),
-        ('y_0', 'f'),
-        ('mpp_tall', 'f'),
-        ('z_0', 'f')
+        ('micrometers_per_pixel_x', 'f'),
+        ('micrometers_per_pixel_y', 'f'),
+        ('offset_x', 'f'),
+        ('offset_y', 'f'),
+        ('micrometers_per_pixel_tall', 'f'),
+        ('offset_z', 'f')
     ]
 
     _objective_names = [
@@ -206,12 +214,10 @@ This reader imports Sensofar's SPM file format.
             # Just read header, there is no file magic
             self._acquisition_date = dateutil.parser.parse(f.read(self._DATE_SIZE).decode('ascii'))
             self._acquisition_time, = unpack('<I', f.read(4))
-            print(self._acquisition_date, self._acquisition_time)
             self._comment = f.read(self._COMMENT_SIZE).decode('ascii')
-            print(self._comment)
 
+            # Read file metadata
             self._calibration = decode(f, self._calibration_structure, '<')
-            print(self._calibration)
 
             self._measurement_configuration = decode(f, self._measurement_configuration_structure1, '<')
             if self._measurement_configuration['area_type'] == self._AREA_COORDINATES:
@@ -223,38 +229,55 @@ This reader imports Sensofar's SPM file format.
             self._measurement_configuration['objective'] = \
                 self._objective_names[self._measurement_configuration['objective']]
 
-            print(self._measurement_configuration)
-            print(self._scan_settings)
+            # Create global metadata dictionary
+            self._info = {
+                'calibration': self._calibration,
+                'measurement_configuration': self._measurement_configuration,
+                'scan_settings': self._scan_settings
+            }
 
+            # Read and fill channel information
+            self._channels = []
 
+            # Topography
+            measurement_type = self._measurement_configuration['type']
+            if measurement_type == self._TYPE_TOPOGRAPHY:
+                index = 0
+                for i in range(self._measurement_configuration['num_layers']):
+                    # Get number of data points
+                    nb_grid_pts_y, nb_grid_pts_x = unpack('<II', f.read(8))
 
+                    # Compute physical sizes (units are um)
+                    physical_size_x = nb_grid_pts_x * self._calibration['micrometers_per_pixel_x']
+                    physical_size_y = nb_grid_pts_y * self._calibration['micrometers_per_pixel_y']
 
-    def read_height_data(self, f):
-        if self._header['itemsize'] == 16:
-            dtype = np.dtype('i2')
-        elif self._header['itemsize'] == 32:
-            dtype = np.dtype('i4')
-        else:
-            raise RuntimeError('Unknown itemsize')  # Should not happen because we check this in the constructor
+                    # Construct channel info
+                    self._channels += [
+                        ChannelInfo(
+                            self,
+                            index,
+                            name='default',
+                            dim=2,
+                            nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
+                            physical_sizes=(physical_size_x, physical_size_y),
+                            unit='um',
+                            height_scale_factor=1,  # All units um
+                            periodic=False,
+                            uniform=True,
+                            info=self._info,
+                            tags={'offset': f.tell()}  # This is where the data block starts
+                        )
+                    ]
+                    index += 1
 
-        f.seek(512)
-
-        nx, ny = self._nb_grid_pts
-        buffer = f.read(nx * ny * np.dtype(dtype).itemsize)
-        return np.frombuffer(buffer, dtype=dtype).reshape(self._nb_grid_pts)
+                    # Skip data
+                    f.seek(4 * (nb_grid_pts_x * nb_grid_pts_y + 2))  # The last two floats are min/max values
+            else:
+                raise NotImplementedError(f'Reading measurements of type {measurement_type} is not implemented.')
 
     @property
     def channels(self):
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name='Default',
-                            dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
-                            height_scale_factor=float(self._header['height_scale_factor']),
-                            uniform=True,
-                            unit=self._unit,
-                            info=self._info)]
+        self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -279,15 +302,20 @@ This reader imports Sensofar's SPM file format.
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
 
+        channel = self._channels[channel_index]
         with OpenFromAny(self.file_path, 'rb') as f:
-            height_data = self.read_height_data(f)
+            nb_grid_pts_x, nb_grid_pts_y = channel.nb_grid_pts
+            f.seek(channel.tags['offset'])
+            height_data = np.fromfile(f, np.float32, count=np.prod(channel.nb_grid_pts)) \
+                .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
+            height_data = np.ma.masked_array(height_data, mask=height_data==self._UNDEFINED_DATA)
 
         _info = self._info.copy()
         _info.update(info)
 
         topo = Topography(height_data,
-                          self._physical_sizes,
-                          unit=self._unit,
+                          channel.physical_sizes,
+                          unit=channel.unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo.scale(float(self._header['height_scale_factor']))
+        return topo.scale(1)  # This fixes the height scale factor in topobank

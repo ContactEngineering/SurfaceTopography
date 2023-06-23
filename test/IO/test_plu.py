@@ -59,18 +59,18 @@ def test_plu_metadata(file_format_examples):
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 640
-    assert ny == 480
+    assert nx == 768
+    assert ny == 576
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 0.0001259091403335333, rtol=1e-6)
-    np.testing.assert_allclose(sy, 9.443185525014996e-05, rtol=1e-6)
+    np.testing.assert_allclose(sx, 1274.880066, rtol=1e-6)
+    np.testing.assert_allclose(sy, 956.160049, rtol=1e-6)
 
-    assert t.unit == 'm'
+    assert t.unit == 'um'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 8.369884e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 8.306278e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 2.834391, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 2.833895, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 7.184364e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.117029e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.01818, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.018167, rtol=1e-4)
