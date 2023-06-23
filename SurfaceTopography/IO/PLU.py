@@ -35,9 +35,8 @@ import numpy as np
 from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 class PLUReader(ReaderBase):
