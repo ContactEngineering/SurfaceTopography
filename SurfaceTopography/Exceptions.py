@@ -60,12 +60,17 @@ class UndefinedDataError(CannotPerformAnalysisError):
 
 # I/O exceptions
 
+class UnknownFileFormat(Exception):
+    """
+    Raised when an unknown file format identifier was provided to a reader
+    function.
+    """
+    pass
+
+
 class ReadFileError(Exception):
     pass
 
-
-class UnknownFileFormatGiven(ReadFileError):
-    pass
 
 
 class CannotDetectFileFormat(ReadFileError):
@@ -79,6 +84,14 @@ class FileFormatMismatch(ReadFileError):
     """
     Raised when the reader cannot interpret the file at all
     (obvious for txt vs binary, but holds also for a header)
+    """
+    pass
+
+
+class UnsupportedFormatFeature(ReadFileError):
+    """
+    Raised when the reader detected that this is the correct format, but a
+    file feature was encountered that is not implemented
     """
     pass
 

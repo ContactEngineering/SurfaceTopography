@@ -230,9 +230,11 @@ This reader imports Sensofar's SPM file format.
 
             # Create global metadata dictionary
             self._info = {
-                'calibration': self._calibration,
-                'measurement_configuration': self._measurement_configuration,
-                'scan_settings': self._scan_settings
+                'raw_metadata': {
+                    'calibration': self._calibration,
+                    'measurement_configuration': self._measurement_configuration,
+                    'scan_settings': self._scan_settings
+                }
             }
 
             # Read and fill channel information

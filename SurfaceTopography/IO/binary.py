@@ -39,8 +39,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         stream. Each tuple consists of two entries
             (name, format)
         that give the name of the entry and the format. We support the format
-        defined in the `struct` module, plus 'u' for UTF-8 and 'U' for UTF-16.
-        Decoder also supports per-entry endianness.
+        defined in the `struct` module, plus 'u' for UTF-8, 'U' for UTF-16,
+        't' for a Pascal string with 16-bit length and 'T' for a Pascal string
+        with 32-bit length. Decoder also supports per-entry endianness.
     byte_order : str, optional
         Byte order (see `struct.unpack`). (Default: '@')
     return_size : bool, optional

@@ -11,6 +11,7 @@ python_sources = [
     'DZI.py',
     'EZD.py',
     'FromFile.py',
+    'FRT.py',
     'GWY.py',
     'H5.py',
     'IBW.py',
