@@ -22,6 +22,7 @@ python_sources = [
     'NPY.py',
     'OPD.py',
     'OPDx.py',
+    'PLU.py',
     'PS.py',
     'Reader.py',
     'SUR.py',
