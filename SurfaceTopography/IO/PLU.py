@@ -307,7 +307,7 @@ This reader imports Sensofar's SPM file format.
             f.seek(channel.tags['offset'])
             height_data = np.fromfile(f, np.float32, count=np.prod(channel.nb_grid_pts)) \
                 .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
-            height_data = np.ma.masked_array(height_data, mask=height_data==self._UNDEFINED_DATA)
+            height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 
         _info = self._info.copy()
         _info.update(info)
