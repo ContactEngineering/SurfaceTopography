@@ -66,7 +66,7 @@ def test_plu_metadata(file_format_examples):
     np.testing.assert_allclose(sx, 1274.880066, rtol=1e-6)
     np.testing.assert_allclose(sy, 956.160049, rtol=1e-6)
 
-    assert t.unit == 'um'
+    assert t.unit == 'µm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.834391, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 2.833895, rtol=1e-6)
