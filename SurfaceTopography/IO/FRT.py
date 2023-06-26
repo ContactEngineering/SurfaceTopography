@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+
 import os
 
 #
@@ -270,7 +271,14 @@ This reader imports MicroProf FRT profilometry data.
             ('nf_mode', 'I'),
             ('topo_scale', 'd'),
         ],
-        # 0x008e
+        0x008e: [
+            ('serial_number', 'T'),
+            ('day', 'B'),
+            ('month', 'B'),
+            ('year', 'H'),
+            ('was_created', 'I'),
+            ('nb_values', 'I'),
+        ],
         0x008f: [
             ('tracking_mode_activated', 'I'),
         ],
@@ -303,8 +311,7 @@ This reader imports MicroProf FRT profilometry data.
             ('max_teach', 'd'),
             ('min_norm_teach', 'I'),
             ('max_norm_teach', 'I'),
-            ('textlen', 'I'),
-            # There is a text field 'name_of_teach' here
+            ('name_of_teach', 'T'),
         ],
         0x0095: [
             ('thickness_mode', 'I'),
@@ -470,14 +477,6 @@ This reader imports MicroProf FRT profilometry data.
         ('pre_gain', 'f'),
     ]
 
-    _date_0x008e = [
-        ('day', 'B'),
-        ('month', 'B'),
-        ('year', 'H'),
-        ('was_created', 'I'),
-        ('nb_values', 'I'),
-    ]
-
     _bytes_per_pixel_to_dtype = {
         16: np.dtype('<H'),
         32: np.dtype('<i')
@@ -509,7 +508,6 @@ This reader imports MicroProf FRT profilometry data.
                         break  # we are at the end of the file
                     block_id, block_size = unpack('<HQ', data)
 
-                meta = None
                 if block_id in self._block_structures.keys():
                     meta, size = decode(f, self._block_structures[block_id], return_size=True)
 
@@ -527,27 +525,19 @@ This reader imports MicroProf FRT profilometry data.
                             size += _size
                         meta['subblocks'] = subblocks
                     elif block_id == 0x0094:
-                        # Read string at end of block
-                        data = f.read(block_size - size)
-                        meta['name_of_teach'] = data[:meta['textlen']].decode('ascii').strip('\x00')
+                        # Skip rest of this block which appears to be empty
+                        f.seek(block_size - size, os.SEEK_CUR)
                         size = block_size
 
                     assert size == block_size  # Check that we read the correct size
                 elif block_id == 0x0065 or block_id == 0x0077:
                     meta = {'text': f.read(block_size).decode('ascii').strip('\x00')}
-                elif block_id == 0x008e:
-                    textlen, = unpack('<I', f.read(4))
-                    serial_number = f.read(textlen).decode('ascii').strip('\x00')
-                    meta, size = decode(f, self._date_0x008e, return_size=True)
-                    meta['serial_number'] = serial_number
-
-                    assert size + textlen + 4 == block_size  # Check that we read the correct size
                 else:
+                    # For all other block, store size and offset
                     meta = {'block_size': block_size, 'block_offset': f.tell()}
                     f.seek(block_size, os.SEEK_CUR)
 
-                if meta is not None:
-                    self._metadata[hex(block_id)] = meta
+                self._metadata[hex(block_id)] = meta
 
             # Read and fill channel information
             self._channels = []
@@ -586,7 +576,7 @@ This reader imports MicroProf FRT profilometry data.
 
     @property
     def channels(self):
-        self._channels
+        return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -619,7 +609,7 @@ This reader imports MicroProf FRT profilometry data.
                 .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
             height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 
-        _info = channel._info.copy()
+        _info = channel.info.copy()
         _info.update(info)
 
         topo = Topography(height_data,

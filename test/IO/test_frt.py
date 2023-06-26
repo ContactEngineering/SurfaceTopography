@@ -62,9 +62,9 @@ def test_frt_metadata(file_format_examples):
     assert nx == 500
     assert ny == 500
 
-    import matplotlib.pyplot as plt
-    t.plot()
-    plt.show()
+    #import matplotlib.pyplot as plt
+    #t.plot()
+    #plt.show()
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 0.012, rtol=1e-6)
@@ -72,9 +72,9 @@ def test_frt_metadata(file_format_examples):
 
     assert t.unit == 'm'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 2.834391, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 2.833895, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 2.047476e-05, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.23256e-05, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.01818, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 0.018167, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_area(), 3.463934e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.248258e-06, rtol=1e-4)
