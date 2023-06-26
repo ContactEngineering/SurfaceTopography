@@ -49,6 +49,7 @@ import pytest
 
 from SurfaceTopography.IO import readers
 
+
 @pytest.mark.parametrize('reader', readers)
 def test_reader_class_api(reader):
     assert isinstance(reader.format(), str)
