@@ -24,7 +24,7 @@
 
 #
 # Reference information and implementations:
-# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/surffile.c
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/sensofar.c
 #
 
 import dateutil
