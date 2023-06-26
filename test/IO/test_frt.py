@@ -52,7 +52,7 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
-def test_frt_metadata(file_format_examples):
+def test_frt1_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'frt-1.frt')
 
     r = FRTReader(file_path)
@@ -78,3 +78,31 @@ def test_frt_metadata(file_format_examples):
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 3.463934e-06, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.248258e-06, rtol=1e-4)
+
+
+def test_frt2_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'frt-2.frt')
+
+    r = FRTReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 150
+    assert ny == 300
+
+    import matplotlib.pyplot as plt
+    t.plot()
+    plt.show()
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 0.03, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.06, rtol=1e-6)
+
+    assert t.unit == 'm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 1.853335e-05, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.439208e-05, rtol=1e-6)
+
+    t = t.detrend('curvature')
+    np.testing.assert_allclose(t.rms_height_from_area(), 7.405055e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.332406e-06, rtol=1e-4)
