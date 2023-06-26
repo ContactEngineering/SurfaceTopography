@@ -347,7 +347,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
 
     if len(data.columns) == 2:
         # This is a line scan.
-        x, z = np.array(data).T
+        x, z = np.array(data, dtype=float).T
         x -= np.min(x)
 
         d_uniform = (x[-1] - x[0]) / (len(x) - 1)
@@ -370,7 +370,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
 
     elif len(data.columns) == 3:
         # This is a topography map.
-        x, y, z = np.array(data).T
+        x, y, z = np.array(data, dtype=float).T
 
         # Sort values, first x than y
         indices = np.lexsort((x, y))
