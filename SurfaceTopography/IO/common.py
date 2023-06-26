@@ -23,6 +23,7 @@
 #
 
 import io
+import zipfile
 
 ###
 
@@ -33,8 +34,9 @@ CHANNEL_NAME_INFO_KEY = 'channel_name'
 
 def is_binary_stream(fobj):
     """Check whether fobj is a binary stream"""
-    return isinstance(fobj, io.BytesIO) or (
-            hasattr(fobj, 'mode') and 'b' in fobj.mode)
+    return isinstance(fobj, io.BytesIO) or \
+        isinstance(fobj, zipfile.ZipExtFile) or \
+        (hasattr(fobj, 'mode') and 'b' in fobj.mode)
 
 
 def text(func):
