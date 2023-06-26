@@ -30,6 +30,7 @@ dependencies = [
     "NuMPI>=0.3.1",
     "numpyencoder",
     "openpyxl",
+    "pandas",
     "Pillow",
     "python-dateutil",
     "pyyaml",

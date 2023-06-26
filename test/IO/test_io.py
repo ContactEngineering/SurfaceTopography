@@ -128,6 +128,7 @@ text_example_file_list = _convert_filelist([
     'opdx2.txt',
     'opdx3.txt',
     'example-2d.xyz',
+    'hfm-1.hfm',
     # Not yet working
     # 'example6.txt',
 ])
@@ -633,6 +634,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'gwy-1.gwy')) == 'gwy'
     assert detect_format(os.path.join(file_format_examples, 'plu-1.plu')) == 'plu'
     assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
 
 
 def test_to_matrix():

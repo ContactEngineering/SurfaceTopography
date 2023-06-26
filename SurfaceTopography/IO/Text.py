@@ -28,12 +28,13 @@
 import re
 
 import numpy as np
+import pandas as pd
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import length_units, mangle_length_unit_utf8
+from ..Support.UnitConversion import length_units, mangle_length_unit_utf8, get_unit_conversion_factor
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 
@@ -315,12 +316,38 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
     topography : Topography or UniformLineScan or NonuniformLineScan
         SurfaceTopography object.
     """
-    # pylint: disable=invalid-name
-    data = np.loadtxt(fobj, unpack=True)
+    # Default is to autodetect separator
+    sep = '\s+'  # white space
+    usecols = None
 
-    if len(data) == 2:
+    # Read header (if present) and guess file format
+    c = fobj.tell()
+    first_line = fobj.readline()
+    if first_line.startswith('X;Y;valid'):
+        # HFM files have the following header
+        # X;Y;valid
+        # [mm];[mm];[1/0]
+        second_line = fobj.readline()
+        xunit, zunit, _ = second_line.split(';')
+        xunit = xunit.strip('[').strip(']')
+        zunit = zunit.strip('[').strip(']')
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+        unit = xunit
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        height_scale_factor = get_unit_conversion_factor(zunit, xunit)
+        sep = ';'  # This file seems to use semicolons as separators
+        usecols = (0, 1)
+    else:
+        # Could not guess file format - rewind
+        fobj.seek(c)
+
+    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None)
+
+    if len(data.columns) == 2:
         # This is a line scan.
-        x, z = data
+        x, z = np.array(data).T
         x -= np.min(x)
 
         d_uniform = (x[-1] - x[0]) / (len(x) - 1)
@@ -341,9 +368,9 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
             if physical_sizes is not None:
                 raise MetadataAlreadyFixedByFile('physical_sizes')
 
-    elif len(data) == 3:
+    elif len(data.columns) == 3:
         # This is a topography map.
-        x, y, z = data
+        x, y, z = np.array(data).T
 
         # Sort values, first x than y
         indices = np.lexsort((x, y))
