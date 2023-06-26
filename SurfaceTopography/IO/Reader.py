@@ -334,12 +334,29 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @classmethod
     def format(cls):
         """
-        String identifier for this file format. Identifier must be unique and
-        is typically equal to the file extension of this format.
+        Short string identifier for this file format. Identifier must be
+        unique and is typically equal to the file extension of this format.
         """
         if cls._format is None:
             raise RuntimeError('Reader does not provide a format string')
         return cls._format
+
+    @classmethod
+    def mine_type(cls):
+        """
+        MIME type for this file format.
+        """
+        if cls._mime_type is None:
+            raise RuntimeError('Reader does not provide a MIME type')
+        return cls._mime_type
+
+    @classmethod
+    def file_extensions(cls):
+        """
+        A list of typical file extensions for this reader. Can be None if
+        there are no typical file extensions.
+        """
+        return cls._file_extensions
 
     @classmethod
     def name(cls):
