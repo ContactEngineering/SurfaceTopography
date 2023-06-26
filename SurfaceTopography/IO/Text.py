@@ -315,7 +315,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         SurfaceTopography object.
     """
     # Default is to autodetect separator
-    sep = '\s+'  # white space
+    sep = r'\s+'  # white space
     usecols = None
 
     # Read header (if present) and guess file format
