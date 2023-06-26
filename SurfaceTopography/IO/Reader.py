@@ -322,8 +322,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
     the web application `TopoBank`.
     """
 
-    _format = None  # Short format string, e.g. 'di', 'sur', etc.
+    _format = None  # Short internal format string, e.g. 'di', 'sur', etc.
     _mime_type = None  # MIME type, see Gwyddion's mime specification
+    _file_extensions = None  # List of common file extensions, without the '.'
+
     _name = None
     _description = None
 
