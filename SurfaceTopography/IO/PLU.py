@@ -261,8 +261,8 @@ This reader imports Sensofar's SPM file format.
                             dim=2,
                             nb_grid_pts=(nb_grid_pts_x, nb_grid_pts_y),
                             physical_sizes=(physical_size_x, physical_size_y),
-                            unit='um',
-                            height_scale_factor=1,  # All units um
+                            unit='µm',
+                            height_scale_factor=1,  # All units µm
                             periodic=False,
                             uniform=True,
                             info=self._info,
