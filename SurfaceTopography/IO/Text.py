@@ -60,7 +60,8 @@ def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, 
 
 
 MatrixReader = make_wrapped_reader(
-    read_matrix, class_name="MatrixReader", format='matrix',
+    read_matrix, class_name="MatrixReader", format='matrix', mime_types=['text/plain'],
+    file_extensions=['txt', 'asc', 'dat'],
     name='Plain text (matrix)')
 
 
@@ -267,7 +268,8 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc',
+AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', mime_types=['text/plain'],
+                                file_extensions=['txt', 'asc', 'dat'],
                                 name='Plain text (with headers)',
                                 description='''
 SurfaceTopography data stored in plain text (ASCII) format needs to be stored
@@ -415,7 +417,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
 
 
 XYZReader = make_wrapped_reader(
-    read_xyz, class_name="XYZReader", format='xyz',
+    read_xyz, class_name="XYZReader", format='xyz', mime_types=['text/plain'], file_extensions=['xyz', 'hfm'],
     name='Plain text (x,y,z coordinates)', description='''
 SurfaceTopography information can be provided as coordinate data. This is a
 text file that contains either two columns (for line scans) or three columns

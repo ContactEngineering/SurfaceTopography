@@ -44,6 +44,9 @@ class MitutoyoReader(ReaderBase):
     """
 
     _format = 'mitutoyo'
+    _mime_types = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    _file_extensions = ['xlsx']
+
     _name = 'Mitutoyo SurfTest Excel spreadsheet (xlsx)'
     _description = '''
 Load topography information stored as Excel spreadsheet by Mitutoyo SurfTest

@@ -88,6 +88,9 @@ def _read_array(f, dtype=np.dtype('<i4')):
 
 class ZONReader(ReaderBase):
     _format = 'zon'
+    _mime_types = ['application/x-keyence-zon']
+    _file_extensions = ['zon']
+
     _name = 'Keyence ZON'
     _description = '''
 This reader open ZON files that are written by some Keyence instruments.

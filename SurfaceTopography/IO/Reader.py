@@ -323,7 +323,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
     """
 
     _format = None  # Short internal format string, e.g. 'di', 'sur', etc.
-    _mime_type = None  # MIME type, see Gwyddion's mime specification
+    _mime_types = None  # MIME type, see Gwyddion's mime specification
     _file_extensions = None  # List of common file extensions, without the '.'
 
     _name = None
@@ -342,13 +342,13 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return cls._format
 
     @classmethod
-    def mine_type(cls):
+    def mime_types(cls):
         """
-        MIME type for this file format.
+        MIME types supported by this reader.
         """
-        if cls._mime_type is None:
-            raise RuntimeError('Reader does not provide a MIME type')
-        return cls._mime_type
+        if cls._mime_types is None:
+            raise RuntimeError('Reader does not provide MIME types')
+        return cls._mime_types
 
     @classmethod
     def file_extensions(cls):
@@ -356,6 +356,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         A list of typical file extensions for this reader. Can be None if
         there are no typical file extensions.
         """
+        if cls._file_extensions is None:
+            raise RuntimeError('Reader does not provide file extensions')
         return cls._file_extensions
 
     @classmethod

@@ -33,6 +33,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class MatReader(ReaderBase):
     _format = 'mat'
+    _mime_types = ['application/x-matlab-data']
+    _file_extensions = ['mat']
+
     _name = 'MATLAB'
     _description = '''
 Imports topography data stored in MATLAB workspace files. The reader

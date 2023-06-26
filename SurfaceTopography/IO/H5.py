@@ -29,6 +29,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class H5Reader(ReaderBase):
     _format = 'h5'
+    _mime_types = ['application/x-hdf']
+    _file_extensions = ['h5']
+
     _name = 'Hierarchical data format (HDF5)'
     _description = '''
 Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided

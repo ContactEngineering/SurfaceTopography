@@ -43,6 +43,12 @@ from ..UniformLineScanAndTopography import Topography
 
 class VKReader(ReaderBase):
     _format = 'vk'
+    _mime_types = ['application/x-keyence-vk3',
+                   'application/x-keyence-vk4',
+                   'application/x-keyence-vk5',
+                   'application/x-keyence-vk6']
+    _file_extensions = ['vk3', 'vk4', 'vk6', 'vk7']
+
     _name = 'Keyence VK'
     _description = '''
 VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.

@@ -43,6 +43,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class EZDReader(ReaderBase):
     _format = 'ezd'
+    _mime_types = ['application/x-nanosurf-spm']
+    _file_extensions = ['ezd', 'nid']
+
     _name = 'NanoSurf easyScan data file'
     _description = '''
 NanoSurf easyScan data file with typical file extension .ezd/.nid
