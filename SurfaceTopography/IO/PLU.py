@@ -278,7 +278,7 @@ This reader imports Sensofar's SPM file format.
 
     @property
     def channels(self):
-        self._channels
+        return self._channels
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
