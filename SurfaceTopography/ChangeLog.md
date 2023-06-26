@@ -5,6 +5,10 @@ v1.7.0 (not yet released)
 -------------------------
 
 - ENH: Support for Gwyddion's native file format (#307)
+- ENH: Support for Sensofar SPM files (.plu, .apx)
+- ENH: Support for Micrprof files (.frt)
+- ENH: Support for HFM files (.hfm, text files)
+- MAINT: Added pandas as a dependency for text file parsing
 
 v1.6.3 (19Jun23)
 ----------------
