@@ -38,8 +38,6 @@ from ..Support.UnitConversion import length_units, mangle_length_unit_utf8, get_
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 
-###
-
 
 @text
 def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
