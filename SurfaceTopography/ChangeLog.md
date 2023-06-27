@@ -8,6 +8,8 @@ v1.7.0 (not yet released)
 - ENH: Support for Sensofar SPM files (.plu, .apx)
 - ENH: Support for Micrprof files (.frt)
 - ENH: Support for HFM files (.hfm, text files)
+- ENH: Readers now report MIME types and typical file extensions
+- BUG: Contents of ZIP files should be detected as binary streams
 - MAINT: Added pandas as a dependency for text file parsing
 
 v1.6.3 (19Jun23)

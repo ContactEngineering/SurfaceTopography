@@ -38,6 +38,9 @@ from ..UniformLineScanAndTopography import Topography
 
 class AL3DReader(ReaderBase):
     _format = 'al3d'
+    _mime_types = ['application/x-alicona-imaging-al3d']
+    _file_extensions = ['al3d']
+
     _name = 'Alicona Imaging AL3D'
     _description = '''
 AL3D format of Alicona Imaging.

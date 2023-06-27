@@ -41,6 +41,9 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 
 class SURReader(ReaderBase):
     _format = 'sur'
+    _mime_types = ['application/x-surf-spm']
+    _file_extensions = ['sur']
+
     _name = 'Digital Surf'
     _description = '''
 This reader imports Digital Surf SUR data files.

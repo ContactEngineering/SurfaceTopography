@@ -41,7 +41,7 @@ from ..UniformLineScanAndTopography import Topography
 
 class PLUReader(ReaderBase):
     _format = 'plu'
-    _mime_type = 'application/x-sensofar-spm'
+    _mime_types = ['application/x-sensofar-spm']
     _file_extensions = ['plu', 'apx']
 
     _name = 'Sensorfar SPM'

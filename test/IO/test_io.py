@@ -109,6 +109,7 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'gwy-1.gwy',
                                               'plu-1.plu',
                                               'frt-1.frt',
+                                              'frt-2.frt',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -634,6 +635,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'gwy-1.gwy')) == 'gwy'
     assert detect_format(os.path.join(file_format_examples, 'plu-1.plu')) == 'plu'
     assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'frt-2.frt')) == 'frt'
     assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
 
 

@@ -45,6 +45,9 @@ magic_data_ascii = b'data          ASCII'
 
 class MIReader(ReaderBase):
     _format = 'mi'
+    _mime_types = ['application/x-mi-spm']
+    _file_extensions = ['mi']
+
     _name = 'Molecular Imaging (MI)'
     _description = '''
 Agilent Technologies (Molecular Imaging) AFM saves filed in the MI format.

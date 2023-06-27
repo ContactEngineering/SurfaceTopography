@@ -68,6 +68,9 @@ DOUBLE_ARRAY_EXTRA = 5
 
 class OPDxReader(ReaderBase):
     _format = 'opdx'
+    _mime_types = ['application/x-dektak-opdx']
+    _file_extensions = ['opdx']
+
     _name = 'Dektak OPDx'
     _description = '''
 File format of the Bruker Dektak XT* series stylus profilometer.

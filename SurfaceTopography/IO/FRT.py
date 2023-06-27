@@ -42,7 +42,7 @@ from ..UniformLineScanAndTopography import Topography
 
 class FRTReader(ReaderBase):
     _format = 'frt'
-    _mime_type = 'application/x-microprof'
+    _mime_types = ['application/x-microprof']
     _file_extensions = ['frt']
 
     _name = 'Microprof FRT'

@@ -46,6 +46,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class DIReader(ReaderBase):
     _format = 'di'
+    _mime_types = ['application/x-nanoscope-iii-spm']
+    _file_extensions = ['spm', '001', '002', '003', '004', '005']
+
     _name = 'Bruker Dimension, Veeco Nanoscope, Digital Instruments Nanoscope'
     _description = '''
 Digital Instruments Nanoscope (also Veeco Nanoscope and Bruker Dimension)

@@ -52,7 +52,7 @@ def binary(func):
     return func_wrapper
 
 
-def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
+def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, mime_types=None, file_extensions=None,
                         name=None, description=None):
     class WrappedReader(ReaderBase):
         """
@@ -60,6 +60,9 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None,
         """
 
         _format = format
+        _mime_types = mime_types
+        _file_extensions = file_extensions
+
         _name = name
         _description = description
 
@@ -165,7 +168,7 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
 
 
 HGTReader = make_wrapped_reader(
-    read_hgt, class_name="HGTReader", format='hgt',
+    read_hgt, class_name="HGTReader", format='hgt', mime_types=['application/octet-stream'], file_extensions=['hgt'],
     name='NASA shuttle radar topography mission', description='''
 Data format of the NASA shuttle radar topography mission that recorded the '
 earths topography. More information can be found

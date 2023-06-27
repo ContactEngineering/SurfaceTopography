@@ -152,6 +152,9 @@ _gwy_readers = {
 
 class GWYReader(ReaderBase):
     _format = 'gwy'
+    _mime_types = ['application/x-gwyddion-spm']
+    _file_extensions = ['gwy']
+
     _name = 'Gwyddion'
     _description = '''
 This reader imports the native file format of the open-source SPM

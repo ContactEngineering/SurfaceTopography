@@ -44,6 +44,9 @@ _log = logging.getLogger(__file__)
 
 class BCRReader(ReaderBase):
     _format = 'bcr'
+    _mime_types = ['application/x-bcr-spm', 'application/x-bcrf-spm']
+    _file_extensions = ['bcr', 'bcrf']
+
     _name = 'BCR-STM file format'
     _description = '''
 BCR-STM and BCRF file formats

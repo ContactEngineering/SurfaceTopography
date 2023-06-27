@@ -42,6 +42,9 @@ from ..UniformLineScanAndTopography import Topography
 
 class MetroProReader(ReaderBase):
     _format = 'metropro'
+    _mime_types = ['application/x-zygo-spm']
+    _file_extensions = ['dat']
+
     _name = 'Zygo Metropro'
     _description = '''
 This reader imports Zygo MetroPro data files.
