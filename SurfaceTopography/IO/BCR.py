@@ -33,9 +33,9 @@ import logging
 import numpy as np
 
 from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
+from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
 
 from .Reader import ReaderBase, ChannelInfo
 
@@ -149,6 +149,10 @@ BCR-STM and BCRF file formats
         xunit = self._metadata['xunit']
         assert xunit == self._metadata['yunit']
         zunit = self._metadata['zunit']
+
+        if not is_length_unit(zunit):
+            raise UnsupportedFormatFeature(f"This BCR/BCRF file reports data in units of '{zunit}'. This is not "
+                                           f"a height unit as expected for topography data.")
 
         self._channels = [
             ChannelInfo(self,
