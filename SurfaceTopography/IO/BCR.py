@@ -28,6 +28,8 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/bcrfile.c
 #
 
+import logging
+
 import numpy as np
 
 from .common import OpenFromAny
@@ -37,8 +39,8 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 
 from .Reader import ReaderBase, ChannelInfo
 
+_log = logging.getLogger(__file__)
 
-###
 
 class BCRReader(ReaderBase):
     _format = 'bcr'
@@ -125,11 +127,14 @@ BCR-STM and BCRF file formats
             self._metadata = {}
             eof = False
             while not eof:
-                if not line.startswith('%'):
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    self._metadata[key] = value
+                if not line.startswith('%') or line.startswith('#'):
+                    try:
+                        key, value = line.split('=', 1)
+                        key = key.strip()
+                        value = value.strip()
+                        self._metadata[key] = value
+                    except ValueError:
+                        _log.warning(f"Skipping line '{line}' because it does not appear to be a key/value pair.")
                 try:
                     line, buffer_str = buffer_str.split('\n', 1)
                     line = line.strip()
