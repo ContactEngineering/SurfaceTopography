@@ -322,7 +322,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
     the web application `TopoBank`.
     """
 
-    _format = None
+    _format = None  # Short internal format string, e.g. 'di', 'sur', etc.
+    _mime_types = None  # MIME type, see Gwyddion's mime specification
+    _file_extensions = None  # List of common file extensions, without the '.'
+
     _name = None
     _description = None
 
@@ -331,12 +334,31 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @classmethod
     def format(cls):
         """
-        String identifier for this file format. Identifier must be unique and
-        is typically equal to the file extension of this format.
+        Short string identifier for this file format. Identifier must be
+        unique and is typically equal to the file extension of this format.
         """
         if cls._format is None:
             raise RuntimeError('Reader does not provide a format string')
         return cls._format
+
+    @classmethod
+    def mime_types(cls):
+        """
+        MIME types supported by this reader.
+        """
+        if cls._mime_types is None:
+            raise RuntimeError('Reader does not provide MIME types')
+        return cls._mime_types
+
+    @classmethod
+    def file_extensions(cls):
+        """
+        A list of typical file extensions for this reader. Can be None if
+        there are no typical file extensions.
+        """
+        if cls._file_extensions is None:
+            raise RuntimeError('Reader does not provide file extensions')
+        return cls._file_extensions
 
     @classmethod
     def name(cls):

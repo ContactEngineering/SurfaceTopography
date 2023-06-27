@@ -31,7 +31,7 @@ import os
 import SurfaceTopography.IO.DZI  # noqa: F401
 
 from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFixedByFile, ReadFileError, \
-    UnknownFileFormatGiven  # noqa: F401
+    UnknownFileFormat  # noqa: F401
 
 # Old-style readers
 from .FromFile import HGTReader
@@ -42,6 +42,7 @@ from .AL3D import AL3DReader
 from .BCR import BCRReader
 from .DI import DIReader
 from .EZD import EZDReader
+from .FRT import FRTReader
 from .GWY import GWYReader
 from .H5 import H5Reader
 from .IBW import IBWReader
@@ -51,6 +52,7 @@ from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .PLU import PLUReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
@@ -86,6 +88,8 @@ readers = [
     BCRReader,
     MetroProReader,
     GWYReader,
+    PLUReader,
+    FRTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
@@ -217,7 +221,7 @@ def open_topography(fobj, format=None, communicator=None):
         raise CannotDetectFileFormat(msg)
     else:
         if format not in lookup_reader_by_format.keys():
-            raise UnknownFileFormatGiven(
+            raise UnknownFileFormat(
                 "{} not in registered file formats {}".format(
                     fobj, lookup_reader_by_format.keys()))
         return lookup_reader_by_format[format](fobj, **kwargs)

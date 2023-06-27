@@ -22,6 +22,8 @@
 # SOFTWARE.
 #
 
+import math
+import numbers
 from struct import calcsize, unpack
 
 
@@ -39,8 +41,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         stream. Each tuple consists of two entries
             (name, format)
         that give the name of the entry and the format. We support the format
-        defined in the `struct` module, plus 'u' for UTF-8 and 'U' for UTF-16.
-        Decoder also supports per-entry endianness.
+        defined in the `struct` module, plus 'u' for UTF-8, 'U' for UTF-16,
+        't' for a Pascal string with 16-bit length and 'T' for a Pascal string
+        with 32-bit length. Decoder also supports per-entry endianness.
     byte_order : str, optional
         Byte order (see `struct.unpack`). (Default: '@')
     return_size : bool, optional
@@ -55,6 +58,7 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         Size of the structure in the native binary form. (Only returned
         if `return_size` is True.)
     """
+
     def mogrify_format(format):
         """Convert format string into something that struct.unpack can parse"""
         if format.endswith('b'):  # bytes
@@ -62,7 +66,7 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         elif format.endswith('u'):  # UTF-8
             return format[:-1] + 's'
         elif format.endswith('U'):  # UTF-16
-            return str(2*int(format[:-1])) + 's'
+            return str(2 * int(format[:-1])) + 's'
         else:
             if format.startswith('>') or format.startswith('<'):
                 return format
@@ -81,21 +85,33 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         elif format.endswith('U'):
             return data.decode('utf-16').strip('\x00').strip(' ')
         else:
-            return data
+            # We need to sanitize NaNs. This is because NaN == NaN returns
+            # false. If NaNs show up in our metadata dictionaries, then
+            # equality tests for those dictionaries will *always fail*. We
+            # sanitize NaNs to Python `None`, which translates to `null` in
+            # JSON.
+            if type(data) is tuple or type(data) is list:
+                return [None if isinstance(x, numbers.Number) and math.isnan(x) else x for x in data]
+            else:
+                return None if isinstance(data, numbers.Number) and math.isnan(data) else data
 
     data_dict = {}
     total_size = 0
     for name, format in structure_format:
-        native_format = mogrify_format(format)
-        size = calcsize(native_format)
-        total_size += size
-
-        data = decode_data(unpack(native_format, stream_obj.read(size)), format)
-        # `unpack` returns tuples, but when we serialize to JSON this will be
-        # turned into a list. To make sure serialization and deserialization
-        # is idempotent, we return only lists here.
-        if type(data) is tuple:
-            data = list(data)
+        # Special formats
+        if format == 't':
+            strlen, = unpack(byte_order + 'H', stream_obj.read(2))
+            data = stream_obj.read(strlen).decode('ascii').strip('\x00')
+            total_size += strlen + 2
+        elif format == 'T':
+            strlen, = unpack(byte_order + 'I', stream_obj.read(4))
+            data = stream_obj.read(strlen).decode('ascii').strip('\x00')
+            total_size += strlen + 4
+        else:
+            native_format = mogrify_format(format)
+            size = calcsize(native_format)
+            total_size += size
+            data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
         if name is not None:
             data_dict[name] = data

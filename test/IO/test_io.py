@@ -106,7 +106,10 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'al3d-1.al3d',
                                               'nid-1.nid',
                                               'metropro-1.dat',
-                                              'gwy-1.gwy'
+                                              'gwy-1.gwy',
+                                              'plu-1.plu',
+                                              'frt-1.frt',
+                                              'frt-2.frt',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -126,6 +129,7 @@ text_example_file_list = _convert_filelist([
     'opdx2.txt',
     'opdx3.txt',
     'example-2d.xyz',
+    'hfm-1.hfm',
     # Not yet working
     # 'example6.txt',
 ])
@@ -502,13 +506,13 @@ def test_to_netcdf(fn):
 
 
 def test_read_unknown_file_format(file_format_examples):
-    with pytest.raises(SurfaceTopography.IO.UnknownFileFormatGiven):
+    with pytest.raises(SurfaceTopography.IO.UnknownFileFormat):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
                                              format='Nonexistentfileformat')
 
 
 def test_detect_format_unknown_file_format(file_format_examples):
-    with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
+    with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormat):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
                                              format='Nonexistentfileformat')
 
@@ -629,6 +633,10 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
     assert detect_format(os.path.join(file_format_examples, 'metropro-1.dat')) == 'metropro'
     assert detect_format(os.path.join(file_format_examples, 'gwy-1.gwy')) == 'gwy'
+    assert detect_format(os.path.join(file_format_examples, 'plu-1.plu')) == 'plu'
+    assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'frt-2.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
 
 
 def test_to_matrix():

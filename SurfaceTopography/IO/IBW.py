@@ -37,6 +37,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class IBWReader(ReaderBase):
     _format = 'ibw'
+    _mime_types = ['application/x-igor-binary-wave']
+    _file_extensions = ['ibw']
+
     _name = 'Igor binary wave'
     _description = '''
 Igor binary wave is a container format of the

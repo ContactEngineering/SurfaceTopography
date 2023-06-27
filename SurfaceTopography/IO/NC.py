@@ -64,8 +64,10 @@ class _SpecialNetCDFFile(netcdf_file):
 
 class NCReader(ReaderBase):
     _format = 'nc'
-    _name = 'Network Common Data Format (NetCDF)'
+    _mime_types = ['application/netcdf']
+    _file_extensions = ['nc']
 
+    _name = 'Network Common Data Format (NetCDF)'
     _description = '''
 This reader reads topography data contained in a
 [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The

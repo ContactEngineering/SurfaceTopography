@@ -41,6 +41,9 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 
 class PSReader(ReaderBase):
     _format = 'ps'
+    _mime_types = ['image/tiff']
+    _file_extensions = ['tiff', 'tif']
+
     _name = 'Park Systems'
     _description = '''
 TIFF-based file format of Park Systems instruments.

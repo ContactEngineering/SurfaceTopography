@@ -41,6 +41,9 @@ from ..UniformLineScanAndTopography import Topography
 
 class X3PReader(ReaderBase):
     _format = 'x3p'
+    _mime_types = ['application/x-iso5436-2-spm']
+    _file_extensions = ['x3p']
+
     _name = 'XML 3D surface profile (X3P)'
     _description = '''
 X3P is a container format conforming to the ISO 5436-2 (Geometrical Product
