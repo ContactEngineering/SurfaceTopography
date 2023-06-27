@@ -127,7 +127,7 @@ BCR-STM and BCRF file formats
             self._metadata = {}
             eof = False
             while not eof:
-                if not line.startswith('%') or line.startswith('#'):
+                if not line.startswith('%') and not line.startswith('#'):
                     try:
                         key, value = line.split('=', 1)
                         key = key.strip()
