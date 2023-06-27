@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.6.3.dev14+gd989fd88 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.6.3.dev46+ge08b9efa documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -36,7 +36,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.6.3.dev14+gd989fd88
+                1.6.3.dev46+ge08b9efa
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -78,10 +78,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.NoReliableDataError"><code class="docutils literal notranslate"><span class="pre">NoReliableDataError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.ReentrantDataError"><code class="docutils literal notranslate"><span class="pre">ReentrantDataError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UndefinedDataError"><code class="docutils literal notranslate"><span class="pre">UndefinedDataError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UnknownFileFormat"><code class="docutils literal notranslate"><span class="pre">UnknownFileFormat</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError"><code class="docutils literal notranslate"><span class="pre">ReadFileError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UnknownFileFormatGiven"><code class="docutils literal notranslate"><span class="pre">UnknownFileFormatGiven</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.CannotDetectFileFormat"><code class="docutils literal notranslate"><span class="pre">CannotDetectFileFormat</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.FileFormatMismatch"><code class="docutils literal notranslate"><span class="pre">FileFormatMismatch</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.UnsupportedFormatFeature"><code class="docutils literal notranslate"><span class="pre">UnsupportedFormatFeature</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.CorruptFile"><code class="docutils literal notranslate"><span class="pre">CorruptFile</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile"><code class="docutils literal notranslate"><span class="pre">MetadataAlreadyFixedByFile</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__"><code class="docutils literal notranslate"><span class="pre">MetadataAlreadyFixedByFile.__init__()</span></code></a></li>
@@ -484,6 +485,15 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.FRT">SurfaceTopography.IO.FRT module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader"><code class="docutils literal notranslate"><span class="pre">FRTReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.__init__"><code class="docutils literal notranslate"><span class="pre">FRTReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.channels"><code class="docutils literal notranslate"><span class="pre">FRTReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.topography"><code class="docutils literal notranslate"><span class="pre">FRTReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.FromFile">SurfaceTopography.IO.FromFile module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.binary"><code class="docutils literal notranslate"><span class="pre">binary()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.make_wrapped_reader"><code class="docutils literal notranslate"><span class="pre">make_wrapped_reader()</span></code></a></li>
@@ -626,6 +636,15 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.read_dimension2d_content"><code class="docutils literal notranslate"><span class="pre">read_dimension2d_content()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.PLU">SurfaceTopography.IO.PLU module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PLU.PLUReader"><code class="docutils literal notranslate"><span class="pre">PLUReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PLU.PLUReader.__init__"><code class="docutils literal notranslate"><span class="pre">PLUReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PLU.PLUReader.channels"><code class="docutils literal notranslate"><span class="pre">PLUReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PLU.PLUReader.topography"><code class="docutils literal notranslate"><span class="pre">PLUReader.topography()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.PS">SurfaceTopography.IO.PS module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader"><code class="docutils literal notranslate"><span class="pre">PSReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.PS.PSReader.__init__"><code class="docutils literal notranslate"><span class="pre">PSReader.__init__()</span></code></a></li>
@@ -657,6 +676,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase"><code class="docutils literal notranslate"><span class="pre">ReaderBase</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.format"><code class="docutils literal notranslate"><span class="pre">ReaderBase.format()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.mime_types"><code class="docutils literal notranslate"><span class="pre">ReaderBase.mime_types()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.file_extensions"><code class="docutils literal notranslate"><span class="pre">ReaderBase.file_extensions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.name"><code class="docutils literal notranslate"><span class="pre">ReaderBase.name()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ReaderBase.description()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ReaderBase.close()</span></code></a></li>
@@ -1076,15 +1097,17 @@ points and that the analysis function cannot handle missing data</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.ReadFileError">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">ReadFileError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.ReadFileError" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.UnknownFileFormat">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">UnknownFileFormat</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.UnknownFileFormat" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when an unknown file format identifier was provided to a reader
+function.</p>
 </dd></dl>
 
 <dl class="py exception">
-<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.UnknownFileFormatGiven">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">UnknownFileFormatGiven</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.UnknownFileFormatGiven" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadFileError</span></code></a></p>
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.ReadFileError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">ReadFileError</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.ReadFileError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1100,6 +1123,14 @@ points and that the analysis function cannot handle missing data</p>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadFileError</span></code></a></p>
 <p>Raised when the reader cannot interpret the file at all
 (obvious for txt vs binary, but holds also for a header)</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="SurfaceTopography.Exceptions.UnsupportedFormatFeature">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Exceptions.</span></span><span class="sig-name descname"><span class="pre">UnsupportedFormatFeature</span></span><a class="headerlink" href="#SurfaceTopography.Exceptions.UnsupportedFormatFeature" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Exceptions.ReadFileError" title="SurfaceTopography.Exceptions.ReadFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadFileError</span></code></a></p>
+<p>Raised when the reader detected that this is the correct format, but a
+file feature was encountered that is not implemented</p>
 </dd></dl>
 
 <dl class="py exception">

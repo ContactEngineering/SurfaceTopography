@@ -44,6 +44,14 @@ SurfaceTopography.IO.EZD module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.FRT module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.FRT
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.FromFile module
 ------------------------------------
 
@@ -136,6 +144,14 @@ SurfaceTopography.IO.OPDx module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.OPDx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.PLU module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.PLU
    :members:
    :undoc-members:
    :show-inheritance:
