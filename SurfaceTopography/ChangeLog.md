@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.7.0 (not yet released)
--------------------------
+v1.7.0 (27Jun23)
+----------------
 
 - ENH: Support for Gwyddion's native file format (#307)
 - ENH: Support for Sensofar SPM files (.plu, .apx)
