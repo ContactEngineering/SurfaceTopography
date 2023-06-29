@@ -23,7 +23,7 @@
 #
 
 # Reference information and implementations:
-# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/psia.c
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/lextfile.c
 
 import io
 
@@ -42,11 +42,11 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 class PSReader(ReaderBase):
     _format = 'ps'
     _mime_types = ['image/tiff']
-    _file_extensions = ['tiff', 'tif']
+    _file_extensions = ['lext']
 
-    _name = 'Park Systems'
+    _name = 'Olympus LEXT'
     _description = '''
-TIFF-based file format of Park Systems instruments.
+TIFF-based file format of Olympus instruments.
 '''
 
     _MAGIC = 0x0E031301
@@ -123,7 +123,7 @@ TIFF-based file format of Park Systems instruments.
             try:
                 with TiffFile(f) as t:
                     if len(t.pages) != 1:
-                        raise FileFormatMismatch('More than one image in TIFF. This is not a Park Systems TIFF.')
+                        raise FileFormatMismatch('More than one image in TIFF.')
                     p = t.pages[0]
 
                     # Check file magic and version information
