@@ -24,6 +24,7 @@
 
 import abc
 
+
 class ContainerReaderBase(metaclass=abc.ABCMeta):
     """
     Base class for container readers. These are object that allow to open a

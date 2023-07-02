@@ -28,7 +28,7 @@ import requests
 
 from ...Exceptions import CannotDetectFileFormat, UnknownFileFormat
 
-from .CE import CEReader, write_containers
+from .CE import CEReader, write_containers  # noqa: F401
 
 readers = [
     CEReader,
