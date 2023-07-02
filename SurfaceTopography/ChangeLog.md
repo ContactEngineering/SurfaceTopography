@@ -1,9 +1,17 @@
 Change log for SurfaceTopography
 ================================
 
+v1.8.0 (not yet released)
+-------------------------
+
+- API: Generalized container readers to support multiple file formats
+- API: `SurfaceContainer` is not `InMemorySurfaceContainer`
+- ENH: Reader for ZAG containers
+
 v1.7.0 (27Jun23)
 ----------------
 
+- API: Renamed `UnknownFileFormatGiven` exception to `UnknownFileFormat`
 - ENH: Support for Gwyddion's native file format (#307)
 - ENH: Support for Sensofar SPM files (.plu, .apx)
 - ENH: Support for Micrprof files (.frt)

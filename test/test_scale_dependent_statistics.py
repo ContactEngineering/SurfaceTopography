@@ -30,8 +30,8 @@ from scipy.stats import kstat
 from NuMPI import MPI
 
 from SurfaceTopography import read_container, read_topography
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography import SurfaceContainer
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -225,7 +225,7 @@ def test_nan_handling_and_threshold():
     t3 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(25000,), unit="nm", hurst=0.8, rms_height=1,
                            periodic=False)
 
-    c = SurfaceContainer([t1, t2, t3])
+    c = InMemorySurfaceContainer([t1, t2, t3])
     d1, s1 = c.scale_dependent_statistical_property(lambda x, y=None: kstat(x, n=4), n=1, unit='nm',
                                                     distances=[249, 2499, 23000, 24999], threshold=4)
 

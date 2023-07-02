@@ -32,7 +32,7 @@ defines all surface types used in SurfaceTopography
 # packages that are subsequently imported.
 from .DiscoverVersion import __version__  # noqa: F401
 
-from .Container import SurfaceContainer, read_container, read_published_container  # noqa: F401
+from .Container import open_container, read_container, read_published_container  # noqa: F401
 from .IO import open_topography, read_topography  # noqa: F401
 from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
 from .Special import make_sphere, PlasticTopography  # noqa: F401

@@ -78,18 +78,11 @@ class InMemorySurfaceContainer(SurfaceContainer):
 class LazySurfaceContainer(SurfaceContainer):
     """A list of readers with lazy loading of topography data"""
 
-    def __init__(self, readers=[], reader_funcs=None):
-        if reader_funcs is not None:
-            if len(readers) != len(reader_funcs):
-                raise RuntimeError('You need to provide kwargs for each reader.')
-        else:
-            reader_kwargs = [{}] * len(readers)
-
+    def __init__(self, readers=[]):
         self._readers = readers
-        self._reader_funcs = reader_funcs
 
     def __len__(self):
         return len(self._readers)
 
     def __getitem__(self, item):
-        return self._reader_funcs[item](self._readers[item])
+        return self._readers[item].get()

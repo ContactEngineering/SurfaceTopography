@@ -109,7 +109,7 @@ class ContainerReaderBase(metaclass=abc.ABCMeta):
         return 1
 
     @abc.abstractmethod
-    def surface(self, index=0):
+    def container(self, index=0):
         """
         Returns an instance of a subclass of :obj:`SurfaceContainer` that
         contains a list of topographies.

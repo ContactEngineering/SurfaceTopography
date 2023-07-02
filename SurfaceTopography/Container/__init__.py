@@ -24,8 +24,7 @@
 # SOFTWARE.
 #
 
-from SurfaceTopography.Container.IO.CE import read_container, read_published_container  # noqa: F401
-from .SurfaceContainer import SurfaceContainer  # noqa: F401
+from .IO import open_container, read_container, read_published_container  # noqa: F401
 
 # These imports are required to register the analysis functions!
 import SurfaceTopography.Container.common  # noqa: F401

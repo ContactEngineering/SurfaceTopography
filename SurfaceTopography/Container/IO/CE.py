@@ -22,8 +22,6 @@
 # SOFTWARE.
 #
 
-import io
-import requests
 import tempfile
 import textwrap
 import yaml
@@ -34,9 +32,37 @@ from zipfile import ZipFile
 from ...DiscoverVersion import __version__
 from ...IO import open_topography
 
-from ..SurfaceContainer import SurfaceContainer
+from ..SurfaceContainer import LazySurfaceContainer, SurfaceContainer
 
 from .Reader import ContainerReaderBase
+
+
+class _ReadTopography(object):
+    def __init__(self, reader, **kwargs):
+        self._reader = reader
+        self._kwargs = kwargs
+
+    def get(self):
+        # Read the topography from the preferred data file
+        t = self._reader.topography(
+            physical_sizes=self._kwargs['physical_sizes'],
+            periodic=self._kwargs['periodic'],
+            unit=self._kwargs['unit'],
+            info=self._kwargs['info']
+        )
+
+        # We need to reconstruct the pipeline if the data file does
+        # not contain squeezed data, currently indicate by a
+        # 'squeezed' prefix to the data file key
+        datafile_key = self._kwargs['datafile_key']
+        topo_meta = self._kwargs['topo_meta']
+        if not datafile_key.startswith('squeezed'):
+            if 'height_scale' in topo_meta:
+                t = t.scale(topo_meta['height_scale'])
+            if 'detrend_mode' in topo_meta:
+                t = t.detrend(topo_meta['detrend_mode'])
+
+        return t
 
 
 class CEReader(ContainerReaderBase):
@@ -72,13 +98,12 @@ class CEReader(ContainerReaderBase):
             List of all surfaces contained in this container file.
         """
 
-        self._surfaces = []
+        self._containers = []
 
         with ZipFile(fn, 'r') as z:
             meta = yaml.load(z.open('meta.yml'), Loader=yaml.FullLoader)
 
             readers = []
-            reader_funcs = []
             for surf_meta in meta['surfaces']:
                 for topo_meta in surf_meta['topographies']:
                     info = topo_meta.copy()
@@ -145,30 +170,35 @@ class CEReader(ContainerReaderBase):
                                 raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
                                                  f'(={unit}) differ for topography {datafiles[datafile_key]}')
 
-                    def reader_func(reader):
-                        # Read the topography from the preferred data file
-                        t = reader.topography(
-                            physical_sizes=physical_sizes,
-                            periodic=periodic,
-                            unit=unit,
-                            info=info
-                        )
+                    readers += [
+                        _ReadTopography(reader,
+                                        physical_sizes=physical_sizes,
+                                        periodic=periodic,
+                                        unit=unit,
+                                        info=info,
+                                        datafile_key=datafile_key,
+                                        topo_meta=topo_meta)
+                    ]
 
-                        # We need to reconstruct the pipeline if the data file does
-                        # not contain squeezed data, currently indicate by a
-                        # 'squeezed' prefix to the data file key
-                        if not datafile_key.startswith('squeezed'):
-                            if 'height_scale' in topo_meta:
-                                t = t.scale(topo_meta['height_scale'])
-                            if 'detrend_mode' in topo_meta:
-                                t = t.detrend(topo_meta['detrend_mode'])
+                self._containers += [LazySurfaceContainer(readers)]
 
-                        return t
+    def container(self, index=0):
+        """
+        Returns an instance of a subclass of :obj:`SurfaceContainer` that
+        contains a list of topographies.
 
-                    readers += [reader]
-                    reader_funcs += [reader_func]
+        Arguments
+        ---------
+        index : int
+            Index of the container to load.
+            (Default: 0, which loads the first container)
 
-                self._surfaces += [SurfaceContainer(readers, reader_funcs)]
+        Returns
+        -------
+        surface_container : subclass of :obj:`SurfaceContainer`
+            The object containing a list with actual topography data.
+        """
+        return self._containers[index]
 
 
 def write_containers(containers, fn):
@@ -248,7 +278,6 @@ def write_containers(containers, fn):
 
         Version information
         ===================
-
         SurfaceTopography: {__version__}
         """)
 

@@ -32,8 +32,8 @@ import numpy as np
 from NuMPI import MPI
 from muFFT import FFT
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, SurfaceContainer, \
-    read_published_container
+from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, read_published_container
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 
 # import necessary to get tip artefact emulation function
@@ -445,7 +445,7 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
         ] for reliable in [False, True]
     ]
 
-    c_artefacted = SurfaceContainer([t_artefacted, ])
+    c_artefacted = InMemorySurfaceContainer([t_artefacted, ])
     c_hrms_f_unreliable, c_hrms_f_reliable = [
         [
             np.sqrt(c_artefacted.integrate_psd_from_profile(fun, reliable=reliable, unit=unit)) for fun in [
@@ -653,7 +653,7 @@ def test_integrate_psd_from_profile_remove_tip_artefacts_areal_scan():
     assert abs(hrms_f_reliable[2] / hrms_tip_artefacts_removed[2] - 1) < 0.2
 
     # Assert the container gives the same results:
-    c_artefacted = SurfaceContainer([t_artefacted, ])
+    c_artefacted = InMemorySurfaceContainer([t_artefacted, ])
     c_hrms_f_unreliable, c_hrms_f_reliable = [
         [
             np.sqrt(c_artefacted.integrate_psd_from_profile(fun, reliable=reliable, unit=t_artefacted.unit)) for fun in

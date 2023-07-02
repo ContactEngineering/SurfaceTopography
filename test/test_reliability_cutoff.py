@@ -34,8 +34,8 @@ import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
-                               Topography)
+from SurfaceTopography import read_container, read_topography, NonuniformLineScan, UniformLineScan, Topography
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Exceptions import NoReliableDataError
 
 pytestmark = pytest.mark.skipif(
@@ -201,7 +201,7 @@ def test_no_reliable_data_uniform():
     with pytest.raises(NoReliableDataError):
         t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
 
-    c = SurfaceContainer([t])
+    c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
         c.power_spectrum(unit='um')
 
@@ -263,7 +263,7 @@ def test_no_reliable_data_nonuniform():
     with pytest.raises(NoReliableDataError):
         t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
 
-    c = SurfaceContainer([t])
+    c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
         c.power_spectrum(unit='um')
 
