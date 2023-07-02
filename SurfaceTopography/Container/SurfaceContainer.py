@@ -86,3 +86,13 @@ class LazySurfaceContainer(SurfaceContainer):
 
     def __getitem__(self, item):
         return self._readers[item].get()
+
+    def read_all(self):
+        """
+        Load all topographies into memory.
+
+        Returns
+        -------
+        container : :obj:`InMemorySurfaceContainer`
+        """
+        return InMemorySurfaceContainer([x for x in self])
