@@ -102,7 +102,7 @@ def test_write(file_format_examples):
 def test_periodic():
     container, = read_published_container("https://contact.engineering/go/v9qwe/")
 
-    pristine = container._topographies[0]
-    convoluted = container._topographies[1]
+    pristine = container[0]
+    convoluted = container[1]
     assert pristine.is_periodic
     assert convoluted.is_periodic

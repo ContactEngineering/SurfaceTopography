@@ -491,7 +491,7 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
 
 
 def test_integrate_psd_from_profile_remove_tip_artefacts_areal_scan():
-    data_container = read_published_container("https://doi.org/10.57703/ce-v9qwe")[0]
+    data_container = read_published_container("https://doi.org/10.57703/ce-v9qwe")[0].read_all()
 
     for i in [0, 1]:  # workaround for wrong height scale factor
         data_container._topographies[i] = data_container._topographies[i].scale(1e-3).squeeze()

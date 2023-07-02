@@ -20,8 +20,8 @@ def test_ciso_moment_from_container(file_format_examples):
     assert error_hrms < 0.1
 
     # topography with the smallest pixel size
-    pixel_sizes = [min(t.pixel_size) for t in c._topographies]
-    small_scale_topo = c._topographies[np.argmin(pixel_sizes)]
+    pixel_sizes = [min(t.pixel_size) for t in c]
+    small_scale_topo = c[np.argmin(pixel_sizes)]
 
     hprms = small_scale_topo.to_unit(unit).rms_gradient()
     hpprms = small_scale_topo.to_unit(unit).rms_curvature_from_area()

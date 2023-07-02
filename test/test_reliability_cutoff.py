@@ -347,6 +347,7 @@ def test_linear_2d_large_tip():
 
 def test_partially_reliable_data_container(file_format_examples):
     c, = read_container(f'{file_format_examples}/container-1.zip')
+    c = c.read_all()  # read everything to memory so we can patch info dict
 
     # Patch info dictionary
     c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
