@@ -23,17 +23,21 @@
 #
 
 
-class SurfaceContainer(object):
+import abc
+
+
+class SurfaceContainer(metaclass=abc.ABCMeta):
+    """A list of topographies"""
+
     _functions = {}
 
-    def __init__(self, topographies=[]):
-        self._topographies = topographies
-
+    @abc.abstractmethod
     def __len__(self):
-        return len(self._topographies)
+        raise NotImplementedError
 
+    @abc.abstractmethod
     def __getitem__(self, item):
-        return self._topographies[item]
+        raise NotImplementedError
 
     def apply(self, name, *args, **kwargs):
         self._functions[name](self, *args, **kwargs)
@@ -56,3 +60,36 @@ class SurfaceContainer(object):
     @classmethod
     def register_function(cls, name, function):
         cls._functions.update({name: function})
+
+
+class InMemorySurfaceContainer(SurfaceContainer):
+    """A list of topographies that whose data is stored in memory"""
+
+    def __init__(self, topographies=[]):
+        self._topographies = topographies
+
+    def __len__(self):
+        return len(self._topographies)
+
+    def __getitem__(self, item):
+        return self._topographies[item]
+
+
+class LazySurfaceContainer(SurfaceContainer):
+    """A list of readers with lazy loading of topography data"""
+
+    def __init__(self, readers=[], reader_funcs=None):
+        if reader_funcs is not None:
+            if len(readers) != len(reader_funcs):
+                raise RuntimeError('You need to provide kwargs for each reader.')
+        else:
+            reader_kwargs = [{}] * len(readers)
+
+        self._readers = readers
+        self._reader_funcs = reader_funcs
+
+    def __len__(self):
+        return len(self._readers)
+
+    def __getitem__(self, item):
+        return self._reader_funcs[item](self._readers[item])
