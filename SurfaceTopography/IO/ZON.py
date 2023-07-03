@@ -123,8 +123,7 @@ This reader open ZON files that are written by some Keyence instruments.
             # The beginning of the file contains a BMP thumbnail, we skip it
             f.seek(header['bmp_size'], os.SEEK_CUR)
 
-            # ZipFile gracefully skips ZON header information before the
-            # zip actually starts.
+            # The rest is a ZIP archive
             with ZipFile(f, 'r') as z:
                 # Parse unit information
                 root = ElementTree.parse(z.open(UNIT_UUID)).getroot()
