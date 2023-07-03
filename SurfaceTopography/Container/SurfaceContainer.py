@@ -85,7 +85,7 @@ class LazySurfaceContainer(SurfaceContainer):
         return len(self._readers)
 
     def __getitem__(self, item):
-        return self._readers[item].get()
+        return self._readers[item]()
 
     def read_all(self):
         """

@@ -42,7 +42,7 @@ class _ReadTopography(object):
         self._reader = reader
         self._kwargs = kwargs
 
-    def get(self):
+    def __call__(self):
         # Read the topography from the preferred data file
         t = self._reader.topography(
             physical_sizes=self._kwargs['physical_sizes'],

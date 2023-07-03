@@ -45,19 +45,6 @@ from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
-# The files within ZON (zip) files are named using UUIDs. Some of these
-# UUIDs are fixed and contain the same information in each of these files.
-
-# This file contains height data
-HEIGHT_DATA_UUID = '4cdb0c75-5706-48cc-a9a1-adf395d609ae'
-
-# This contains information on unit conversion
-UNIT_UUID = '686613b8-27b5-4a29-8ffc-438c2780873e'
-
-# This contains an inventory of *image* data
-INVENTORY_UUID = '772e6d38-40aa-4590-85d3-b041fa243570'
-
-
 def _read_array(f, dtype=np.dtype('<i4')):
     """
     Read binary array contained in a ZON archive
@@ -100,6 +87,18 @@ This reader open ZON files that are written by some Keyence instruments.
 
     _MAGIC = 'KPK0'
 
+    # The files within ZON (zip) files are named using UUIDs. Some of these
+    # UUIDs are fixed and contain the same information in each of these files.
+
+    # This file contains height data
+    _HEIGHT_DATA_UUID = '4cdb0c75-5706-48cc-a9a1-adf395d609ae'
+
+    # This contains information on unit conversion
+    _UNIT_UUID = '686613b8-27b5-4a29-8ffc-438c2780873e'
+
+    # This contains an inventory of *image* data
+    _INVENTORY_UUID = '772e6d38-40aa-4590-85d3-b041fa243570'
+
     _header_structure = [
         ('magic', '4s'),
         ('bmp_size', 'L')
@@ -126,7 +125,7 @@ This reader open ZON files that are written by some Keyence instruments.
             # The rest is a ZIP archive
             with ZipFile(f, 'r') as z:
                 # Parse unit information
-                root = ElementTree.parse(z.open(UNIT_UUID)).getroot()
+                root = ElementTree.parse(z.open(self._UNIT_UUID)).getroot()
                 meter_per_pixel = float(root.find('XYCalibration').find('MeterPerPixel').text)
                 meter_per_unit = float(root.find('ZCalibration').find('MeterPerUnit').text)
 
@@ -134,14 +133,14 @@ This reader open ZON files that are written by some Keyence instruments.
 
                 # Parse height data information
                 # Header consists of four int32, followed by image data
-                width, height, element_size = unpack('iii', z.open(HEIGHT_DATA_UUID).read(12))
+                width, height, element_size = unpack('iii', z.open(self._HEIGHT_DATA_UUID).read(12))
                 assert element_size == 4
                 self._channels += [
                     ChannelInfo(self, 0, name='default', dim=2, nb_grid_pts=(width, height),
                                 physical_sizes=(width * meter_per_pixel, height * meter_per_pixel),
                                 height_scale_factor=self._orig_height_scale_factor, unit='m',
                                 uniform=True,
-                                info={'data_uuid': HEIGHT_DATA_UUID,
+                                info={'data_uuid': self._HEIGHT_DATA_UUID,
                                       'meter_per_pixel': meter_per_pixel,
                                       'meter_per_unit': meter_per_unit})]
 

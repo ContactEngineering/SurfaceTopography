@@ -29,9 +29,11 @@ import requests
 from ...Exceptions import CannotDetectFileFormat, UnknownFileFormat
 
 from .CE import CEReader, write_containers  # noqa: F401
+from .ZAG import ZAGReader
 
 readers = [
     CEReader,
+    ZAGReader
 ]
 
 lookup_reader_by_format = {}
