@@ -26,6 +26,7 @@
 """
 Reader for Keyence ZON files.
 """
+import os
 
 # Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
 # format. See discussion here https://github.com/gabeguss/Keyence/issues/2
@@ -37,9 +38,10 @@ from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import MetadataAlreadyFixedByFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
 
+from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
@@ -96,6 +98,13 @@ class ZONReader(ReaderBase):
 This reader open ZON files that are written by some Keyence instruments.
 '''
 
+    _MAGIC = 'KPK0'
+
+    _header_structure = [
+        ('magic', '4s'),
+        ('bmp_size', 'L')
+    ]
+
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
         self._file_path = file_path
@@ -106,6 +115,14 @@ This reader open ZON files that are written by some Keyence instruments.
 
         self._channels = []
         with OpenFromAny(self._file_path, 'rb') as f:
+            # There is a header with a file magic and size information
+            header = decode(f, self._header_structure, '<')
+            if header['magic'] != self._MAGIC:
+                raise FileFormatMismatch('This is not a Keyence ZON file.')
+
+            # The beginning of the file contains a BMP thumbnail, we skip it
+            f.seek(header['bmp_size'], os.SEEK_CUR)
+
             # ZipFile gracefully skips ZON header information before the
             # zip actually starts.
             with ZipFile(f, 'r') as z:
