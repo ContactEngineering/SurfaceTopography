@@ -26,10 +26,18 @@ import pytest
 
 from SurfaceTopography.Container.IO import ZAGReader
 
+@pytest.mark.skip
 def test_zag():
     file_path = '/home/pastewka/Downloads/zag-1.zag'
 
     r = ZAGReader(file_path)
     c = r.container(0)
 
-    print(c[0])
+    import matplotlib.pyplot as plt
+
+    for t in c:
+        plt.figure()
+        t.plot()
+        print(t.info)
+    
+    plt.show()

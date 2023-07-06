@@ -97,7 +97,7 @@ class ZAGReader(ContainerReaderBase):
         ('bmp_size', 'L')
     ]
 
-    def __init__(self, fn):
+    def __init__(self, fobj):
         """
         Read all surfaces in a contact.engineering container file and associated
         metadata. The container is a ZIP file with raw data files and a YAML file
@@ -113,10 +113,19 @@ class ZAGReader(ContainerReaderBase):
         surface_containers : list of :obj:`SurfaceContainer`s
             List of all surfaces contained in this container file.
         """
+        # Open if a file name is given
+        if not hasattr(fobj, "read"):
+            # This is a string
+            self._fstream = open(fobj, "rb")
+            self._do_close = True
+        else:
+            self._fstream = fobj
+            self._do_close = False
+
 
         self._containers = []
 
-        with OpenFromAny(fn, 'rb') as f:
+        with OpenFromAny(self._fstream, 'rb') as f:
             # There is a header with a file magic and size information
             header = decode(f, self._header_structure, '<')
             if header['magic'] != self._MAGIC:
@@ -152,6 +161,13 @@ class ZAGReader(ContainerReaderBase):
                         _log.info(f'ZAG reader: Ignoring tag {item_root.tag}')
 
         self._containers = [LazySurfaceContainer(readers)]
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self._do_close:
+            self._fstream.close()
 
     def container(self, index=0):
         """

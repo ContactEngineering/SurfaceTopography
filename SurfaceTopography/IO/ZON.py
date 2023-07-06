@@ -45,7 +45,8 @@ from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 
-def _read_array(f, dtype=np.dtype('<i4')):
+
+def _read_array(f, dtype=np.dtype("<i4")):
     """
     Read binary array contained in a ZON archive
 
@@ -57,52 +58,60 @@ def _read_array(f, dtype=np.dtype('<i4')):
         Data type of individual element.
         (Default: 32-bit integer)
     """
-    width, height, element_size, row_bytes = unpack('iiii', f.read(16))
+    width, height, element_size, row_bytes = unpack("iiii", f.read(16))
     if element_size % dtype.itemsize != 0:
-        raise ValueError(f'File report element size of {element_size} bytes, '
-                         f'but requested data type requires {dtype.itemsize} bytes.')
+        raise ValueError(
+            f"File report element size of {element_size} bytes, "
+            f"but requested data type requires {dtype.itemsize} bytes."
+        )
     if row_bytes % dtype.itemsize != 0:
-        raise ValueError(f'File reports {row_bytes} bytes per row, but this is not an integer multiple of the data '
-                         f'type of size {dtype.itemsize} bytes.')
-    raw_data = np.frombuffer(f.read(element_size * height * (row_bytes // dtype.itemsize)), dtype)
+        raise ValueError(
+            f"File reports {row_bytes} bytes per row, but this is not an integer multiple of the data "
+            f"type of size {dtype.itemsize} bytes."
+        )
+    raw_data = np.frombuffer(
+        f.read(element_size * height * (row_bytes // dtype.itemsize)), dtype
+    )
 
     nb_entries = element_size // dtype.itemsize
     if nb_entries == 1:
-        array_data = as_strided(raw_data, shape=(width, height), strides=(dtype.itemsize, row_bytes))
+        array_data = as_strided(
+            raw_data, shape=(width, height), strides=(dtype.itemsize, row_bytes)
+        )
     else:
-        array_data = as_strided(raw_data, shape=(width, height, nb_entries),
-                                strides=(dtype.itemsize, element_size, row_bytes))
+        array_data = as_strided(
+            raw_data,
+            shape=(width, height, nb_entries),
+            strides=(dtype.itemsize, element_size, row_bytes),
+        )
     return array_data
 
 
 class ZONReader(ReaderBase):
-    _format = 'zon'
-    _mime_types = ['application/x-keyence-zon']
-    _file_extensions = ['zon']
+    _format = "zon"
+    _mime_types = ["application/x-keyence-zon"]
+    _file_extensions = ["zon"]
 
-    _name = 'Keyence ZON'
-    _description = '''
+    _name = "Keyence ZON"
+    _description = """
 This reader open ZON files that are written by some Keyence instruments.
-'''
+"""
 
-    _MAGIC = 'KPK0'
+    _MAGIC = "KPK0"
 
     # The files within ZON (zip) files are named using UUIDs. Some of these
     # UUIDs are fixed and contain the same information in each of these files.
 
     # This file contains height data
-    _HEIGHT_DATA_UUID = '4cdb0c75-5706-48cc-a9a1-adf395d609ae'
+    _HEIGHT_DATA_UUID = "4cdb0c75-5706-48cc-a9a1-adf395d609ae"
 
     # This contains information on unit conversion
-    _UNIT_UUID = '686613b8-27b5-4a29-8ffc-438c2780873e'
+    _UNIT_UUID = "686613b8-27b5-4a29-8ffc-438c2780873e"
 
     # This contains an inventory of *image* data
-    _INVENTORY_UUID = '772e6d38-40aa-4590-85d3-b041fa243570'
+    _INVENTORY_UUID = "772e6d38-40aa-4590-85d3-b041fa243570"
 
-    _header_structure = [
-        ('magic', '4s'),
-        ('bmp_size', 'L')
-    ]
+    _header_structure = [("magic", "4s"), ("bmp_size", "L")]
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -113,67 +122,99 @@ This reader open ZON files that are written by some Keyence instruments.
         # in that one. Python's ZipFile automatically skips that header.
 
         self._channels = []
-        with OpenFromAny(self._file_path, 'rb') as f:
+        with OpenFromAny(self._file_path, "rb") as f:
             # There is a header with a file magic and size information
-            header = decode(f, self._header_structure, '<')
-            if header['magic'] != self._MAGIC:
-                raise FileFormatMismatch('This is not a Keyence ZON file.')
+            header = decode(f, self._header_structure, "<")
+            if header["magic"] != self._MAGIC:
+                raise FileFormatMismatch("This is not a Keyence ZON file.")
 
             # The beginning of the file contains a BMP thumbnail, we skip it
-            f.seek(header['bmp_size'], os.SEEK_CUR)
+            f.seek(header["bmp_size"], os.SEEK_CUR)
 
             # The rest is a ZIP archive
-            with ZipFile(f, 'r') as z:
+            with ZipFile(f, "r") as z:
                 # Parse unit information
                 root = ElementTree.parse(z.open(self._UNIT_UUID)).getroot()
-                meter_per_pixel = float(root.find('XYCalibration').find('MeterPerPixel').text)
-                meter_per_unit = float(root.find('ZCalibration').find('MeterPerUnit').text)
+                meter_per_pixel = float(
+                    root.find("XYCalibration").find("MeterPerPixel").text
+                )
+                meter_per_unit = float(
+                    root.find("ZCalibration").find("MeterPerUnit").text
+                )
 
                 self._orig_height_scale_factor = meter_per_unit
 
                 # Parse height data information
                 # Header consists of four int32, followed by image data
-                width, height, element_size = unpack('iii', z.open(self._HEIGHT_DATA_UUID).read(12))
+                width, height, element_size = unpack(
+                    "iii", z.open(self._HEIGHT_DATA_UUID).read(12)
+                )
                 assert element_size == 4
                 self._channels += [
-                    ChannelInfo(self, 0, name='default', dim=2, nb_grid_pts=(width, height),
-                                physical_sizes=(width * meter_per_pixel, height * meter_per_pixel),
-                                height_scale_factor=self._orig_height_scale_factor, unit='m',
-                                uniform=True,
-                                info={'data_uuid': self._HEIGHT_DATA_UUID,
-                                      'meter_per_pixel': meter_per_pixel,
-                                      'meter_per_unit': meter_per_unit})]
+                    ChannelInfo(
+                        self,
+                        0,
+                        name="default",
+                        dim=2,
+                        nb_grid_pts=(width, height),
+                        physical_sizes=(
+                            width * meter_per_pixel,
+                            height * meter_per_pixel,
+                        ),
+                        height_scale_factor=self._orig_height_scale_factor,
+                        unit="m",
+                        uniform=True,
+                        info={
+                            "data_uuid": self._HEIGHT_DATA_UUID,
+                            "meter_per_pixel": meter_per_pixel,
+                            "meter_per_unit": meter_per_unit,
+                        },
+                    )
+                ]
 
     @property
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         if channel_index is None:
             channel_index = self._default_channel_index
 
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+            raise RuntimeError("This reader does not support MPI parallelization.")
 
         channel_info = self._channels[channel_index]
-        physical_sizes = self._check_physical_sizes(physical_sizes, channel_info.physical_sizes)
+        physical_sizes = self._check_physical_sizes(
+            physical_sizes, channel_info.physical_sizes
+        )
 
         info.update(channel_info.info)
 
         if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            raise MetadataAlreadyFixedByFile("unit")
         unit = channel_info.unit
 
-        with OpenFromAny(self._file_path, 'rb') as f:
+        with OpenFromAny(self._file_path, "rb") as f:
             # Read image data
-            with ZipFile(f, 'r') as z:
-                with z.open(channel_info.info['data_uuid']) as f:
+            with ZipFile(f, "r") as z:
+                with z.open(channel_info.info["data_uuid"]) as f:
                     height_data = _read_array(f)
 
-        topo = Topography(height_data, physical_sizes, unit=unit, info=info, periodic=periodic)
+        topo = Topography(
+            height_data, physical_sizes, unit=unit, info=info, periodic=periodic
+        )
 
         if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
 
         return topo.scale(self._orig_height_scale_factor)
