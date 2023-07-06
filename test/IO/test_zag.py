@@ -31,14 +31,14 @@ from SurfaceTopography.Container.IO import ZAGReader
 def test_zag():
     file_path = "/home/pastewka/Downloads/zag-1.zag"
 
-    r = ZAGReader(file_path)
-    c = r.container(0)
+    with ZAGReader(file_path) as r:
+        c = r.container(0)
 
-    import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
 
-    for t in c:
-        plt.figure()
-        t.plot()
-        print(t.info)
+        for t in c:
+            plt.figure()
+            t.plot()
+            print(t.info)
 
     plt.show()
