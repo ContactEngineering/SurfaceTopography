@@ -26,9 +26,10 @@ import pytest
 
 from SurfaceTopography.Container.IO import ZAGReader
 
+
 @pytest.mark.skip
 def test_zag():
-    file_path = '/home/pastewka/Downloads/zag-1.zag'
+    file_path = "/home/pastewka/Downloads/zag-1.zag"
 
     r = ZAGReader(file_path)
     c = r.container(0)
@@ -39,5 +40,5 @@ def test_zag():
         plt.figure()
         t.plot()
         print(t.info)
-    
+
     plt.show()

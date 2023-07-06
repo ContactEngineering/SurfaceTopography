@@ -48,7 +48,7 @@
 
 import logging
 import os
-from zipfile import Path, ZipFile
+from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 
@@ -65,37 +65,36 @@ _log = logging.Logger(__name__)
 
 
 class ZAGReader(ContainerReaderBase):
-    _format = 'zag'
-    _mime_types = ['application/zip']
-    _file_extensions = ['zag']
+    _format = "zag"
+    _mime_types = ["application/zip"]
+    _file_extensions = ["zag"]
 
-    _name = 'Keyence ZAG'
-    _description = '''
+    _name = "Keyence ZAG"
+    _description = """
     This reader imports Keyence containers stored in the ZAG format.
-    '''
+    """
 
-    _MAGIC = 'KPK0'
+    _MAGIC = "KPK0"
 
     # The files within ZON (zip) files are named using UUIDs. Some of these
     # UUIDs are fixed and contain the same information in each of these files.
 
     # This file contains the inventory
-    _INVENTORY_UUID = 'f1724dc6-686c-4502-9227-2a594bc8ed33'
+    _INVENTORY_UUID = "f1724dc6-686c-4502-9227-2a594bc8ed33"
 
     # This file contains the actual topography data
-    _ZON_UUID = '84b648d7-e44f-4909-ac11-0476720a67ff'
+    _ZON_UUID = "84b648d7-e44f-4909-ac11-0476720a67ff"
 
     # XML tags
-    _INVENTORY_TAG = 'DeserializeDataMap'  # This is a toplevel tag corresponding to _INVENTORY_UUID. Is it unqiue?
-    _ITEM_TAG = 'Item'
-    _PATH_TAG = 'Path'
-    _MEASUREMENT_TAG = 'MeasurementDataMap'  # This is a toplevel tag. Is the file UUID unique?
-    _DATA_TAG = 'MeasurementData'
+    _INVENTORY_TAG = "DeserializeDataMap"  # This is a toplevel tag corresponding to _INVENTORY_UUID. Is it unqiue?
+    _ITEM_TAG = "Item"
+    _PATH_TAG = "Path"
+    _MEASUREMENT_TAG = (
+        "MeasurementDataMap"  # This is a toplevel tag. Is the file UUID unique?
+    )
+    _DATA_TAG = "MeasurementData"
 
-    _header_structure = [
-        ('magic', '4s'),
-        ('bmp_size', 'L')
-    ]
+    _header_structure = [("magic", "4s"), ("bmp_size", "L")]
 
     def __init__(self, fobj):
         """
@@ -122,25 +121,26 @@ class ZAGReader(ContainerReaderBase):
             self._fstream = fobj
             self._do_close = False
 
-
         self._containers = []
 
-        with OpenFromAny(self._fstream, 'rb') as f:
+        with OpenFromAny(self._fstream, "rb") as f:
             # There is a header with a file magic and size information
-            header = decode(f, self._header_structure, '<')
-            if header['magic'] != self._MAGIC:
-                raise FileFormatMismatch('This is not a Keyence ZAG file.')
+            header = decode(f, self._header_structure, "<")
+            if header["magic"] != self._MAGIC:
+                raise FileFormatMismatch("This is not a Keyence ZAG file.")
 
             # The beginning of the file contains a BMP thumbnail, we skip it
-            f.seek(header['bmp_size'], os.SEEK_CUR)
+            f.seek(header["bmp_size"], os.SEEK_CUR)
 
             readers = []
-            with ZipFile(f, 'r') as z:
+            with ZipFile(f, "r") as z:
                 # Parse inventory
                 root = ElementTree.parse(z.open(self._INVENTORY_UUID)).getroot()
                 if root.tag != self._INVENTORY_TAG:
-                    raise CorruptFile(f'Found {root.tag} for toplevel inventory XML item, but expected '
-                                      f'{self._INVENTORY_TAG}.')
+                    raise CorruptFile(
+                        f"Found {root.tag} for toplevel inventory XML item, but expected "
+                        f"{self._INVENTORY_TAG}."
+                    )
 
                 # Get all items
                 for item in root.findall(self._ITEM_TAG):
@@ -155,10 +155,13 @@ class ZAGReader(ContainerReaderBase):
                             data_path = data.find(self._PATH_TAG).text
                             readers += [
                                 ZONReader(
-                                    z.open(f'{data_uuid}/{data_path}/{self._ZON_UUID}', 'r')).topography
+                                    z.open(
+                                        f"{data_uuid}/{data_path}/{self._ZON_UUID}", "r"
+                                    )
+                                ).topography
                             ]
                     else:
-                        _log.info(f'ZAG reader: Ignoring tag {item_root.tag}')
+                        _log.info(f"ZAG reader: Ignoring tag {item_root.tag}")
 
         self._containers = [LazySurfaceContainer(readers)]
 
