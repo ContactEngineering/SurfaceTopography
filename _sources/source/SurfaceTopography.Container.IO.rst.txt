@@ -1,0 +1,37 @@
+SurfaceTopography.Container.IO package
+======================================
+
+Submodules
+----------
+
+SurfaceTopography.Container.IO.CE module
+----------------------------------------
+
+.. automodule:: SurfaceTopography.Container.IO.CE
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Container.IO.Reader module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Container.IO.Reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Container.IO.ZAG module
+-----------------------------------------
+
+.. automodule:: SurfaceTopography.Container.IO.ZAG
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: SurfaceTopography.Container.IO
+   :members:
+   :undoc-members:
+   :show-inheritance:

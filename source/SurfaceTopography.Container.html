@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.7.0 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.7.0.dev12+ged34e345 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SurfaceTopography.Generic package" href="SurfaceTopography.Generic.html" />
+    <link rel="next" title="SurfaceTopography.Container.IO package" href="SurfaceTopography.Container.IO.html" />
     <link rel="prev" title="SurfaceTopography package" href="SurfaceTopography.html" /> 
 </head>
 
@@ -36,7 +36,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.7.0
+                1.7.0.dev12+ged34e345
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,9 +58,9 @@
 <li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.ScaleDependentStatistics">SurfaceTopography.Container.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a></li>
@@ -91,15 +91,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Container package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html">SurfaceTopography.Container.IO package</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.log_average"><code class="docutils literal notranslate"><span class="pre">log_average()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.IO">SurfaceTopography.Container.IO module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.IO.read_container"><code class="docutils literal notranslate"><span class="pre">read_container()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.IO.read_published_container"><code class="docutils literal notranslate"><span class="pre">read_published_container()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.IO.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a><ul>
@@ -114,9 +112,17 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.__init__"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.apply()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function"><code class="docutils literal notranslate"><span class="pre">SurfaceContainer.register_function()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer"><code class="docutils literal notranslate"><span class="pre">InMemorySurfaceContainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer.__init__"><code class="docutils literal notranslate"><span class="pre">InMemorySurfaceContainer.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.read_all"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer.read_all()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -164,6 +170,56 @@
              
   <section id="surfacetopography-container-package">
 <h1>SurfaceTopography.Container package<a class="headerlink" href="#surfacetopography-container-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.IO.html">SurfaceTopography.Container.IO package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.CE">SurfaceTopography.Container.IO.CE module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader"><code class="docutils literal notranslate"><span class="pre">CEReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.__init__"><code class="docutils literal notranslate"><span class="pre">CEReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader.container"><code class="docutils literal notranslate"><span class="pre">CEReader.container()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.write_containers"><code class="docutils literal notranslate"><span class="pre">write_containers()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.Reader">SurfaceTopography.Container.IO.Reader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.format"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.format()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.mime_types"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.mime_types()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.file_extensions"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.file_extensions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.name"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.description()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.nb_surfaces"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.nb_surfaces</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.container"><code class="docutils literal notranslate"><span class="pre">ContainerReaderBase.container()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO.ZAG">SurfaceTopography.Container.IO.ZAG module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader"><code class="docutils literal notranslate"><span class="pre">ZAGReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.__init__"><code class="docutils literal notranslate"><span class="pre">ZAGReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.close"><code class="docutils literal notranslate"><span class="pre">ZAGReader.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.ZAG.ZAGReader.container"><code class="docutils literal notranslate"><span class="pre">ZAGReader.container()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.IO.html#module-SurfaceTopography.Container.IO">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.detect_format"><code class="docutils literal notranslate"><span class="pre">detect_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.open_container"><code class="docutils literal notranslate"><span class="pre">open_container()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.read_container"><code class="docutils literal notranslate"><span class="pre">read_container()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.read_published_container"><code class="docutils literal notranslate"><span class="pre">read_published_container()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
@@ -187,69 +243,6 @@ unit before the properties are computed.</p></li>
 <li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
 <li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
 arguments for progress reporting. (Default: None)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="module-SurfaceTopography.Container.IO">
-<span id="surfacetopography-container-io-module"></span><h2>SurfaceTopography.Container.IO module<a class="headerlink" href="#module-SurfaceTopography.Container.IO" title="Permalink to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.read_container">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">read_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.read_container" title="Permalink to this definition"></a></dt>
-<dd><p>Read all surface in a container file and associated metadata. The
-container is a ZIP file with raw data files and a YAML file meta.yml
-that contains all metadata not contained in the raw data files.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream that contains the ZIP-container.</p></li>
-<li><p><strong>datafile_keys</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – List of possible keys in ‘meta.yml’ that contains the name of the
-datafile to open. Code will try these keys in order. If a key
-starts with ‘squeezed’, the pipeline is not constructed from
-the metadata.
-(Default: [‘original’, ‘squeezed-netcdf’])</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>surface_containers</strong> – List of all surfaces contained in this container file.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>SurfaceContainer`s</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.read_published_container">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">read_published_container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">publication_url</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">request_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.read_published_container" title="Permalink to this definition"></a></dt>
-<dd><p>Download a container from a URL.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>publication_url</strong> (<em>str</em>) – Full URL of container location.</p></li>
-<li><p><strong>request_args</strong> (<em>dict</em>) – Additional dictionary passed to <cite>request.get</cite>.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>container</strong> – Surface container object read from URL.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer">SurfaceContainer</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.Container.IO.write_containers">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.</span></span><span class="sig-name descname"><span class="pre">write_containers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">containers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.write_containers" title="Permalink to this definition"></a></dt>
-<dd><p>Write multiple surface containers into a ZIP file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>containers</strong> (list of :obj:<a href="#id3"><span class="problematic" id="id4">`</span></a>SurfaceContainer`s) – Containers to be written to the ZIP file.</p></li>
-<li><p><strong>fn</strong> (<em>str</em><em> or </em><em>stream</em>) – File or stream to write the ZIP-container to.</p></li>
 </ul>
 </dd>
 </dl>
@@ -433,13 +426,9 @@ able to accept one argument (for line scans) and two arguments
 <span id="surfacetopography-container-surfacecontainer-module"></span><h2>SurfaceTopography.Container.SurfaceContainer module<a class="headerlink" href="#module-SurfaceTopography.Container.SurfaceContainer" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">SurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">SurfaceContainer</span></span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<p>A list of topographies</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply">
 <span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply" title="Permalink to this definition"></a></dt>
@@ -449,6 +438,44 @@ able to accept one argument (for line scans) and two arguments
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">register_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.register_function" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">InMemorySurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceContainer</span></code></a></p>
+<p>A list of topographies that whose data is stored in memory</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topographies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">LazySurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceContainer</span></code></a></p>
+<p>A list of readers with lazy loading of topography data</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.read_all">
+<span class="sig-name descname"><span class="pre">read_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.read_all" title="Permalink to this definition"></a></dt>
+<dd><p>Load all topographies into memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>container</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.InMemorySurfaceContainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InMemorySurfaceContainer</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -512,7 +539,7 @@ the decimal point.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="SurfaceTopography.html" class="btn btn-neutral float-left" title="SurfaceTopography package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="SurfaceTopography.Generic.html" class="btn btn-neutral float-right" title="SurfaceTopography.Generic package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="SurfaceTopography.Container.IO.html" class="btn btn-neutral float-right" title="SurfaceTopography.Container.IO package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

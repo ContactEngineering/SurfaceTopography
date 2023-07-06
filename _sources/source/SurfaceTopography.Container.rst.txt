@@ -1,6 +1,14 @@
 SurfaceTopography.Container package
 ===================================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   SurfaceTopography.Container.IO
+
 Submodules
 ----------
 
@@ -8,14 +16,6 @@ SurfaceTopography.Container.Averaging module
 --------------------------------------------
 
 .. automodule:: SurfaceTopography.Container.Averaging
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SurfaceTopography.Container.IO module
--------------------------------------
-
-.. automodule:: SurfaceTopography.Container.IO
    :members:
    :undoc-members:
    :show-inheritance:
