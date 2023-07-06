@@ -29,7 +29,8 @@ from numpy.testing import assert_allclose
 
 from NuMPI import MPI
 
-from SurfaceTopography import SurfaceContainer, read_container, read_topography, read_published_container
+from SurfaceTopography import read_container, read_topography, read_published_container
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -72,7 +73,7 @@ def test_write(file_format_examples):
     t2 = read_topography(f'{file_format_examples}/opd-1.opd')
     t3 = read_topography(f'{file_format_examples}/example2.txt')
 
-    c = SurfaceContainer([t1, t2, t3])
+    c = InMemorySurfaceContainer([t1, t2, t3])
 
     with tempfile.TemporaryFile() as fobj:
         c.to_zip(fobj)
@@ -101,7 +102,7 @@ def test_write(file_format_examples):
 def test_periodic():
     container, = read_published_container("https://contact.engineering/go/v9qwe/")
 
-    pristine = container._topographies[0]
-    convoluted = container._topographies[1]
+    pristine = container[0]
+    convoluted = container[1]
     assert pristine.is_periodic
     assert convoluted.is_periodic
