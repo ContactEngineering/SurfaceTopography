@@ -62,9 +62,9 @@ def test_lext_metadata(file_format_examples):
     assert nx == 1024
     assert ny == 1024
 
-    #import matplotlib.pyplot as plt
-    #t.to_unit('um').plot()
-    #plt.show()
+    # import matplotlib.pyplot as plt
+    # t.to_unit('um').plot()
+    # plt.show()
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 258.437176, rtol=1e-6)

@@ -28,12 +28,10 @@
 import enum
 
 import dateutil.parser
-import numpy as np
 import xmltodict
 
 from tiffile import TiffFile, TiffFileError
 
-from .binary import decode
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
