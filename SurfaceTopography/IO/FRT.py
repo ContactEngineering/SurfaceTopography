@@ -589,9 +589,6 @@ This reader imports MicroProf FRT profilometry data.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if channel_index != self._default_channel_index:
-            raise RuntimeError(f'There is only a single channel. Channel index must be {self._default_channel_index}.')
-
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 

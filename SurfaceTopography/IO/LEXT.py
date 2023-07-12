@@ -139,20 +139,16 @@ TIFF-based file format of Olympus instruments.
 
     @property
     def channels(self):
-        return [
-            ChannelInfo(
-                self,
-                0,  # channel index
-                name="default",
-                dim=2,
-                nb_grid_pts=self._nb_grid_pts,
-                physical_sizes=self._physical_sizes,
-                height_scale_factor=self._height_scale_factor,
-                uniform=True,
-                info=self._info,
-                unit=self._unit,
-            )
-        ]
+        return [ChannelInfo(self,
+                            0,  # channel index
+                            name="default",
+                            dim=2,
+                            nb_grid_pts=self._nb_grid_pts,
+                            physical_sizes=self._physical_sizes,
+                            height_scale_factor=self._height_scale_factor,
+                            uniform=True,
+                            info=self._info,
+                            unit=self._unit)]
 
     def topography(
             self,
