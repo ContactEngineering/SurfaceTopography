@@ -46,6 +46,7 @@ from .FRT import FRTReader
 from .GWY import GWYReader
 from .H5 import H5Reader
 from .IBW import IBWReader
+from .LEXT import LEXTReader
 from .Matlab import MatReader
 from .MetroPro import MetroProReader
 from .Mitutoyo import MitutoyoReader
@@ -90,6 +91,7 @@ readers = [
     GWYReader,
     PLUReader,
     FRTReader,
+    LEXTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
