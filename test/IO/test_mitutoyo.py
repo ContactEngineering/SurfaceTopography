@@ -156,7 +156,6 @@ def test_read_uniform(file_format_examples):
     assert topography.is_uniform
 
 
-
 def test_read_uniform_2(file_format_examples):
     reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_2_mock.xlsx'))
 
