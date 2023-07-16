@@ -34,7 +34,7 @@ from ..UniformLineScanAndTopography import UniformLineScan
 from ..Support.UnitConversion import get_unit_conversion_factor
 from .Reader import ReaderBase, ChannelInfo
 
-R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
+R_metric_regex = re.compile(r'(?P<key>[^\s]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]*)')
 cut_off_regex = re.compile(r'(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\s]+)')
 
 _log = logging.getLogger(__file__)
