@@ -1,7 +1,7 @@
-from ..Generic.Moments import (compute_iso_moment,
-                               compute_1d_moment, )
 import numpy as np
-from ..Container import SurfaceContainer
+
+from ..Container.SurfaceContainer import SurfaceContainer
+from ..Generic.Moments import compute_iso_moment, compute_1d_moment
 
 
 def _bandwidth_count_from_profile(self, qx, unit, reliable=True):

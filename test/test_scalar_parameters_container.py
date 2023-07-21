@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from SurfaceTopography import read_container, SurfaceContainer, Topography, UniformLineScan
+from SurfaceTopography import read_container, Topography, UniformLineScan
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Container.Integration import _bandwidth_count_from_profile
 
@@ -19,8 +20,8 @@ def test_ciso_moment_from_container(file_format_examples):
     assert error_hrms < 0.1
 
     # topography with the smallest pixel size
-    pixel_sizes = [min(t.pixel_size) for t in c._topographies]
-    small_scale_topo = c._topographies[np.argmin(pixel_sizes)]
+    pixel_sizes = [min(t.pixel_size) for t in c]
+    small_scale_topo = c[np.argmin(pixel_sizes)]
 
     hprms = small_scale_topo.to_unit(unit).rms_gradient()
     hpprms = small_scale_topo.to_unit(unit).rms_curvature_from_area()
@@ -46,7 +47,7 @@ def test_ciso_moment_container_vs_topography(seed):
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, ])
+    c = InMemorySurfaceContainer([t, ])
     c_varh_ciso = c.ciso_moment(order=0, unit=unit, nb_points_per_decade=20)
     c_varhp_ciso = c.ciso_moment(order=2, unit=unit, nb_points_per_decade=20)
     c_varhpp_ciso = c.ciso_moment(order=4, unit=unit, nb_points_per_decade=20)
@@ -75,7 +76,7 @@ def test_1d_moment_container_vs_linescan(seed):
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, ])
+    c = InMemorySurfaceContainer([t, ])
     c_varh_ciso = c.c1d_moment(order=0, unit=unit, nb_points_per_decade=20)
     c_varhp_ciso = c.c1d_moment(order=2, unit=unit, nb_points_per_decade=20)
     c_varhpp_ciso = c.c1d_moment(order=4, unit=unit, nb_points_per_decade=20)
@@ -103,7 +104,7 @@ def test_1d_moment_container_vs_linescan_integrate_psd(seed):
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, ])
+    c = InMemorySurfaceContainer([t, ])
     c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
     c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
@@ -133,7 +134,7 @@ def test_1d_moment_container_vs_linescan_integrate_psd_q0_mode(seed, n_topograph
     # Introduce a significant offset in the heights that will affect the rms heights
     t._heights += t.rms_height_from_profile()
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, ] * n_topographies)
+    c = InMemorySurfaceContainer([t, ] * n_topographies)
     c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
 
     # Moments from full integration of the 2D spectrum of the topopography
@@ -155,7 +156,7 @@ def test_integrate_psd_nb_topographies(seed):
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t] * 3)
+    c = InMemorySurfaceContainer([t] * 3)
     c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
     c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
@@ -182,7 +183,7 @@ def test_bandwidth_count():
                           long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t] * 3)
+    c = InMemorySurfaceContainer([t] * 3)
 
     qmin = 2 * np.pi / sx
     assert _bandwidth_count_from_profile(c, qmin, unit=unit) == 3
@@ -255,7 +256,7 @@ def test_integrate_psd_different_bandwidths_profiles(seed):
                                  long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
                ]
 
-    c = SurfaceContainer(ts)
+    c = InMemorySurfaceContainer(ts)
     if False:
         import matplotlib.pyplot as plt
 
@@ -293,7 +294,7 @@ def test_integrate_psd_from_profile_2d_container_vs_topography(seed):
                           long_cutoff=min(sx, sy) / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, ])
+    c = InMemorySurfaceContainer([t, ])
     c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
     c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
@@ -371,7 +372,7 @@ def test_integrate_psd_different_bandwidths_2d(seed):
                                  long_cutoff=long_cutoff, unit=unit).detrend(detrend_mode="center"),
                ]
 
-    c = SurfaceContainer(ts)
+    c = InMemorySurfaceContainer(ts)
     if False:
         import matplotlib.pyplot as plt
 
@@ -423,13 +424,13 @@ def test_integrate_psd_different_units(seed):
                            long_cutoff=sx / 8, unit=unit).detrend(detrend_mode="center")
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    cref = SurfaceContainer([t] * 2 + [t2])
+    cref = InMemorySurfaceContainer([t] * 2 + [t2])
     cref_varh_ciso = cref.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     cref_varhp_ciso = cref.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
     cref_varhpp_ciso = cref.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
 
     # Moment of the isotropic PSD computed from the 1D power spectrum
-    c = SurfaceContainer([t, t.to_unit("µm"), ] + [t2])
+    c = InMemorySurfaceContainer([t, t.to_unit("µm"), ] + [t2])
     c_varh_ciso = c.integrate_psd_from_profile(factor=lambda q: 1, unit=unit)
     c_varhp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 2, unit=unit, )
     c_varhpp_ciso = c.integrate_psd_from_profile(factor=lambda q: q ** 4, unit=unit, )
@@ -510,7 +511,7 @@ def test_integrate_psd_from_non_periodic_subsections(seed):
         dx * length, periodic=False, unit=unit, ).detrend())
     show()
 
-    c = SurfaceContainer(topographies)
+    c = InMemorySurfaceContainer(topographies)
 
     hrms_f = [
         np.sqrt(t.integrate_psd_from_profile(fun)) for fun in [

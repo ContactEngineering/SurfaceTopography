@@ -1,7 +1,5 @@
 #
-# Copyright 2021 Michael Röttger
-#           2020-2021 Lars Pastewka
-#           2019-2020 Antoine Sanner
+# Copyright 2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -24,10 +22,23 @@
 # SOFTWARE.
 #
 
-from .IO import open_container, read_container, read_published_container  # noqa: F401
+import pytest
 
-# These imports are required to register the analysis functions!
-import SurfaceTopography.Container.common  # noqa: F401
-import SurfaceTopography.Container.Averaging  # noqa: F401
-import SurfaceTopography.Container.ScaleDependentStatistics  # noqa: F401
-import SurfaceTopography.Container.Integration  # noqa: F401
+from SurfaceTopography.Container.IO import ZAGReader
+
+
+@pytest.mark.skip
+def test_zag():
+    file_path = "/home/pastewka/Downloads/zag-1.zag"
+
+    with ZAGReader(file_path) as r:
+        c = r.container(0)
+
+        import matplotlib.pyplot as plt
+
+        for t in c:
+            plt.figure()
+            t.plot()
+            print(t.info)
+
+    plt.show()

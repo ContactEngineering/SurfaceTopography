@@ -2,8 +2,8 @@ import numpy as np
 import scipy.integrate
 from ..Support import doi
 
+from ..Container.SurfaceContainer import SurfaceContainer
 from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
-from ..Container import SurfaceContainer
 
 
 @doi("10.1016/j.apsadv.2021.100190")
