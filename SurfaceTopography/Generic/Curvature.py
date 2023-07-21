@@ -52,7 +52,7 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
     topography : :class:`SurfaceTopography.Topography` or :class:`SurfaceTopography.UniformLineScan`
         Container storing the uniform topography map
     **kwargs : dict
-        Additional keyword parameters are passed on to `autocorrelation_1D`
+        Additional keyword parameters are passed on to `autocorrelation_from_profile`
 
     Returns
     -------
@@ -72,7 +72,7 @@ def scale_dependent_curvature_from_profile(topography, **kwargs):
     return r[:n], np.sqrt(B[:n]) / r[:n] ** 2
 
 
-def scale_dependent_curvature_from_area(topography, nbins=None):
+def scale_dependent_curvature_from_area(topography, **kwargs):
     r"""
     Compute the two-dimensional, radially averaged scale-dependent curvature.
 
@@ -91,10 +91,8 @@ def scale_dependent_curvature_from_area(topography, nbins=None):
     ----------
     topography : SurfaceTopography or UniformLineScan
         Container storing the uniform topography map
-    nbins : int
-        Number of bins for radial average. Bins are automatically determined
-        if set to None. Note: Returned array can be smaller than this because
-        bins without data points are discarded. (Default: None)
+    **kwargs : dict
+        Additional keyword parameters are passed on to `autocorrelation_from_area`
 
     Returns
     -------
@@ -103,7 +101,7 @@ def scale_dependent_curvature_from_area(topography, nbins=None):
     curvature : array
         Curvature. (Units: 1/length)
     """  # noqa: E501
-    r, A = topography.autocorrelation_from_area(nbins=nbins, bin_edges='linear')
+    r, A = topography.autocorrelation_from_area(**kwargs)
     n = (len(r) + 1) // 2
     r = r[1:n]
     B = 8 * A[1:n] - 2 * A[2::2]
