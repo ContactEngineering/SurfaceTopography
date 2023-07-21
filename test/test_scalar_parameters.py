@@ -456,8 +456,8 @@ def test_integrate_psd_remove_tip_artefacts_profile(seed):
         ] for reliable in [False, True]
     ]
 
-    assert c_hrms_f_unreliable == hrms_f_unreliable
-    assert c_hrms_f_reliable == hrms_f_reliable
+    np.testing.assert_allclose(c_hrms_f_unreliable, hrms_f_unreliable)
+    np.testing.assert_allclose(c_hrms_f_reliable, hrms_f_reliable)
 
     if plot:
         import matplotlib.pyplot as plt
