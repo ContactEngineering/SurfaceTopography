@@ -30,6 +30,7 @@ import abc
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
+from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict
 from .common import OpenFromAny
 
@@ -488,6 +489,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError
 
+
 class FileLayout:
     def __init__(self, structures):
         self._structures = structures
@@ -495,7 +497,7 @@ class FileLayout:
     def from_stream(self, stream_obj):
         data = AttrDict()
         for structure in self._structures:
-            data[structure.name] = structure.from_stream(stream_obj)
+            data[structure.name] = structure.from_stream(stream_obj, data)
         return data
 
 
@@ -511,9 +513,55 @@ class DeclarativeReaderBase(ReaderBase):
             raise RuntimeError('Please defined the file structure via `_file_structure`.')
 
         self.file_path = file_path
-        with OpenFromAny(file_path, 'rb') as f:
+        with OpenFromAny(self.file_path, 'rb') as f:
             self._metadata = self._file_layout.from_stream(f)
 
     @property
     def metadata(self):
         return self._metadata
+
+    def topography(self, channel_index=None, physical_sizes=None,
+                   height_scale_factor=None, unit=None, info={},
+                   periodic=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
+
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
+        channels = self.channels
+        if channel_index < 0 or channel_index >= len(channels):
+            raise RuntimeError(f'Channel index is {channel_index} but must be between 0 and {len(channels) - 1}.')
+
+        # Get channel information
+        channel = channels[channel_index]
+
+        if physical_sizes is None:
+            physical_sizes = channel.physical_sizes
+        elif channel.physical_sizes is not None:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+
+        if height_scale_factor is None:
+            height_scale_factor = channel.height_scale_factor
+        elif channel.height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+
+        if unit is None:
+            unit = channel.unit
+        elif channel.unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
+        with OpenFromAny(self.file_path, 'rb') as f:
+            height_data = channel.tags['reader'](f)
+
+        _info = channel.info.copy()
+        _info.update(info)
+
+        topo = Topography(height_data,
+                          physical_sizes,
+                          unit=unit,
+                          periodic=False if periodic is None else periodic,
+                          info=_info)
+        return topo.scale(height_scale_factor)

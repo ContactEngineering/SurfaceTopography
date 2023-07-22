@@ -24,7 +24,10 @@
 
 import math
 import numbers
+import os
 from struct import calcsize, unpack
+
+import numpy as np
 
 
 class ValidationError(Exception):
@@ -144,6 +147,7 @@ class Convert:
     def __call__(self, data, data_dict):
         return self._fun(data)
 
+
 class Validate:
     def __init__(self, fun, exception=ValidationError):
         self._fun = fun
@@ -155,6 +159,7 @@ class Validate:
             if not self._fun(data, data_dict):
                 raise self._exception(f"Structure entry '{name}' has invalid value '{data}'.")
         return data
+
 
 class BinaryStructure:
     def __init__(self, name, structure_format, byte_order='@'):
@@ -184,7 +189,7 @@ class BinaryStructure:
     def name(self):
         return self._name
 
-    def from_stream(self, stream_obj):
+    def from_stream(self, stream_obj, data):
         """
         Decode stream into dictionary.
 
@@ -192,10 +197,99 @@ class BinaryStructure:
         ----------
         stream_obj : stream-like object
             Binary stream to decode.
+        data : dict
+            Dictionary with data that has been decoded at this point.
 
         Returns
         -------
-        data : dict
+        decoded_data : dict
             Dictionary with decoded data entries.
         """
         return decode(stream_obj, self._structure_format, byte_order=self._byte_order)
+
+
+class BinaryArray:
+    def __init__(self, name, shape_fun, dtype_fun, conversion_fun=lambda x: x):
+        """
+        Defines flat binary data to be read into a numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the array.
+        shape_fun : function
+            Function that returns the shape and takes a input the current data
+            dictionary.
+        dtype_fun : function
+            Function that returns the dtype and takes a input the current data
+            dictionary.
+        conversion_fun : function
+            Function that converts the array after reading. This can be useful
+            for example to change the data format or transpose the array.
+        """
+        self._name = name
+        self._shape_fun = shape_fun
+        self._dtype_fun = dtype_fun
+        self._conversion_fun = conversion_fun
+
+    @property
+    def name(self):
+        return self._name
+
+    def from_stream(self, stream_obj, data):
+        """
+        Skip over data block and return reader for block.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        data : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        file_pos : int
+            Position within the file where the data block starts.
+        """
+
+        class ReaderProxy:
+            def __init__(self, binary_array, data, file_pos):
+                self._binary_array = binary_array
+                self._data = data
+                self._file_pos = file_pos
+
+            def __call__(self, stream_obj):
+                stream_obj.seek(self._file_pos)
+                return self._binary_array.read(stream_obj, self._data)
+
+        shape = self._shape_fun(data)
+        dtype = self._dtype_fun(data)
+
+        file_pos = stream_obj.tell()
+
+        stream_obj.seek(np.prod(shape) * dtype.itemsize, os.SEEK_CUR)
+
+        return ReaderProxy(self, data, file_pos)
+
+    def read(self, stream_obj, data):
+        """
+        Read data block into numpy array.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        data : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        data : numpy.ndarray
+            Nunpy array containing the data from the file.
+        """
+        shape = self._shape_fun(data)
+        dtype = self._dtype_fun(data)
+
+        buffer = stream_obj.read(np.prod(shape) * dtype.itemsize)
+        return self._conversion_fun(np.frombuffer(buffer, dtype=dtype).reshape(shape))
