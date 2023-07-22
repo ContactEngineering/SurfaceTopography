@@ -157,7 +157,7 @@ class Validate:
         if self._fun is not None:
             # If a validator is given, then check the validity of this entry
             if not self._fun(data, data_dict):
-                raise self._exception(f"Structure entry '{name}' has invalid value '{data}'.")
+                raise self._exception(f"Structure entry has invalid value '{data}'.")
         return data
 
 
