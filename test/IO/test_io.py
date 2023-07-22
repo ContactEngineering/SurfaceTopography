@@ -360,6 +360,8 @@ def test_channel_info_and_topography_have_same_metadata(fn):
     reader = open_topography(fn)
 
     for channel in reader.channels:
+        if channel is None:
+            continue
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None

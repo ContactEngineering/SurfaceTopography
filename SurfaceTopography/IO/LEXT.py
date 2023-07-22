@@ -36,7 +36,6 @@ from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 class LEXTReader(ReaderBase):
@@ -61,7 +60,7 @@ TIFF-based file format of Olympus instruments.
 
         # Generic treatment if failed
         if isinstance(value.value, enum.Enum):
-            return {value.name: (value.value.name, value.value.value)}
+            return {value.name: [value.value.name, value.value.value]}
         else:
             name = value.name
             value = value.value
@@ -70,6 +69,8 @@ TIFF-based file format of Olympus instruments.
                     value = xmltodict.parse(value)
             except AttributeError:
                 pass
+            if isinstance(value, tuple):
+                value = list(value)
             return {name: value}
 
     # Reads in the positions of all the data and metadata
