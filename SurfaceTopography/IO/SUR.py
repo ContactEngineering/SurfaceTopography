@@ -31,15 +31,15 @@ import datetime
 
 import numpy as np
 
-from .binary import decode
+from .binary import BinaryStructure, Convert, Validate
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from .Reader import DeclarativeReaderBase, ChannelInfo, FileLayout
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor
 
 
-class SURReader(ReaderBase):
+class SURReaderBase(DeclarativeReaderBase):
     _format = 'sur'
     _mime_types = ['application/x-surf-spm']
     _file_extensions = ['sur']
@@ -49,9 +49,8 @@ class SURReader(ReaderBase):
 This reader imports Digital Surf SUR data files.
 '''
 
-    _MAGIC = b'DIGITAL SURF'
-
-    _header_structure = [
+    _header = BinaryStructure('header', [
+        ('magic', '12s', Validate(lambda magic, data: magic == 'DIGITAL SURF', FileFormatMismatch)),
         ('format', 'H'),
         ('nb_objects', 'H'),
         ('version', 'H'),
@@ -63,35 +62,35 @@ This reader imports Digital Surf SUR data files.
         ('range', 'H'),
         ('special_points', 'H'),
         ('absolute', 'H'),
-        ('_', 'I'),
-        ('_', 'I'),
-        ('itemsize', 'H'),
+        (None, 'I'),
+        (None, 'I'),
+        ('itemsize', 'H', Validate(lambda x, data: x in [16, 32], UnsupportedFormatFeature)),
         ('zmin', 'i'),
         ('zmax', 'i'),
-        ('nb_grid_pts_x', 'i'),
-        ('nb_grid_pts_y', 'i'),
-        ('nb_points', 'I'),
-        ('grid_spacing_x', 'f'),
-        ('grid_spacing_y', 'f'),
-        ('height_scale_factor', 'f'),
+        ('nb_grid_pts_x', 'i', Validate(lambda x, data: x > 0, CorruptFile)),
+        ('nb_grid_pts_y', 'i', Validate(lambda x, data: x > 0, CorruptFile)),
+        ('nb_points', 'I', Validate(lambda x, data: x == data['nb_grid_pts_x'] * data['nb_grid_pts_y'], CorruptFile)),
+        ('grid_spacing_x', 'f', Validate(lambda x, data: x > 0, CorruptFile)),
+        ('grid_spacing_y', 'f', Validate(lambda x, data: x > 0, CorruptFile)),
+        ('height_scale_factor', 'f', Convert(float)),
         ('name_x', '16s'),
         ('name_y', '16s'),
         ('data_name', '16s'),
         ('unit_delta_x', '16s'),
-        ('unit_delta_y', '16s'),
-        ('delta_data_unit', '16s'),
-        ('unit_x', '16s'),
-        ('unit_y', '16s'),
-        ('data_unit', '16s'),
+        ('unit_delta_y', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
+        ('delta_data_unit', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
+        ('unit_x', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
+        ('unit_y', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
+        ('data_unit', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
         ('unit_ratio_x', 'f'),
         ('unit_ratio_y', 'f'),
         ('data_unit_ratio', 'f'),
         ('imprint', 'H'),
         ('inversion', 'H'),
         ('leveling', 'H'),
-        ('_', 'I'),
-        ('_', 'I'),
-        ('_', 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
         ('second', 'H'),
         ('minute', 'H'),
         ('hour', 'H'),
@@ -100,97 +99,63 @@ This reader imports Digital Surf SUR data files.
         ('year', 'H'),
         ('dayof', 'H'),
         ('measurement_duration', 'f'),
-        ('_', 'I'),
-        ('_', 'I'),
-        ('_', 'H'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'H'),
         ('comment_size', 'H'),
         ('private_size', 'H'),
         ('client_zone', '128s'),
         ('x_offset', 'f'),
         ('y_offset', 'f'),
         ('data_offset', 'f'),
-    ]
+    ])
 
-    # Reads in the positions of all the data and metadata
-    def __init__(self, file_path):
-        self.file_path = file_path
-        with OpenFromAny(file_path, 'rb') as f:
-            # Detect file magic
-            if f.read(len(self._MAGIC)) != self._MAGIC:
-                raise FileFormatMismatch('File magic does not match. This is not a Digital Surf file.')
-
-            self._header = decode(f, self._header_structure, '<')
-
-        nx = self._header['nb_grid_pts_x']
-        ny = self._header['nb_grid_pts_y']
-        if nx * ny != self._header['nb_points']:
-            raise CorruptFile(
-                'The file reported a grid of {} x {} data points and a total number of {} data points, which is '
-                'inconsistent'.format(self._nb_grid_pts[0], self._nb_grid_pts[1], self._header['nb_points']))
-
-        if self._header['itemsize'] not in [16, 32]:
-            raise CorruptFile('The file reported an item size of {} bits, which I cannot read.'
-                              .format(self._header['itemsize']))
-
-        # Check that units and delta units are the same. Not sure if they differ and why there are two different sets
-        # of units provided.
-        unit_x = self._header['unit_x']
-        unit_y = self._header['unit_y']
-        self._unit = self._header['data_unit']  # We use the data unit as the primary unit for topography objects
-
-        if self._header['unit_delta_x'] != unit_x or self._header['unit_delta_y'] != unit_y or \
-                self._header['delta_data_unit'] != self._unit:
-            raise CorruptFile('Units and delta units differ. Not sure how to handle this.')
-
-        # Get the conversion factors for converting x,y to the main system of units
-        fac_x = get_unit_conversion_factor(unit_x, self._unit)
-        fac_y = get_unit_conversion_factor(unit_y, self._unit)
-
-        # All good, now initialize some convenience variables
-
-        self._nb_grid_pts = (nx, ny)
-        self._physical_sizes = \
-            (fac_x * self._header['grid_spacing_x'] * nx, fac_y * self._header['grid_spacing_y'] * ny)
-
-        self._info = {
-            'instrument': {'name': self._header['instrument_name']},
-            'raw_metadata': self._header
-        }
-
-        try:
-            self._info['acquisition_time'] = \
-                str(datetime.datetime(self._header['year'], self._header['month'], self._header['day'],
-                                      self._header['hour'], self._header['minute'], self._header['second']))
-        except ValueError:
-            # This can fail if the date is not valid, e.g. if there are just zeros
-            pass
+    _file_layout = FileLayout([
+        _header
+    ])
 
     def read_height_data(self, f):
-        if self._header['itemsize'] == 16:
+        header = self._metadata.header
+        if header.itemsize == 16:
             dtype = np.dtype('<i2')
-        elif self._header['itemsize'] == 32:
+        elif header.itemsize == 32:
             dtype = np.dtype('<i4')
         else:
             raise RuntimeError('Unknown itemsize')  # Should not happen because we check this in the constructor
 
         f.seek(512)
 
-        nx, ny = self._nb_grid_pts
-        buffer = f.read(nx * ny * np.dtype(dtype).itemsize)
-        return np.frombuffer(buffer, dtype=dtype).reshape(self._nb_grid_pts)
+        buffer = f.read(header.nb_points * np.dtype(dtype).itemsize)
+        return np.frombuffer(buffer, dtype=dtype).reshape((header.nb_grid_pts_x, header.nb_grid_pts_y))
 
     @property
     def channels(self):
+        header = self._metadata.header
+
+        info = {
+            'instrument': {'name': header.instrument_name},
+            'raw_metadata': header
+        }
+
+        try:
+            info['acquisition_time'] = \
+                str(datetime.datetime(header.year, header.month, header.day,
+                                      header.hour, header.minute, header.second))
+        except ValueError:
+            # This can fail if the date is not valid, e.g. if there are just zeros
+            pass
+
         return [ChannelInfo(self,
                             0,  # channel index
                             name='Default',
                             dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
-                            height_scale_factor=float(self._header['height_scale_factor']),
+                            nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
+                            physical_sizes=(header.grid_spacing_x * header.nb_grid_pts_x,
+                                            header.grid_spacing_y * header.nb_grid_pts_y),
+                            height_scale_factor=header.height_scale_factor,
                             uniform=True,
-                            unit=self._unit,
-                            info=self._info)]
+                            unit=header.unit_x,
+                            info=info)]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
@@ -215,15 +180,17 @@ This reader imports Digital Surf SUR data files.
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
 
+        channel = self.channels[0]
+
         with OpenFromAny(self.file_path, 'rb') as f:
             height_data = self.read_height_data(f)
 
-        _info = self._info.copy()
+        _info = channel.info.copy()
         _info.update(info)
 
         topo = Topography(height_data,
-                          self._physical_sizes,
-                          unit=self._unit,
+                          channel.physical_sizes,
+                          unit=channel.unit,
                           periodic=False if periodic is None else periodic,
                           info=_info)
-        return topo.scale(float(self._header['height_scale_factor']))
+        return topo.scale(self._metadata.header.height_scale_factor)

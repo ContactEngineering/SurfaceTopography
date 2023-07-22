@@ -27,6 +27,16 @@ import numbers
 from struct import calcsize, unpack
 
 
+class ValidationError(Exception):
+    pass
+
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 def decode(stream_obj, structure_format, byte_order='@', return_size=False):
     """
     Decode a binary stream given the sequence of binary entries. Strings are
@@ -95,9 +105,11 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             else:
                 return None if isinstance(data, numbers.Number) and math.isnan(data) else data
 
-    data_dict = {}
+    data_dict = AttrDict()
     total_size = 0
-    for name, format in structure_format:
+    for entry in structure_format:
+        entry = list(entry)
+        name, format = entry[:2]
         # Special formats
         if format == 't':
             strlen, = unpack(byte_order + 'H', stream_obj.read(2))
@@ -113,6 +125,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             total_size += size
             data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
+        for converter in entry[2:]:
+            data = converter(data, data_dict)
+
         if name is not None:
             data_dict[name] = data
 
@@ -120,3 +135,67 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
         return data_dict, total_size
     else:
         return data_dict
+
+
+class Convert:
+    def __init__(self, fun):
+        self._fun = fun
+
+    def __call__(self, data, data_dict):
+        return self._fun(data)
+
+class Validate:
+    def __init__(self, fun, exception=ValidationError):
+        self._fun = fun
+        self._exception = exception
+
+    def __call__(self, data, data_dict):
+        if self._fun is not None:
+            # If a validator is given, then check the validity of this entry
+            if not self._fun(data, data_dict):
+                raise self._exception(f"Structure entry '{name}' has invalid value '{data}'.")
+        return data
+
+class BinaryStructure:
+    def __init__(self, name, structure_format, byte_order='@'):
+        """
+        Define a binary stream given the sequence of binary entries.
+
+        Parameters
+        ----------
+        name : str
+            Name of this structure.
+        structure_format : list of tuples
+            List of tuples describing the sequence of entries in the binary
+            stream. Each tuple consists of two entries
+                (name, format)
+            that give the name of the entry and the format. We support the format
+            defined in the `struct` module, plus 'u' for UTF-8, 'U' for UTF-16,
+            't' for a Pascal string with 16-bit length and 'T' for a Pascal string
+            with 32-bit length. Decoder also supports per-entry endianness.
+        byte_order : str, optional
+            Byte order (see `struct.unpack`). (Default: '@')
+        """
+        self._name = name
+        self._structure_format = structure_format
+        self._byte_order = byte_order
+
+    @property
+    def name(self):
+        return self._name
+
+    def from_stream(self, stream_obj):
+        """
+        Decode stream into dictionary.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+
+        Returns
+        -------
+        data : dict
+            Dictionary with decoded data entries.
+        """
+        return decode(stream_obj, self._structure_format, byte_order=self._byte_order)

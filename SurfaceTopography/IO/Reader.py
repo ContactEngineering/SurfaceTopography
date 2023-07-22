@@ -30,6 +30,8 @@ import abc
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
+from .binary import AttrDict
+from .common import OpenFromAny
 
 
 class ChannelInfo:
@@ -485,3 +487,33 @@ class ReaderBase(metaclass=abc.ABCMeta):
             overridden by the user.
         """
         raise NotImplementedError
+
+class FileLayout:
+    def __init__(self, structures):
+        self._structures = structures
+
+    def from_stream(self, stream_obj):
+        data = AttrDict()
+        for structure in self._structures:
+            data[structure.name] = structure.from_stream(stream_obj)
+        return data
+
+
+class DeclarativeReaderBase(ReaderBase):
+    """
+    Base class for automatic readers.
+    """
+
+    _file_layout = None
+
+    def __init__(self, file_path):
+        if self._file_layout is None:
+            raise RuntimeError('Please defined the file structure via `_file_structure`.')
+
+        self.file_path = file_path
+        with OpenFromAny(file_path, 'rb') as f:
+            self._metadata = self._file_layout.from_stream(f)
+
+    @property
+    def metadata(self):
+        return self._metadata

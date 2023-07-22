@@ -30,7 +30,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import SURReader
+from SurfaceTopography.IO import SURReaderBase
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -55,7 +55,7 @@ def test_read_filestream(file_format_examples):
 def test_sur_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'sur-1.sur')
 
-    r = SURReader(file_path)
+    r = SURReaderBase(file_path)
     t = r.topography()
 
     nx, ny = t.nb_grid_pts

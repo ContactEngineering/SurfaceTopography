@@ -57,7 +57,7 @@ from .PLU import PLUReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
-from .SUR import SURReader
+from .SUR import SURReaderBase
 from .VK import VKReader
 from .X3P import X3PReader
 from .ZON import ZONReader
@@ -81,7 +81,7 @@ readers = [
     H5Reader,
     NPYReader,
     PSReader,
-    SURReader,
+    SURReaderBase,
     VKReader,
     ZONReader,
     AL3DReader,
