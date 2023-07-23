@@ -32,7 +32,7 @@ import datetime
 import numpy as np
 
 from .binary import BinaryArray, BinaryStructure, Convert, Validate
-from .Reader import DeclarativeReaderBase, ChannelInfo, FileLayout
+from .Reader import DeclarativeReaderBase, ChannelInfo, CompoundLayout
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 
 
@@ -46,7 +46,7 @@ class SURReaderBase(DeclarativeReaderBase):
 This reader imports Digital Surf SUR data files.
 '''
 
-    _file_layout = FileLayout([
+    _file_layout = CompoundLayout([
         BinaryStructure('header', [
             ('magic', '12s', Validate(lambda magic, data: magic == 'DIGITAL SURF', FileFormatMismatch)),
             ('format', 'H'),

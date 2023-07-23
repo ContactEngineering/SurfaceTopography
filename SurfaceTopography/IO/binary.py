@@ -185,11 +185,10 @@ class BinaryStructure:
         self._structure_format = structure_format
         self._byte_order = byte_order
 
-    @property
-    def name(self):
+    def name(self, context):
         return self._name
 
-    def from_stream(self, stream_obj, data):
+    def from_stream(self, stream_obj, context):
         """
         Decode stream into dictionary.
 
@@ -209,7 +208,7 @@ class BinaryStructure:
 
 
 class BinaryArray:
-    def __init__(self, name, shape_fun, dtype_fun, conversion_fun=lambda x: x):
+    def __init__(self, name, shape_fun, dtype_fun, conversion_fun=lambda x: x, mask_fun=None):
         """
         Defines flat binary data to be read into a numpy array.
 
@@ -226,17 +225,19 @@ class BinaryArray:
         conversion_fun : function
             Function that converts the array after reading. This can be useful
             for example to change the data format or transpose the array.
+        mask_fun : function
+            Function that returns a mask with undefined data points.
         """
         self._name = name
         self._shape_fun = shape_fun
         self._dtype_fun = dtype_fun
         self._conversion_fun = conversion_fun
+        self._mask_fun = mask_fun
 
-    @property
-    def name(self):
+    def name(self, context):
         return self._name
 
-    def from_stream(self, stream_obj, data):
+    def from_stream(self, stream_obj, context):
         """
         Skip over data block and return reader for block.
 
@@ -244,7 +245,7 @@ class BinaryArray:
         ----------
         stream_obj : stream-like object
             Binary stream to decode.
-        data : dict
+        context : dict
             Dictionary with data that has been decoded at this point.
 
         Returns
@@ -263,14 +264,14 @@ class BinaryArray:
                 stream_obj.seek(self._file_pos)
                 return self._binary_array.read(stream_obj, self._data)
 
-        shape = self._shape_fun(data)
-        dtype = self._dtype_fun(data)
+        shape = self._shape_fun(context)
+        dtype = self._dtype_fun(context)
 
         file_pos = stream_obj.tell()
 
         stream_obj.seek(np.prod(shape) * dtype.itemsize, os.SEEK_CUR)
 
-        return ReaderProxy(self, data, file_pos)
+        return ReaderProxy(self, context, file_pos)
 
     def read(self, stream_obj, data):
         """
@@ -292,4 +293,7 @@ class BinaryArray:
         dtype = self._dtype_fun(data)
 
         buffer = stream_obj.read(np.prod(shape) * dtype.itemsize)
-        return self._conversion_fun(np.frombuffer(buffer, dtype=dtype).reshape(shape))
+        arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
+        if self._mask_fun is not None:
+            arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, data))
+        return self._conversion_fun(arr)

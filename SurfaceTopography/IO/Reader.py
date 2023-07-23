@@ -490,14 +490,55 @@ class ReaderBase(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class FileLayout:
+class CompoundLayout:
+    """Declare a file layout"""
+
     def __init__(self, structures):
         self._structures = structures
 
-    def from_stream(self, stream_obj):
-        data = AttrDict()
+    def from_stream(self, stream_obj, context):
+        context = AttrDict()
         for structure in self._structures:
-            data[structure.name] = structure.from_stream(stream_obj, data)
+            context[structure.name(context)] = structure.from_stream(stream_obj, context)
+        return context
+
+
+class If:
+    """Switch structure type dependent on data"""
+
+    def __init__(self, condition_fun, true_structure, false_structure):
+        self._condition_fun = condition_fun
+        self._true_structure = true_structure
+        self._false_structure = false_structure
+
+    def name(self, context):
+        if self._condition_fun(context):
+            return self._true_structure.name(context)
+        else:
+            return self._false_structure.name(context)
+
+    def from_stream(self, stream_obj, context):
+        if self._condition_fun(context):
+            return self._true_structure.from_stream(stream_obj, context)
+        else:
+            return self._false_structure.from_stream(stream_obj, context)
+
+
+class For:
+    """Repeat structure"""
+
+    def __init__(self, name, range_fun, structure):
+        self._name = name
+        self._range_fun = range_fun
+        self._structure = structure
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        data = []
+        for i in range(self._range_fun(context)):
+            data += [self._structure.from_stream(stream_obj, context)]
         return data
 
 
@@ -514,7 +555,7 @@ class DeclarativeReaderBase(ReaderBase):
 
         self.file_path = file_path
         with OpenFromAny(self.file_path, 'rb') as f:
-            self._metadata = self._file_layout.from_stream(f)
+            self._metadata = self._file_layout.from_stream(f, {})
 
     @property
     def metadata(self):
