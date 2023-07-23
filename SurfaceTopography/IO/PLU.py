@@ -238,30 +238,21 @@ This reader imports Sensofar's SPM file format.
 
     @property
     def channels(self):
-        # Read and fill channel information
-        channels = []
-
-        for index, layer in enumerate(self._metadata.layers):
-            # Compute physical sizes (units are um)
-            physical_size_x = layer.nb_grid_pts.x * self._metadata.calibration.micrometers_per_pixel_x
-            physical_size_y = layer.nb_grid_pts.y * self._metadata.calibration.micrometers_per_pixel_y
-
-            # Construct channel info
-            channels += [
-                ChannelInfo(
-                    self,
-                    index,
-                    name=f'layer{index}',
-                    dim=2,
-                    nb_grid_pts=(layer.nb_grid_pts.x, layer.nb_grid_pts.y),
-                    physical_sizes=(physical_size_x, physical_size_y),
-                    unit='µm',
-                    height_scale_factor=1,  # All units µm
-                    periodic=False,
-                    uniform=True,
-                    tags={'reader': layer.data}
-                )
-            ]
-            index += 1
-
-        return channels
+        return [
+            ChannelInfo(
+                self,
+                index,
+                name=f'layer{index}',
+                dim=2,
+                nb_grid_pts=(layer.nb_grid_pts.x,
+                             layer.nb_grid_pts.y),
+                physical_sizes=(layer.nb_grid_pts.x * self._metadata.calibration.micrometers_per_pixel_x,
+                                layer.nb_grid_pts.y * self._metadata.calibration.micrometers_per_pixel_y),
+                unit='µm',
+                height_scale_factor=1,  # All units µm
+                periodic=False,
+                uniform=True,
+                tags={'reader': layer.data}
+            )
+            for index, layer in enumerate(self._metadata.layers)
+        ]
