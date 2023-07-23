@@ -48,7 +48,7 @@ This reader imports Digital Surf SUR data files.
 
     _file_layout = CompoundLayout([
         BinaryStructure('header', [
-            ('magic', '12s', Validate(lambda magic, data: magic == 'DIGITAL SURF', FileFormatMismatch)),
+            ('magic', '12s', Validate(lambda x, context: x == 'DIGITAL SURF', FileFormatMismatch)),
             ('format', 'H'),
             ('nb_objects', 'H'),
             ('version', 'H'),
@@ -62,25 +62,27 @@ This reader imports Digital Surf SUR data files.
             ('absolute', 'H'),
             (None, 'I'),
             (None, 'I'),
-            ('itemsize', 'H', Validate(lambda x, data: x in [16, 32], UnsupportedFormatFeature)),
+            ('itemsize', 'H', Validate(lambda x, context: x in [16, 32], UnsupportedFormatFeature)),
             ('zmin', 'i'),
             ('zmax', 'i'),
-            ('nb_grid_pts_x', 'i', Validate(lambda x, data: x > 0, CorruptFile)),
-            ('nb_grid_pts_y', 'i', Validate(lambda x, data: x > 0, CorruptFile)),
+            ('nb_grid_pts_x', 'i', Validate(lambda x, context: x > 0, CorruptFile)),
+            ('nb_grid_pts_y', 'i', Validate(lambda x, context: x > 0, CorruptFile)),
             ('nb_points', 'I',
-             Validate(lambda x, data: x == data['nb_grid_pts_x'] * data['nb_grid_pts_y'], CorruptFile)),
-            ('grid_spacing_x', 'f', Validate(lambda x, data: x > 0, CorruptFile)),
-            ('grid_spacing_y', 'f', Validate(lambda x, data: x > 0, CorruptFile)),
+             Validate(lambda x, context: x == context['nb_grid_pts_x'] * context['nb_grid_pts_y'], CorruptFile)),
+            ('grid_spacing_x', 'f', Validate(lambda x, context: x > 0, CorruptFile)),
+            ('grid_spacing_y', 'f', Validate(lambda x, context: x > 0, CorruptFile)),
             ('height_scale_factor', 'f', Convert(float)),
             ('name_x', '16s'),
             ('name_y', '16s'),
             ('data_name', '16s'),
             ('unit_delta_x', '16s'),
-            ('unit_delta_y', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
-            ('delta_data_unit', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
-            ('unit_x', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
-            ('unit_y', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
-            ('data_unit', '16s', Validate(lambda x, data: x == data['unit_delta_x'], UnsupportedFormatFeature)),
+            ('unit_delta_y', '16s',
+             Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
+            ('delta_data_unit', '16s',
+             Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
+            ('unit_x', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
+            ('unit_y', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
+            ('data_unit', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
             ('unit_ratio_x', 'f'),
             ('unit_ratio_y', 'f'),
             ('data_unit_ratio', 'f'),
@@ -111,8 +113,8 @@ This reader imports Digital Surf SUR data files.
         ]),
         BinaryArray(
             'data',
-            lambda data: (data.header.nb_grid_pts_x, data.header.nb_grid_pts_y),
-            lambda data: np.dtype('<i2') if data.header.itemsize == 16 else np.dtype('<i4')
+            lambda context: (context.header.nb_grid_pts_x, context.header.nb_grid_pts_y),
+            lambda context: np.dtype('<i2') if context.header.itemsize == 16 else np.dtype('<i4')
         )
     ])
 

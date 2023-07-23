@@ -166,7 +166,7 @@ This reader imports Sensofar's SPM file format.
         BinaryStructure(
             'measurement_configuration1', [
                 # We only support topographies at present
-                ('type', 'I', Validate(lambda x, data: x == _TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
+                ('type', 'I', Validate(lambda x, context: x == _TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
                 ('algorithm', 'I'),
                 ('method', 'I'),
                 ('objective', 'I', Convert(lambda x: _objective_names[x])),
@@ -222,8 +222,8 @@ This reader imports Sensofar's SPM file format.
                     ]),
                 BinaryArray(
                     'data',
-                    lambda data: (data.nb_grid_pts.y, data.nb_grid_pts.x),
-                    lambda data: np.dtype(np.float32),
+                    lambda context: (context.nb_grid_pts.y, context.nb_grid_pts.x),
+                    lambda context: np.dtype(np.float32),
                     lambda arr: arr.T,
                     lambda arr, data: arr == _UNDEFINED_DATA
                 ),
