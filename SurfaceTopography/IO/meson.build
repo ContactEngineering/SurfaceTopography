@@ -7,6 +7,7 @@ python_sources = [
     'BCR.py',
     'binary.py',
     'common.py',
+    'DATX.py',
     'DI.py',
     'DZI.py',
     'EZD.py',
