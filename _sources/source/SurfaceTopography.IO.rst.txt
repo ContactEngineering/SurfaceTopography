@@ -20,6 +20,14 @@ SurfaceTopography.IO.BCR module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.DATX module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.DATX
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.DI module
 ------------------------------
 
@@ -80,6 +88,14 @@ SurfaceTopography.IO.IBW module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.IBW
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.LEXT module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.LEXT
    :members:
    :undoc-members:
    :show-inheritance:

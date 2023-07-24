@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.7.0.dev19+g45dcb631 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.7.0.dev57+g50fd3b1b documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -36,7 +36,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.7.0.dev19+g45dcb631
+                1.7.0.dev57+g50fd3b1b
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -177,7 +177,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.Topography</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_1D</cite></p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_from_profile</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -192,7 +192,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = \left[8A(\lambda) - 2A(2\lambda)\right]^{
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Curvature.</span></span><span class="sig-name descname"><span class="pre">scale_dependent_curvature_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Curvature.scale_dependent_curvature_from_area" title="Permalink to this definition"></a></dt>
 <dd><p>Compute the two-dimensional, radially averaged scale-dependent curvature.</p>
 <p>The scale-dependent curvature is given by</p>
 <blockquote>
@@ -205,9 +205,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container storing the uniform topography map</p></li>
-<li><p><strong>nbins</strong> (<em>int</em>) – Number of bins for radial average. Bins are automatically determined
-if set to None. Note: Returned array can be smaller than this because
-bins without data points are discarded. (Default: None)</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword parameters are passed on to <cite>autocorrelation_from_area</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
