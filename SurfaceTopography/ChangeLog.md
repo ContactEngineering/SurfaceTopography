@@ -6,9 +6,9 @@ v1.8.0 (not yet released)
 
 - API: Generalized container readers to support multiple file formats
 - API: `SurfaceContainer` is not `InMemorySurfaceContainer`
-- ENH: Reader for Zygo DATX
-- ENH: Reader for Olympus LEXT
-- ENH: Reader for ZAG containers
+- ENH: Reader for Zygo DATX (.datx)
+- ENH: Reader for Olympus LEXT (.lext)
+- ENH: Reader for ZAG containers (.zag)
 - BUG: Fixed `scale_dependent_curvature_from_area`
 - MAINT: More robust date parsing for Mitutoyo reader
 
