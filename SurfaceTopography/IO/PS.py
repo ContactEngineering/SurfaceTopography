@@ -123,7 +123,7 @@ TIFF-based file format of Park Systems instruments.
             try:
                 with TiffFile(f) as t:
                     if len(t.pages) != 1:
-                        raise FileFormatMismatch('More than one image in TIFF.')
+                        raise FileFormatMismatch('More than one image in TIFF. This is not a Park Systems TIFF.')
                     p = t.pages[0]
 
                     # Check file magic and version information

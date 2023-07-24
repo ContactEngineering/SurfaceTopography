@@ -266,7 +266,7 @@ def test_c_vs_py_reference():
     r2, A2 = nonuniform_autocorrelation(*t.positions_and_heights(), s)
 
     assert_allclose(r1, r2)
-    assert_allclose(A1, A2)
+    assert_allclose(A1, A2, atol=1e-12)
 
 
 def test_nonuniform_rms_height():

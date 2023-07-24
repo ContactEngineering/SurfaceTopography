@@ -35,7 +35,8 @@ dependencies = [
     "python-dateutil",
     "pyyaml",
     "requests",
-    "tiffile"
+    "tiffile",
+    "xmltodict"
 ]
 
 [project.optional-dependencies]

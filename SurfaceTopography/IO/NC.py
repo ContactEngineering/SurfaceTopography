@@ -48,7 +48,7 @@ format_to_scipy_version = {
 }
 
 
-# we subclass the netcdf_file class such it
+# we subclass the netcdf_file class such that it
 # is not closed by garbage collector in case of file streams
 class _SpecialNetCDFFile(netcdf_file):
     def close(self):

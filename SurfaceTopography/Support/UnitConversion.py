@@ -31,6 +31,28 @@ voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV'
 
 units = dict(length=length_units, voltage=voltage_units)
 
+mangle_units_utf8 = {
+    'A': 'Å',
+    'NanoMeters': 'nm',  # Zygo DATX
+    'μm': 'µm',
+    'um': 'µm',
+    '~m': 'µm',
+    'MicroMeters': 'µm',  # Zygo DATX
+    'MilliMeters': 'mm',  # Zygo DATX
+    'Meters': 'm',  # Zygo DATX
+}
+
+mangle_units_ascii = {
+    'A': 'Å',
+    'NanoMeters': 'nm',  # Zygo DATX
+    'μm': 'um',
+    'µm': 'um',
+    '~m': 'um',
+    'MicroMeters': 'um',  # Zygo DATX
+    'MilliMeters': 'mm',  # Zygo DATX
+    'Meters': 'm',  # Zygo DATX
+}
+
 
 def is_length_unit(s):
     return s in length_units.keys()
@@ -101,10 +123,8 @@ def mangle_length_unit_utf8(unit):
         unit = unit.decode('utf-8').strip()
     if unit == '':
         return None
-    elif unit == 'A':
-        return 'Å'
-    elif unit == 'μm' or unit == 'um' or unit == '~m':
-        return 'µm'
+    elif unit in mangle_units_utf8:
+        return mangle_units_utf8[unit]
     else:
         return unit
 
@@ -127,10 +147,8 @@ def mangle_length_unit_ascii(unit):
     unit = unit.strip()
     if unit == '':
         return None
-    elif unit == 'Å':
-        return 'A'
-    elif unit == 'μm' or unit == 'µm' or unit == '~m':
-        return 'um'
+    elif unit in mangle_units_ascii:
+        return mangle_units_ascii[unit]
     else:
         return unit
 

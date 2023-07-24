@@ -237,3 +237,15 @@ def test_nan_handling_and_threshold():
     assert not np.isnan(s1[2])
     assert np.isnan(s1[3])
     assert np.isnan(s2[0])
+
+
+def test_scale_dependent_slope_from_area():
+    t = fourier_synthesis((512, 512,), (1, 1), 0.8, rms_slope=0.1, periodic=False).detrend()
+    t.scale_dependent_slope_from_area()
+    # should just finish without failing
+
+
+def test_scale_dependent_curvature_from_area():
+    t = fourier_synthesis((512, 512,), (1, 1), 0.8, rms_slope=0.1, periodic=False).detrend()
+    t.scale_dependent_curvature_from_area()
+    # should just finish without failing

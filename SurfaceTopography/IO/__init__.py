@@ -40,12 +40,14 @@ from .Text import AscReader, XYZReader
 # New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
+from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
 from .FRT import FRTReader
 from .GWY import GWYReader
 from .H5 import H5Reader
 from .IBW import IBWReader
+from .LEXT import LEXTReader
 from .Matlab import MatReader
 from .MetroPro import MetroProReader
 from .Mitutoyo import MitutoyoReader
@@ -75,8 +77,10 @@ readers = [
     IBWReader,
     MIReader,
     MitutoyoReader,
-    NCReader,
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
+    NCReader,
+    # DATXReader must come before H5Reader, because DATX *is* a specialized form of HDF5
+    DATXReader,
     H5Reader,
     NPYReader,
     PSReader,
@@ -90,6 +94,7 @@ readers = [
     GWYReader,
     PLUReader,
     FRTReader,
+    LEXTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

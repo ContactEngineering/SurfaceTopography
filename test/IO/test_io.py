@@ -107,9 +107,12 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'nid-1.nid',
                                               'metropro-1.dat',
                                               'gwy-1.gwy',
+                                              'gwy-2.gwy',
                                               'plu-1.plu',
                                               'frt-1.frt',
                                               'frt-2.frt',
+                                              'lext-1.lext',
+                                              'datx-1.datx',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -358,6 +361,8 @@ def test_channel_info_and_topography_have_same_metadata(fn):
     reader = open_topography(fn)
 
     for channel in reader.channels:
+        if channel is None:
+            continue
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
@@ -637,6 +642,8 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
     assert detect_format(os.path.join(file_format_examples, 'frt-2.frt')) == 'frt'
     assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'lext-1.lext')) == 'lext'
+    assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
 
 
 def test_to_matrix():

@@ -1,13 +1,21 @@
 Change log for SurfaceTopography
 ================================
 
-v1.8.0 (not yet released)
--------------------------
+v1.8.0 (24Jul23)
+----------------
 
 - API: Generalized container readers to support multiple file formats
-- API: `SurfaceContainer` is not `InMemorySurfaceContainer`
-- ENH: Reader for ZAG containers
-- MAINT: More robust date parsing for Mitutoyo reader
+- API: `SurfaceContainer` is now `InMemorySurfaceContainer`
+- ENH: Reader for Zygo DATX (.datx)
+- ENH: Reader for Olympus LEXT (.lext)
+- ENH: Reader for ZAG containers (.zag)
+- BUG: Fixed `scale_dependent_curvature_from_area`
+- BUG: More robust date parsing for Mitutoyo reader
+- MAINT: Reader infrastructure now supports declarative readers that define
+  the file layout directly
+- MAINT: Switched SUR and PLU readers to declarative style
+- CI: macOS wheels (arm64 and x86_64)
+
 
 v1.7.0 (27Jun23)
 ----------------
