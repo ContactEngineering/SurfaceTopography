@@ -37,25 +37,11 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial funcionalities, please execute with pytest")
 
 
-def test_read_filestream(file_format_examples):
-    """
-    The reader has to work when the file was already opened as binary for
-    it to work in topobank.
-    """
-    file_path = os.path.join(file_format_examples, 'datx-1.datx')
-
-    read_topography(file_path)
-
-    with open(file_path, 'r') as f:
-        read_topography(f)
-
-    # This test just needs to arrive here without raising an exception
-
-
 def test_datx_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'datx-1.datx')
 
-    r = DATXReader(file_path)
+    f = open(file_path, 'r')
+    r = DATXReader(f)
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
