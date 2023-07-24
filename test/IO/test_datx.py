@@ -29,7 +29,6 @@ import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography import read_topography
 from SurfaceTopography.IO import DATXReader
 
 pytestmark = pytest.mark.skipif(
