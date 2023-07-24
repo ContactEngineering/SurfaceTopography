@@ -40,8 +40,7 @@ pytestmark = pytest.mark.skipif(
 def test_datx_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'datx-1.datx')
 
-    f = open(file_path, 'r')
-    r = DATXReader(f)
+    r = DATXReader(file_path)
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
