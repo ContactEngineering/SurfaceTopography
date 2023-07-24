@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.8.0 (not yet released)
--------------------------
+v1.8.0 (24Jul23)
+----------------
 
 - API: Generalized container readers to support multiple file formats
 - API: `SurfaceContainer` is not `InMemorySurfaceContainer`
@@ -11,6 +11,7 @@ v1.8.0 (not yet released)
 - ENH: Reader for ZAG containers (.zag)
 - BUG: Fixed `scale_dependent_curvature_from_area`
 - MAINT: More robust date parsing for Mitutoyo reader
+- CI: macOS wheels (arm64 and x86_64)
 
 
 v1.7.0 (27Jun23)
