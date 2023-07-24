@@ -36,7 +36,8 @@ dependencies = [
     "pyyaml",
     "requests",
     "tiffile",
-    "xmltodict"
+    "xmltodict",
+    "olefile"
 ]
 
 [project.optional-dependencies]

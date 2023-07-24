@@ -52,6 +52,7 @@ from .Matlab import MatReader
 from .MetroPro import MetroProReader
 from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
+from .MNT import MNTReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .PLU import PLUReader
@@ -95,6 +96,7 @@ readers = [
     PLUReader,
     FRTReader,
     LEXTReader,
+    MNTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
