@@ -13,6 +13,7 @@ v1.8.0 (24Jul23)
 - BUG: More robust date parsing for Mitutoyo reader
 - MAINT: Reader infrastructure now supports declarative readers that define
   the file layout directly
+- MAINT: Switched SUR and PLU readers to declarative style
 - CI: macOS wheels (arm64 and x86_64)
 
 
