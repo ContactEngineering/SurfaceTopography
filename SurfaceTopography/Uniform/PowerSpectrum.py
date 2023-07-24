@@ -209,6 +209,43 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         return q_val, C_val
 
 
+def fftfreq(t, meshgrid=True):
+    """
+    computes and returns the grid of wavevectors corresponding to np.fft.fft
+
+    """
+
+    # if t.dim == 1:
+    #     nb_grid_pts = [t.nb_grid_pts]
+    #     physical_sizes = [t.physical_sizes]
+
+    qx = 2 * np.pi * np.fft.fftfreq(
+        t.nb_grid_pts[0],
+        t.physical_sizes[0] / t.nb_grid_pts[0])
+    if t.dim == 1:
+        return qx
+    elif t.dim == 2:
+        qy = 2 * np.pi * np.fft.fftfreq(
+            t.nb_grid_pts[1],
+            t.physical_sizes[1] / t.nb_grid_pts[1])
+
+        if meshgrid:
+            qx, qy = np.meshgrid(qx, qy, indexing='ij')
+        return qx, qy
+
+
+def wavevectors_norm2(t, meshgrid=True):
+    if t.dim == 1:
+        return np.abs(t.fftfreq(meshgrid=meshgrid))
+    else:
+        qx, qy = t.fftfreq(meshgrid=meshgrid)
+        return np.sqrt(qx ** 2 + qy ** 2)
+
+
+UniformTopographyInterface.register_function("fftfreq", fftfreq)
+UniformTopographyInterface.register_function("wavevectors_norm2", wavevectors_norm2)
+
+
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('power_spectrum_from_profile', power_spectrum_from_profile)
 UniformTopographyInterface.register_function('power_spectrum_from_area', power_spectrum_from_area)

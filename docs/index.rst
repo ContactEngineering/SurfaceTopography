@@ -39,7 +39,7 @@ If you use this code, please cite:
    source/SurfaceTopography.Nonuniform
    source/SurfaceTopography.Support
    source/SurfaceTopography.Uniform
-
+   source/SurfaceTopography.Models
 
 Indices and tables
 ==================

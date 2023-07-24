@@ -26,7 +26,7 @@
 
 import numpy as np
 
-from igor.binarywave import load as loadibw
+from igor2.binarywave import load as loadibw
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
@@ -37,6 +37,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class IBWReader(ReaderBase):
     _format = 'ibw'
+    _mime_types = ['application/x-igor-binary-wave']
+    _file_extensions = ['ibw']
+
     _name = 'Igor binary wave'
     _description = '''
 Igor binary wave is a container format of the

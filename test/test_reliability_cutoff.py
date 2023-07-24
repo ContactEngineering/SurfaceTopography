@@ -34,8 +34,8 @@ import pytest
 
 from NuMPI import MPI
 
-from SurfaceTopography import (read_container, read_topography, SurfaceContainer, NonuniformLineScan, UniformLineScan,
-                               Topography)
+from SurfaceTopography import read_container, read_topography, NonuniformLineScan, UniformLineScan, Topography
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Exceptions import NoReliableDataError
 
 pytestmark = pytest.mark.skipif(
@@ -44,7 +44,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_scanning_probe_reliability_cutoff(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'))
     np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 90.700854)
 
     # Should be None because there is no tip radius information
@@ -58,7 +58,7 @@ def test_scanning_probe_reliability_cutoff(file_format_examples):
 @pytest.mark.parametrize('unit,fac', [('pm', 1e-3), ('nm', 1.0), ('um', 1e3), ('mm', 1e6)])
 def test_unit_invariance(file_format_examples, unit, fac):
     """Test that we get the same reliability cutoff if we rescale the topography"""
-    surf = read_topography(os.path.join(file_format_examples, 'di1.di'))
+    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'))
 
     ref_value = 90.700854
 
@@ -67,7 +67,7 @@ def test_unit_invariance(file_format_examples, unit, fac):
 
 
 def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
+    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'), info={
         'instrument': {
             'parameters': {
                 'tip_radius': {
@@ -103,7 +103,7 @@ def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_exam
 
 def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_examples):
     resolution = 70
-    surf = read_topography(os.path.join(file_format_examples, 'di1.di'), info={
+    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'), info={
         'instrument': {
             'parameters': {
                 'resolution': {
@@ -163,7 +163,7 @@ def test_reliability_cutoff_line_scan(file_format_examples):
 
 
 def test_problem1(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di6.di'), info={
+    surf = read_topography(os.path.join(file_format_examples, 'di-6.di'), info={
         'instrument': {
             'parameters': {
                 'tip_radius': {
@@ -201,7 +201,7 @@ def test_no_reliable_data_uniform():
     with pytest.raises(NoReliableDataError):
         t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
 
-    c = SurfaceContainer([t])
+    c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
         c.power_spectrum(unit='um')
 
@@ -263,7 +263,7 @@ def test_no_reliable_data_nonuniform():
     with pytest.raises(NoReliableDataError):
         t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
 
-    c = SurfaceContainer([t])
+    c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
         c.power_spectrum(unit='um')
 
@@ -346,7 +346,8 @@ def test_linear_2d_large_tip():
 
 
 def test_partially_reliable_data_container(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
+    c = c.read_all()  # read everything to memory so we can patch info dict
 
     # Patch info dictionary
     c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}

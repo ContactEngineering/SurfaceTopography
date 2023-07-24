@@ -37,7 +37,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_header(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.zon')
+    file_path = os.path.join(file_format_examples, 'zon-1.zon')
 
     loader = ZONReader(file_path)
 
@@ -56,15 +56,15 @@ def test_read_header(file_format_examples):
 
 
 def test_topography(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.zon')
+    file_path = os.path.join(file_format_examples, 'zon-1.zon')
 
     loader = ZONReader(file_path)
 
     topography = loader.topography()
 
     # Check one height value
-    np.testing.assert_almost_equal(topography.heights()[0, 0], 1.301e-05)
-    np.testing.assert_almost_equal(topography.heights()[10, 5], 8.47e-05)
+    np.testing.assert_allclose(topography.heights()[0, 0], 1.301e-05, rtol=1e-6)
+    np.testing.assert_allclose(topography.heights()[10, 5], 8.47e-05, rtol=1e-6)
 
     # Check the value of one of the metadata
     assert topography.info['unit'] == 'm'

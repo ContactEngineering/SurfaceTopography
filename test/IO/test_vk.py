@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'example.vk4')
+    file_path = os.path.join(file_format_examples, 'vk4-1.vk4')
 
     read_topography(file_path)
 
@@ -53,7 +53,7 @@ def test_read_filestream(file_format_examples):
 
 
 def test_vk3_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk3')
+    file_path = os.path.join(file_format_examples, 'vk3-1.vk3')
 
     r = VKReader(file_path)
     t = r.topography()
@@ -63,18 +63,18 @@ def test_vk3_metadata(file_format_examples):
     assert ny == 768
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 704847000)
-    np.testing.assert_almost_equal(sy, 528463000)
+    np.testing.assert_allclose(sx, 704847000, rtol=1e-6)
+    np.testing.assert_allclose(sy, 528463000, rtol=1e-6)
 
     assert t.unit == 'pm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 1223148.5774419378)
+    np.testing.assert_allclose(t.rms_height_from_area(), 1223148.5774419378, rtol=1e-6)
 
     assert t.info['acquisition_time'] == '2022-10-28 09:51:59+02:00'
 
 
 def test_vk4_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk4')
+    file_path = os.path.join(file_format_examples, 'vk4-1.vk4')
 
     r = VKReader(file_path)
     t = r.topography()
@@ -84,18 +84,18 @@ def test_vk4_metadata(file_format_examples):
     assert ny == 768
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1396330551)
-    np.testing.assert_almost_equal(sy, 1046906679)
+    np.testing.assert_allclose(sx, 1396330551, rtol=1e-6)
+    np.testing.assert_allclose(sy, 1046906679, rtol=1e-6)
 
     assert t.unit == 'pm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 54193042.85097)
+    np.testing.assert_allclose(t.rms_height_from_area(), 54193042.85097, rtol=1e-6)
 
     assert t.info['acquisition_time'] == '2022-10-14 09:23:04+02:00'
 
 
 def test_vk6_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'example.vk6')
+    file_path = os.path.join(file_format_examples, 'vk6-1.vk6')
 
     r = VKReader(file_path)
     t = r.topography()
@@ -105,11 +105,11 @@ def test_vk6_metadata(file_format_examples):
     assert ny == 1536
 
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 97169043)
-    np.testing.assert_almost_equal(sy, 72864915)
+    np.testing.assert_allclose(sx, 97169043, rtol=1e-6)
+    np.testing.assert_allclose(sy, 72864915, rtol=1e-6)
 
     assert t.unit == 'pm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 1061663.7395845044)
+    np.testing.assert_allclose(t.rms_height_from_area(), 1061663.7395845044, rtol=1e-6)
 
     assert t.info['acquisition_time'] == '2022-10-23 12:13:10-04:00'

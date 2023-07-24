@@ -39,7 +39,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read(file_format_examples):
-    reader = MatReader(os.path.join(file_format_examples, 'example1.mat'))
+    reader = MatReader(os.path.join(file_format_examples, 'mat-1.mat'))
     nx, ny = reader.channels[0].nb_grid_pts
     assert nx == 2048
     assert ny == 2048
@@ -48,5 +48,5 @@ def test_read(file_format_examples):
     nx, ny = topography.nb_grid_pts
     assert nx == 2048
     assert ny == 2048
-    np.testing.assert_almost_equal(topography.rms_height_from_area(), 1.234061e-07)
+    np.testing.assert_allclose(topography.rms_height_from_area(), 1.234061e-07, rtol=1e-6)
     assert topography.is_uniform

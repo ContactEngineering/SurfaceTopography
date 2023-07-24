@@ -48,7 +48,7 @@ format_to_scipy_version = {
 }
 
 
-# we subclass the netcdf_file class such it
+# we subclass the netcdf_file class such that it
 # is not closed by garbage collector in case of file streams
 class _SpecialNetCDFFile(netcdf_file):
     def close(self):
@@ -64,8 +64,10 @@ class _SpecialNetCDFFile(netcdf_file):
 
 class NCReader(ReaderBase):
     _format = 'nc'
-    _name = 'Network Common Data Format (NetCDF)'
+    _mime_types = ['application/netcdf']
+    _file_extensions = ['nc']
 
+    _name = 'Network Common Data Format (NetCDF)'
     _description = '''
 This reader reads topography data contained in a
 [NetCDF](https://www.unidata.ucar.edu/software/netcdf/) container. The

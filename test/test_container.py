@@ -38,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_bandwidth_and_unit_suggestion(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
     upper_um, lower_um = c.bandwidth(unit='µm')
     upper_mm, lower_mm = c.bandwidth(unit='mm')
     np.testing.assert_almost_equal(upper_um, 0.002)

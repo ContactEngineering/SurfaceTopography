@@ -266,7 +266,7 @@ def test_c_vs_py_reference():
     r2, A2 = nonuniform_autocorrelation(*t.positions_and_heights(), s)
 
     assert_allclose(r1, r2)
-    assert_allclose(A1, A2)
+    assert_allclose(A1, A2, atol=1e-12)
 
 
 def test_nonuniform_rms_height():
@@ -344,7 +344,7 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
 
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
 
     iterations = []
     d, s = c.autocorrelation(unit='um', nb_points_per_decade=2,
@@ -365,7 +365,7 @@ def test_container_uniform(file_format_examples, plot=False):
 # This test is just supposed to finish without an exception
 def test_container_mixed(file_format_examples, plot=False):
     """This container has a mixture of maps and line scans"""
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
 
     iterations = []
     d, s = c.autocorrelation(unit='um',

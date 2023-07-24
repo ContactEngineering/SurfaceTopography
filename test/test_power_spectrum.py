@@ -377,7 +377,7 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
 
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
 
     iterations = []
     d, s = c.power_spectrum(unit='um', nb_points_per_decade=2,
@@ -399,7 +399,7 @@ def test_container_uniform(file_format_examples, plot=False):
 # This test is just supposed to finish without an exception
 def test_container_mixed(file_format_examples, plot=False):
     """This container has a mixture of maps and line scans"""
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
 
     iterations = []
     d, s = c.power_spectrum(unit='um',
@@ -419,7 +419,7 @@ def test_container_mixed(file_format_examples, plot=False):
 def test_container_mixed2(file_format_examples, plot=False):
     """This container has a mixture of maps, line scans.
     One of the maps has undefined data points."""
-    c, = read_container(f'{file_format_examples}/container3.zip')
+    c, = read_container(f'{file_format_examples}/container-3.zip')
     d, s = c.power_spectrum(unit='um')
 
     if plot:

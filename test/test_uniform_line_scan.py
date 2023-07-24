@@ -59,6 +59,19 @@ def test_squeeze():
     np.testing.assert_allclose(surface.heights(), surface2.heights())
 
 
+def test_squeeze_unit():
+    x = np.linspace(0, 4 * np.pi, 101)
+    h = np.sin(x)
+
+    surface = UniformLineScan(h, 4 * np.pi).scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface.unit == surface2.unit
+
+    surface = UniformLineScan(h, 4 * np.pi, unit="m").scale(2.0)
+    surface2 = surface.squeeze()
+    assert surface.unit == surface2.unit
+
+
 def test_positions_and_heights():
     h = np.array((0, 1, 2, 3, 4))
 

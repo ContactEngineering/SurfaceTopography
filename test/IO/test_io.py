@@ -26,6 +26,7 @@
 #
 
 import io
+import json
 import os
 import pickle
 import tempfile
@@ -70,41 +71,50 @@ def _convert_filelist(filelist):
     return [os.path.join(DATADIR, fn) for fn in filelist]
 
 
-binary_example_file_list = _convert_filelist(['di1.di',
-                                              'di2.di',
-                                              'di3.di',
-                                              'di4.di',
-                                              'di5.di',
-                                              'example.ibw',
+binary_example_file_list = _convert_filelist(['di-1.di',
+                                              'di-2.di',
+                                              'di-3.di',
+                                              'di-4.di',
+                                              'di-5.di',
+                                              'ibw-1.ibw',
                                               'spot_1-1000nm.ibw',
                                               # 'surface.2048x2048.h5',
                                               '10x10-one_channel_without_name.ibw',
-                                              'example1.mat',
-                                              'example.opd',
-                                              'example2.opd',
-                                              'opd3.opd',
+                                              'mat-1.mat',
+                                              'opd-1.opd',
+                                              'opd-2.opd',
+                                              'opd-3.opd',
                                               'x3p-1.x3p',
                                               'x3p-2.x3p',
                                               'x3p-3.x3p',
                                               'x3p-4.x3p',
-                                              'opdx1.OPDx',
-                                              'opdx2.OPDx',
-                                              'opdx3.OPDx',
-                                              'mi1.mi',
+                                              'opdx-1.opdx',
+                                              'opdx-2.opdx',
+                                              'opdx-3.opdx',
+                                              'mi-1.mi',
                                               'N46E013.hgt',
-                                              'example.zon',
-                                              'example.nc',
-                                              'example.vk3',
-                                              'example.vk4',
-                                              'example.vk6',
-                                              'example.sur',
+                                              'zon-1.zon',
+                                              'nc-1.nc',
+                                              'vk3-1.vk3',
+                                              'vk4-1.vk4',
+                                              'vk6-1.vk6',
+                                              'sur-1.sur',
+                                              'sur-2.sur',
                                               'mitutoyo_mock.xlsx',
                                               'mitutoyo_nonuniform_mock.xlsx',
                                               'example_ps.tiff',
                                               'al3d-1.al3d',
-                                              'nid-1.nid'
-                                              ] + [] if NuMPI._has_mpi4py else [
-    'example-2d.npy'])  # MPI I/O does not support Python streams
+                                              'nid-1.nid',
+                                              'metropro-1.dat',
+                                              'gwy-1.gwy',
+                                              'gwy-2.gwy',
+                                              'plu-1.plu',
+                                              'frt-1.frt',
+                                              'frt-2.frt',
+                                              'lext-1.lext',
+                                              'datx-1.datx',
+                                              # MPI I/O does not support Python streams
+                                              ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
 binary_without_stream_support_example_file_list = _convert_filelist([
     'surface.2048x2048.h5'
@@ -122,6 +132,7 @@ text_example_file_list = _convert_filelist([
     'opdx2.txt',
     'opdx3.txt',
     'example-2d.xyz',
+    'hfm-1.hfm',
     # Not yet working
     # 'example6.txt',
 ])
@@ -133,7 +144,7 @@ text_example_without_size_file_list = _convert_filelist([
 
 explicit_physical_sizes = _convert_filelist([
     'example5.txt',
-    'example1.mat',
+    'mat-1.mat',
     'example-2d.npy'
 ])
 
@@ -350,6 +361,8 @@ def test_channel_info_and_topography_have_same_metadata(fn):
     reader = open_topography(fn)
 
     for channel in reader.channels:
+        if channel is None:
+            continue
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
@@ -498,13 +511,13 @@ def test_to_netcdf(fn):
 
 
 def test_read_unknown_file_format(file_format_examples):
-    with pytest.raises(SurfaceTopography.IO.UnknownFileFormatGiven):
+    with pytest.raises(SurfaceTopography.IO.UnknownFileFormat):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
                                              format='Nonexistentfileformat')
 
 
 def test_detect_format_unknown_file_format(file_format_examples):
-    with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormatGiven):
+    with pytest.raises(SurfaceTopography.Exceptions.UnknownFileFormat):
         SurfaceTopography.IO.open_topography(os.path.join(file_format_examples, "surface.2048x2048.h5"),
                                              format='Nonexistentfileformat')
 
@@ -598,30 +611,39 @@ def test_gwyddion_txt_import(lang_filename_infix, file_format_examples):
 
 
 def test_detect_format(file_format_examples):
-    assert detect_format(os.path.join(file_format_examples, 'di1.di')) == 'di'
-    assert detect_format(os.path.join(file_format_examples, 'di2.di')) == 'di'
+    assert detect_format(os.path.join(file_format_examples, 'di-1.di')) == 'di'
+    assert detect_format(os.path.join(file_format_examples, 'di-2.di')) == 'di'
     with pytest.raises(CannotDetectFileFormat):
         detect_format(os.path.join(file_format_examples, 'di_corrupted.di'))
-    assert detect_format(os.path.join(file_format_examples, 'example.ibw')) == 'ibw'
-    assert detect_format(os.path.join(file_format_examples, 'example.opd')) == 'opd'
+    assert detect_format(os.path.join(file_format_examples, 'ibw-1.ibw')) == 'ibw'
+    assert detect_format(os.path.join(file_format_examples, 'opd-1.opd')) == 'opd'
     assert detect_format(os.path.join(file_format_examples, 'x3p-1.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-2.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
-    assert detect_format(os.path.join(file_format_examples, 'example1.mat')) == 'mat'
+    assert detect_format(os.path.join(file_format_examples, 'mat-1.mat')) == 'mat'
     assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
-    assert detect_format(os.path.join(file_format_examples, 'example.zon')) == 'zon'
-    assert detect_format(os.path.join(file_format_examples, 'example.vk3')) == 'vk'
-    assert detect_format(os.path.join(file_format_examples, 'example.vk4')) == 'vk'
-    assert detect_format(os.path.join(file_format_examples, 'example.vk6')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'zon-1.zon')) == 'zon'
+    assert detect_format(os.path.join(file_format_examples, 'vk3-1.vk3')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'vk4-1.vk4')) == 'vk'
+    assert detect_format(os.path.join(file_format_examples, 'vk6-1.vk6')) == 'vk'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx')) == 'mitutoyo'
     assert detect_format(os.path.join(file_format_examples, 'al3d-1.al3d')) == 'al3d'
+    assert detect_format(os.path.join(file_format_examples, 'sur-1.sur')) == 'sur'
     assert detect_format(os.path.join(file_format_examples, 'example_ps.tiff')) == 'ps'
+    assert detect_format(os.path.join(file_format_examples, 'metropro-1.dat')) == 'metropro'
+    assert detect_format(os.path.join(file_format_examples, 'gwy-1.gwy')) == 'gwy'
+    assert detect_format(os.path.join(file_format_examples, 'plu-1.plu')) == 'plu'
+    assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'frt-2.frt')) == 'frt'
+    assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'lext-1.lext')) == 'lext'
+    assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
 
 
 def test_to_matrix():
@@ -635,3 +657,24 @@ def test_to_matrix():
         t.detrend('center').to_matrix(f'{d}/topo.txt')
         t2 = read_matrix(f'{d}/topo.txt')
         np.testing.assert_allclose(t.detrend('center').heights(), t2.heights())
+
+
+@pytest.mark.parametrize('fn',
+                         text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
+def test_json_encode_info(fn):
+    """Check that info dictionary can be serialized to JSON"""
+    physical_sizes0 = (1.2, 1.3)
+    unit0 = 'mm'
+    height_scale_factor0 = 1
+
+    r = open_topography(fn)
+    physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
+    unit = None if r.channels[0].unit is not None else unit0
+    height_scale_factor = None if r.channels[0].height_scale_factor is not None else height_scale_factor0
+
+    t = r.topography(channel_index=0, physical_sizes=physical_sizes,
+                     height_scale_factor=height_scale_factor, unit=unit)
+
+    # This should simply pass without an exception
+    json.dumps(t.info)

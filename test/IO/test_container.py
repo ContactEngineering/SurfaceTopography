@@ -29,7 +29,8 @@ from numpy.testing import assert_allclose
 
 from NuMPI import MPI
 
-from SurfaceTopography import SurfaceContainer, read_container, read_topography, read_published_container
+from SurfaceTopography import read_container, read_topography, read_published_container
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -38,8 +39,8 @@ pytestmark = pytest.mark.skipif(
 
 def test_read_just_uniform(file_format_examples):
     for c, in [
-        read_container(f'{file_format_examples}/container1.zip'),
-        # read_published_container('https://contact.engineering/go/867nv/')  # Same a container1.zip
+        read_container(f'{file_format_examples}/container-1.zip'),
+        # read_published_container('https://contact.engineering/go/867nv/')  # Same a container-1.zip
         # TODO maybe this makes the web app stall when running MPI tests von Travis, further investigation needed
     ]:
         assert len(c) == 3
@@ -62,17 +63,17 @@ def test_read_just_uniform(file_format_examples):
 
 
 def test_read_mixed(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
 
     assert len(c) == 3
 
 
 def test_write(file_format_examples):
-    t1 = read_topography(f'{file_format_examples}/di1.di')
-    t2 = read_topography(f'{file_format_examples}/example.opd')
+    t1 = read_topography(f'{file_format_examples}/di-1.di')
+    t2 = read_topography(f'{file_format_examples}/opd-1.opd')
     t3 = read_topography(f'{file_format_examples}/example2.txt')
 
-    c = SurfaceContainer([t1, t2, t3])
+    c = InMemorySurfaceContainer([t1, t2, t3])
 
     with tempfile.TemporaryFile() as fobj:
         c.to_zip(fobj)
@@ -101,7 +102,7 @@ def test_write(file_format_examples):
 def test_periodic():
     container, = read_published_container("https://contact.engineering/go/v9qwe/")
 
-    pristine = container._topographies[0]
-    convoluted = container._topographies[1]
+    pristine = container[0]
+    convoluted = container[1]
     assert pristine.is_periodic
     assert convoluted.is_periodic

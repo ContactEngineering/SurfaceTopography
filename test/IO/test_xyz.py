@@ -30,6 +30,7 @@ from numpy.testing import assert_allclose
 
 from NuMPI import MPI
 
+from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.IO.Text import read_xyz
 
 pytestmark = pytest.mark.skipif(
@@ -66,3 +67,25 @@ def test_read_2d(filename, file_format_examples):
                      [1., 2., 2., 1.],
                      [1., 1., 1., 1.],
                      [1., 1., 1., 1.]])
+
+
+def test_hfm_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'hfm-1.hfm')
+
+    r = XYZReader(file_path)
+    t = r.topography()
+
+    nx, = t.nb_grid_pts
+    assert nx == 9600
+
+    assert t.is_uniform
+
+    sx, = t.physical_sizes
+    assert_allclose(sx, 4.8, rtol=1e-6)
+
+    assert t.unit == 'mm'
+
+    assert_allclose(t.rms_height_from_profile(), 0.000906, rtol=1e-3)
+
+    t = t.detrend('curvature')
+    assert_allclose(t.rms_height_from_profile(), 0.000138, rtol=1e-3)

@@ -47,7 +47,7 @@ from NuMPI import MPI
 def test_save_and_load(file_format_examples):
     # sometimes the surface isn't transposed the same way when
     topography = open_topography(
-        os.path.join(file_format_examples, 'di4.di'), format="di").topography()
+        os.path.join(file_format_examples, 'di-4.di'), format="di").topography()
 
     with tempfile.TemporaryDirectory() as d:
         npyfile = os.path.join(d, 'test_save_and_load.npy')
@@ -84,7 +84,7 @@ def test_save_and_load_np(file_format_examples):
     # sometimes the surface isn't transposed the same way when
 
     topography = open_topography(
-        os.path.join(file_format_examples, 'di4.di'),
+        os.path.join(file_format_examples, 'di-4.di'),
         format="di").topography()
 
     with tempfile.TemporaryDirectory() as d:

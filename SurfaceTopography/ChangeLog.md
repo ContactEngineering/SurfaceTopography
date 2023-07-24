@@ -1,12 +1,81 @@
 Change log for SurfaceTopography
 ================================
 
-v1.4.0 (not yet released)
--------------------------
+v1.8.0 (24Jul23)
+----------------
 
+- API: Generalized container readers to support multiple file formats
+- API: `SurfaceContainer` is now `InMemorySurfaceContainer`
+- ENH: Reader for Zygo DATX (.datx)
+- ENH: Reader for Olympus LEXT (.lext)
+- ENH: Reader for ZAG containers (.zag)
+- BUG: Fixed `scale_dependent_curvature_from_area`
+- BUG: More robust date parsing for Mitutoyo reader
+- MAINT: Reader infrastructure now supports declarative readers that define
+  the file layout directly
+- MAINT: Switched SUR and PLU readers to declarative style
+- CI: macOS wheels (arm64 and x86_64)
+
+
+v1.7.0 (27Jun23)
+----------------
+
+- API: Renamed `UnknownFileFormatGiven` exception to `UnknownFileFormat`
+- ENH: Support for Gwyddion's native file format (#307)
+- ENH: Support for Sensofar SPM files (.plu, .apx)
+- ENH: Support for Micrprof files (.frt)
+- ENH: Support for HFM files (.hfm, text files)
+- ENH: Readers now report MIME types and typical file extensions
+- BUG: Contents of ZIP files should be detected as binary streams
+- MAINT: Added pandas as a dependency for text file parsing
+
+v1.6.3 (19Jun23)
+----------------
+
+- MAINT: More robust date parsing for DI reader
+- MAINT: Updated URL for container downloads
+
+v1.6.2 (17Apr23)
+----------------
+
+- BUG: MetroPro info dictionary is now JSON serializable
+
+v1.6.1 (10Apr23)
+----------------
+
+- BUG: More robust catching of invalid values in AL3D reader
+
+v1.6.0 (05Apr23)
+----------------
+
+- ENH: Reader for the Zygo MetroPro
+
+v1.5.0 (25Mar23)
+----------------
+
+- ENH: analytical computation of scalar roughness parameters of  ideal self-affine psd  
+- ENH: weighted integrals of the PSDs of containers 
+- ENH: scanning probe artefact simulations
+- TST: remove dependency of test-suite on ContactMechanics 
+- MAINT: Switched from igor to igor2 which supports latest numpy
+
+v1.4.1 (6Mar23)
+---------------
+
+- BUG: Do not use `peek`, since some stream objects do not support this
+  operation
+- BUG: DI files sometimes report more data than they hold
+
+v1.4.0 (6Mar23)
+---------------
+
+- MAINT: Dropped Python 3.7 support (missing importlib)
+- MAINT: Unified file naming schemes in file format examples
+- ENH: Convenience decorator for creating simple pipeline functions
 - ENH: Reader for NanoSurf easyScan (NID/EZD)
 - ENH: Reader for BCR-STM/BCRF files
 - BUG: Wrong data layout in AL3D reader
+- BUG: Do not fail if SUR files have not acquisition time
 
 v1.3.3 (29Jan23)
 ----------------

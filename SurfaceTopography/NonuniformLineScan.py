@@ -156,7 +156,7 @@ class DecoratedNonuniformTopography(DecoratedTopography,
 
     def squeeze(self):
         return NonuniformLineScan(self.positions(), self.heights(),
-                                  info=self.info)
+                                  info=self.info, unit=self.unit)
 
 
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):

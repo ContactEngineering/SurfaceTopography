@@ -20,6 +20,7 @@
 # SOFTWARE.
 #
 
+import logging
 import numpy as np
 import openpyxl
 import re
@@ -33,8 +34,10 @@ from ..UniformLineScanAndTopography import UniformLineScan
 from ..Support.UnitConversion import get_unit_conversion_factor
 from .Reader import ReaderBase, ChannelInfo
 
-R_metric_regex = re.compile(r'(?P<key>[a-zA-Z]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]+)')
+R_metric_regex = re.compile(r'(?P<key>[^\s]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]*)')
 cut_off_regex = re.compile(r'(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\s]+)')
+
+_log = logging.getLogger(__file__)
 
 
 class MitutoyoReader(ReaderBase):
@@ -44,6 +47,9 @@ class MitutoyoReader(ReaderBase):
     """
 
     _format = 'mitutoyo'
+    _mime_types = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+    _file_extensions = ['xlsx']
+
     _name = 'Mitutoyo SurfTest Excel spreadsheet (xlsx)'
     _description = '''
 Load topography information stored as Excel spreadsheet by Mitutoyo SurfTest
@@ -106,12 +112,16 @@ surface roughness testers.
                 if cell.value is None:
                     break
 
-                _roughness_metrics_record = {
-                    key: float(value) if key == 'value' else value
-                    for key, value in R_metric_regex.match(cell.value).groupdict().items()
-                }
+                R_metric_regex_match = R_metric_regex.match(cell.value)
+                if R_metric_regex_match is not None:
+                    _roughness_metrics_record = {
+                        key: float(value) if key == 'value' else value
+                        for key, value in R_metric_regex_match.groupdict().items()
+                    }
 
-                _roughness_metrics_list.append(_roughness_metrics_record)
+                    _roughness_metrics_list.append(_roughness_metrics_record)
+                else:
+                    _log.warning("%s does not conform with MitutoyoReader scalar roughness metrics regex", cell.value)
 
             # try to infer heights unit from roughness metrics
             _h_unit = _roughness_metrics_list[0]['unit']
@@ -128,7 +138,7 @@ surface roughness testers.
             _x_unit = _cut_off_dict['unit']
 
             # convert x unit to h unit
-            self._x = _x*get_unit_conversion_factor(_x_unit, _h_unit)
+            self._x = _x * get_unit_conversion_factor(_x_unit, _h_unit)
             self._unit = _h_unit
 
             # with n data points spaced by distance dx,

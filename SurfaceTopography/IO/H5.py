@@ -23,12 +23,17 @@
 # SOFTWARE.
 #
 
+import h5py
+
 from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, ChannelInfo
 
 
 class H5Reader(ReaderBase):
     _format = 'h5'
+    _mime_types = ['application/x-hdf']
+    _file_extensions = ['h5']
+
     _name = 'Hierarchical data format (HDF5)'
     _description = '''
 Import filter for [HDF5](https://support.hdfgroup.org/HDF5/) files provided
@@ -41,8 +46,6 @@ The original contact mechanics challenge data can be downloaded
     '''  # noqa: E501
 
     def __init__(self, fobj):
-        self._h5 = None
-        import h5py
         self._h5 = h5py.File(fobj, 'r')
         self._channels = []
         channel_index = 0

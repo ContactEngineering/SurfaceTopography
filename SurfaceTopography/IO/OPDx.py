@@ -30,7 +30,7 @@ from collections import namedtuple
 import dateutil.parser
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from .common import OpenFromAny
@@ -68,6 +68,9 @@ DOUBLE_ARRAY_EXTRA = 5
 
 class OPDxReader(ReaderBase):
     _format = 'opdx'
+    _mime_types = ['application/x-dektak-opdx']
+    _file_extensions = ['opdx']
+
     _name = 'Dektak OPDx'
     _description = '''
 File format of the Bruker Dektak XT* series stylus profilometer.
@@ -79,7 +82,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         with OpenFromAny(file_path, 'rb') as f:
             # Check OPDx file magic
             if f.read(len(MAGIC)) != MAGIC:
-                raise ValueError('File magic does not match. This is not a Dektak OPDx file.')
+                raise FileFormatMismatch('File magic does not match. This is not a Dektak OPDx file.')
 
             # Read OPDx file manifest (without reading arrays and matrices)
             self.manifest = {}
@@ -96,7 +99,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             # This file contains a topography scan
             self.read_topography_channel_infos(0)
         else:
-            raise ValueError(f"Don't know how to read data of kind '{data_kind}'.")
+            raise UnsupportedFormatFeature(f"Don't know how to read data of kind '{data_kind}'.")
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},

@@ -27,8 +27,11 @@
 
 import os
 
+# Registers DZI writers with Topography class
+import SurfaceTopography.IO.DZI  # noqa: F401
+
 from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFixedByFile, ReadFileError, \
-    UnknownFileFormatGiven  # noqa: F401
+    UnknownFileFormat  # noqa: F401
 
 # Old-style readers
 from .FromFile import HGTReader
@@ -37,16 +40,21 @@ from .Text import AscReader, XYZReader
 # New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
+from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
+from .FRT import FRTReader
+from .GWY import GWYReader
 from .H5 import H5Reader
 from .IBW import IBWReader
+from .LEXT import LEXTReader
 from .Matlab import MatReader
+from .MetroPro import MetroProReader
 from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
-from .MNT import MNTReader
 from .NC import NCReader
 from .NPY import NPYReader
+from .PLU import PLUReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
@@ -54,9 +62,6 @@ from .SUR import SURReader
 from .VK import VKReader
 from .X3P import X3PReader
 from .ZON import ZONReader
-
-# Only writers
-import SurfaceTopography.IO.DZI  # noqa: F401
 
 from .Reader import ReaderBase  # noqa: F401
 
@@ -72,8 +77,10 @@ readers = [
     IBWReader,
     MIReader,
     MitutoyoReader,
-    NCReader,
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
+    NCReader,
+    # DATXReader must come before H5Reader, because DATX *is* a specialized form of HDF5
+    DATXReader,
     H5Reader,
     NPYReader,
     PSReader,
@@ -83,7 +90,11 @@ readers = [
     AL3DReader,
     EZDReader,
     BCRReader,
-    MNTReader,
+    MetroProReader,
+    GWYReader,
+    PLUReader,
+    FRTReader,
+    LEXTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
@@ -215,7 +226,7 @@ def open_topography(fobj, format=None, communicator=None):
         raise CannotDetectFileFormat(msg)
     else:
         if format not in lookup_reader_by_format.keys():
-            raise UnknownFileFormatGiven(
+            raise UnknownFileFormat(
                 "{} not in registered file formats {}".format(
                     fobj, lookup_reader_by_format.keys()))
         return lookup_reader_by_format[format](fobj, **kwargs)

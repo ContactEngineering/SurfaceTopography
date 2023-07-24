@@ -30,8 +30,8 @@ from scipy.stats import kstat
 from NuMPI import MPI
 
 from SurfaceTopography import read_container, read_topography
+from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography import SurfaceContainer
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -134,7 +134,7 @@ def test_nonuniform_file(file_format_examples, plot=False):
 
 def test_container_uniform(file_format_examples, plot=False):
     """This container has just topography maps"""
-    c, = read_container(f'{file_format_examples}/container1.zip')
+    c, = read_container(f'{file_format_examples}/container-1.zip')
     iterations = []
     _, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, distances=[0.01, 0.1, 1.0, 10],
                                                   unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
@@ -180,7 +180,7 @@ def test_container_uniform(file_format_examples, plot=False):
 
 def test_container_mixed(file_format_examples):
     """This container has a mixture of maps and line scans"""
-    c, = read_container(f'{file_format_examples}/container2.zip')
+    c, = read_container(f'{file_format_examples}/container-2.zip')
     _, s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
     assert (np.diff(s) < 0).all()
 
@@ -225,7 +225,7 @@ def test_nan_handling_and_threshold():
     t3 = fourier_synthesis(nb_grid_pts=(512,), physical_sizes=(25000,), unit="nm", hurst=0.8, rms_height=1,
                            periodic=False)
 
-    c = SurfaceContainer([t1, t2, t3])
+    c = InMemorySurfaceContainer([t1, t2, t3])
     d1, s1 = c.scale_dependent_statistical_property(lambda x, y=None: kstat(x, n=4), n=1, unit='nm',
                                                     distances=[249, 2499, 23000, 24999], threshold=4)
 
@@ -237,3 +237,15 @@ def test_nan_handling_and_threshold():
     assert not np.isnan(s1[2])
     assert np.isnan(s1[3])
     assert np.isnan(s2[0])
+
+
+def test_scale_dependent_slope_from_area():
+    t = fourier_synthesis((512, 512,), (1, 1), 0.8, rms_slope=0.1, periodic=False).detrend()
+    t.scale_dependent_slope_from_area()
+    # should just finish without failing
+
+
+def test_scale_dependent_curvature_from_area():
+    t = fourier_synthesis((512, 512,), (1, 1), 0.8, rms_slope=0.1, periodic=False).detrend()
+    t.scale_dependent_curvature_from_area()
+    # should just finish without failing

@@ -30,6 +30,9 @@ import abc
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
+from ..UniformLineScanAndTopography import Topography
+from .binary import AttrDict
+from .common import OpenFromAny
 
 
 class ChannelInfo:
@@ -322,7 +325,10 @@ class ReaderBase(metaclass=abc.ABCMeta):
     the web application `TopoBank`.
     """
 
-    _format = None
+    _format = None  # Short internal format string, e.g. 'di', 'sur', etc.
+    _mime_types = None  # MIME type, see Gwyddion's mime specification
+    _file_extensions = None  # List of common file extensions, without the '.'
+
     _name = None
     _description = None
 
@@ -331,12 +337,31 @@ class ReaderBase(metaclass=abc.ABCMeta):
     @classmethod
     def format(cls):
         """
-        String identifier for this file format. Identifier must be unique and
-        is typically equal to the file extension of this format.
+        Short string identifier for this file format. Identifier must be
+        unique and is typically equal to the file extension of this format.
         """
         if cls._format is None:
             raise RuntimeError('Reader does not provide a format string')
         return cls._format
+
+    @classmethod
+    def mime_types(cls):
+        """
+        MIME types supported by this reader.
+        """
+        if cls._mime_types is None:
+            raise RuntimeError('Reader does not provide MIME types')
+        return cls._mime_types
+
+    @classmethod
+    def file_extensions(cls):
+        """
+        A list of typical file extensions for this reader. Can be None if
+        there are no typical file extensions.
+        """
+        if cls._file_extensions is None:
+            raise RuntimeError('Reader does not provide file extensions')
+        return cls._file_extensions
 
     @classmethod
     def name(cls):
@@ -463,3 +488,121 @@ class ReaderBase(metaclass=abc.ABCMeta):
             overridden by the user.
         """
         raise NotImplementedError
+
+
+class CompoundLayout:
+    """Declare a file layout"""
+
+    def __init__(self, structures):
+        self._structures = structures
+
+    def from_stream(self, stream_obj, context):
+        context = AttrDict()
+        for structure in self._structures:
+            context[structure.name(context)] = structure.from_stream(stream_obj, context)
+        return context
+
+
+class If:
+    """Switch structure type dependent on data"""
+
+    def __init__(self, condition_fun, true_structure, false_structure):
+        self._condition_fun = condition_fun
+        self._true_structure = true_structure
+        self._false_structure = false_structure
+
+    def name(self, context):
+        if self._condition_fun(context):
+            return self._true_structure.name(context)
+        else:
+            return self._false_structure.name(context)
+
+    def from_stream(self, stream_obj, context):
+        if self._condition_fun(context):
+            return self._true_structure.from_stream(stream_obj, context)
+        else:
+            return self._false_structure.from_stream(stream_obj, context)
+
+
+class For:
+    """Repeat structure"""
+
+    def __init__(self, name, range_fun, structure):
+        self._name = name
+        self._range_fun = range_fun
+        self._structure = structure
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        data = []
+        for i in range(self._range_fun(context)):
+            data += [self._structure.from_stream(stream_obj, context)]
+        return data
+
+
+class DeclarativeReaderBase(ReaderBase):
+    """
+    Base class for automatic readers.
+    """
+
+    _file_layout = None
+
+    def __init__(self, file_path):
+        if self._file_layout is None:
+            raise RuntimeError('Please defined the file structure via `_file_structure`.')
+
+        self.file_path = file_path
+        with OpenFromAny(self.file_path, 'rb') as f:
+            self._metadata = self._file_layout.from_stream(f, {})
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    def topography(self, channel_index=None, physical_sizes=None,
+                   height_scale_factor=None, unit=None, info={},
+                   periodic=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
+
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
+        channels = self.channels
+        if channel_index < 0 or channel_index >= len(channels):
+            raise RuntimeError(f'Channel index is {channel_index} but must be between 0 and {len(channels) - 1}.')
+
+        # Get channel information
+        channel = channels[channel_index]
+
+        if physical_sizes is None:
+            physical_sizes = channel.physical_sizes
+        elif channel.physical_sizes is not None:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+
+        if height_scale_factor is None:
+            height_scale_factor = channel.height_scale_factor
+        elif channel.height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+
+        if unit is None:
+            unit = channel.unit
+        elif channel.unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
+        with OpenFromAny(self.file_path, 'rb') as f:
+            height_data = channel.tags['reader'](f)
+
+        _info = channel.info.copy()
+        _info.update(info)
+
+        topo = Topography(height_data,
+                          physical_sizes,
+                          unit=unit,
+                          periodic=False if periodic is None else periodic,
+                          info=_info)
+        return topo.scale(height_scale_factor)

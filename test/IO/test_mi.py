@@ -47,7 +47,7 @@ DATADIR = os.path.join(
 
 
 def test_read_header():
-    file_path = os.path.join(DATADIR, 'mi1.mi')
+    file_path = os.path.join(DATADIR, 'mi-1.mi')
 
     loader = MIReader(file_path)
 
@@ -81,14 +81,14 @@ def test_read_header():
 
 
 def test_topography():
-    file_path = os.path.join(DATADIR, 'mi1.mi')
+    file_path = os.path.join(DATADIR, 'mi-1.mi')
 
     loader = MIReader(file_path)
 
     topography = loader.topography()
 
     # Check one height value
-    np.testing.assert_almost_equal(topography._heights[0, 0], -0.4986900329589844)
+    np.testing.assert_allclose(topography._heights[0, 0], -0.4986900329589844, rtol=1e-6)
 
     # Check out if metadata from global and the channel are both in the
     # result from channel metadata

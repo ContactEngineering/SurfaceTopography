@@ -30,7 +30,7 @@
 #
 
 import re
-from datetime import datetime
+import dateutil.parser
 
 import numpy as np
 
@@ -46,6 +46,9 @@ from .Reader import ReaderBase, ChannelInfo
 
 class DIReader(ReaderBase):
     _format = 'di'
+    _mime_types = ['application/x-nanoscope-iii-spm']
+    _file_extensions = ['spm', '001', '002', '003', '004', '005']
+
     _name = 'Bruker Dimension, Veeco Nanoscope, Digital Instruments Nanoscope'
     _description = '''
 Digital Instruments Nanoscope (also Veeco Nanoscope and Bruker Dimension)
@@ -109,7 +112,7 @@ The reader supports V4.3 and later version of the format.
             for n, p in parameters:
                 if n == 'file list':
                     if 'date' in p:
-                        info['acquisition_time'] = str(datetime.strptime(p['date'], '%I:%M:%S %p %a %b %d %Y'))
+                        info['acquisition_time'] = str(dateutil.parser.parse(p['date']))
                 elif n == 'scanner list' or n == 'ciao scan list':
                     scanner.update(p)
                 elif n == 'equipment list':
@@ -138,10 +141,10 @@ The reader supports V4.3 and later version of the format.
                         binary_scale = 1 / 65536  # Rescale 32-bit integer to a 16-bit range
                     elif elsize != 2:
                         raise IOError(f"Don't know how to handle {elsize} bytes per pixel data.")
-                    if nx * ny * elsize != length:
+                    if nx * ny * elsize > length:
                         raise IOError(f'File reports a data block of length {length}, but computing the size of the '
-                                      f'data block from the number of grid points and the per-pixel storage yields '
-                                      f'a value of {nx * ny * elsize}.')
+                                      f'data block from {nx} x {ny} grid points and the per-pixel storage of {elsize} '
+                                      f'bytes yields a larger value of {nx * ny * elsize}.')
 
                     scale_re = re.match(
                         r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
