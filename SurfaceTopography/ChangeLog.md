@@ -5,12 +5,14 @@ v1.8.0 (24Jul23)
 ----------------
 
 - API: Generalized container readers to support multiple file formats
-- API: `SurfaceContainer` is not `InMemorySurfaceContainer`
+- API: `SurfaceContainer` is now `InMemorySurfaceContainer`
 - ENH: Reader for Zygo DATX (.datx)
 - ENH: Reader for Olympus LEXT (.lext)
 - ENH: Reader for ZAG containers (.zag)
 - BUG: Fixed `scale_dependent_curvature_from_area`
-- MAINT: More robust date parsing for Mitutoyo reader
+- BUG: More robust date parsing for Mitutoyo reader
+- MAINT: Reader infrastructure now supports declarative readers that define
+  the file layout directly
 - CI: macOS wheels (arm64 and x86_64)
 
 
