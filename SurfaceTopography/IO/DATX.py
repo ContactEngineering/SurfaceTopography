@@ -47,7 +47,7 @@ Import filter for Zygo DATX, and HDF5-based format.
         try:
             with h5py.File(self._fobj, 'r') as h5:
                 # Check if this can be a datx file
-                if not 'MetaData' in h5.keys():
+                if 'MetaData' not in h5.keys():
                     raise FileFormatMismatch('Cannot read Zygo DATX. This is an HDF5 file, but the `MetaData` toplevel '
                                              'key is missing.')
 
