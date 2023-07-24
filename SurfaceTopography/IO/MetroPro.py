@@ -45,7 +45,7 @@ class MetroProReader(ReaderBase):
     _mime_types = ['application/x-zygo-spm']
     _file_extensions = ['dat']
 
-    _name = 'Zygo Metropro'
+    _name = 'Zygo Metropro DAT'
     _description = '''
 This reader imports Zygo MetroPro data files.
 '''

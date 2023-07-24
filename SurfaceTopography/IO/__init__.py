@@ -40,6 +40,7 @@ from .Text import AscReader, XYZReader
 # New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
+from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
 from .FRT import FRTReader
@@ -57,7 +58,7 @@ from .PLU import PLUReader
 from .PS import PSReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
-from .SUR import SURReaderBase
+from .SUR import SURReader
 from .VK import VKReader
 from .X3P import X3PReader
 from .ZON import ZONReader
@@ -76,12 +77,14 @@ readers = [
     IBWReader,
     MIReader,
     MitutoyoReader,
-    NCReader,
     # NCReader must come before H5Reader, because NC4 *is* a specialized form of HDF5
+    NCReader,
+    # DATXReader must come before H5Reader, because DATX *is* a specialized form of HDF5
+    DATXReader,
     H5Reader,
     NPYReader,
     PSReader,
-    SURReaderBase,
+    SURReader,
     VKReader,
     ZONReader,
     AL3DReader,

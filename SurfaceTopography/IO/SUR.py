@@ -36,7 +36,7 @@ from .Reader import DeclarativeReaderBase, ChannelInfo, CompoundLayout
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 
 
-class SURReaderBase(DeclarativeReaderBase):
+class SURReader(DeclarativeReaderBase):
     _format = 'sur'
     _mime_types = ['application/x-surf-spm']
     _file_extensions = ['sur']

@@ -23,6 +23,8 @@
 # SOFTWARE.
 #
 
+import h5py
+
 from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, ChannelInfo
 
@@ -44,8 +46,6 @@ The original contact mechanics challenge data can be downloaded
     '''  # noqa: E501
 
     def __init__(self, fobj):
-        self._h5 = None
-        import h5py
         self._h5 = h5py.File(fobj, 'r')
         self._channels = []
         channel_index = 0

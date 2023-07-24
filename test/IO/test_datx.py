@@ -30,7 +30,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import SURReader
+from SurfaceTopography.IO import DATXReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -42,7 +42,7 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'sur-1.sur')
+    file_path = os.path.join(file_format_examples, 'datx-1.datx')
 
     read_topography(file_path)
 
@@ -52,20 +52,23 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
-def test_sur_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'sur-1.sur')
+def test_datx_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'datx-1.datx')
 
-    r = SURReader(file_path)
+    r = DATXReader(file_path)
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 2560
-    assert ny == 2560
+    assert nx == 1000
+    assert ny == 1000
+
+    assert t.unit == 'nm'
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
-    np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
+    np.testing.assert_allclose(sx, 6306280.26666992, rtol=1e-6)
+    np.testing.assert_allclose(sy, 6306280.26666992, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    np.testing.assert_allclose(t.max(), 13808.435547, rtol=1e-6)
+    np.testing.assert_allclose(t.min(), -23393.847656, rtol=1e-6)
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 6304.986277, rtol=1e-6)
