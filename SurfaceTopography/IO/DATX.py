@@ -27,7 +27,7 @@ import h5py
 import numpy as np
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_ascii
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography
 from .Reader import ReaderBase, ChannelInfo
 
@@ -84,7 +84,7 @@ Import filter for Zygo DATX, and HDF5-based format.
 
                 # Unit
                 self._unit, = h5[self._surface_path].attrs['Unit']
-                self._unit = mangle_length_unit_ascii(self._unit)
+                self._unit = mangle_length_unit_utf8(self._unit)
 
                 # Conversion
                 x_converter, = h5[self._surface_path].attrs['X Converter']
@@ -107,7 +107,7 @@ Import filter for Zygo DATX, and HDF5-based format.
                 category, height_unit, values = z_converter
                 if category != b'HeightCat':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` for Z converter.')
-                height_unit = mangle_length_unit_ascii(height_unit.decode('ascii'))
+                height_unit = mangle_length_unit_utf8(height_unit.decode('ascii'))
 
                 if height_unit != self._unit:
                     raise CorruptFile(f"Two conflicting height units found: '{height_unit}' and '{self._unit}'.")
