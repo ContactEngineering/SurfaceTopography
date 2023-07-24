@@ -642,6 +642,8 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'frt-1.frt')) == 'frt'
     assert detect_format(os.path.join(file_format_examples, 'frt-2.frt')) == 'frt'
     assert detect_format(os.path.join(file_format_examples, 'hfm-1.hfm')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'lext-1.lext')) == 'lext'
+    assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
 
 
 def test_to_matrix():
