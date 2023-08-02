@@ -30,7 +30,7 @@
 
 import numpy as np
 import olefile
-import xml.etree.ElementTree as ElementTree
+import xmltodict
 
 from .common import OpenFromAny
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
@@ -38,7 +38,6 @@ from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor
 
 from .Reader import ReaderBase, ChannelInfo
-
 
 
 def xml_to_dict(xml):
@@ -67,30 +66,26 @@ File format of the Mountains software
         s = f.openstream('XmlHeader')
         s.read(6)  # Skip the first 6 bytes, not sure what is in there
         xml_header = s.read().decode('utf-16')
-        header_metadata = {}
-        xmlroot = ElementTree.fromstring(xml_header)
-        for child in xmlroot:
-            header_metadata[child.tag] = child.text
-        print(header_metadata)
+        header_metadata = xmltodict.parse(xml_header)
+        import json
+        print(json.dumps(header_metadata, indent=4))
 
-        self._channels = [
-            ChannelInfo(self,
-                        0,  # channel index
-                        name='Default',
-                        dim=2,
-                        nb_grid_pts=(int(self._metadata['xpixels']), int(self._metadata['ypixels'])),
-                        physical_sizes=(float(self._metadata['xlength']), float(self._metadata['ylength'])),
-                        uniform=True,
-                        unit=xunit,
-                        height_scale_factor=float(self._metadata['bit2nm']) * get_unit_conversion_factor(zunit, xunit),
-                        info={
-                            'raw_metadata': self._metadata
-                        })
-        ]
+        @property
 
-    @property
     def channels(self):
-        return self._channels
+        return [ChannelInfo(self,
+                            0,  # channel index
+                            name='Default',
+                            dim=2,
+                            nb_grid_pts=(int(self._metadata['xpixels']), int(self._metadata['ypixels'])),
+                            physical_sizes=(float(self._metadata['xlength']), float(self._metadata['ylength'])),
+                            uniform=True,
+                            unit=xunit,
+                            height_scale_factor=float(self._metadata['bit2nm']) * get_unit_conversion_factor(zunit,
+                                                                                                             xunit),
+                            info={
+                                'raw_metadata': self._metadata
+                            })]
 
     def topography(self, channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={}, periodic=False,
