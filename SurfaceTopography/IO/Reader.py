@@ -26,12 +26,13 @@
 #
 
 import abc
+import os
 
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from .binary import AttrDict
+from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
 
 
@@ -490,55 +491,103 @@ class ReaderBase(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class CompoundLayout:
+class CompoundLayout(LayoutWithNameBase):
     """Declare a file layout"""
 
-    def __init__(self, structures):
+    def __init__(self, structures, name=None):
         self._structures = structures
+        self._name = name
 
     def from_stream(self, stream_obj, context):
         context = AttrDict()
         for structure in self._structures:
-            context[structure.name(context)] = structure.from_stream(stream_obj, context)
+            context_update = structure.from_stream(stream_obj, context)
+            name = structure.name(context)
+            if name is None:
+                context.update(context_update)
+            else:
+                context[name] = context_update
         return context
 
 
 class If:
     """Switch structure type dependent on data"""
 
-    def __init__(self, condition_fun, true_structure, false_structure):
-        self._condition_fun = condition_fun
-        self._true_structure = true_structure
-        self._false_structure = false_structure
+    def __init__(self, *args):
+        self._args = args
 
     def name(self, context):
-        if self._condition_fun(context):
-            return self._true_structure.name(context)
+        nb_conditions = len(self._args) // 2
+        for i in range(nb_conditions):
+            if self._args[2 * i](context):
+                return self._args[2 * i + 1].name(context)
+        if 2 * nb_conditions == len(self._args):
+            return None
         else:
-            return self._false_structure.name(context)
+            return self._args[2 * nb_conditions].name(context)
 
     def from_stream(self, stream_obj, context):
-        if self._condition_fun(context):
-            return self._true_structure.from_stream(stream_obj, context)
+        nb_conditions = len(self._args) // 2
+        for i in range(nb_conditions):
+            if self._args[2 * i](context):
+                return self._args[2 * i + 1].from_stream(stream_obj, context)
+        if 2 * nb_conditions == len(self._args):
+            return {}
         else:
-            return self._false_structure.from_stream(stream_obj, context)
+            return self._args[2 * nb_conditions].from_stream(stream_obj, context)
 
 
-class For:
+class Skip:
+    def __init__(self, size):
+        self._size = size
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._size):
+            size = self._size(context)
+        else:
+            size = self._size
+        stream_obj.seek(size, os.SEEK_CUR)
+        return {}
+
+
+class For(LayoutWithNameBase):
     """Repeat structure"""
 
-    def __init__(self, name, range_fun, structure):
-        self._name = name
-        self._range_fun = range_fun
+    def __init__(self, range, structure, name=None):
+        self._range = range
         self._structure = structure
-
-    def name(self, context):
-        return self._name
+        self._name = name
 
     def from_stream(self, stream_obj, context):
         data = []
-        for i in range(self._range_fun(context)):
+        if callable(self._range):
+            nb_elements = self._range(context)
+        else:
+            nb_elements = self._range
+        for i in range(nb_elements):
             data += [self._structure.from_stream(stream_obj, context)]
+        return data
+
+
+class While(LayoutWithNameBase):
+    """Repeat as long as condition is met"""
+
+    def __init__(self, *args, name=None):
+        self._args = args
+        self._name = name
+
+    def from_stream(self, stream_obj, context):
+        data = []
+        still_looping = True
+        while still_looping:
+            context = AttrDict()
+            for arg in self._args:
+                if still_looping:
+                    if callable(arg):
+                        still_looping = arg(context)
+                    else:
+                        context.update(arg.from_stream(stream_obj, context))
+            data += [context]
         return data
 
 

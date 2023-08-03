@@ -129,7 +129,7 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
         for converter in entry[2:]:
-            data = converter(data, data_dict)
+            data = converter(name, data, data_dict)
 
         if name is not None:
             data_dict[name] = data
@@ -144,32 +144,60 @@ class Convert:
     def __init__(self, fun):
         self._fun = fun
 
-    def __call__(self, data, data_dict):
+    def __call__(self, name, data, context):
         return self._fun(data)
 
 
 class Validate:
-    def __init__(self, fun, exception=ValidationError):
-        self._fun = fun
+    def __init__(self, value, exception=ValidationError):
+        self._value = value
         self._exception = exception
 
-    def __call__(self, data, data_dict):
-        if self._fun is not None:
+    def __call__(self, name, data, context):
+        if self._value is not None:
             # If a validator is given, then check the validity of this entry
-            if not self._fun(data, data_dict):
-                raise self._exception(f"Structure entry has invalid value '{data}'.")
+            if callable(self._value):
+                if not self._value(data, context):
+                    raise self._exception(f"Structure entry `{name}` has invalid value '{data}'.")
+            else:
+                if data != self._value:
+                    raise self._exception(f"Structure entry `{name}` has invalid value '{data}', "
+                                          f"not the expected value '{self._value}'.")
+
         return data
 
 
-class BinaryStructure:
-    def __init__(self, name, structure_format, byte_order='@'):
+class DebugOutput:
+    def __init__(self, context=False):
+        self._context = context
+
+    def __call__(self, name, data, context):
+        if self._context:
+            print(f'{name} = {data}; context = {context}')
+        else:
+            print(f'{name} = {data}')
+        return data
+
+
+class LayoutWithNameBase:
+    """Base class for file layout classes"""
+
+    _name = None
+
+    def name(self, context):
+        if callable(self._name):
+            return self._name(context)
+        else:
+            return self._name
+
+
+class BinaryStructure(LayoutWithNameBase):
+    def __init__(self, structure_format, byte_order='@', name=None):
         """
         Define a binary stream given the sequence of binary entries.
 
         Parameters
         ----------
-        name : str
-            Name of this structure.
         structure_format : list of tuples
             List of tuples describing the sequence of entries in the binary
             stream. Each tuple consists of two entries
@@ -180,13 +208,12 @@ class BinaryStructure:
             with 32-bit length. Decoder also supports per-entry endianness.
         byte_order : str, optional
             Byte order (see `struct.unpack`). (Default: '@')
+        name : str, optional
+            Name of this structure. (Default: None)
         """
-        self._name = name
         self._structure_format = structure_format
         self._byte_order = byte_order
-
-    def name(self, context):
-        return self._name
+        self._name = name
 
     def from_stream(self, stream_obj, context):
         """
@@ -208,7 +235,7 @@ class BinaryStructure:
 
 
 class BinaryArray:
-    def __init__(self, name, shape_fun, dtype_fun, conversion_fun=lambda x: x, mask_fun=None):
+    def __init__(self, name, shape, dtype, conversion_fun=lambda x: x, mask_fun=None):
         """
         Defines flat binary data to be read into a numpy array.
 
@@ -216,10 +243,10 @@ class BinaryArray:
         ----------
         name : str
             Name of the array.
-        shape_fun : function
+        shape : function or tuple
             Function that returns the shape and takes a input the current data
             dictionary.
-        dtype_fun : function
+        dtype : function or dtype
             Function that returns the dtype and takes a input the current data
             dictionary.
         conversion_fun : function
@@ -229,8 +256,8 @@ class BinaryArray:
             Function that returns a mask with undefined data points.
         """
         self._name = name
-        self._shape_fun = shape_fun
-        self._dtype_fun = dtype_fun
+        self._shape = shape
+        self._dtype = dtype
         self._conversion_fun = conversion_fun
         self._mask_fun = mask_fun
 
@@ -264,8 +291,14 @@ class BinaryArray:
                 stream_obj.seek(self._file_pos)
                 return self._binary_array.read(stream_obj, self._data)
 
-        shape = self._shape_fun(context)
-        dtype = self._dtype_fun(context)
+        if callable(self._shape):
+            shape = self._shape(context)
+        else:
+            shape = self._shape
+        if callable(self._dtype):
+            dtype = self._dtype(context)
+        else:
+            dtype = self._dtype
 
         file_pos = stream_obj.tell()
 
