@@ -231,7 +231,12 @@ class BinaryStructure(LayoutWithNameBase):
         decoded_data : dict
             Dictionary with decoded data entries.
         """
-        return decode(stream_obj, self._structure_format, byte_order=self._byte_order)
+        local_context = decode(stream_obj, self._structure_format, byte_order=self._byte_order)
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class BinaryArray:
@@ -304,7 +309,7 @@ class BinaryArray:
 
         stream_obj.seek(np.prod(shape) * dtype.itemsize, os.SEEK_CUR)
 
-        return ReaderProxy(self, context, file_pos)
+        return {self.name(context): ReaderProxy(self, context, file_pos)}
 
     def read(self, stream_obj, data):
         """

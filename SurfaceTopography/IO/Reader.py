@@ -499,22 +499,22 @@ class CompoundLayout(LayoutWithNameBase):
         self._name = name
 
     def from_stream(self, stream_obj, context):
-        context = AttrDict()
+        local_context = AttrDict()
         for structure in self._structures:
-            context_update = structure.from_stream(stream_obj, context)
-            name = structure.name(context)
-            if name is None:
-                context.update(context_update)
-            else:
-                context[name] = context_update
-        return context
+            local_context.update(structure.from_stream(stream_obj, local_context))
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class If:
     """Switch structure type dependent on data"""
 
-    def __init__(self, *args):
+    def __init__(self, *args, context_mapper=None):
         self._args = args
+        self._context_mapper = context_mapper
 
     def name(self, context):
         nb_conditions = len(self._args) // 2
@@ -527,6 +527,8 @@ class If:
             return self._args[2 * nb_conditions].name(context)
 
     def from_stream(self, stream_obj, context):
+        if self._context_mapper is not None:
+            context = self._context_mapper(context)
         nb_conditions = len(self._args) // 2
         for i in range(nb_conditions):
             if self._args[2 * i](context):
@@ -558,15 +560,18 @@ class For(LayoutWithNameBase):
         self._structure = structure
         self._name = name
 
+        if self._name is None:
+            raise ValueError('`For` statement must have a name.')
+
     def from_stream(self, stream_obj, context):
-        data = []
+        local_context = []
         if callable(self._range):
             nb_elements = self._range(context)
         else:
             nb_elements = self._range
         for i in range(nb_elements):
-            data += [self._structure.from_stream(stream_obj, context)]
-        return data
+            local_context += [self._structure.from_stream(stream_obj, context)]
+        return {self.name(context): local_context}
 
 
 class While(LayoutWithNameBase):
@@ -576,19 +581,23 @@ class While(LayoutWithNameBase):
         self._args = args
         self._name = name
 
+        if self._name is None:
+            raise ValueError('`While` statement must have a name.')
+
     def from_stream(self, stream_obj, context):
-        data = []
+        while_context = []
         still_looping = True
         while still_looping:
-            context = AttrDict()
+            local_context = AttrDict()
             for arg in self._args:
                 if still_looping:
                     if callable(arg):
-                        still_looping = arg(context)
+                        still_looping = arg(local_context)
                     else:
-                        context.update(arg.from_stream(stream_obj, context))
-            data += [context]
-        return data
+                        x = arg.from_stream(stream_obj, local_context)
+                        local_context.update(x)
+            while_context += [local_context]
+        return {self.name(context): while_context}
 
 
 class DeclarativeReaderBase(ReaderBase):

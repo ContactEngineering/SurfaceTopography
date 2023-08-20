@@ -212,7 +212,6 @@ This reader imports Sensofar's SPM file format.
             ]
         ),
         For(
-            'layers',
             lambda data: data.measurement_configuration2.num_layers,
             CompoundLayout([
                 BinaryStructure(
@@ -232,7 +231,8 @@ This reader imports Sensofar's SPM file format.
                         ('min', 'f'),
                         ('max', 'f'),
                     ])
-            ])
+            ]),
+            name='layers'
         )
     ])
 
