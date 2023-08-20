@@ -601,8 +601,6 @@ class SizedChunk:
         local_context = self._structure.from_stream(stream_obj, context)
         final_position = stream_obj.tell()
 
-        print(starting_position, final_position, final_position - starting_position, size)
-
         # Check if we processed the whole chunk
         if final_position - starting_position > size:
             raise IOError(f'Chunk is supposed to contain {size} bytes, but '
@@ -683,6 +681,11 @@ class DeclarativeReaderBase(ReaderBase):
         self.file_path = file_path
         with OpenFromAny(self.file_path, 'rb') as f:
             self._metadata = self._file_layout.from_stream(f, {})
+
+        self._validate_metadata()
+
+    def _validate_metadata(self):
+        pass
 
     @property
     def metadata(self):

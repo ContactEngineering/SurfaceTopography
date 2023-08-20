@@ -59,13 +59,13 @@ def test_oir_metadata(file_format_examples):
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 2560
-    assert ny == 2560
+    assert nx == 1024
+    assert ny == 1024
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
-    np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
+    np.testing.assert_allclose(sx, 2.5, rtol=1e-6)
+    np.testing.assert_allclose(sy, 2.5, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    assert t.unit == 'µm'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 2.048709, rtol=1e-6)

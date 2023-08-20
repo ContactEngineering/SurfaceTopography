@@ -40,6 +40,7 @@ mangle_units_utf8 = {
     'MicroMeters': 'µm',  # Zygo DATX
     'MilliMeters': 'mm',  # Zygo DATX
     'Meters': 'm',  # Zygo DATX
+    'MICRO_METER': 'µm'  # Olympus OIR
 }
 
 mangle_units_ascii = {
@@ -51,6 +52,7 @@ mangle_units_ascii = {
     'MicroMeters': 'um',  # Zygo DATX
     'MilliMeters': 'mm',  # Zygo DATX
     'Meters': 'm',  # Zygo DATX
+    'MICRO_METER': 'um'  # Olympus OIR
 }
 
 
@@ -58,47 +60,47 @@ def is_length_unit(s):
     return s in length_units.keys()
 
 
-def get_unit_conversion_factor(unit1_str, unit2_str):
+def get_unit_conversion_factor(from_unit, to_unit):
     """
-    Compute factor for conversion from unit1 to unit2.
+    Compute factor for conversion from `from_unit` to `to_unit`.
 
     Parameters
     ----------
-    unit1_str : str
+    from_unit : str
         Name of source unit
-    unit2_str : str
+    to_unit : str
         Name of targe unit
 
     Returns
     -------
     fac : float
-        Unit conversion factors. A quantity in unit1 is converted to unit2
+        Unit conversion factors. A quantity in `from_unit` is converted to `to_unit`
         by multiplication with this factor.
     """
-    if unit1_str is None:
+    if from_unit is None:
         raise ValueError('Cannot convert from None unit')
-    if unit2_str is None:
+    if to_unit is None:
         raise ValueError('Cannot convert to None unit')
-    if unit1_str == unit2_str:
+    if from_unit == to_unit:
         return 1
     unit1_kind = None
     unit2_kind = None
     unit_scales = None
     for key, values in units.items():
-        if unit1_str in values:
+        if from_unit in values:
             unit1_kind = key
             unit_scales = values
-        if unit2_str in values:
+        if to_unit in values:
             unit2_kind = key
             unit_scales = values
     if unit1_kind is None:
-        raise ValueError(f"Unknown unit '{unit1_str}'.")
+        raise ValueError(f"Unknown unit '{from_unit}'.")
     if unit2_kind is None:
-        raise ValueError(f"Unknown unit '{unit2_str}'.")
+        raise ValueError(f"Unknown unit '{to_unit}'.")
     if unit1_kind != unit2_kind:
-        raise ValueError(f"Unit '{unit1_str}' is of kind {unit1_kind} while unit '{unit2_str}' is of kind {unit2_str}."
+        raise ValueError(f"Unit '{from_unit}' is of kind {unit1_kind} while unit '{to_unit}' is of kind {to_unit}."
                          "I cannot convert between the two.")
-    return unit_scales[unit1_str] / unit_scales[unit2_str]
+    return unit_scales[from_unit] / unit_scales[to_unit]
 
 
 def mangle_length_unit_utf8(unit):

@@ -285,8 +285,8 @@ class BinaryArray:
 
         Returns
         -------
-        file_pos : int
-            Position within the file where the data block starts.
+        context : dict
+            Context dictionary with file reader.
         """
 
         class ReaderProxy:
@@ -344,3 +344,77 @@ class BinaryArray:
         if self._mask_fun is not None:
             arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
         return self._conversion_fun(arr)
+
+
+class RawBuffer:
+    def __init__(self, name, size):
+        """
+        Defines flat binary data to be read into a numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the array.
+        size : function or int
+            Function that returns the size and takes a input the current data
+            dictionary.
+        """
+        self._name = name
+        self._size = size
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        """
+        Skip over data block and return reader for block.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        context : dict
+            Context dictionary with file reader.
+        """
+
+        class ReaderProxy:
+            def __init__(self, raw_buffer, data, file_pos):
+                self._raw_buffer = raw_buffer
+                self._data = data
+                self._file_pos = file_pos
+
+            def __call__(self, stream_obj):
+                stream_obj.seek(self._file_pos)
+                return self._raw_buffer.read(stream_obj, self._data)
+
+        size = self._size(context) if callable(self._size) else self._size
+
+        file_pos = stream_obj.tell()
+
+        stream_obj.seek(size, os.SEEK_CUR)
+
+        return {self.name(context): ReaderProxy(self, context, file_pos)}
+
+    def read(self, stream_obj, context):
+        """
+        Read data block into numpy array.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        buffer : bytes
+            Buffer containing the raw data.
+        """
+        size = self._size(context) if callable(self._size) else self._size
+        return stream_obj.read(size)

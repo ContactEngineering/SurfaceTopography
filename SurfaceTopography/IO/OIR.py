@@ -28,62 +28,69 @@
 # https://github.com/ome/bioformats/blob/develop/components/formats-gpl/src/loci/formats/in/OIRReader.java
 #
 
-import datetime
+from enum import IntEnum
 
+import dateutil.parser
 import numpy as np
 import xmltodict
 
-from .binary import BinaryArray, BinaryStructure, Validate, DebugOutput, Convert
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
-from ..Exceptions import CorruptFile, FileFormatMismatch
+from .binary import BinaryStructure, Convert, RawBuffer, Validate
+from .Reader import ChannelInfo,  CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
+from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
+from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor
 
-OIR_CHUNK_XML0 = 0
-OIR_CHUNK_XML = 1
-OIR_CHUNK_BMP = 2
-OIR_CHUNK_WTF = 3
+class OirChunkType(IntEnum):
+    XML0 = 0
+    XML = 1
+    BMP = 2
+    WTF = 3
+    EOF = 5  # Is this really the end of file?
+
+
+# For all fields with name `None` below, we do not know the meaning.
 
 oir_header = BinaryStructure([
     ('magic', '16s', Validate('OLYMPUSRAWFORMAT', FileFormatMismatch)),
-    ('unknown1', 'I', Validate(12, CorruptFile)),
-    ('unknown2', 'I', Validate(0, CorruptFile)),
-    ('unknown3', 'I', Validate(1, CorruptFile)),
-    ('unknown4', 'I', Validate(2, CorruptFile)),
+    (None, 'I', Validate(12, CorruptFile)),
+    (None, 'I', Validate(0, CorruptFile)),
+    (None, 'I', Validate(1, CorruptFile)),
+    (None, 'I', Validate(2, CorruptFile)),
     ('file_size', 'I'),
-    ('unknown5', 'I'),  # , Validate(2, CorruptFile)),
+    (None, 'I'),  # , Validate(2, CorruptFile)),
     ('some_size', 'I'),
-    ('unknown6', 'I', Validate(0, CorruptFile)),
-    ('unknown7', 'I', Validate(17, CorruptFile)),
-    ('unknown8', 'I', Validate(0, CorruptFile)),
-    ('unknown9', 'I', Validate(1, CorruptFile)),
-    ('unknown10', 'I', Validate(0, CorruptFile)),
-    ('unknown11', 'I'),
-    ('unknown12', 'I', Validate(0, CorruptFile)),
-    ('unknown_str', '8s', Validate('UNKNOWN', FileFormatMismatch)),
-    ('unknown13', 'I', Validate(1, CorruptFile)),
-    ('unknown14', 'I', Validate(1, CorruptFile)),
-    ('unknown15', 'I', Validate(0xFFFFFFFF, CorruptFile)),
-    ('unknown16', 'I', Validate(0xFFFFFFFF, CorruptFile)),
+    (None, 'I', Validate(0, CorruptFile)),
+    (None, 'I', Validate(17, CorruptFile)),
+    (None, 'I', Validate(0, CorruptFile)),
+    (None, 'I', Validate(1, CorruptFile)),
+    (None, 'I', Validate(0, CorruptFile)),
+    (None, 'I'),
+    (None, 'I', Validate(0, CorruptFile)),
+    (None, '8s', Validate('UNKNOWN', FileFormatMismatch)),
+    (None, 'I', Validate(1, CorruptFile)),
+    (None, 'I', Validate(1, CorruptFile)),
+    (None, 'I', Validate(0xFFFFFFFF, CorruptFile)),
+    (None, 'I', Validate(0xFFFFFFFF, CorruptFile)),
 ], name='header')
 
 
 def make_oir_metadata_header(name=None, valid_block_types=[2, 7, 8, 11]):
     return CompoundLayout([
         BinaryStructure([
-            ('block_type', 'I', DebugOutput(), Validate(lambda x, context: x in valid_block_types, CorruptFile)),
-            ('aux_type', 'I', DebugOutput(), Validate(lambda x, context: x in [1, 2], CorruptFile)),
-            ('second_block_type', 'I', DebugOutput(), Validate(lambda x, context: x in [1, 2, 4, 7], CorruptFile)),
+            ('block_type', 'I', Validate(lambda x, context: x in valid_block_types, CorruptFile)),
+            ('aux_type', 'I', Validate(lambda x, context: x in [1, 2], CorruptFile)),
+            ('second_block_type', 'I', Validate(lambda x, context: x in [1, 2, 4, 7], CorruptFile)),
             # Validate(lambda x, context: x == 1 or (context.block_type in [2, 7, 8, 11] and x == 4), CorruptFile)),
-            ('xml_dxx', 'I', Validate(lambda x, context: x in [0x0001, 0x0d48, 0x0dc6], CorruptFile), DebugOutput()),
-            ('unknown16', 'I', Validate(1, CorruptFile)),
-            ('unknown17', 'I', Validate(1, CorruptFile)),
-            ('unknown18', 'I', Validate(1, CorruptFile)),
-            ('nb_entries', 'I', DebugOutput())
+            ('xml_dxx', 'I', Validate(lambda x, context: x in [0x0001, 0x0d48, 0x0dc6], CorruptFile)),
+            (None, 'I', Validate(1, CorruptFile)),
+            (None, 'I', Validate(1, CorruptFile)),
+            (None, 'I', Validate(1, CorruptFile)),
+            ('nb_entries', 'I')
         ]),
         If(
             lambda context: context.aux_type == 2,
             BinaryStructure([
-                ('aux1', 'I', DebugOutput()),
-                ('aux2', 'I', DebugOutput()),
+                ('aux1', 'I'),
+                ('aux2', 'I'),
             ])
         )
     ], name=name)
@@ -92,8 +99,8 @@ def make_oir_metadata_header(name=None, valid_block_types=[2, 7, 8, 11]):
 oir_block_7_8 = For(
     lambda context: context.nb_entries,
     BinaryStructure([
-        ('uuid', 'T', DebugOutput()),
-        ('unknown12_1', 'I', DebugOutput())
+        ('uuid', 'T'),
+        (None, 'I')
     ]),
     name='entries'
 )
@@ -101,7 +108,7 @@ oir_block_7_8 = For(
 oir_block_11 = For(
     lambda context: context.nb_entries,
     BinaryStructure([
-        ('uuid', 'T', DebugOutput()),
+        ('uuid', 'T'),
         ('xml', 'T'),
     ]),
     name='entries'
@@ -109,7 +116,7 @@ oir_block_11 = For(
 
 oir_block_2_subitems = CompoundLayout([
     BinaryStructure([
-        ('nb_subitems1', 'I', DebugOutput()),
+        ('nb_subitems1', 'I'),
     ]),
     make_oir_metadata_header(name='header1', valid_block_types=[7, 8, 11]),
     For(
@@ -123,17 +130,17 @@ oir_block_2_subitems = CompoundLayout([
         ), name='subitems1'
     ),
     BinaryStructure([
-        ('unknown', 'I', Validate(8, CorruptFile)),  # This may be an id
+        (None, 'I', Validate(8, CorruptFile)),  # This may be an id
     ]),
     make_oir_metadata_header('header2'),
     BinaryStructure([
-        ('nb_subitems2', 'I', DebugOutput()),
+        ('nb_subitems2', 'I'),
     ]),
     For(
         lambda context: context.nb_subitems2,
         BinaryStructure([
-            ('uuid', 'T', DebugOutput()),
-            ('unknown12_2', 'I', DebugOutput())
+            ('uuid', 'T'),
+            (None, 'I')
         ]),
         name='subitems2'
     )
@@ -142,29 +149,29 @@ oir_block_2_subitems = CompoundLayout([
 oir_block_2 = If(
     lambda context: context.xml_dxx in [0x0d48, 0x0dc6],
     BinaryStructure([
-        ('data', 'T', Convert(xmltodict.parse), DebugOutput())
+        ('data', 'T', Convert(xmltodict.parse))
     ]),
     CompoundLayout([
         BinaryStructure([
-            ('nb_items', 'I', DebugOutput()),
+            ('nb_items', 'I'),
         ]),
         If(
             lambda context: context.nb_items == 1,
             CompoundLayout([
                 BinaryStructure([
-                    ('name', 'T', DebugOutput()),  # This thing has a name, followed by nb_items
+                    ('name', 'T'),  # This thing has a name, followed by nb_items
                 ]),
                 If(
                     lambda context: context.name == 'CAMERA',  # CAMERA appears to be special...
                     BinaryStructure([
                         ('nb_subitems1', 'I', Validate(1, CorruptFile)),
-                        ('data1', 'T', Convert(xmltodict.parse), DebugOutput()),
-                        ('data2', 'T', Convert(xmltodict.parse), DebugOutput())
+                        ('data1', 'T', Convert(xmltodict.parse)),
+                        ('data2', 'T', Convert(xmltodict.parse))
                     ]),
-                    lambda context: context.name == '',  # No name seems to be special,
+                    lambda context: context.name == '',  # No name seems to be special...
                     BinaryStructure([
-                        ('name', 'T', DebugOutput()),
-                        ('name2', 'T', DebugOutput())
+                        ('name1', 'T'),
+                        ('name2', 'T')
                     ]),
                     oir_block_2_subitems,
                 )
@@ -172,7 +179,7 @@ oir_block_2 = If(
             For(
                 lambda context: context.nb_items,
                 BinaryStructure([
-                    ('uuid', 'T', DebugOutput()),
+                    ('uuid', 'T'),
                     ('data', 'T', Convert(xmltodict.parse))
                 ]),
                 name='items'
@@ -193,10 +200,10 @@ oir_metadata_block = CompoundLayout([
     )
 ])
 
-oir_chunk_xml0 = CompoundLayout([
+oir_chunk_type_xml0 = CompoundLayout([
     While(
         BinaryStructure([
-            ('id', 'I', DebugOutput()),
+            ('id', 'I'),
         ]),
         If(
             # The id seems to be the only distinguishing feature of this block
@@ -206,7 +213,7 @@ oir_chunk_xml0 = CompoundLayout([
                 make_oir_metadata_header(valid_block_types=[2]),
                 # We override prior nb_entries, which is 1
                 BinaryStructure([
-                    ('nb_entries', 'I', DebugOutput()),
+                    ('nb_entries', 'I'),
                 ]),
                 oir_block_7_8
             ]),
@@ -216,74 +223,74 @@ oir_chunk_xml0 = CompoundLayout([
         name='blocks'
     ),
     BinaryStructure([
-        ('block_type', 'I', DebugOutput(), Validate(14, CorruptFile)),
-        ('aux_type', 'I', DebugOutput(), Validate(2, CorruptFile)),
-        ('second_block_type', 'I', DebugOutput(), Validate(1, CorruptFile)),
-        ('xml_dxx', 'I', Validate(1, CorruptFile), DebugOutput()),
-        ('unknown16', 'I', Validate(2943, CorruptFile)),
-        ('unknown17', 'I', Validate(1, CorruptFile)),
-        ('unknown18', 'I', Validate(1, CorruptFile)),
-        ('nb_entries', 'I', DebugOutput()),
-        ('aux1', 'I', DebugOutput()),
-        ('meta', 'T', Convert(xmltodict.parse), DebugOutput())
+        ('block_type', 'I', Validate(14, CorruptFile)),
+        ('aux_type', 'I', Validate(2, CorruptFile)),
+        ('second_block_type', 'I', Validate(1, CorruptFile)),
+        ('xml_dxx', 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(2943, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        ('nb_entries', 'I'),
+        (None, 'I'),
+        ('meta', 'T', Convert(xmltodict.parse))
     ]),
 ])
 
-oir_chunk_xml = CompoundLayout([
+oir_chunk_type_xml = CompoundLayout([
     BinaryStructure([
-        ('id', 'I', DebugOutput())
+        ('id', 'I')
     ]),
     oir_metadata_block
 ])
 
-oir_chunk_bmp = CompoundLayout([
+oir_chunk_type_bmp = CompoundLayout([
     BinaryStructure([
-        ('unknown1', 'I', DebugOutput()),
-        ('unknown2', 'I', DebugOutput()),
-        ('unknown3', 'I', DebugOutput()),
-        ('unknown4', 'I', DebugOutput()),
-        ('unknown5', 'I', DebugOutput()),
-        ('unknown6', 'I', DebugOutput()),
-        ('unknown7', 'I', DebugOutput()),
-        ('xml', 'T', Convert(xmltodict.parse), DebugOutput()),
-        ('unknown8', 'I', DebugOutput()),
-        ('unknown9', 'I', DebugOutput()),
-        ('image_size', 'I', DebugOutput()),  # Image size in bytes
-        ('unknown11', 'I', DebugOutput()),
-        ('image_type', '3s', Validate('BMP', CorruptFile)),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        (None, 'I'),
+        ('meta1', 'T', Convert(xmltodict.parse)),
+        (None, 'I'),
+        (None, 'I'),
+        ('image_size', 'I'),  # Image size in bytes
+        (None, 'I'),
+        (None, '3s', Validate('BMP', CorruptFile)),
         (None, 'b')
     ]),
     Skip(lambda context: context.image_size),
     BinaryStructure([
-        ('unknown12', 'I', Validate(0, CorruptFile)),
-        ('unknown13', 'I', Validate(1, CorruptFile)),
-        ('unknown14', 'I', Validate(2, CorruptFile)),
-        ('unknown15', 'I', Validate(1, CorruptFile)),
-        ('unknown16', 'I', Validate(1, CorruptFile)),
-        ('unknown17', 'I'),  # Validate(lambda x, context: x == context.unknown3)),
-        ('unknown18', 'I', Validate(1, CorruptFile)),
-        ('unknown19', 'I', Validate(1, CorruptFile)),
-        ('unknown20', 'I', Validate(1, CorruptFile)),
-        ('unknown21', 'I', Validate(1, CorruptFile)),
-        ('meta', 'T', Convert(xmltodict.parse), DebugOutput()),
+        (None, 'I', Validate(0, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(2, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I'),  # Validate(lambda x, context: x == context.unknown3)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        (None, 'I', Validate(1, CorruptFile)),
+        ('meta2', 'T', Convert(xmltodict.parse)),
     ]),
-    oir_chunk_xml0,
+    oir_chunk_type_xml0,
 ])
 
-oir_chunk_wtf = CompoundLayout([
+oir_chunk_type_wtf = CompoundLayout([
     SizedChunk(
         lambda context: context.__parent__.chunk_size,
         BinaryStructure([
-            ('unknown2', 'I', Validate(0, CorruptFile)),
-            ('image_size', 'I', DebugOutput()),  # Validate(935 * 1024, CorruptFile)),
-            ('uuid', 'T', DebugOutput())
+            (None, 'I', Validate(0, CorruptFile)),
+            ('image_size', 'I'),  # Validate(935 * 1024, CorruptFile)),
+            ('uuid', 'T')
         ], name='header'),
     ),
     BinaryStructure([
         ('image_size', 'I', Validate(lambda x, context: x == context.header.image_size, CorruptFile)),
-        ('unknown3', 'I', Validate(4, CorruptFile))
+        (None, 'I', Validate(4, CorruptFile))
     ]),
-    BinaryArray('data', lambda context: context.image_size, np.dtype('b'))
+    RawBuffer('data', lambda context: context.image_size)
 ])
 
 
@@ -302,56 +309,121 @@ This reader imports Olympus OIR data files.
         oir_header,
         While(
             BinaryStructure([
-                ('chunk_size', 'I', DebugOutput()),
-                ('chunk_type', 'I', DebugOutput())
+                ('chunk_size', 'I'),
+                ('chunk_type', 'I', lambda name, data, context: OirChunkType(data))
             ]),
-            # Continue as long as we understand the chunk type
+            # Continue as long as there is data in the chunk and we understand the chunk type
             lambda context: context.chunk_size > 0 and
-                            context.chunk_type in [OIR_CHUNK_XML0, OIR_CHUNK_XML, OIR_CHUNK_BMP, OIR_CHUNK_WTF],
+                            context.chunk_type in [OirChunkType.XML0, OirChunkType.XML, OirChunkType.BMP,
+                                                   OirChunkType.WTF],
             If(
-                lambda context: context.chunk_type == OIR_CHUNK_XML0,
+                lambda context: context.chunk_type == OirChunkType.XML0,
                 SizedChunk(
                     lambda context: context.chunk_size,
-                    oir_chunk_xml0
+                    oir_chunk_type_xml0
                 ),
-                lambda context: context.chunk_type == OIR_CHUNK_XML,
+                lambda context: context.chunk_type == OirChunkType.XML,
                 SizedChunk(
                     lambda context: context.chunk_size,
-                    oir_chunk_xml
+                    oir_chunk_type_xml
                 ),
-                lambda context: context.chunk_type == OIR_CHUNK_BMP,
+                lambda context: context.chunk_type == OirChunkType.BMP,
                 SizedChunk(
                     lambda context: context.chunk_size,
-                    oir_chunk_bmp
+                    oir_chunk_type_bmp
                 ),
-                lambda context: context.chunk_type == OIR_CHUNK_WTF,
-                oir_chunk_wtf
+                lambda context: context.chunk_type == OirChunkType.WTF,
+                oir_chunk_type_wtf
             ),
             name='chunks'
         ),
     ])
 
+    def _validate_metadata(self):
+        # We simplify the raw metadata extracted from the file
+        metadata = {}
+        data = {}
+        for chunk in self._metadata.chunks:
+            if chunk.chunk_type == OirChunkType.WTF:
+                data[chunk.header.uuid] = chunk.data
+            elif chunk.chunk_type == OirChunkType.XML:
+                metadata.update(chunk.data)
+            elif chunk.chunk_type == OirChunkType.XML0:
+                for block in chunk.blocks:
+                    if 'data' in block:
+                        metadata.update(block.data)
+                    elif 'items' in block:
+                        uuids = {}
+                        for item in block.items:
+                            if not item.uuid in uuids:
+                                uuids[item.uuid] = item.data
+                            else:
+                                uuids[item.uuid].update(item.data)
+                        metadata.update(uuids)
+
+        # Override metadata information
+        self._data = data
+        self._metadata = metadata
+
+        # Further parsing of unit information
+        image_properties = self.metadata['lsmimage:imageProperties']
+        self._info = {
+            'acquisition_time':
+                str(dateutil.parser.parse(image_properties['commonimage:general']['base:creationDateTime'])),
+            'instrument': {
+                'name': image_properties['commonimage:microscope']['base:name']
+            }
+        }
+
+        # Extract channel information
+        channels = []
+        image_info = image_properties['commonimage:imageInfo']
+        raw_channels = image_info['commonimage:phase']['commonphase:group']['commonphase:channel']
+        for raw_channel in raw_channels:
+            image_definition = raw_channel['commonphase:imageDefinition']
+            if image_definition['commonphase:imageType'] == 'HEIGHT':
+                lengths = raw_channel['commonphase:length']
+                units = raw_channel['commonphase:pixelUnit']
+
+                xunit = mangle_length_unit_utf8(units['commonphase:x'])
+                yunit = mangle_length_unit_utf8(units['commonphase:y'])
+                zunit = mangle_length_unit_utf8(units['commonphase:z'])
+
+                xfac = get_unit_conversion_factor(xunit, zunit)
+                yfac = get_unit_conversion_factor(yunit, zunit)
+
+                info = self._info.copy()
+                info.update({'raw_metadata': raw_channel})
+
+                uuid = raw_channel['@id']
+
+                nb_grid_pts = (int(image_info['commonimage:width']), int(image_info['commonimage:height']))
+                bit_counts = int(image_definition['commonphase:bitCounts'])
+                dtype = np.dtype('<u2')
+                if bit_counts != 16:
+                    raise UnsupportedFormatFeature(f'Cannot read height data with {bit_counts} bits per pixel.')
+
+                channels += [ChannelInfo(
+                    self,
+                    len(channels),  # channel index
+                    name=uuid,
+                    dim=2,
+                    nb_grid_pts=nb_grid_pts,
+                    physical_sizes=(xfac * float(lengths['commonparam:x']), yfac * float(lengths['commonparam:y'])),
+                    uniform=True,
+                    unit=zunit,
+                    height_scale_factor=float(lengths['commonparam:z']),
+                    info=info,
+                    tags={
+                        # I have no idea what prefix and suffix mean and whether they are fixed.
+                        'reader': lambda stream_obj: np.frombuffer(data[f't001_0_1_{uuid}_0'](stream_obj), dtype) \
+                            .reshape(nb_grid_pts)
+                    }
+                )]
+
+        # Store channel information
+        self._channels = channels
+
     @property
     def channels(self):
-        import json
-        # print(json.dumps(self._metadata.header, indent=4))
-
-        # for chunk in self._metadata.chunks:
-        #    print(chunk)
-
-        header = self._metadata.header
-
-        return [ChannelInfo(
-            self,
-            0,  # channel index
-            name='Default',
-            dim=2,
-            nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-            physical_sizes=(header.grid_spacing_x * header.nb_grid_pts_x,
-                            header.grid_spacing_y * header.nb_grid_pts_y),
-            height_scale_factor=header.height_scale_factor,
-            uniform=True,
-            unit=header.unit_x,
-            info=info,
-            tags={'reader': self._metadata.data}
-        )]
+        return self._channels
