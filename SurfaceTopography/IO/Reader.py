@@ -501,7 +501,7 @@ class CompoundLayout(LayoutWithNameBase):
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
-            local_context.update(structure.from_stream(stream_obj, local_context))
+            local_context.update(structure.from_stream(stream_obj, AttrDict(local_context | {'__parent__': context})))
         name = self.name(context)
         if name is None:
             return local_context
@@ -552,6 +552,75 @@ class Skip:
         return {}
 
 
+class SizedChunk:
+    def __init__(self, size, structure, skip_missing=False):
+        """
+        Declare a file portion of a specific size. This allows bounds checking,
+        i.e. raising exception if too much or too little data is read.
+
+        Parameters
+        ----------
+        size : function or int
+            Function that returns the size of the chunk and takes as input the
+            current context.
+        structure : structure definition
+            Definition of the structure within this chunk.
+        skip_missing : bool
+            Skip unread parts of the chunk, i.e. parts that are missing from
+            the structure definition. If set to False, the class will raise
+            an exception if there is a mismatch between the explicitly given
+            size of the chunk and the actual data that was read.
+            (Default: False)
+        """
+        self._size = size
+        self._structure = structure
+        self._skip_missing = skip_missing
+
+    def name(self, context):
+        return self._structure.name(context)
+
+    def from_stream(self, stream_obj, context):
+        """
+        Decode stream into dictionary.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        decoded_data : dict
+            Dictionary with decoded data entries.
+        """
+        size = self._size(context) if callable(self._size) else self._size
+
+        starting_position = stream_obj.tell()
+        local_context = self._structure.from_stream(stream_obj, context)
+        final_position = stream_obj.tell()
+
+        print(starting_position, final_position, final_position - starting_position, size)
+
+        # Check if we processed the whole chunk
+        if final_position - starting_position > size:
+            raise IOError(f'Chunk is supposed to contain {size} bytes, but '
+                          f'{final_position - starting_position} bytes have been decoded. '
+                          f'(Chunk starts at position {starting_position} and ends at {final_position}, '
+                          f'but is supposed to end at {starting_position + size}.)')
+        elif final_position - starting_position < size:
+            if self._skip_missing:
+                stream_obj.seek(size - (final_position - starting_position), os.SEEK_CUR)
+            else:
+                raise IOError(f'Chunk is supposed to contain {size} bytes, but only '
+                              f'{final_position - starting_position} bytes have been decoded. '
+                              f'(Chunk starts at position {starting_position} and ends at {final_position}, '
+                              f'but is supposed to end at {starting_position + size}.)')
+
+        return local_context
+
+
 class For(LayoutWithNameBase):
     """Repeat structure"""
 
@@ -592,9 +661,9 @@ class While(LayoutWithNameBase):
             for arg in self._args:
                 if still_looping:
                     if callable(arg):
-                        still_looping = arg(local_context)
+                        still_looping = arg(AttrDict(local_context | {'__parent__': context}))
                     else:
-                        x = arg.from_stream(stream_obj, local_context)
+                        x = arg.from_stream(stream_obj, AttrDict(local_context | {'__parent__': context}))
                         local_context.update(x)
             while_context += [local_context]
         return {self.name(context): while_context}

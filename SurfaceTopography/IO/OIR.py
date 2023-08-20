@@ -34,7 +34,7 @@ import numpy as np
 import xmltodict
 
 from .binary import BinaryArray, BinaryStructure, Validate, DebugOutput, Convert
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip
+from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
 from ..Exceptions import CorruptFile, FileFormatMismatch
 
 OIR_CHUNK_XML0 = 0
@@ -69,8 +69,8 @@ oir_header = BinaryStructure([
 def make_oir_metadata_header(name=None, valid_block_types=[2, 7, 8, 11]):
     return CompoundLayout([
         BinaryStructure([
-            ('block_type', 'I', Validate(lambda x, context: x in valid_block_types, CorruptFile), DebugOutput()),
-            ('aux_type', 'I', Validate(lambda x, context: x in [1, 2], CorruptFile), DebugOutput()),
+            ('block_type', 'I', DebugOutput(), Validate(lambda x, context: x in valid_block_types, CorruptFile)),
+            ('aux_type', 'I', DebugOutput(), Validate(lambda x, context: x in [1, 2], CorruptFile)),
             ('second_block_type', 'I', DebugOutput(), Validate(lambda x, context: x in [1, 2, 4, 7], CorruptFile)),
             # Validate(lambda x, context: x == 1 or (context.block_type in [2, 7, 8, 11] and x == 4), CorruptFile)),
             ('xml_dxx', 'I', Validate(lambda x, context: x in [0x0001, 0x0d48, 0x0dc6], CorruptFile), DebugOutput()),
@@ -93,7 +93,7 @@ oir_block_7_8 = For(
     lambda context: context.nb_entries,
     BinaryStructure([
         ('uuid', 'T', DebugOutput()),
-        ('unknown12', 'I', DebugOutput())
+        ('unknown12_1', 'I', DebugOutput())
     ]),
     name='entries'
 )
@@ -106,6 +106,38 @@ oir_block_11 = For(
     ]),
     name='entries'
 )
+
+oir_block_2_subitems = CompoundLayout([
+    BinaryStructure([
+        ('nb_subitems1', 'I', DebugOutput()),
+    ]),
+    make_oir_metadata_header(name='header1', valid_block_types=[7, 8, 11]),
+    For(
+        lambda context: context.nb_subitems1,
+        If(
+            lambda context: context.block_type == 7 or context.block_type == 8,
+            oir_block_7_8,
+            lambda context: context.block_type == 11,  # Never seen this
+            oir_block_11,
+            context_mapper=lambda context: context.header1
+        ), name='subitems1'
+    ),
+    BinaryStructure([
+        ('unknown', 'I', Validate(8, CorruptFile)),  # This may be an id
+    ]),
+    make_oir_metadata_header('header2'),
+    BinaryStructure([
+        ('nb_subitems2', 'I', DebugOutput()),
+    ]),
+    For(
+        lambda context: context.nb_subitems2,
+        BinaryStructure([
+            ('uuid', 'T', DebugOutput()),
+            ('unknown12_2', 'I', DebugOutput())
+        ]),
+        name='subitems2'
+    )
+])
 
 oir_block_2 = If(
     lambda context: context.xml_dxx in [0x0d48, 0x0dc6],
@@ -129,45 +161,19 @@ oir_block_2 = If(
                         ('data1', 'T', Convert(xmltodict.parse), DebugOutput()),
                         ('data2', 'T', Convert(xmltodict.parse), DebugOutput())
                     ]),
-                    CompoundLayout([
-                        BinaryStructure([
-                            ('nb_subitems1', 'I', DebugOutput()),
-                        ]),
-                        make_oir_metadata_header(name='header1', valid_block_types=[7, 8, 11]),
-                        For(
-                            lambda context: context.nb_subitems1,
-                            If(
-                                lambda context: context.block_type == 7 or context.block_type == 8,
-                                oir_block_7_8,
-                                lambda context: context.block_type == 11,  # Never seen this
-                                oir_block_11,
-                                context_mapper=lambda context: context.header1
-                            ),
-                            name='subitems1'
-                        ),
-                        BinaryStructure([
-                            ('unknown', 'I', Validate(8, CorruptFile)),  # This may be an id
-                        ]),
-                        make_oir_metadata_header('header2'),
-                        BinaryStructure([
-                            ('nb_subitems2', 'I', DebugOutput()),
-                        ]),
-                        For(
-                            lambda context: context.nb_subitems2,
-                            BinaryStructure([
-                                ('uuid', 'T', DebugOutput()),
-                                ('unknown12', 'I', DebugOutput())
-                            ]),
-                            name='subitems2'
-                        )
-                    ])
+                    lambda context: context.name == '',  # No name seems to be special,
+                    BinaryStructure([
+                        ('name', 'T', DebugOutput()),
+                        ('name2', 'T', DebugOutput())
+                    ]),
+                    oir_block_2_subitems,
                 )
             ]),
             For(
                 lambda context: context.nb_items,
                 BinaryStructure([
                     ('uuid', 'T', DebugOutput()),
-                    ('data', 'T')  # Convert(xmltodict.parse))
+                    ('data', 'T', Convert(xmltodict.parse))
                 ]),
                 name='items'
             )
@@ -187,27 +193,41 @@ oir_metadata_block = CompoundLayout([
     )
 ])
 
-oir_chunk_xml0 = While(
-    BinaryStructure([
-        ('id', 'I', DebugOutput()),
-    ]),
-    If(
-        # The id seems to be the only distinguishing feature of this block
-        lambda context: context.id == 13,
-        CompoundLayout([
-            # This block reports type 2 but has a weird structure similar to type 7/8
-            make_oir_metadata_header(valid_block_types=[2]),
-            # We override prior nb_entries, which is 1
-            BinaryStructure([
-                ('nb_entries', 'I', DebugOutput()),
-            ]),
-            oir_block_7_8
+oir_chunk_xml0 = CompoundLayout([
+    While(
+        BinaryStructure([
+            ('id', 'I', DebugOutput()),
         ]),
-        oir_metadata_block,
+        If(
+            # The id seems to be the only distinguishing feature of this block
+            lambda context: context.id == 13,
+            CompoundLayout([
+                # This block reports type 2 but has a weird structure similar to type 7/8
+                make_oir_metadata_header(valid_block_types=[2]),
+                # We override prior nb_entries, which is 1
+                BinaryStructure([
+                    ('nb_entries', 'I', DebugOutput()),
+                ]),
+                oir_block_7_8
+            ]),
+            oir_metadata_block,
+        ),
+        lambda context: context.id < 12,  # This appears to be a terminator
+        name='blocks'
     ),
-    lambda context: context.id < 12,  # This appears to be a terminator
-    name='blocks'
-)
+    BinaryStructure([
+        ('block_type', 'I', DebugOutput(), Validate(14, CorruptFile)),
+        ('aux_type', 'I', DebugOutput(), Validate(2, CorruptFile)),
+        ('second_block_type', 'I', DebugOutput(), Validate(1, CorruptFile)),
+        ('xml_dxx', 'I', Validate(1, CorruptFile), DebugOutput()),
+        ('unknown16', 'I', Validate(2943, CorruptFile)),
+        ('unknown17', 'I', Validate(1, CorruptFile)),
+        ('unknown18', 'I', Validate(1, CorruptFile)),
+        ('nb_entries', 'I', DebugOutput()),
+        ('aux1', 'I', DebugOutput()),
+        ('meta', 'T', Convert(xmltodict.parse), DebugOutput())
+    ]),
+])
 
 oir_chunk_xml = CompoundLayout([
     BinaryStructure([
@@ -251,14 +271,19 @@ oir_chunk_bmp = CompoundLayout([
 ])
 
 oir_chunk_wtf = CompoundLayout([
+    SizedChunk(
+        lambda context: context.__parent__.chunk_size,
+        BinaryStructure([
+            ('unknown2', 'I', Validate(0, CorruptFile)),
+            ('image_size', 'I', DebugOutput()),  # Validate(935 * 1024, CorruptFile)),
+            ('uuid', 'T', DebugOutput())
+        ], name='header'),
+    ),
     BinaryStructure([
-        ('unknown2', 'I', Validate(0, CorruptFile)),
-        ('image_size', 'I', DebugOutput()),  # Validate(935 * 1024, CorruptFile)),
-        ('uuid', 'T', DebugOutput()),
-        ('image_size_again', 'I', Validate(lambda x, context: x == context.image_size, CorruptFile)),
-        ('unknown3', 'I', Validate(4, CorruptFile))],
-        name='header'),
-    BinaryArray('data', lambda context: context.header.image_size, np.dtype('b'))
+        ('image_size', 'I', Validate(lambda x, context: x == context.header.image_size, CorruptFile)),
+        ('unknown3', 'I', Validate(4, CorruptFile))
+    ]),
+    BinaryArray('data', lambda context: context.image_size, np.dtype('b'))
 ])
 
 
@@ -281,14 +306,24 @@ This reader imports Olympus OIR data files.
                 ('chunk_type', 'I', DebugOutput())
             ]),
             # Continue as long as we understand the chunk type
-            lambda context: context.chunk_type in [OIR_CHUNK_XML0, OIR_CHUNK_XML, OIR_CHUNK_BMP, OIR_CHUNK_WTF],
+            lambda context: context.chunk_size > 0 and
+                            context.chunk_type in [OIR_CHUNK_XML0, OIR_CHUNK_XML, OIR_CHUNK_BMP, OIR_CHUNK_WTF],
             If(
                 lambda context: context.chunk_type == OIR_CHUNK_XML0,
-                oir_chunk_xml0,
+                SizedChunk(
+                    lambda context: context.chunk_size,
+                    oir_chunk_xml0
+                ),
                 lambda context: context.chunk_type == OIR_CHUNK_XML,
-                oir_chunk_xml,
+                SizedChunk(
+                    lambda context: context.chunk_size,
+                    oir_chunk_xml
+                ),
                 lambda context: context.chunk_type == OIR_CHUNK_BMP,
-                oir_chunk_bmp,
+                SizedChunk(
+                    lambda context: context.chunk_size,
+                    oir_chunk_bmp
+                ),
                 lambda context: context.chunk_type == OIR_CHUNK_WTF,
                 oir_chunk_wtf
             ),

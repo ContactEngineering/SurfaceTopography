@@ -40,7 +40,7 @@ class AttrDict(dict):
         self.__dict__ = self
 
 
-def decode(stream_obj, structure_format, byte_order='@', return_size=False):
+def decode(stream_obj, structure_format, byte_order='@', return_size=False, context={}):
     """
     Decode a binary stream given the sequence of binary entries. Strings are
     stripped of zeros and white spaces.
@@ -62,6 +62,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
     return_size : bool, optional
         Return the total size the structure in addition to the decoded data.
         (Default: False)
+    context : dict, optional
+        Context dictionary passed to validation and converter functions.
+        (Default: {})
 
     Returns
     -------
@@ -108,7 +111,7 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             else:
                 return None if isinstance(data, numbers.Number) and math.isnan(data) else data
 
-    data_dict = AttrDict()
+    local_context = AttrDict()
     total_size = 0
     for entry in structure_format:
         entry = list(entry)
@@ -129,15 +132,15 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
         for converter in entry[2:]:
-            data = converter(name, data, data_dict)
+            data = converter(name, data, AttrDict(local_context | context))
 
         if name is not None:
-            data_dict[name] = data
+            local_context[name] = data
 
     if return_size:
-        return data_dict, total_size
+        return local_context, total_size
     else:
-        return data_dict
+        return local_context
 
 
 class Convert:
@@ -231,7 +234,7 @@ class BinaryStructure(LayoutWithNameBase):
         decoded_data : dict
             Dictionary with decoded data entries.
         """
-        local_context = decode(stream_obj, self._structure_format, byte_order=self._byte_order)
+        local_context = decode(stream_obj, self._structure_format, byte_order=self._byte_order, context=context)
         name = self.name(context)
         if name is None:
             return local_context
