@@ -23,6 +23,7 @@ python_sources = [
     'Mitutoyo.py',
     'NC.py',
     'NPY.py',
+    'OIR.py',
     'OPD.py',
     'OPDx.py',
     'PLU.py',
