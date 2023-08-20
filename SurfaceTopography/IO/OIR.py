@@ -35,9 +35,10 @@ import numpy as np
 import xmltodict
 
 from .binary import BinaryStructure, Convert, RawBuffer, Validate
-from .Reader import ChannelInfo,  CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
+from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor
+
 
 class OirChunkType(IntEnum):
     XML0 = 0
@@ -355,7 +356,7 @@ This reader imports Olympus OIR data files.
                     elif 'items' in block:
                         uuids = {}
                         for item in block.items:
-                            if not item.uuid in uuids:
+                            if item.uuid not in uuids:
                                 uuids[item.uuid] = item.data
                             else:
                                 uuids[item.uuid].update(item.data)
