@@ -314,9 +314,8 @@ This reader imports Olympus OIR data files.
                 ('chunk_type', 'I', lambda name, data, context: OirChunkType(data))
             ]),
             # Continue as long as there is data in the chunk and we understand the chunk type
-            lambda context: context.chunk_size > 0 and
-                            context.chunk_type in [OirChunkType.XML0, OirChunkType.XML, OirChunkType.BMP,
-                                                   OirChunkType.WTF],
+            lambda context: context.chunk_size > 0 and context.chunk_type in [OirChunkType.XML0, OirChunkType.XML,
+                                                                              OirChunkType.BMP, OirChunkType.WTF],
             If(
                 lambda context: context.chunk_type == OirChunkType.XML0,
                 SizedChunk(
@@ -369,8 +368,8 @@ This reader imports Olympus OIR data files.
         # Further parsing of unit information
         image_properties = self.metadata['lsmimage:imageProperties']
         self._info = {
-            'acquisition_time':
-                str(dateutil.parser.parse(image_properties['commonimage:general']['base:creationDateTime'])),
+            'acquisition_time': str(dateutil.parser.parse(
+                image_properties['commonimage:general']['base:creationDateTime'])),
             'instrument': {
                 'name': image_properties['commonimage:microscope']['base:name']
             }
@@ -417,8 +416,8 @@ This reader imports Olympus OIR data files.
                     info=info,
                     tags={
                         # I have no idea what prefix and suffix mean and whether they are fixed.
-                        'reader': lambda stream_obj: np.frombuffer(data[f't001_0_1_{uuid}_0'](stream_obj), dtype) \
-                            .reshape(nb_grid_pts)
+                        'reader': lambda stream_obj: np.frombuffer(
+                            data[f't001_0_1_{uuid}_0'](stream_obj), dtype).reshape(nb_grid_pts)
                     }
                 )]
 
