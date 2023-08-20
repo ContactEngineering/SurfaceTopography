@@ -311,7 +311,7 @@ class BinaryArray:
 
         return {self.name(context): ReaderProxy(self, context, file_pos)}
 
-    def read(self, stream_obj, data):
+    def read(self, stream_obj, context):
         """
         Read data block into numpy array.
 
@@ -319,7 +319,7 @@ class BinaryArray:
         ----------
         stream_obj : stream-like object
             Binary stream to decode.
-        data : dict
+        context : dict
             Dictionary with data that has been decoded at this point.
 
         Returns
@@ -327,11 +327,17 @@ class BinaryArray:
         data : numpy.ndarray
             Nunpy array containing the data from the file.
         """
-        shape = self._shape_fun(data)
-        dtype = self._dtype_fun(data)
+        if callable(self._shape):
+            shape = self._shape(context)
+        else:
+            shape = self._shape
+        if callable(self._dtype):
+            dtype = self._dtype(context)
+        else:
+            dtype = self._dtype
 
         buffer = stream_obj.read(np.prod(shape) * dtype.itemsize)
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
-            arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, data))
+            arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
         return self._conversion_fun(arr)

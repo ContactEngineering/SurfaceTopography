@@ -47,7 +47,7 @@ This reader imports Digital Surf SUR data files.
 '''
 
     _file_layout = CompoundLayout([
-        BinaryStructure('header', [
+        BinaryStructure([
             ('magic', '12s', Validate(lambda x, context: x == 'DIGITAL SURF', FileFormatMismatch)),
             ('format', 'H'),
             ('nb_objects', 'H'),
@@ -110,7 +110,7 @@ This reader imports Digital Surf SUR data files.
             ('y_offset', 'f'),
             ('data_offset', 'f'),
             (None, '34b')
-        ]),
+        ], name='header'),
         BinaryArray(
             'data',
             lambda context: (context.header.nb_grid_pts_x, context.header.nb_grid_pts_y),
