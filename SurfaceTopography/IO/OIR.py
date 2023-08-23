@@ -34,7 +34,7 @@ import dateutil.parser
 import numpy as np
 import xmltodict
 
-from .binary import BinaryStructure, Convert, RawBuffer, Validate
+from .binary import BinaryStructure, Convert, RawBuffer, Validate, DebugOutput
 from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor
@@ -77,21 +77,21 @@ oir_header = BinaryStructure([
 def make_oir_metadata_header(name=None, valid_block_types=[2, 7, 8, 11]):
     return CompoundLayout([
         BinaryStructure([
-            ('block_type', 'I', Validate(lambda x, context: x in valid_block_types, CorruptFile)),
-            ('aux_type', 'I', Validate(lambda x, context: x in [1, 2], CorruptFile)),
-            ('second_block_type', 'I', Validate(lambda x, context: x in [1, 2, 4, 7], CorruptFile)),
+            ('block_type', 'I', Validate(lambda x, context: x in valid_block_types, CorruptFile), DebugOutput()),
+            ('aux_type', 'I', Validate(lambda x, context: x in [1, 2], CorruptFile), DebugOutput()),
+            ('second_block_type', 'I', Validate(lambda x, context: x in [1, 2, 4, 7], CorruptFile), DebugOutput()),
             # Validate(lambda x, context: x == 1 or (context.block_type in [2, 7, 8, 11] and x == 4), CorruptFile)),
             ('xml_dxx', 'I', Validate(lambda x, context: x in [0x0001, 0x0d48, 0x0dc6], CorruptFile)),
             (None, 'I', Validate(1, CorruptFile)),
             (None, 'I', Validate(1, CorruptFile)),
             (None, 'I', Validate(1, CorruptFile)),
-            ('nb_entries', 'I')
+            ('nb_entries', 'I', DebugOutput())
         ]),
         If(
             lambda context: context.aux_type == 2,
             BinaryStructure([
-                ('aux1', 'I'),
-                ('aux2', 'I'),
+                ('aux1', 'I', DebugOutput()),
+                ('aux2', 'I', DebugOutput()),
             ])
         )
     ], name=name)
@@ -100,8 +100,8 @@ def make_oir_metadata_header(name=None, valid_block_types=[2, 7, 8, 11]):
 oir_block_7_8 = For(
     lambda context: context.nb_entries,
     BinaryStructure([
-        ('uuid', 'T'),
-        (None, 'I')
+        ('uuid', 'T', DebugOutput()),
+        (None, 'I', DebugOutput())
     ]),
     name='entries'
 )
@@ -117,7 +117,7 @@ oir_block_11 = For(
 
 oir_block_2_subitems = CompoundLayout([
     BinaryStructure([
-        ('nb_subitems1', 'I'),
+        ('nb_subitems1', 'I', Convert(lambda x: x if x != 0 else 3), DebugOutput()),
     ]),
     make_oir_metadata_header(name='header1', valid_block_types=[7, 8, 11]),
     For(
@@ -131,7 +131,7 @@ oir_block_2_subitems = CompoundLayout([
         ), name='subitems1'
     ),
     BinaryStructure([
-        (None, 'I', Validate(8, CorruptFile)),  # This may be an id
+        (None, 'I', DebugOutput()),  # This may be an id
     ]),
     make_oir_metadata_header('header2'),
     BinaryStructure([
@@ -160,7 +160,7 @@ oir_block_2 = If(
             lambda context: context.nb_items == 1,
             CompoundLayout([
                 BinaryStructure([
-                    ('name', 'T'),  # This thing has a name, followed by nb_items
+                    ('name', 'T', DebugOutput()),  # This thing has a name, followed by nb_items
                 ]),
                 If(
                     lambda context: context.name == 'CAMERA',  # CAMERA appears to be special...
@@ -180,7 +180,7 @@ oir_block_2 = If(
             For(
                 lambda context: context.nb_items,
                 BinaryStructure([
-                    ('uuid', 'T'),
+                    ('uuid', 'T', DebugOutput()),
                     ('data', 'T', Convert(xmltodict.parse))
                 ]),
                 name='items'
@@ -204,7 +204,7 @@ oir_metadata_block = CompoundLayout([
 oir_chunk_type_xml0 = CompoundLayout([
     While(
         BinaryStructure([
-            ('id', 'I'),
+            ('id', 'I', DebugOutput()),
         ]),
         If(
             # The id seems to be the only distinguishing feature of this block
@@ -310,8 +310,8 @@ This reader imports Olympus OIR data files.
         oir_header,
         While(
             BinaryStructure([
-                ('chunk_size', 'I'),
-                ('chunk_type', 'I', lambda name, data, context: OirChunkType(data))
+                ('chunk_size', 'I', DebugOutput()),
+                ('chunk_type', 'I', lambda name, data, context: OirChunkType(data), DebugOutput())
             ]),
             # Continue as long as there is data in the chunk and we understand the chunk type
             lambda context: context.chunk_size > 0 and context.chunk_type in [OirChunkType.XML0, OirChunkType.XML,
