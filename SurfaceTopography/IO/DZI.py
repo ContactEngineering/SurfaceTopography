@@ -36,6 +36,7 @@ import xml.etree.cElementTree as ET
 import numpy as np
 from matplotlib import cm
 from PIL import Image
+from scipy.io import netcdf_file
 
 from numpyencoder import NumpyEncoder
 
@@ -72,22 +73,51 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     overlap : int, optional
         Overlap of tiles. (Default: 1)
     format : str, optional
-        Image format. Note that PNG files have seams at the boundary between
-        tiles. (Default: 'jpg')
+        Data output format. Note that PNG files have seams at the boundary between
+        tiles. Use 'npy' to output raw data in the native numpy format.
+        Use 'nc' to output raw data as NetCDF files. (Default: 'jpg')
     meta_format : str, optional
         Format for metadata information (the DZI file), can be 'xml' or
         'json'. (Default: 'xml')
     colorbar_title : str, optional
         Additional title for the color bar that is dumped into the DZI file.
+        Ignored if format is 'npy' or 'nc'.
         (Default: None)
     cmap : str or colormap, optional
-        Color map for rendering the topography. (Default: None)
+        Color map for rendering the topography. Ignored if format is 'npy' or
+        'nc'. (Default: None)
 
     Returns
     -------
     manifest : list of str
         List with names of files created during write operation
     """
+
+    def write_data(fn, subdata, physical_sizes):
+        if format == 'npy':
+            # We write the raw data in the native numpy format
+            np.save(fn, subdata)
+        elif format == 'nc':
+            # We write the raw data in NetCDF-3 format
+            nx, ny = subdata.shape
+            sx, sy = physical_sizes
+            nc = netcdf_file(fn, 'w')
+            nc.createDimension('x', nx)
+            nc.createDimension('y', ny)
+            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'))
+            heights_var[...] = subdata
+            x_var = nc.createVariable('x', 'f8', ('x',))
+            x_var.length = sx
+            x_var[...] = np.arange(nx) / nx * sx
+            y_var = nc.createVariable('y', 'f8', ('y',))
+            y_var.length = sy
+            y_var[...] = np.arange(ny) / ny * sy
+        else:
+            # Convert to image and save
+            colors = (cmap(subdata.T) * 255).astype(np.uint8)
+            # Remove alpha channel before writing
+            Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
+
     cmap = cm.get_cmap(cmap)
 
     # Image size
@@ -180,10 +210,8 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
                 if top > full_height - 1:
                     top = full_height - 1
 
-                # Convert to image and save
-                colors = (cmap(data[left:right:step, bottom:top:step].T) * 255).astype(np.uint8)
-                # Remove alpha channel before writing
-                Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
+                write_data(fn, data[left:right:step, bottom:top:step],
+                           (sx / full_width * step, sy / full_height * step))
                 manifest += [fn]
 
         width = math.ceil(width / 2)
