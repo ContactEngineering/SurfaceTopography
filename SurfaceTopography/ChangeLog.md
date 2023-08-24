@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.9.0 (not yet released)
+-------------------------
+
+- ENH: Output of Deep Zoom data files (NetCDF or Numpy)
+
 v1.8.0 (24Jul23)
 ----------------
 
