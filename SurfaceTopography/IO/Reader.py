@@ -502,7 +502,7 @@ class CompoundLayout(LayoutWithNameBase):
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
-            tmp_context = AttrDict(local_context | {'__parent__': context})
+            tmp_context = AttrDict({**local_context, '__parent__': context})
             if callable(structure):
                 # This is a function that returns the respective structure
                 structure = structure(tmp_context)
@@ -690,9 +690,9 @@ class While(LayoutWithNameBase):
             for arg in self._args:
                 if still_looping:
                     if callable(arg):
-                        still_looping = arg(AttrDict(local_context | {'__parent__': context}))
+                        still_looping = arg(AttrDict({**local_context, '__parent__': context}))
                     else:
-                        x = arg.from_stream(stream_obj, AttrDict(local_context | {'__parent__': context}))
+                        x = arg.from_stream(stream_obj, AttrDict({**local_context, '__parent__': context}))
                         local_context.update(x)
             while_context += [local_context]
         return {self.name(context): while_context}
