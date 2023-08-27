@@ -558,7 +558,7 @@ class Skip:
 
 
 class SizedChunk(LayoutWithNameBase):
-    def __init__(self, size, structure, mode='read-once', name=None, debug=False):
+    def __init__(self, size, structure, mode='read-once', name=None, context_mapper=None, debug=False):
         """
         Declare a file portion of a specific size. This allows bounds checking,
         i.e. raising exception if too much or too little data is read.
@@ -578,6 +578,8 @@ class SizedChunk(LayoutWithNameBase):
             has been read. (Default: 'read-once')
         name : str
             Context name of this block. Required if mode is 'loop'.
+        context_mapper : callable
+            Function that takes a context and returns a new context.
         debug : Bool
             Print boundary offsets of chunk. (Default: False)
         """
@@ -585,6 +587,7 @@ class SizedChunk(LayoutWithNameBase):
         self._structure = structure
         self._mode = mode
         self._name = name
+        self._context_mapper = context_mapper
         self._debug = debug
 
     def from_stream(self, stream_obj, context):
@@ -634,13 +637,16 @@ class SizedChunk(LayoutWithNameBase):
         name = self.name(context)
         if self._mode != 'loop':
             local_context, = local_context
-        if name is None:
-            if self._mode == 'loop':
-                raise IOError("`name` must be specified for mode 'loop'.")
-            return local_context
+        if self._context_mapper is None:
+            context_mapper = lambda x: x
         else:
-            return {name: local_context}
-
+            context_mapper = self._context_mapper
+        if name is None:
+            if self._mode == 'loop' and self._context_mapper is None:
+                raise IOError("`name` or `context_mapper` must be specified for mode 'loop'.")
+            return context_mapper(local_context)
+        else:
+            return context_mapper({name: local_context})
 
 class For(LayoutWithNameBase):
     """Repeat structure"""
@@ -699,7 +705,7 @@ class DeclarativeReaderBase(ReaderBase):
 
     def __init__(self, file_path):
         if self._file_layout is None:
-            raise RuntimeError('Please defined the file structure via `_file_structure`.')
+            raise RuntimeError('Please defined the file structure via the `_file_layout` class member.')
 
         self.file_path = file_path
         with OpenFromAny(self.file_path, 'rb') as f:

@@ -60,7 +60,7 @@ class OirMetadataBlockType(IntEnum):
     TOPOGRAPHY_PREFIX = 6  # Topography prefix, typically "t001_0_1"
     DATASETS = 7  # List of datasets, each dataset has a UUID and is prefixed by above prefix
     TOPOGRAPHY_UUIDS = 8  # List of UUIDs containing topography data
-    PREFIX2 = 9  # Prefix again?!?
+    TOPOGRAPHY_PREFIX_AGAIN = 9  # Prefix again, but twice?!?
     CAMERA = 10  # Camera information
     LOOKUP_TABLES2 = 11  # Lookup tables again?!?
     CAMERA_PREFIX = 12  # Camera prefix, typically "REF_CAMERA0"
@@ -124,7 +124,7 @@ oir_metadata_blocks = {
                 ('text', 'T'),
                 ('data', 'T', XML)
             ]),
-            name='entries'
+            name='data'
         )
     ]),
     OirMetadataBlockType.TOPOGRAPHY_PREFIX: CompoundLayout([  # Block type 6
@@ -139,7 +139,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': context.entries[0].prefix}),
     OirMetadataBlockType.DATASETS: CompoundLayout([  # Block type 7
         BinaryStructure([
             ('nb_entries', 'I')
@@ -152,7 +152,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': [entry.prefix for entry in context.entries]}),
     OirMetadataBlockType.TOPOGRAPHY_UUIDS: CompoundLayout([  # Block type 8
         BinaryStructure([
             ('nb_entries', 'I')
@@ -165,8 +165,8 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
-    OirMetadataBlockType.PREFIX2: CompoundLayout([  # Block type 9
+    ], context_mapper=lambda context: {'data': [entry.prefix for entry in context.entries]}),
+    OirMetadataBlockType.TOPOGRAPHY_PREFIX_AGAIN: CompoundLayout([  # Block type 9
         BinaryStructure([
             ('nb_entries', 'I')
         ]),
@@ -174,12 +174,12 @@ oir_metadata_blocks = {
             lambda context: context.nb_entries,
             BinaryStructure([
                 (None, 'I'),
-                ('text', 'T'),
-                ('text', 'T'),
+                ('text1', 'T'),
+                ('text2', 'T'),
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': context.entries}),
     OirMetadataBlockType.CAMERA: CompoundLayout([  # Block type 10
         BinaryStructure([
             ('nb_entries', 'I')
@@ -194,7 +194,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': {entry.uuid: entry for entry in context.entries}}),
     OirMetadataBlockType.LOOKUP_TABLES2: CompoundLayout([  # Block type 11
         BinaryStructure([
             ('nb_entries', 'I')
@@ -207,7 +207,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': {entry.uuid: entry.data for entry in context.entries}}),
     OirMetadataBlockType.CAMERA_PREFIX: CompoundLayout([  # Block type 12
         BinaryStructure([
             ('nb_entries', 'I', Validate(1, CorruptFile))
@@ -220,7 +220,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': context.entries[0].prefix}),
     OirMetadataBlockType.CAMERA_UUIDS: CompoundLayout([  # Block type 13
         BinaryStructure([
             ('nb_entries', 'I')
@@ -233,7 +233,7 @@ oir_metadata_blocks = {
             ]),
             name='entries'
         )
-    ]),
+    ], context_mapper=lambda context: {'data': [entry.uuid for entry in context.entries]}),
     OirMetadataBlockType.EVENTS: CompoundLayout([  # Block type 14
         BinaryStructure([
             ('data', 'T', XML),
@@ -249,7 +249,7 @@ oir_metadata_block = CompoundLayout([
         oir_metadata_header,
         lambda context: oir_metadata_blocks[context.__parent__.block_type]
     ])
-])
+], context_mapper=lambda context: {context.block_type: context.data})
 
 oir_chunk_type_bmp = CompoundLayout([
     BinaryStructure([
@@ -308,12 +308,13 @@ This reader imports Olympus OIR data files.
                     lambda context: context.chunk_size,
                     oir_metadata_block,
                     mode='loop',
-                    name='items'
+                    context_mapper=lambda context: {list(item.keys())[0]: list(item.values())[0] for item in context}
                 ),
                 lambda context: context.chunk_type == OirChunkType.METADATA,
                 SizedChunk(
                     lambda context: context.chunk_size,
-                    oir_metadata_block
+                    oir_metadata_block,
+                    context_mapper=lambda context: list(context.values())[0]
                 ),
                 lambda context: context.chunk_type == OirChunkType.IMAGE,
                 SizedChunk(
@@ -331,35 +332,25 @@ This reader imports Olympus OIR data files.
         # We simplify the raw metadata extracted from the file
         metadata = {}
         data = {}
-        for chunk in self._metadata.chunks:
+        for i, chunk in enumerate(self._metadata.chunks):
             if chunk.chunk_size == -1:
                 break
             if chunk.chunk_type == OirChunkType.DATA_BLOCK:
                 data[chunk.header.uuid] = chunk.data
             elif chunk.chunk_type == OirChunkType.METADATA:
-                metadata.update(chunk.data)
+                pass  # Ignore this, those are per-frame properties. I have not yet seen files with multiple frames.
             elif chunk.chunk_type == OirChunkType.METADATA_LIST:
-                import json
-                json.dump(chunk.items, open('metadata.json', 'w'), indent=4)
-
-                for block in chunk.items:
-                    if 'data' in block:
-                        metadata.update(block.data)
-                    elif 'items' in block:
-                        uuids = {}
-                        for item in block.items:
-                            if item.uuid not in uuids:
-                                uuids[item.uuid] = item.data
-                            else:
-                                uuids[item.uuid].update(item.data)
-                        metadata.update(uuids)
+                # This entry occurs multiple times in the files that I have seen, but typically with identical data.
+                metadata.update(chunk)
 
         # Override metadata information
         self._data = data
         self._metadata = metadata
 
+        prefix = self.metadata[OirMetadataBlockType.TOPOGRAPHY_PREFIX]
+
         # Further parsing of unit information
-        image_properties = self.metadata['lsmimage:imageProperties']
+        image_properties = self.metadata[OirMetadataBlockType.PROPERTIES]['lsmimage:imageProperties']
         self._info = {
             'acquisition_time': str(dateutil.parser.parse(
                 image_properties['commonimage:general']['base:creationDateTime'])),
@@ -375,6 +366,12 @@ This reader imports Olympus OIR data files.
         for raw_channel in raw_channels:
             image_definition = raw_channel['commonphase:imageDefinition']
             if image_definition['commonphase:imageType'] == 'HEIGHT':
+                uuid = raw_channel['@id']
+
+                if uuid not in self._metadata[OirMetadataBlockType.TOPOGRAPHY_UUIDS]:
+                    raise CorruptFile(f'UUID {uuid} not in topography UUID block, which contains: '
+                                      f'{self._metadata[OirMetadataBlockType.TOPOGRAPHY_UUIDS]}')
+
                 lengths = raw_channel['commonphase:length']
                 units = raw_channel['commonphase:pixelUnit']
 
@@ -387,8 +384,6 @@ This reader imports Olympus OIR data files.
 
                 info = self._info.copy()
                 info.update({'raw_metadata': raw_channel})
-
-                uuid = raw_channel['@id']
 
                 nx = int(image_info['commonimage:width'])
                 ny = int(image_info['commonimage:height'])
@@ -409,9 +404,9 @@ This reader imports Olympus OIR data files.
                     height_scale_factor=float(lengths['commonparam:z']),
                     info=info,
                     tags={
-                        # I have no idea what prefix and suffix mean and whether they are fixed.
+                        # The suffix _0 is probably the frame number, but I have never seen files with multiple frames.
                         'reader': lambda stream_obj: np.frombuffer(
-                            data[f't001_0_1_{uuid}_0'](stream_obj), dtype).reshape((ny, nx)).T
+                            data[f'{prefix}_{uuid}_0'](stream_obj), dtype).reshape((ny, nx)).T
                     }
                 )]
 
