@@ -116,23 +116,26 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
     for entry in structure_format:
         entry = list(entry)
         name, format = entry[:2]
+
         # Special formats
         if format == 't':
             strlen, = unpack(byte_order + 'H', stream_obj.read(2))
             data = stream_obj.read(strlen).decode('ascii').strip('\x00')
-            total_size += strlen + 2
+            size = strlen + 2
         elif format == 'T':
             strlen, = unpack(byte_order + 'I', stream_obj.read(4))
             data = stream_obj.read(strlen).decode('ascii').strip('\x00')
-            total_size += strlen + 4
+            size = strlen + 4
         else:
             native_format = mogrify_format(format)
             size = calcsize(native_format)
-            total_size += size
             data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
+        # Track size of data structure
+        total_size += size
+
         for converter in entry[2:]:
-            data = converter(name, data, AttrDict(local_context | context))
+            data = converter(data, AttrDict(local_context | context), name=name, file_offset=stream_obj.tell() - size)
 
         if name is not None:
             local_context[name] = data
@@ -144,11 +147,19 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
 
 
 class Convert:
-    def __init__(self, fun):
+    def __init__(self, fun, exception=None):
         self._fun = fun
+        self._exception = exception
 
-    def __call__(self, name, data, context):
-        return self._fun(data)
+    def __call__(self, data, context, **kwargs):
+        if self._exception is None:
+            return self._fun(data)
+        else:
+            try:
+                return self._fun(data)
+            except Exception as exc:
+                raise self._exception(f"Conversion of entry `{kwargs['name']}` at file offset {kwargs['file_offset']} "
+                                      f"failed.") from exc
 
 
 class Validate:
@@ -156,29 +167,31 @@ class Validate:
         self._value = value
         self._exception = exception
 
-    def __call__(self, name, data, context):
+    def __call__(self, data, context, **kwargs):
         if self._value is not None:
             # If a validator is given, then check the validity of this entry
             if callable(self._value):
                 if not self._value(data, context):
-                    raise self._exception(f"Structure entry `{name}` has invalid value '{data}'.")
+                    raise self._exception(f"Structure entry `{kwargs['name']}` has invalid value '{data}' at file "
+                                          f"offset {kwargs['file_offset']}.")
             else:
                 if data != self._value:
-                    raise self._exception(f"Structure entry `{name}` has invalid value '{data}', "
-                                          f"not the expected value '{self._value}'.")
+                    raise self._exception(f"Structure entry `{kwargs['name']}` has invalid value '{data}' at file "
+                                          f"offset {kwargs['file_offset']}. The expected value is '{self._value}'.")
 
         return data
 
 
 class DebugOutput:
-    def __init__(self, context=False):
+    def __init__(self, prefix='', context=False):
+        self._prefix = prefix
         self._context = context
 
-    def __call__(self, name, data, context):
+    def __call__(self, data, context, **kwargs):
         if self._context:
-            print(f'{name} = {data}; context = {context}')
+            print(f'{kwargs["file_offset"]}: {self._prefix}{kwargs["name"]} = {data}; context = {context}')
         else:
-            print(f'{name} = {data}')
+            print(f'{kwargs["file_offset"]}: {self._prefix}{kwargs["name"]} = {data}')
         return data
 
 

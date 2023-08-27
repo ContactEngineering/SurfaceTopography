@@ -552,8 +552,8 @@ class Skip:
         return {}
 
 
-class SizedChunk:
-    def __init__(self, size, structure, skip_missing=False):
+class SizedChunk(LayoutWithNameBase):
+    def __init__(self, size, structure, mode='read-once', name=None, debug=False):
         """
         Declare a file portion of a specific size. This allows bounds checking,
         i.e. raising exception if too much or too little data is read.
@@ -565,19 +565,22 @@ class SizedChunk:
             current context.
         structure : structure definition
             Definition of the structure within this chunk.
-        skip_missing : bool
-            Skip unread parts of the chunk, i.e. parts that are missing from
-            the structure definition. If set to False, the class will raise
-            an exception if there is a mismatch between the explicitly given
-            size of the chunk and the actual data that was read.
-            (Default: False)
+        mode : str
+            Reading mode, can be 'read-once', 'skip-missing' or 'loop'.
+            'read-once' and 'skip-missing' read the containing block once,
+            but 'skip-missing' does not complain if this is not the complete
+            chunk. 'loop' repeats the containing block until the full chunk
+            has been read. (Default: 'read-once')
+        name : str
+            Context name of this block. Required if mode is 'loop'.
+        debug : Bool
+            Print boundary offsets of chunk. (Default: False)
         """
         self._size = size
         self._structure = structure
-        self._skip_missing = skip_missing
-
-    def name(self, context):
-        return self._structure.name(context)
+        self._mode = mode
+        self._name = name
+        self._debug = debug
 
     def from_stream(self, stream_obj, context):
         """
@@ -598,8 +601,15 @@ class SizedChunk:
         size = self._size(context) if callable(self._size) else self._size
 
         starting_position = stream_obj.tell()
-        local_context = self._structure.from_stream(stream_obj, context)
+        if self._debug:
+            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position+size}.')
+
+        local_context = []
+        local_context += [self._structure.from_stream(stream_obj, context)]
         final_position = stream_obj.tell()
+        while self._mode == 'loop' and final_position - starting_position < size:
+            local_context += [self._structure.from_stream(stream_obj, context)]
+            final_position = stream_obj.tell()
 
         # Check if we processed the whole chunk
         if final_position - starting_position > size:
@@ -608,7 +618,7 @@ class SizedChunk:
                           f'(Chunk starts at position {starting_position} and ends at {final_position}, '
                           f'but is supposed to end at {starting_position + size}.)')
         elif final_position - starting_position < size:
-            if self._skip_missing:
+            if self._mode == 'skip-missing':
                 stream_obj.seek(size - (final_position - starting_position), os.SEEK_CUR)
             else:
                 raise IOError(f'Chunk is supposed to contain {size} bytes, but only '
@@ -616,7 +626,15 @@ class SizedChunk:
                               f'(Chunk starts at position {starting_position} and ends at {final_position}, '
                               f'but is supposed to end at {starting_position + size}.)')
 
-        return local_context
+        name = self.name(context)
+        if self._mode != 'loop':
+            local_context, = local_context
+        if name is None:
+            if self._mode == 'loop':
+                raise IOError("`name` must be specified for mode 'loop'.")
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class For(LayoutWithNameBase):
