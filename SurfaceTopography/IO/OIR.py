@@ -69,7 +69,6 @@ class OirMetadataBlockType(IntEnum):
 
 
 # For all fields with name `None` below, we do not know the meaning.
-
 oir_header = BinaryStructure([
     ('magic', '16s', Validate('OLYMPUSRAWFORMAT', FileFormatMismatch)),
     (None, 'I', Validate(12, CorruptFile)),
@@ -174,8 +173,8 @@ oir_metadata_blocks = {
             lambda context: context.nb_entries,
             BinaryStructure([
                 (None, 'I'),
-                ('text1', 'T'),
-                ('text2', 'T'),
+                ('prefix1', 'T'),
+                ('prefix2', 'T'),
             ]),
             name='entries'
         )
