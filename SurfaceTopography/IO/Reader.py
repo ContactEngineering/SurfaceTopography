@@ -494,19 +494,24 @@ class ReaderBase(metaclass=abc.ABCMeta):
 class CompoundLayout(LayoutWithNameBase):
     """Declare a file layout"""
 
-    def __init__(self, structures, name=None):
+    def __init__(self, structures, name=None, context_mapper=lambda x: x):
         self._structures = structures
         self._name = name
+        self._context_mapper = context_mapper
 
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
-            local_context.update(structure.from_stream(stream_obj, AttrDict(local_context | {'__parent__': context})))
+            tmp_context = AttrDict(local_context | {'__parent__': context})
+            if callable(structure):
+                # This is a function that returns the respective structure
+                structure = structure(tmp_context)
+            local_context.update(structure.from_stream(stream_obj, tmp_context))
         name = self.name(context)
         if name is None:
-            return local_context
+            return self._context_mapper(local_context)
         else:
-            return {name: local_context}
+            return self._context_mapper({name: local_context})
 
 
 class If:

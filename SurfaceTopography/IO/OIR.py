@@ -105,171 +105,150 @@ oir_metadata_header = BinaryStructure([
     (None, 'I', Validate(1, CorruptFile)),
 ])
 
-oir_block_1 = oir_block_2 = oir_block_3 = oir_block_4 = BinaryStructure([
+oir_simple_xml_block = BinaryStructure([
     ('data', 'T', XML)
 ])
 
-oir_block_5 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
-    ]),
-    For(
-        lambda context: context.nb_entries,
+oir_metadata_blocks = {
+    OirMetadataBlockType.VERSION: oir_simple_xml_block,  # Block type 1
+    OirMetadataBlockType.PROPERTIES: oir_simple_xml_block,  # Block type 2
+    OirMetadataBlockType.ANNOTATIONS: oir_simple_xml_block,  # Block type 3
+    OirMetadataBlockType.OVERLAYS: oir_simple_xml_block,  # Block type 4
+    OirMetadataBlockType.LOOKUP_TABLES: CompoundLayout([  # Block type 5
         BinaryStructure([
-            ('text', 'T'),
-            ('data', 'T', XML)
+            ('nb_entries', 'I')
         ]),
-        name='entries'
-    )
-])
-
-oir_block_6 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I', Validate(1, CorruptFile))
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('text', 'T'),
+                ('data', 'T', XML)
+            ]),
+            name='entries'
+        )
     ]),
-    For(
-        lambda context: context.nb_entries,
+    OirMetadataBlockType.TOPOGRAPHY_PREFIX: CompoundLayout([  # Block type 6
         BinaryStructure([
-            ('prefix', 'T'),
-            (None, 'I')
+            ('nb_entries', 'I', Validate(1, CorruptFile))
         ]),
-        name='entries'
-    )
-])
-
-oir_block_7 = oir_block_8 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('prefix', 'T'),
+                (None, 'I')
+            ]),
+            name='entries'
+        )
     ]),
-    For(
-        lambda context: context.nb_entries,
+    OirMetadataBlockType.DATASETS: CompoundLayout([  # Block type 7
         BinaryStructure([
-            ('prefix', 'T'),
-            (None, 'I')
+            ('nb_entries', 'I')
         ]),
-        name='entries'
-    )
-])
-
-oir_block_9 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('prefix', 'T'),
+                (None, 'I')
+            ]),
+            name='entries'
+        )
     ]),
-    For(
-        lambda context: context.nb_entries,
+    OirMetadataBlockType.TOPOGRAPHY_UUIDS: CompoundLayout([  # Block type 8
         BinaryStructure([
-            (None, 'I'),
-            ('text', 'T'),
-            ('text', 'T'),
+            ('nb_entries', 'I')
         ]),
-        name='entries'
-    )
-])
-
-oir_block_10 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('prefix', 'T'),
+                (None, 'I')
+            ]),
+            name='entries'
+        )
     ]),
-    For(
-        lambda context: context.nb_entries,
+    OirMetadataBlockType.PREFIX2: CompoundLayout([  # Block type 9
         BinaryStructure([
-            ('uuid', 'T'),
-            (None, 'I'),
-            ('camera_data', 'T', XML),
-            ('image_data', 'T', XML),
+            ('nb_entries', 'I')
         ]),
-        name='entries'
-    )
-])
-
-oir_block_11 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                (None, 'I'),
+                ('text', 'T'),
+                ('text', 'T'),
+            ]),
+            name='entries'
+        )
     ]),
-    For(
-        lambda context: context.nb_entries,
+    OirMetadataBlockType.CAMERA: CompoundLayout([  # Block type 10
         BinaryStructure([
-            ('uuid', 'T'),
+            ('nb_entries', 'I')
+        ]),
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('uuid', 'T'),
+                (None, 'I'),
+                ('camera_data', 'T', XML),
+                ('image_data', 'T', XML),
+            ]),
+            name='entries'
+        )
+    ]),
+    OirMetadataBlockType.LOOKUP_TABLES2: CompoundLayout([  # Block type 11
+        BinaryStructure([
+            ('nb_entries', 'I')
+        ]),
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('uuid', 'T'),
+                ('data', 'T', XML),
+            ]),
+            name='entries'
+        )
+    ]),
+    OirMetadataBlockType.CAMERA_PREFIX: CompoundLayout([  # Block type 12
+        BinaryStructure([
+            ('nb_entries', 'I', Validate(1, CorruptFile))
+        ]),
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('prefix', 'T', Validate("REF_CAMERA0", CorruptFile)),
+                (None, 'I'),
+            ]),
+            name='entries'
+        )
+    ]),
+    OirMetadataBlockType.CAMERA_UUIDS: CompoundLayout([  # Block type 13
+        BinaryStructure([
+            ('nb_entries', 'I')
+        ]),
+        For(
+            lambda context: context.nb_entries,
+            BinaryStructure([
+                ('uuid', 'T'),
+                (None, 'I'),
+            ]),
+            name='entries'
+        )
+    ]),
+    OirMetadataBlockType.EVENTS: CompoundLayout([  # Block type 14
+        BinaryStructure([
             ('data', 'T', XML),
         ]),
-        name='entries'
-    )
-])
-
-oir_block_12 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I', Validate(1, CorruptFile))
-    ]),
-    For(
-        lambda context: context.nb_entries,
-        BinaryStructure([
-            ('prefix', 'T', Validate("REF_CAMERA0", CorruptFile)),
-            (None, 'I'),
-        ]),
-        name='entries'
-    )
-])
-
-oir_block_13 = CompoundLayout([
-    BinaryStructure([
-        ('nb_entries', 'I')
-    ]),
-    For(
-        lambda context: context.nb_entries,
-        BinaryStructure([
-            ('uuid', 'T'),
-            (None, 'I'),
-        ]),
-        name='entries'
-    )
-])
-
-oir_block_14 = CompoundLayout([
-    BinaryStructure([
-        ('data', 'T', XML),
-    ]),
-])
+    ])
+}
 
 oir_metadata_block = CompoundLayout([
     BinaryStructure([
         ('block_type', 'I', Convert(OirMetadataBlockType, CorruptFile)),
     ]),
-    If(
-        lambda context: context.block_type != 0,
-        CompoundLayout([
-            oir_metadata_header,
-            If(
-                lambda context: context.__parent__.block_type == 1,
-                oir_block_1,
-                lambda context: context.__parent__.block_type == 2,
-                oir_block_2,
-                lambda context: context.__parent__.block_type == 3,
-                oir_block_3,
-                lambda context: context.__parent__.block_type == 4,
-                oir_block_4,
-                lambda context: context.__parent__.block_type == 5,
-                oir_block_5,
-                lambda context: context.__parent__.block_type == 6,
-                oir_block_6,
-                lambda context: context.__parent__.block_type == 7,
-                oir_block_7,
-                lambda context: context.__parent__.block_type == 8,
-                oir_block_8,
-                lambda context: context.__parent__.block_type == 9,
-                oir_block_9,
-                lambda context: context.__parent__.block_type == 10,
-                oir_block_10,
-                lambda context: context.__parent__.block_type == 11,
-                oir_block_11,
-                lambda context: context.__parent__.block_type == 12,
-                oir_block_12,
-                lambda context: context.__parent__.block_type == 13,
-                oir_block_13,
-                lambda context: context.__parent__.block_type == 14,
-                oir_block_14,
-            )
-        ])
-    )
+    CompoundLayout([
+        oir_metadata_header,
+        lambda context: oir_metadata_blocks[context.__parent__.block_type]
+    ])
 ])
 
 oir_chunk_type_bmp = CompoundLayout([
