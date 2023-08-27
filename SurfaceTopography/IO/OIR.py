@@ -411,7 +411,8 @@ This reader imports Olympus OIR data files.
 
                 uuid = raw_channel['@id']
 
-                nb_grid_pts = (int(image_info['commonimage:width']), int(image_info['commonimage:height']))
+                nx = int(image_info['commonimage:width'])
+                ny = int(image_info['commonimage:height'])
                 bit_counts = int(image_definition['commonphase:bitCounts'])
                 dtype = np.dtype('<u2')
                 if bit_counts != 16:
@@ -422,7 +423,7 @@ This reader imports Olympus OIR data files.
                     len(channels),  # channel index
                     name=uuid,
                     dim=2,
-                    nb_grid_pts=nb_grid_pts,
+                    nb_grid_pts=(nx, ny),
                     physical_sizes=(xfac * float(lengths['commonparam:x']), yfac * float(lengths['commonparam:y'])),
                     uniform=True,
                     unit=zunit,
@@ -431,7 +432,7 @@ This reader imports Olympus OIR data files.
                     tags={
                         # I have no idea what prefix and suffix mean and whether they are fixed.
                         'reader': lambda stream_obj: np.frombuffer(
-                            data[f't001_0_1_{uuid}_0'](stream_obj), dtype).reshape(nb_grid_pts)
+                            data[f't001_0_1_{uuid}_0'](stream_obj), dtype).reshape((ny, nx)).T
                     }
                 )]
 
