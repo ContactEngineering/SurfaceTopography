@@ -610,7 +610,7 @@ class SizedChunk(LayoutWithNameBase):
 
         starting_position = stream_obj.tell()
         if self._debug:
-            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position+size}.')
+            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position + size}.')
 
         local_context = []
         local_context += [self._structure.from_stream(stream_obj, context)]
@@ -638,7 +638,8 @@ class SizedChunk(LayoutWithNameBase):
         if self._mode != 'loop':
             local_context, = local_context
         if self._context_mapper is None:
-            context_mapper = lambda x: x
+            def context_mapper(x):
+                return x
         else:
             context_mapper = self._context_mapper
         if name is None:
@@ -647,6 +648,7 @@ class SizedChunk(LayoutWithNameBase):
             return context_mapper(local_context)
         else:
             return context_mapper({name: local_context})
+
 
 class For(LayoutWithNameBase):
     """Repeat structure"""
