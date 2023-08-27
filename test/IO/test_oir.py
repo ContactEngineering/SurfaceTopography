@@ -53,9 +53,9 @@ def test_read_filestream(file_format_examples):
 
 
 def test_oir_metadata(file_format_examples):
-    #file_path = os.path.join(file_format_examples, 'oir-1.oir')
-    #file_path = '/Users/pastewka/Downloads/Stitch_A01_G001_0001^3D_LSM.oir'
-    file_path = os.path.join(file_format_examples, 'Stitch_A01_G001_0001^3D_LSM.oir')
+    file_path = os.path.join(file_format_examples, 'oir-1.oir')
+    # file_path = '/Users/pastewka/Downloads/Stitch_A01_G001_0001^3D_LSM.oir'
+    # file_path = os.path.join(file_format_examples, 'Stitch_A01_G001_0001^3D_LSM.oir')
 
     r = OIRReader(file_path)
     t = r.topography()

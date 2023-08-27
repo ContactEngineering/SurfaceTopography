@@ -34,13 +34,13 @@ import dateutil.parser
 import numpy as np
 import xmltodict
 
-from .binary import BinaryStructure, Convert, RawBuffer, Validate, DebugOutput
+from .binary import BinaryStructure, Convert, RawBuffer, Validate
 from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor
 
+XML = Convert(xmltodict.parse)
 
-XML = Convert(lambda x: None if x == '' else xmltodict.parse(x))
 
 class OirChunkType(IntEnum):
     METADATA_LIST = 0  # Multiple metadata entries
@@ -52,19 +52,19 @@ class OirChunkType(IntEnum):
 
 
 class OirMetadataBlockType(IntEnum):
-    VERSION = 1
+    VERSION = 1  # Version information
     PROPERTIES = 2  # Measurement and image properties; this is the main metadata block
     ANNOTATIONS = 3  # Annotation, have not yet seen a file where this is not empty
     OVERLAYS = 4  # Overlays, have not yet seen a file where this is not empty
     LOOKUP_TABLES = 5  # Tables for conversion of raw data to color
-    PREFIX = 6  # Data prefix, typically "t001_0_1"
+    TOPOGRAPHY_PREFIX = 6  # Topography prefix, typically "t001_0_1"
     DATASETS = 7  # List of datasets, each dataset has a UUID and is prefixed by above prefix
-    UUIDS = 8  # List of UUIDs
+    TOPOGRAPHY_UUIDS = 8  # List of UUIDs containing topography data
     PREFIX2 = 9  # Prefix again?!?
     CAMERA = 10  # Camera information
     LOOKUP_TABLES2 = 11  # Lookup tables again?!?
-    REF_CAMERA = 12  # Have not seen a file where this is not empty
-    UUIDS2 = 13  # Another set of UUIDs
+    CAMERA_PREFIX = 12  # Camera prefix, typically "REF_CAMERA0"
+    CAMERA_UUIDS = 13  # List of UUIDs containing camera data
     EVENTS = 14  # Events, have not seen a file where this is not empty
 
 
@@ -93,12 +93,12 @@ oir_header = BinaryStructure([
     (None, 'I', Validate(0xFFFFFFFF, CorruptFile)),
 ], name='header')
 
-# Common header in front of all metadata blocks
+# Common header in front of all metadata blocks - I have no idea what this information means
 oir_metadata_header = BinaryStructure([
-    ('aux_type1', 'I', Validate(lambda x, context: x in [1, 2], CorruptFile)),
-    ('aux_type2', 'I'),
-    ('aux_type3', 'I'),
-    ('aux_type4', 'I'),  # Validate(1, CorruptFile)),
+    (None, 'I', Validate(lambda x, context: x in [1, 2], CorruptFile)),
+    (None, 'I', Validate(1, CorruptFile)),
+    (None, 'I'),
+    (None, 'I'),
     (None, 'I', Validate(1, CorruptFile)),
     (None, 'I', Validate(1, CorruptFile)),
     (None, 'I', Validate(1, CorruptFile)),
@@ -123,14 +123,28 @@ oir_block_5 = CompoundLayout([
     )
 ])
 
-oir_block_6 = oir_block_7 = oir_block_8 = CompoundLayout([
+oir_block_6 = CompoundLayout([
+    BinaryStructure([
+        ('nb_entries', 'I', Validate(1, CorruptFile))
+    ]),
+    For(
+        lambda context: context.nb_entries,
+        BinaryStructure([
+            ('prefix', 'T'),
+            (None, 'I')
+        ]),
+        name='entries'
+    )
+])
+
+oir_block_7 = oir_block_8 = CompoundLayout([
     BinaryStructure([
         ('nb_entries', 'I')
     ]),
     For(
         lambda context: context.nb_entries,
         BinaryStructure([
-            ('text', 'T'),
+            ('prefix', 'T'),
             (None, 'I')
         ]),
         name='entries'
@@ -161,8 +175,8 @@ oir_block_10 = CompoundLayout([
         BinaryStructure([
             ('uuid', 'T'),
             (None, 'I'),
-            ('xml1', 'T', XML),
-            ('xml2', 'T', XML),
+            ('camera_data', 'T', XML),
+            ('image_data', 'T', XML),
         ]),
         name='entries'
     )
@@ -184,13 +198,13 @@ oir_block_11 = CompoundLayout([
 
 oir_block_12 = CompoundLayout([
     BinaryStructure([
-        ('nb_entries', 'I')
+        ('nb_entries', 'I', Validate(1, CorruptFile))
     ]),
     For(
         lambda context: context.nb_entries,
         BinaryStructure([
-            ('uuid', 'T'),
-            ('xml', 'T', XML),
+            ('prefix', 'T', Validate("REF_CAMERA0", CorruptFile)),
+            (None, 'I'),
         ]),
         name='entries'
     )
@@ -212,7 +226,7 @@ oir_block_13 = CompoundLayout([
 
 oir_block_14 = CompoundLayout([
     BinaryStructure([
-        ('xml', 'T', XML),
+        ('data', 'T', XML),
     ]),
 ])
 
@@ -346,6 +360,9 @@ This reader imports Olympus OIR data files.
             elif chunk.chunk_type == OirChunkType.METADATA:
                 metadata.update(chunk.data)
             elif chunk.chunk_type == OirChunkType.METADATA_LIST:
+                import json
+                json.dump(chunk.items, open('metadata.json', 'w'), indent=4)
+
                 for block in chunk.items:
                     if 'data' in block:
                         metadata.update(block.data)
