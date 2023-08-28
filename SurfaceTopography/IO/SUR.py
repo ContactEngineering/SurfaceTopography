@@ -34,6 +34,7 @@ import numpy as np
 from .binary import BinaryArray, BinaryStructure, Convert, Validate
 from .Reader import DeclarativeReaderBase, ChannelInfo, CompoundLayout
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
+from ..Support.UnitConversion import get_unit_conversion_factor
 
 
 class SURReader(DeclarativeReaderBase):
@@ -75,17 +76,18 @@ This reader imports Digital Surf SUR data files.
             ('name_x', '16s'),
             ('name_y', '16s'),
             ('data_name', '16s'),
-            ('unit_delta_x', '16s'),
-            ('unit_delta_y', '16s',
-             Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
-            ('delta_data_unit', '16s',
-             Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
-            ('unit_x', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
-            ('unit_y', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
-            ('data_unit', '16s', Validate(lambda x, context: x == context['unit_delta_x'], UnsupportedFormatFeature)),
-            ('unit_ratio_x', 'f'),
-            ('unit_ratio_y', 'f'),
-            ('data_unit_ratio', 'f'),
+            ('delta_x_unit', '16s'),
+            ('delta_y_unit', '16s'),
+            ('delta_data_unit', '16s'),
+            ('x_unit', '16s'),
+            ('y_unit', '16s'),
+            ('data_unit', '16s'),
+            ('x_unit_ratio', 'f',
+             Validate(lambda x, context: get_unit_conversion_factor(context.x_unit, context.delta_x_unit))),
+            ('y_unit_ratio', 'f',
+             Validate(lambda x, context: get_unit_conversion_factor(context.y_unit, context.delta_y_unit))),
+            ('data_unit_ratio', 'f',
+             Validate(lambda x, context: get_unit_conversion_factor(context.data_unit, context.delta_data_unit))),
             ('imprint', 'H'),
             ('inversion', 'H'),
             ('leveling', 'H'),
@@ -135,17 +137,21 @@ This reader imports Digital Surf SUR data files.
             # This can fail if the date is not valid, e.g. if there are just zeros
             pass
 
+        unit = header.delta_data_unit
+        fac_x = get_unit_conversion_factor(header.delta_x_unit, unit)
+        fac_y = get_unit_conversion_factor(header.delta_y_unit, unit)
+
         return [ChannelInfo(
             self,
             0,  # channel index
             name='Default',
             dim=2,
             nb_grid_pts=(header.nb_grid_pts_x, header.nb_grid_pts_y),
-            physical_sizes=(header.grid_spacing_x * header.nb_grid_pts_x,
-                            header.grid_spacing_y * header.nb_grid_pts_y),
+            physical_sizes=(fac_x * header.grid_spacing_x * header.nb_grid_pts_x,
+                            fac_y * header.grid_spacing_y * header.nb_grid_pts_y),
             height_scale_factor=header.height_scale_factor,
             uniform=True,
-            unit=header.unit_x,
+            unit=unit,
             info=info,
             tags={'reader': self._metadata.data}
         )]
