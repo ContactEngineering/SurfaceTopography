@@ -5,6 +5,7 @@ v1.9.0 (28Aug23)
 ----------------
 
 - ENH: Reader for Olympus OIR (.oir) and POIR (.poir)
+- ENH: Output of Deep Zoom data files (NetCDF or Numpy)
 - BUG: Fixed loading of SUR files that report different units for lateral and
   height information
 - BUG: Fixed loading some LEXT files
