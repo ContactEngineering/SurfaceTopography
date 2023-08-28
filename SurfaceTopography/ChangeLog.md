@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.9.0 (not yet released)
--------------------------
+v1.9.0 (28Aug23)
+----------------
 
 - ENH: Reader for Olympus OIR (.oir) and POIR (.poir)
 - BUG: Fixed loading of SUR files that report different units for lateral and
