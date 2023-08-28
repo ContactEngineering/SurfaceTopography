@@ -163,7 +163,7 @@ This reader imports Sensofar's SPM file format.
         ], name='calibration'),
         BinaryStructure([
             # We only support topographies at present
-            ('type', 'I', Validate(lambda x, context: x == _TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
+            ('type', 'I', Validate(_TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
             ('algorithm', 'I'),
             ('method', 'I'),
             ('objective', 'I', Convert(lambda x: _objective_names[x])),
