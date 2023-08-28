@@ -135,7 +135,8 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
         total_size += size
 
         for converter in entry[2:]:
-            data = converter(data, AttrDict(local_context | context), name=name, file_offset=stream_obj.tell() - size)
+            data = converter(data, AttrDict({**local_context, **context}), name=name,
+                             file_offset=stream_obj.tell() - size)
 
         if name is not None:
             local_context[name] = data
