@@ -49,7 +49,7 @@ This reader imports Digital Surf SUR data files.
 
     _file_layout = CompoundLayout([
         BinaryStructure([
-            ('magic', '12s', Validate(lambda x, context: x == 'DIGITAL SURF', FileFormatMismatch)),
+            ('magic', '12s', Validate('DIGITAL SURF', FileFormatMismatch)),
             ('format', 'H'),
             ('nb_objects', 'H'),
             ('version', 'H'),
