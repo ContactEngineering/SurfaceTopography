@@ -97,7 +97,7 @@ The reader supports V4.3 and later version of the format.
                         value = ''
                     section_dict[key.lower()] = value.strip()
                 else:
-                    raise IOError(f"Header line '{L}' does not start with a slash.")
+                    raise IOError(f"Header line does not start with a slash.")
                 L = fobj.readline().decode('latin-1').strip()
             if section_name is None:
                 raise IOError('No sections found in header.')
