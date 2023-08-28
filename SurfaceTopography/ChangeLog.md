@@ -7,6 +7,7 @@ v1.9.0 (not yet released)
 - ENH: Reader for Olympus OIR (.oir) and POIR (.poir)
 - BUG: Fixed loading of SUR files that report different units for lateral and
   height information
+- BUG: Fixed loading some LEXT files
 
 - v1.8.0 (24Jul23)
 ----------------
