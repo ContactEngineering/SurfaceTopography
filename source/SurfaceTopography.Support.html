@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.8.0.dev3+g583eef45 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.8.0.dev35+g445fdfd0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=2a3edfce"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=5a20097c"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.8.0.dev3+g583eef45
+                1.8.0.dev35+g445fdfd0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -469,17 +469,17 @@ average from 0 to pi/2.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">get_unit_conversion_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit1_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit2_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor" title="Permalink to this definition"></a></dt>
-<dd><p>Compute factor for conversion from unit1 to unit2.</p>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">get_unit_conversion_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor" title="Permalink to this definition"></a></dt>
+<dd><p>Compute factor for conversion from <cite>from_unit</cite> to <cite>to_unit</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>unit1_str</strong> (<em>str</em>) – Name of source unit</p></li>
-<li><p><strong>unit2_str</strong> (<em>str</em>) – Name of targe unit</p></li>
+<li><p><strong>from_unit</strong> (<em>str</em>) – Name of source unit</p></li>
+<li><p><strong>to_unit</strong> (<em>str</em>) – Name of targe unit</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fac</strong> – Unit conversion factors. A quantity in unit1 is converted to unit2
+<dd class="field-even"><p><strong>fac</strong> – Unit conversion factors. A quantity in <cite>from_unit</cite> is converted to <cite>to_unit</cite>
 by multiplication with this factor.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
