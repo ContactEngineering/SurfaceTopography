@@ -78,3 +78,31 @@ def test_lext_metadata(file_format_examples):
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 1.136014, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.103697, rtol=1e-4)
+
+
+def test_lext2_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'lext-2.lext')
+
+    r = LEXTReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1024
+    assert ny == 1024
+
+    # import matplotlib.pyplot as plt
+    # t.to_unit('um').plot()
+    # plt.show()
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 258.437176, rtol=1e-6)
+    np.testing.assert_allclose(sy, 258.660637, rtol=1e-6)
+
+    assert t.unit == 'µm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.219566, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.219541, rtol=1e-5)
+
+    t = t.detrend('curvature')
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.005318, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 0.005223, rtol=1e-4)
