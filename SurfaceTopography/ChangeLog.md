@@ -9,7 +9,7 @@ v1.9.0 (28Aug23)
   height information
 - BUG: Fixed loading some LEXT files
 
-- v1.8.0 (24Jul23)
+v1.8.0 (24Jul23)
 ----------------
 
 - API: Generalized container readers to support multiple file formats
