@@ -40,7 +40,7 @@ class AttrDict(dict):
         self.__dict__ = self
 
 
-def decode(stream_obj, structure_format, byte_order='@', return_size=False):
+def decode(stream_obj, structure_format, byte_order='@', return_size=False, context={}):
     """
     Decode a binary stream given the sequence of binary entries. Strings are
     stripped of zeros and white spaces.
@@ -62,6 +62,9 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
     return_size : bool, optional
         Return the total size the structure in addition to the decoded data.
         (Default: False)
+    context : dict, optional
+        Context dictionary passed to validation and converter functions.
+        (Default: {})
 
     Returns
     -------
@@ -108,68 +111,110 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False):
             else:
                 return None if isinstance(data, numbers.Number) and math.isnan(data) else data
 
-    data_dict = AttrDict()
+    local_context = AttrDict()
     total_size = 0
     for entry in structure_format:
         entry = list(entry)
         name, format = entry[:2]
+
         # Special formats
         if format == 't':
             strlen, = unpack(byte_order + 'H', stream_obj.read(2))
             data = stream_obj.read(strlen).decode('ascii').strip('\x00')
-            total_size += strlen + 2
+            size = strlen + 2
         elif format == 'T':
             strlen, = unpack(byte_order + 'I', stream_obj.read(4))
             data = stream_obj.read(strlen).decode('ascii').strip('\x00')
-            total_size += strlen + 4
+            size = strlen + 4
         else:
             native_format = mogrify_format(format)
             size = calcsize(native_format)
-            total_size += size
             data = decode_data(unpack(native_format, stream_obj.read(size)), format)
 
+        # Track size of data structure
+        total_size += size
+
         for converter in entry[2:]:
-            data = converter(data, data_dict)
+            data = converter(data, AttrDict({**local_context, **context}), name=name,
+                             file_offset=stream_obj.tell() - size)
 
         if name is not None:
-            data_dict[name] = data
+            local_context[name] = data
 
     if return_size:
-        return data_dict, total_size
+        return local_context, total_size
     else:
-        return data_dict
+        return local_context
 
 
 class Convert:
-    def __init__(self, fun):
-        self._fun = fun
-
-    def __call__(self, data, data_dict):
-        return self._fun(data)
-
-
-class Validate:
-    def __init__(self, fun, exception=ValidationError):
+    def __init__(self, fun, exception=None):
         self._fun = fun
         self._exception = exception
 
-    def __call__(self, data, data_dict):
-        if self._fun is not None:
+    def __call__(self, data, context, **kwargs):
+        if self._exception is None:
+            return self._fun(data)
+        else:
+            try:
+                return self._fun(data)
+            except Exception as exc:
+                raise self._exception(f"Conversion of entry `{kwargs['name']}` at file offset {kwargs['file_offset']} "
+                                      f"failed.") from exc
+
+
+class Validate:
+    def __init__(self, value, exception=ValidationError):
+        self._value = value
+        self._exception = exception
+
+    def __call__(self, data, context, **kwargs):
+        if self._value is not None:
             # If a validator is given, then check the validity of this entry
-            if not self._fun(data, data_dict):
-                raise self._exception(f"Structure entry has invalid value '{data}'.")
+            if callable(self._value):
+                if not self._value(data, context):
+                    raise self._exception(f"Structure entry `{kwargs['name']}` has invalid value '{data}' at file "
+                                          f"offset {kwargs['file_offset']}.")
+            else:
+                if data != self._value:
+                    raise self._exception(f"Structure entry `{kwargs['name']}` has invalid value '{data}' at file "
+                                          f"offset {kwargs['file_offset']}. The expected value is '{self._value}'.")
+
         return data
 
 
-class BinaryStructure:
-    def __init__(self, name, structure_format, byte_order='@'):
+class DebugOutput:
+    def __init__(self, prefix='', context=False):
+        self._prefix = prefix
+        self._context = context
+
+    def __call__(self, data, context, **kwargs):
+        if self._context:
+            print(f'{kwargs["file_offset"]}: {self._prefix}{kwargs["name"]} = {data}; context = {context}')
+        else:
+            print(f'{kwargs["file_offset"]}: {self._prefix}{kwargs["name"]} = {data}')
+        return data
+
+
+class LayoutWithNameBase:
+    """Base class for file layout classes"""
+
+    _name = None
+
+    def name(self, context):
+        if callable(self._name):
+            return self._name(context)
+        else:
+            return self._name
+
+
+class BinaryStructure(LayoutWithNameBase):
+    def __init__(self, structure_format, byte_order='@', name=None):
         """
         Define a binary stream given the sequence of binary entries.
 
         Parameters
         ----------
-        name : str
-            Name of this structure.
         structure_format : list of tuples
             List of tuples describing the sequence of entries in the binary
             stream. Each tuple consists of two entries
@@ -180,13 +225,12 @@ class BinaryStructure:
             with 32-bit length. Decoder also supports per-entry endianness.
         byte_order : str, optional
             Byte order (see `struct.unpack`). (Default: '@')
+        name : str, optional
+            Name of this structure. (Default: None)
         """
-        self._name = name
         self._structure_format = structure_format
         self._byte_order = byte_order
-
-    def name(self, context):
-        return self._name
+        self._name = name
 
     def from_stream(self, stream_obj, context):
         """
@@ -204,11 +248,16 @@ class BinaryStructure:
         decoded_data : dict
             Dictionary with decoded data entries.
         """
-        return decode(stream_obj, self._structure_format, byte_order=self._byte_order)
+        local_context = decode(stream_obj, self._structure_format, byte_order=self._byte_order, context=context)
+        name = self.name(context)
+        if name is None:
+            return local_context
+        else:
+            return {name: local_context}
 
 
 class BinaryArray:
-    def __init__(self, name, shape_fun, dtype_fun, conversion_fun=lambda x: x, mask_fun=None):
+    def __init__(self, name, shape, dtype, conversion_fun=lambda x: x, mask_fun=None):
         """
         Defines flat binary data to be read into a numpy array.
 
@@ -216,10 +265,10 @@ class BinaryArray:
         ----------
         name : str
             Name of the array.
-        shape_fun : function
+        shape : function or tuple
             Function that returns the shape and takes a input the current data
             dictionary.
-        dtype_fun : function
+        dtype : function or dtype
             Function that returns the dtype and takes a input the current data
             dictionary.
         conversion_fun : function
@@ -229,8 +278,8 @@ class BinaryArray:
             Function that returns a mask with undefined data points.
         """
         self._name = name
-        self._shape_fun = shape_fun
-        self._dtype_fun = dtype_fun
+        self._shape = shape
+        self._dtype = dtype
         self._conversion_fun = conversion_fun
         self._mask_fun = mask_fun
 
@@ -250,8 +299,8 @@ class BinaryArray:
 
         Returns
         -------
-        file_pos : int
-            Position within the file where the data block starts.
+        context : dict
+            Context dictionary with file reader.
         """
 
         class ReaderProxy:
@@ -264,16 +313,22 @@ class BinaryArray:
                 stream_obj.seek(self._file_pos)
                 return self._binary_array.read(stream_obj, self._data)
 
-        shape = self._shape_fun(context)
-        dtype = self._dtype_fun(context)
+        if callable(self._shape):
+            shape = self._shape(context)
+        else:
+            shape = self._shape
+        if callable(self._dtype):
+            dtype = self._dtype(context)
+        else:
+            dtype = self._dtype
 
         file_pos = stream_obj.tell()
 
         stream_obj.seek(np.prod(shape) * dtype.itemsize, os.SEEK_CUR)
 
-        return ReaderProxy(self, context, file_pos)
+        return {self.name(context): ReaderProxy(self, context, file_pos)}
 
-    def read(self, stream_obj, data):
+    def read(self, stream_obj, context):
         """
         Read data block into numpy array.
 
@@ -281,7 +336,7 @@ class BinaryArray:
         ----------
         stream_obj : stream-like object
             Binary stream to decode.
-        data : dict
+        context : dict
             Dictionary with data that has been decoded at this point.
 
         Returns
@@ -289,11 +344,91 @@ class BinaryArray:
         data : numpy.ndarray
             Nunpy array containing the data from the file.
         """
-        shape = self._shape_fun(data)
-        dtype = self._dtype_fun(data)
+        if callable(self._shape):
+            shape = self._shape(context)
+        else:
+            shape = self._shape
+        if callable(self._dtype):
+            dtype = self._dtype(context)
+        else:
+            dtype = self._dtype
 
         buffer = stream_obj.read(np.prod(shape) * dtype.itemsize)
         arr = np.frombuffer(buffer, dtype=dtype).reshape(shape)
         if self._mask_fun is not None:
-            arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, data))
+            arr = np.ma.masked_array(arr, mask=self._mask_fun(arr, context))
         return self._conversion_fun(arr)
+
+
+class RawBuffer:
+    def __init__(self, name, size):
+        """
+        Defines flat binary data to be read into a numpy array.
+
+        Parameters
+        ----------
+        name : str
+            Name of the array.
+        size : function or int
+            Function that returns the size and takes a input the current data
+            dictionary.
+        """
+        self._name = name
+        self._size = size
+
+    def name(self, context):
+        return self._name
+
+    def from_stream(self, stream_obj, context):
+        """
+        Skip over data block and return reader for block.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        context : dict
+            Context dictionary with file reader.
+        """
+
+        class ReaderProxy:
+            def __init__(self, raw_buffer, data, file_pos):
+                self._raw_buffer = raw_buffer
+                self._data = data
+                self._file_pos = file_pos
+
+            def __call__(self, stream_obj):
+                stream_obj.seek(self._file_pos)
+                return self._raw_buffer.read(stream_obj, self._data)
+
+        size = self._size(context) if callable(self._size) else self._size
+
+        file_pos = stream_obj.tell()
+
+        stream_obj.seek(size, os.SEEK_CUR)
+
+        return {self.name(context): ReaderProxy(self, context, file_pos)}
+
+    def read(self, stream_obj, context):
+        """
+        Read data block into numpy array.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        buffer : bytes
+            Buffer containing the raw data.
+        """
+        size = self._size(context) if callable(self._size) else self._size
+        return stream_obj.read(size)

@@ -69,3 +69,22 @@ def test_sur_metadata(file_format_examples):
     assert t.unit == 'mm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6)
+
+
+def test_sur3_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'sur-3.sur')
+
+    r = SURReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 512
+    assert ny == 512
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 0.151319552, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.151319552, rtol=1e-6)
+
+    assert t.unit == 'm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.0019200491394179297, rtol=1e-6)

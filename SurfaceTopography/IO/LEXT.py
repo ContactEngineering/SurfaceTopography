@@ -105,7 +105,10 @@ TIFF-based file format of Olympus instruments.
                             self._height_page_index = i
                         elif "TiffTagDescData" in page_metadata["ImageDescription"]:
                             # Get image dimension
-                            nx, ny, _ = p.shape
+                            try:
+                                nx, ny, _ = p.shape
+                            except ValueError:
+                                nx, ny = p.shape
 
                             # This is some metadata
                             image_desc = page_metadata["ImageDescription"]["TiffTagDescData"]
