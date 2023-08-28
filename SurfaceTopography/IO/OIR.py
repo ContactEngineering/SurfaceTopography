@@ -29,15 +29,18 @@
 #
 
 from enum import IntEnum
+from zipfile import ZipFile
 
 import dateutil.parser
 import numpy as np
 import xmltodict
 
 from .binary import BinaryStructure, Convert, RawBuffer, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
-from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
+from .common import OpenFromAny
+from .Reader import ChannelInfo, CompoundLayout, ReaderBase, DeclarativeReaderBase, If, For, While, Skip, SizedChunk
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
 from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor
+from ..UniformLineScanAndTopography import Topography
 
 XML = Convert(xmltodict.parse)
 
@@ -349,7 +352,15 @@ This reader imports Olympus OIR data files.
         prefix = self.metadata[OirMetadataBlockType.TOPOGRAPHY_PREFIX]
 
         # Further parsing of unit information
-        image_properties = self.metadata[OirMetadataBlockType.PROPERTIES]['lsmimage:imageProperties']
+        properties = self.metadata[OirMetadataBlockType.PROPERTIES]
+        if 'lsmimage:imageProperties' in properties:
+            # This is a laser scanning image
+            image_properties = properties['lsmimage:imageProperties']
+        else:
+            # There is a 'cameraimage' entry in some files, but that appears to be raw camera data
+            raise UnsupportedFormatFeature("OIR file does not contain neither 'lsmimage' entry. I do not know how to "
+                                           "extract height information.")
+
         self._info = {
             'acquisition_time': str(dateutil.parser.parse(
                 image_properties['commonimage:general']['base:creationDateTime'])),
@@ -415,3 +426,86 @@ This reader imports Olympus OIR data files.
     @property
     def channels(self):
         return self._channels
+
+
+class POIRReader(ReaderBase):
+    _format = 'poir'
+    _mime_types = ['application/zip']
+    _file_extensions = ['poir']
+
+    _name = 'Olympus packed OIR'
+    _description = '''
+This reader imports Olympus packed OIR data files. These files are ZIP
+containers that contain a number of OIR files.
+'''
+
+    def __init__(self, fobj):
+        self._fobj = fobj
+        self._readers = []
+        with OpenFromAny(fobj, 'rb') as f:
+            with ZipFile(f, 'r') as z:
+                for fn in z.namelist():
+                    try:
+                        self._readers += [(fn, OIRReader(z.open(fn, 'r')))]
+                    except UnsupportedFormatFeature:
+                        # We ignore files with unsupported features. Those typically do not contain height information.
+                        pass
+
+    @property
+    def channels(self):
+        channels = []
+        for fn, r in self._readers:
+            for c in r.channels:
+                c.reader = self
+                c.tags['fn'] = fn
+                channels += [c]
+        return channels
+
+    def topography(self, channel_index=None, physical_sizes=None,
+                   height_scale_factor=None, unit=None, info={},
+                   periodic=None, subdomain_locations=None,
+                   nb_subdomain_grid_pts=None):
+        if subdomain_locations is not None or \
+                nb_subdomain_grid_pts is not None:
+            raise RuntimeError('This reader does not support MPI parallelization.')
+
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
+        channels = self.channels
+        if channel_index < 0 or channel_index >= len(channels):
+            raise RuntimeError(f'Channel index is {channel_index} but must be between 0 and {len(channels) - 1}.')
+
+        # Get channel information
+        channel = channels[channel_index]
+
+        if physical_sizes is None:
+            physical_sizes = channel.physical_sizes
+        elif channel.physical_sizes is not None:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+
+        if height_scale_factor is None:
+            height_scale_factor = channel.height_scale_factor
+        elif channel.height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+
+        if unit is None:
+            unit = channel.unit
+        elif channel.unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
+        with OpenFromAny(self._fobj, 'rb') as f:
+            with ZipFile(f, 'r') as z:
+                reader = channel.tags['reader']
+                fn = channel.tags['fn']
+                height_data = reader(z.open(fn, 'r'))
+
+        _info = channel.info.copy()
+        _info.update(info)
+
+        topo = Topography(height_data,
+                          physical_sizes,
+                          unit=unit,
+                          periodic=False if periodic is None else periodic,
+                          info=_info)
+        return topo.scale(height_scale_factor)

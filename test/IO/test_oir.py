@@ -30,14 +30,14 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import OIRReader
+from SurfaceTopography.IO import OIRReader, POIRReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial funcionalities, please execute with pytest")
 
 
-def test_read_filestream(file_format_examples):
+def test_oir_read_filestream(file_format_examples):
     """
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
@@ -52,12 +52,44 @@ def test_read_filestream(file_format_examples):
     # This test just needs to arrive here without raising an exception
 
 
+def test_poir_read_filestream(file_format_examples):
+    """
+    The reader has to work when the file was already opened as binary for
+    it to work in topobank.
+    """
+    file_path = os.path.join(file_format_examples, 'poir-1.poir')
+
+    read_topography(file_path)
+
+    with open(file_path, 'r') as f:
+        read_topography(f)
+
+    # This test just needs to arrive here without raising an exception
+
+
 def test_oir_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'oir-1.oir')
-    # file_path = '/Users/pastewka/Downloads/Stitch_A01_G001_0001^3D_LSM.oir'
-    # file_path = os.path.join(file_format_examples, 'Stitch_A01_G001_0001^3D_LSM.oir')
 
     r = OIRReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1024
+    assert ny == 1024
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 2.5, rtol=1e-6)
+    np.testing.assert_allclose(sy, 2.5, rtol=1e-6)
+
+    assert t.unit == 'µm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 2.048709, rtol=1e-6)
+
+
+def test_poir_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'poir-1.poir')
+
+    r = POIRReader(file_path)
     t = r.topography()
 
     nx, ny = t.nb_grid_pts

@@ -56,7 +56,7 @@ from .NC import NCReader
 from .NPY import NPYReader
 from .PLU import PLUReader
 from .PS import PSReader
-from .OIR import OIRReader
+from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .SUR import SURReader
@@ -97,6 +97,7 @@ readers = [
     FRTReader,
     LEXTReader,
     OIRReader,
+    POIRReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

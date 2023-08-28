@@ -309,6 +309,14 @@ class ChannelInfo:
         """
         return self._tags
 
+    @property
+    def reader(self):
+        return self._reader
+
+    @reader.setter
+    def reader(self, value):
+        self._reader = value
+
 
 class ReaderBase(metaclass=abc.ABCMeta):
     """

@@ -114,6 +114,7 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'lext-1.lext',
                                               'datx-1.datx',
                                               'oir-1.oir',
+                                              'poir-1.poir',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -646,6 +647,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'lext-1.lext')) == 'lext'
     assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
     assert detect_format(os.path.join(file_format_examples, 'oir-1.oir')) == 'oir'
+    assert detect_format(os.path.join(file_format_examples, 'poir-1.poir')) == 'poir'
 
 
 def test_to_matrix():
