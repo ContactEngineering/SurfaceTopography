@@ -5,7 +5,7 @@ v1.10.0 (not yet released)
 --------------------------
 
 - ENH: Reader for WSxM (.stp, .top) files
-- ENH: Reador for Sensorfar XML SPM (.plux) files
+- ENH: Reader for Sensorfar XML SPM (.plux) files
 - MAINT: More robust XY (line scan) and XYZ reader
 
 v1.9.0 (28Aug23)
