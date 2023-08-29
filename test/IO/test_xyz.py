@@ -65,7 +65,7 @@ def test_read_2d(filename, file_format_examples):
     """
     Here the order of points in the input file shouldn't matter.
     """
-    surface = read_xyz(os.path.join(file_format_examples, filename))
+    surface = XYZReader(os.path.join(file_format_examples, filename)).topography()
     assert surface.is_uniform
     x, y, z = surface.positions_and_heights()
     assert x.shape == (4, 4)

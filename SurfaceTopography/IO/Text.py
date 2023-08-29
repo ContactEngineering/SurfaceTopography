@@ -393,10 +393,10 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         # This is a topography map.
         x, y, z = np.array(data, dtype=float).T
 
-        # Compute grid spacing in x-direction
+        # Compute grid spacing in y-direction
         indices = np.lexsort((y, x))
-        x0 = x[indices[0]]
-        dx = x[indices[1]] - x0
+        y0 = y[indices[0]]
+        dy = y[indices[1]] - y0
 
         # Sort values, first x than y
         indices = np.lexsort((x, y))
@@ -404,9 +404,9 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         y = y[indices]
         z = z[indices]
 
-        # Compute grid spacing in y-direction
-        y0 = y[0]
-        dy = y[1] - y0
+        # Compute grid spacing in x-direction
+        x0 = x[0]
+        dx = x[1] - x0
 
         # Sort x-values into bins. Assume points on surface are equally spaced.
         binx = np.array((x - x0) / dx + 0.5, dtype=int)
