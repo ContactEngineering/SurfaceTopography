@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.10.0 (not yet released)
---------------------------
+v1.10.0 (29Aug23)
+-----------------
 
 - API: Do not return None as `ChannelInfo` (this was only the GWY reader)
 - ENH: Reader for WSxM (.stp, .top) files
