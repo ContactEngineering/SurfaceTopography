@@ -245,8 +245,9 @@ visualization and analysis software Gwyddion.
 
         channel = self._channels[channel_index]
         with OpenFromAny(self.file_path, 'rb') as f:
+            nx, ny = channel.nb_grid_pts
             f.seek(channel.tags['data']['offset'])
-            height_data = _gwy_read_array(f, channel.tags['data']['type']).reshape(channel.nb_grid_pts)
+            height_data = _gwy_read_array(f, channel.tags['data']['type']).reshape((ny, nx)).T
 
         _info = channel.info.copy()
         _info.update(info)
