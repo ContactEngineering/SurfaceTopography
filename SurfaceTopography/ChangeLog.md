@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.10.0 (not yet released)
+--------------------------
+
+- ENH: Reader for WSxM (.stp, .top) files
+
 v1.9.0 (28Aug23)
 ----------------
 

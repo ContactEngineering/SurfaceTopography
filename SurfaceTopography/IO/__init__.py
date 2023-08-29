@@ -61,6 +61,7 @@ from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .SUR import SURReader
 from .VK import VKReader
+from .WSXM import WSXMReader
 from .X3P import X3PReader
 from .ZON import ZONReader
 
@@ -98,6 +99,7 @@ readers = [
     LEXTReader,
     OIRReader,
     POIRReader,
+    WSXMReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
