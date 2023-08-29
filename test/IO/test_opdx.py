@@ -160,5 +160,5 @@ def test_opdx3(file_format_examples):
     t = r.topography()
     assert t.info['instrument']['name'] == 'Dektak Profiler'
 
-    x, y = np.loadtxt(f'{file_format_examples}/opdx3.txt', unpack=True)
+    x, y = np.loadtxt(f'{file_format_examples}/opdx-3.txt', unpack=True)
     np.testing.assert_allclose(t.heights(), y * 1e6)
