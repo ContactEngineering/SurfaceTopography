@@ -115,7 +115,7 @@ def test_topography(file_format_examples):
 
 def test_opdx_txt_consistency(file_format_examples):
     t_opdx = OPDxReader(os.path.join(file_format_examples, 'opdx-2.opdx')).topography()
-    t_txt = read_topography(os.path.join(file_format_examples, 'opdx2.txt'))
+    t_txt = read_topography(os.path.join(file_format_examples, 'opdx-2.txt'))
     assert abs(t_opdx.pixel_size[0] / t_opdx.pixel_size[1] - 1) < 1e-3
     assert abs(t_txt.pixel_size[0] / t_txt.pixel_size[1] - 1) < 1e-3
 
@@ -142,7 +142,7 @@ def test_opdx_txt_consistency(file_format_examples):
 
 
 def test_opdx_txt_heights_lateral_consistency(file_format_examples):
-    t_txt = read_topography(os.path.join(file_format_examples, 'opdx2.txt'))
+    t_txt = read_topography(os.path.join(file_format_examples, 'opdx-2.txt'))
 
     assert t_txt.info["unit"] == "m"
 

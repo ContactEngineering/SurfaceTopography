@@ -91,7 +91,7 @@ class NumpyTxtSurfaceTest(unittest.TestCase):
 
 class NumpyAscSurfaceTest(unittest.TestCase):
     def test_example1(self):
-        surf = read_asc(os.path.join(DATADIR, 'example1.txt'))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-1.txt'))
         self.assertTrue(isinstance(surf, Topography))
         self.assertEqual(surf.nb_grid_pts, (1024, 1024))
         self.assertAlmostEqual(surf.physical_sizes[0], 2000)
@@ -103,7 +103,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.unit, 'nm')
 
     def test_example2(self):
-        surf = read_asc(os.path.join(DATADIR, 'example2.txt'))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-2.txt'))
         self.assertEqual(surf.nb_grid_pts, (650, 650))
         self.assertAlmostEqual(surf.physical_sizes[0], 0.0002404103)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.0002404103)
@@ -114,7 +114,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.unit, 'm')
 
     def test_example3(self):
-        surf = read_asc(os.path.join(DATADIR, 'example3.txt'))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-3.txt'))
         self.assertEqual(surf.nb_grid_pts, (256, 256))
         self.assertAlmostEqual(surf.physical_sizes[0], 10e-6)
         self.assertAlmostEqual(surf.physical_sizes[1], 10e-6)
@@ -125,7 +125,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertEqual(surf.unit, 'm')
 
     def test_example4(self):
-        surf = read_asc(os.path.join(DATADIR, 'example4.txt'))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-4.txt'))
         self.assertEqual(surf.nb_grid_pts, (75, 305))
         self.assertAlmostEqual(surf.physical_sizes[0], 2.773965e-05)
         self.assertAlmostEqual(surf.physical_sizes[1], 0.00011280791)
@@ -141,7 +141,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
             surf.physical_sizes = 1, 2
 
     def test_example5(self):
-        surf = read_asc(os.path.join(DATADIR, 'example5.txt'))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-5.txt'))
         self.assertTrue(isinstance(surf, Topography))
         self.assertEqual(surf.nb_grid_pts, (10, 10))
         self.assertTrue(surf.physical_sizes is None)
@@ -153,7 +153,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertFalse('unit' in surf.info)
 
         # test setting the physical_sizes
-        surf = read_asc(os.path.join(DATADIR, 'example5.txt'), physical_sizes=(1, 2))
+        surf = read_asc(os.path.join(DATADIR, 'matrix-5.txt'), physical_sizes=(1, 2))
         self.assertAlmostEqual(surf.physical_sizes[0], 1)
         self.assertAlmostEqual(surf.physical_sizes[1], 2)
 
@@ -161,19 +161,19 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         self.assertAlmostEqual(bw[0], 1.5 / 10)
         self.assertAlmostEqual(bw[1], 1.5)
 
-        reader = AscReader(os.path.join(DATADIR, 'example5.txt'))
+        reader = AscReader(os.path.join(DATADIR, 'matrix-5.txt'))
         self.assertTrue(reader.default_channel.physical_sizes is None)
 
     def test_example6(self):
         topography_file = open_topography(
-            os.path.join(DATADIR, 'example6.txt'))
+            os.path.join(DATADIR, 'not-yet-working-1.txt'))
         surf = topography_file.topography(physical_sizes=(1,))
         self.assertTrue(isinstance(surf, UniformLineScan))
         np.testing.assert_allclose(surf.heights(), [1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def test_simple_nonuniform_line_scan(self):
         surf = read_xyz(
-            os.path.join(DATADIR, 'line_scan_1_minimal_spaces.asc'))
+            os.path.join(DATADIR, 'xy-3.txt'))
 
         self.assertAlmostEqual(surf.physical_sizes, (9.0,))
 
@@ -359,7 +359,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertTrue(untilt1.rms_gradient() > untilt2.rms_gradient())
 
     def test_nonuniform(self):
-        surf = read_xyz(os.path.join(DATADIR, 'example.xyz'))
+        surf = read_xyz(os.path.join(DATADIR, 'xy-1.txt'))
         self.assertFalse(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
         self.assertEqual(surf.dim, 1)

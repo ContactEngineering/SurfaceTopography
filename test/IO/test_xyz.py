@@ -39,7 +39,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_1d(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    surface = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -49,7 +49,18 @@ def test_read_1d(file_format_examples):
     assert not surface.is_periodic
 
 
-@pytest.mark.parametrize("filename", ['example-2d.xyz', 'example-2d-different-order.xyz'])
+def test_read_1d_2(file_format_examples):
+    surface = read_xyz(os.path.join(file_format_examples, 'xy-2.txt'))
+    assert not surface.is_uniform
+    x, y = surface.positions_and_heights()
+    assert len(x) > 0
+    assert len(x) == len(y)
+    assert not surface.is_uniform
+    assert surface.dim == 1
+    assert not surface.is_periodic
+
+
+@pytest.mark.parametrize("filename", ['xyz-1.txt', 'xyz-1-different-order.txt', 'xyz-2.txt'])
 def test_read_2d(filename, file_format_examples):
     """
     Here the order of points in the input file shouldn't matter.
@@ -62,11 +73,12 @@ def test_read_2d(filename, file_format_examples):
     assert z.shape == (4, 4)
     assert surface.dim == 2
     assert not surface.is_periodic
-    assert_allclose(z,
-                    [[1., 1., 1., 1.],
-                     [1., 2., 2., 1.],
-                     [1., 1., 1., 1.],
-                     [1., 1., 1., 1.]])
+    if filename.startswith('xyz-1'):
+        assert_allclose(z,
+                        [[1., 1., 1., 1.],
+                         [1., 2., 2., 1.],
+                         [1., 1., 1., 1.],
+                         [1., 1., 1., 1.]])
 
 
 def test_hfm_metadata(file_format_examples):

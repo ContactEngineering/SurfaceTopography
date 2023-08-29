@@ -156,18 +156,18 @@ def test_power_spectrum_from_profile():
 
 
 def test_detrend(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
 
 
 def test_detrend_slope(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
     assert not t.detrend('slope').is_periodic
 
 
 def test_detrend_curvature(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
     assert not t.detrend('curvature').is_periodic
 
 

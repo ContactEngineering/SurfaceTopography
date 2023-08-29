@@ -30,7 +30,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import MetadataAlreadyFixedByFile, UnknownFileFormat
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
@@ -299,7 +299,8 @@ When writing your own ASCII files, we recommend to prepent the header with a
 
 
 @text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None, tol=1e-6):
+def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None,
+             max_header_rows=100, tol=1e-6):
     """
     Load xyz-file. These files contain line scan information in terms of
     (x,y)-positions.
@@ -308,8 +309,11 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
     ----------
     fobj : str or file object
          File name or stream.
-    tol : float
-         Tolerance for detecting uniform grids
+    max_header_rows : int, optional
+         Maximum number of rows to skip when testing for headers.
+         (Default: 100)
+    tol : float, optional
+         Tolerance for detecting uniform grids. (Default: 1e-6)
 
     Returns
     -------
@@ -317,7 +321,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         SurfaceTopography object.
     """
     # Default is to autodetect separator
-    sep = r'\s+'  # white space
+    sep = r'[\s,;]+'  # white space, comma or semicolon
     usecols = None
 
     # Read header (if present) and guess file format
@@ -343,8 +347,25 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         # Could not guess file format - rewind
         fobj.seek(c)
 
-    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None)
+    # Reading data, skipping first rows (which may contain headers)
+    data_start = fobj.tell()
+    skiprows = 0
+    data = None
+    while data is None and skiprows < max_header_rows:
+        fobj.seek(data_start)
+        try:
+            data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows)
+            if (data.dtypes == 'O').any():
+                data = None
+        except pd.errors.ParserError:
+            data = None
+        skiprows += 1
 
+    # We cannot make sense of this data
+    if data is None:
+        raise UnknownFileFormat('Could not parse file as XYZ.')
+
+    # Check is this is a line scan in XY format or two-dimensional data in XYZ format
     if len(data.columns) == 2:
         # This is a line scan.
         x, z = np.array(data, dtype=float).T
@@ -372,22 +393,29 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         # This is a topography map.
         x, y, z = np.array(data, dtype=float).T
 
+        # Compute grid spacing in x-direction
+        indices = np.lexsort((y, x))
+        x0 = x[indices[0]]
+        dx = x[indices[1]] - x0
+
         # Sort values, first x than y
         indices = np.lexsort((x, y))
         x = x[indices]
         y = y[indices]
         z = z[indices]
 
+        # Compute grid spacing in y-direction
+        y0 = y[0]
+        dy = y[1] - y0
+
         # Sort x-values into bins. Assume points on surface are equally spaced.
-        dx = x[1] - x[0]
-        binx = np.array(x / dx + 0.5, dtype=int)
+        binx = np.array((x - x0) / dx + 0.5, dtype=int)
         n = np.bincount(binx)
         ny = n[0]
         assert np.all(n == ny)  # FIXME: Turn assert into exception
 
         # Sort y-values into bins.
-        dy = y[binx == 0][1] - y[binx == 0][0]
-        biny = np.array(y / dy + 0.5, dtype=int)
+        biny = np.array((y - y0) / dy + 0.5, dtype=int)
         n = np.bincount(biny)
         nx = n[0]
         assert np.all(n == nx)  # FIXME: Turn assert into exception
@@ -407,9 +435,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
             raise MetadataAlreadyFixedByFile('physical_sizes')
         t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
     else:
-        raise Exception(
-            'Expected two or three columns for topography that is a list of '
-            'positions and heights.')
+        raise UnknownFileFormat('Expected two or three columns for topography that is a list of positions and heights.')
 
     if height_scale_factor is not None:
         t = t.scale(height_scale_factor)

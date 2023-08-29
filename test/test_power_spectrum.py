@@ -204,7 +204,7 @@ def test_NaNs():
 
 
 def test_brute_force_vs_fft(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-1.txt'))
     q, A = t.detrend().power_spectrum_from_profile(window="None")
     q2, A2 = t.detrend().power_spectrum_from_profile(algorithm='brute-force',
                                                      wavevectors=q, nb_interpolate=5,
@@ -217,7 +217,7 @@ def test_brute_force_vs_fft(file_format_examples):
 
 
 def test_short_cutoff(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-1.txt'))
     q1, C1 = t.detrend().power_spectrum_from_profile(short_cutoff=np.mean, reliable=False, resampling_method=None)
     q2, C2 = t.detrend().power_spectrum_from_profile(short_cutoff=np.min, reliable=False, resampling_method=None)
     q3, C3 = t.detrend().power_spectrum_from_profile(short_cutoff=np.max, reliable=False, resampling_method=None)
