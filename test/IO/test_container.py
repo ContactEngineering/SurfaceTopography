@@ -71,7 +71,7 @@ def test_read_mixed(file_format_examples):
 def test_write(file_format_examples):
     t1 = read_topography(f'{file_format_examples}/di-1.di')
     t2 = read_topography(f'{file_format_examples}/opd-1.opd')
-    t3 = read_topography(f'{file_format_examples}/example2.txt')
+    t3 = read_topography(f'{file_format_examples}/matrix-2.txt')
 
     c = InMemorySurfaceContainer([t1, t2, t3])
 
