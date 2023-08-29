@@ -55,6 +55,7 @@ from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .PLU import PLUReader
+from .PLUX import PLUXReader
 from .PS import PSReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
@@ -100,6 +101,7 @@ readers = [
     OIRReader,
     POIRReader,
     WSXMReader,
+    PLUXReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
