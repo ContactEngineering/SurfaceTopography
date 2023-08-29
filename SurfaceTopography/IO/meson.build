@@ -27,11 +27,13 @@ python_sources = [
     'OPD.py',
     'OPDx.py',
     'PLU.py',
+    'PLUX.py',
     'PS.py',
     'Reader.py',
     'SUR.py',
     'Text.py',
     'VK.py',
+    'WSXM.py',
     'X3P.py',
     'ZON.py'
 ]
