@@ -180,6 +180,14 @@ SurfaceTopography.IO.PLU module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.PLUX module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.PLUX
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.PS module
 ------------------------------
 
@@ -216,6 +224,14 @@ SurfaceTopography.IO.VK module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.VK
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.IO.WSXM module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.WSXM
    :members:
    :undoc-members:
    :show-inheritance:
