@@ -144,95 +144,86 @@ This reader imports Sensofar's SPM file format.
 '''
 
     _file_layout = CompoundLayout([
-        BinaryStructure(
-            'header', [
-                ('data', '128s', Convert(lambda x: str(dateutil.parser.parse(x)))),
-                ('time', 'I'),
-                ('comment', '256s')
-            ]),
-        BinaryStructure(
-            'calibration', [
-                ('nb_grid_pts_y', 'I'),
-                ('nb_grid_pts_x', 'I'),
-                ('N_tall', 'I'),
-                ('dy_multip', 'f'),
-                ('micrometers_per_pixel_x', 'f'),
-                ('micrometers_per_pixel_y', 'f'),
-                ('offset_x', 'f'),
-                ('offset_y', 'f'),
-                ('micrometers_per_pixel_tall', 'f'),
-                ('offset_z', 'f')
-            ]),
-        BinaryStructure(
-            'measurement_configuration1', [
-                # We only support topographies at present
-                ('type', 'I', Validate(lambda x, context: x == _TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
-                ('algorithm', 'I'),
-                ('method', 'I'),
-                ('objective', 'I', Convert(lambda x: _objective_names[x])),
-                ('area_type', 'I')
-            ]),
+        BinaryStructure([
+            ('data', '128s', Convert(lambda x: str(dateutil.parser.parse(x)))),
+            ('time', 'I'),
+            ('comment', '256s')
+        ], name='header'),
+        BinaryStructure([
+            ('nb_grid_pts_y', 'I'),
+            ('nb_grid_pts_x', 'I'),
+            ('N_tall', 'I'),
+            ('dy_multip', 'f'),
+            ('micrometers_per_pixel_x', 'f'),
+            ('micrometers_per_pixel_y', 'f'),
+            ('offset_x', 'f'),
+            ('offset_y', 'f'),
+            ('micrometers_per_pixel_tall', 'f'),
+            ('offset_z', 'f')
+        ], name='calibration'),
+        BinaryStructure([
+            # We only support topographies at present
+            ('type', 'I', Validate(_TYPE_TOPOGRAPHY, UnsupportedFormatFeature)),
+            ('algorithm', 'I'),
+            ('method', 'I'),
+            ('objective', 'I', Convert(lambda x: _objective_names[x])),
+            ('area_type', 'I')
+        ], name='measurement_configuration1'),
         If(
             lambda data: data.measurement_configuration1.area_type == _AREA_COORDINATES,
-            BinaryStructure(
-                'scan_settings', [
-                    ('tracking_range', 'f'),
-                    ('tracking_speed', 'f'),
-                    ('tracking_direction', 'I'),
-                    ('tracking_threshold', 'f'),
-                    ('tracking_min_angle', 'f'),
-                    ('confocal_scan_type', 'I'),
-                    ('confocal_scan_range', 'f'),
-                    ('confocal_speed_factor', 'f'),
-                    ('confocal_threshold', 'f'),
-                    ('reserved', '4B')
-                ]),
-            BinaryStructure(
-                'scan_settings', [
-                    ('xres_area', 'I'),
-                    ('yres_area', 'I'),
-                    ('xres', 'I'),
-                    ('yres', 'I'),
-                    ('na', 'I'),
-                    ('incr_z', 'd'),
-                    ('range', 'f'),
-                    ('n_planes', 'I'),
-                    ('tpc_umbral_F', 'I')
-                ])
+            BinaryStructure([
+                ('tracking_range', 'f'),
+                ('tracking_speed', 'f'),
+                ('tracking_direction', 'I'),
+                ('tracking_threshold', 'f'),
+                ('tracking_min_angle', 'f'),
+                ('confocal_scan_type', 'I'),
+                ('confocal_scan_range', 'f'),
+                ('confocal_speed_factor', 'f'),
+                ('confocal_threshold', 'f'),
+                ('reserved', '4B')
+            ], name='scan_settings'),
+            BinaryStructure([
+                ('xres_area', 'I'),
+                ('yres_area', 'I'),
+                ('xres', 'I'),
+                ('yres', 'I'),
+                ('na', 'I'),
+                ('incr_z', 'd'),
+                ('range', 'f'),
+                ('n_planes', 'I'),
+                ('tpc_umbral_F', 'I')
+            ], name='scan_settings')
         ),
-        BinaryStructure(
-            'measurement_configuration2', [
-                ('restore', 'B'),
-                ('num_layers', 'B'),
-                ('version', 'B'),
-                ('config_hardware', 'B'),
-                ('num_images', 'B'),
-                ('reserved', '3B'),
-                ('factor_delmacio', 'I')
-            ]
-        ),
+        BinaryStructure([
+            ('restore', 'B'),
+            ('num_layers', 'B'),
+            ('version', 'B'),
+            ('config_hardware', 'B'),
+            ('num_images', 'B'),
+            ('reserved', '3B'),
+            ('factor_delmacio', 'I')
+        ], name='measurement_configuration2'),
         For(
-            'layers',
             lambda data: data.measurement_configuration2.num_layers,
             CompoundLayout([
-                BinaryStructure(
-                    'nb_grid_pts', [
-                        ('y', 'I'),
-                        ('x', 'I')
-                    ]),
+                BinaryStructure([
+                    ('y', 'I'),
+                    ('x', 'I')
+                ], name='nb_grid_pts'),
                 BinaryArray(
                     'data',
                     lambda context: (context.nb_grid_pts.y, context.nb_grid_pts.x),
                     lambda context: np.dtype(np.float32),
-                    lambda arr: arr.T,
-                    lambda arr, data: arr == _UNDEFINED_DATA
+                    conversion_fun=lambda arr: arr.T,
+                    mask_fun=lambda arr, data: arr == _UNDEFINED_DATA
                 ),
-                BinaryStructure(
-                    'min_max', [
-                        ('min', 'f'),
-                        ('max', 'f'),
-                    ])
-            ])
+                BinaryStructure([
+                    ('min', 'f'),
+                    ('max', 'f'),
+                ], name='min_max')
+            ]),
+            name='layers'
         )
     ])
 

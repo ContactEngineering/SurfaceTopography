@@ -26,12 +26,13 @@
 #
 
 import abc
+import os
 
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from .binary import AttrDict
+from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
 
 
@@ -308,6 +309,14 @@ class ChannelInfo:
         """
         return self._tags
 
+    @property
+    def reader(self):
+        return self._reader
+
+    @reader.setter
+    def reader(self, value):
+        self._reader = value
+
 
 class ReaderBase(metaclass=abc.ABCMeta):
     """
@@ -490,56 +499,211 @@ class ReaderBase(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class CompoundLayout:
+class CompoundLayout(LayoutWithNameBase):
     """Declare a file layout"""
 
-    def __init__(self, structures):
+    def __init__(self, structures, name=None, context_mapper=lambda x: x):
         self._structures = structures
+        self._name = name
+        self._context_mapper = context_mapper
 
     def from_stream(self, stream_obj, context):
-        context = AttrDict()
+        local_context = AttrDict()
         for structure in self._structures:
-            context[structure.name(context)] = structure.from_stream(stream_obj, context)
-        return context
+            tmp_context = AttrDict({**local_context, '__parent__': context})
+            if callable(structure):
+                # This is a function that returns the respective structure
+                structure = structure(tmp_context)
+            local_context.update(structure.from_stream(stream_obj, tmp_context))
+        name = self.name(context)
+        if name is None:
+            return self._context_mapper(local_context)
+        else:
+            return self._context_mapper({name: local_context})
 
 
 class If:
     """Switch structure type dependent on data"""
 
-    def __init__(self, condition_fun, true_structure, false_structure):
-        self._condition_fun = condition_fun
-        self._true_structure = true_structure
-        self._false_structure = false_structure
+    def __init__(self, *args, context_mapper=None):
+        self._args = args
+        self._context_mapper = context_mapper
 
     def name(self, context):
-        if self._condition_fun(context):
-            return self._true_structure.name(context)
+        nb_conditions = len(self._args) // 2
+        for i in range(nb_conditions):
+            if self._args[2 * i](context):
+                return self._args[2 * i + 1].name(context)
+        if 2 * nb_conditions == len(self._args):
+            return None
         else:
-            return self._false_structure.name(context)
+            return self._args[2 * nb_conditions].name(context)
 
     def from_stream(self, stream_obj, context):
-        if self._condition_fun(context):
-            return self._true_structure.from_stream(stream_obj, context)
+        if self._context_mapper is not None:
+            context = self._context_mapper(context)
+        nb_conditions = len(self._args) // 2
+        for i in range(nb_conditions):
+            if self._args[2 * i](context):
+                return self._args[2 * i + 1].from_stream(stream_obj, context)
+        if 2 * nb_conditions == len(self._args):
+            return {}
         else:
-            return self._false_structure.from_stream(stream_obj, context)
+            return self._args[2 * nb_conditions].from_stream(stream_obj, context)
 
 
-class For:
+class Skip:
+    def __init__(self, size):
+        self._size = size
+
+    def from_stream(self, stream_obj, context):
+        if callable(self._size):
+            size = self._size(context)
+        else:
+            size = self._size
+        stream_obj.seek(size, os.SEEK_CUR)
+        return {}
+
+
+class SizedChunk(LayoutWithNameBase):
+    def __init__(self, size, structure, mode='read-once', name=None, context_mapper=None, debug=False):
+        """
+        Declare a file portion of a specific size. This allows bounds checking,
+        i.e. raising exception if too much or too little data is read.
+
+        Parameters
+        ----------
+        size : function or int
+            Function that returns the size of the chunk and takes as input the
+            current context.
+        structure : structure definition
+            Definition of the structure within this chunk.
+        mode : str
+            Reading mode, can be 'read-once', 'skip-missing' or 'loop'.
+            'read-once' and 'skip-missing' read the containing block once,
+            but 'skip-missing' does not complain if this is not the complete
+            chunk. 'loop' repeats the containing block until the full chunk
+            has been read. (Default: 'read-once')
+        name : str
+            Context name of this block. Required if mode is 'loop'.
+        context_mapper : callable
+            Function that takes a context and returns a new context.
+        debug : Bool
+            Print boundary offsets of chunk. (Default: False)
+        """
+        self._size = size
+        self._structure = structure
+        self._mode = mode
+        self._name = name
+        self._context_mapper = context_mapper
+        self._debug = debug
+
+    def from_stream(self, stream_obj, context):
+        """
+        Decode stream into dictionary.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        decoded_data : dict
+            Dictionary with decoded data entries.
+        """
+        size = self._size(context) if callable(self._size) else self._size
+
+        starting_position = stream_obj.tell()
+        if self._debug:
+            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position + size}.')
+
+        local_context = []
+        local_context += [self._structure.from_stream(stream_obj, context)]
+        final_position = stream_obj.tell()
+        while self._mode == 'loop' and final_position - starting_position < size:
+            local_context += [self._structure.from_stream(stream_obj, context)]
+            final_position = stream_obj.tell()
+
+        # Check if we processed the whole chunk
+        if final_position - starting_position > size:
+            raise IOError(f'Chunk is supposed to contain {size} bytes, but '
+                          f'{final_position - starting_position} bytes have been decoded. '
+                          f'(Chunk starts at position {starting_position} and ends at {final_position}, '
+                          f'but is supposed to end at {starting_position + size}.)')
+        elif final_position - starting_position < size:
+            if self._mode == 'skip-missing':
+                stream_obj.seek(size - (final_position - starting_position), os.SEEK_CUR)
+            else:
+                raise IOError(f'Chunk is supposed to contain {size} bytes, but only '
+                              f'{final_position - starting_position} bytes have been decoded. '
+                              f'(Chunk starts at position {starting_position} and ends at {final_position}, '
+                              f'but is supposed to end at {starting_position + size}.)')
+
+        name = self.name(context)
+        if self._mode != 'loop':
+            local_context, = local_context
+        if self._context_mapper is None:
+            def context_mapper(x):
+                return x
+        else:
+            context_mapper = self._context_mapper
+        if name is None:
+            if self._mode == 'loop' and self._context_mapper is None:
+                raise IOError("`name` or `context_mapper` must be specified for mode 'loop'.")
+            return context_mapper(local_context)
+        else:
+            return context_mapper({name: local_context})
+
+
+class For(LayoutWithNameBase):
     """Repeat structure"""
 
-    def __init__(self, name, range_fun, structure):
-        self._name = name
-        self._range_fun = range_fun
+    def __init__(self, range, structure, name=None):
+        self._range = range
         self._structure = structure
+        self._name = name
 
-    def name(self, context):
-        return self._name
+        if self._name is None:
+            raise ValueError('`For` statement must have a name.')
 
     def from_stream(self, stream_obj, context):
-        data = []
-        for i in range(self._range_fun(context)):
-            data += [self._structure.from_stream(stream_obj, context)]
-        return data
+        local_context = []
+        if callable(self._range):
+            nb_elements = self._range(context)
+        else:
+            nb_elements = self._range
+        for i in range(nb_elements):
+            local_context += [self._structure.from_stream(stream_obj, context)]
+        return {self.name(context): local_context}
+
+
+class While(LayoutWithNameBase):
+    """Repeat as long as condition is met"""
+
+    def __init__(self, *args, name=None):
+        self._args = args
+        self._name = name
+
+        if self._name is None:
+            raise ValueError('`While` statement must have a name.')
+
+    def from_stream(self, stream_obj, context):
+        while_context = []
+        still_looping = True
+        while still_looping:
+            local_context = AttrDict()
+            for arg in self._args:
+                if still_looping:
+                    if callable(arg):
+                        still_looping = arg(AttrDict({**local_context, '__parent__': context}))
+                    else:
+                        x = arg.from_stream(stream_obj, AttrDict({**local_context, '__parent__': context}))
+                        local_context.update(x)
+            while_context += [local_context]
+        return {self.name(context): while_context}
 
 
 class DeclarativeReaderBase(ReaderBase):
@@ -551,11 +715,16 @@ class DeclarativeReaderBase(ReaderBase):
 
     def __init__(self, file_path):
         if self._file_layout is None:
-            raise RuntimeError('Please defined the file structure via `_file_structure`.')
+            raise RuntimeError('Please defined the file structure via the `_file_layout` class member.')
 
         self.file_path = file_path
         with OpenFromAny(self.file_path, 'rb') as f:
             self._metadata = self._file_layout.from_stream(f, {})
+
+        self._validate_metadata()
+
+    def _validate_metadata(self):
+        pass
 
     @property
     def metadata(self):

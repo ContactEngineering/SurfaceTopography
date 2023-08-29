@@ -1,6 +1,15 @@
 Change log for SurfaceTopography
 ================================
 
+v1.9.0 (28Aug23)
+----------------
+
+- ENH: Reader for Olympus OIR (.oir) and POIR (.poir)
+- ENH: Output of Deep Zoom data files (NetCDF or Numpy)
+- BUG: Fixed loading of SUR files that report different units for lateral and
+  height information
+- BUG: Fixed loading some LEXT files
+
 v1.8.0 (24Jul23)
 ----------------
 
@@ -15,7 +24,6 @@ v1.8.0 (24Jul23)
   the file layout directly
 - MAINT: Switched SUR and PLU readers to declarative style
 - CI: macOS wheels (arm64 and x86_64)
-
 
 v1.7.0 (27Jun23)
 ----------------
@@ -53,10 +61,10 @@ v1.6.0 (05Apr23)
 v1.5.0 (25Mar23)
 ----------------
 
-- ENH: analytical computation of scalar roughness parameters of  ideal self-affine psd  
-- ENH: weighted integrals of the PSDs of containers 
+- ENH: analytical computation of scalar roughness parameters of ideal self-affine psd
+- ENH: weighted integrals of the PSDs of containers
 - ENH: scanning probe artefact simulations
-- TST: remove dependency of test-suite on ContactMechanics 
+- TST: remove dependency of test-suite on ContactMechanics
 - MAINT: Switched from igor to igor2 which supports latest numpy
 
 v1.4.1 (6Mar23)
@@ -85,6 +93,7 @@ v1.3.3 (29Jan23)
 
 v1.3.2 (18Jan23)
 ----------------
+
 - ENH: Pipeline function superpose
 - BUG: Repair CompoundTopography and TranslatedTopography
 
@@ -106,8 +115,8 @@ v1.3.0 (29Dec22)
 v1.2.6 (29Dec22)
 ----------------
 
-- BUG: SUR reader reported wrong `height_scale_factor` in channel info  
-- BUILD: Yet another fix for version discovery when installing from source 
+- BUG: SUR reader reported wrong `height_scale_factor` in channel info
+- BUILD: Yet another fix for version discovery when installing from source
   package
 
 v1.2.5 (05Dec22)
@@ -141,7 +150,7 @@ v1.2.1 (22Nov22)
 - ENH: Extract X3P metadata
 - MAINT: Converted X3P reader to new style
 - MAINT: Bumped muFFT require to 0.24.0 - this avoids installation problems
-  downstream, but disables automatic MPI detection 
+  downstream, but disables automatic MPI detection
 - BUG: X3P data was read in the wrong storage order
 
 v1.2 (15Nov22)
@@ -255,7 +264,6 @@ v0.99.0 (11Nov21)
 - MAINT: Variable bandwidth raises `UndefinedDataError` when topography has
   undefined data points
 
-
 v0.98.2 (25Oct21)
 -----------------
 
@@ -297,6 +305,7 @@ v0.97.3 (28Sep21)
 
 v0.97.2 (24Sep21)
 -----------------
+
 - BUG: Fix segmentation faults due to integer overflow for large bicubic
   interpolation
 
@@ -389,7 +398,7 @@ v0.95.0 (07Jul21)
   a lateral length scale below which scanning probe data become unreliable
   because of tip artifacts (see arXiv:2106.16013)
 - ENH: Support for Digital Instruments Nanoscope (DI) files with 32-bit
-  integer data 
+  integer data
 
 v0.94.0 (10Jun21)
 -----------------
@@ -398,10 +407,10 @@ v0.94.0 (10Jun21)
   and properties for different kinds of topographies (#100)
 - ENH: Added height_scale_factor to reader channels (#98)
 - ENH: Disallow to provide physical_sizes or height_scale_factor
-  as argument to .topography() if fixed by file contents  
+  as argument to .topography() if fixed by file contents
 - BUG: Fixed missing function for RMS curvature for uniform
   line scans (#95)
-- BUG: Make sure that .topography(height_scale_factor=..) is effective  
+- BUG: Make sure that .topography(height_scale_factor=..) is effective
 - BUG: Fixed loading of 2D measurements from xyz data (#93)
 
 v0.93.0 (27Apr21)
@@ -444,8 +453,8 @@ v0.91.3 (22Sep20)
 -----------------
 
 - BUG: UniformLineScan.area_per_pt is now a scalar, not a tuple
-- BUG: supress assertion that discarded imaginary part in fourier 
-       derivative is small
+- BUG: supress assertion that discarded imaginary part in fourier
+  derivative is small
 
 v0.91.2 (31Jul20)
 -----------------
@@ -473,7 +482,7 @@ v0.90.0 (17Jun20)
 - Refactored PyCo code into three separate Python modules:
   SurfaceTopography, ContactMechanics and Adhesion
 - muFFT dependency updated to muFFT-0.9.1
-- Moved documentation from README.md to the docs folder 
+- Moved documentation from README.md to the docs folder
 
 Change log for PyCo (previous name of the package)
 ==================================================
@@ -485,25 +494,24 @@ v0.57.0 (15May20)
 - ENH: Bicubic interpolation of two-dimensional topography maps
 - ENH: Fourier derivative of topography
 - BUG: Computation of plastic area is now parallelized (#303)
-- BUG: Info dictionary mutable from user 
+- BUG: Info dictionary mutable from user
 
 v0.56.0 (26Feb20)
 -----------------
 
 - ENH: Change orientation of some readers such that all topographies
-       look like the image in Gwyddion when plotted with
-       "pcolormesh(t.heights().T)" (#295)
+  look like the image in Gwyddion when plotted with
+  "pcolormesh(t.heights().T)" (#295)
 - BUG: Fixes unknown unit "um" when reading mi file (#296)
 - BUG: Fixes missing channel name for mi files (#294)
 - ENH: generate self-affine random surfaces by specifying the self-affine prefactor (#261, #278, #279)
 - BUG: now fourier synthesis can generate Linescans again (#277, #279)
 
-
 v0.55.0 (14Feb20)
 -----------------
 
 - API: Readers now report channel info in ChannelInfo class,
-       fixes inconsistencies in reporting channel information (#190, #192, #236)
+  fixes inconsistencies in reporting channel information (#190, #192, #236)
 - ENH: Readers report format identifier and are self-documented (#229, #238)
 - ENH: Readers now support Gwyddion's text export format for English and German locale (#230)
 - ENH: DI reader now read acquisition date and stores it in the info dictionary
@@ -540,13 +548,14 @@ v0.54.0 (06Dec19)
 -----------------
 
 - MAINT: correct installation problems because Eigen repository has moved
-- ENH: anisotropic cubic Green's Functions 
+- ENH: anisotropic cubic Green's Functions
 - BUG: NPY reader can now handle filestreams (#209, NUMPI/#24)
 - BUG: opdx reader can now handle filestreams (#209)
 
 v0.53.1 (21Nov19)
 -----------------
-- API: Detrended Topographies with mode "center" keep is_periodic property. Other modes lead to is_periodic=False. 
+
+- API: Detrended Topographies with mode "center" keep is_periodic property. Other modes lead to is_periodic=False.
   See pastewka/TopoBank/#347
 
 v0.53.0 (20Nov19)
@@ -610,7 +619,7 @@ Overview:
 Technical:
 
 - Use MPI wrapper provided by NuMPI (https://github.com/IMTEK-Simulation/NuMPI) for serial calculations.
-- Switch to parallel L-BFGS of NuMPI. 
+- Switch to parallel L-BFGS of NuMPI.
 - Removed Cython dependencies. (Parallel) FFT is now handled by muFFT (https://gitlab.com/muspectre/muspectre).
 - Tests have been partially converted to pytest. Parallel tests are run through run-tests
   (https://github.com/AntoineSIMTEK/runtests).
@@ -620,7 +629,7 @@ v0.32.0 (15Jul19)
 
 - Autocorrelation and power-spectrum updates. Both now have an option 'algorithm' that let's the user select
   between a (fast) FFT and a (slow) brute-force implementation.
-  
+
 v0.31.3 (7Jul19)
 ----------------
 
@@ -650,39 +659,38 @@ Overview:
 - Major API changes and several bug fixes (see below).
 - Added Hardwall simulation tutorial.
 - Added calculation for second derivative and RMS curvature for nonuniform topographies.
-- Added coordination counting for contact patches. 
+- Added coordination counting for contact patches.
 - Simplified computation of perimeter using coordination counting.
 - Started Sphinx documentation with notes how to use the package.
 
 API Changes:
 
-- New API for generating topographies and line scans (height containers) from data, 
+- New API for generating topographies and line scans (height containers) from data,
   please use "from PyCo Topography import Topography, NonlinearLineScan, UniformLineScan" now.
 - New API for building pipelines using methods on height containers, e.g. "topography.scale(2).detrend()".
 - Uniform topographies and line scans can be periodic.
 - Removed unit property from height containers. Units are now stored in the info dictionary,
   which has to be set on generation of the height container.
-- All topographies must have a physical_sizes. Readers use the resolution as the default physical_sizes 
-  if the files contain no physical_sizes information. 
+- All topographies must have a physical_sizes. Readers use the resolution as the default physical_sizes
+  if the files contain no physical_sizes information.
 - Removed 'shape' alias to 'resolution' property for height containers.
 - Size + shape are now always tuples, physical_sizes is also always set as tuple.
-- Topographies can now be pickled and unpickled.  
+- Topographies can now be pickled and unpickled.
 - Replaced class 'Sphere' with generator function 'make_sphere'.
-- Contact with "FreeFFTElasticHalfSpace": 
-  Now an error is raised when points at the outer ring of the surface are interacting. 
+- Contact with "FreeFFTElasticHalfSpace":
+  Now an error is raised when points at the outer ring of the surface are interacting.
   See notebook "examples/Hardwall_Simulation.ipynb".
-  
+
 Bug fixes:
-   
+
 - periodicity was ignored in calculation of the distance between contact patches in `distance_map`
-- computation of energy in fourier space didn't match the computation of energy in real space 
-  (however it is not used in actual simulation)   
+- computation of energy in fourier space didn't match the computation of energy in real space
+  (however it is not used in actual simulation)
 - Removed keyword "full_output" from shift_and_tilt().
 - Text files without spaces at beginning of line can be read now.
 - Enable reading topography data from memory buffers and from binary streams.
 - Calculation of 2D autocorrelation function was broken, e.g. radial average.
 - 1D autocorrelation was broken for nonperiodic calculations.
-
 
 v0.18.0 (31Oct18)
 -----------------
