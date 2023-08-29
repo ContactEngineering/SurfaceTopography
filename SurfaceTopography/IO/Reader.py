@@ -105,6 +105,14 @@ class ChannelInfo:
         else:
             self._tags = tags.copy()
 
+    def __eq__(self, other):
+        # We do not compare tags
+        return self.index == other.index and self.name == other.name and self.dim == other.dim and \
+            self.nb_grid_pts == other.nb_grid_pts and self.physical_sizes == other.physical_sizes and \
+            self.height_scale_factor == other.height_scale_factor and self.is_periodic == other.is_periodic and \
+            self.is_uniform == other.is_uniform and self.has_undefined_data == other.has_undefined_data and \
+            self.unit == other.unit and self.info == other.info
+
     def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
                    subdomain_locations=None, nb_subdomain_grid_pts=None):
         """

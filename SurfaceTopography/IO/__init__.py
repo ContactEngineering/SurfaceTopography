@@ -55,12 +55,14 @@ from .MI import MIReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .PLU import PLUReader
+from .PLUX import PLUXReader
 from .PS import PSReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
 from .SUR import SURReader
 from .VK import VKReader
+from .WSXM import WSXMReader
 from .X3P import X3PReader
 from .ZON import ZONReader
 
@@ -98,6 +100,8 @@ readers = [
     LEXTReader,
     OIRReader,
     POIRReader,
+    WSXMReader,
+    PLUXReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

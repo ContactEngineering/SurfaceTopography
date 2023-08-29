@@ -41,12 +41,12 @@ def make_topography_with_missing_data(file_format_examples):
         if dim == 2:
             if is_nonuniform:
                 raise NotImplementedError("Test not implemented for 2D nonuniform topographies.")
-            fn = 'missing_data_2d.xyz'
+            fn = 'xyz-2.txt'
         elif dim == 1:
             if is_nonuniform:
-                fn = 'missing_data_1d_nonuniform.txt'
+                fn = 'xy-6.txt'
             else:
-                fn = 'missing_data_1d_uniform.txt'
+                fn = 'xy-5.txt'
 
         r = open_topography(os.path.join(file_format_examples, fn))
         topo_kwargs = {}

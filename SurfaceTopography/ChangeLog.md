@@ -1,6 +1,15 @@
 Change log for SurfaceTopography
 ================================
 
+v1.10.0 (29Aug23)
+-----------------
+
+- API: Do not return None as `ChannelInfo` (this was only the GWY reader)
+- ENH: Reader for WSxM (.stp, .top) files
+- ENH: Reader for Sensorfar XML SPM (.plux) files
+- BUG: Fixed loading of non-square Gwyddion (.gwy) files
+- MAINT: More robust XY (line scan) and XYZ reader
+
 v1.9.0 (28Aug23)
 ----------------
 

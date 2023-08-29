@@ -304,7 +304,7 @@ def test_self_affine_nonuniform_autocorrelation():
 
 
 def test_brute_force_vs_fft(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-1.txt'))
     r, A = t.detrend().autocorrelation_from_profile()
     m = np.isfinite(A)
     r = r[m]

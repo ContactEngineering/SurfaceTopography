@@ -45,6 +45,7 @@ from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlready
 from SurfaceTopography.IO import readers, detect_format
 from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
+from SurfaceTopography.IO.Reader import ChannelInfo
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
 pytestmark = pytest.mark.skipif(
@@ -117,6 +118,9 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'datx-1.datx',
                                               'oir-1.oir',
                                               'poir-1.poir',
+                                              'stp-1.stp',
+                                              'top-1.top',
+                                              'plux-1.plux',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -125,29 +129,34 @@ binary_without_stream_support_example_file_list = _convert_filelist([
 ])
 
 text_example_file_list = _convert_filelist([
-    'example1.txt',
-    'example2.txt',
-    'example3.txt',
-    'example4.txt',
-    'example5.txt',
-    'example8.txt',
+    'matrix-1.txt',
+    'matrix-2.txt',
+    'matrix-3.txt',
+    'matrix-4.txt',
+    'matrix-5.txt',
+    'matrix-6.txt',
     # example8: from the reader's docstring, with extra newline at end
-    'opdx1.txt',
-    'opdx2.txt',
-    'opdx3.txt',
-    'example-2d.xyz',
+    'matrix-7.txt',
+    'opdx-2.txt',
+    'opdx-3.txt',
+    'xyz-1.txt',
+    'xyz-2.txt',
     'hfm-1.hfm',
     # Not yet working
-    # 'example6.txt',
+    # 'not-yet-working-1.txt',
 ])
 
 text_example_without_size_file_list = _convert_filelist([
-    'example.xyz',
-    'line_scan_1_minimal_spaces.asc',
+    'xy-1.txt',
+    'xy-2.txt',
+    'xy-3.txt',
+    'xy-4.txt',
+    'xy-5.txt',
+    # 'xy-6.txt', # This has NaNs, which means equality tests fail
 ])
 
 explicit_physical_sizes = _convert_filelist([
-    'example5.txt',
+    'matrix-5.txt',
     'mat-1.mat',
     'example-2d.npy'
 ])
@@ -183,7 +192,7 @@ def test_no_resource_warning_on_failure(reader, file_format_examples):
 
 
 def test_uniform_stylus(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example7.txt'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-4.txt'))
     assert t.is_uniform
 
 
@@ -364,9 +373,13 @@ def test_channel_info_and_topography_have_same_metadata(fn):
 
     reader = open_topography(fn)
 
-    for channel in reader.channels:
-        if channel is None:
-            continue
+    for index, channel in enumerate(reader.channels):
+        # some basic consistency checks
+        assert isinstance(channel, ChannelInfo)
+        assert channel.index == index
+        assert reader.channels[index] == channel
+
+        # check number of grid points
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
@@ -533,11 +546,11 @@ def test_file_format_mismatch(file_format_examples):
 
 
 def test_line_scan_detect_format_then_read(file_format_examples):
-    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-3.txt')) == 'xyz'
 
 
 def test_line_scan_read(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc'))
+    surface = read_xyz(os.path.join(file_format_examples, 'xy-3.txt'))
 
     assert not surface.is_uniform
     assert surface.dim == 1
@@ -626,9 +639,10 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'mat-1.mat')) == 'mat'
-    assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
-    assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
-    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-1.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-2.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xyz-1.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-3.txt')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'zon-1.zon')) == 'zon'
@@ -650,6 +664,9 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
     assert detect_format(os.path.join(file_format_examples, 'oir-1.oir')) == 'oir'
     assert detect_format(os.path.join(file_format_examples, 'poir-1.poir')) == 'poir'
+    assert detect_format(os.path.join(file_format_examples, 'stp-1.stp')) == 'wsxm'
+    assert detect_format(os.path.join(file_format_examples, 'top-1.top')) == 'wsxm'
+    assert detect_format(os.path.join(file_format_examples, 'plux-1.plux')) == 'plux'
 
 
 def test_to_matrix():

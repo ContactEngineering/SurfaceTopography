@@ -198,7 +198,7 @@ def test_uniform_unit_conversion():
 
 
 def test_nonuniform_scaled_topography(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    surf = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
     sx, = surf.physical_sizes
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
@@ -223,7 +223,7 @@ def test_nonuniform_scaled_topography(file_format_examples):
 
 
 def test_nonuniform_unit_conversion(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'), unit='um')
+    surf = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'), unit='um')
     assert surf.unit == 'um'
 
     surf2 = surf.to_unit('mm')
