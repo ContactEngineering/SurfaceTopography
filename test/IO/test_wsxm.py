@@ -70,6 +70,7 @@ def test_stp_metadata(file_format_examples):
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1.654156, rtol=1e-6)
 
+
 def test_top_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'top-1.top')
 

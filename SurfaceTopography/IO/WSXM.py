@@ -27,7 +27,6 @@ import os
 # http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
 #
 
-import re
 import dateutil.parser
 
 import numpy as np
@@ -35,7 +34,7 @@ import numpy as np
 from .common import OpenFromAny
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 
 from .Reader import ReaderBase, ChannelInfo
 
@@ -86,7 +85,7 @@ scanning probe microscopy available at http://www.wsxm.eu/.
                 raise CorruptFile("This WSxM file appear corrupted, because the third line does not start with "
                                   f"'{_IMAGE_HEADER_SIZE}'.")
 
-            image_header_size = int(L[len(_IMAGE_HEADER_SIZE):])
+            # image_header_size = int(L[len(_IMAGE_HEADER_SIZE):])
 
             metadata = {}
             section_name = None
