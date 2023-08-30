@@ -25,6 +25,9 @@
 # SOFTWARE.
 #
 
+# Reference information and implementations:
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/lextfile.c
+
 from collections import namedtuple
 
 import dateutil.parser
@@ -40,6 +43,8 @@ MAGIC = b'VCA DATA\x01\x00\x00\x55'
 
 DEKTAK_MATRIX = 0x00  # Too lazy to assign an actual type id?
 DEKTAK_BOOLEAN = 0x01  # Takes value 0 and 1
+DEKTAK_SINT16 = 0x04
+DEKTAK_UINT16 = 0x05
 DEKTAK_SINT32 = 0x06
 DEKTAK_UINT32 = 0x07
 DEKTAK_SINT64 = 0x0a
@@ -316,7 +321,8 @@ def _read_item(stream, manifest, prefix='', offset=0):
         try:
             t = _item_readers[typeid]
         except KeyError:
-            raise ValueError(f"Don't know how to read type with id {typeid}.")
+            raise ValueError(f"Don't know how to read type with id {typeid}. This occured at stream position "
+                             f"{stream.tell()}.")
         if isinstance(t, str):
             data = _read_scalar(stream, t)
         else:
@@ -510,6 +516,8 @@ def _read_matrix(stream):
 _item_readers = {
     DEKTAK_MATRIX: _read_matrix,
     DEKTAK_BOOLEAN: '?',
+    DEKTAK_SINT16: '<i2',
+    DEKTAK_UINT16: '<u2',
     DEKTAK_SINT32: '<i4',
     DEKTAK_UINT32: '<u4',
     DEKTAK_SINT64: '<i8',

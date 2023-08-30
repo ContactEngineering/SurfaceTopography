@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.10.1 (30Aug23)
+-----------------
+
+- BUG: Support for Dektak OPDx 16-bit integer values 
+
 v1.10.0 (29Aug23)
 -----------------
 
