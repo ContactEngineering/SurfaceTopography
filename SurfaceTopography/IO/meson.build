@@ -16,6 +16,7 @@ python_sources = [
     'GWY.py',
     'H5.py',
     'IBW.py',
+    'JPK.py',
     'LEXT.py',
     'Matlab.py',
     'MI.py',
