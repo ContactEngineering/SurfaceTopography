@@ -4,7 +4,7 @@ Change log for SurfaceTopography
 v1.11.0 (not yet released)
 --------------------------
 
-ENH: Reader for JPK (.jpk) files
+- ENH: Reader for JPK (.jpk) files
 
 v1.10.1 (30Aug23)
 -----------------
