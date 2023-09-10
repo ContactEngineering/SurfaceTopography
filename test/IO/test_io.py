@@ -27,6 +27,7 @@
 
 import io
 import json
+import numbers
 import os
 import pickle
 import tempfile
@@ -121,6 +122,7 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'stp-1.stp',
                                               'top-1.top',
                                               'plux-1.plux',
+                                              'jpk-1.jpk',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -513,6 +515,29 @@ def test_reader_height_scale_factor_arg_for_topography(fn):
 
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+def test_info_dict_has_no_nans_and_no_tuples(fn):
+    """Check that readers don't return NaNs and no tuples as those don't serialize correctly to JSON"""
+    if fn in explicit_physical_sizes:
+        t = read_topography(fn, physical_sizes=(1, 1))
+    else:
+        t = read_topography(fn)
+
+    def assert_no_nans_and_no_tuples(d):
+        if isinstance(d, dict):
+            for key, value in d.items():
+                assert_no_nans_and_no_tuples(value)
+        elif isinstance(d, list):
+            for value in d:
+                assert_no_nans_and_no_tuples(value)
+        elif isinstance(d, numbers.Number):
+            assert d == d
+        else:
+            assert not isinstance(d, tuple)
+
+    assert_no_nans_and_no_tuples(t.info)
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_to_netcdf(fn):
     """Test that files can be stored as NetCDF and that reading then gives
     an identical topography object"""
@@ -524,6 +549,7 @@ def test_to_netcdf(fn):
         tmpfn = f'{d}/netcdf_representation.nc'
         t.to_netcdf(tmpfn)
         t2 = read_topography(tmpfn)
+        assert t.info == t2.info  # We check the info dictionary separately as this is often a source of issues
         assert t == t2
 
 
@@ -667,6 +693,7 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'stp-1.stp')) == 'wsxm'
     assert detect_format(os.path.join(file_format_examples, 'top-1.top')) == 'wsxm'
     assert detect_format(os.path.join(file_format_examples, 'plux-1.plux')) == 'plux'
+    assert detect_format(os.path.join(file_format_examples, 'jpk-1.jpk')) == 'jpk'
 
 
 def test_to_matrix():
