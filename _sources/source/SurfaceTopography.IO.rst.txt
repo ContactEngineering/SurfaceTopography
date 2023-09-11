@@ -92,6 +92,14 @@ SurfaceTopography.IO.IBW module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.JPK module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.JPK
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.LEXT module
 --------------------------------
 
