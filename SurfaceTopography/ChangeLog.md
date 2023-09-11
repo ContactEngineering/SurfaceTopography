@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.11.0 (11Sep23)
+-----------------
+
+- ENH: Reader for JPK (.jpk) files
+- BUG: Mask missing data point in DATX files
+
 v1.10.1 (30Aug23)
 -----------------
 

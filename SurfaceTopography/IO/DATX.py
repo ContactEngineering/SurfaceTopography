@@ -23,6 +23,9 @@
 # SOFTWARE.
 #
 
+# Reference information and implementations:
+# https://gist.github.com/g-s-k/ccffb1e84df065a690e554f4b40cfd3a
+
 import h5py
 import numpy as np
 
@@ -39,7 +42,7 @@ class DATXReader(ReaderBase):
 
     _name = 'Zygo DATX'
     _description = '''
-Import filter for Zygo DATX, and HDF5-based format.
+Import filter for Zygo DATX, an HDF5-based format.
     '''  # noqa: E501
 
     def __init__(self, fobj):
@@ -115,11 +118,6 @@ Import filter for Zygo DATX, and HDF5-based format.
                 meters_to_unit = get_unit_conversion_factor('m', self._unit)
                 self._physical_sizes = (physical_sizes_x * meters_to_unit, physical_sizes_y * meters_to_unit)
 
-                # print(self._no_data)
-                # print(self._unit)
-                # print(x_converter)
-                # print(y_converter)
-                # print(z_converter)
         except OSError:
             # This is not an HDF5 file
             raise FileFormatMismatch('Cannot read Zygo DATX. The file is not an HDF5 container.')
@@ -162,7 +160,12 @@ Import filter for Zygo DATX, and HDF5-based format.
         _info.update(info)
 
         with h5py.File(self._fobj, 'r') as h5:
-            t = Topography(np.array(h5[self._surface_path]), self._physical_sizes, unit=self._unit, info=_info,
+            raw_data = np.array(h5[self._surface_path])
+            mask = raw_data == self._no_data
+            if mask.sum() > 0:
+                # We need to mask this array
+                raw_data = np.ma.masked_array(raw_data, mask=mask)
+            t = Topography(raw_data, self._physical_sizes, unit=self._unit, info=_info,
                            periodic=periodic)
 
         return t.scale(1)
