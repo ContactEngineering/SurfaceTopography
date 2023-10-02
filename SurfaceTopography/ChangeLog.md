@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.11.1 (not yet released)
+--------------------------
+
+- BUG: DI and MI readers reported channels without height information
+
 v1.11.0 (11Sep23)
 -----------------
 
