@@ -29,7 +29,7 @@ import numpy as np
 
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import mangle_length_unit_utf8
+from ..Support.UnitConversion import mangle_length_unit_utf8, is_length_unit
 
 from .common import OpenFromAny
 from .Reader import ReaderBase, ChannelInfo
@@ -196,7 +196,9 @@ well as its units.
                             uniform=True,
                             unit=channel.unit,
                             info={'raw_metadata': {**self.mifile.meta, **channel.meta}})
-                for i, channel in enumerate(self.mifile.channels)]
+                for i, channel in enumerate([c for c in self.mifile.channels
+                                             if c.unit is None or is_length_unit(c.unit)])
+                ]
 
     @property
     def info(self):
