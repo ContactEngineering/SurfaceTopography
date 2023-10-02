@@ -48,6 +48,7 @@ from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
 from SurfaceTopography.IO.Reader import ChannelInfo
 from SurfaceTopography.UniformLineScanAndTopography import Topography
+from SurfaceTopography.Support.UnitConversion import is_length_unit
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -330,6 +331,17 @@ def test_reader_arguments(fn):
         assert t.height_scale_factor == height_scale_factor
     assert t.info == info
 
+
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list +
+                         binary_without_stream_support_example_file_list)
+def test_all_channels_have_length_units(fn):
+    """Check whether all readers have channel, physical_sizes, height_scale_factor
+    and unit arguments. Also check whether we can execute `topography` multiple times
+    for all readers"""
+    # Test open -> topography
+    r = open_topography(fn)
+    for channel in r.channels:
+        assert channel.unit is None or is_length_unit(channel.unit), channel.unit
 
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_readers_with_binary_file_object(fn):
