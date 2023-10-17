@@ -69,6 +69,12 @@ The reader supports V4.3 and later version of the format.
         """
         self._file_path = file_path
         with OpenFromAny(self._file_path, 'rb') as fobj:
+            # Get file size
+            pos = fobj.tell()
+            fobj.seek(0, 2)
+            file_size = fobj.tell()
+            fobj.seek(pos)
+
             parameters = []
             section_name = None
             section_dict = {}
@@ -204,16 +210,9 @@ The reader supports V4.3 and later version of the format.
                                         tags={'elsize': elsize})
                         ]
 
-            # Check that all channels can be read
-            fobj.seek(0, 2)
-            file_size = fobj.tell()
-            for channel in self._channels:
-                offset = self._offsets[channel.index]
-                # We seek to the end of the data buffer, this should not raise an exception
-                nx, ny = channel.nb_grid_pts
-                elsize = channel.tags['elsize']
-                if offset + nx * ny * elsize > file_size:
-                    raise CorruptFile('File is not large enough to contain all data buffers.')
+                    # We seek to the end of the data buffer, this should not raise an exception
+                    if offset + nx * ny * elsize > file_size:
+                        raise CorruptFile('File is not large enough to contain all data buffers.')
 
     @property
     def channels(self):
