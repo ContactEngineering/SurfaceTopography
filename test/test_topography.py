@@ -536,13 +536,21 @@ class diSurfaceTest(unittest.TestCase):
         # All units are nm
         for (fn, n, s, rmslist) in [
             ('di-1.di', 512, 500.0, [(9.9459868005603909, "Height"),
-                                     (114.01328027385664, "Height")]),
+                                     (114.01328027385664, "Height"),
+                                     (None, "Phase"),
+                                     (None, "AmplitudeError")]),
             ('di-2.di', 512, 300.0, [(24.721922008645919, "Height"),
                                      (24.807150576054838, "Height"),
                                      (0.13002312109876774, "Deflection")]),
             ('di-3.di', 256, 10000.0, [(226.42539668457405, "ZSensor"),
-                                       (12.168133781539698, "Height")]),
-            ('di-4.di', 512, 10000.0, [(81.622909804184744, "ZSensor")])
+                                       (None, "AmplitudeError"),
+                                       (None, "Phase"),
+                                       (264.00285276203158, "Height")]),
+            # Height
+            ('di-4.di', 512, 10000.0,
+             [(81.622909804184744, "ZSensor"),  # ZSensor
+              (0.83011806260022758, "AmplitudeError"),  # AmplitudeError
+              (None, "Phase")])  # Phase
         ]:
             reader = open_topography(os.path.join(DATADIR, '{}').format(fn),
                                      format="di")

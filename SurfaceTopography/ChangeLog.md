@@ -4,7 +4,6 @@ Change log for SurfaceTopography
 v1.11.1 (17Oct23)
 -----------------
 
-- BUG: DI and MI readers reported channels without height information
 - BUG: HGT, NC and VK readers returned integer `physical_sizes`
 - MAINT: Flipped MetroPro images, #332
 

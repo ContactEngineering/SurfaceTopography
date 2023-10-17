@@ -196,8 +196,7 @@ well as its units.
                             uniform=True,
                             unit=channel.unit,
                             info={'raw_metadata': {**self.mifile.meta, **channel.meta}})
-                for i, channel in enumerate([c for c in self.mifile.channels
-                                             if c.unit is None or is_length_unit(c.unit)])
+                for i, channel in enumerate(self.mifile.channels)
                 ]
 
     @property

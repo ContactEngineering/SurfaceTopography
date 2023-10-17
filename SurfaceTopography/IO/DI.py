@@ -37,7 +37,7 @@ import numpy as np
 from .common import OpenFromAny
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor, length_units, mangle_length_unit_utf8
+from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit, mangle_length_unit_utf8
 
 from .Reader import ReaderBase, ChannelInfo
 
@@ -179,36 +179,38 @@ The reader supports V4.3 and later version of the format.
                                                          soft_unit,
                                                          image_data_key))
                     # We only report channels with height information
-                    if height_unit in length_units:
+                    height_scale_factor = None
+                    if is_length_unit(height_unit):
                         height_unit = mangle_length_unit_utf8(height_unit)
                         if xy_unit != height_unit:
-                            fac = get_unit_conversion_factor(xy_unit,
-                                                             height_unit)
+                            fac = get_unit_conversion_factor(xy_unit, height_unit)
                             sx *= fac
                             sy *= fac
                         unit = height_unit
 
                         height_scale_factor = hard_scale * hard_to_soft * soft_scale * binary_scale
+                    else:
+                        unit = (xy_unit, height_unit)
 
-                        if 'microscope' in equipment:
-                            info['instrument'] = {'name': equipment['microscope']}
-                        elif 'description' in equipment:
-                            info['instrument'] = {'name': equipment['description']}
+                    if 'microscope' in equipment:
+                        info['instrument'] = {'name': equipment['microscope']}
+                    elif 'description' in equipment:
+                        info['instrument'] = {'name': equipment['description']}
 
-                        self._channels += [
-                            ChannelInfo(self,
-                                        len(self._channels),
-                                        name=image_data_key,
-                                        dim=2,
-                                        nb_grid_pts=(nx, ny),
-                                        physical_sizes=(sx, sy),
-                                        height_scale_factor=height_scale_factor,
-                                        periodic=False,
-                                        uniform=True,
-                                        unit=unit,
-                                        info=info,
-                                        tags={'elsize': elsize})
-                        ]
+                    self._channels += [
+                        ChannelInfo(self,
+                                    len(self._channels),
+                                    name=image_data_key,
+                                    dim=2,
+                                    nb_grid_pts=(nx, ny),
+                                    physical_sizes=(sx, sy),
+                                    height_scale_factor=height_scale_factor,
+                                    periodic=False,
+                                    uniform=True,
+                                    unit=unit,
+                                    info=info,
+                                    tags={'elsize': elsize})
+                    ]
 
                     # We seek to the end of the data buffer, this should not raise an exception
                     if offset + nx * ny * elsize > file_size:
