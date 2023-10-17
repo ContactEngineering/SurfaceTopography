@@ -1,10 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
-v1.11.1 (not yet released)
---------------------------
+v1.11.1 (17Oct23)
+-----------------
 
 - BUG: DI and MI readers reported channels without height information
+- BUG: HGT, NC and VK readers returned integer `physical_sizes`
 
 v1.11.0 (11Sep23)
 -----------------
