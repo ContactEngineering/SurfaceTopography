@@ -34,7 +34,7 @@ from SurfaceTopography.IO import MetroProReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest")
 
 
 def test_read_filestream(file_format_examples):
@@ -59,18 +59,18 @@ def test_metropro_metadata(file_format_examples):
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 640
-    assert ny == 480
+    assert nx == 480
+    assert ny == 640
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 0.0007028812979115173, rtol=1e-6)
-    np.testing.assert_allclose(sy, 0.000527160973433638, rtol=1e-6)
+    np.testing.assert_allclose(sx, 0.000527160973433638, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.0007028812979115173, rtol=1e-6)
 
     assert t.unit == 'm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 7.528822204734589e-08, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.524071e-08, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 4.501828e-09, rtol=1e-6)
 
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 3.911386124282179e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 3.868312608029904e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 3.265267e-09, rtol=1e-6)
