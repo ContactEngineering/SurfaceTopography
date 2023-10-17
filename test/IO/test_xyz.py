@@ -102,6 +102,7 @@ def test_hfm_metadata(file_format_examples):
     t = t.detrend('curvature')
     assert_allclose(t.rms_height_from_profile(), 0.000138, rtol=1e-3)
 
+
 def test_unit_1d(file_format_examples):
     r = XYZReader(os.path.join(file_format_examples, 'xy-1.txt'))
     assert r.channels[0].unit is None
