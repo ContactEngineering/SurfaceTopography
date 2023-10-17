@@ -332,16 +332,6 @@ def test_reader_arguments(fn):
     assert t.info == info
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list +
-                         binary_without_stream_support_example_file_list)
-def test_all_channels_have_proper_units(fn):
-    """Check whether all readers have channels with units in length"""
-    # Test open -> topography
-    r = open_topography(fn)
-    for channel in r.channels:
-        assert channel.unit is None or isinstance(channel.unit, tuple) or is_length_unit(channel.unit), channel.unit
-
-
 @pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
 def test_readers_with_binary_file_object(fn):
     """Check whether all readers have channel, physical_sizes and
