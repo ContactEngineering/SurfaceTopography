@@ -48,7 +48,6 @@ from SurfaceTopography.IO.common import is_binary_stream
 from SurfaceTopography.IO.Text import read_matrix, read_xyz
 from SurfaceTopography.IO.Reader import ChannelInfo
 from SurfaceTopography.UniformLineScanAndTopography import Topography
-from SurfaceTopography.Support.UnitConversion import is_length_unit
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
