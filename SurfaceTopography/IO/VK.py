@@ -234,8 +234,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
             raise CorruptFile('Reported item size is {} bits, expected 8, 16 or 32 bits.'
                               .format(self._data['itemsize']))
 
-        self._physical_sizes = ((self._data['width'] - 1) * self._header['x_length_per_pixel'],
-                                (self._data['height'] - 1) * self._header['y_length_per_pixel'])
+        self._physical_sizes = (float(self._data['width'] - 1) * self._header['x_length_per_pixel'],
+                                float(self._data['height'] - 1) * self._header['y_length_per_pixel'])
         self._unit = 'pm'
 
         self._info = {

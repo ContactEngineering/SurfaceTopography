@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.11.1 (18Oct23)
+-----------------
+
+- BUG: HGT, NC and VK readers returned integer `physical_sizes`
+- MAINT: Flipped MetroPro images, #332
+
 v1.11.0 (11Sep23)
 -----------------
 

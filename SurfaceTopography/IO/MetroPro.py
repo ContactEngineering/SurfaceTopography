@@ -324,8 +324,8 @@ This reader imports Zygo MetroPro data files.
                 self._header.update(header)
 
             # Check that file size is large enough to hold data
-            ac_nb_pixels = self._header['ac_org_width'] * self._header['ac_org_height']
-            nx, ny = self._header['cn_org_width'], self._header['cn_org_height']
+            ac_nb_pixels = self._header['ac_org_height'] * self._header['ac_org_width']
+            nx, ny = self._header['cn_org_height'], self._header['cn_org_width']
             cn_nb_pixels = nx * ny
             self._data_offset = \
                 self._header['header_size'] + \
@@ -361,7 +361,7 @@ This reader imports Zygo MetroPro data files.
 
         nx, ny = self._nb_grid_pts
         buffer = f.read(nx * ny * dtype.itemsize)
-        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx)).T
+        data = np.frombuffer(buffer, dtype=dtype).reshape((nx, ny))
         mask = data >= 2147483640
         if mask.sum() > 0:
             return np.ma.masked_array(data, mask=mask)

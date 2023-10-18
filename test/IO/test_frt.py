@@ -90,9 +90,9 @@ def test_frt2_metadata(file_format_examples):
     assert nx == 150
     assert ny == 300
 
-    import matplotlib.pyplot as plt
-    t.plot()
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # t.plot()
+    # plt.show()
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 0.03, rtol=1e-6)

@@ -343,8 +343,16 @@ def test_readers_with_binary_file_object(fn):
     physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=None)
+    assert t.dim == len(t.physical_sizes)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if t.dim == 2:
+        sx, sy = t.physical_sizes
+        assert isinstance(sx, float) or isinstance(sx, np.float64)
+        assert isinstance(sy, float) or isinstance(sy, np.float64)
+    else:
+        sx, = t.physical_sizes
+        assert isinstance(sx, float) or isinstance(sx, np.float64)
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
                       height_scale_factor=None)

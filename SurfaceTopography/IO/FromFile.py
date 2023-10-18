@@ -159,7 +159,8 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
                        count=dim * dim).reshape((dim, dim))
 
     if physical_sizes is None:
-        topography = Topography(data, physical_sizes=data.shape, unit=unit, info=info, periodic=periodic)
+        topography = Topography(data, physical_sizes=tuple(float(x) for x in data.shape), unit=unit, info=info,
+                                periodic=periodic)
     else:
         topography = Topography(data, physical_sizes=physical_sizes, unit=unit, info=info, periodic=periodic)
     if height_scale_factor is not None:

@@ -177,13 +177,13 @@ plt.show()
             if self._y_var is not None:
                 # ...and it is 2D
                 try:
-                    self._physical_sizes = (self._x_var.length, self._y_var.length)
+                    self._physical_sizes = (float(self._x_var.length), float(self._y_var.length))
                 except AttributeError:
                     pass
             else:
                 # ...and it is 1D (a line scan)
                 try:
-                    self._physical_sizes = (self._x_var.length,)
+                    self._physical_sizes = (float(self._x_var.length),)
                 except AttributeError:
                     pass
 
