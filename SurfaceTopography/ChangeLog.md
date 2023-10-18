@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 ================================
 
-v1.11.1 (17Oct23)
+v1.11.1 (18Oct23)
 -----------------
 
 - BUG: HGT, NC and VK readers returned integer `physical_sizes`
