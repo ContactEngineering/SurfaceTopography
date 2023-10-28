@@ -48,7 +48,8 @@ class _ReadTopography(object):
             physical_sizes=self._kwargs['physical_sizes'],
             periodic=self._kwargs['periodic'],
             unit=self._kwargs['unit'],
-            info=self._kwargs['info']
+            info=self._kwargs['info'],
+            channel_index=self._kwargs['channel_index']
         )
 
         # We need to reconstruct the pipeline if the data file does
@@ -177,6 +178,7 @@ class CEReader(ContainerReaderBase):
                                         unit=unit,
                                         info=info,
                                         datafile_key=datafile_key,
+                                        channel_index=data_source,
                                         topo_meta=topo_meta)
                     ]
 

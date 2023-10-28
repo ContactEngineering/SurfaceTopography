@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.11.2 (28Oct23)
+-----------------
+
+- BUG: Honor `data_source` when reading contact.engineering containers
+
 v1.11.1 (18Oct23)
 -----------------
 
