@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.11.2 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.11.2.dev2+g5f56507d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=87544687"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=d79af68b"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -35,7 +35,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.11.2
+                1.11.2.dev2+g5f56507d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -878,10 +878,8 @@ typically occurs in optical measurements.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Integration.integrate_psd">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">integrate_psd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.integrate_psd" title="Permalink to this definition"></a></dt>
-<dd><p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{(</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">}</span> \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">dq_y</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span>
-</pre></div>
-</div>
+<dd><div class="math notranslate nohighlight">
+\[m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y factor(q_x, q_y) C^{2D}(q_x, q_y)\]</div>
 <p>Discrete</p>
 <blockquote>
 <div><p><a href="#id17"><span class="problematic" id="id18">m_</span></a>alpha = frac{1}{L_x L_y} sum_{q_x, q_y} factor(q_x, q_y) C^{2D}_{q_x, q_y}</p>
@@ -918,15 +916,11 @@ typically occurs in optical measurements.</p>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">integrate_psd_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor=&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable=True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.integrate_psd_from_profile" title="Permalink to this definition"></a></dt>
 <dd><p>Computes the integral of the 1D PSD weighted by “factor”</p>
 <p>Continuum:</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)\]</div>
 <p>Discrete</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_x</span><span class="p">}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}\]</div>
 <section id="id8">
 <h3>Parameters:<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
 <blockquote>
@@ -957,24 +951,18 @@ typically occurs in optical measurements.</p>
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Integration.</span></span><span class="sig-name descname"><span class="pre">moment_power_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Integration.moment_power_spectrum" title="Permalink to this definition"></a></dt>
 <dd><p>Computes</p>
 <p>For 2D Topographies, continuum:</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{(</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="p">}</span> \<span class="n">int_</span><span class="p">{</span><span class="o">-</span>\<span class="n">infty</span><span class="p">}</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">dq_y</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">,</span> <span class="n">q_y</span><span class="p">)</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y |q|^{\alpha} C^{2D}(q_x, q_y)\]</div>
 <p>Discrete</p>
 <blockquote>
 <div><p><a href="#id19"><span class="problematic" id="id20">m_</span></a>alpha = frac{1}{L_x L_y} sum_{q_x, q_y} <a href="#id10"><span class="problematic" id="id11">|</span></a>q|^{alpha} C^{2D}_{q_x, q_y}</p>
 </div></blockquote>
 <p>For line scans, continuum:</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)\]</div>
 <p>Discrete</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_x</span><span class="p">}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> <span class="o">|</span><span class="n">q</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}\]</div>
 <section id="id12">
 <h3>Parameters:<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
 <blockquote>

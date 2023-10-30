@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.11.2 documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.11.2.dev2+g5f56507d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=87544687"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=d79af68b"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -36,7 +36,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.11.2
+                1.11.2.dev2+g5f56507d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -259,10 +259,8 @@ see the methods <cite>integrate_psd</cite> of the topographies and the container
 <dt class="sig sig-object py" id="SurfaceTopography.Generic.Moments.compute_1d_moment">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Moments.</span></span><span class="sig-name descname"><span class="pre">compute_1d_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Moments.compute_1d_moment" title="Permalink to this definition"></a></dt>
 <dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span></p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="nb">int</span> <span class="n">dx</span> <span class="n">y</span> <span class="n">x</span><span class="o">^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \int dx y x^{\alpha}\]</div>
 <p>using trapezoidal interpolation of the integrand</p>
 <section id="parameters">
 <h3>Parameters:<a class="headerlink" href="#parameters" title="Permalink to this heading"></a></h3>
@@ -294,10 +292,8 @@ see the methods <cite>integrate_psd</cite> of the topographies and the container
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.Moments.</span></span><span class="sig-name descname"><span class="pre">compute_iso_moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumulative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.Moments.compute_iso_moment" title="Permalink to this definition"></a></dt>
 <dd><p>Computes the moment of order <span class="math notranslate nohighlight">\(\alpha\)</span> of the 2D isotropic funtion <span class="math notranslate nohighlight">\(y_{2D}(x)\)</span></p>
 <p><span class="math notranslate nohighlight">\(y\)</span> is the 1D representation of the isotropic function <span class="math notranslate nohighlight">\(y_{2D}(x_1, x_2) = y(|\vec x|)\)</span></p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="nb">int</span> <span class="n">dx_1</span> <span class="n">dx_2</span> <span class="n">y_</span><span class="p">{</span><span class="mi">2</span><span class="n">D</span><span class="p">}(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">x_2</span><span class="p">)</span> <span class="o">|</span>\<span class="n">vec</span>  <span class="n">x</span><span class="o">|^</span><span class="p">{</span>\<span class="n">alpha</span><span class="p">}</span> <span class="o">=</span> <span class="mi">2</span>\<span class="n">pi</span> \<span class="nb">int</span> <span class="n">dx</span> <span class="n">y</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span><span class="o">^</span><span class="p">{</span>\<span class="n">alpha</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}\]</div>
 <p>using trapezoidal interpolation of the integrand</p>
 <section id="id1">
 <h3>Parameters:<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>

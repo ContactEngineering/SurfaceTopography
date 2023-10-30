@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.11.2 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.11.2.dev2+g5f56507d documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=87544687"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=d79af68b"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -36,7 +36,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.11.2
+                1.11.2.dev2+g5f56507d
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -260,15 +260,11 @@ arguments for progress reporting. (Default: None)</p></li>
 <p>Hence for a container containing only one topogaphy,
 this method is identical to calling <cite>topography.integrate_psd_from_profile()</cite></p>
 <p>Continuum:</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="mi">2</span> \<span class="n">pi</span><span class="p">}</span> \<span class="n">int_0</span><span class="o">^</span>\<span class="n">infty</span> <span class="n">dq_x</span> <span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)\]</div>
 <p>Discrete</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">m_</span>\<span class="n">alpha</span> <span class="o">=</span> \<span class="n">sum_i</span> \<span class="n">frac</span><span class="p">{</span><span class="mi">1</span><span class="p">}{</span><span class="n">L_</span><span class="p">{</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">}}</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">q_x</span><span class="p">}</span> \<span class="n">frac</span><span class="p">{</span><span class="n">factor</span><span class="p">(</span><span class="n">q_x</span><span class="p">)</span> <span class="n">C</span><span class="o">^</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">i</span><span class="p">}(</span><span class="n">q_x</span><span class="p">)}{</span><span class="n">N</span><span class="p">(</span><span class="n">q_x</span><span class="p">)}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[m_\alpha = \sum_i \frac{1}{L_{x, i}} \sum_{q_x} \frac{factor(q_x) C^{1D}_{i}(q_x)}{N(q_x)}\]</div>
 <p>Where the index <span class="math notranslate nohighlight">\(i\)</span> runs over all topographies and <span class="math notranslate nohighlight">\(N(q_x)\)</span> is the number
 of topographies having the wavevector <cite>q_x</cite> in their bandwidth</p>
 <section id="parameters">
@@ -300,10 +296,8 @@ of topographies having the wavevector <cite>q_x</cite> in their bandwidth</p>
 <dd><p>trapz integration of the moments of the averaged isotropic PSD.</p>
 <p>Containers only implement the 1D power-spectrum, so that we use the approximation mapping
 the 1d PSD to the isotropic PSD</p>
-<p>..math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="o">^</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">iso</span><span class="p">}</span> <span class="o">=</span> \<span class="n">frac</span><span class="p">{</span>\<span class="n">pi</span><span class="p">}{</span><span class="n">q</span><span class="p">}</span> <span class="n">C</span><span class="o">^</span>\<span class="n">mathrm</span><span class="p">{</span><span class="mi">1</span><span class="n">D</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[C^\mathrm{iso} = \frac{\pi}{q} C^\mathrm{1D}\]</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
