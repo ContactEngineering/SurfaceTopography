@@ -58,13 +58,13 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
     Continuum:
 
-    ..math::
+    .. math::
 
         \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
 
     Discrete
 
-    ..math::
+    .. math::
 
          m_\alpha = \sum_i \frac{1}{L_{x, i}} \sum_{q_x} \frac{factor(q_x) C^{1D}_{i}(q_x)}{N(q_x)}
 
@@ -119,7 +119,7 @@ def ciso_moment(self, order=1, cumulative=False, **kwargs):
     Containers only implement the 1D power-spectrum, so that we use the approximation mapping
     the 1d PSD to the isotropic PSD
 
-    ..math::
+    .. math::
 
         C^\mathrm{iso} = \frac{\pi}{q} C^\mathrm{1D}
 
