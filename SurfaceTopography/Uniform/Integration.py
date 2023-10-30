@@ -7,7 +7,7 @@ from ..HeightContainer import UniformTopographyInterface
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     r"""
 
-    ..math::
+    .. math::
 
         m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y factor(q_x, q_y) C^{2D}(q_x, q_y)
 
@@ -69,13 +69,13 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
     Continuum:
 
-    ..math::
+    .. math::
 
         \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
 
     Discrete
 
-    ..math::
+    .. math::
 
          m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}
 
@@ -138,7 +138,7 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
 
     For 2D Topographies, continuum:
 
-    ..math::
+    .. math::
 
         m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y |q|^{\alpha} C^{2D}(q_x, q_y)
 
@@ -148,13 +148,13 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
 
     For line scans, continuum:
 
-    ..math::
+    .. math::
 
         \frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
 
     Discrete
 
-    ..math::
+    .. math::
 
          m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}
 

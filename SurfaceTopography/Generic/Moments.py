@@ -24,7 +24,7 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
 
     Computes the moment of order :math:`\alpha`
 
-    ..math::
+    .. math::
 
         m_\alpha = \int dx y x^{\alpha}
 
@@ -59,7 +59,7 @@ def compute_iso_moment(x, y, order=1, cumulative=False):
 
         :math:`y` is the 1D representation of the isotropic function :math:`y_{2D}(x_1, x_2) = y(|\vec x|)`
 
-        ..math::
+        .. math::
 
             m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}
 
