@@ -36,6 +36,7 @@ import warnings
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+from scipy.io.netcdf import netcdf_file
 
 import NuMPI
 from NuMPI import MPI
@@ -556,9 +557,31 @@ def test_to_netcdf(fn):
     with tempfile.TemporaryDirectory() as d:
         tmpfn = f'{d}/netcdf_representation.nc'
         t.to_netcdf(tmpfn)
+
+        # Try reading with surface topography
         t2 = read_topography(tmpfn)
         assert t.info == t2.info  # We check the info dictionary separately as this is often a source of issues
         assert t == t2
+
+        # Try reading directly
+        nc = netcdf_file(tmpfn)
+        nc_h = nc.variables['heights'][...]
+        nc_x = nc.variables['x'][...]
+        if 'y' in nc.variables:
+            nc_y = nc.variables['y'][...]
+            x, y, h = t.positions_and_heights()
+
+            nc_x = np.repeat(nc_x.reshape((-1, 1)), x.shape[1], axis=1)
+            nc_y = np.repeat(nc_y.reshape((1, -1)), y.shape[0], axis=0)
+
+            np.testing.assert_allclose(nc_h, h)
+            np.testing.assert_allclose(nc_x, x)
+            np.testing.assert_allclose(nc_y, y)
+        else:
+            x, h = t.positions_and_heights()
+
+            np.testing.assert_allclose(nc_h, h)
+            np.testing.assert_allclose(nc_x, x)
 
 
 def test_read_unknown_file_format(file_format_examples):
