@@ -431,9 +431,8 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
                 # scipy.io.netcdf_file does not support UTF-8
                 x_var.unit = mangle_length_unit_ascii(topography.unit)
 
+            x_var[...] = np.arange(nx) / nx * sx
             if topography.dim > 1:
-                x_var[...] = np.arange(nx) / nx * sx
-
                 y_var = nc.createVariable('y', 'f8', ('y',), **var_kwargs)
 
                 y_var.length = sy

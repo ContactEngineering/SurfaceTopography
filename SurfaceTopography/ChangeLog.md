@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.11.3 (8Nov23)
+----------------
+
+- BUG: `x`-variable of NetCDF output contained random data for uniform line
+  scans
+
 v1.11.2 (28Oct23)
 -----------------
 
