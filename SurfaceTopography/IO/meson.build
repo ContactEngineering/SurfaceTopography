@@ -36,6 +36,7 @@ python_sources = [
     'VK.py',
     'WSXM.py',
     'X3P.py',
+    'XYZ.py',
     'ZON.py'
 ]
 
