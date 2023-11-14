@@ -46,8 +46,9 @@ from SurfaceTopography import open_topography, read_topography
 from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlreadyFixedByFile
 from SurfaceTopography.IO import readers, detect_format
 from SurfaceTopography.IO.common import is_binary_stream
-from SurfaceTopography.IO.Text import read_matrix, read_xyz
+from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.Reader import ChannelInfo
+from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
 pytestmark = pytest.mark.skipif(
@@ -145,7 +146,7 @@ text_example_file_list = _convert_filelist([
     'xyz-1.txt',
     'xyz-2.txt',
     'hfm-1.hfm',
-    'dektak-1.csv'
+    'dektak-1.csv',
     # Not yet working
     # 'not-yet-working-1.txt',
     'xy-1.txt',
@@ -605,7 +606,7 @@ def test_line_scan_detect_format_then_read(file_format_examples):
 
 
 def test_line_scan_read(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'xy-3.txt'))
+    surface =  eader(os.path.join(file_format_examples, 'xy-3.txt')).topography()
 
     assert not surface.is_uniform
     assert surface.dim == 1

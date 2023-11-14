@@ -36,14 +36,15 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_dektak_csv(file_format_examples):
+@pytest.mark.parametrize('mode,encoding', [('rb', None), ('r', 'utf-8'), ('r', 'latin-1')])
+def test_dektak_csv(file_format_examples, mode, encoding):
     """
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
     file_path = os.path.join(file_format_examples, 'dektak-1.csv')
 
-    r = XYZReader(file_path)
+    r = XYZReader(open(file_path, mode=mode, encoding=encoding))
 
     t = r.topography()
 
