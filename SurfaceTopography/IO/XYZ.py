@@ -356,4 +356,4 @@ The reader supports parsing HFM and Dektak header information.
             raise RuntimeError(f"There is only a single channel. Channel index must be {self._default_channel_index}.")
 
         return self._read(physical_sizes=physical_sizes, height_scale_factor=height_scale_factor, unit=unit, info=info,
-                          periodic=periodic)
+                          periodic=False if periodic is None else periodic)
