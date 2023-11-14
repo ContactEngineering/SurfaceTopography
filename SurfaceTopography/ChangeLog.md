@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.12.0 (14Nov23)
+-----------------
+
+- ENH: Reader for Dektak CSV files
+
 v1.11.3 (8Nov23)
 ----------------
 

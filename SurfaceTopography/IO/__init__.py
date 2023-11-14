@@ -35,7 +35,7 @@ from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFix
 
 # Old-style readers
 from .FromFile import HGTReader
-from .Text import AscReader, XYZReader
+from .Text import AscReader
 
 # New-style readers
 from .AL3D import AL3DReader
@@ -65,6 +65,7 @@ from .SUR import SURReader
 from .VK import VKReader
 from .WSXM import WSXMReader
 from .X3P import X3PReader
+from .XYZ import XYZReader
 from .ZON import ZONReader
 
 from .Reader import ReaderBase  # noqa: F401

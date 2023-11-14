@@ -48,7 +48,8 @@ from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
                                read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
-from SurfaceTopography.IO.Text import read_asc, read_matrix, read_xyz, AscReader
+from SurfaceTopography.IO import XYZReader
+from SurfaceTopography.IO.Text import read_asc, read_matrix, AscReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -172,8 +173,7 @@ class NumpyAscSurfaceTest(unittest.TestCase):
         np.testing.assert_allclose(surf.heights(), [1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def test_simple_nonuniform_line_scan(self):
-        surf = read_xyz(
-            os.path.join(DATADIR, 'xy-3.txt'))
+        surf = XYZReader(os.path.join(DATADIR, 'xy-3.txt')).topography()
 
         self.assertAlmostEqual(surf.physical_sizes, (9.0,))
 
@@ -359,7 +359,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertTrue(untilt1.rms_gradient() > untilt2.rms_gradient())
 
     def test_nonuniform(self):
-        surf = read_xyz(os.path.join(DATADIR, 'xy-1.txt'))
+        surf = XYZReader(os.path.join(DATADIR, 'xy-1.txt')).topography()
         self.assertFalse(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
         self.assertEqual(surf.dim, 1)

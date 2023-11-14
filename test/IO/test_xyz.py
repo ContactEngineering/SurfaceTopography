@@ -31,7 +31,6 @@ from numpy.testing import assert_allclose
 from NuMPI import MPI
 
 from SurfaceTopography.IO import XYZReader
-from SurfaceTopography.IO.Text import read_xyz
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -39,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_1d(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -50,7 +49,7 @@ def test_read_1d(file_format_examples):
 
 
 def test_read_1d_2(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'xy-2.txt'))
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-2.txt')).topography()
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
