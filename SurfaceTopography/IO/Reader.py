@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021 Lars Pastewka
+# Copyright 2019-2023 Lars Pastewka
 #           2019-2021 Michael Röttger
 #           2019-2021 Antoine Sanner
 #           2019 Kai Haase

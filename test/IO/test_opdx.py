@@ -1,7 +1,7 @@
 #
-# Copyright 2016, 2020 Lars Pastewka
-#           2018, 2020 Michael Röttger
-#           2018, 2020 Antoine Sanner
+# Copyright 2016-2021, 2023 Lars Pastewka
+#           2018-2020 Antoine Sanner
+#           2018-2020 Michael Röttger
 #           2019-2020 Kai Haase
 #           2015-2016 Till Junge
 #

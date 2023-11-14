@@ -1,7 +1,6 @@
 #
-# Copyright 2019-2020 Lars Pastewka
-#           2019 Michael Röttger
-#           2019 Kai Haase
+# Copyright 2020-2021, 2023 Lars Pastewka
+#           2021 Michael Röttger
 #
 # ### MIT license
 #

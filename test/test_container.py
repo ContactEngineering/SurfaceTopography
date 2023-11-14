@@ -1,7 +1,6 @@
 #
-# Copyright 2016, 2020 Lars Pastewka
+# Copyright 2018, 2020-2021, 2023 Lars Pastewka
 #           2018, 2020 Antoine Sanner
-#           2018, 2020 Michael Röttger
 #           2015-2016 Till Junge
 #
 # ### MIT license
