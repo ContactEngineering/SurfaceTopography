@@ -112,9 +112,11 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
             tip_radius_value, tip_radius_unit = stylus[7:].strip().split(' ')
             try:
                 info['instrument'] = {
-                    'tip_radius': {
-                        'value': float(tip_radius_value),
-                        'unit': mangle_length_unit_utf8(tip_radius_unit),
+                    'parameters': {
+                        'tip_radius': {
+                            'value': float(tip_radius_value),
+                            'unit': mangle_length_unit_utf8(tip_radius_unit),
+                        }
                     }
                 }
             except ValueError:

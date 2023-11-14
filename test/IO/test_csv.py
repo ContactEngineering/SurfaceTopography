@@ -52,9 +52,13 @@ def test_dektak_csv(file_format_examples, mode, encoding):
     np.testing.assert_allclose(t.rms_height_from_profile(), 4.763596)
     np.testing.assert_allclose(t.rms_slope_from_profile(), 0.015448, rtol=1e-5)
 
+    np.testing.assert_allclose(t.short_reliability_cutoff(), 1.5720636151585947)
+
     assert t.info['instrument'] == {
-        'tip_radius': {
-            'value': 2.5,
-            'unit': 'µm',
+        'parameters': {
+            'tip_radius': {
+                'value': 2.5,
+                'unit': 'µm',
+            }
         }
     }

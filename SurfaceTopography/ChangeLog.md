@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.12.1 (14Nov23)
+-----------------
+
+- BUG: Fixed info dictionary in Dektak CSV reader
+
 v1.12.0 (14Nov23)
 -----------------
 
