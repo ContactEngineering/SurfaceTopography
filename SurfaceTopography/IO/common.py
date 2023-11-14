@@ -39,31 +39,35 @@ def is_binary_stream(fobj):
         (hasattr(fobj, 'mode') and 'b' in fobj.mode)
 
 
-def text(func):
-    """Decorator that turns the first argument into a binary stream"""
+# Hint: We code use UnicodeDammit or chardet to guess the encoding
+def text(encoding='utf-8'):
+    def decorator(func):
+        """Decorator that turns the first argument into a binary stream"""
 
-    def func_wrapper(fobj, *args, **kwargs):
-        close_file = False
-        if not hasattr(fobj, 'read'):
-            fobj = open(fobj, 'r', encoding='utf-8')
-            fobj_text = fobj
-            close_file = True
-        elif is_binary_stream(fobj):
-            fobj_text = io.TextIOWrapper(fobj, encoding='utf-8')
-        else:
-            fobj_text = fobj
-
-        try:
-            retvals = func(fobj_text, *args, **kwargs)
-        finally:
-            if is_binary_stream(fobj):
-                fobj_text.detach()
+        def func_wrapper(fobj, *args, **kwargs):
+            close_file = False
+            if not hasattr(fobj, 'read'):
+                fobj = open(fobj, 'r', encoding=encoding)
                 fobj_text = fobj
-            if close_file:
-                fobj_text.close()
-        return retvals
+                close_file = True
+            elif is_binary_stream(fobj):
+                fobj_text = io.TextIOWrapper(fobj, encoding=encoding)
+            else:
+                fobj_text = fobj
 
-    return func_wrapper
+            try:
+                retvals = func(fobj_text, *args, **kwargs)
+            finally:
+                if is_binary_stream(fobj):
+                    fobj_text.detach()
+                    fobj_text = fobj
+                if close_file:
+                    fobj_text.close()
+            return retvals
+
+        return func_wrapper
+
+    return decorator
 
 
 class OpenFromAny(object):

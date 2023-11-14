@@ -25,21 +25,25 @@
 # SOFTWARE.
 #
 
+import logging
 import re
 
 import numpy as np
 import pandas as pd
 
-from ..Exceptions import MetadataAlreadyFixedByFile, UnknownFileFormat
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile, UnknownFileFormat
 from ..HeightContainer import UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import length_units, mangle_length_unit_utf8, get_unit_conversion_factor
+from ..Support.UnitConversion import length_units, mangle_length_unit_utf8, get_unit_conversion_factor, \
+    find_length_unit_in_string
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 
+_log = logging.Logger(__name__)
 
-@text
+
+@text()
 def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
     """
     Reads a surface profile from a text file and presents in in a
@@ -65,7 +69,7 @@ MatrixReader = make_wrapped_reader(
     name='Plain text (matrix)')
 
 
-@text
+@text()
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
              z_factor=None, unit=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
@@ -298,7 +302,102 @@ When writing your own ASCII files, we recommend to prepent the header with a
 ''')
 
 
-@text
+def read_text_header_hfm(fobj, unit, height_scale_factor):
+    """HFM files"""
+    # HFM files have the following header
+    # X;Y;valid
+    # [mm];[mm];[1/0]
+    second_line = fobj.readline()
+    xunit, zunit, _ = second_line.split(';')
+    xunit = xunit.strip('[').strip(']')
+    zunit = zunit.strip('[').strip(']')
+    if unit is not None:
+        raise MetadataAlreadyFixedByFile('unit')
+    unit = xunit
+    if height_scale_factor is not None:
+        raise MetadataAlreadyFixedByFile('height_scale_factor')
+    height_scale_factor = get_unit_conversion_factor(zunit, xunit)
+    sep = ';'  # This file seems to use semicolons as separators
+    usecols = (0, 1)
+
+    return sep, usecols, unit, height_scale_factor, {}
+
+
+def read_text_header_dektak(fobj, unit, height_scale_factor):
+    """Dektak CSV files"""
+    sep = ','  # This file seems to use coma as separators
+    usecols = (0, 1)
+
+    # We just parse everything before scan data in key-value pairs
+    raw_metadata = {}
+    line = fobj.readline()
+    while line and not line.startswith('Scan Data'):
+        s = line.strip().split(sep, maxsplit=1)
+        if len(s) == 2:
+            # Skip if this is not a key-value pair
+            key, value = s
+            raw_metadata[key] = value
+        line = fobj.readline()
+
+    # Next line should be empty
+    line = fobj.readline()
+    assert len(line.strip()) == 0
+
+    # Next line contains a header, example: "Lateral um,Raw Micrometer,"
+    line = fobj.readline()
+    header = line.split(sep)
+    xcol, ycol = usecols
+    xheader = header[xcol]
+    yheader = header[ycol]
+
+    # Find units and conversion factors
+    xunit = find_length_unit_in_string(xheader)
+    yunit = find_length_unit_in_string(yheader)
+
+    if xunit is not None:
+        if unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+        else:
+            unit = xunit
+    if yunit is not None:
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        else:
+            height_scale_factor = get_unit_conversion_factor(yunit, unit)
+
+    # Prepare info dictionary
+    info = {'raw_metadata': raw_metadata}
+
+    # Some interpretation of metadata, if present
+    try:
+        stylus = raw_metadata['Stylus']
+        if stylus.startswith('Radius:'):
+            tip_radius_value, tip_radius_unit = stylus[7:].strip().split(' ')
+            try:
+                info['instrument'] = {
+                    'tip_radius': {
+                        'value': float(tip_radius_value),
+                        'unit': mangle_length_unit_utf8(tip_radius_unit),
+                    }
+                }
+            except ValueError:
+                # Cannot convert tip radius to floating point number
+                pass
+    except KeyError:
+        # 'Stylus' key does not exist
+        pass
+
+    return sep, usecols, unit, height_scale_factor, info
+
+
+# Dictionary of magic: parser pairs, where magic is first line of file
+_text_header_parsers = {
+    'X;Y;valid': read_text_header_hfm,
+    'Scan Parameters': read_text_header_dektak
+}
+
+
+@text(encoding='latin-1')
 def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None,
              max_header_rows=100, tol=1e-6):
     """
@@ -320,32 +419,25 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
     topography : Topography or UniformLineScan or NonuniformLineScan
         SurfaceTopography object.
     """
-    # Default is to autodetect separator
+    # Default is to autodetect separator and columns
     sep = r'[\s,;]+'  # white space, comma or semicolon
     usecols = None
 
     # Read header (if present) and guess file format
     c = fobj.tell()
     first_line = fobj.readline()
-    if first_line.startswith('X;Y;valid'):
-        # HFM files have the following header
-        # X;Y;valid
-        # [mm];[mm];[1/0]
-        second_line = fobj.readline()
-        xunit, zunit, _ = second_line.split(';')
-        xunit = xunit.strip('[').strip(']')
-        zunit = zunit.strip('[').strip(']')
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-        unit = xunit
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-        height_scale_factor = get_unit_conversion_factor(zunit, xunit)
-        sep = ';'  # This file seems to use semicolons as separators
-        usecols = (0, 1)
-    else:
+    header_detected = False
+    for magic, parser in _text_header_parsers.items():
+        if first_line.startswith(magic):
+            sep, usecols, unit, height_scale_factor, _info = parser(fobj, unit, height_scale_factor)
+            header_detected = True
+            break  # Don't check other file magics
+    if not header_detected:
         # Could not guess file format - rewind
         fobj.seek(c)
+
+    # Update info with user-specified dictionary
+    _info.update(info)
 
     # Reading data, skipping first rows (which may contain headers)
     data_start = fobj.tell()
@@ -361,9 +453,19 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
             data = None
         skiprows += 1
 
+    _log.debug(f'Skipping {skiprows} rows before attempting to read data from XYZ file.')
+
     # We cannot make sense of this data
     if data is None:
         raise UnknownFileFormat('Could not parse file as XYZ.')
+
+    # Remove columns that contain no data
+    drop_cols = []
+    for col in data.columns:
+        arr = data.values[:, col]
+        if not np.isfinite(arr).any():
+            drop_cols += [col]
+    data = data.drop(columns=drop_cols)
 
     # Check is this is a line scan in XY format or two-dimensional data in XYZ format
     if len(data.columns) == 2:
@@ -380,12 +482,12 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
             t = UniformLineScan(z, physical_sizes,
                                 periodic=False if periodic is None else periodic,
                                 unit=unit,
-                                info=info)
+                                info=_info)
         else:
             if periodic is not None and periodic:
                 raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
                                  'Nonuniform line scans cannot be periodic.')
-            t = NonuniformLineScan(x, z, unit=unit, info=info)
+            t = NonuniformLineScan(x, z, unit=unit, info=_info)
             if physical_sizes is not None:
                 raise MetadataAlreadyFixedByFile('physical_sizes')
 
@@ -433,7 +535,7 @@ def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
             physical_sizes = (dx * nx, dy * ny)
         else:
             raise MetadataAlreadyFixedByFile('physical_sizes')
-        t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
+        t = Topography(data, physical_sizes, unit=unit, info=_info, periodic=periodic)
     else:
         raise UnknownFileFormat('Expected two or three columns for topography that is a list of positions and heights.')
 
