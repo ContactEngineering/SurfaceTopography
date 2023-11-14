@@ -606,7 +606,7 @@ def test_line_scan_detect_format_then_read(file_format_examples):
 
 
 def test_line_scan_read(file_format_examples):
-    surface =  eader(os.path.join(file_format_examples, 'xy-3.txt')).topography()
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-3.txt')).topography()
 
     assert not surface.is_uniform
     assert surface.dim == 1

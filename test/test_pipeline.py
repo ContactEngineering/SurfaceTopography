@@ -37,7 +37,7 @@ from NuMPI import MPI
 from SurfaceTopography.UniformLineScanAndTopography import Topography, \
     DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.Text import read_xyz
+from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.Pipeline import pipeline_function
 from SurfaceTopography.UniformLineScanAndTopography import DecoratedUniformTopography, UniformTopographyInterface
 
@@ -198,7 +198,7 @@ def test_uniform_unit_conversion():
 
 
 def test_nonuniform_scaled_topography(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'))
+    surf = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     sx, = surf.physical_sizes
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
@@ -223,7 +223,7 @@ def test_nonuniform_scaled_topography(file_format_examples):
 
 
 def test_nonuniform_unit_conversion(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'xy-1.txt'), unit='um')
+    surf = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography(unit='um')
     assert surf.unit == 'um'
 
     surf2 = surf.to_unit('mm')

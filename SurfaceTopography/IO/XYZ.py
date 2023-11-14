@@ -221,14 +221,15 @@ The reader supports parsing HFM and Dektak header information.
         # Stream will automatically rewind to old position here
 
         # Reopen, but with correct encoding
-        _info = {}
         with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
             if header_parser is not None:
                 # Read header
                 sep, usecols, unit, height_scale_factor, _info = header_parser(fobj, unit, height_scale_factor)
+            else:
+                _info = {}
 
-                # Update info with user-specified dictionary
-                _info.update(info)
+            # Update info with user-specified dictionary
+            _info.update(info)
 
             # Reading data, skipping first rows (which may contain headers)
             data_start = fobj.tell()
