@@ -70,11 +70,23 @@ def text(encoding='utf-8'):
     return decorator
 
 
+def _get_binary_stream(fstream):
+    if isinstance(fstream, io.TextIOBase):
+        # file was opened without the 'b' option, so read its buffer to get the binary data
+        if hasattr(fstream, 'buffer'):
+            return fstream.buffer
+        else:
+            return io.BytesIO(fstream.read().encode())
+    else:
+        return fstream
+
+
 class OpenFromAny(object):
     """
     Context manager for turning file names or already open streams into a
     single stream format for subsequent reading. The file is left in an
-    identical state when the context manager returns.
+    identical state, including its cursor position, when the context
+    manager returns.
     """
 
     def __init__(self, fobj, mode='r', encoding=None):
@@ -94,18 +106,16 @@ class OpenFromAny(object):
         self._fobj = fobj
         self._mode = mode
         self._encoding = encoding
-        self._fstream = None
-        self._stream_position = None
-        self._already_open = None
-        self._need_detach = False
 
     def __enter__(self):
         # depending from where this function is called, self._fobj might already
         # be a filestream
+        self._fstream = None
         self._already_open = False
         self._prior_position = None
+        self._need_detach = False
         if not hasattr(self._fobj, 'read'):
-            # This is a string
+            # This is a string, just open the file
             self._fstream = open(self._fobj, mode=self._mode, encoding=self._encoding)
         else:
             # This is a stream that is already open
@@ -114,21 +124,17 @@ class OpenFromAny(object):
                 self._prior_position = self._fobj.tell()
             if self._mode == 'rb':
                 # Turn this into a binary stream, if it is a text stream
-                if isinstance(self._fobj, io.TextIOBase):
-                    # file was opened without the 'b' option, so read its buffer to get the binary data
-                    self._fstream = self._fobj.buffer
-                else:
-                    self._fstream = self._fobj
+                self._fstream = _get_binary_stream(self._fobj)
             elif self._mode == 'r':
                 # file was opened without the 'b' option, we just need to make sure the encoding is correct
-                self._need_detach = True
-                if isinstance(self._fobj, io.TextIOBase):
-                    self._fstream = io.TextIOWrapper(self._fobj.buffer, encoding=self._encoding)
+                if isinstance(self._fobj, io.TextIOBase) and (self._encoding is None or
+                                                              self._fobj.encoding == self._encoding):
+                    self._fstream = self._fobj
                 else:
-                    self._fstream = io.TextIOWrapper(self._fobj, encoding=self._encoding)
+                    self._need_detach = True
+                    self._fstream = io.TextIOWrapper(_get_binary_stream(self._fobj), encoding=self._encoding)
             else:
                 return ValueError(f"Unknown file open mode '{self._mode}'.")
-        self._stream_position = self._fstream.tell()
         return self._fstream
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -145,6 +151,5 @@ class OpenFromAny(object):
 
         # Reset internal state
         self._fstream = None
-        self._stream_position = None
         self._already_open = None
         self._need_detach = False
