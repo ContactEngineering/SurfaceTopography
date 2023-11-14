@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.11.3 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.11.3.dev9+ga1aa02bc documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=232cc29e"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=f4e0bd2a"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.11.3
+                1.11.3.dev9+ga1aa02bc
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -130,6 +130,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.UnitConversion.mangle_length_unit_ascii"><code class="docutils literal notranslate"><span class="pre">mangle_length_unit_ascii()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.UnitConversion.suggest_length_unit"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.UnitConversion.suggest_length_unit_for_data"><code class="docutils literal notranslate"><span class="pre">suggest_length_unit_for_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.UnitConversion.find_length_unit_in_string"><code class="docutils literal notranslate"><span class="pre">find_length_unit_in_string()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support">Module contents</a><ul>
@@ -465,7 +466,8 @@ average from 0 to pi/2.
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.UnitConversion.is_length_unit">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">is_length_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.is_length_unit" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns true if the unit is a length unit (m, mm, etc)</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor">
@@ -568,6 +570,12 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.UnitConversion.find_length_unit_in_string">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.UnitConversion.</span></span><span class="sig-name descname"><span class="pre">find_length_unit_in_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.UnitConversion.find_length_unit_in_string" title="Permalink to this definition"></a></dt>
+<dd><p>Check the string <cite>s</cite> contains any length information</p>
 </dd></dl>
 
 </section>

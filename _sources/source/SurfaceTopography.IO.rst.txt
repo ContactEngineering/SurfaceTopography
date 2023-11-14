@@ -252,6 +252,14 @@ SurfaceTopography.IO.X3P module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.XYZ module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.XYZ
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.ZON module
 -------------------------------
 
