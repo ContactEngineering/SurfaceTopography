@@ -1,6 +1,5 @@
 #
-# Copyright 2017, 2020 Lars Pastewka
-#           2020 Antoine Sanner
+# Copyright 2021 Lars Pastewka
 #
 # ### MIT license
 #

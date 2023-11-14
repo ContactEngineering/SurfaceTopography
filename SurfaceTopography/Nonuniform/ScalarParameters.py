@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, 2018-2021 Lars Pastewka
+# Copyright 2015-2016, 2018-2022 Lars Pastewka
 #           2018-2019 Antoine Sanner
 #           2015-2016 Till Junge
 #
