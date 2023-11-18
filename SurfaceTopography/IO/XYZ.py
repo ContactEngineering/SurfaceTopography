@@ -166,7 +166,7 @@ The reader supports parsing HFM and Dektak header information.
             nb_grid_pts=self._nb_grid_pts,
             physical_sizes=self._physical_sizes,
             height_scale_factor=self._height_scale_factor,
-            uniform=self._x is not None,
+            uniform=self._x is None,
             info=self._info,
             unit=self._unit
         )]
@@ -353,6 +353,8 @@ The reader supports parsing HFM and Dektak header information.
                 if periodic is not None and periodic:
                     raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
                                      'Nonuniform line scans cannot be periodic.')
+                if physical_sizes is not None:
+                    raise MetadataAlreadyFixedByFile('physical_sizes')
                 t = NonuniformLineScan(
                     self._x,
                     self._z,

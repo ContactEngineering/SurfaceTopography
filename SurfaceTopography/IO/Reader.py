@@ -438,6 +438,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         must_be_present: bool
             Indicate whether this property must be provided. (Default: True)
         """
+        print(property_name, property_from_arg, property_from_file)
         if property_from_file is None:
             if property_from_arg is None:
                 if must_be_present:
