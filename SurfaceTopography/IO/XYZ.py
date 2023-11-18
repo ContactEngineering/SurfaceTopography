@@ -320,7 +320,6 @@ The reader supports parsing HFM and Dektak header information.
             raise UnknownFileFormat(
                 'Expected two or three columns for topography that is a list of positions and heights.')
 
-
     @property
     def channels(self):
         """
