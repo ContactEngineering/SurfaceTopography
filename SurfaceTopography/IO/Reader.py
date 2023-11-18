@@ -423,29 +423,76 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(cls, physical_sizes_from_arg,
-                              physical_sizes=None):
-        """Handle overriding of `physical_sizes` arguments and make sure,
-        that return value is not `None`.
+    def _check_property(cls, property_name, property_from_arg, property_from_file=None, must_be_present=True):
+        """Handle overriding of a property in the arguments to the reader. Make
+        sure, that return value is not `None`.
 
         Parameters
         ----------
-        physical_sizes_from_arg: tuple or float or None
-            physical sizes given as argument when instantiating a topography from a reader
-        physical_sizes: tuple or float or None
-            physical sizes which were present in the file
+        property_name : str
+            Name of property, e.g. `physical_sizes` or `unit`.
+        property_from_arg: value or None
+            Property given as argument when instantiating a topography from a reader.
+        property_from_file: value or None
+            Property which as found in the file. (Default: None)
+        must_be_present: bool
+            Indicate whether this property must be provided. (Default: True)
         """
-        if physical_sizes is None:
-            if physical_sizes_from_arg is None:
-                raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
-            eff_physical_sizes = physical_sizes_from_arg
-        elif physical_sizes_from_arg is not None:
+        if property_from_file is None:
+            if property_from_arg is None:
+                if must_be_present:
+                    raise ValueError(f"`{property_name}` could not be extracted from the file, you must provide it.")
+                else:
+                    return None
+            eff_property = property_from_arg
+        elif property_from_arg is not None:
             # in general this should result in an exception now
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile(property_name)
         else:
-            eff_physical_sizes = physical_sizes
+            eff_property = property_from_file
 
-        return eff_physical_sizes
+        return eff_property
+
+    @classmethod
+    def _check_physical_sizes(cls, physical_sizes_from_arg,
+                              physical_sizes=None):
+        return cls._check_property('physical_sizes', physical_sizes_from_arg, physical_sizes)
+
+    @classmethod
+    def _check_unit(cls, unit_from_arg, unit=None):
+        return cls._check_property('unit', unit_from_arg, unit, must_be_present=False)
+
+    @classmethod
+    def _check_periodic(cls, periodic_from_arg):
+        return False if periodic_from_arg is None else periodic_from_arg
+
+    @classmethod
+    def _scale(cls, topography, height_scale_factor_from_arg, height_scale_factor=None):
+        """Apply height scale factor, if present"""
+        if height_scale_factor_from_arg is not None:
+            if height_scale_factor is not None:
+                raise MetadataAlreadyFixedByFile('height_scale_factor')
+            return topography.scale(height_scale_factor_from_arg)
+        elif height_scale_factor is not None:
+            return topography.scale(height_scale_factor)
+        else:
+            return topography
+
+    @classmethod
+    def _check_info(cls, info_from_arg, info=None):
+        """Handle overriding of `info` arguments.
+
+        Parameters
+        ----------
+        info_from_arg: dict or None
+            info given as argument when instantiating a topography from a reader
+        info: dict or None
+            info which was present in the file
+        """
+        eff_info = info_from_arg.copy() if info_from_arg is not None else {}
+        if info is not None:
+            eff_info.update(info)
+        return eff_info
 
     @abc.abstractmethod
     def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},

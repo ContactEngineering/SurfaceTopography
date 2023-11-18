@@ -37,7 +37,7 @@ from .Reader import ReaderBase, ChannelInfo
 _log = logging.Logger(__name__)
 
 
-def read_text_header_hfm(fobj, unit, height_scale_factor):
+def read_text_header_hfm(fobj):
     """HFM files"""
     # HFM files have the following header
     # X;Y;valid
@@ -48,19 +48,14 @@ def read_text_header_hfm(fobj, unit, height_scale_factor):
     xunit, zunit, _ = second_line.split(';')
     xunit = xunit.strip('[').strip(']')
     zunit = zunit.strip('[').strip(']')
-    if unit is not None:
-        raise MetadataAlreadyFixedByFile('unit')
-    unit = xunit
-    if height_scale_factor is not None:
-        raise MetadataAlreadyFixedByFile('height_scale_factor')
     height_scale_factor = get_unit_conversion_factor(zunit, xunit)
     sep = ';'  # This file seems to use semicolons as separators
     usecols = (0, 1)
 
-    return sep, usecols, unit, height_scale_factor, {}
+    return sep, usecols, xunit, height_scale_factor, {}
 
 
-def read_text_header_dektak(fobj, unit, height_scale_factor):
+def read_text_header_dektak(fobj):
     """Dektak CSV files"""
     sep = ','  # This file seems to use coma as separators
     usecols = (0, 1)
@@ -91,15 +86,12 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
     xunit = find_length_unit_in_string(xheader)
     yunit = find_length_unit_in_string(yheader)
 
+    unit = None
+    height_scale_factor = None
     if xunit is not None:
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-        else:
-            unit = xunit
+        unit = xunit
     if yunit is not None:
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-        else:
+        if unit is not None:
             height_scale_factor = get_unit_conversion_factor(yunit, unit)
 
     # Prepare info dictionary
@@ -162,24 +154,24 @@ The reader supports parsing HFM and Dektak header information.
         self._file_path = file_path
         self._default_channel_index = 0
 
-        # We read this thing once to get the metadata
-        topography = self._read()
+        # We read the file once to get the metadata and data
+        self._read()
 
+        # There is only a single channel
         self._channels = [ChannelInfo(
             self,
             0,  # channel index
-            name="default",
-            dim=topography.dim,
-            nb_grid_pts=topography.nb_grid_pts,
-            physical_sizes=topography.physical_sizes,
-            height_scale_factor=topography.height_scale_factor if hasattr(topography, 'height_scale_factor') else None,
-            uniform=topography.is_uniform,
-            info=topography.info,
-            unit=topography.unit
+            name="Default",
+            dim=self._dim,
+            nb_grid_pts=self._nb_grid_pts,
+            physical_sizes=self._physical_sizes,
+            height_scale_factor=self._height_scale_factor,
+            uniform=self._x is not None,
+            info=self._info,
+            unit=self._unit
         )]
 
-    def _read(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None,
-              max_header_rows=200, tol=1e-6):
+    def _read(self, height_scale_factor=None, unit=None, periodic=None, max_header_rows=200, tol=1e-6):
         """
         Read the xyz-file. These files contain line scan information in terms of
         (x,y)-positions.
@@ -219,16 +211,16 @@ The reader supports parsing HFM and Dektak header information.
                     break  # Don't check other file magics since we found one
         # Stream will automatically rewind to old position here
 
+        # Initialize metadata
+        self._unit = None
+        self._height_scale_factor = None
+        self._info = {}
+
         # Reopen, but with correct encoding
         with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
             if header_parser is not None:
                 # Read header
-                sep, usecols, unit, height_scale_factor, _info = header_parser(fobj, unit, height_scale_factor)
-            else:
-                _info = {}
-
-            # Update info with user-specified dictionary
-            _info.update(info)
+                sep, usecols, self._unit, self._height_scale_factor, self._info = header_parser(fobj)
 
             # Reading data, skipping first rows (which may contain headers)
             data_start = fobj.tell()
@@ -237,7 +229,7 @@ The reader supports parsing HFM and Dektak header information.
             while data is None and skiprows < max_header_rows:
                 fobj.seek(data_start)
                 try:
-                    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows)
+                    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows, engine='python')
                     if (data.dtypes == 'O').any():
                         data = None
                 except pd.errors.ParserError:
@@ -258,32 +250,32 @@ The reader supports parsing HFM and Dektak header information.
                     drop_cols += [col]
             data = data.drop(columns=drop_cols)
 
+        # Initialize everything to None
+        self._nb_grid_pts = None
+        self._physical_sizes = None
+        self._x = self._y = self._z = None
+
         # Check is this is a line scan in XY format or two-dimensional data in XYZ format
         if len(data.columns) == 2:
             # This is a line scan.
+            self._dim = 1
             x, z = np.array(data, dtype=float).T
             x -= np.min(x)
 
+            self._nb_grid_pts = (len(x),)
+
             d_uniform = (x[-1] - x[0]) / (len(x) - 1)
             if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
-                if physical_sizes is None:
-                    physical_sizes = d_uniform * len(x)
-                else:
-                    raise MetadataAlreadyFixedByFile('physical_sizes')
-                t = UniformLineScan(z, physical_sizes,
-                                    periodic=False if periodic is None else periodic,
-                                    unit=unit,
-                                    info=_info)
+                self._physical_sizes = d_uniform * len(x)
+                self._z = z
             else:
-                if periodic is not None and periodic:
-                    raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
-                                     'Nonuniform line scans cannot be periodic.')
-                t = NonuniformLineScan(x, z, unit=unit, info=_info)
-                if physical_sizes is not None:
-                    raise MetadataAlreadyFixedByFile('physical_sizes')
+                self._physical_sizes = x[-1] - x[0]
+                self._x = x
+                self._z = z
 
         elif len(data.columns) == 3:
             # This is a topography map.
+            self._dim = 2
             x, y, z = np.array(data, dtype=float).T
 
             # Compute grid spacing in y-direction
@@ -314,26 +306,20 @@ The reader supports parsing HFM and Dektak header information.
             assert np.all(n == nx)  # FIXME: Turn assert into exception
 
             # Sort data into bins.
-            data = np.zeros((nx, ny))
-            data[binx, biny] = z
+            self._nb_grid_pts = (nx, ny)
+            self._z = np.zeros((nx, ny))
+            self._z[binx, biny] = z
 
             # Sanity check. Should be covered by above asserts.
             value_present = np.zeros((nx, ny), dtype=bool)
             value_present[binx, biny] = True
             assert np.all(value_present)  # FIXME: Turn assert into exception
 
-            if physical_sizes is None:
-                physical_sizes = (dx * nx, dy * ny)
-            else:
-                raise MetadataAlreadyFixedByFile('physical_sizes')
-            t = Topography(data, physical_sizes, unit=unit, info=_info, periodic=periodic)
+            self._physical_sizes = (dx * nx, dy * ny)
         else:
             raise UnknownFileFormat(
                 'Expected two or three columns for topography that is a list of positions and heights.')
 
-        if height_scale_factor is not None:
-            t = t.scale(height_scale_factor)
-        return t
 
     @property
     def channels(self):
@@ -354,5 +340,32 @@ The reader supports parsing HFM and Dektak header information.
         if channel_index != self._default_channel_index:
             raise RuntimeError(f"There is only a single channel. Channel index must be {self._default_channel_index}.")
 
-        return self._read(physical_sizes=physical_sizes, height_scale_factor=height_scale_factor, unit=unit, info=info,
-                          periodic=False if periodic is None else periodic)
+        # Construct topography based on what we already read during initialization
+        if self._dim == 1:
+            if self._x is None:
+                t = UniformLineScan(
+                    self._z,
+                    self._check_physical_sizes(physical_sizes, self._physical_sizes),
+                    periodic=self._check_periodic(periodic),
+                    unit=self._check_unit(unit, self._unit),
+                    info=self._check_info(info, self._info))
+            else:
+                if periodic is not None and periodic:
+                    raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
+                                     'Nonuniform line scans cannot be periodic.')
+                t = NonuniformLineScan(
+                    self._x,
+                    self._z,
+                    unit=self._check_unit(unit, self._unit),
+                    info=self._check_info(info, self._info))
+        elif self._dim == 2:
+            t = Topography(
+                self._z,
+                self._check_physical_sizes(physical_sizes, self._physical_sizes),
+                periodic=self._check_periodic(periodic),
+                unit=self._check_unit(unit, self._unit),
+                info=self._check_info(info, self._info))
+        else:
+            raise RuntimeError('Dimension is neither 1 nor 2. This should not happen.')
+
+        return self._scale(t, height_scale_factor, self._height_scale_factor)

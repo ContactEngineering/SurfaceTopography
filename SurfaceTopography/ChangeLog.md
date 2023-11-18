@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.0 (not yet released)
+--------------------------
+
+- MAINT: XYZ reader parses file only once (#339)
+- MAINT: Don't warn if pandas is falling back to Python engine (#341)
+
 v1.12.1 (14Nov23)
 -----------------
 

@@ -393,8 +393,7 @@ def test_channel_info_and_topography_have_same_metadata(fn):
         # check number of grid points
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
-            physical_sizes=(1, 1) if channel.physical_sizes is None
-            else None,
+            physical_sizes=(1, 1) if channel.physical_sizes is None else None,
             info=dict(foo=foo_str))
         assert channel.nb_grid_pts == topography.nb_grid_pts
         assert topography.nb_grid_pts == topography.heights().shape
