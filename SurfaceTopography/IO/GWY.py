@@ -72,7 +72,7 @@ def _gwy_read_array(f, atomic_type, skip_arrays=False):
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
         return {'offset': offset, 'type': atomic_type}  # If we skip reading the array, return the file offset
     else:
-        return np.fromfile(f, dtype=type, count=nb_items)
+        return np.frombuffer(f.read(nb_items * type.itemsize), dtype=type)
 
 
 def _gwy_read_string_array(f):

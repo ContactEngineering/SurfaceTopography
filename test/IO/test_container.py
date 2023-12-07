@@ -23,15 +23,24 @@
 # SOFTWARE.
 #
 
+import os
+import zipfile
+from datetime import datetime
+
 import pytest
 import tempfile
+import yaml
 
 from numpy.testing import assert_allclose
 
 from NuMPI import MPI
 
-from SurfaceTopography import read_container, read_topography, read_published_container
+import SurfaceTopography
+from SurfaceTopography import open_topography, read_container, read_topography, read_published_container
 from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
+from SurfaceTopography.Container.IO import CEReader
+
+from .test_io import binary_example_file_list
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -107,3 +116,42 @@ def test_periodic():
     convoluted = container[1]
     assert pristine.is_periodic
     assert convoluted.is_periodic
+
+
+@pytest.mark.parametrize('filenames', [binary_example_file_list])
+def test_read_files_from_container(file_format_examples, filenames):
+    """BCRF and GWY file use np.fromfile to read data, which has issues when reading within a ZIP file"""
+    with tempfile.TemporaryDirectory() as d:
+        containerfn = f'{d}/container.zip'
+
+        # Write container with raw data files
+        with zipfile.ZipFile(containerfn, 'w') as z:
+            topographies = []
+            for filepath in filenames:
+                _, fn = os.path.split(filepath)
+                z.write(filepath, fn)
+                topography = {
+                    'datafile': { 'original': fn }
+                }
+
+                reader = open_topography(filepath)
+                if reader.default_channel.physical_sizes is None:
+                    topography['size'] = (1.,) * reader.default_channel.dim
+
+                topographies += [topography]
+
+            metadata = {
+                'versions': {'SurfaceTopography': SurfaceTopography.__version__},
+                'surfaces': [{
+                    'topographies': topographies
+                }],
+                'creation_time': str(datetime.now()),
+            }
+            z.writestr("meta.yml", yaml.dump(metadata))
+
+        r = CEReader(containerfn)
+        c = r.container()
+        for t in c:
+            # This loop actually reads the files
+            # The test is that file reading progresses without issues
+            pass

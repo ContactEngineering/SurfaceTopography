@@ -5,6 +5,7 @@ v1.12.2 (not yet released)
 --------------------------
 
 - BUG: Fixed issue with DI reader (#343)
+- BUG: Fixed reading of some file formats inside containers
 
 v1.12.1 (14Nov23)
 -----------------
