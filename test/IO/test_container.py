@@ -131,7 +131,7 @@ def test_read_files_from_container(file_format_examples, filenames):
                 _, fn = os.path.split(filepath)
                 z.write(filepath, fn)
                 topography = {
-                    'datafile': { 'original': fn }
+                    'datafile': {'original': fn}
                 }
 
                 reader = open_topography(filepath)
