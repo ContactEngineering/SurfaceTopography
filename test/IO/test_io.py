@@ -37,7 +37,7 @@ import warnings
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from scipy.io.netcdf import netcdf_file
+from scipy.io import netcdf_file
 
 import NuMPI
 from NuMPI import MPI
