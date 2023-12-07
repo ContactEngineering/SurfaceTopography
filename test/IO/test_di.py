@@ -61,3 +61,4 @@ def test_corrupted_file(file_format_examples):
 
 def test_di7(file_format_examples):
     r = DIReader(os.path.join(file_format_examples, 'di-7.di'))
+    r.topography()
