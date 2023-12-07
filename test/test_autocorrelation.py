@@ -313,7 +313,7 @@ def test_brute_force_vs_fft(file_format_examples):
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
                                                       reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
-    assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
+    assert np.all(np.logical_and(x > 0.9, x < 1.1))
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])

@@ -214,7 +214,7 @@ def test_brute_force_vs_fft(file_format_examples):
                                                      resampling_method=None)
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]
-    assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
+    assert np.all(np.logical_and(x > 0.90, x < 1.35))
 
 
 def test_short_cutoff(file_format_examples):
