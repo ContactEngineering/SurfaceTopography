@@ -13,12 +13,12 @@ on:
     - cron: "0 2 * * 5"  
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
 
     strategy:
       matrix:
-        mpi: ['no']  # FIXME!! Reenable, but they fail with an error that muGrid.so cannot be found
+        mpi: ['no', 'mpi']
         python-version: ['3.8', '3.9', '3.10', '3.11']
         mpi4py-version: [3.1.4]
         netcdf4-python-version: [1.6.1]
