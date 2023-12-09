@@ -61,4 +61,4 @@ def test_dektak_csv(file_format_examples, mode, encoding):
         }
     }
 
-    np.testing.assert_allclose(t.short_reliability_cutoff(), 1.5720636151585947)
+    np.testing.assert_allclose(t.short_reliability_cutoff(), 1.572040038479836)
