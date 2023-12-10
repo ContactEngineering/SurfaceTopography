@@ -90,11 +90,7 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2, xto
         # None of the data is reliable
         return upper
     else:
-        def _objective(x):
-            y = objective(x)
-            print(x, y)
-            return y
-        return fac * scipy.optimize.brentq(_objective,
+        return fac * scipy.optimize.brentq(objective,
                                            2 * lower / fac, upper / (2 * fac),  # bounds
                                            xtol=xtol, rtol=rtol)
 
