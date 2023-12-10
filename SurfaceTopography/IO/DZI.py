@@ -180,7 +180,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     # Loop over levels and write tiles
     root_directory = os.path.join(root_directory, name + '_files')
     os.makedirs(root_directory, exist_ok=True)
-    step = 1
+    scale_factor = 1
     for level in range(max_level, -1, -1):
         level_root_directory = os.path.join(root_directory, str(level))
         os.makedirs(level_root_directory, exist_ok=True)
@@ -195,11 +195,11 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
                 fn = os.path.join(level_root_directory, f'{column}_{row}.{format}')
 
                 # Determine image section of this tile
-                left = (column * tile_size - overlap) * step
-                bottom = (row * tile_size - overlap) * step
+                left = (column * tile_size - overlap) * scale_factor
+                bottom = (row * tile_size - overlap) * scale_factor
 
-                right = ((column + 1) * tile_size + overlap) * step
-                top = ((row + 1) * tile_size + overlap) * step
+                right = ((column + 1) * tile_size + overlap) * scale_factor
+                top = ((row + 1) * tile_size + overlap) * scale_factor
 
                 if left < 0:
                     left = 0
@@ -210,13 +210,13 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
                 if top > full_height - 1:
                     top = full_height - 1
 
-                write_data(fn, data[left:right:step, bottom:top:step],
-                           (sx / full_width * step, sy / full_height * step))
+                write_data(fn, data[left:right:scale_factor, bottom:top:scale_factor],
+                           (sx / full_width * scale_factor, sy / full_height * scale_factor))
                 manifest += [fn]
 
         width = math.ceil(width / 2)
         height = math.ceil(height / 2)
-        step *= 2
+        scale_factor *= 2
 
     return manifest
 

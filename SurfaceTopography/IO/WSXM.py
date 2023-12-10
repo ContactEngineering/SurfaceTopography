@@ -186,7 +186,8 @@ scanning probe microscopy available at http://www.wsxm.eu/.
         with OpenFromAny(self._file_path, 'rb') as f:
             nx, ny = channel.nb_grid_pts
             f.seek(channel.tags['file_offset'])
-            height_data = np.fromfile(f, channel.tags['dtype'], nx * ny).reshape((ny, nx)).T
+            dtype = channel.tags['dtype']
+            height_data = np.frombuffer(f.read(nx * ny * dtype.itemsize), dtype=dtype).reshape((ny, nx)).T
 
         _info = channel.info.copy()
         _info.update(info)

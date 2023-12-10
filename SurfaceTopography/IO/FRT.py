@@ -602,7 +602,8 @@ This reader imports MicroProf FRT profilometry data.
         with OpenFromAny(self.file_path, 'rb') as f:
             nb_grid_pts_x, nb_grid_pts_y = channel.nb_grid_pts
             f.seek(channel.tags['block_offset'])
-            height_data = np.fromfile(f, channel.tags['dtype'], count=np.prod(channel.nb_grid_pts)) \
+            dtype = channel.tags['dtype']
+            height_data = np.frombuffer(f.read(np.prod(channel.nb_grid_pts) * dtype.itemsize), dtype=dtype) \
                 .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
             height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 

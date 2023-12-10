@@ -237,7 +237,7 @@ The reader supports parsing HFM and Dektak header information.
             while data is None and skiprows < max_header_rows:
                 fobj.seek(data_start)
                 try:
-                    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows)
+                    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows, engine='python')
                     if (data.dtypes == 'O').any():
                         data = None
                 except pd.errors.ParserError:

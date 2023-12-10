@@ -37,7 +37,7 @@ import warnings
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from scipy.io.netcdf import netcdf_file
+from scipy.io import netcdf_file
 
 import NuMPI
 from NuMPI import MPI
@@ -81,6 +81,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'di-3.di',
                                               'di-4.di',
                                               'di-5.di',
+                                              'di-6.di',
+                                              'di-7.di',
                                               'ibw-1.ibw',
                                               'spot_1-1000nm.ibw',
                                               # 'surface.2048x2048.h5',

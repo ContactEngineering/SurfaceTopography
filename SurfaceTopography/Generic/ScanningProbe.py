@@ -34,7 +34,7 @@ from ..Support import doi
 
 
 @doi('10.1016/j.apsadv.2021.100190')
-def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
+def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2, xtol=2e-12, rtol=1e-8):
     """
     Estimate a length scale below which tip radius artifacts affect the
     measured data. See: 10.1016/j.apsadv.2021.100190
@@ -51,6 +51,10 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
         -safety_factor/radius. The `safety_factor` should be on the order of 1.
         In 10.1016/j.apsadv.2021.100190 a factor of 1/2 is estimated based
         on synthetic (simulated) data. (Default: 1/2)
+    xtol : float, optional
+        Absolute tolerance for bracketing search. (Default: 2e-12)
+    rtol : float, optional
+        Relative tolerance for bracketing search. (Default: 1e-8)
 
     Returns
     -------
@@ -86,13 +90,9 @@ def scanning_probe_reliability_cutoff(self, tip_radius, safety_factor=1 / 2):
         # None of the data is reliable
         return upper
     else:
-        def _objective(x):
-            y = objective(x)
-            print(y)
-            return y
-        return fac * scipy.optimize.brentq(_objective,
+        return fac * scipy.optimize.brentq(objective,
                                            2 * lower / fac, upper / (2 * fac),  # bounds
-                                           xtol=1e-5)
+                                           xtol=xtol, rtol=rtol)
 
 
 UniformTopographyInterface.register_function('scanning_probe_reliability_cutoff', scanning_probe_reliability_cutoff)
