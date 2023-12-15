@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.12.3 (xxDec23)
+-----------------
+
+- BUG: Fixed translation of decorated topographies not possible
+- BUG: Added missing test of periodicity before translation
+
 v1.12.2 (12Dec23)
 -----------------
 
