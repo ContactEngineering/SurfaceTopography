@@ -850,7 +850,7 @@ class TranslatedTopography(DecoratedUniformTopography):
         offset -- Translation offset in number of grid points
         """
         super().__init__(topography, info=info)
-        assert isinstance(topography, Topography)
+        assert isinstance(topography, UniformTopographyInterface)
         self._offset = offset
 
     @property

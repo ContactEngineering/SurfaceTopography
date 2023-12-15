@@ -82,8 +82,10 @@ def test_translate_setter():
 def test_translate_decorated_topography():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
                             physical_sizes=(4., 3.)).scale(2)
-    topography.translate(offset=(1, 0))
-
+    assert (topography.translate(offset=(1, 0)).heights()
+            ==
+            2 * np.array([[0, 0, 0],
+                      [0, 1, 0]])).all()
 
 def test_superpose():
     topography_a = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
