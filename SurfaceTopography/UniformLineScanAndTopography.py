@@ -850,7 +850,12 @@ class TranslatedTopography(DecoratedUniformTopography):
         offset -- Translation offset in number of grid points
         """
         super().__init__(topography, info=info)
-        assert isinstance(topography, UniformTopographyInterface)
+        if not isinstance(topography, UniformTopographyInterface):
+            raise ValueError(f"Should provide an instance of UniformTopographyInterface "
+                             f"but {type(topography)} provided")
+        if not topography.is_periodic:
+            raise ValueError("Only periodic topographies can be translated")
+
         self._offset = offset
 
     @property
