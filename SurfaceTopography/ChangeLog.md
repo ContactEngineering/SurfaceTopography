@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 ================================
 
-v1.12.3 (13Jan24)
+v1.13.0 (13Jan24)
 -----------------
 
 - API: translating nonperiodic topography raises error
