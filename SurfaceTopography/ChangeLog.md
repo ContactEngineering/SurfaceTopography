@@ -1,9 +1,10 @@
 Change log for SurfaceTopography
 ================================
 
-v1.12.3 (xxDec23)
+v1.12.3 (13Jan24)
 -----------------
 
+- API: translating nonperiodic topography raises error
 - BUG: Fixed translation of decorated topographies not possible
 - BUG: Added missing test of periodicity before translation
 
