@@ -49,7 +49,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_translate():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.))
+                            physical_sizes=(4., 3.), periodic=True)
 
     assert (topography.translate(offset=(1, 0)).heights()
             ==
@@ -67,9 +67,16 @@ def test_translate():
                       [0, 0, 0]])).all()
 
 
+def test_nonperiodic_not_allowed():
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.),)
+    with pytest.raises(ValueError):
+        topography.translate(offset=(1, 0))
+
+
 def test_translate_setter():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.))
+                            physical_sizes=(4., 3.), periodic=True)
 
     translated_t = topography.translate()
 
@@ -78,6 +85,9 @@ def test_translate_setter():
             ==
             np.array([[0, 0, 0],
                       [0, 1, 0]])).all()
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.), periodic=True)
+    assert topography.translate(offset=(1, 0)).is_periodic
 
 
 def test_superpose():
