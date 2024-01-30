@@ -5,6 +5,7 @@ v1.14.0 (not yet released)
 --------------------------
 
 - ENH: Median-absolute-deviation (MAD) calculations for heights
+- ENH: Arbitrary statistical functions for VBM
 - MAINT: Use new API response for contact.engineering to get download URLs
 
 v1.13.0 (13Jan24)
