@@ -90,6 +90,32 @@ def test_rms_height(comm):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
+def test_mad_height(comm):
+    L, hm, top = sinewave2D(comm)
+    numerical = top.mad_height_from_area()
+    analytical = np.sqrt(hm ** 2 / 4)
+
+    assert numerical == analytical
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+@pytest.mark.parametrize("nb_grid_pts", ((255, 256), (256, 255), (256, 256), (255, 255)))
+@pytest.mark.parametrize("physical_sizes", ((1, 1), (1, 2)))
+def test_rms_vs_mad_height(nb_grid_pts, physical_sizes):
+    sx, sy = physical_sizes
+    nx, ny = nb_grid_pts
+    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.8, rms_height=1,
+                          short_cutoff=4 * (sx / nx),
+                          long_cutoff=sx / 4).detrend(detrend_mode="center")
+    # Should be close because topography is Gaussian
+    np.testing.assert_allclose(t.rms_height_from_area(), t.mad_height_from_area())
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize("periodic", [False, True])
 def test_rms_curvature_sinewave_2D(periodic):
     precision = 5
