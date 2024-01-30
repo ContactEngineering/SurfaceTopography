@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.14.0 (not yet released)
+--------------------------
+
+- MAINT: Use new API response for contact.engineering to get download URLs
+
 v1.13.0 (13Jan24)
 -----------------
 

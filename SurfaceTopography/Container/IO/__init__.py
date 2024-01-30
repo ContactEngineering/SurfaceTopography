@@ -147,26 +147,10 @@ def read_published_container(publication_url, **request_args):
     container : SurfaceContainer
         Surface container object read from URL.
     """
-    # First get the page for the publication in order
-    # to get the download URL
-    _html = 'html/'
-    publication_response = requests.get(publication_url)
-    download_url = publication_response.url + "download/"
-    i = publication_response.url.find('?')
-    if i >= 0:
-        # Newer versions of topobank use query params
-        s = publication_response.url.split('/')
-        server_url = f'{s[0]}//{s[2]}'
-        query_params = publication_response.url[i+1:].split(',')
-        for q in query_params:
-            key, value = q.split('=')
-            if key == 'surface':
-                download_url = f'{server_url}/manager/api/surface/{value}/download/'
-    else:
-        i = download_url.find(_html)
-        if i >= 0:
-            # Newer versions of topobank have specific html links; we need to cut 'html/'
-            download_url = download_url[:i] + download_url[i + len(_html):]
+    # If we send json as a request header, then contact.engineering will response with a JSON dictionary
+    response = requests.get(publication_url, headers={'Accept': 'application/json'})
+    data = response.json()
+    download_url = data['download_url']
 
     # Then download and read container
     container_response = requests.get(download_url, **request_args)
