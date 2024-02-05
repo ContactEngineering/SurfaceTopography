@@ -160,4 +160,11 @@ def test_read_files_from_container(file_format_examples, filenames):
 
 def test_ce_container():
     surface, = read_published_container('https://doi.org/10.57703/ce-mg4cy')
-    assert all(np.abs(surface[0].heights()) < 1e9)
+    rms_heights = [t.rms_height_from_profile() for t in surface]
+    # This is a regression test. The values are not checked for correctness.
+    np.testing.assert_allclose(rms_heights,
+                               [0.003949841631562571, 0.004032999294137858, 0.013820472252164628, 0.0217028756922634,
+                                0.004851062064249796, 0.02123958101044809, 0.030065647090746887, 0.009013796742461624,
+                                0.019992889576544735, 0.03571244942555436, 0.019188774584700925, 0.03026452140452409,
+                                0.04009296334584872, 0.03591547319579487, 0.026463673998312873, 0.18154731113775002,
+                                1.123743993604103, 0.078929223879882])
