@@ -31,6 +31,7 @@ import pytest
 import tempfile
 import yaml
 
+import numpy as np
 from numpy.testing import assert_allclose
 
 from NuMPI import MPI
@@ -155,3 +156,8 @@ def test_read_files_from_container(file_format_examples, filenames):
             # This loop actually reads the files
             # The test is that file reading progresses without issues
             pass
+
+
+def test_ce_container():
+    surface, = read_published_container('https://doi.org/10.57703/ce-mg4cy')
+    assert all(np.abs(surface[0].heights()) < 1e9)
