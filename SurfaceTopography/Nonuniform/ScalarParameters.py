@@ -34,6 +34,45 @@ from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
+def moment(topography, alpha):
+    r"""
+    Computes the n-th moment of the height fluctuation of the line scan of
+    length :math:`L`:
+
+    .. math::
+
+        \langle h^\alpha \rangle = \frac{1}{L} \int_0^L dx\, h^\alpha(x)\right
+
+    This function approximates the topography between data points as
+    piece-wise linear. The piece-wise linear section between point :math:`i`
+    and point :math:`i+1` contributes
+
+    .. math::
+
+        \frac{1}{\alpha+1} \frac{x_{i+1} - x_i}{L}\frac{h_{i+1}^{\alpha+1} - h_i^{\alpha+1}}{h_{i+1} - h_i}
+
+    to the above integral.
+
+    Parameters
+    ----------
+    topography : :obj:`NonuniformLineScan`
+        SurfaceTopography object containing height information.
+    alpha : int
+        Order of moment.
+
+    Returns
+    -------
+    moment : float or array
+        Root-mean square height.
+    """  # noqa: E501
+    x, h = topography.positions_and_heights()
+    dx = np.diff(x)
+    if len(x) <= 1:
+        return 0.0
+    L = x[-1] - x[0]
+    return 1/(alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
+
+
 def rms_height(topography):
     r"""
     Computes root-mean square height fluctuation of the line scan:
@@ -132,6 +171,7 @@ def rms_curvature(topography):
 
 
 # Register analysis functions from this module
+NonuniformLineScanInterface.register_function('moment', moment)
 NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
 NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)
 NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature)

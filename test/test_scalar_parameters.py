@@ -190,9 +190,14 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_height_nonuniform(self):
-        numerical = NonuniformLineScan(self.X, self.sinsurf).rms_height_from_profile()
+        t = NonuniformLineScan(self.X, self.sinsurf)
+        numerical = t.rms_height_from_profile()
         analytical = np.sqrt(self.hm ** 2 / 2)
         # numerical = np.sqrt(np.trapz(self.sinsurf**2, self.X))
+
+        self.assertAlmostEqual(numerical, analytical, self.precision)
+
+        numerical = np.sqrt(t.moment(2))
 
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
