@@ -48,6 +48,7 @@ import SurfaceTopography.Generic.Fractional  # noqa: F401
 # import SurfaceTopography.Models # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
+import SurfaceTopography.Nonuniform.BearingArea  # noqa: F401
 import SurfaceTopography.Nonuniform.Converters  # noqa: F401
 import SurfaceTopography.Nonuniform.Derivative  # noqa: F401
 import SurfaceTopography.Nonuniform.Interpolation  # noqa: F401
