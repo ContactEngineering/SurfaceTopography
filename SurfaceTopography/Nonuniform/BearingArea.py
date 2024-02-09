@@ -28,6 +28,7 @@ distribution function of the surface heights.
 """
 
 import numpy as np
+
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -52,7 +53,7 @@ def bearing_area(self, height):
     fractional_area : float
         Fractional area above a the threshold height.
     """
-    # FIXME! This is likely not efficient and is a candidate to be implemented in C++
+    # FIXME! This is likely not efficient and is a candidate for implementation in C++
     x, h = self.positions_and_heights()
     dx = np.diff(x).reshape(-1, 1)
     if len(x) <= 1:

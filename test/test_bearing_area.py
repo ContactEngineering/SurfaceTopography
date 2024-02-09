@@ -40,7 +40,7 @@ def test_bearing_area_nonuniform(plot=False):
     h = np.linspace(0, hm, 101)
     P = t.bearing_area(h)
 
-    P_analytic = 1-np.linspace(0, hm, 101)/hm
+    P_analytic = 1 - np.linspace(0, hm, 101) / hm
 
     if plot:
         import matplotlib.pyplot as plt
