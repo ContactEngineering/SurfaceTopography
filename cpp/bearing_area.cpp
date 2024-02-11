@@ -34,7 +34,7 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, 
     }
 
     /* The physical length of the line scan */
-    double physical_size{topography_x.tail<1>().value() - topography_x.head<1>().value()};
+    const double physical_size{topography_x.tail<1>().value() - topography_x.head<1>().value()};
 
     /* Bearing area values for each input height */
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
@@ -43,12 +43,46 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, 
     for (int j{0}; j < heights.size(); j++) {
         double bearing_area{0};
         for (int i{0}; i < topography_x.size()-1; i++) {
-            double fac = topography_x(i+1) - topography_x(i);
-            if (heights(j) < topography_h(i) && heights(j) < topography_h(i+1)) {
-                bearing_area += fac;
-            } else if (!(heights(j) > topography_h(i) && heights(j) > topography_h(i+1))) {
-                auto [minh, maxh] = std::minmax(topography_h(i), topography_h(i+1));
-                bearing_area += fac * (maxh - heights(j)) / (maxh - minh);
+            const double hi{topography_h(i)}, hi1{topography_h(i+1)};
+            double dx = topography_x(i+1) - topography_x(i);
+            if (heights(j) < hi && heights(j) < hi1) {
+                bearing_area += dx;
+            } else if (!(heights(j) > hi && heights(j) > hi1)) {
+                auto [minh, maxh] = std::minmax(hi, hi1);
+                bearing_area += dx * (maxh - heights(j)) / (maxh - minh);
+            }
+        }
+        fractional_bearing_areas(j) = bearing_area / physical_size;
+    }
+
+    return fractional_bearing_areas;
+}
+
+
+Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
+                                      Eigen::Ref<Eigen::ArrayXd> heights)
+{
+    /* The physical length of the line scan */
+    double physical_size{dx * topography_h.size()};
+    if (periodic) {
+        physical_size += dx;
+    }
+
+    /* Bearing area values for each input height */
+    Eigen::ArrayXd fractional_bearing_areas(heights.size());
+
+    /* Compute bearing areas */
+    for (int j{0}; j < heights.size(); j++) {
+        double bearing_area{0};
+        auto maxi{periodic ? topography_h.size() : topography_h.size()-1};
+        for (int i{0}; i < maxi; i++) {
+            const auto i1{i < maxi-1 ? i+1 : 0};
+            const double hi{topography_h(i)}, hi1{topography_h(i1)};
+            if (heights(j) < hi && heights(j) < hi1) {
+                bearing_area += dx;
+            } else if (!(heights(j) > hi && heights(j) > hi1)) {
+                auto [minh, maxh] = std::minmax(hi, hi1);
+                bearing_area += dx * (maxh - heights(j)) / (maxh - minh);
             }
         }
         fractional_bearing_areas(j) = bearing_area / physical_size;

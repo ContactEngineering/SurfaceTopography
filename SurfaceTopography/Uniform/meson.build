@@ -4,6 +4,7 @@
 python_sources = [
     '__init__.py',
     'Autocorrelation.py',
+    'BearingArea.py',
     'common.py',
     'Converters.py',
     'Derivative.py',

@@ -24,3 +24,5 @@ SOFTWARE.
 
 Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
                                        Eigen::Ref<Eigen::ArrayXd> heights);
+Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
+                                      Eigen::Ref<Eigen::ArrayXd> heights);

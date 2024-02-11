@@ -29,5 +29,6 @@ SOFTWARE.
 PYBIND11_MODULE(_SurfaceTopographyPP, mod) {
     mod.doc() = "C++ support functions for SurfaceTopography";
 
-    mod.def("nonuniform_bearing_area", &nonuniform_bearing_area, "Compute bearing area for a nonuniform topography");
+    mod.def("nonuniform_bearing_area", &nonuniform_bearing_area, "Bearing area for a nonuniform line scan");
+    mod.def("uniform1d_bearing_area", &uniform1d_bearing_area, "Bearing area for a uniform line scan");
 }
