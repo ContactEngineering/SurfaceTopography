@@ -31,4 +31,5 @@ PYBIND11_MODULE(_SurfaceTopographyPP, mod) {
 
     mod.def("nonuniform_bearing_area", &nonuniform_bearing_area, "Bearing area for a nonuniform line scan");
     mod.def("uniform1d_bearing_area", &uniform1d_bearing_area, "Bearing area for a uniform line scan");
+    mod.def("uniform2d_bearing_area", &uniform2d_bearing_area, "Bearing area for a topography map");
 }

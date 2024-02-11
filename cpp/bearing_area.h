@@ -26,3 +26,5 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, 
                                        Eigen::Ref<Eigen::ArrayXd> heights);
 Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
                                       Eigen::Ref<Eigen::ArrayXd> heights);
+Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<Eigen::ArrayXXd> topography_h, bool periodic,
+                                      Eigen::Ref<Eigen::ArrayXd> heights);
