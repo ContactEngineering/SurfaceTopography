@@ -44,8 +44,8 @@ def bearing_area(self, heights):
 
     Parameters
     ----------
-    self : :obj:`NonuniformLineScan`
-        Line scan container object.
+    self : :obj:`UniformLineScan` or :obj:`Topography`
+        Topography or line scan container object.
     heights : float or np.ndarray
         Heights for which to compute the bearing area.
 
