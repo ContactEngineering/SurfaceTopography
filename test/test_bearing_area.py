@@ -26,6 +26,7 @@ import numpy as np
 import scipy
 
 from SurfaceTopography import NonuniformLineScan
+from SurfaceTopography.Generation import fourier_synthesis
 
 
 def test_bearing_area_nonuniform(plot=False):
@@ -51,3 +52,20 @@ def test_bearing_area_nonuniform(plot=False):
         plt.show()
 
     np.testing.assert_allclose(P, P_analytic, atol=1e-3)
+
+
+def test_bearing_area_uniform_is_continuous(plot=False):
+    t = fourier_synthesis((64,), (1,), 0.8, rms_slope=0.1, periodic=False).to_nonuniform()
+    mn = t.min()
+    mx = t.max()
+    heights = np.linspace(mn, mx, 100)
+    P = t.bearing_area(heights)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.plot(heights, P, 'x-')
+        plt.xlabel('Height')
+        plt.ylabel('Bearing area')
+        plt.show()
+
+    assert (np.diff(P) < 0).all()

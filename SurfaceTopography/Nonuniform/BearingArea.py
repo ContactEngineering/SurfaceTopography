@@ -27,12 +27,13 @@ Bearing area curve, also known as Abbott-Firestone curve or cumulative
 distribution function of the surface heights.
 """
 
+import _SurfaceTopographyPP
 import numpy as np
 
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def bearing_area(self, height):
+def bearing_area(self, heights):
     """
     Compute the bearing area for a specific height.
 
@@ -45,24 +46,20 @@ def bearing_area(self, height):
     ----------
     self : :obj:`NonuniformLineScan`
         Line scan container object.
-    height : float
-        Height for which to compute the bearing area.
+    heights : float or np.ndarray
+        Heights for which to compute the bearing area.
 
     Returns
     -------
-    fractional_area : float
+    fractional_area : float or np.ndarray
         Fractional area above a the threshold height.
     """
-    # FIXME! This is likely not efficient and is a candidate for implementation in C++
     x, h = self.positions_and_heights()
-    dx = np.diff(x).reshape(-1, 1)
-    if len(x) <= 1:
-        return 0.0
-    L = x[-1] - x[0]
-    minh = np.minimum(h[:-1], h[1:]).reshape(-1, 1)
-    maxh = np.maximum(h[:-1], h[1:]).reshape(-1, 1)
-    h = height.reshape(1, -1)
-    return np.sum(dx * ((h < minh) + (h - minh) * np.logical_and(h > minh, h < maxh)), axis=0) / L
+    if np.isscalar(heights):
+        return _SurfaceTopographyPP.nonuniform_bearing_area(x.astype(float), h.astype(float),
+                                                            np.array([heights], dtype=float))[0]
+    else:
+        return _SurfaceTopographyPP.nonuniform_bearing_area(x.astype(float), h.astype(float), heights.astype(float))
 
 
 NonuniformLineScanInterface.register_function('bearing_area', bearing_area)
