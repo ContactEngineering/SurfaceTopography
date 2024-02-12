@@ -125,3 +125,27 @@ def test_bearing_area_topography(periodic, plot=False):
         plt.show()
 
     np.testing.assert_allclose(P, P_analytic, atol=1e-3)
+
+
+@pytest.mark.parametrize('nb_grid_pts,periodic', [((64, 65), False), ((16, 3), True), ((256, 256), True)])
+def test_bearing_area_topography_is_continuous(nb_grid_pts, periodic, plot=False):
+    t = fourier_synthesis(nb_grid_pts, (1, 1), 0.8, rms_slope=0.1, periodic=periodic)
+    mn = t.min()
+    mx = t.max()
+    heights = np.linspace(mn, mx, 100)
+
+    # Test nonuniform
+    P = t.bearing_area(heights)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.plot(heights, P, 'x-')
+        plt.xlabel('Height')
+        plt.ylabel('Bearing area')
+        plt.show()
+
+    assert (np.diff(P) < 0).all()
+
+    # Test uniform
+    P = t.bearing_area(heights)
+    assert (np.diff(P) < 0).all()
