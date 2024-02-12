@@ -8,6 +8,7 @@ v1.14.0 (not yet released)
 - ENH: Median calculation
 - ENH: Exact bearing area model based on linear interpolation of topography
 - ENH: Arbitrary statistical functions for VBM
+- MAINT: C++ extension module (`_SurfaceTopographyPP`)
 - MAINT: Use new API response for contact.engineering to get download URLs
 
 v1.13.0 (13Jan24)
