@@ -5,6 +5,7 @@ python_sources = [
     '__init__.py',
     'Curvature.py',
     'ReliabilityCutoff.py',
+    'RobustStatistics.py',
     'ScaleDependentStatistics.py',
     'ScanningProbe.py',
     'Slope.py',

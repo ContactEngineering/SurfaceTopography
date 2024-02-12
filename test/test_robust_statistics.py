@@ -38,16 +38,18 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial functionalities, please execute with pytest")
 
 
-def test_median(plot=False):
+def test_median_and_mad(plot=False):
     t = fourier_synthesis((2048, 2048), (1, 1), 0.1, rms_slope=0.1, periodic=True)
 
     # This is almost Gaussian
     np.testing.assert_allclose(t.median(), t.mean(), atol=1e-5)
+    np.testing.assert_allclose(t.mad_height(), t.rms_height_from_area(), atol=1e-5)
 
     # Skew the distribution
     t2 = Topography(np.exp(t.heights() / t.rms_height_from_area() / 2), t.physical_sizes, periodic=t.is_periodic)
 
     assert t2.mean() > t2.median()
+    assert t2.rms_height_from_area() > t2.mad_height()
 
     if plot:
         import matplotlib.pyplot as plt

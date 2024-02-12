@@ -31,7 +31,6 @@ Functions computing scalar roughness parameters
 
 import numpy as np
 import scipy
-
 from NuMPI.Tools import Reduction
 
 from ..HeightContainer import UniformTopographyInterface
@@ -87,55 +86,6 @@ def rms_height_from_area(topography):
         reduction = Reduction(topography._communicator)
         profile = topography.heights()
         return np.sqrt(reduction.sum((profile - reduction.sum(profile) / n) ** 2) / n)
-    else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
-
-
-def mad_height_from_profile(topography):
-    """
-    Compute the median absolute deviation (MAD) of the height profile of a
-    topography or line scan stored on a uniform grid from individual profiles.
-
-    The result is the median of the MADs of the individual line scans.
-
-    Parameters
-    ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-
-    Returns
-    -------
-    rms_height : float
-        Root mean square height value.
-    """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError('`mad_height_from_profile` does not support MPI-decomposed topographies.')
-
-    return np.median(scipy.stats.median_abs_deviation(topography.heights(), axis=0)) * _mad_to_rms
-
-
-def mad_height_from_area(topography):
-    """
-    Compute the median absolute deviation of the height profile of
-    a topography map over the whole areal data.
-
-    Parameters
-    ----------
-    topography : :obj:`SurfaceTopography` or :obj:`UniformLineScan`
-        SurfaceTopography object containing height information.
-
-    Returns
-    -------
-    rms_height : float
-        Root mean square height value.
-    """
-    if topography.is_domain_decomposed:
-        raise NotImplementedError('`mad_height_from_area` does not support MPI-decomposed topographies.')
-
-    if topography.dim <= 1:
-        raise ValueError('Areal rms height can only be computed for topographies, not line scans.')
-    elif topography.dim == 2:
-        return scipy.stats.median_abs_deviation(np.ravel(topography.heights())) * _mad_to_rms
     else:
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
@@ -351,8 +301,6 @@ def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=Non
 # Register analysis functions from this module
 UniformTopographyInterface.register_function('rms_height_from_profile', rms_height_from_profile)
 UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area)
-UniformTopographyInterface.register_function('mad_height_from_profile', rms_height_from_profile)
-UniformTopographyInterface.register_function('mad_height_from_area', rms_height_from_area)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
 UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
 UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_profile)

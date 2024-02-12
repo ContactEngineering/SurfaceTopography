@@ -25,11 +25,13 @@
 """
 Robust statistics (median, median absolute deviation, etc.) for topography data.
 """
-
+import scipy
 from scipy.optimize import bisect
 
 from SurfaceTopography.HeightContainer import (NonuniformLineScanInterface,
                                                UniformTopographyInterface)
+
+_mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
 
 def median(self):
@@ -40,10 +42,43 @@ def median(self):
     ----------
     self : :obj:`HeightContainer`
         Topography or line scan container object.
+
+    Returns
+    -------
+    median : float
+        Median height.
     """
+    tmp = self.squeeze()  # Avoid evaluating pipeline during bisect
     # The median is where the fractional bearing area is 1/2
-    return bisect(lambda h: self.bearing_area(h) - 0.5, self.min(), self.max())
+    return bisect(lambda h: tmp.bearing_area(h) - 0.5, tmp.min(), tmp.max())
+
+
+def mad_height(self, percentile=1 / 4):
+    """
+    Compute the median-absolute-deviation of the height.
+
+    Parameters
+    ----------
+    self : :obj:`HeightContainer`
+        Topography or line scan container object.
+    percentile : float
+        Fraction of the bearing area that should be considered for the deviation. The default is 1/4.
+
+    Returns
+    -------
+    mad_height : float
+        Median absolute deviation of the height.
+    """
+    tmp = self.squeeze()  # Avoid evaluating pipeline during bisect
+    # Compute median
+    med = tmp.median()
+    # The median absolute deviation is where the fractional bearing area is equal to `percentile`. We need to consider
+    # fluctuation in positive and negative directions.
+    return bisect(lambda h: tmp.bearing_area(med + h) + (1 - tmp.bearing_area(med - h)) - 2 * percentile,
+                  tmp.min(), tmp.max()) * _mad_to_rms
 
 
 UniformTopographyInterface.register_function('median', median)
+UniformTopographyInterface.register_function('mad_height', mad_height)
 NonuniformLineScanInterface.register_function('median', median)
+NonuniformLineScanInterface.register_function('mad_height', mad_height)
