@@ -32,6 +32,7 @@ defines all surface types used in SurfaceTopography
 import SurfaceTopography.Generic.Curvature  # noqa: F401
 import SurfaceTopography.Generic.Fractional  # noqa: F401
 import SurfaceTopography.Generic.ReliabilityCutoff  # noqa: F401
+import SurfaceTopography.Generic.RobustStatistics  # noqa: F401
 import SurfaceTopography.Generic.ScaleDependentStatistics  # noqa: F401
 import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
