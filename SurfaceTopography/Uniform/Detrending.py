@@ -32,23 +32,23 @@ Helper functions to compute trends of surfaces
 import numpy as np
 
 from SurfaceTopography.UniformLineScanAndTopography import (
-    DecoratedUniformTopography, UniformLineScan, UniformTopographyInterface)
+    DecoratedUniformTopography, UniformTopographyInterface)
 
 
-def polyfit(self, deg):
+def polyfit_line_scan(self, deg):
     """
     Compute the detrending plane that, if subtracted, minimizes the rms height.
 
     Parameters
     ----------
-    self : :obj:`UniformLineScan` or :obj:`Topography`
+    self : :obj:`UniformLineScan`
         Topography or line scan container object.
     """
     coeffs = np.polyfit(*self.positions_and_heights(), deg)
     return np.array(coeffs)[::-1]
 
 
-def tilt_from_height(topography, full_output=False):
+def polyfit1_topography(self, full_output=False):
     """
     Compute the tilt plane that if subtracted minimizes the rms height of the
     surface. The tilt plane is parameterized as:
@@ -72,7 +72,7 @@ def tilt_from_height(topography, full_output=False):
 
     Parameters
     ----------
-    arr : UniformTopography
+    self : :obj:`Topography`
         Height information.
 
     Returns
@@ -84,7 +84,7 @@ def tilt_from_height(topography, full_output=False):
     h0 : float
         Mean value.
     """
-    arr = topography.heights()
+    arr = self.heights()
     nb_dim = len(arr.shape)
     x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
     if nb_dim > 1:
@@ -107,7 +107,7 @@ def tilt_from_height(topography, full_output=False):
         return coeffs
 
 
-def tilt_and_curvature(arr, full_output=False):
+def polyfit2_topography(self, full_output=False):
     """
     Data in arr is interpreted as height information of a tilted and shifted
     surface.
@@ -131,7 +131,7 @@ def tilt_and_curvature(arr, full_output=False):
     {5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy
 
     """
-    arr = arr[...]
+    arr = self.heights()
     nb_dim = len(arr.shape)
     assert nb_dim == 2
     x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
@@ -158,17 +158,31 @@ def tilt_and_curvature(arr, full_output=False):
         return coeffs
 
 
-def shift_and_tilt(topography):
+def polyfit_topography(self, deg):
     """
-    returns an array of same shape and physical_sizes as arr, but shifted and
-    tilted so that mean(arr) = 0 and mean(arr**2) is minimized
-    """
-    arr = topography.heights()
-    coeffs, location_matrix = tilt_from_height(topography, full_output=True)
-    coeffs = np.array(coeffs)
-    offsets = arr.reshape((-1,))
+    Compute the detrending plane that, if subtracted, minimizes the rms height.
 
-    return (offsets - location_matrix @ coeffs).reshape(arr.shape)
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        Topography or line scan container object.
+    """
+    if deg == 1:
+        return polyfit1_topography(self)
+    elif deg == 2:
+        return polyfit2_topography(self)
+    else:
+        raise NotImplementedError(
+            f"Fitting detrending planes is only supported for polynomials of degree 1 and 2, not {deg}.")
+
+
+def polyfit(self, deg):
+    if self.dim == 1:
+        return polyfit_line_scan(self, deg)
+    elif self.dim == 2:
+        return polyfit_topography(self, deg)
+    else:
+        raise RuntimeError(f'Unknown dimension {self.dim}.')
 
 
 def _detrend_1d_slope_coeffs(self):
@@ -201,7 +215,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
     will have `is_periodic` property set to False.
     """
 
-    _detrend_1d_functions = {
+    _detrend_functions = {
         'mean': lambda self: [self.parent_topography.mean()],
         # same as 'mean', deprecate 'center' in the future
         'center': lambda self: [self.parent_topography.mean()],
@@ -210,7 +224,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         # same as 'rms-tilt', deprecate 'height' in the future
         'height': lambda self: self.parent_topography.polyfit(1),
         'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
-        'slope': _detrend_1d_slope_coeffs,
+        'slope': lambda self: _detrend_1d_slope_coeffs(self) if self.dim == 1 else _detrend_2d_slope_coeffs(self),
         'rms-curvature': lambda self: self.parent_topography.polyfit(2),
         # same as 'rms-curvature', deprecate 'curvature' in the future
         'curvature': lambda self: self.parent_topography.polyfit(2),
@@ -244,30 +258,10 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             self._detrend()
 
     def _detrend(self):
-        if self.dim == 1:
-            try:
-                self._coeffs = self._detrend_1d_functions[self._detrend_mode](self)
-            except KeyError:
-                raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
-        else:  # self.dim == 2
-            if self._detrend_mode is None or self._detrend_mode == 'center':
-                self._coeffs = [self.parent_topography.mean()]
-            elif self._detrend_mode == 'height':
-                self._coeffs = [s for s in tilt_from_height(self.parent_topography)]
-            elif self._detrend_mode == 'slope':
-                slx, sly = self.parent_topography.derivative(1, periodic=False)
-                slx = slx.mean()
-                sly = sly.mean()
-                nx, ny = self.nb_grid_pts
-                sx, sy = self.physical_sizes
-                self._coeffs = [
-                    slx * sx, sly * sy,
-                    self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny)
-                ]
-            elif self._detrend_mode == 'curvature':
-                self._coeffs = [s for s in tilt_and_curvature(self.parent_topography)]
-            else:
-                raise ValueError("Unsupported detrend mode '{}' for 2D topographies.".format(self._detrend_mode))
+        try:
+            self._coeffs = self._detrend_functions[self._detrend_mode](self)
+        except KeyError:
+            raise ValueError(f"Unsupported detrend mode '{self._detrend_mode}' for uniform line scans or topographies.")
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -400,5 +394,5 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                     'Unknown physical_sizes of coefficients tuple.')
 
 
-UniformLineScan.register_function('polyfit', polyfit)
+UniformTopographyInterface.register_function('polyfit', polyfit)
 UniformTopographyInterface.register_function('detrend', DetrendedUniformTopography)
