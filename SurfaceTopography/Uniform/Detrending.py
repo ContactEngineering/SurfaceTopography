@@ -85,8 +85,8 @@ def polyfit1_topography(self, full_output=False):
         Mean value.
     """
     arr = self.heights()
-    nb_dim = len(arr.shape)
-    x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
+    nb_dim = self.dim
+    x_grids = (np.arange(self.nb_grid_pts[i]) * self.pixel_size[i] for i in range(nb_dim))
     if nb_dim > 1:
         x_grids = np.meshgrid(*x_grids, indexing='ij')
     if np.ma.getmask(arr) is np.ma.nomask:
@@ -132,9 +132,9 @@ def polyfit2_topography(self, full_output=False):
 
     """
     arr = self.heights()
-    nb_dim = len(arr.shape)
+    nb_dim = self.dim
     assert nb_dim == 2
-    x_grids = (np.arange(arr.shape[i]) / arr.shape[i] for i in range(nb_dim))
+    x_grids = (np.arange(self.nb_grid_pts[i]) * self.pixel_size[i] for i in range(nb_dim))
     # Linear terms
     x_grids = np.meshgrid(*x_grids, indexing='ij')
     # Quadratic terms
@@ -199,10 +199,7 @@ def _detrend_2d_slope_coeffs(self):
     sly = sly.mean()
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
-    return [
-        slx * sx, sly * sy,
-        self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny)
-    ]
+    return [slx, sly, self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny)]
 
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
@@ -320,7 +317,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             else:
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts), indexing='ij')
+            x, y = np.meshgrid(*(np.arange(n) * s for n, s in zip(self.nb_grid_pts, self.pixel_size)),
+                               indexing='ij')
             if len(self._coeffs) == 3:
                 a1x, a1y, a0 = self._coeffs
                 return self.parent_topography.heights() - a0 - a1x * x - a1y * y
