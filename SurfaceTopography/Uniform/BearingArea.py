@@ -67,10 +67,12 @@ def bearing_area(self, heights):
         h = self.heights()
         dx, dy = self.pixel_size
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform2d_bearing_area(dx, dy, h.astype(float), self.is_periodic,
+            return _SurfaceTopographyPP.uniform2d_bearing_area(dx, dy, np.ascontiguousarray(h, dtype=float),
+                                                               self.is_periodic,
                                                                np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform2d_bearing_area(dx, dy, h.astype(float), self.is_periodic,
+            return _SurfaceTopographyPP.uniform2d_bearing_area(dx, dy, np.ascontiguousarray(h, dtype=float),
+                                                               self.is_periodic,
                                                                heights.astype(float))
     else:
         raise NotImplementedError('Bearing area is only implemented for 1D line scans and 2D topography maps.')

@@ -23,9 +23,10 @@
 #
 
 import numpy as np
+import pytest
 import scipy
 
-from SurfaceTopography import NonuniformLineScan
+from SurfaceTopography import NonuniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
@@ -84,3 +85,43 @@ def test_bearing_area_uniform_is_continuous(plot=False):
 
     P = t.bearing_area(heights)
     assert (np.diff(P) < 0).all()
+
+
+@pytest.mark.parametrize('periodic', [True, False])
+def test_bearing_area_topography(periodic, plot=False):
+    nx, ny = 9, 4
+    hm = 0.1
+    trisurf = hm * np.linspace(-1, 3, nx)
+    trisurf[nx // 2:] = 2 * hm - trisurf[nx // 2:]
+    if periodic:
+        nx -= 1
+        trisurf = trisurf[:-1]
+    trisurf = np.repeat(trisurf.reshape(-1, 1), ny, axis=1)
+
+    t = Topography(trisurf, (1, 1), periodic=periodic)
+
+    h = np.linspace(-hm, hm, 101)
+    P = t.bearing_area(h)
+
+    P_analytic = 0.5 - np.linspace(-hm, hm, 101) / (2 * hm)
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        x, y, heights = t.positions_and_heights()
+        plt.figure()
+        plt.subplot(211)
+        plt.plot(x[:, 0], heights[:, 0], 'kx-')
+        plt.xlabel('Position')
+        plt.ylabel('Height')
+
+        plt.subplot(212)
+        plt.plot(h, P_analytic, 'r--', lw=4)
+        plt.plot(h, P, 'k-')
+        plt.xlabel('Height')
+        plt.ylabel('Bearing area')
+
+        plt.tight_layout()
+        plt.show()
+
+    np.testing.assert_allclose(P, P_analytic, atol=1e-3)

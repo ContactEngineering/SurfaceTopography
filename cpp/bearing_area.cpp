@@ -24,7 +24,8 @@ SOFTWARE.
 
 #include <algorithm>
 
-#include <Eigen/Dense>
+#include "bearing_area.h"
+
 
 Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
                                        Eigen::Ref<Eigen::ArrayXd> heights)
@@ -111,14 +112,15 @@ double _triangle(double h1_in, double h2_in, double h3_in, double h)
 }
 
 
-Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<Eigen::ArrayXXd> topography_h, bool periodic,
+Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
                                       Eigen::Ref<Eigen::ArrayXd> heights)
 {
     /* Number of grid points for looping */
-    const auto nx{periodic ? topography_h.cols() : topography_h.cols()-1};
-    const auto ny{periodic ? topography_h.rows() : topography_h.rows()-1};
+    const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
+    const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
 
     /* The physical length of the line scan */
+    const double triangle_area{dx * dy / 2};
     const double projected_area{dx * nx * dy * ny};
 
     /* Bearing area values for each input height */
@@ -128,12 +130,13 @@ Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<Eigen::Ar
     for (int j{0}; j < heights.size(); j++) {
         double bearing_area{0};
         /* This is assuming column-major storage */
-        for (int y{0}; y < ny; y++) {
-            const auto y1{y < topography_h.rows()-1 ? y+1 : 0};
-            for (int x{0}; x < nx; x++) {
-                const auto x1{x < topography_h.cols()-1 ? x+1 : 0};
-                bearing_area += _triangle(topography_h(x, y), topography_h(x1, y), topography_h(x, y1), heights(j)) +
-                    _triangle(topography_h(x1, y), topography_h(x1, y1), topography_h(x, y1), heights(j));
+        for (int x{0}; x < nx; x++) {
+            const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
+            for (int y{0}; y < ny; y++) {
+                const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
+                bearing_area += triangle_area * (
+                    _triangle(topography_h(x, y), topography_h(x1, y), topography_h(x, y1), heights(j)) +
+                    _triangle(topography_h(x1, y), topography_h(x1, y1), topography_h(x, y1), heights(j)));
             }
         }
         fractional_bearing_areas(j) = bearing_area / projected_area;

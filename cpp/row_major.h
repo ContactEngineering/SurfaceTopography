@@ -20,11 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "row_major.h"
+/* Convenience definitions for row-major arrays */
 
-Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
-                                       Eigen::Ref<Eigen::ArrayXd> heights);
-Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights);
-Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights);
+#ifndef __ROW_MAJOR_H
+#define __ROW_MAJOR_H
+
+#include <Eigen/Dense>
+
+using RowMajorXXd = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+
+#endif
