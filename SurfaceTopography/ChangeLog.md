@@ -4,7 +4,9 @@ Change log for SurfaceTopography
 v1.14.0 (not yet released)
 --------------------------
 
-- ENH: Median-absolute-deviation (MAD) calculations for heights
+- ENH: Median-absolute-deviation (MAD) calculation
+- ENH: Median calculation
+- ENH: Exact bearing area model based on linear interpolation of topography
 - ENH: Arbitrary statistical functions for VBM
 - MAINT: Use new API response for contact.engineering to get download URLs
 
