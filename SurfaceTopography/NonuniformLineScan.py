@@ -31,8 +31,8 @@ Support for nonuniform topogography descriptions
 
 import numpy as np
 
-from .HeightContainer import AbstractTopography, DecoratedTopography, \
-    NonuniformLineScanInterface
+from .HeightContainer import (AbstractTopography, DecoratedTopography,
+                              NonuniformLineScanInterface)
 from .Nonuniform.Detrending import polyfit
 from .Support.UnitConversion import get_unit_conversion_factor
 
@@ -260,6 +260,20 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     is then detrended by substracting these trend lines.
     """
 
+    _detrend_functions = {
+        'mean': lambda self: [self.parent_topography.mean()],
+        # same as 'mean', deprecate 'center' in the future
+        'center': lambda self: [self.parent_topography.mean()],
+        'median': lambda self: [self.parent_topography.median()],
+        'rms-tilt': lambda self: polyfit(*self.parent_topography.positions_and_heights(), 1),
+        # same as 'rms-tilt', deprecate 'height' in the future
+        'height': lambda self: polyfit(*self.parent_topography.positions_and_heights(), 1),
+        'slope': lambda self: [self.parent_topography.mean(), self.parent_topography.derivative(1).mean()],
+        'rms-curvature': lambda self: polyfit(*self.parent_topography.derivative(1).mean(), 2),
+        # same as 'rms-curvature', deprecate 'curvature' in the future
+        'curvature': lambda self: polyfit(*self.parent_topography.derivative(1).mean(), 2),
+    }
+
     def __init__(self, topography, detrend_mode='height', info={}):
         """
         Parameters
@@ -279,19 +293,9 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         self._detrend()
 
     def _detrend(self):
-        if self._detrend_mode == 'center':
-            x, y = self.parent_topography.positions_and_heights()
-            self._coeffs = polyfit(x, y, 0)
-        elif self._detrend_mode == 'height':
-            x, y = self.parent_topography.positions_and_heights()
-            self._coeffs = polyfit(x, y, 1)
-        elif self._detrend_mode == 'slope':
-            sl = self.parent_topography.derivative(1).mean()
-            self._coeffs = [self.parent_topography.mean(), sl]
-        elif self._detrend_mode == 'curvature':
-            x, y = self.parent_topography.positions_and_heights()
-            self._coeffs = polyfit(x, y, 2)
-        else:
+        try:
+            self._coeffs = self._detrend_functions[self._detrend_mode](self)
+        except KeyError:
             raise ValueError("Unsupported detrend mode '{}' for line scans.".format(self._detrend_mode))
 
     def __getstate__(self):
