@@ -54,6 +54,7 @@ import SurfaceTopography.Uniform.BearingArea  # noqa: F401
 import SurfaceTopography.Uniform.common  # noqa: F401
 import SurfaceTopography.Uniform.Converters  # noqa: F401
 import SurfaceTopography.Uniform.Derivative  # noqa: F401
+import SurfaceTopography.Uniform.Detrending  # noqa: F401
 import SurfaceTopography.Uniform.Filtering  # noqa: F401
 import SurfaceTopography.Uniform.Imputation  # noqa: F401
 import SurfaceTopography.Uniform.Integration  # noqa: F401

@@ -70,7 +70,7 @@ def moment(topography, alpha):
     if len(x) <= 1:
         return 0.0
     L = x[-1] - x[0]
-    return 1/(alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
+    return 1 / (alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
 
 
 def rms_height(topography):
@@ -172,6 +172,9 @@ def rms_curvature(topography):
 
 # Register analysis functions from this module
 NonuniformLineScanInterface.register_function('moment', moment)
-NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
-NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)
-NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature)
+NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height, deprecated=True)
+NonuniformLineScanInterface.register_function('Rq', rms_height)
+NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope, deprecated=True)
+NonuniformLineScanInterface.register_function('Rdq', rms_slope)
+NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature, deprecated=True)
+NonuniformLineScanInterface.register_function('Rddq', rms_curvature)

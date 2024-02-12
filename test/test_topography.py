@@ -36,20 +36,18 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from numpy.random import rand
-from numpy.testing import assert_array_equal
-
 from muFFT import FFT
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
+from numpy.random import rand
+from numpy.testing import assert_array_equal
 
-from SurfaceTopography import (Topography, UniformLineScan, NonuniformLineScan,
-                               make_sphere, open_topography,
-                               read_topography)
+from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
+                               make_sphere, open_topography, read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 from SurfaceTopography.IO import XYZReader
-from SurfaceTopography.IO.Text import read_asc, read_matrix, AscReader
+from SurfaceTopography.IO.Text import AscReader, read_asc, read_matrix
+from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -295,7 +293,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
         t = UniformLineScan(h, dx * n)
         for mode in ['height', 'curvature', 'slope']:
             detrended = t.detrend(detrend_mode=mode)
-            self.assertAlmostEqual(detrended.mean(), 0)
+            self.assertAlmostEqual(detrended.mean(), 0, msg=mode)
             if mode == 'slope':
                 self.assertGreater(t.rms_slope_from_profile(),
                                    detrended.rms_slope_from_profile(),

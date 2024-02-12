@@ -25,15 +25,17 @@
 #
 
 import os
-import pytest
 import unittest
+
 import numpy as np
-
-from NuMPI import MPI
+import pytest
 from muFFT import FFT
+from NuMPI import MPI
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, read_published_container
-from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
+from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
+                               read_published_container, read_topography)
+from SurfaceTopography.Container.SurfaceContainer import \
+    InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 
 # import necessary to get tip artefact emulation function
@@ -92,7 +94,7 @@ def test_rms_height(comm):
     reason="tests only serial functionalities, please execute with pytest")
 def test_mad_height(comm):
     L, hm, top = sinewave2D(comm)
-    numerical = top.mad_height_from_area()
+    numerical = top.mad_height()
     analytical = np.sqrt(hm ** 2 / 4)
 
     assert numerical == analytical
@@ -106,11 +108,11 @@ def test_mad_height(comm):
 def test_rms_vs_mad_height(nb_grid_pts, physical_sizes):
     sx, sy = physical_sizes
     nx, ny = nb_grid_pts
-    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.8, rms_height=1,
+    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.1, rms_height=1,
                           short_cutoff=4 * (sx / nx),
                           long_cutoff=sx / 4).detrend(detrend_mode="center")
     # Should be close because topography is Gaussian
-    np.testing.assert_allclose(t.rms_height_from_area(), t.mad_height_from_area())
+    np.testing.assert_allclose(t.rms_height_from_area(), t.mad_height())
 
 
 @pytest.mark.skipif(

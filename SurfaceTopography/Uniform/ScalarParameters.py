@@ -299,8 +299,10 @@ def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=Non
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('rms_height_from_profile', rms_height_from_profile)
-UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area)
+UniformTopographyInterface.register_function('rms_height_from_profile', rms_height_from_profile, deprecated=True)
+UniformTopographyInterface.register_function('Rq', rms_height_from_profile)
+UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area, deprecated=True)
+UniformTopographyInterface.register_function('Sq', rms_height_from_area)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
 UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
 UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_profile)

@@ -59,8 +59,37 @@ def test_median_and_mad(plot=False):
         plt.show()
 
 
-def test_mad_detrending(file_format_examples, plot=False):
+def test_mad_detrending_nonuniform(file_format_examples, plot=False):
     file_path = os.path.join(file_format_examples, 'dektak-1.csv')
+    t = read_topography(file_path)
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        t2 = t.detrend('rms-tilt')
+        x = np.linspace(t2.coeffs[1]-0.001, t2.coeffs[1]+0.001, 101)
+        rms = [t.detrend(coeffs=[0, _x]).rms_height_from_profile() for _x in x]
+        mad = [t.detrend(coeffs=[0, _x]).mad_height() for _x in x]
+
+        plt.figure()
+        plt.plot(x, rms, 'k-')
+        plt.plot(x, mad, 'r-')
+        plt.show()
+
+        plt.figure()
+        plt.plot(*t.detrend('rms-tilt').positions_and_heights(), 'k--')
+        plt.plot(*t.detrend('rms-curvature').positions_and_heights(), 'k-')
+        plt.plot(*t.detrend('mad-tilt').positions_and_heights(), 'r--')
+        plt.plot(*t.detrend('mad-curvature').positions_and_heights(), 'r-')
+        plt.show()
+
+    assert t.detrend('mad-tilt').mad_height() < t.mad_height()
+    assert t.detrend('mad-curvature').mad_height() < t.detrend('mad-tilt').mad_height()
+
+
+@pytest.mark.skip
+def test_mad_detrending_topography(file_format_examples, plot=False):
+    file_path = os.path.join(file_format_examples, 'di-1.di')
     t = read_topography(file_path)
 
     if plot:
