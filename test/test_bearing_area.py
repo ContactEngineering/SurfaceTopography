@@ -55,7 +55,7 @@ def test_bearing_area_nonuniform(plot=False):
     np.testing.assert_allclose(P, P_analytic, atol=1e-3)
 
 
-def test_bearing_area_uniform_is_continuous(plot=False):
+def test_bearing_area_uniform_is_monotonous(plot=False):
     t = fourier_synthesis((64,), (1,), 0.8, rms_slope=0.1, periodic=False)
     mn = t.min()
     mx = t.max()
@@ -128,7 +128,7 @@ def test_bearing_area_topography(periodic, plot=False):
 
 
 @pytest.mark.parametrize('nb_grid_pts,periodic', [((64, 65), False), ((16, 3), True), ((256, 256), True)])
-def test_bearing_area_topography_is_continuous(nb_grid_pts, periodic, plot=False):
+def test_bearing_area_topography_is_monotonous(nb_grid_pts, periodic, plot=False):
     t = fourier_synthesis(nb_grid_pts, (1, 1), 0.8, rms_slope=0.1, periodic=periodic)
     mn = t.min()
     mx = t.max()
