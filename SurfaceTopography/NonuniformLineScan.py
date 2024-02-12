@@ -33,7 +33,6 @@ import numpy as np
 
 from .HeightContainer import (AbstractTopography, DecoratedTopography,
                               NonuniformLineScanInterface)
-from .Nonuniform.Detrending import polyfit
 from .Support.UnitConversion import get_unit_conversion_factor
 
 
@@ -265,32 +264,37 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         # same as 'mean', deprecate 'center' in the future
         'center': lambda self: [self.parent_topography.mean()],
         'median': lambda self: [self.parent_topography.median()],
-        'rms-tilt': lambda self: polyfit(*self.parent_topography.positions_and_heights(), 1),
+        'rms-tilt': lambda self: self.parent_topography.polyfit(1),
         # same as 'rms-tilt', deprecate 'height' in the future
-        'height': lambda self: polyfit(*self.parent_topography.positions_and_heights(), 1),
+        'height': lambda self: self.parent_topography.polyfit(1),
+        'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
         'slope': lambda self: [self.parent_topography.mean(), self.parent_topography.derivative(1).mean()],
-        'rms-curvature': lambda self: polyfit(*self.parent_topography.derivative(1).mean(), 2),
+        'rms-curvature': lambda self: self.parent_topography.polyfit(2),
         # same as 'rms-curvature', deprecate 'curvature' in the future
-        'curvature': lambda self: polyfit(*self.parent_topography.derivative(1).mean(), 2),
+        'curvature': lambda self: self.parent_topography.polyfit(2),
+        'mad-curvature': lambda self: self.parent_topography.mad_polyfit(2),
     }
 
-    def __init__(self, topography, detrend_mode='height', info={}):
+    def __init__(self, topography, detrend_mode='height', coeffs=None, info={}):
         """
         Parameters
         ----------
         topography : SurfaceTopography
             SurfaceTopography to be detrended.
         detrend_mode : str
-            'center': center the topography, no trend correction.
-            'height': adjust slope such that rms height is minimized.
+            'mean': center the topography to its mean, no trend correction.
+            'median': center the topography to its median, no trend correction.
+            'rms-tilt': adjust slope such that rms height is minimized.
+            'mad-tilt': adjust slope such that mad height is minimized.
             'slope': adjust slope such that rms slope is minimized.
-            'curvature': adjust slope and curvature such that rms height is
-            minimized.
+            'rms-curvature': adjust slope and curvature such that rms height is minimized.
             (Default: 'height')
         """
         super().__init__(topography, info=info)
         self._detrend_mode = detrend_mode
-        self._detrend()
+        self._coeffs = coeffs
+        if self._coeffs is None:
+            self._detrend()
 
     def _detrend(self):
         try:

@@ -42,6 +42,7 @@ import SurfaceTopography.Nonuniform.BearingArea  # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Converters  # noqa: F401
 import SurfaceTopography.Nonuniform.Derivative  # noqa: F401
+import SurfaceTopography.Nonuniform.Detrending  # noqa: F401
 import SurfaceTopography.Nonuniform.Interpolation  # noqa: F401
 import SurfaceTopography.Nonuniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Nonuniform.ScalarParameters  # noqa: F401

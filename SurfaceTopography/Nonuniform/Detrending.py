@@ -29,8 +29,10 @@ Helper functions to compute trends of surfaces
 
 import numpy as np
 
+from SurfaceTopography.HeightContainer import NonuniformLineScanInterface
 
-def polyfit(x, h, deg):
+
+def polyfit(self, deg):
     r"""
     Compute the detrending plane that, if subtracted, minimizes the rms height
     of the surface. The detrending plane is parameterized as a polynomial:
@@ -61,11 +63,8 @@ def polyfit(x, h, deg):
 
     Parameters
     ----------
-    x : array_like
-        Array containing positions. This function assumes that this array is
-        sorted in ascending order.
-    h : array_like
-        Array containing heights.
+    self : :obj:`NonuniformLineScan`
+        SurfaceTopography object containing height information.
     deg : int
         Degree of polynomial :math:`n`.
 
@@ -74,6 +73,7 @@ def polyfit(x, h, deg):
     a : array
         Array with coefficients :math:`a_k`.
     """  # noqa: E501
+    x, h = self.positions_and_heights()
     dx = np.diff(x)
     k = np.arange(deg + 1).reshape(-1, 1)
     b = np.sum(((2 * h[:-1] + h[1:]) * x[:-1] ** k +
@@ -85,3 +85,6 @@ def polyfit(x, h, deg):
                 x[:-1] ** k * x[1:] ** L + x[1:] ** k * x[:-1] ** L) * dx,
                axis=2)
     return np.linalg.solve(A, b)
+
+
+NonuniformLineScanInterface.register_function('polyfit', polyfit)

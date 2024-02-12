@@ -25,8 +25,9 @@
 """
 Robust statistics (median, median absolute deviation, etc.) for topography data.
 """
+
+import numpy as np
 import scipy
-from scipy.optimize import bisect
 
 from SurfaceTopography.HeightContainer import (NonuniformLineScanInterface,
                                                UniformTopographyInterface)
@@ -50,7 +51,7 @@ def median(self):
     """
     tmp = self.squeeze()  # Avoid evaluating pipeline during bisect
     # The median is where the fractional bearing area is 1/2
-    return bisect(lambda h: tmp.bearing_area(h) - 0.5, tmp.min(), tmp.max())
+    return scipy.optimize.bisect(lambda h: tmp.bearing_area(h) - 0.5, tmp.min(), tmp.max())
 
 
 def mad_height(self, percentile=1 / 4):
@@ -74,11 +75,33 @@ def mad_height(self, percentile=1 / 4):
     med = tmp.median()
     # The median absolute deviation is where the fractional bearing area is equal to `percentile`. We need to consider
     # fluctuation in positive and negative directions.
-    return bisect(lambda h: tmp.bearing_area(med + h) + (1 - tmp.bearing_area(med - h)) - 2 * percentile,
-                  tmp.min(), tmp.max()) * _mad_to_rms
+    return scipy.optimize.bisect(lambda h: tmp.bearing_area(med + h) + (1 - tmp.bearing_area(med - h)) - 2 * percentile,
+                                 tmp.min() - med, tmp.max() - med) * _mad_to_rms
+
+
+def polynomial_that_minimizes_mad_height(self, nb_coeffs):
+    """
+    Find the polynomial that minimizes the median absolute deviation.
+
+    Parameters
+    ----------
+    self : :obj:`HeightContainer`
+        Topography or line scan container object.
+    nb_coeffs : int
+        Number of coefficients to be fitted.
+    """
+    def mad(coeffs):
+        return self.detrend(coeffs=[0, *coeffs]).mad_height()
+
+    coeffs = scipy.optimize.minimize(mad, x0=np.zeros(nb_coeffs), method='Nelder-Mead').x
+    return [self.detrend(coeffs=[0, *coeffs]).median(), *coeffs]
 
 
 UniformTopographyInterface.register_function('median', median)
 UniformTopographyInterface.register_function('mad_height', mad_height)
+UniformTopographyInterface.register_function('mad_polyfit',
+                                             polynomial_that_minimizes_mad_height)
 NonuniformLineScanInterface.register_function('median', median)
 NonuniformLineScanInterface.register_function('mad_height', mad_height)
+NonuniformLineScanInterface.register_function('mad_polyfit',
+                                              polynomial_that_minimizes_mad_height)
