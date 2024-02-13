@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.14.0 (13Feb2924)
--------------------
+v1.14.0 (13Feb24)
+-----------------
 
 - API: Standard RMS height functions are now called `Rq` and `Sq`;
   `rms_height` returns the RMS height of the linearly-interpolated
