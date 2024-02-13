@@ -29,17 +29,17 @@ Tests for power-spectral density analysis
 """
 
 import os
-import pytest
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
+import pytest
+from NuMPI import MPI
+from numpy.testing import assert_allclose, assert_almost_equal
 from scipy.interpolate import interp1d
 
-from NuMPI import MPI
-
-from SurfaceTopography import read_container, read_topography, UniformLineScan, NonuniformLineScan, Topography
+from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
+                               read_container, read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Nonuniform.PowerSpectrum import sinc, dsinc
+from SurfaceTopography.Nonuniform.PowerSpectrum import dsinc, sinc
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -214,7 +214,7 @@ def test_brute_force_vs_fft(file_format_examples):
                                                      resampling_method=None)
     length = len(A2)
     x = A[1:length // 16] / A2[1:length // 16]
-    assert np.alltrue(np.logical_and(x > 0.90, x < 1.35))
+    assert np.all(np.logical_and(x > 0.90, x < 1.35))
 
 
 def test_short_cutoff(file_format_examples):

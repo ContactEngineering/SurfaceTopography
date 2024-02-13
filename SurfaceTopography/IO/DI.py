@@ -30,19 +30,17 @@
 #
 
 import re
-import dateutil.parser
 
+import dateutil.parser
 import numpy as np
 
-from .common import OpenFromAny
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      is_length_unit, mangle_length_unit_utf8)
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit, mangle_length_unit_utf8
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
-from .Reader import ReaderBase, ChannelInfo
-
-
-###
 
 class DIReader(ReaderBase):
     _format = 'di'
@@ -153,24 +151,28 @@ The reader supports V4.3 and later version of the format.
                                       f'bytes yields a larger value of {nx * ny * elsize}.')
 
                     scale_re = re.match(
-                        r'^V \[(.*?)\] \(([0-9\.]+) (.*)\/LSB\) (.*) '
-                        r'(.*)', p['@2:z scale'])
-                    quantity = scale_re.group(1).lower()
+                        r'^V (?:\[(.*?)\]|)\s*\(([0-9\.]+) (.*)\/LSB\) (.*) (.*)', p['@2:z scale'])
+                    quantity = scale_re.group(1)
+                    if quantity is not None:
+                        quantity = quantity.lower()
                     hard_scale = float(scale_re.group(4)) / 65536
                     hard_unit = scale_re.group(5)
 
-                    s = scanner['@' + quantity].split()
-                    if s[0] != 'V' or len(s) < 2:
-                        raise IOError('Malformed Nanoscope DI file.')
-                    soft_scale = float(s[1])
+                    if quantity is None:
+                        s = []
+                        soft_scale = 1.0
+                    else:
+                        s = scanner['@' + quantity].split()
+                        if s[0] != 'V' or len(s) < 2:
+                            raise IOError('Malformed Nanoscope DI file.')
+                        soft_scale = float(s[1])
 
                     height_unit = None
                     hard_to_soft = 1.0
                     if len(s) > 2:
                         # Check units
                         height_unit, soft_unit = s[2].split('/')
-                        hard_to_soft = get_unit_conversion_factor(hard_unit,
-                                                                  soft_unit)
+                        hard_to_soft = get_unit_conversion_factor(hard_unit, soft_unit)
                         if hard_to_soft is None:
                             raise RuntimeError(
                                 "Units for hard (={}) and soft (={}) "

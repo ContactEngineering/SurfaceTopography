@@ -31,9 +31,9 @@ SurfaceTopography profile from file input
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY
-from .Reader import ReaderBase, ChannelInfo
 from ..UniformLineScanAndTopography import Topography
+from .common import CHANNEL_NAME_INFO_KEY
+from .Reader import ChannelInfo, ReaderBase
 
 
 def binary(func):
@@ -155,8 +155,8 @@ def read_hgt(fobj, physical_sizes=None, height_scale_factor=None, unit=None, inf
         raise RuntimeError(
             'File physical_sizes of {0} bytes does not match file '
             'physical_sizes for a map of dimension {1}x{1}.'.format(fsize, dim))
-    data = np.fromfile(fobj, dtype=np.dtype('>i2'),
-                       count=dim * dim).reshape((dim, dim))
+    dtype = np.dtype('>i2')
+    data = np.frombuffer(fobj.read(dim * dim * dtype.itemsize), dtype=dtype).reshape((dim, dim))
 
     if physical_sizes is None:
         topography = Topography(data, physical_sizes=tuple(float(x) for x in data.shape), unit=unit, info=info,

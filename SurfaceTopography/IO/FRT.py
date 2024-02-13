@@ -23,21 +23,21 @@
 #
 
 import os
+from struct import unpack
+
+import numpy as np
+
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
+from ..UniformLineScanAndTopography import Topography
+from .binary import decode
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 #
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/microprof.c
 #
-
-from struct import unpack
-
-import numpy as np
-
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
-from ..UniformLineScanAndTopography import Topography
 
 
 class FRTReader(ReaderBase):
@@ -602,7 +602,8 @@ This reader imports MicroProf FRT profilometry data.
         with OpenFromAny(self.file_path, 'rb') as f:
             nb_grid_pts_x, nb_grid_pts_y = channel.nb_grid_pts
             f.seek(channel.tags['block_offset'])
-            height_data = np.fromfile(f, channel.tags['dtype'], count=np.prod(channel.nb_grid_pts)) \
+            dtype = channel.tags['dtype']
+            height_data = np.frombuffer(f.read(np.prod(channel.nb_grid_pts) * dtype.itemsize), dtype=dtype) \
                 .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
             height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 

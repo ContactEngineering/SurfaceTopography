@@ -34,11 +34,11 @@ from struct import calcsize, unpack
 
 import numpy as np
 
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
+from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 
 def _read_null_terminated_string(f):
@@ -72,7 +72,7 @@ def _gwy_read_array(f, atomic_type, skip_arrays=False):
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
         return {'offset': offset, 'type': atomic_type}  # If we skip reading the array, return the file offset
     else:
-        return np.fromfile(f, dtype=type, count=nb_items)
+        return np.frombuffer(f.read(nb_items * type.itemsize), dtype=type)
 
 
 def _gwy_read_string_array(f):
@@ -247,7 +247,7 @@ visualization and analysis software Gwyddion.
         with OpenFromAny(self.file_path, 'rb') as f:
             nx, ny = channel.nb_grid_pts
             f.seek(channel.tags['data']['offset'])
-            height_data = _gwy_read_array(f, channel.tags['data']['type']).reshape((ny, nx)).T
+            height_data = _gwy_read_array(f, channel.tags['data']['type']).reshape((ny, nx)).T[:, ::-1]
 
         _info = channel.info.copy()
         _info.update(info)

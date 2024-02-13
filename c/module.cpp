@@ -38,7 +38,7 @@ SOFTWARE.
 #include "bicubic.h"
 #include "patchfinder.h"
 
-static PyMethodDef PyCo_methods[] = {
+static PyMethodDef SurfaceTopography_methods[] = {
   {"assign_patch_numbers", assign_patch_numbers, METH_VARARGS},
   {"assign_segment_numbers", assign_segment_numbers, METH_VARARGS},
   {"correlation_function", correlation_function, METH_VARARGS},
@@ -73,8 +73,8 @@ MOD_INIT(_SurfaceTopography)  {
 
   import_array();
 
-  MOD_DEF(m, "_SurfaceTopography", PyCo_methods,
-          "C support functions for PyCo.");
+  MOD_DEF(m, "_SurfaceTopography", SurfaceTopography_methods,
+          "C support functions for SurfaceTopography");
 
   if (PyType_Ready(&bicubic_type) < 0)
     return NULL;

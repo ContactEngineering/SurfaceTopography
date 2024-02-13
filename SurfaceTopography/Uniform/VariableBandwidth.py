@@ -39,7 +39,8 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
     Perform tilt correction (and substract mean value) in each individual
     line section of a checkerboard decomposition of a profile. For topography
     maps, each horizontal slice is interpreted as a profile and this
-    decomposition is carried out for each slice.
+    decomposition is carried out for each slice. The tilt correction minimizes
+    the RMS height within each checkerboard.
 
     The main application of this function is to carry out a variable
     bandwidth analysis of the surface.
@@ -103,6 +104,7 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
     rectangle of a checkerboard decomposition of the surface. This is
     identical to subdividing the surface into individual, nonoverlapping
     rectangles and performing individual tilt corrections on them.
+    The tilt correction minimizes the RMS height within each checkerboard.
 
     The main application of this function is to carry out a variable
     bandwidth analysis of the surface.
@@ -131,7 +133,7 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
         parameters.
     """
     if self.dim != 2:
-        raise ValueError('Areal checkerboard tilt correction can only performend on topography maps, not on profiles.')
+        raise ValueError('Areal checkerboard tilt correction can only performed on topography maps, not on profiles.')
 
     # compute unique consecutive index for each subdivided region
     region_coord = [np.arange(n) * s // n for n, s in zip(self.nb_grid_pts, subdivisions)]
@@ -177,7 +179,8 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
         return detrended_h
 
 
-def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4,
+                                    func=lambda h: np.sqrt(np.mean(h * h))):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -192,7 +195,7 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         stand for specific quantity. Possible quantities are
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
-            - 'h': RMS height (Unit: length)
+            - 'h': Statistical property (Unit: default length, see func)
             - 's': RMS detrending slope (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
@@ -206,6 +209,9 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         Minimum nb_grid_pts to allow for subdivision. The analysis will
         automatically analyze subdivision down to this nb_grid_pts.
         (Default: 4)
+    func : callable, optional
+        Function that computes a statistical property from an array of heights.
+        (Default is the RMS height: np.sqrt(np.mean(h * h)))
 
     Returns
     -------
@@ -215,7 +221,7 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
         Array containing the bandwidths, here the physical sizes of the
         subdivided topography. For 2D topography maps, this is the mean of the
         two physical sizes of the subdivided section of the topography.
-    rms_heights : np.ndarray
+    statistical_properties : np.ndarray
         Array containing the rms height corresponding to the respective
         magnification.
     rms_slopes : np.ndarray
@@ -235,20 +241,20 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
     nx = int(self.nb_grid_pts[0])
     magnifications = []
     bandwidths = []
-    rms_heights = []
+    statistical_properties = []
     rms_slopes = []
     while nx // subdivisions >= nb_grid_pts_cutoff:
         magnifications += [magnification]
         bandwidths += [sx / subdivisions]
         h, coeffs = self.checkerboard_detrend_profile(subdivisions, return_plane=True)
-        rms_heights += [np.sqrt(np.mean(h * h))]
+        statistical_properties += [func(h)]
         rms_slopes += [np.sqrt(np.mean(coeffs[1] * coeffs[1]))]
         magnification *= 2
         subdivisions *= 2
 
     magnifications = np.array(magnifications)
     bandwidths = np.array(bandwidths)
-    rms_heights = np.array(rms_heights)
+    statistical_properties = np.array(statistical_properties)
     rms_slopes = np.array(rms_slopes)
 
     if reliable:
@@ -259,13 +265,14 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
                 raise NoReliableDataError('Dataset contains no reliable data.')
             magnifications = magnifications[m]
             bandwidths = bandwidths[m]
-            rms_heights = rms_heights[m]
+            statistical_properties = statistical_properties[m]
             rms_slopes = rms_slopes[m]
 
-    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, g=rms_slopes)
+    return build_tuple(quantities, m=magnifications, b=bandwidths, h=statistical_properties, g=rms_slopes)
 
 
-def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4):
+def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resampling_method=None, nb_grid_pts_cutoff=4,
+                                 func=lambda h: np.sqrt(np.mean(h * h))):
     """
     Perform a variable bandwidth analysis by computing the mean
     root-mean-square height within increasingly finer subdivisions of the
@@ -280,7 +287,7 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         stand for specific quantity. Possible quantities are
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
-            - 'h': RMS height (Unit: length)
+            - 'h': Statistical property (Unit: default length, see func)
             - 'g': RMS detrending gradient (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
@@ -294,6 +301,9 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         Minimum nb_grid_pts to allow for subdivision. The analysis will
         automatically analyze subdivision down to this nb_grid_pts.
         (Default: 4)
+    func : callable, optional
+        Function that computes a statistical property from an array of heights.
+        (Default is the RMS height: np.sqrt(np.mean(h * h)))
 
     Returns
     -------
@@ -303,7 +313,7 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         Array containing the bandwidths, here the physical sizes of the
         subdivided topography. For 2D topography maps, this is the mean of the
         two physical sizes of the subdivided section of the topography.
-    rms_heights : array
+    statistical_properties : array
         Array containing the rms height corresponding to the respective
         magnification.
     rms_gradients : np.ndarray
@@ -324,20 +334,20 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
     nb_grid_pts = np.array(self.nb_grid_pts, dtype=int)
     magnifications = []
     bandwidths = []
-    rms_heights = []
+    statistical_properties = []
     rms_gradients = []
     while ((nb_grid_pts // subdivisions).min() >= nb_grid_pts_cutoff):
         magnifications += [magnification]
         bandwidths += [np.mean(physical_sizes / subdivisions)]
         h, coeffs = self.checkerboard_detrend_area(subdivisions, return_plane=True)
-        rms_heights += [np.sqrt(np.mean(h * h))]
+        statistical_properties += [func(h)]
         rms_gradients += [np.sqrt(np.mean(coeffs[1] * coeffs[1] + coeffs[2] * coeffs[2]))]
         magnification *= 2
         subdivisions *= 2
 
     magnifications = np.array(magnifications)
     bandwidths = np.array(bandwidths)
-    rms_heights = np.array(rms_heights)
+    statistical_properties = np.array(statistical_properties)
     rms_gradients = np.array(rms_gradients)
 
     if reliable:
@@ -348,10 +358,10 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
                 raise NoReliableDataError('Dataset contains no reliable data.')
             magnifications = magnifications[m]
             bandwidths = bandwidths[m]
-            rms_heights = rms_heights[m]
+            statistical_properties = statistical_properties[m]
             rms_gradients = rms_gradients[m]
 
-    return build_tuple(quantities, m=magnifications, b=bandwidths, h=rms_heights, g=rms_gradients)
+    return build_tuple(quantities, m=magnifications, b=bandwidths, h=statistical_properties, g=rms_gradients)
 
 
 # Register analysis functions from this module

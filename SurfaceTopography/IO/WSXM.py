@@ -22,21 +22,22 @@
 # SOFTWARE.
 #
 import os
+
+import dateutil.parser
+import numpy as np
+
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile)
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      mangle_length_unit_utf8)
+from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
+
 #
 # The DI file format is described in detail here:
 # http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
 #
-
-import dateutil.parser
-
-import numpy as np
-
-from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
-
-from .Reader import ReaderBase, ChannelInfo
 
 
 ###
@@ -186,7 +187,8 @@ scanning probe microscopy available at http://www.wsxm.eu/.
         with OpenFromAny(self._file_path, 'rb') as f:
             nx, ny = channel.nb_grid_pts
             f.seek(channel.tags['file_offset'])
-            height_data = np.fromfile(f, channel.tags['dtype'], nx * ny).reshape((ny, nx)).T
+            dtype = channel.tags['dtype']
+            height_data = np.frombuffer(f.read(nx * ny * dtype.itemsize), dtype=dtype).reshape((ny, nx)).T
 
         _info = channel.info.copy()
         _info.update(info)

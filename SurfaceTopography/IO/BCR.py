@@ -32,12 +32,12 @@ import logging
 
 import numpy as np
 
-from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
-from ..UniformLineScanAndTopography import Topography
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
 from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
-
-from .Reader import ReaderBase, ChannelInfo
+from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 _log = logging.getLogger(__file__)
 
@@ -199,7 +199,7 @@ BCR-STM and BCRF file formats
             nx, ny = channel.nb_grid_pts
 
             fobj.seek(self._headersize)
-            data = np.fromfile(fobj, count=nx * ny, dtype=self._dtype).reshape(ny, nx).T
+            data = np.frombuffer(fobj.read(nx * ny * self._dtype.itemsize), dtype=self._dtype).reshape(ny, nx).T
 
         # internal information from file
         _info = channel.info.copy()

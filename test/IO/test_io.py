@@ -34,21 +34,21 @@ import pickle
 import tempfile
 import warnings
 
+import NuMPI
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
-from scipy.io.netcdf import netcdf_file
-
-import NuMPI
 from NuMPI import MPI
+from numpy.testing import assert_array_equal
+from scipy.io import netcdf_file
 
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlreadyFixedByFile
-from SurfaceTopography.IO import readers, detect_format
+from SurfaceTopography.Exceptions import (CannotDetectFileFormat,
+                                          MetadataAlreadyFixedByFile)
+from SurfaceTopography.IO import detect_format, readers
 from SurfaceTopography.IO.common import is_binary_stream
-from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.Reader import ChannelInfo
+from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
@@ -81,6 +81,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'di-3.di',
                                               'di-4.di',
                                               'di-5.di',
+                                              'di-6.di',
+                                              'di-7.di',
                                               'ibw-1.ibw',
                                               'spot_1-1000nm.ibw',
                                               # 'surface.2048x2048.h5',

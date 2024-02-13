@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson>=1.0.0", "meson-python>=0.13.0", "ninja", "numpy"]
+requires = ["meson>=1.0.0", "meson-python>=0.15.0", "ninja", "numpy"]
 build-backend = "mesonpy"
 
 [project]
@@ -8,6 +8,8 @@ description = "Read and analyze surface topographies"
 readme = "README.md"
 license = { file = "LICENSE.md" }
 authors = [
+    { name = "Kai Haase", email = "k.o.haase@googlemail.com" },
+    { name = "Johannes Hörmann", email = "johannes.hoermann@imtek.uni-freiburg.de" },
     { name = "Till Junge", email = "till.junge@altermail.ch" },
     { name = "Lars Pastewka", email = "lars.pastewka@imtek.uni-freiburg.de" },
     { name = "Michael Röttger", email = "info@michael-roettger.de" },

@@ -30,17 +30,17 @@ Tests for autocorrelation function analysis
 
 import os
 
-import pytest
-
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
+import pytest
+from NuMPI import MPI
+from numpy.testing import assert_allclose, assert_almost_equal
 from scipy.interpolate import interp1d
 
-from NuMPI import MPI
-
-from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan, NonuniformLineScan
+from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
+                               read_container, read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation
+from SurfaceTopography.Nonuniform.Autocorrelation import \
+    height_height_autocorrelation
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -313,7 +313,7 @@ def test_brute_force_vs_fft(file_format_examples):
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
                                                       reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
-    assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
+    assert np.all(np.logical_and(x > 0.9, x < 1.1))
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])

@@ -25,10 +25,8 @@ This README file contains a brief introduction into the code. The full documenta
 Installation
 ------------
 
-Installation is only possible on unix/linux systems and cumbersome on macOSX. 
-For a quick start and if your OS is windows, consider running SurfaceTopography via our [Docker container]().
-
-Detailed instruction for the installation are provided in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation).
+Detailed instruction for the installation are provided in the [documentation](https://contactengineering.github.io/SurfaceTopography/installation.html?highlight=installation). If you want to install from source
+you need to run `git submodule update --init` after a fresh checkout.
 
 The most basic configuration of SurfaceTopography installs all requirements autonomously `python3 -m pip install SurfaceTopgography`
 

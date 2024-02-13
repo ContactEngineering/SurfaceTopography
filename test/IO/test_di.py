@@ -25,15 +25,14 @@
 
 import datetime
 import os
-import pytest
 
 import numpy as np
-
+import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import DIReader
 from SurfaceTopography.Exceptions import CorruptFile
+from SurfaceTopography.IO import DIReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -57,3 +56,8 @@ def test_corrupted_file(file_format_examples):
     # Corruption should be detected when opening file; subsequent calls to `topography` must succeed
     with pytest.raises(CorruptFile):
         DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))
+
+
+def test_di7(file_format_examples):
+    r = DIReader(os.path.join(file_format_examples, 'di-7.di'))
+    r.topography()
