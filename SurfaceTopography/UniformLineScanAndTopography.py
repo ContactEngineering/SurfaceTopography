@@ -70,8 +70,8 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         # masked array and there is data missing
         if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
-        self._heights = heights
-        self._size = np.asarray(physical_sizes).item()
+        self._heights = np.asanyarray(heights, dtype=float)
+        self._size = np.asanyarray(physical_sizes, dtype=float).item()
         self._periodic = periodic
 
     def __getstate__(self):
@@ -251,7 +251,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                     'of the `heights` (= {}) array.'.format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = heights.shape
             self._subdomain_locations = (0, 0)
-            self._heights = np.asanyarray(heights)
+            self._heights = np.asanyarray(heights, dtype=float)
         elif decomposition == 'subdomain':
             # Case 2.: parallelized and local data provided
             if nb_grid_pts is None:
@@ -270,7 +270,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
                     "shape of the `heights` (= {}) array.".format(nb_subdomain_grid_pts, heights.shape))
             self._nb_grid_pts = nb_grid_pts
             self._subdomain_locations = subdomain_locations
-            self._heights = np.asanyarray(heights)
+            self._heights = np.asanyarray(heights, dtype=float)
         elif decomposition == 'domain':
             # Case 3: parallelized but global data provided
             if nb_grid_pts is not None and tuple(nb_grid_pts) != heights.shape:
@@ -290,7 +290,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             self._heights = np.asanyarray(
                 heights[tuple(slice(s, s + n) for s, n in
                               zip(subdomain_locations,
-                                  nb_subdomain_grid_pts))])
+                                  nb_subdomain_grid_pts))], dtype=float)
         elif decomposition == 'serial':
             raise ValueError(
                 "`decomposition` is 'serial' but this is a parallel run.")
@@ -348,7 +348,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
 
     @property
     def pixel_size(self):
-        return np.asarray(self.physical_sizes) / np.asarray(self.nb_grid_pts)
+        return np.asanyarray(self.physical_sizes, dtype=float) / np.asanyarray(self.nb_grid_pts)
 
     @property
     def area_per_pt(self):

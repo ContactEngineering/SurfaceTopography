@@ -38,7 +38,7 @@ from ..HeightContainer import UniformTopographyInterface
 _mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
 
 
-def rms_height_from_profile(topography):
+def Rq(topography):
     """
     Compute the root mean square height amplitude of a topography or
     line scan stored on a uniform grid from individual profiles.
@@ -55,7 +55,7 @@ def rms_height_from_profile(topography):
         Root mean square height value.
     """
     if topography.is_domain_decomposed:
-        raise NotImplementedError('`rms_height_from_profile` does not support MPI-decomposed topographies.')
+        raise NotImplementedError('`Rq` does not support MPI-decomposed topographies.')
 
     n = np.prod(topography.nb_grid_pts)
     reduction = Reduction(topography._communicator)
@@ -63,7 +63,7 @@ def rms_height_from_profile(topography):
     return np.sqrt(reduction.sum((profile - reduction.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2) / n)
 
 
-def rms_height_from_area(topography):
+def Sq(topography):
     """
     Compute the root mean square height amplitude of a topography or
     line scan stored on a uniform grid from the whole areal data.
@@ -299,10 +299,10 @@ def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=Non
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('rms_height_from_profile', rms_height_from_profile, deprecated=True)
-UniformTopographyInterface.register_function('Rq', rms_height_from_profile)
-UniformTopographyInterface.register_function('rms_height_from_area', rms_height_from_area, deprecated=True)
-UniformTopographyInterface.register_function('Sq', rms_height_from_area)
+UniformTopographyInterface.register_function('rms_height_from_profile', Rq, deprecated=True)
+UniformTopographyInterface.register_function('Rq', Rq)
+UniformTopographyInterface.register_function('rms_height_from_area', Sq, deprecated=True)
+UniformTopographyInterface.register_function('Sq', Sq)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
 UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
 UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_profile)

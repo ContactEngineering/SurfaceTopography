@@ -23,13 +23,44 @@ SOFTWARE.
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 
+namespace py = pybind11;
+
 #include "bearing_area.h"
+#include "moments.h"
 
 
 PYBIND11_MODULE(_SurfaceTopographyPP, mod) {
     mod.doc() = "C++ support functions for SurfaceTopography";
 
-    mod.def("nonuniform_bearing_area", &nonuniform_bearing_area, "Bearing area for a nonuniform line scan");
-    mod.def("uniform1d_bearing_area", &uniform1d_bearing_area, "Bearing area for a uniform line scan");
-    mod.def("uniform2d_bearing_area", &uniform2d_bearing_area, "Bearing area for a topography map");
+    mod.def("nonuniform_bearing_area", &nonuniform_bearing_area, "Bearing area of a nonuniform line scan");
+    mod.def("uniform1d_bearing_area", &uniform1d_bearing_area, "Bearing area of a uniform line scan");
+    mod.def("uniform2d_bearing_area", &uniform2d_bearing_area, "Bearing area of a topography map");
+
+    mod.def("nonuniform_mean", &nonuniform_moment<1>, "Mean of a nonuniform line scan",
+            py::arg("x"), py::arg("h"), py::arg("ref_h") = 0.0);
+    mod.def("uniform1d_mean", &uniform1d_moment<1>, "Mean of a uniform line scan",
+            py::arg("dx"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+    mod.def("uniform2d_mean", &uniform2d_moment<1>, "Mean of a topography map",
+            py::arg("dx"), py::arg("dy"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+
+    mod.def("nonuniform_variance", &nonuniform_moment<2>, "Second moment of a nonuniform line scan",
+            py::arg("x"), py::arg("h"), py::arg("ref_h") = 0.0);
+    mod.def("uniform1d_variance", &uniform1d_moment<2>, "Second moment of a uniform line scan",
+            py::arg("dx"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+    mod.def("uniform2d_variance", &uniform2d_moment<2>, "Second moment of a topography map",
+            py::arg("dx"), py::arg("dy"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+
+    mod.def("nonuniform_moment3", &nonuniform_moment<3>, "Second moment of a nonuniform line scan",
+            py::arg("x"), py::arg("h"), py::arg("ref_h") = 0.0);
+    mod.def("uniform1d_moment3", &uniform1d_moment<3>, "Second moment of a uniform line scan",
+            py::arg("dx"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+    mod.def("uniform2d_moment3", &uniform2d_moment<3>, "Second moment of a topography map",
+            py::arg("dx"), py::arg("dy"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+
+    mod.def("nonuniform_moment4", &nonuniform_moment<4>, "Second moment of a nonuniform line scan",
+            py::arg("x"), py::arg("h"), py::arg("ref_h") = 0.0);
+    mod.def("uniform1d_moment4", &uniform1d_moment<4>, "Second moment of a uniform line scan",
+            py::arg("dx"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
+    mod.def("uniform2d_moment4", &uniform2d_moment<4>, "Second moment of a topography map",
+            py::arg("dx"), py::arg("dy"), py::arg("h"), py::arg("periodic"), py::arg("ref_h") = 0.0);
 }

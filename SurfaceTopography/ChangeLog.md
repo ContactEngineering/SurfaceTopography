@@ -1,13 +1,17 @@
 Change log for SurfaceTopography
 ================================
 
-v1.14.0 (not yet released)
---------------------------
+v1.14.0 (13Feb2924)
+-------------------
 
+- API: Standard RMS height functions are now called `Rq` and `Sq`;
+  `rms_height` returns the RMS height of the linearly-interpolated
+  topography
 - ENH: Median-absolute-deviation (MAD) calculation
 - ENH: Median calculation
 - ENH: Exact bearing area model based on linear interpolation of topography
 - ENH: Arbitrary statistical functions for VBM
+- MAINT: Flipped Gwyddion images, #351
 - MAINT: C++ extension module (`_SurfaceTopographyPP`)
 - MAINT: Use new API response for contact.engineering to get download URLs
 

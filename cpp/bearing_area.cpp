@@ -20,16 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <iostream>
-
 #include <algorithm>
 
 #include "bearing_area.h"
 
 
 Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
-                                       Eigen::Ref<Eigen::ArrayXd> heights)
-{
+                                       Eigen::Ref<Eigen::ArrayXd> heights) {
     if (topography_x.size() != topography_h.size()) {
         throw std::runtime_error("`topography_x` and `topography_h` must have the same size");
     }
@@ -61,8 +58,7 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, 
 
 
 Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights)
-{
+                                      Eigen::Ref<Eigen::ArrayXd> heights) {
     /* The physical length of the line scan */
     const double physical_size{periodic ? dx * topography_h.size() : dx * (topography_h.size()-1)};
 
@@ -90,8 +86,7 @@ Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topo
 }
 
 
-double _triangle(double h1_in, double h2_in, double h3_in, double h)
-{
+double _triangle(double h1_in, double h2_in, double h3_in, double h) {
     double h1{h1_in}, h2{h2_in}, h3{h3_in};
     double bearing_area{0};
 
@@ -113,8 +108,7 @@ double _triangle(double h1_in, double h2_in, double h3_in, double h)
 
 
 Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights)
-{
+                                      Eigen::Ref<Eigen::ArrayXd> heights) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};

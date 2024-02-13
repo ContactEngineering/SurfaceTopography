@@ -59,8 +59,8 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         super().__init__(unit=unit, info=info)
         if np.ma.is_masked(x) or np.ma.is_masked(y):
             raise ValueError('Storage arrays for nonuniform line scans cannot be masked.')
-        self._x = np.asarray(x)
-        self._h = np.asarray(y)
+        self._x = np.asanyarray(x, dtype=float)
+        self._h = np.asanyarray(y, dtype=float)
 
     def __getstate__(self):
         """ is called and the returned object is pickled as the contents for
@@ -253,8 +253,6 @@ class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function(
-    'mean', lambda this: np.trapz(this.heights(), this.positions()) / this.physical_sizes[0])
 NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
 NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
 

@@ -28,6 +28,7 @@
 Functions computing scalar roughness parameters
 """
 
+import _SurfaceTopographyPP
 import numpy as np
 
 from ..Exceptions import ReentrantDataError
@@ -73,7 +74,7 @@ def moment(topography, alpha):
     return 1 / (alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
 
 
-def rms_height(topography):
+def rms_height(self):
     r"""
     Computes root-mean square height fluctuation of the line scan:
 
@@ -93,7 +94,7 @@ def rms_height(topography):
 
     Parameters
     ----------
-    topography : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         SurfaceTopography object containing height information.
 
     Returns
@@ -101,17 +102,10 @@ def rms_height(topography):
     rms_height : float or array
         Root-mean square height.
     """  # noqa: E501
-    x, h = topography.positions_and_heights()
-    dx = np.diff(x)
-    if len(x) <= 1:
-        return 0.0
-    L = x[-1] - x[0]
-    h0 = h - topography.mean()
-    return np.sqrt(
-        np.sum((h0[:-1] ** 2 + h0[1:] ** 2 + h0[:-1] * h0[1:]) * dx) / (3 * L))
+    return np.sqrt(_SurfaceTopographyPP.nonuniform_variance(*self.positions_and_heights(), ref_h=self.mean()))
 
 
-def rms_slope(topography):
+def rms_slope(self):
     r"""
     Computes root-mean square slope fluctuation of the line scan:
 
@@ -127,7 +121,7 @@ def rms_slope(topography):
 
     Parameters
     ----------
-    topography : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         SurfaceTopography object containing height information.
 
     Returns
@@ -135,7 +129,7 @@ def rms_slope(topography):
     rms_slope : float
         Root-mean square slope.
     """  # noqa: E501
-    x, h = topography.positions_and_heights()
+    x, h = self.positions_and_heights()
     dh = np.diff(h)
     dx = np.diff(x)
 
@@ -148,13 +142,13 @@ def rms_slope(topography):
     return np.sqrt(np.sum(dh ** 2 / dx) / L)
 
 
-def rms_curvature(topography):
+def rms_curvature(self):
     r"""
     Computes root-mean square slope fluctuation of the line scan:
 
     Parameters
     ----------
-    topography : :obj:`NonuniformLineScan`
+    self : :obj:`NonuniformLineScan`
         SurfaceTopography object containing height information.
 
     Returns
@@ -162,8 +156,8 @@ def rms_curvature(topography):
     rms_slope : float
         Root-mean square slope.
     """
-    x = topography.positions()
-    d2 = topography.derivative(n=2)
+    x = self.positions()
+    d2 = self.derivative(n=2)
     # The second derivative cannot be evaluated on the two end points
     L = x[-2] - x[1]
 
@@ -171,6 +165,8 @@ def rms_curvature(topography):
 
 
 # Register analysis functions from this module
+NonuniformLineScanInterface.register_function(
+    'mean', lambda self: _SurfaceTopographyPP.nonuniform_mean(*self.positions_and_heights()))
 NonuniformLineScanInterface.register_function('moment', moment)
 NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height, deprecated=True)
 NonuniformLineScanInterface.register_function('Rq', rms_height)
