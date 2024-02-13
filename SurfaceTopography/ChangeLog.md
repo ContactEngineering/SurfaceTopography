@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.1 (13Feb24)
+-----------------
+
+- MAINT: Start Nelder-Mead optimization for MAD fits from the initial guess
+  obtained from an RMS fit
+
 v1.13.0 (13Feb24)
 -----------------
 

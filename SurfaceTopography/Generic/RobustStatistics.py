@@ -26,7 +26,6 @@
 Robust statistics (median, median absolute deviation, etc.) for topography data.
 """
 
-import numpy as np
 import scipy
 
 from SurfaceTopography.HeightContainer import (NonuniformLineScanInterface,
@@ -81,7 +80,7 @@ def mad_height(self, percentile=_rms_percentile):
                                  -maxdev, maxdev)
 
 
-def polynomial_that_minimizes_mad_height(self, nb_coeffs):
+def mad_polyfit(self, nb_coeffs):
     """
     Find the polynomial that minimizes the median absolute deviation.
 
@@ -95,15 +94,14 @@ def polynomial_that_minimizes_mad_height(self, nb_coeffs):
     def mad(coeffs):
         return self.detrend(coeffs=[0, *coeffs]).mad_height()
 
-    coeffs = scipy.optimize.minimize(mad, x0=np.zeros(nb_coeffs), method='Nelder-Mead').x
+    x0 = self.polyfit(nb_coeffs)
+    coeffs = scipy.optimize.minimize(mad, x0=x0[1:], method='Nelder-Mead').x
     return [self.detrend(coeffs=[0, *coeffs]).median(), *coeffs]
 
 
 UniformTopographyInterface.register_function('median', median)
 UniformTopographyInterface.register_function('mad_height', mad_height)
-UniformTopographyInterface.register_function('mad_polyfit',
-                                             polynomial_that_minimizes_mad_height)
+UniformTopographyInterface.register_function('mad_polyfit', mad_polyfit)
 NonuniformLineScanInterface.register_function('median', median)
 NonuniformLineScanInterface.register_function('mad_height', mad_height)
-NonuniformLineScanInterface.register_function('mad_polyfit',
-                                              polynomial_that_minimizes_mad_height)
+NonuniformLineScanInterface.register_function('mad_polyfit', mad_polyfit)
