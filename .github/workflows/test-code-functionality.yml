@@ -73,6 +73,11 @@ jobs:
             # Manually install muSpectre with MPI enabled
             echo "Installing ${MUSPECTRE_VERSION}"
             pip install -v --no-binary muspectre ${MUSPECTRE_VERSION}
+          else
+            sudo apt-get install -y \
+              libfftw3-dev \
+              libhdf5-dev \
+              libnetcdf-dev
           fi
           python3 -m pip install build
           python3 -m pip list
