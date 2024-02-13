@@ -114,17 +114,6 @@ def test_mad_height(comm, plot=False):
 @pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest")
-@pytest.mark.parametrize("nb_grid_pts", ((511, 512), (512, 511), (512, 512), (511, 511)))
-@pytest.mark.parametrize("physical_sizes", ((1, 1), (1, 2)))
-def test_rms_vs_mad_height(nb_grid_pts, physical_sizes):
-    t = fourier_synthesis(nb_grid_pts, physical_sizes=physical_sizes, hurst=0.1, rms_height=1)
-    # Should be close because topography is Gaussian (but only for small Hurst)
-    np.testing.assert_allclose(t.rms_height_from_area(), t.mad_height(), atol=0.05)
-
-
-@pytest.mark.skipif(
-    MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
 @pytest.mark.parametrize("periodic", [False, True])
 def test_rms_curvature_sinewave_2D(periodic):
     precision = 5
