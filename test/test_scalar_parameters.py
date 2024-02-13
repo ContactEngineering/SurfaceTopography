@@ -25,15 +25,17 @@
 #
 
 import os
-import pytest
 import unittest
+
 import numpy as np
-
-from NuMPI import MPI
+import pytest
 from muFFT import FFT
+from NuMPI import MPI
 
-from SurfaceTopography import Topography, NonuniformLineScan, UniformLineScan, read_topography, read_published_container
-from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
+from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
+                               read_published_container, read_topography)
+from SurfaceTopography.Container.SurfaceContainer import \
+    InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 
 # import necessary to get tip artefact emulation function
@@ -85,6 +87,28 @@ def test_rms_height(comm):
     analytical = np.sqrt(hm ** 2 / 4)
 
     assert numerical == analytical
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest")
+def test_mad_height(comm, plot=False):
+    L, hm, top = sinewave2D(comm)
+    numerical = top.mad_height()
+    analytical = np.sqrt(hm ** 2 / 4)
+
+    if plot:
+        import matplotlib.pyplot as plt
+        plt.figure()
+        x, y, h = top.positions_and_heights()
+        plt.pcolormesh(h)
+        plt.show()
+        plt.figure()
+        h = np.linspace(top.min()-hm/10, top.max()+hm/10, 101)
+        plt.plot(h, top.bearing_area(h), 'k-')
+        plt.show()
+
+    assert numerical > analytical  # Fixme! Derive exact analytic expression
 
 
 @pytest.mark.skipif(
@@ -164,9 +188,14 @@ class SinewaveTest(unittest.TestCase):
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
     def test_rms_height_nonuniform(self):
-        numerical = NonuniformLineScan(self.X, self.sinsurf).rms_height_from_profile()
+        t = NonuniformLineScan(self.X, self.sinsurf)
+        numerical = t.rms_height_from_profile()
         analytical = np.sqrt(self.hm ** 2 / 2)
         # numerical = np.sqrt(np.trapz(self.sinsurf**2, self.X))
+
+        self.assertAlmostEqual(numerical, analytical, self.precision)
+
+        numerical = np.sqrt(t.moment(2))
 
         self.assertAlmostEqual(numerical, analytical, self.precision)
 

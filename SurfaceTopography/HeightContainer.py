@@ -31,11 +31,10 @@ Base class for geometric topogography descriptions
 import abc
 
 import numpy as np
-
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-from .Support import doi, DeprecatedDictionary
+from .Support import DeprecatedDictionary, doi
 
 # Standardized entries for the info dictionary
 
@@ -219,7 +218,8 @@ class DecoratedTopography(AbstractTopography):
 
 class TopographyInterface(object):
     @classmethod
-    def register_function(cls, name, function):
+    def register_function(cls, name, function, deprecated=False):  # noqa: N805
+        # FIXME! Wrap in warnings.deprecated decorator, will be introduced in Python 3.13
         if function.__name__ != 'func_with_doi':
             # We want the `dois` argument for all pipeline functions. If no
             # doi has been specified, we simply wrap it in an empty decorator.
