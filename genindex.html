@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 1.12.2.dev14+ga8146d8b documentation</title>
+  <title>Index &mdash; SurfaceTopography 1.12.2.dev50+gad33123e documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=4368c9b6"></script>
+        <script src="_static/documentation_options.js?v=e58a8057"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.12.2.dev14+ga8146d8b
+                1.12.2.dev50+gad33123e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -230,7 +230,7 @@
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.__init__">(SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.__init__">(SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography method)</a>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.__init__">(SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.__init__">(SurfaceTopography.NonuniformLineScan.NonuniformLineScan method)</a>
 </li>
@@ -248,6 +248,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.__init__">(SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan method)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.__init__">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography method)</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.__init__">(SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.__init__">(SurfaceTopography.Uniform.Filtering.LongCutTopography method)</a>
@@ -261,8 +263,6 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography method)</a>
-</li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography method)</a>
 </li>
@@ -341,6 +341,12 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.BCR.BCRReader">BCRReader (class in SurfaceTopography.IO.BCR)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.BearingArea.bearing_area">bearing_area() (in module SurfaceTopography.Nonuniform.BearingArea)</a>
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.BearingArea.bearing_area">(in module SurfaceTopography.Uniform.BearingArea)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.bin_average">bin_average() (in module SurfaceTopography.Support.Regression)</a>
@@ -469,10 +475,10 @@
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.close">(SurfaceTopography.IO.Reader.ReaderBase method)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.coeffs">coeffs (SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography property)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.coeffs">coeffs (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 
       <ul>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.coeffs">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.coeffs">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography property)</a>
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.communicator">communicator (SurfaceTopography.HeightContainer.AbstractTopography property)</a>
@@ -513,10 +519,10 @@
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CorruptFile">CorruptFile</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.curvatures">curvatures (SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography property)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.curvatures">curvatures (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 
       <ul>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.curvatures">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.curvatures">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography property)</a>
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography.cutoff_wavelength">cutoff_wavelength (SurfaceTopography.Uniform.Filtering.LongCutTopography property)</a>
@@ -583,15 +589,15 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.detrend_mode">detrend_mode (SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography property)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.detrend_mode">detrend_mode (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 
       <ul>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.detrend_mode">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.detrend_mode">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography property)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography">DetrendedNonuniformTopography (class in SurfaceTopography.NonuniformLineScan)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography">DetrendedNonuniformTopography (class in SurfaceTopography.Nonuniform.Detrending)</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography">DetrendedUniformTopography (class in SurfaceTopography.UniformLineScanAndTopography)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography">DetrendedUniformTopography (class in SurfaceTopography.Uniform.Detrending)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.dim">dim (SurfaceTopography.HeightContainer.AbstractTopography property)</a>
 
@@ -780,7 +786,7 @@
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.heights">(SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.heights">(SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography method)</a>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.heights">(SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.heights">(SurfaceTopography.NonuniformLineScan.NonuniformLineScan method)</a>
 </li>
@@ -792,6 +798,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.heights">(SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan method)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.heights">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography method)</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.heights">(SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.heights">(SurfaceTopography.Uniform.Filtering.WindowedUniformTopography method)</a>
@@ -801,8 +809,6 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.heights">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography method)</a>
-</li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.heights">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.heights">(SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography method)</a>
 </li>
@@ -902,19 +908,19 @@
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.is_periodic">(SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan property)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.is_periodic">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.is_periodic">(SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.is_periodic">(SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.is_periodic">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.is_periodic">(SurfaceTopography.NonuniformLineScan.NonuniformLineScan property)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan.is_periodic">(SurfaceTopography.Uniform.Converters.WrapAsNonuniformLineScan property)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.is_periodic">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography property)</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.is_periodic">(SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography property)</a>
-</li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.is_periodic">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.is_periodic">(SurfaceTopography.UniformLineScanAndTopography.Topography property)</a>
 </li>
@@ -973,6 +979,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.mad_height">mad_height() (in module SurfaceTopography.Generic.RobustStatistics)</a>
+</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.make_fft">make_fft() (in module SurfaceTopography.FFTTricks)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.make_grid">make_grid() (in module SurfaceTopography.Support.Regression)</a>
@@ -990,6 +998,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPD.mask_undefined">mask_undefined() (in module SurfaceTopography.IO.OPD)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Matlab.MatReader">MatReader (class in SurfaceTopography.IO.Matlab)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.median">median() (in module SurfaceTopography.Generic.RobustStatistics)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType.METADATA">METADATA (SurfaceTopography.IO.OIR.OirChunkType attribute)</a>
 </li>
@@ -1058,6 +1068,8 @@
         <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments</a>
 </li>
         <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff</a>
+</li>
+        <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.RobustStatistics">SurfaceTopography.Generic.RobustStatistics</a>
 </li>
         <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics</a>
 </li>
@@ -1147,6 +1159,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation</a>
 </li>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.BearingArea">SurfaceTopography.Nonuniform.BearingArea</a>
+</li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.common">SurfaceTopography.Nonuniform.common</a>
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters</a>
@@ -1187,6 +1201,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.BearingArea">SurfaceTopography.Uniform.BearingArea</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.common">SurfaceTopography.Uniform.common</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Converters">SurfaceTopography.Uniform.Converters</a>
@@ -1216,6 +1232,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.moment">moment() (in module SurfaceTopography.Nonuniform.ScalarParameters)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Integration.moment_power_spectrum">moment_power_spectrum() (in module SurfaceTopography.Uniform.Integration)</a>
 </li>
   </ul></td>
@@ -1418,9 +1436,23 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.POIRReader">POIRReader (class in SurfaceTopography.IO.OIR)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.polyfit">polyfit() (in module SurfaceTopography.Nonuniform.Detrending)</a>
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.polyfit">(in module SurfaceTopography.Uniform.Detrending)</a>
+</li>
+      </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.polyfit1_topography">polyfit1_topography() (in module SurfaceTopography.Uniform.Detrending)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.polyfit">polyfit() (in module SurfaceTopography.Nonuniform.Detrending)</a>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.polyfit2_topography">polyfit2_topography() (in module SurfaceTopography.Uniform.Detrending)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.polyfit_line_scan">polyfit_line_scan() (in module SurfaceTopography.Uniform.Detrending)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.polyfit_topography">polyfit_topography() (in module SurfaceTopography.Uniform.Detrending)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.polynomial_that_minimizes_mad_height">polynomial_that_minimizes_mad_height() (in module SurfaceTopography.Generic.RobustStatistics)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography.position_scale_factor">position_scale_factor (SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography property)</a>
 
@@ -1439,9 +1471,9 @@
 </li>
         <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.positions">(SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.positions">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography method)</a>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.positions">(SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography method)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.positions">(SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography method)</a>
+        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.positions">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.positions">(SurfaceTopography.NonuniformLineScan.NonuniformLineScan method)</a>
 </li>
@@ -1580,15 +1612,13 @@
         <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.rms_height">(SurfaceTopography.Models.SelfAffine.SelfAffine method)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_area">rms_height_from_area() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
-</li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_height_from_profile">rms_height_from_profile() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
-</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian">rms_laplacian() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope">rms_slope() (in module SurfaceTopography.Nonuniform.ScalarParameters)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_slope_from_profile">rms_slope_from_profile() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.Rq">Rq() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1620,8 +1650,6 @@
 </li>
       <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine">SelfAffine (class in SurfaceTopography.Models.SelfAffine)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.shift_and_tilt">shift_and_tilt() (in module SurfaceTopography.Uniform.Detrending)</a>
-</li>
       <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff">short_reliability_cutoff() (in module SurfaceTopography.Generic.ReliabilityCutoff)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.ShortCutTopography">ShortCutTopography (class in SurfaceTopography.Uniform.Filtering)</a>
@@ -1633,6 +1661,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.Skip">Skip (class in SurfaceTopography.IO.Reader)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType.SPACER">SPACER (SurfaceTopography.IO.OIR.OirChunkType attribute)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.Sq">Sq() (in module SurfaceTopography.Uniform.ScalarParameters)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.squeeze">squeeze() (SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography method)</a>
 
@@ -1650,10 +1680,10 @@
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography">StaticallyScaledUniformTopography (class in SurfaceTopography.UniformLineScanAndTopography)</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.stringify_plane">stringify_plane() (SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography method)</a>
+      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.stringify_plane">stringify_plane() (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography method)</a>
 
       <ul>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.stringify_plane">(SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography method)</a>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.stringify_plane">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography method)</a>
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.subdomain_locations">subdomain_locations (SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography property)</a>
@@ -1818,6 +1848,13 @@
 
       <ul>
         <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ReliabilityCutoff">module</a>
+</li>
+      </ul></li>
+      <li>
+    SurfaceTopography.Generic.RobustStatistics
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.RobustStatistics">module</a>
 </li>
       </ul></li>
       <li>
@@ -2131,6 +2168,13 @@
 </li>
       </ul></li>
       <li>
+    SurfaceTopography.Nonuniform.BearingArea
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.BearingArea">module</a>
+</li>
+      </ul></li>
+      <li>
     SurfaceTopography.Nonuniform.common
 
       <ul>
@@ -2271,6 +2315,13 @@
 </li>
       </ul></li>
       <li>
+    SurfaceTopography.Uniform.BearingArea
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.BearingArea">module</a>
+</li>
+      </ul></li>
+      <li>
     SurfaceTopography.Uniform.common
 
       <ul>
@@ -2374,10 +2425,6 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.tags">tags (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.text">text() (in module SurfaceTopography.IO.common)</a>
-</li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.tilt_and_curvature">tilt_and_curvature() (in module SurfaceTopography.Uniform.Detrending)</a>
-</li>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.tilt_from_height">tilt_from_height() (in module SurfaceTopography.Uniform.Detrending)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.toiter">toiter() (in module SurfaceTopography.Support)</a>
 </li>
@@ -2568,9 +2615,9 @@
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.x_range">x_range (SurfaceTopography.HeightContainer.NonuniformLineScanInterface property)</a>
 
       <ul>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.x_range">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.x_range">(SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.x_range">(SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography property)</a>
+        <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.x_range">(SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan.x_range">(SurfaceTopography.NonuniformLineScan.NonuniformLineScan property)</a>
 </li>

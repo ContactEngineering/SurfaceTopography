@@ -12,6 +12,14 @@ SurfaceTopography.Nonuniform.Autocorrelation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Nonuniform.BearingArea module
+-----------------------------------------------
+
+.. automodule:: SurfaceTopography.Nonuniform.BearingArea
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Nonuniform.Converters module
 ----------------------------------------------
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography &mdash; SurfaceTopography 1.12.2.dev14+ga8146d8b documentation</title>
+  <title>SurfaceTopography &mdash; SurfaceTopography 1.12.2.dev50+gad33123e documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=4368c9b6"></script>
+        <script src="../_static/documentation_options.js?v=e58a8057"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.12.2.dev14+ga8146d8b
+                1.12.2.dev50+gad33123e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -111,6 +111,7 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.RobustStatistics">SurfaceTopography.Generic.RobustStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
@@ -166,6 +167,7 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.BearingArea">SurfaceTopography.Nonuniform.BearingArea module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Derivative">SurfaceTopography.Nonuniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Nonuniform.html#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a></li>
@@ -196,6 +198,7 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.BearingArea">SurfaceTopography.Uniform.BearingArea module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Converters">SurfaceTopography.Uniform.Converters module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Detrending">SurfaceTopography.Uniform.Detrending module</a></li>
@@ -340,18 +343,6 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.StaticallyScaledNonuniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledNonuniformTopography.position_scale_factor</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.coeffs"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.coeffs</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.detrend_mode"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.detrend_mode</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.is_periodic</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.x_range"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.x_range</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.positions()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.heights()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.stringify_plane"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.stringify_plane()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DetrendedNonuniformTopography.curvatures"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.curvatures</span></code></a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-pipeline-module">SurfaceTopography.Pipeline module</a></li>
@@ -441,16 +432,6 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.height_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.height_scale_factor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.position_scale_factor"><code class="docutils literal notranslate"><span class="pre">StaticallyScaledUniformTopography.position_scale_factor</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.coeffs"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.coeffs</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.detrend_mode"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.detrend_mode</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.is_periodic</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.heights()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.stringify_plane"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.stringify_plane()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DetrendedUniformTopography.curvatures"><code class="docutils literal notranslate"><span class="pre">DetrendedUniformTopography.curvatures</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TransposedUniformTopography"><code class="docutils literal notranslate"><span class="pre">TransposedUniformTopography</span></code></a><ul>

@@ -12,6 +12,14 @@ SurfaceTopography.Uniform.Autocorrelation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Uniform.BearingArea module
+--------------------------------------------
+
+.. automodule:: SurfaceTopography.Uniform.BearingArea
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Uniform.Converters module
 -------------------------------------------
 

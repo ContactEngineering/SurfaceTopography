@@ -36,6 +36,14 @@ SurfaceTopography.Generic.ReliabilityCutoff module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Generic.RobustStatistics module
+-------------------------------------------------
+
+.. automodule:: SurfaceTopography.Generic.RobustStatistics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Generic.ScaleDependentStatistics module
 ---------------------------------------------------------
 

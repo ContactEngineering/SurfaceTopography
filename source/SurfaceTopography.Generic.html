@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.12.2.dev14+ga8146d8b documentation</title>
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.12.2.dev50+gad33123e documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=4368c9b6"></script>
+        <script src="../_static/documentation_options.js?v=e58a8057"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -38,7 +38,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.12.2.dev14+ga8146d8b
+                1.12.2.dev50+gad33123e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -66,6 +66,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Moments">SurfaceTopography.Generic.Moments module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.RobustStatistics">SurfaceTopography.Generic.RobustStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a></li>
@@ -112,6 +113,12 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ReliabilityCutoff">SurfaceTopography.Generic.ReliabilityCutoff module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.ReliabilityCutoff.short_reliability_cutoff"><code class="docutils literal notranslate"><span class="pre">short_reliability_cutoff()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.RobustStatistics">SurfaceTopography.Generic.RobustStatistics module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.RobustStatistics.median"><code class="docutils literal notranslate"><span class="pre">median()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.RobustStatistics.mad_height"><code class="docutils literal notranslate"><span class="pre">mad_height()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Generic.RobustStatistics.polynomial_that_minimizes_mad_height"><code class="docutils literal notranslate"><span class="pre">polynomial_that_minimizes_mad_height()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
@@ -340,6 +347,62 @@ used to compute the reliability cutoff.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Generic.RobustStatistics">
+<span id="surfacetopography-generic-robuststatistics-module"></span><h2>SurfaceTopography.Generic.RobustStatistics module<a class="headerlink" href="#module-SurfaceTopography.Generic.RobustStatistics" title="Link to this heading"></a></h2>
+<p>Robust statistics (median, median absolute deviation, etc.) for topography data.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.RobustStatistics.median">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.RobustStatistics.</span></span><span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.RobustStatistics.median" title="Link to this definition"></a></dt>
+<dd><p>Compute the median height of the topography.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code>) – Topography or line scan container object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>median</strong> – Median height.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.RobustStatistics.mad_height">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.RobustStatistics.</span></span><span class="sig-name descname"><span class="pre">mad_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15865525393145707</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.RobustStatistics.mad_height" title="Link to this definition"></a></dt>
+<dd><p>Compute the median-absolute-deviation of the height.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code>) – Topography or line scan container object.</p></li>
+<li><p><strong>percentile</strong> (<em>float</em>) – Fraction of the bearing area that should be considered for the
+deviation. (Default: One standard deviation)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>mad_height</strong> – Median absolute deviation of the height.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Generic.RobustStatistics.polynomial_that_minimizes_mad_height">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Generic.RobustStatistics.</span></span><span class="sig-name descname"><span class="pre">polynomial_that_minimizes_mad_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_coeffs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Generic.RobustStatistics.polynomial_that_minimizes_mad_height" title="Link to this definition"></a></dt>
+<dd><p>Find the polynomial that minimizes the median absolute deviation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code>) – Topography or line scan container object.</p></li>
+<li><p><strong>nb_coeffs</strong> (<em>int</em>) – Number of coefficients to be fitted.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

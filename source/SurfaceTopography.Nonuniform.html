@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.12.2.dev14+ga8146d8b documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.12.2.dev50+gad33123e documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=4368c9b6"></script>
+        <script src="../_static/documentation_options.js?v=e58a8057"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -38,7 +38,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.12.2.dev14+ga8146d8b
+                1.12.2.dev50+gad33123e
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -66,6 +66,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.Nonuniform package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Autocorrelation">SurfaceTopography.Nonuniform.Autocorrelation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.BearingArea">SurfaceTopography.Nonuniform.BearingArea module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Derivative">SurfaceTopography.Nonuniform.Derivative module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a></li>
@@ -105,6 +106,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation"><code class="docutils literal notranslate"><span class="pre">height_difference_autocorrelation()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.BearingArea">SurfaceTopography.Nonuniform.BearingArea module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.bearing_area"><code class="docutils literal notranslate"><span class="pre">bearing_area()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Converters">SurfaceTopography.Nonuniform.Converters module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Converters.UniformlyInterpolatedLineScan.__init__"><code class="docutils literal notranslate"><span class="pre">UniformlyInterpolatedLineScan.__init__()</span></code></a></li>
@@ -128,6 +133,18 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Detrending">SurfaceTopography.Nonuniform.Detrending module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.polyfit"><code class="docutils literal notranslate"><span class="pre">polyfit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.coeffs"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.detrend_mode"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.detrend_mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.x_range"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.x_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.stringify_plane"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.stringify_plane()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.curvatures"><code class="docutils literal notranslate"><span class="pre">DetrendedNonuniformTopography.curvatures</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.Interpolation">SurfaceTopography.Nonuniform.Interpolation module</a><ul>
@@ -145,6 +162,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.ScalarParameters">SurfaceTopography.Nonuniform.ScalarParameters module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.ScalarParameters.moment"><code class="docutils literal notranslate"><span class="pre">moment()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_height"><code class="docutils literal notranslate"><span class="pre">rms_height()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope"><code class="docutils literal notranslate"><span class="pre">rms_slope()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature"><code class="docutils literal notranslate"><span class="pre">rms_curvature()</span></code></a></li>
@@ -280,6 +298,35 @@ to None. (Default: None)</p></li>
 <li><p><strong>acf</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
 </ul>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Nonuniform.BearingArea">
+<span id="surfacetopography-nonuniform-bearingarea-module"></span><h2>SurfaceTopography.Nonuniform.BearingArea module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.BearingArea" title="Link to this heading"></a></h2>
+<p>Bearing area curve, also known as Abbott-Firestone curve or cumulative
+distribution function of the surface heights.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.bearing_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.BearingArea.</span></span><span class="sig-name descname"><span class="pre">bearing_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.bearing_area" title="Link to this definition"></a></dt>
+<dd><p>Compute the bearing area for a specific height.</p>
+<p>The bearing area as a function of height is also known as the
+Abbott-Firestone curve. If expressed as a fractional area, it is the
+cumulative distribution function of the surface heights. This function
+returns this fractional area.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Line scan container object.</p></li>
+<li><p><strong>heights</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Heights for which to compute the bearing area.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fractional_area</strong> – Fractional area above a the threshold height.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -427,7 +474,7 @@ respect to the input array for the <span class="math notranslate nohighlight">\(
 <p>Helper functions to compute trends of surfaces</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.polyfit">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">polyfit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.polyfit" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">polyfit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.polyfit" title="Link to this definition"></a></dt>
 <dd><p>Compute the detrending plane that, if subtracted, minimizes the rms height
 of the surface. The detrending plane is parameterized as a polynomial:</p>
 <div class="math notranslate nohighlight">
@@ -445,9 +492,7 @@ of the surface. The detrending plane is parameterized as a polynomial:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>array_like</em>) – Array containing positions. This function assumes that this array is
-sorted in ascending order.</p></li>
-<li><p><strong>h</strong> (<em>array_like</em>) – Array containing heights.</p></li>
+<li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
 <li><p><strong>deg</strong> (<em>int</em>) – Degree of polynomial <span class="math notranslate nohighlight">\(n\)</span>.</p></li>
 </ul>
 </dd>
@@ -458,6 +503,80 @@ sorted in ascending order.</p></li>
 <dd class="field-odd"><p>array</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.Detrending.</span></span><span class="sig-name descname"><span class="pre">DetrendedNonuniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detrend_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'height'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography" title="SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">DecoratedNonuniformTopography</span></code></a></p>
+<p>Remove trends from a topography. This is achieved by fitting polynomials
+to the topography data to extract trend lines. The resulting topography
+is then detrended by substracting these trend lines.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detrend_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'height'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<em>SurfaceTopography</em>) – SurfaceTopography to be detrended.</p></li>
+<li><p><strong>detrend_mode</strong> (<em>str</em>) – ‘mean’: center the topography to its mean, no trend correction.
+‘median’: center the topography to its median, no trend correction.
+‘rms-tilt’: adjust slope such that rms height is minimized.
+‘mad-tilt’: adjust slope such that mad height is minimized.
+‘slope’: adjust slope such that rms slope is minimized.
+‘rms-curvature’: adjust slope and curvature such that rms height is minimized.
+(Default: ‘height’)</p></li>
+<li><p><strong>coeffs</strong> (<em>array-like</em><em>, </em><em>optional</em>) – Coefficients of the detrending plane. If not given, they are
+computed from the detrend_mode. (Default: None)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.coeffs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coeffs</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.coeffs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.detrend_mode">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">detrend_mode</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.detrend_mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.is_periodic">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.is_periodic" title="Link to this definition"></a></dt>
+<dd><p>SurfaceTopography stays periodic only after detrend mode “center”.
+Otherwise the detrended SurfaceTopography is non-periodic.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.x_range">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x_range</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.x_range" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.positions" title="Link to this definition"></a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.heights" title="Link to this definition"></a></dt>
+<dd><p>Computes the combined profile.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.stringify_plane">
+<span class="sig-name descname"><span class="pre">stringify_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fmt=&lt;function</span> <span class="pre">DetrendedNonuniformTopography.&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.stringify_plane" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.curvatures">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">curvatures</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.curvatures" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -580,8 +699,37 @@ to None. (Default: None)</p></li>
 <span id="surfacetopography-nonuniform-scalarparameters-module"></span><h2>SurfaceTopography.Nonuniform.ScalarParameters module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.ScalarParameters" title="Link to this heading"></a></h2>
 <p>Functions computing scalar roughness parameters</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.moment">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">moment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.moment" title="Link to this definition"></a></dt>
+<dd><p>Computes the n-th moment of the height fluctuation of the line scan of
+length <span class="math notranslate nohighlight">\(L\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\langle h^\alpha \rangle = \frac{1}{L} \int_0^L dx\, h^\alpha(x)\right\]</div>
+<p>This function approximates the topography between data points as
+piece-wise linear. The piece-wise linear section between point <span class="math notranslate nohighlight">\(i\)</span>
+and point <span class="math notranslate nohighlight">\(i+1\)</span> contributes</p>
+<div class="math notranslate nohighlight">
+\[\frac{1}{\alpha+1} \frac{x_{i+1} - x_i}{L}\frac{h_{i+1}^{\alpha+1} - h_i^{\alpha+1}}{h_{i+1} - h_i}\]</div>
+<p>to the above integral.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p></li>
+<li><p><strong>alpha</strong> (<em>int</em>) – Order of moment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>moment</strong> – Root-mean square height.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float or array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_height">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_height" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_height</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_height" title="Link to this definition"></a></dt>
 <dd><p>Computes root-mean square height fluctuation of the line scan:</p>
 <div class="math notranslate nohighlight">
 \[h_\text{rms} = \left[\frac{1}{L} \int_0^L dx\, h^2(x)\right]^{1/2}\]</div>
@@ -593,7 +741,7 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 <p>to the above integral, where <span class="math notranslate nohighlight">\(\Delta x_i=x_{i+1}-x_i\)</span> and <span class="math notranslate nohighlight">\(\Delta h_i=h_{i+1}-h_i\)</span>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+<dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_height</strong> – Root-mean square height.</p>
@@ -606,7 +754,7 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_slope">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_slope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_slope" title="Link to this definition"></a></dt>
 <dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
 <div class="math notranslate nohighlight">
 \[h^\prime_\text{rms} = \left[ \frac{1}{L} \int_0^L dx\, \left(\frac{\partial h}{\partial x}\right)^2 \right]^{1/2}\]</div>
@@ -618,7 +766,7 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 <p>where <span class="math notranslate nohighlight">\(\Delta x_i=x_{i+1}-x_i\)</span> and <span class="math notranslate nohighlight">\(\Delta h_i=h_{i+1}-h_i\)</span> to the above integral.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+<dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
@@ -631,11 +779,11 @@ The piece-wise linear section between point <span class="math notranslate nohigh
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.ScalarParameters.</span></span><span class="sig-name descname"><span class="pre">rms_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.ScalarParameters.rms_curvature" title="Link to this definition"></a></dt>
 <dd><p>Computes root-mean square slope fluctuation of the line scan:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
+<dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – SurfaceTopography object containing height information.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>rms_slope</strong> – Root-mean square slope.</p>
