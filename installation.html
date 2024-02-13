@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; SurfaceTopography 1.12.2.dev8+g03338baa documentation</title>
+  <title>Installation &mdash; SurfaceTopography 1.12.2.dev14+ga8146d8b documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,9 +15,9 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=f40120db"></script>
+        <script src="_static/documentation_options.js?v=4368c9b6"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.12.2.dev8+g03338baa
+                1.12.2.dev14+ga8146d8b
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -102,18 +102,18 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <p>We only support installation on recent mac and linux systems, not on windows.</p>
 <p>You need Python 3 in order to install SurfaceTopography.</p>
 <p>In complement to the instructions below, you will find examples of system setups and intallation workflows in our singularity containers
 <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">singularity containers</a>
 and our <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/.github/workflows/tests.yml">testing workflows</a></p>
 <section id="optional-dependencies">
-<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this heading"></a></h2>
+<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h2>
 <p><a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> and <a class="reference external" href="http://www.fftw.org/">FFTW3</a></p>
 </section>
 <section id="direct-installation-with-pip">
-<h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Permalink to this heading"></a></h2>
+<h2>Direct installation with pip<a class="headerlink" href="#direct-installation-with-pip" title="Link to this heading"></a></h2>
 <p>SurfaceTopography can be installed by invoking</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w">  </span>install<span class="w"> </span><span class="o">[</span>--user<span class="o">]</span><span class="w"> </span>SurfaceTopography
 </pre></div>
@@ -143,7 +143,7 @@ rm<span class="w"> </span>requirements.txt
 </div>
 </section>
 <section id="installation-common-problems">
-<h2>Installation: Common problems<a class="headerlink" href="#installation-common-problems" title="Permalink to this heading"></a></h2>
+<h2>Installation: Common problems<a class="headerlink" href="#installation-common-problems" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Sometimes <a class="reference external" href="https://gitlab.com/muspectre/muspectre.git">muFFT</a> will not find the FFTW3 installation you expect.
 You can specify the directory where you installed <a class="reference external" href="http://www.fftw.org/">FFTW3</a>
@@ -162,7 +162,7 @@ directory using `Meson</cite>.</p></li>
 </ul>
 </section>
 <section id="reporting-installation-problems">
-<h2>Reporting installation problems<a class="headerlink" href="#reporting-installation-problems" title="Permalink to this heading"></a></h2>
+<h2>Reporting installation problems<a class="headerlink" href="#reporting-installation-problems" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p>Make sure that you carefully read all these instructions.</p></li>
 <li><p>Try to find similar issues in our issues or forum discussions.</p></li>
@@ -176,7 +176,7 @@ directory using `Meson</cite>.</p></li>
 </ul>
 </section>
 <section id="installation-from-source-directory">
-<h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Permalink to this heading"></a></h2>
+<h2>Installation from source directory<a class="headerlink" href="#installation-from-source-directory" title="Link to this heading"></a></h2>
 <p>First you need to run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
 </pre></div>
@@ -189,7 +189,7 @@ directory using `Meson</cite>.</p></li>
 <p>in the source directoy. The command line parameter <cite>–user</cite> is optional and
 leads to a local installation in the current user’s <cite>$HOME/.local</cite> directory.</p>
 <section id="alternative-build-and-installation-options">
-<h3>Alternative build and installation options<a class="headerlink" href="#alternative-build-and-installation-options" title="Permalink to this heading"></a></h3>
+<h3>Alternative build and installation options<a class="headerlink" href="#alternative-build-and-installation-options" title="Link to this heading"></a></h3>
 <ul>
 <li><dl>
 <dt>meson build</dt><dd><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>meson<span class="w"> </span>setup<span class="w"> </span>build
@@ -228,7 +228,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </section>
 </section>
 <section id="id1">
-<h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
+<h2><a class="reference external" href="https://sylabs.io/singularity/">Singularity</a> container<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
 <p>We provide a definition file to build a singularity container <a class="reference external" href="https://github.com/ContactEngineering/SurfaceTopography/blob/master/singularity/SurfaceTopography_serial.def">here</a> .</p>
 </section>
 </section>
