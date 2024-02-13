@@ -32,7 +32,7 @@ import scipy
 from SurfaceTopography.HeightContainer import (NonuniformLineScanInterface,
                                                UniformTopographyInterface)
 
-_mad_to_rms = 1 / scipy.stats.norm.ppf(3 / 4)
+_rms_percentile = scipy.stats.norm.cdf(-1)
 
 
 def median(self):
@@ -54,7 +54,7 @@ def median(self):
     return scipy.optimize.bisect(lambda h: tmp.bearing_area(h) - 0.5, tmp.min(), tmp.max())
 
 
-def mad_height(self, percentile=1 / 4):
+def mad_height(self, percentile=_rms_percentile):
     """
     Compute the median-absolute-deviation of the height.
 
@@ -63,7 +63,8 @@ def mad_height(self, percentile=1 / 4):
     self : :obj:`HeightContainer`
         Topography or line scan container object.
     percentile : float
-        Fraction of the bearing area that should be considered for the deviation. The default is 1/4.
+        Fraction of the bearing area that should be considered for the
+        deviation. (Default: One standard deviation)
 
     Returns
     -------
@@ -76,7 +77,7 @@ def mad_height(self, percentile=1 / 4):
     # The median absolute deviation is where the fractional bearing area is equal to `percentile`. We need to consider
     # fluctuation in positive and negative directions.
     return scipy.optimize.bisect(lambda h: tmp.bearing_area(med + h) + (1 - tmp.bearing_area(med - h)) - 2 * percentile,
-                                 tmp.min() - med, tmp.max() - med) * _mad_to_rms
+                                 tmp.min() - med, tmp.max() - med)
 
 
 def polynomial_that_minimizes_mad_height(self, nb_coeffs):

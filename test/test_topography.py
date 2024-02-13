@@ -330,12 +330,12 @@ class DetrendedSurfaceTest(unittest.TestCase):
         surf = surf.detrend(detrend_mode='curvature')
         self.assertTrue(surf.is_uniform)
         self.assertFalse(surf.is_reentrant)
-        self.assertAlmostEqual(surf.coeffs[0], b * nx)
-        self.assertAlmostEqual(surf.coeffs[1], a * ny)
-        self.assertAlmostEqual(surf.coeffs[2], d * (nx * nx))
-        self.assertAlmostEqual(surf.coeffs[3], c * (ny * ny))
-        self.assertAlmostEqual(surf.coeffs[4], e * (nx * ny))
-        self.assertAlmostEqual(surf.coeffs[5], f)
+        self.assertAlmostEqual(surf.coeffs[0], f)
+        self.assertAlmostEqual(surf.coeffs[1], b * nx)
+        self.assertAlmostEqual(surf.coeffs[2], a * ny)
+        self.assertAlmostEqual(surf.coeffs[3], d * (nx * nx))
+        self.assertAlmostEqual(surf.coeffs[4], c * (ny * ny))
+        self.assertAlmostEqual(surf.coeffs[5], e * (nx * ny))
         self.assertAlmostEqual(surf.rms_height_from_area(), 0.0)
         self.assertAlmostEqual(surf.rms_gradient(), 0.0)
         self.assertAlmostEqual(surf.rms_curvature_from_area(), 0.0)
@@ -482,6 +482,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
             ax.set_aspect(1)
             plt.show(block=True)
 
+        sx, sy = surface.physical_sizes
         self.assertAlmostEqual(abs(detrended.curvatures[0]), 1 / radius)
         self.assertAlmostEqual(abs(detrended.curvatures[1]), 1 / radius)
         self.assertAlmostEqual(abs(detrended.curvatures[2]), 0)
@@ -499,6 +500,7 @@ class DetrendedSurfaceTest(unittest.TestCase):
             ax.set_aspect(1)
             plt.show(block=True)
 
+        sx, = surface.physical_sizes
         self.assertAlmostEqual(abs(detrended.curvatures[0]), 1 / radius)
 
     def test_nonuniform_curvatures(self):

@@ -154,7 +154,8 @@ def test_detrend_curvature():
 
     detrended = t.detrend(detrend_mode="curvature")
 
-    assert abs(detrended.coeffs[-1] - 1 / R) < 1e-12
+    sx, = t.physical_sizes
+    assert abs(detrended.coeffs[-1] - sx * sx / R) < 1e-12
 
 
 def test_detrend_same_positions():

@@ -44,7 +44,9 @@ def polyfit_line_scan(self, deg):
     self : :obj:`UniformLineScan`
         Topography or line scan container object.
     """
-    coeffs = np.polyfit(*self.positions_and_heights(), deg)
+    x, h = self.positions_and_heights()
+    x /= self.physical_sizes[0]
+    coeffs = np.polyfit(x, h, deg)
     return np.array(coeffs)[::-1]
 
 
@@ -86,7 +88,7 @@ def polyfit1_topography(self, full_output=False):
     """
     arr = self.heights()
     nb_dim = self.dim
-    x_grids = (np.arange(self.nb_grid_pts[i]) * self.pixel_size[i] for i in range(nb_dim))
+    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
     if nb_dim > 1:
         x_grids = np.meshgrid(*x_grids, indexing='ij')
     if np.ma.getmask(arr) is np.ma.nomask:
@@ -94,9 +96,8 @@ def polyfit1_topography(self, full_output=False):
     else:
         columns = [x[np.logical_not(arr.mask)].reshape((-1, 1))
                    for x in x_grids]
-    columns.append(np.ones_like(columns[-1]))
     # linear regression model
-    location_matrix = np.hstack(columns)
+    location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
     # res = scipy.optimize.nnls(location_matrix, offsets)
     res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
@@ -134,7 +135,7 @@ def polyfit2_topography(self, full_output=False):
     arr = self.heights()
     nb_dim = self.dim
     assert nb_dim == 2
-    x_grids = (np.arange(self.nb_grid_pts[i]) * self.pixel_size[i] for i in range(nb_dim))
+    x_grids = (np.arange(n) / n for n in self.nb_grid_pts)
     # Linear terms
     x_grids = np.meshgrid(*x_grids, indexing='ij')
     # Quadratic terms
@@ -145,9 +146,8 @@ def polyfit2_topography(self, full_output=False):
     else:
         columns = [x[np.logical_not(arr.mask)].reshape((-1, 1))
                    for x in x_grids]
-    columns.append(np.ones_like(columns[-1]))
     # linear regression model
-    location_matrix = np.hstack(columns)
+    location_matrix = np.hstack([np.ones_like(columns[-1])] + columns)
     offsets = np.ma.compressed(arr)
     # res = scipy.optimize.nnls(location_matrix, offsets)
     res = np.linalg.lstsq(location_matrix, offsets, rcond=None)
@@ -190,7 +190,7 @@ def _detrend_1d_slope_coeffs(self):
     n, = self.nb_grid_pts
     s, = self.physical_sizes
     grad = sl * s
-    return [self.parent_topography.mean() - grad * (n - 1) / (2 * n), sl]
+    return [self.parent_topography.mean() - grad * (n - 1) / (2 * n), sl * s]
 
 
 def _detrend_2d_slope_coeffs(self):
@@ -199,7 +199,8 @@ def _detrend_2d_slope_coeffs(self):
     sly = sly.mean()
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
-    return [slx, sly, self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny)]
+    return [self.parent_topography.mean() - slx * sx * (nx - 1) / (2 * nx) - sly * sy * (ny - 1) / (2 * ny),
+            slx * sx, sly * sy]
 
 
 class DetrendedUniformTopography(DecoratedUniformTopography):
@@ -306,8 +307,8 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             a0, = self._coeffs
             return self.parent_topography.heights() - a0
         elif self.dim == 1:
-            dx, = self.pixel_size
-            x = np.arange(self.nb_grid_pts[0]) * dx
+            nx, = self.nb_grid_pts
+            x = np.arange(self.nb_grid_pts[0]) / nx
             if len(self._coeffs) == 2:
                 a0, a1 = self._coeffs
                 return self.parent_topography.heights() - a0 - a1 * x
@@ -317,13 +318,13 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
             else:
                 raise RuntimeError('Unknown size of coefficients tuple for line scans.')
         else:  # self.dim == 2
-            x, y = np.meshgrid(*(np.arange(n) * s for n, s in zip(self.nb_grid_pts, self.pixel_size)),
+            x, y = np.meshgrid(*(np.arange(n) / n for n in self.nb_grid_pts),
                                indexing='ij')
             if len(self._coeffs) == 3:
-                a1x, a1y, a0 = self._coeffs
+                a0, a1x, a1y = self._coeffs
                 return self.parent_topography.heights() - a0 - a1x * x - a1y * y
             elif len(self._coeffs) == 6:
-                m, n, mm, nn, mn, h0 = self._coeffs
+                h0, m, n, mm, nn, mn = self._coeffs
                 xx = x * x
                 yy = y * y
                 xy = x * y
@@ -353,9 +354,9 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
                 h0, = str_coeffs
                 return h0
             elif len(self._coeffs) == 3:
-                return '{2} + {0} x + {1} y'.format(*str_coeffs)
+                return '{0} + {1} x + {2} y'.format(*str_coeffs)
             elif len(self._coeffs) == 6:
-                return '{5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy' \
+                return '{0} + {1} x + {2} y + {3} x^2 + {4} y^2 + {5} xy' \
                     .format(*str_coeffs)
             else:
                 raise RuntimeError(
@@ -373,23 +374,20 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
 
         if self.dim == 1:
             if len(self._coeffs) == 3:
-                return 2 * self._coeffs[2],
+                sx, = self.physical_sizes
+                return 2 * self._coeffs[2] / sx ** 2,
             elif len(self._coeffs) in {1, 2}:
                 return 0,
             else:
-                raise RuntimeError(
-                    'Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError('Unknown size of coefficients tuple.')
         else:
             if len(self._coeffs) == 6:
                 sx, sy = self.physical_sizes
-                return (2 * self._coeffs[2]) / sx ** 2, (
-                        2 * self._coeffs[3]) / sy ** 2, (
-                               2 * self._coeffs[4]) / (sx * sy)
+                return 2 * self._coeffs[3] / sx ** 2, 2 * self._coeffs[4] / sy ** 2, 2 * self._coeffs[5] / (sx * sy)
             elif len(self._coeffs) in {1, 3}:
                 return 0, 0, 0
             else:
-                raise RuntimeError(
-                    'Unknown physical_sizes of coefficients tuple.')
+                raise RuntimeError('Unknown size of coefficients tuple.')
 
 
 UniformTopographyInterface.register_function('polyfit', polyfit)
