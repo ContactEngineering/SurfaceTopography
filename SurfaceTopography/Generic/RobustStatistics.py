@@ -76,8 +76,9 @@ def mad_height(self, percentile=_rms_percentile):
     med = tmp.median()
     # The median absolute deviation is where the fractional bearing area is equal to `percentile`. We need to consider
     # fluctuation in positive and negative directions.
+    maxdev = max(tmp.max() - med, med - tmp.min())
     return scipy.optimize.bisect(lambda h: tmp.bearing_area(med + h) + (1 - tmp.bearing_area(med - h)) - 2 * percentile,
-                                 tmp.min() - med, tmp.max() - med)
+                                 -maxdev, maxdev)
 
 
 def polynomial_that_minimizes_mad_height(self, nb_coeffs):
