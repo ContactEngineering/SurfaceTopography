@@ -34,14 +34,14 @@ import os
 import xml.etree.cElementTree as ET
 
 import numpy as np
-from matplotlib import cm
+from matplotlib import colormaps
+from numpyencoder import NumpyEncoder
 from PIL import Image
 from scipy.io import netcdf_file
 
-from numpyencoder import NumpyEncoder
-
 from ..HeightContainer import UniformTopographyInterface
-from ..Support.UnitConversion import get_unit_conversion_factor, suggest_length_unit_for_data
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      suggest_length_unit_for_data)
 
 
 def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
@@ -118,7 +118,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
             # Remove alpha channel before writing
             Image.fromarray(colors[:, :, :3]).save(fn, **kwargs)
 
-    cmap = cm.get_cmap(cmap)
+    cmap = colormaps.get_cmap(cmap)
 
     # Image size
     full_width, full_height = width, height = data.shape
