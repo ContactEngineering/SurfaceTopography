@@ -71,7 +71,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
             heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
         self._heights = np.asanyarray(heights, dtype=float)
-        self._size = np.asanyarray(physical_sizes, dtype=float).item()
+        self._size = None if physical_sizes is None else np.asanyarray(physical_sizes, dtype=float).item()
         self._periodic = periodic
 
     def __getstate__(self):
@@ -298,7 +298,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
             raise ValueError(
                 "`decomposition` can be either 'domain' or 'subdomain'.")
 
-        self._size = physical_sizes
+        self._size = None if physical_sizes is None else np.asanyarray(physical_sizes, dtype=float)
         self._periodic = periodic
 
     def __getstate__(self):
