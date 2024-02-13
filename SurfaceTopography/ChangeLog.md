@@ -1,11 +1,34 @@
 Change log for SurfaceTopography
 ================================
 
-v1.13.0 (not yet released)
---------------------------
+v1.14.0 (13Feb2924)
+-------------------
 
+- API: Standard RMS height functions are now called `Rq` and `Sq`;
+  `rms_height` returns the RMS height of the linearly-interpolated
+  topography
+- ENH: Median-absolute-deviation (MAD) calculation
+- ENH: Median calculation
+- ENH: Exact bearing area model based on linear interpolation of topography
+- ENH: Arbitrary statistical functions for VBM
 - MAINT: XYZ reader parses file only once (#339)
 - MAINT: Don't warn if pandas is falling back to Python engine (#341)
+- MAINT: Flipped Gwyddion images (#351)
+- MAINT: C++ extension module (`_SurfaceTopographyPP`)
+- MAINT: Use new API response for contact.engineering to get download URLs
+
+v1.13.0 (13Jan24)
+-----------------
+
+- API: translating nonperiodic topography raises error
+- BUG: Fixed translation of decorated topographies not possible
+- BUG: Added missing test of periodicity before translation
+
+v1.12.2 (12Dec23)
+-----------------
+
+- BUG: Fixed issue with DI reader (#343)
+- BUG: Fixed reading of some file formats inside containers
 
 v1.12.1 (14Nov23)
 -----------------
