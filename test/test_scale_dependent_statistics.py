@@ -27,12 +27,12 @@
 import numpy as np
 import pytest
 import scipy.interpolate
+from NuMPI import MPI
 from scipy.stats import kstat
 
-from NuMPI import MPI
-
 from SurfaceTopography import read_container, read_topography
-from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
+from SurfaceTopography.Container.SurfaceContainer import \
+    InMemorySurfaceContainer
 from SurfaceTopography.Generation import fourier_synthesis
 
 pytestmark = pytest.mark.skipif(
@@ -71,14 +71,14 @@ def test_uniform_synthetic():
     r, A = t.autocorrelation_from_profile(resampling_method=None)
     r = r[1:]
     A = A[1:]
-    assert abs(r.min()/L - 1) < 0.1  # Within 10% of bandwidth
-    assert abs(r.max()/u - 1) < 0.1
+    assert abs(r.min() / L - 1) < 0.1  # Within 10% of bandwidth
+    assert abs(r.max() / u - 1) < 0.1
 
     f = scipy.interpolate.interp1d(r, np.sqrt(2 * A) / r)
     r, s = t.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1)
 
-    assert abs(r.min()/L - 1) < 0.1  # With 10% of bandwidth
-    assert abs(r.max()/u - 1) < 0.1
+    assert abs(r.min() / L - 1) < 0.1  # With 10% of bandwidth
+    assert abs(r.max() / u - 1) < 0.1
 
     np.testing.assert_allclose(np.sqrt(s), f(r), atol=0.01)
 
@@ -143,7 +143,8 @@ def test_container_uniform(file_format_examples, plot=False):
     assert (np.diff(s) < 0).all()
     np.testing.assert_almost_equal(s, [0.0018715281899762592, 0.0006849065620048571, 0.0002991781282532277,
                                        7.224607689277936e-05])
-    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
+    np.testing.assert_allclose(np.array(iterations),
+                               np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c) + 1)]))
 
     # Test that specifying distances where no data exists does not raise an exception
     iterations = []
@@ -151,7 +152,8 @@ def test_container_uniform(file_format_examples, plot=False):
                                                   unit='um', progress_callback=lambda i, n: iterations.append((i, n)))
     assert np.ma.getmask(s)[0]
     assert np.ma.getmask(s)[2]
-    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
+    np.testing.assert_allclose(np.array(iterations),
+                               np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c) + 1)]))
 
     # Test without specifying explicit distances
     iterations = []
@@ -160,13 +162,15 @@ def test_container_uniform(file_format_examples, plot=False):
 
     np.testing.assert_allclose(d, [0.01, 0.1, 1, 10])
     np.testing.assert_allclose(s, [1.87152819e-03, 6.84906562e-04, 2.99178128e-04, 7.22460769e-05])
-    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
+    np.testing.assert_allclose(np.array(iterations),
+                               np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c) + 1)]))
 
     # Test without specifying explicit distances and more points
     iterations = []
     d, s = c.scale_dependent_statistical_property(lambda x, y: np.var(x), n=1, nb_points_per_decade=5, unit='um',
                                                   progress_callback=lambda i, n: iterations.append((i, n)))
-    np.testing.assert_allclose(np.array(iterations), np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c)+1)]))
+    np.testing.assert_allclose(np.array(iterations),
+                               np.transpose([np.arange(len(c) + 1), len(c) * np.ones(len(c) + 1)]))
 
     if plot:
         import matplotlib.pyplot as plt
@@ -251,3 +255,18 @@ def test_scale_dependent_curvature_from_area():
     t = fourier_synthesis((512, 512,), (1, 1), 0.8, rms_slope=0.1, periodic=False).detrend()
     t.scale_dependent_curvature_from_area()
     # should just finish without failing
+
+
+def test_array_of_properties():
+    t = fourier_synthesis((1024,), (7,), 0.8, rms_slope=0.1, periodic=False).detrend()
+
+    r, s = t.scale_dependent_statistical_property(distance=[0.01, 0.1, 1],
+                                                  func=lambda x: [np.mean(x * x), np.mean(x * x * x)], n=1)
+
+    assert s.shape == (3, 2)
+
+    r, s1 = t.scale_dependent_statistical_property(distance=[0.01, 0.1, 1], func=lambda x: np.mean(x * x), n=1)
+    r, s2 = t.scale_dependent_statistical_property(distance=[0.01, 0.1, 1], func=lambda x: np.mean(x * x * x), n=1)
+
+    np.testing.assert_allclose(s[:, 0], s1)
+    np.testing.assert_allclose(s[:, 1], s2)
