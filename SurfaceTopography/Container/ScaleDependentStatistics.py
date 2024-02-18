@@ -186,7 +186,8 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     else:
         # If distances are not specified by the user, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
-        distances, properties = np.array([np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results]).T
+        distances = np.array([x[1][0][0] for x in sorted_results])
+        properties = np.array([np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results]).T
         return distances, properties
 
 
