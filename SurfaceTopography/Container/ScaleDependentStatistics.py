@@ -178,14 +178,15 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances; whether data actually exists is
         # indicated through the mask of a masked array
-        return distances, np.ma.masked_array(
-            [np.nanmean(results[i], axis=0)[1] if i in results else np.nan for i in range(len(distances))],
-            mask=np.array([i not in results for i in range(len(distances))])
-        )
+        data = np.array([np.nanmean([r[1] for r in results[i]], axis=0) if i in results else np.nan
+                         for i in range(len(distances))])
+        mask = np.ones_like(data, dtype=bool)
+        mask[[i in results for i in range(len(distances))]] = False
+        return distances, np.ma.masked_array(data, mask=mask)
     else:
         # If distances are not specified by the user, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
-        distances, properties = np.array([np.nanmean(vals, axis=0) for i, vals in sorted_results]).T
+        distances, properties = np.array([np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results]).T
         return distances, properties
 
 
