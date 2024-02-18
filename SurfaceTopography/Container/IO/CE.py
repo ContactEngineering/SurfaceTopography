@@ -98,91 +98,92 @@ class CEReader(ContainerReaderBase):
         surface_containers : list of :obj:`SurfaceContainer`s
             List of all surfaces contained in this container file.
         """
+        self._fn = fn
 
         self._containers = []
 
-        with ZipFile(fn, 'r') as z:
+        with ZipFile(self._fn, 'r') as z:
             meta = yaml.load(z.open('meta.yml'), Loader=yaml.FullLoader)
 
-            readers = []
-            for surf_meta in meta['surfaces']:
-                for topo_meta in surf_meta['topographies']:
-                    info = topo_meta.copy()
+        readers = []
+        for surf_meta in meta['surfaces']:
+            for topo_meta in surf_meta['topographies']:
+                info = topo_meta.copy()
 
-                    # Check whether the metadata contains sizes and unit. If not
-                    # this information comes from the data file.
-                    try:
-                        physical_sizes = info['size']
-                        del info['size']
-                    except KeyError:
-                        physical_sizes = None
-                    try:
-                        unit = info['unit']
-                        del info['unit']
-                    except KeyError:
-                        unit = None
-                    try:
-                        periodic = info['is_periodic']
-                        del info['is_periodic']
-                    except KeyError:
-                        periodic = False
-                    datafile_key = None
-                    datafiles = topo_meta['datafile']
+                # Check whether the metadata contains sizes and unit. If not
+                # this information comes from the data file.
+                try:
+                    physical_sizes = info['size']
+                    del info['size']
+                except KeyError:
+                    physical_sizes = None
+                try:
+                    unit = info['unit']
+                    del info['unit']
+                except KeyError:
+                    unit = None
+                try:
+                    periodic = info['is_periodic']
+                    del info['is_periodic']
+                except KeyError:
+                    periodic = False
+                datafile_key = None
+                datafiles = topo_meta['datafile']
 
-                    # Pick first of the provided possible data file keys that
-                    # exists in the container
-                    for key in datafile_keys:
-                        if key in datafiles:
-                            datafile_key = key
-                            break
+                # Pick first of the provided possible data file keys that
+                # exists in the container
+                for key in datafile_keys:
+                    if key in datafiles:
+                        datafile_key = key
+                        break
 
-                    # There may be none, complain
-                    if datafile_key is None:
-                        raise ValueError('Could not detect data file.')
+                # There may be none, complain
+                if datafile_key is None:
+                    raise ValueError('Could not detect data file.')
 
-                    # Inspect topography file
-                    reader = open_topography(z.open(datafiles[datafile_key]))
+                # Inspect topography file; we pass a function that returns a file handle to reopen file
+                reader = open_topography(lambda: ZipFile(self._fn, 'r').open(datafiles[datafile_key]))
 
-                    # Channel to load
-                    if 'data_source' in topo_meta:
-                        data_source = topo_meta['data_source']
-                    else:
-                        data_source = reader.default_channel.index
+                # Channel to load
+                if 'data_source' in topo_meta:
+                    data_source = topo_meta['data_source']
+                else:
+                    data_source = reader.default_channel.index
 
-                    # Check consistency between data file and meta.yml
-                    physical_sizes_from_file = reader.channels[data_source].physical_sizes
-                    if physical_sizes_from_file is not None:
-                        if physical_sizes is not None:
-                            if np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
-                                # Need to set this to None to avoid collision
-                                physical_sizes = None
-                            else:
-                                raise ValueError(f'Physical sizes from data file (={physical_sizes_from_file} and from '
-                                                 f'meta.yml (={physical_sizes}) differ for topography '
-                                                 f'{datafiles[datafile_key]}')
+                # Check consistency between data file and meta.yml
+                physical_sizes_from_file = reader.channels[data_source].physical_sizes
+                if physical_sizes_from_file is not None:
+                    if physical_sizes is not None:
+                        if np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
+                            # Need to set this to None to avoid collision
+                            physical_sizes = None
+                        else:
+                            raise ValueError(f'Physical sizes from data file (={physical_sizes_from_file} and from '
+                                             f'meta.yml (={physical_sizes}) differ for topography '
+                                             f'{datafiles[datafile_key]}')
 
-                    unit_from_file = reader.channels[data_source].unit
-                    if unit_from_file is not None:
-                        if unit is not None:
-                            if unit_from_file == unit:
-                                # Need to set this to None to avoid collision
-                                unit = None
-                            else:
-                                raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
-                                                 f'(={unit}) differ for topography {datafiles[datafile_key]}')
+                unit_from_file = reader.channels[data_source].unit
+                if unit_from_file is not None:
+                    if unit is not None:
+                        if unit_from_file == unit:
+                            # Need to set this to None to avoid collision
+                            unit = None
+                        else:
+                            raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
+                                             f'(={unit}) differ for topography {datafiles[datafile_key]}')
 
-                    readers += [
-                        _ReadTopography(reader,
-                                        physical_sizes=physical_sizes,
-                                        periodic=periodic,
-                                        unit=unit,
-                                        info=info,
-                                        datafile_key=datafile_key,
-                                        channel_index=data_source,
-                                        topo_meta=topo_meta)
-                    ]
+                readers += [
+                    _ReadTopography(reader,
+                                    physical_sizes=physical_sizes,
+                                    periodic=periodic,
+                                    unit=unit,
+                                    info=info,
+                                    datafile_key=datafile_key,
+                                    channel_index=data_source,
+                                    topo_meta=topo_meta)
+                ]
 
-                self._containers += [LazySurfaceContainer(readers)]
+            self._containers += [LazySurfaceContainer(readers)]
 
     def container(self, index=0):
         """

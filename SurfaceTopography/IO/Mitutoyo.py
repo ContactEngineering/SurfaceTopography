@@ -76,6 +76,8 @@ surface roughness testers.
              File to read.
         """
 
+        if callable(fobj):
+            fobj = fobj()
         try:
             wb = openpyxl.load_workbook(fobj)
             _data = wb['DATA']

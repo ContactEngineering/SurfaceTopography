@@ -218,7 +218,7 @@ def open_topography(fobj, format=None, communicator=None):
     else:
         kwargs = {}
 
-    if not hasattr(fobj, 'read'):  # fobj is a path
+    if not hasattr(fobj, 'read') and not callable(fobj):  # fobj is a path
         if not os.path.isfile(fobj):
             raise FileExistsError("file {} not found".format(fobj))
 
@@ -238,8 +238,7 @@ def open_topography(fobj, format=None, communicator=None):
     else:
         if format not in lookup_reader_by_format.keys():
             raise UnknownFileFormat(
-                "{} not in registered file formats {}".format(
-                    fobj, lookup_reader_by_format.keys()))
+                f"{format} not in registered file formats {lookup_reader_by_format.keys()}.")
         return lookup_reader_by_format[format](fobj, **kwargs)
 
 
