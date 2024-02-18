@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 ================================
 
-v1.14.0 (18Feb24)
+v1.13.2 (18Feb24)
 -----------------
 
 - BUG: Scale-dependent statistics with multiple components now works for
