@@ -1,11 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
-v1.13.2 (18Feb24)
+v1.13.2 (19Feb24)
 -----------------
 
 - BUG: Scale-dependent statistics with multiple components now works for
   containers
+- BUG: Fixed issue with I/O in Python 3.12
 
 v1.13.1 (13Feb24)
 -----------------
@@ -24,11 +25,11 @@ v1.13.0 (13Feb24)
 - ENH: Median calculation
 - ENH: Exact bearing area model based on linear interpolation of topography
 - ENH: Arbitrary statistical functions for VBM
+- BUG: Fixed translation of decorated topographies not possible
+- BUG: Added missing test of periodicity before translation
 - MAINT: Flipped Gwyddion images, #351
 - MAINT: C++ extension module (`_SurfaceTopographyPP`)
 - MAINT: Use new API response for contact.engineering to get download URLs
-- BUG: Fixed translation of decorated topographies not possible
-- BUG: Added missing test of periodicity before translation
 
 v1.12.2 (12Dec23)
 -----------------

@@ -108,16 +108,13 @@ class OpenFromAny(object):
         self._encoding = encoding
 
     def __enter__(self):
-        # depending from where this function is called, self._fobj might already
+        # Depending from where this function is called, self._fobj might already
         # be a filestream
         self._fstream = None
         self._already_open = False
         self._prior_position = None
         self._need_detach = False
-        if not hasattr(self._fobj, 'read'):
-            # This is a string, just open the file
-            self._fstream = open(self._fobj, mode=self._mode, encoding=self._encoding)
-        else:
+        if hasattr(self._fobj, 'read'):
             # This is a stream that is already open
             self._already_open = True
             if hasattr(self._fobj, 'tell'):
@@ -135,6 +132,12 @@ class OpenFromAny(object):
                     self._fstream = io.TextIOWrapper(_get_binary_stream(self._fobj), encoding=self._encoding)
             else:
                 return ValueError(f"Unknown file open mode '{self._mode}'.")
+        elif callable(self._fobj):
+            # This is a function that returns the file stream
+            self._fstream = self._fobj()
+        else:
+            # This is a string, just open the file
+            self._fstream = open(self._fobj, mode=self._mode, encoding=self._encoding)
         return self._fstream
 
     def __exit__(self, exc_type, exc_value, exc_traceback):

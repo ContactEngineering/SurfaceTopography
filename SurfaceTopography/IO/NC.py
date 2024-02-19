@@ -130,6 +130,8 @@ plt.show()
     def __init__(self, fobj, communicator=None):
         self._nc = None
         self._var_kwargs = {}  # Keywords arguments to attach to variable creation
+        if callable(fobj):
+            fobj = fobj()
         if communicator is not None and communicator.size > 1:
             # For parallel I/O we need netCDF4
             from netCDF4 import Dataset

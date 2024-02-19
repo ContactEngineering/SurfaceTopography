@@ -31,9 +31,9 @@ SurfaceTopography profile from file input
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY
-from .Reader import ReaderBase, ChannelInfo
 from ..UniformLineScanAndTopography import Topography
+from .common import CHANNEL_NAME_INFO_KEY
+from .Reader import ChannelInfo, ReaderBase
 
 
 def binary(func):
@@ -69,7 +69,9 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, mi
         def __init__(self, fobj):
             self._fobj = fobj
             self._file_position = 0
-            if hasattr(fobj, 'tell'):
+            if callable(fobj):
+                fobj = fobj()
+            elif hasattr(fobj, 'tell'):
                 self._file_position = fobj.tell()
             self._topography = reader_func(fobj)
             if CHANNEL_NAME_INFO_KEY in self._topography.info:
@@ -113,10 +115,15 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, mi
 
             physical_sizes = self._check_physical_sizes(physical_sizes, self._topography.physical_sizes)
 
+            # Open file (if necessary)
+            fobj = self._fobj
+            if callable(fobj):
+                fobj = fobj()
+
             # Rewind to position where the data is. Otherwise this method
             # cannot be called twice.
-            if hasattr(self._fobj, 'seek'):
-                self._fobj.seek(self._file_position)
+            if hasattr(fobj, 'seek'):
+                fobj.seek(self._file_position)
 
             # Read again, but this time with physical_sizes and unit set (if not
             # specified in file)
@@ -127,7 +134,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, mi
                 reader_kwargs['physical_sizes'] = physical_sizes
                 # otherwise we won't add the argument, because that is not allowed any more
 
-            return reader_func(self._fobj, **reader_kwargs)
+            return reader_func(fobj, **reader_kwargs)
 
         channels.__doc__ = ReaderBase.channels.__doc__
         topography.__doc__ = ReaderBase.topography.__doc__

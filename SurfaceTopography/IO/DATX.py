@@ -46,8 +46,10 @@ Import filter for Zygo DATX, an HDF5-based format.
 
     def __init__(self, fobj):
         self._fobj = fobj
+        if callable(fobj):
+            fobj = fobj()
         try:
-            with h5py.File(self._fobj, 'r') as h5:
+            with h5py.File(fobj, 'r') as h5:
                 # Check if this can be a datx file
                 if 'MetaData' not in h5.keys():
                     raise FileFormatMismatch('Cannot read Zygo DATX. This is an HDF5 file, but the `MetaData` toplevel '
@@ -158,7 +160,10 @@ Import filter for Zygo DATX, an HDF5-based format.
         _info = {'raw_metadata': self._metadata}
         _info.update(info)
 
-        with h5py.File(self._fobj, 'r') as h5:
+        fobj = self._fobj
+        if callable(fobj):
+            fobj = fobj()
+        with h5py.File(fobj, 'r') as h5:
             raw_data = np.array(h5[self._surface_path])
             mask = raw_data == self._no_data
             if mask.sum() > 0:
