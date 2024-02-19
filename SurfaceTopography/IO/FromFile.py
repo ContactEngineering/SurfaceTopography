@@ -31,9 +31,9 @@ SurfaceTopography profile from file input
 
 import numpy as np
 
-from .common import CHANNEL_NAME_INFO_KEY
-from .Reader import ReaderBase, ChannelInfo
 from ..UniformLineScanAndTopography import Topography
+from .common import CHANNEL_NAME_INFO_KEY
+from .Reader import ChannelInfo, ReaderBase
 
 
 def binary(func):
@@ -123,7 +123,7 @@ def make_wrapped_reader(reader_func, class_name='WrappedReader', format=None, mi
             # Rewind to position where the data is. Otherwise this method
             # cannot be called twice.
             if hasattr(fobj, 'seek'):
-                self._fobj.seek(self._file_position)
+                fobj.seek(self._file_position)
 
             # Read again, but this time with physical_sizes and unit set (if not
             # specified in file)

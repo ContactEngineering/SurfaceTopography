@@ -24,16 +24,15 @@
 
 import tempfile
 import textwrap
-import yaml
-import numpy as np
 from datetime import datetime
 from zipfile import ZipFile
 
+import numpy as np
+import yaml
+
 from ...DiscoverVersion import __version__
 from ...IO import open_topography
-
 from ..SurfaceContainer import LazySurfaceContainer, SurfaceContainer
-
 from .Reader import ContainerReaderBase
 
 
@@ -64,6 +63,15 @@ class _ReadTopography(object):
                 t = t.detrend(topo_meta['detrend_mode'])
 
         return t
+
+
+class CEFileOpener(object):
+    def __init__(self, zipname, filename):
+        self._zipname = zipname
+        self._filename = filename
+
+    def __call__(self):
+        return ZipFile(self._zipname, mode='r').open(self._filename, mode='r')
 
 
 class CEReader(ContainerReaderBase):
@@ -142,7 +150,7 @@ class CEReader(ContainerReaderBase):
                     raise ValueError('Could not detect data file.')
 
                 # Inspect topography file; we pass a function that returns a file handle to reopen file
-                reader = open_topography(lambda: ZipFile(self._fn, 'r').open(datafiles[datafile_key]))
+                reader = open_topography(CEFileOpener(self._fn, datafiles[datafile_key]))
 
                 # Channel to load
                 if 'data_source' in topo_meta:

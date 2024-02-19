@@ -24,22 +24,22 @@
 #
 
 import os
+import tempfile
 import zipfile
 from datetime import datetime
 
-import pytest
-import tempfile
-import yaml
-
 import numpy as np
+import pytest
+import yaml
+from NuMPI import MPI
 from numpy.testing import assert_allclose
 
-from NuMPI import MPI
-
 import SurfaceTopography
-from SurfaceTopography import open_topography, read_container, read_topography, read_published_container
-from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
+from SurfaceTopography import (open_topography, read_container,
+                               read_published_container, read_topography)
 from SurfaceTopography.Container.IO import CEReader
+from SurfaceTopography.Container.SurfaceContainer import \
+    InMemorySurfaceContainer
 
 from .test_io import binary_example_file_list
 
@@ -120,7 +120,7 @@ def test_periodic():
 
 
 @pytest.mark.parametrize('filenames', [binary_example_file_list])
-def test_read_files_from_container(file_format_examples, filenames):
+def test_read_files_from_container(filenames):
     """BCRF and GWY file use np.fromfile to read data, which has issues when reading within a ZIP file"""
     with tempfile.TemporaryDirectory() as d:
         containerfn = f'{d}/container.zip'
@@ -149,6 +149,8 @@ def test_read_files_from_container(file_format_examples, filenames):
                 'creation_time': str(datetime.now()),
             }
             z.writestr("meta.yml", yaml.dump(metadata))
+
+        os.system(f'cp {containerfn} /Users/pastewka/Downloads/')
 
         r = CEReader(containerfn)
         c = r.container()
