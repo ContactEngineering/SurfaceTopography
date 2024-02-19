@@ -272,22 +272,22 @@ def test_array_of_properties():
     np.testing.assert_allclose(s[:, 1], s2)
 
 
-def test_array_of_properties_container(file_format_examples):
+@pytest.mark.parametrize("distances", [[0.01, 0.1, 1], [0.01, 0.1, 1, 10, 100, 1000], None])
+def test_array_of_properties_container(file_format_examples, distances):
     """This container has a mixture of maps and line scans"""
     c, = read_container(f'{file_format_examples}/container-2.zip')
-    _, s = c.scale_dependent_statistical_property(lambda x, y=None: [np.mean(x * x), np.mean(x * x * x)], n=1,
-                                                  distances=[0.1, 1.0, 10], unit='um')
+    distances, s = c.scale_dependent_statistical_property(lambda x, y=None: [np.mean(x * x), np.mean(x * x * x)], n=1,
+                                                          distances=distances, unit='um')
 
-    assert s.shape == (3, 2)
+    assert s.shape == (len(distances), 2)
 
     _, s1 = c.scale_dependent_statistical_property(lambda x, y=None: np.mean(x * x), n=1,
-                                                   distances=[0.1, 1.0, 10], unit='um')
+                                                   distances=distances, unit='um')
     _, s2 = c.scale_dependent_statistical_property(lambda x, y=None: [np.mean(x * x * x)], n=1,
-                                                   distances=[0.1, 1.0, 10], unit='um')
+                                                   distances=distances, unit='um')
 
-    assert s1.shape == (3,)
-    assert s2.shape == (3, 1)
+    assert s1.shape == (len(distances),)
+    assert s2.shape == (len(distances), 1)
 
     np.testing.assert_allclose(s[:, 0], s1)
     np.testing.assert_allclose(s[:, 1], s2[:, 0])
-

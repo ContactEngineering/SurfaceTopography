@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.3 (19Feb24)
+-----------------
+
+- BUG: Fixed scale-dependent statistics for containers with distances outside
+  any bandwidth
+
 v1.13.2 (19Feb24)
 -----------------
 
