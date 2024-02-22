@@ -54,7 +54,7 @@ def test_bearing_area_nonuniform(plot=False):
 
     np.testing.assert_allclose(P, P_analytic, atol=1e-3)
 
-    assert t.bearing_area([hm / 4, hm / 3, hm / 2]) == [1, 2, 3]
+    np.testing.assert_allclose(t.bearing_area([hm / 4, hm / 3, hm / 2]), [0.75036639, 0.66699235, 0.50024426])
 
 
 def test_bearing_area_uniform_is_monotonous(plot=False):

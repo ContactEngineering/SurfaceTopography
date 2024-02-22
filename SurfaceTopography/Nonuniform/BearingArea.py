@@ -68,7 +68,7 @@ class BearingArea:
                                                                 np.array([heights], dtype=float))[0]
         else:
             return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._s,
-                                                                heights.astype(float))
+                                                                np.asanyarray(heights, dtype=float))
 
 
 def bearing_area(self, heights=None):

@@ -26,8 +26,8 @@ SOFTWARE.
 
 
 Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
-                                       Eigen::Ref<Eigen::ArrayXi> topography_s, Eigen::Ref<Eigen::ArrayXd> heights) {
-    if (topography_x.size() != topography_h.size() || topography_x.size() != topography_s.size())
+                                       Eigen::Ref<ArrayXl> topography_s, Eigen::Ref<Eigen::ArrayXd> heights) {
+    if (topography_x.size() != topography_h.size() || topography_x.size() != topography_s.size()) {
         throw std::runtime_error("`topography_x`, `topography_h` and `topography_s` must have the same size");
     }
 

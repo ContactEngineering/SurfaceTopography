@@ -22,11 +22,12 @@ SOFTWARE.
 
 /* Convenience definitions for row-major arrays */
 
-#ifndef __ROW_MAJOR_H
-#define __ROW_MAJOR_H
+#ifndef __EIGEN_HELPER_H
+#define __EIGEN_HELPER_H
 
 #include <Eigen/Dense>
 
+using ArrayXl = Eigen::Array<long, Eigen::Dynamic, 1>;
 using RowMajorXXd = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 #endif
