@@ -54,6 +54,8 @@ def test_bearing_area_nonuniform(plot=False):
 
     np.testing.assert_allclose(P, P_analytic, atol=1e-3)
 
+    assert t.bearing_area([hm / 4, hm / 3, hm / 2]) == [1, 2, 3]
+
 
 def test_bearing_area_uniform_is_monotonous(plot=False):
     t = fourier_synthesis((64,), (1,), 0.8, rms_slope=0.1, periodic=False)

@@ -33,7 +33,45 @@ import numpy as np
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-def bearing_area(self, heights):
+class BearingArea:
+    """
+    Accelerated bearing area calculation for nonuniform line scans.
+    """
+
+    def __init__(self, x, h):
+        self._x = np.asanyarray(x, dtype=float)
+        self._h = np.asanyarray(h, dtype=float)
+
+        self._s = np.argsort(h)  # Indices, sorted by height
+
+    def __call__(self, heights):
+        """
+        Compute the bearing area for a specific height.
+
+        The bearing area as a function of height is also known as the
+        Abbott-Firestone curve. If expressed as a fractional area, it is the
+        cumulative distribution function of the surface heights. This function
+        returns this fractional area.
+
+        Parameters
+        ----------
+        heights : float or np.ndarray
+            Heights for which to compute the bearing area.
+
+        Returns
+        -------
+        fractional_area : float or np.ndarray
+            Fractional area above a the threshold height.
+        """
+        if np.isscalar(heights):
+            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._s,
+                                                                np.array([heights], dtype=float))[0]
+        else:
+            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._s,
+                                                                heights.astype(float))
+
+
+def bearing_area(self, heights=None):
     """
     Compute the bearing area for a specific height.
 
@@ -46,20 +84,22 @@ def bearing_area(self, heights):
     ----------
     self : :obj:`NonuniformLineScan`
         Line scan container object.
-    heights : float or np.ndarray
-        Heights for which to compute the bearing area.
+    heights : float or np.ndarray, optional
+        Heights for which to compute the bearing area. (Default: None)
 
     Returns
     -------
     fractional_area : float or np.ndarray
-        Fractional area above a the threshold height.
+        Fractional area above a the threshold height, if height is given.
+    bearing_area : :obj:`BearingArea`
+        Instance of :obj:`BearingArea` class that caches the bearing area
+        calculation.
     """
-    x, h = self.positions_and_heights()
-    if np.isscalar(heights):
-        return _SurfaceTopographyPP.nonuniform_bearing_area(x.astype(float), h.astype(float),
-                                                            np.array([heights], dtype=float))[0]
+    b = BearingArea(*self.positions_and_heights())
+    if heights is None:
+        return b
     else:
-        return _SurfaceTopographyPP.nonuniform_bearing_area(x.astype(float), h.astype(float), heights.astype(float))
+        return b(heights)
 
 
 NonuniformLineScanInterface.register_function('bearing_area', bearing_area)
