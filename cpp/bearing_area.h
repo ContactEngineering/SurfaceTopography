@@ -22,8 +22,8 @@ SOFTWARE.
 
 #include "eigen_helper.h"
 
-Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
-                                       Eigen::Ref<ArrayXl> topography_s, Eigen::Ref<Eigen::ArrayXd> heights);
+Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> x, Eigen::Ref<Eigen::ArrayXd> h,
+                                       Eigen::Ref<ArrayXl> el_sort_by_max, Eigen::Ref<Eigen::ArrayXd> heights);
 Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
                                       Eigen::Ref<Eigen::ArrayXd> heights);
 Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic,

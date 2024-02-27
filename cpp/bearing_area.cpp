@@ -21,33 +21,49 @@ SOFTWARE.
 */
 
 #include <algorithm>
+#include <iostream>
 
 #include "bearing_area.h"
 
 
-Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
-                                       Eigen::Ref<ArrayXl> topography_s, Eigen::Ref<Eigen::ArrayXd> heights) {
-    if (topography_x.size() != topography_h.size() || topography_x.size() != topography_s.size()) {
-        throw std::runtime_error("`topography_x`, `topography_h` and `topography_s` must have the same size");
+Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> x, Eigen::Ref<Eigen::ArrayXd> h,
+                                       Eigen::Ref<ArrayXl> el_sort_by_max, Eigen::Ref<Eigen::ArrayXd> heights) {
+    if (x.size() != h.size()) {
+        throw std::runtime_error("`x` and `h` must have the same size");
+    }
+    if (el_sort_by_max.size() != h.size()-1) {
+        throw std::runtime_error("`el_sort_by_max` must have the same size one less than `h`");
     }
 
     /* The physical length of the line scan */
-    const double physical_size{topography_x.tail<1>().value() - topography_x.head<1>().value()};
+    const double physical_size{x.tail<1>().value() - x.head<1>().value()};
 
     /* Bearing area values for each input height */
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
 
     /* Compute bearing areas */
     for (int j{0}; j < heights.size(); j++) {
+        const double height{heights(j)};
+
+        /* Find elements that cover the reference height */
+        const auto lb{std::lower_bound(
+            el_sort_by_max.begin(), el_sort_by_max.end(), height,
+            [&h](const long& i, double value) {
+                return std::max(h(i), h(i+1)) < value;
+            })};
+
+        /* Cumulative width for all elements completely below the input height */
         double bearing_area{0};
-        for (int i{0}; i < topography_x.size()-1; i++) {
-            const double hi{topography_h(i)}, hi1{topography_h(i+1)};
-            double dx = topography_x(i+1) - topography_x(i);
-            if (heights(j) < hi && heights(j) < hi1) {
+
+        for (auto k{lb}; k != el_sort_by_max.end(); k++) {
+            const auto i{*k};
+            const double hi{h(i)}, hi1{h(i+1)};
+            const double dx{x(i+1) - x(i)};
+            if (height < hi && height < hi1) {
                 bearing_area += dx;
-            } else if (!(heights(j) > hi && heights(j) > hi1)) {
+            } else if (!(height > hi && height > hi1)) {
                 auto [minh, maxh] = std::minmax(hi, hi1);
-                bearing_area += dx * (maxh - heights(j)) / (maxh - minh);
+                bearing_area += dx * (maxh - height) / (maxh - minh);
             }
         }
         fractional_bearing_areas(j) = bearing_area / physical_size;

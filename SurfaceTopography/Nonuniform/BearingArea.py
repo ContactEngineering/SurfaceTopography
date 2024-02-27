@@ -42,7 +42,14 @@ class BearingArea:
         self._x = np.asanyarray(x, dtype=float)
         self._h = np.asanyarray(h, dtype=float)
 
-        self._s = np.argsort(h)  # Indices, sorted by height
+        # Element indices, sorted by min height of element
+        self._el_sort_by_min = np.argsort(np.minimum(self._h[:-1], self._h[1:]))
+        # Element indices, sorted by max height of element
+        self._el_sort_by_max = np.argsort(np.maximum(self._h[:-1], self._h[1:]))
+
+        # Cumulative sum of element widths
+        el_width = np.diff(self._x)
+        self._cum_width = np.cumsum(el_width[self._el_sort_by_min])
 
     def __call__(self, heights):
         """
@@ -64,10 +71,10 @@ class BearingArea:
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._s,
+            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
                                                                 np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._s,
+            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
                                                                 np.asanyarray(heights, dtype=float))
 
 
