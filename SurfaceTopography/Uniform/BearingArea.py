@@ -43,10 +43,16 @@ class Uniform1DBearingArea:
         self._h = np.asanyarray(h, dtype=float)
         self._is_periodic = is_periodic
 
-        # Element indices, sorted by min height of element
-        self._el_sort_by_min = np.argsort(np.minimum(self._h[:-1], self._h[1:]))
-        # Element indices, sorted by max height of element
-        self._el_sort_by_max = np.argsort(np.maximum(self._h[:-1], self._h[1:]))
+        if is_periodic:
+            # Element indices, sorted by min height of element
+            self._el_sort_by_min = np.argsort(np.minimum(np.roll(self._h, -1), np.roll(self._h, 1)))
+            # Element indices, sorted by max height of element
+            self._el_sort_by_max = np.argsort(np.maximum(np.roll(self._h, -1), np.roll(self._h, 1)))
+        else:
+            # Element indices, sorted by min height of element
+            self._el_sort_by_min = np.argsort(np.minimum(self._h[:-1], self._h[1:]))
+            # Element indices, sorted by max height of element
+            self._el_sort_by_max = np.argsort(np.maximum(self._h[:-1], self._h[1:]))
 
     def __call__(self, heights):
         """
@@ -95,8 +101,12 @@ class Uniform1DBearingArea:
         upper_bound : float or np.ndarray
             Upper bound on fractional area above a threshold height.
         """
-        el_min_heights = np.minimum(self._h[:-1], self._h[1:])
-        el_max_heights = np.maximum(self._h[:-1], self._h[1:])
+        if self._is_periodic:
+            el_min_heights = np.minimum(np.roll(self._h, -1), np.roll(self._h, 1))
+            el_max_heights = np.maximum(np.roll(self._h, -1), np.roll(self._h, 1))
+        else:
+            el_min_heights = np.minimum(self._h[:-1], self._h[1:])
+            el_max_heights = np.maximum(self._h[:-1], self._h[1:])
         el_min = np.searchsorted(el_min_heights[self._el_sort_by_min], heights)
         el_max = np.searchsorted(el_max_heights[self._el_sort_by_max], heights)
         if self._is_periodic:
