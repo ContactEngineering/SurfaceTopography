@@ -48,8 +48,10 @@ class BearingArea:
         self._el_sort_by_max = np.argsort(np.maximum(self._h[:-1], self._h[1:]))
 
         # Cumulative sum of element widths
+        max_width = self._x[-1] - self._x[0]
         el_width = np.diff(self._x)
-        self._cum_width = np.cumsum(el_width[self._el_sort_by_min])
+        self._cum_width_min = np.append(1, 1 - np.cumsum(el_width[self._el_sort_by_min]) / max_width)
+        self._cum_width_max = np.append(1, 1 - np.cumsum(el_width[self._el_sort_by_max]) / max_width)
 
     def __call__(self, heights):
         """
@@ -59,6 +61,9 @@ class BearingArea:
         Abbott-Firestone curve. If expressed as a fractional area, it is the
         cumulative distribution function of the surface heights. This function
         returns this fractional area.
+
+        The function has complexity O(N) where N is the number of elements in
+
 
         Parameters
         ----------
@@ -76,6 +81,30 @@ class BearingArea:
         else:
             return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
                                                                 np.asanyarray(heights, dtype=float))
+
+    def bounds(self, heights):
+        """
+        Compute bounds on the bearing area for a specific height. These bounds
+        can be computed O(log(N)) time, where N is the number of elements in the
+        line scan.
+
+        Parameters
+        ----------
+        heights : float or np.ndarray
+            Heights for which to compute the bearing area.
+
+        Returns
+        -------
+        lower_bound : float or np.ndarray
+            Lower bound on fractional area above a threshold height.
+        upper_bound : float or np.ndarray
+            Upper bound on fractional area above a threshold height.
+        """
+        el_min_heights = np.minimum(self._h[:-1], self._h[1:])
+        el_max_heights = np.maximum(self._h[:-1], self._h[1:])
+        el_min = np.searchsorted(el_min_heights[self._el_sort_by_min], heights)
+        el_max = np.searchsorted(el_max_heights[self._el_sort_by_max], heights)
+        return self._cum_width_min[el_min], self._cum_width_max[el_max]
 
 
 def bearing_area(self, heights=None):

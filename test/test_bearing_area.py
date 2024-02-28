@@ -89,6 +89,23 @@ def test_bearing_area_uniform_is_monotonous(plot=False):
     assert (np.diff(P) < 0).all()
 
 
+def test_bearing_area_bounds(plot=False):
+    t = fourier_synthesis((64,), (1,), 0.8, rms_slope=0.1, periodic=False)
+    mn = t.min()
+    mx = t.max()
+    heights = np.linspace(mn, mx, 100)
+
+    # Test nonuniform
+    ba = t.to_nonuniform().bearing_area()
+
+    # Test bounds
+    lower, upper = ba.bounds(heights)
+    eps = 1e-12
+    np.testing.assert_array_less(lower, upper + eps)
+    np.testing.assert_array_less(lower, ba(heights) + eps)
+    np.testing.assert_array_less(ba(heights), upper + eps)
+
+
 @pytest.mark.parametrize('periodic', [True, False])
 def test_bearing_area_topography(periodic, plot=False):
     nx, ny = 9, 4
