@@ -89,11 +89,21 @@ def test_bearing_area_uniform_is_monotonous(plot=False):
     assert (np.diff(P) < 0).all()
 
 
-def test_bearing_area_bounds(plot=False):
+def test_bearing_area_bounds():
     t = fourier_synthesis((64,), (1,), 0.8, rms_slope=0.1, periodic=False)
     mn = t.min()
     mx = t.max()
     heights = np.linspace(mn, mx, 100)
+
+    # Test uniform
+    ba = t.bearing_area()
+
+    # Test bounds
+    lower, upper = ba.bounds(heights)
+    eps = 1e-12
+    np.testing.assert_array_less(lower, upper + eps)
+    np.testing.assert_array_less(lower, ba(heights) + eps)
+    np.testing.assert_array_less(ba(heights), upper + eps)
 
     # Test nonuniform
     ba = t.to_nonuniform().bearing_area()

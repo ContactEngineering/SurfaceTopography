@@ -33,7 +33,7 @@ import numpy as np
 from ..HeightContainer import NonuniformLineScanInterface
 
 
-class BearingArea:
+class NonuniformBearingArea:
     """
     Accelerated bearing area calculation for nonuniform line scans.
     """
@@ -126,12 +126,12 @@ def bearing_area(self, heights=None):
     Returns
     -------
     fractional_area : float or np.ndarray
-        Fractional area above a the threshold height, if height is given.
-    bearing_area : :obj:`BearingArea`
-        Instance of :obj:`BearingArea` class that caches the bearing area
+        Fractional area above the threshold height, if height is given.
+    bearing_area : :obj:`NonuniformBearingArea`
+        Instance of :obj:`NonuniformBearingArea` class that caches the bearing area
         calculation.
     """
-    b = BearingArea(*self.positions_and_heights())
+    b = NonuniformBearingArea(*self.positions_and_heights())
     if heights is None:
         return b
     else:
