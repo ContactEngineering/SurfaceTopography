@@ -54,8 +54,8 @@ def bisect(bearing_area, target_area, tol=1e-6):
     root : float
         Height where the bearing area is equal to `target_area`.
     """
-    a = bearing_area.min()
-    b = bearing_area.max()
+    a = bearing_area.min
+    b = bearing_area.max
     fa_lower, fa_upper = bearing_area.bounds(a)
     fb_lower, fb_upper = bearing_area.bounds(b)
     assert fa_upper >= target_area >= fb_lower
@@ -128,7 +128,7 @@ def mad_height(self, percentile=_rms_percentile):
 
         @cache
         def max(self):
-            return max(bearing_area.max() - self._median, self._median - bearing_area.min())
+            return max(bearing_area.max - self._median, self._median - bearing_area.min)
 
     bearing_area = self.bearing_area()
     # Compute median
