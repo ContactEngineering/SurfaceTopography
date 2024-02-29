@@ -30,7 +30,7 @@ from SurfaceTopography import NonuniformLineScan, Topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
-def test_bearing_area_nonuniform(plot=True):
+def test_bearing_area_nonuniform(plot=False):
     n = 2048
     hm = 0.1
     X = np.arange(n)  # n+1 because we need the endpoint

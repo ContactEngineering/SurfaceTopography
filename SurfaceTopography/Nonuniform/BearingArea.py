@@ -27,6 +27,8 @@ Bearing area curve, also known as Abbott-Firestone curve or cumulative
 distribution function of the surface heights.
 """
 
+from functools import cache
+
 import _SurfaceTopographyPP
 import numpy as np
 
@@ -105,6 +107,14 @@ class NonuniformBearingArea:
         el_min = np.searchsorted(el_min_heights[self._el_sort_by_min], heights)
         el_max = np.searchsorted(el_max_heights[self._el_sort_by_max], heights)
         return self._cum_width_min[el_min], self._cum_width_max[el_max]
+
+    @cache
+    def min(self):
+        return self._h.min()
+
+    @cache
+    def max(self):
+        return self._h.max()
 
 
 def bearing_area(self, heights=None):
