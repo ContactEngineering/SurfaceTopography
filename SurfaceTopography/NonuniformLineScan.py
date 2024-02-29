@@ -1,7 +1,7 @@
 #
-# Copyright 2019, 2022-2023 Antoine Sanner
+# Copyright 2019-2022, 2024 Lars Pastewka
+#           2019, 2022-2023 Antoine Sanner
 #           2022 Johannes Hörmann
-#           2019-2022 Lars Pastewka
 #           2019, 2021 Michael Röttger
 #
 # ### MIT license

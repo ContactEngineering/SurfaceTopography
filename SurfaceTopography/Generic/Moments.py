@@ -1,6 +1,5 @@
 #
-# Copyright 2023 asanner@ethz.ch
-#           2023 Antoine Sanner
+# Copyright 2023 Antoine Sanner
 #
 # ### MIT license
 #

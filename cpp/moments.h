@@ -26,7 +26,7 @@ SOFTWARE.
 
 #include <cmath>
 
-#include "row_major.h"
+#include "eigen_helper.h"
 
 template <int order>
 class _LineScanMoment {

@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2023 Lars Pastewka
+# Copyright 2019-2024 Lars Pastewka
 #           2022 Johannes Hörmann
 #           2020-2021 Michael Röttger
 #           2019 Kai Haase
@@ -31,19 +31,17 @@ import os
 # Registers DZI writers with Topography class
 import SurfaceTopography.IO.DZI  # noqa: F401
 
-from ..Exceptions import CannotDetectFileFormat, CorruptFile, MetadataAlreadyFixedByFile, ReadFileError, \
-    UnknownFileFormat  # noqa: F401
-
-# Old-style readers
-from .FromFile import HGTReader
-from .Text import AscReader
-
+from ..Exceptions import UnknownFileFormat  # noqa: F401
+from ..Exceptions import (CannotDetectFileFormat, CorruptFile,  # noqa: F401
+                          MetadataAlreadyFixedByFile, ReadFileError)
 # New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
 from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
+# Old-style readers
+from .FromFile import HGTReader
 from .FRT import FRTReader
 from .GWY import GWYReader
 from .H5 import H5Reader
@@ -52,24 +50,24 @@ from .JPK import JPKReader
 from .LEXT import LEXTReader
 from .Matlab import MatReader
 from .MetroPro import MetroProReader
-from .Mitutoyo import MitutoyoReader
 from .MI import MIReader
+from .Mitutoyo import MitutoyoReader
 from .NC import NCReader
 from .NPY import NPYReader
-from .PLU import PLUReader
-from .PLUX import PLUXReader
-from .PS import PSReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
+from .PLU import PLUReader
+from .PLUX import PLUXReader
+from .PS import PSReader
+from .Reader import ReaderBase  # noqa: F401
 from .SUR import SURReader
+from .Text import AscReader
 from .VK import VKReader
 from .WSXM import WSXMReader
 from .X3P import X3PReader
 from .XYZ import XYZReader
 from .ZON import ZONReader
-
-from .Reader import ReaderBase  # noqa: F401
 
 readers = [
     # XYZ must come before ASC, because 2D XYZ is a specialized ASC

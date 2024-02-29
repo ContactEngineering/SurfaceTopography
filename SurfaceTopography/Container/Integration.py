@@ -1,7 +1,6 @@
 #
-# Copyright 2023 asanner@ethz.ch
+# Copyright 2023 Antoine Sanner
 #           2023 Lars Pastewka
-#           2023 Antoine Sanner
 #
 # ### MIT license
 #
@@ -26,7 +25,7 @@
 import numpy as np
 
 from ..Container.SurfaceContainer import SurfaceContainer
-from ..Generic.Moments import compute_iso_moment, compute_1d_moment
+from ..Generic.Moments import compute_1d_moment, compute_iso_moment
 
 
 def _bandwidth_count_from_profile(self, qx, unit, reliable=True):

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, 2018-2021 Lars Pastewka
+# Copyright 2015-2016, 2018-2021, 2024 Lars Pastewka
 #           2019, 2021 Michael Röttger
 #           2018-2019 Antoine Sanner
 #           2015-2016 Till Junge
@@ -90,8 +90,7 @@ def Sq(topography):
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
 
-def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
-                 direction=None):
+def rms_gradient(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     Compute the root mean square amplitude of the height gradient of a
     topography stored on a uniform grid. The topography must be
@@ -133,8 +132,7 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None,
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
 
-def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None,
-                           direction=None):
+def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     Compute the root mean square amplitude of the height derivative of a
     topography or line scan stored on a uniform grid. If the topography is two
@@ -177,8 +175,7 @@ def rms_slope_from_profile(topography, short_wavelength_cutoff=None, window=None
     return np.sqrt(reduction.mean(dx ** 2))
 
 
-def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=None,
-                               direction=None):
+def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     Compute the root mean square amplitude of the second derivative (i.e. the
     curvature) of a topography or line scan stored on a uniform grid. If the
@@ -221,8 +218,7 @@ def rms_curvature_from_profile(topography, short_wavelength_cutoff=None, window=
     return np.sqrt(reduction.mean(d2x ** 2))
 
 
-def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
-                  direction=None):
+def rms_laplacian(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     Compute the root mean square amplitude of the Laplacian (i.e. the sum of
     second derivatives in x- and y-directions) of a topography on a uniform
@@ -264,8 +260,7 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None,
         raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
 
 
-def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=None,
-                            direction=None):
+def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     Compute the root mean square amplitude of the curvature of a
     topography stored on a uniform grid. The topography must be
@@ -304,7 +299,9 @@ UniformTopographyInterface.register_function('Rq', Rq)
 UniformTopographyInterface.register_function('rms_height_from_area', Sq, deprecated=True)
 UniformTopographyInterface.register_function('Sq', Sq)
 UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
-UniformTopographyInterface.register_function('rms_slope_from_profile', rms_slope_from_profile)
-UniformTopographyInterface.register_function('rms_curvature_from_profile', rms_curvature_from_profile)
+UniformTopographyInterface.register_function('rms_slope_from_profile', Rdq, deprecated=True)
+UniformTopographyInterface.register_function('Rdq', Rdq)
+UniformTopographyInterface.register_function('rms_curvature_from_profile', Rddq, deprecated=True)
+UniformTopographyInterface.register_function('Rddq', Rddq)
 UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)
 UniformTopographyInterface.register_function('rms_curvature_from_area', rms_curvature_from_area)

@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021, 2023 Lars Pastewka
+# Copyright 2019-2021, 2023-2024 Lars Pastewka
 #           2020-2021 Michael Röttger
 #           2019 Antoine Sanner
 #
@@ -35,13 +35,13 @@ In MPI Parallelized programs:
     - load the relevant subdomain on each processor in Reader.topography()
 """
 
-from ..Exceptions import FileFormatMismatch
-from ..UniformLineScanAndTopography import Topography
-from .Reader import ReaderBase, ChannelInfo
-
-from NuMPI import MPI
 import NuMPI
 import NuMPI.IO
+from NuMPI import MPI
+
+from ..Exceptions import FileFormatMismatch
+from ..UniformLineScanAndTopography import Topography
+from .Reader import ChannelInfo, ReaderBase
 
 
 class NPYReader(ReaderBase):
