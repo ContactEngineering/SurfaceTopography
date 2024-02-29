@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2023 Lars Pastewka
+# Copyright 2019-2024 Lars Pastewka
 #           2022 Johannes Hörmann
 #           2020-2021 Michael Röttger
 #           2019 Kai Haase
@@ -28,10 +28,10 @@
 
 import io
 import os
+
 import requests
 
 from ...Exceptions import CannotDetectFileFormat, UnknownFileFormat
-
 from .CE import CEReader, write_containers  # noqa: F401
 from .ZAG import ZAGReader
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2023-2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -28,10 +28,12 @@
 import h5py
 import numpy as np
 
-from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      mangle_length_unit_utf8)
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 
 class DATXReader(ReaderBase):

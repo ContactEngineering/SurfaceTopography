@@ -1,5 +1,5 @@
 #
-# Copyright 2024 Lars Pastewka
+# Copyright 2020-2021, 2023-2024 Lars Pastewka
 #
 # ### MIT license
 #

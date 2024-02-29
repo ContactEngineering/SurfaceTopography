@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2023 Lars Pastewka
+# Copyright 2019-2024 Lars Pastewka
 #           2020-2021 Michael Röttger
 #           2019 Antoine Sanner
 #
@@ -27,20 +27,19 @@
 import json
 
 import numpy as np
-
 from numpyencoder import NumpyEncoder
-
-from ..Exceptions import MetadataAlreadyFixedByFile
-from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
-from ..NonuniformLineScan import NonuniformLineScan
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
-
-from .Reader import ReaderBase, ChannelInfo
-
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams
 from scipy.io import netcdf_file
+
+from ..Exceptions import MetadataAlreadyFixedByFile
+from ..HeightContainer import (NonuniformLineScanInterface,
+                               UniformTopographyInterface)
+from ..NonuniformLineScan import NonuniformLineScan
+from ..Support.UnitConversion import (mangle_length_unit_ascii,
+                                      mangle_length_unit_utf8)
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from .Reader import ChannelInfo, ReaderBase
 
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,
