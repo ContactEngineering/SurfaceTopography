@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.4 (29Feb24)
+-----------------
+
+- MAINT: Performance optimization for MAD analysis
+
 v1.13.3 (19Feb24)
 -----------------
 
