@@ -26,7 +26,7 @@
 Robust statistics (median, median absolute deviation, etc.) for topography data.
 """
 
-from functools import cache
+from functools import cached_property
 
 import scipy
 
@@ -122,11 +122,11 @@ def mad_height(self, percentile=_rms_percentile):
             lm, um = self._bearing_area.bounds(self._median - h)
             return lp + (1 - um), up + (1 - lm)
 
-        @cache
+        @cached_property
         def min(self):
             return 0
 
-        @cache
+        @cached_property
         def max(self):
             return max(bearing_area.max - self._median, self._median - bearing_area.min)
 
