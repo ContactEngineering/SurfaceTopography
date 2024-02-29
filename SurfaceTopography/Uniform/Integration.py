@@ -1,3 +1,26 @@
+#
+# Copyright 2023 Antoine Sanner
+#
+# ### MIT license
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
@@ -7,7 +30,7 @@ from ..HeightContainer import UniformTopographyInterface
 def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
     r"""
 
-    ..math::
+    .. math::
 
         m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y factor(q_x, q_y) C^{2D}(q_x, q_y)
 
@@ -69,13 +92,13 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
     Continuum:
 
-    ..math::
+    .. math::
 
         \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
 
     Discrete
 
-    ..math::
+    .. math::
 
          m_\alpha = \frac{1}{L_x} \sum_{q_x} factor(q_x) C^{1D}_{q_x}
 
@@ -138,7 +161,7 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
 
     For 2D Topographies, continuum:
 
-    ..math::
+    .. math::
 
         m_\alpha = \frac{1}{(2 \pi)^2} \int_{-\infty}^\infty dq_x dq_y |q|^{\alpha} C^{2D}(q_x, q_y)
 
@@ -148,13 +171,13 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
 
     For line scans, continuum:
 
-    ..math::
+    .. math::
 
         \frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
 
     Discrete
 
-    ..math::
+    .. math::
 
          m_\alpha = \frac{1}{L_x} \sum_{q_x} |q|^{\alpha} C^{1D}_{q_x}
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Lars Pastewka
+# Copyright 2018-2023 Lars Pastewka
 #           2018-2021 Michael Röttger
 #           2019-2020 Antoine Sanner
 #           2019 Kai Haase
@@ -28,18 +28,16 @@
 import re
 
 import numpy as np
-import pandas as pd
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
-from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import length_units, mangle_length_unit_utf8, get_unit_conversion_factor
+from ..Support.UnitConversion import length_units, mangle_length_unit_utf8
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 
 
-@text
+@text()
 def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
     """
     Reads a surface profile from a text file and presents in in a
@@ -65,7 +63,7 @@ MatrixReader = make_wrapped_reader(
     name='Plain text (matrix)')
 
 
-@text
+@text()
 def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
              z_factor=None, unit=None, info={}, periodic=False):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
@@ -295,143 +293,6 @@ When writing your own ASCII files, we recommend to prepent the header with a
  5.0  6.0  7.0  8.0
  9.0 10.0 11.0 12.0
 ```
-''')
-
-
-@text
-def read_xyz(fobj, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None, tol=1e-6):
-    """
-    Load xyz-file. These files contain line scan information in terms of
-    (x,y)-positions.
-
-    Parameters
-    ----------
-    fobj : str or file object
-         File name or stream.
-    tol : float
-         Tolerance for detecting uniform grids
-
-    Returns
-    -------
-    topography : Topography or UniformLineScan or NonuniformLineScan
-        SurfaceTopography object.
-    """
-    # Default is to autodetect separator
-    sep = r'\s+'  # white space
-    usecols = None
-
-    # Read header (if present) and guess file format
-    c = fobj.tell()
-    first_line = fobj.readline()
-    if first_line.startswith('X;Y;valid'):
-        # HFM files have the following header
-        # X;Y;valid
-        # [mm];[mm];[1/0]
-        second_line = fobj.readline()
-        xunit, zunit, _ = second_line.split(';')
-        xunit = xunit.strip('[').strip(']')
-        zunit = zunit.strip('[').strip(']')
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-        unit = xunit
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-        height_scale_factor = get_unit_conversion_factor(zunit, xunit)
-        sep = ';'  # This file seems to use semicolons as separators
-        usecols = (0, 1)
-    else:
-        # Could not guess file format - rewind
-        fobj.seek(c)
-
-    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None)
-
-    if len(data.columns) == 2:
-        # This is a line scan.
-        x, z = np.array(data, dtype=float).T
-        x -= np.min(x)
-
-        d_uniform = (x[-1] - x[0]) / (len(x) - 1)
-        if np.max(np.abs(np.diff(x) - d_uniform)) < tol:
-            if physical_sizes is None:
-                physical_sizes = d_uniform * len(x)
-            else:
-                raise MetadataAlreadyFixedByFile('physical_sizes')
-            t = UniformLineScan(z, physical_sizes,
-                                periodic=False if periodic is None else periodic,
-                                unit=unit,
-                                info=info)
-        else:
-            if periodic is not None and periodic:
-                raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
-                                 'Nonuniform line scans cannot be periodic.')
-            t = NonuniformLineScan(x, z, unit=unit, info=info)
-            if physical_sizes is not None:
-                raise MetadataAlreadyFixedByFile('physical_sizes')
-
-    elif len(data.columns) == 3:
-        # This is a topography map.
-        x, y, z = np.array(data, dtype=float).T
-
-        # Sort values, first x than y
-        indices = np.lexsort((x, y))
-        x = x[indices]
-        y = y[indices]
-        z = z[indices]
-
-        # Sort x-values into bins. Assume points on surface are equally spaced.
-        dx = x[1] - x[0]
-        binx = np.array(x / dx + 0.5, dtype=int)
-        n = np.bincount(binx)
-        ny = n[0]
-        assert np.all(n == ny)  # FIXME: Turn assert into exception
-
-        # Sort y-values into bins.
-        dy = y[binx == 0][1] - y[binx == 0][0]
-        biny = np.array(y / dy + 0.5, dtype=int)
-        n = np.bincount(biny)
-        nx = n[0]
-        assert np.all(n == nx)  # FIXME: Turn assert into exception
-
-        # Sort data into bins.
-        data = np.zeros((nx, ny))
-        data[binx, biny] = z
-
-        # Sanity check. Should be covered by above asserts.
-        value_present = np.zeros((nx, ny), dtype=bool)
-        value_present[binx, biny] = True
-        assert np.all(value_present)  # FIXME: Turn assert into exception
-
-        if physical_sizes is None:
-            physical_sizes = (dx * nx, dy * ny)
-        else:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
-        t = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
-    else:
-        raise Exception(
-            'Expected two or three columns for topography that is a list of '
-            'positions and heights.')
-
-    if height_scale_factor is not None:
-        t = t.scale(height_scale_factor)
-    return t
-
-
-XYZReader = make_wrapped_reader(
-    read_xyz, class_name="XYZReader", format='xyz', mime_types=['text/plain'], file_extensions=['xyz', 'hfm'],
-    name='Plain text (x,y,z coordinates)', description='''
-SurfaceTopography information can be provided as coordinate data. This is a
-text file that contains either two columns (for line scans) or three columns
-(for two-dimensional topographies) of data. The parser does not support
-reading header information. Units can therefore not be provided directly
-within this file format.
-
-Line scans can be provided on a non-uniform grid. The x-coordinates do not
-need to be equally spaced and the surface specified in this format can be
-reentrant. The code interprets such topographies as piecewise linear between
-the points that are specified in the file.
-
-Two-dimensional topography maps need to reside on a regular grid. The x- and
-y-coordinates need to be equally spaced.
 ''')
 
 

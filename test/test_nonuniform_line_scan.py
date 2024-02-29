@@ -1,8 +1,6 @@
 #
-# Copyright 2016, 2020 Lars Pastewka
-#           2018, 2020 Antoine Sanner
-#           2018, 2020 Michael Röttger
-#           2015-2016 Till Junge
+# Copyright 2021-2023 Lars Pastewka
+#           2022-2023 Antoine Sanner
 #
 # ### MIT license
 #
@@ -38,7 +36,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import NonuniformLineScan
-from SurfaceTopography.IO.Text import read_xyz
+from SurfaceTopography.IO import XYZReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -156,18 +154,18 @@ def test_power_spectrum_from_profile():
 
 
 def test_detrend(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     assert not t.detrend('center').is_periodic
     assert not t.detrend('height').is_periodic
 
 
 def test_detrend_slope(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     assert not t.detrend('slope').is_periodic
 
 
 def test_detrend_curvature(file_format_examples):
-    t = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     assert not t.detrend('curvature').is_periodic
 
 

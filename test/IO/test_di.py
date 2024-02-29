@@ -1,5 +1,6 @@
 #
-# Copyright 2021 Lars Pastewka
+# Copyright 2020-2021, 2023 Lars Pastewka
+#           2019-2020 Antoine Sanner
 #
 # ### MIT license
 #
@@ -56,3 +57,8 @@ def test_corrupted_file(file_format_examples):
     # Corruption should be detected when opening file; subsequent calls to `topography` must succeed
     with pytest.raises(CorruptFile):
         DIReader(os.path.join(file_format_examples, 'di_corrupted.di'))
+
+
+def test_di7(file_format_examples):
+    r = DIReader(os.path.join(file_format_examples, 'di-7.di'))
+    r.topography()

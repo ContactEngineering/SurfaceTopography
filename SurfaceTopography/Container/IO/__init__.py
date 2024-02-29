@@ -1,5 +1,9 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2019-2024 Lars Pastewka
+#           2022 Johannes Hörmann
+#           2020-2021 Michael Röttger
+#           2019 Kai Haase
+#           2019 Antoine Sanner
 #
 # ### MIT license
 #
@@ -24,10 +28,10 @@
 
 import io
 import os
+
 import requests
 
 from ...Exceptions import CannotDetectFileFormat, UnknownFileFormat
-
 from .CE import CEReader, write_containers  # noqa: F401
 from .ZAG import ZAGReader
 
@@ -143,15 +147,10 @@ def read_published_container(publication_url, **request_args):
     container : SurfaceContainer
         Surface container object read from URL.
     """
-    # First get the page for the publication in order
-    # to get the download URL
-    _html = 'html/'
-    publication_response = requests.get(publication_url)
-    download_url = publication_response.url + "download/"
-    i = download_url.find(_html)
-    if i >= 0:
-        # Newer versions of topobank have specific html links; we need to cut 'html/'
-        download_url = download_url[:i] + download_url[i + len(_html):]
+    # If we send json as a request header, then contact.engineering will response with a JSON dictionary
+    response = requests.get(publication_url, headers={'Accept': 'application/json'})
+    data = response.json()
+    download_url = data['download_url']
 
     # Then download and read container
     container_response = requests.get(download_url, **request_args)

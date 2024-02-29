@@ -1,5 +1,6 @@
 #
-# Copyright 2020-2021 Lars Pastewka
+# Copyright 2020-2021, 2023-2024 Lars Pastewka
+#           2023-2024 Antoine Sanner
 #           2021 Michael Röttger
 #
 # ### MIT license
@@ -28,18 +29,18 @@ Tests of the filter and modification pipeline
 """
 
 import os
-import pytest
 
 import numpy as np
-
+import pytest
 from NuMPI import MPI
 
-from SurfaceTopography.UniformLineScanAndTopography import Topography, \
-    DetrendedUniformTopography, UniformLineScan
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.IO.Text import read_xyz
+from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.Pipeline import pipeline_function
-from SurfaceTopography.UniformLineScanAndTopography import DecoratedUniformTopography, UniformTopographyInterface
+from SurfaceTopography.Uniform.Detrending import DetrendedUniformTopography
+from SurfaceTopography.UniformLineScanAndTopography import (
+    DecoratedUniformTopography, Topography, UniformLineScan,
+    UniformTopographyInterface)
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -48,7 +49,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_translate():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.))
+                            physical_sizes=(4., 3.), periodic=True)
 
     assert (topography.translate(offset=(1, 0)).heights()
             ==
@@ -66,9 +67,16 @@ def test_translate():
                       [0, 0, 0]])).all()
 
 
+def test_nonperiodic_not_allowed():
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.),)
+    with pytest.raises(ValueError):
+        topography.translate(offset=(1, 0))
+
+
 def test_translate_setter():
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
-                            physical_sizes=(4., 3.))
+                            physical_sizes=(4., 3.), periodic=True)
 
     translated_t = topography.translate()
 
@@ -77,6 +85,9 @@ def test_translate_setter():
             ==
             np.array([[0, 0, 0],
                       [0, 1, 0]])).all()
+    topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
+                            physical_sizes=(4., 3.), periodic=True)
+    assert topography.translate(offset=(1, 0)).is_periodic
 
 
 def test_superpose():
@@ -108,7 +119,8 @@ def test_uniform_detrended_periodicity():
 
 
 def test_passing_of_docstring():
-    from SurfaceTopography.Uniform.PowerSpectrum import power_spectrum_from_profile
+    from SurfaceTopography.Uniform.PowerSpectrum import \
+        power_spectrum_from_profile
     topography = Topography(np.array([[0, 1, 0], [0, 0, 0]]),
                             physical_sizes=(4., 3.), periodic=True)
     assert topography.power_spectrum_from_profile.__doc__ == power_spectrum_from_profile.__doc__
@@ -198,7 +210,7 @@ def test_uniform_unit_conversion():
 
 
 def test_nonuniform_scaled_topography(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    surf = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     sx, = surf.physical_sizes
     for fac in [1.0, 2.0, np.pi]:
         surf2 = surf.scale(fac)
@@ -223,7 +235,7 @@ def test_nonuniform_scaled_topography(file_format_examples):
 
 
 def test_nonuniform_unit_conversion(file_format_examples):
-    surf = read_xyz(os.path.join(file_format_examples, 'example.xyz'), unit='um')
+    surf = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography(unit='um')
     assert surf.unit == 'um'
 
     surf2 = surf.to_unit('mm')

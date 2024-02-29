@@ -1,6 +1,5 @@
 #
-# Copyright 2019-2021 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2023-2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -23,13 +22,18 @@
 # SOFTWARE.
 #
 
+# Reference information and implementations:
+# https://gist.github.com/g-s-k/ccffb1e84df065a690e554f4b40cfd3a
+
 import h5py
 import numpy as np
 
-from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      mangle_length_unit_utf8)
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 
 class DATXReader(ReaderBase):
@@ -39,13 +43,15 @@ class DATXReader(ReaderBase):
 
     _name = 'Zygo DATX'
     _description = '''
-Import filter for Zygo DATX, and HDF5-based format.
+Import filter for Zygo DATX, an HDF5-based format.
     '''  # noqa: E501
 
     def __init__(self, fobj):
         self._fobj = fobj
+        if callable(fobj):
+            fobj = fobj()
         try:
-            with h5py.File(self._fobj, 'r') as h5:
+            with h5py.File(fobj, 'r') as h5:
                 # Check if this can be a datx file
                 if 'MetaData' not in h5.keys():
                     raise FileFormatMismatch('Cannot read Zygo DATX. This is an HDF5 file, but the `MetaData` toplevel '
@@ -115,11 +121,6 @@ Import filter for Zygo DATX, and HDF5-based format.
                 meters_to_unit = get_unit_conversion_factor('m', self._unit)
                 self._physical_sizes = (physical_sizes_x * meters_to_unit, physical_sizes_y * meters_to_unit)
 
-                # print(self._no_data)
-                # print(self._unit)
-                # print(x_converter)
-                # print(y_converter)
-                # print(z_converter)
         except OSError:
             # This is not an HDF5 file
             raise FileFormatMismatch('Cannot read Zygo DATX. The file is not an HDF5 container.')
@@ -161,8 +162,16 @@ Import filter for Zygo DATX, and HDF5-based format.
         _info = {'raw_metadata': self._metadata}
         _info.update(info)
 
-        with h5py.File(self._fobj, 'r') as h5:
-            t = Topography(np.array(h5[self._surface_path]), self._physical_sizes, unit=self._unit, info=_info,
+        fobj = self._fobj
+        if callable(fobj):
+            fobj = fobj()
+        with h5py.File(fobj, 'r') as h5:
+            raw_data = np.array(h5[self._surface_path])
+            mask = raw_data == self._no_data
+            if mask.sum() > 0:
+                # We need to mask this array
+                raw_data = np.ma.masked_array(raw_data, mask=mask)
+            t = Topography(raw_data, self._physical_sizes, unit=self._unit, info=_info,
                            periodic=periodic)
 
         return t.scale(1)

@@ -1,5 +1,6 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2024 Lars Pastewka
+#           2023 Antoine Sanner
 #
 # ### MIT license
 #
@@ -23,7 +24,9 @@
 #
 
 import numpy as np
-from .. import UniformLineScan, NonuniformLineScan
+
+from ..NonuniformLineScan import NonuniformLineScan
+from ..UniformLineScanAndTopography import UniformLineScan
 
 
 def scan_with_rigid_sphere(topography, radius):

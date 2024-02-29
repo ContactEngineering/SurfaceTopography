@@ -1,8 +1,6 @@
 #
-# Copyright 2016, 2020 Lars Pastewka
-#           2018, 2020 Antoine Sanner
-#           2018, 2020 Michael Röttger
-#           2015-2016 Till Junge
+# Copyright 2021-2022, 2024 Lars Pastewka
+#           2023 Antoine Sanner
 #
 # ### MIT license
 #
@@ -33,7 +31,6 @@ import pickle
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import UniformLineScan
@@ -157,7 +154,8 @@ def test_detrend_curvature():
 
     detrended = t.detrend(detrend_mode="curvature")
 
-    assert abs(detrended.coeffs[-1] / detrended.physical_sizes[0] ** 2 - 1 / R) < 1e-12
+    sx, = t.physical_sizes
+    assert abs(detrended.coeffs[-1] - sx * sx / R) < 1e-12
 
 
 def test_detrend_same_positions():

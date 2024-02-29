@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021 Lars Pastewka
+# Copyright 2019-2024 Lars Pastewka
 #           2020-2021 Michael Röttger
 #           2019 Antoine Sanner
 #
@@ -27,20 +27,19 @@
 import json
 
 import numpy as np
-
 from numpyencoder import NumpyEncoder
-
-from ..Exceptions import MetadataAlreadyFixedByFile
-from ..HeightContainer import UniformTopographyInterface, NonuniformLineScanInterface
-from ..NonuniformLineScan import NonuniformLineScan
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import mangle_length_unit_utf8, mangle_length_unit_ascii
-
-from .Reader import ReaderBase, ChannelInfo
-
 # We run serial I/O through scipy. This has several advantages:
 # 1) lightweight, 2) can handle streams
 from scipy.io import netcdf_file
+
+from ..Exceptions import MetadataAlreadyFixedByFile
+from ..HeightContainer import (NonuniformLineScanInterface,
+                               UniformTopographyInterface)
+from ..NonuniformLineScan import NonuniformLineScan
+from ..Support.UnitConversion import (mangle_length_unit_ascii,
+                                      mangle_length_unit_utf8)
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
+from .Reader import ChannelInfo, ReaderBase
 
 format_to_scipy_version = {
     'NETCDF3_CLASSIC': 1,
@@ -130,6 +129,8 @@ plt.show()
     def __init__(self, fobj, communicator=None):
         self._nc = None
         self._var_kwargs = {}  # Keywords arguments to attach to variable creation
+        if callable(fobj):
+            fobj = fobj()
         if communicator is not None and communicator.size > 1:
             # For parallel I/O we need netCDF4
             from netCDF4 import Dataset
@@ -177,13 +178,13 @@ plt.show()
             if self._y_var is not None:
                 # ...and it is 2D
                 try:
-                    self._physical_sizes = (self._x_var.length, self._y_var.length)
+                    self._physical_sizes = (float(self._x_var.length), float(self._y_var.length))
                 except AttributeError:
                     pass
             else:
                 # ...and it is 1D (a line scan)
                 try:
-                    self._physical_sizes = (self._x_var.length,)
+                    self._physical_sizes = (float(self._x_var.length),)
                 except AttributeError:
                     pass
 
@@ -431,9 +432,8 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
                 # scipy.io.netcdf_file does not support UTF-8
                 x_var.unit = mangle_length_unit_ascii(topography.unit)
 
+            x_var[...] = np.arange(nx) / nx * sx
             if topography.dim > 1:
-                x_var[...] = np.arange(nx) / nx * sx
-
                 y_var = nc.createVariable('y', 'f8', ('y',), **var_kwargs)
 
                 y_var.length = sy

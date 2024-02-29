@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2020-2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -70,4 +69,4 @@ def test_al3d_metadata(file_format_examples):
 
     np.testing.assert_allclose(t.rms_height_from_area(), 7.688266102603082e-06, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.915731160953795e-06, rtol=1e-6)
-    np.testing.assert_allclose(t.transpose().rms_height_from_profile(), 6.620876133506353e-06, rtol=1e-6)
+    np.testing.assert_allclose(t.transpose().rms_height_from_profile(), 6.620846789152015e-06, rtol=1e-6)

@@ -1,5 +1,6 @@
 #
-# Copyright 2022 Johannes Hoermann
+# Copyright 2023 Lars Pastewka
+#           2022 Johannes Hörmann
 #
 # ### MIT license
 #

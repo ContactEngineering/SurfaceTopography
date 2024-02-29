@@ -1,5 +1,6 @@
 #
-# Copyright 2020-2021 Lars Pastewka
+# Copyright 2020-2022, 2024 Lars Pastewka
+#           2021 Paul Strauch
 #           2019-2020 Antoine Sanner
 #
 # ### MIT license
@@ -123,6 +124,7 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
     """
     results = defaultdict(list)
+    empty = None
     for i, topography in enumerate(self):
         if progress_callback is not None:
             progress_callback(i, len(self))
@@ -164,6 +166,8 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
                 func, n=n, distance=existing_distances, interpolation=interpolation, threshold=threshold)
             # Append results to our return values
             for i, e, s in zip(unique_distance_index, existing_distances, stat):
+                if empty is None:
+                    empty = np.zeros_like(s) * np.nan
                 results[i] += [(e, s)]
         else:
             _log.warning(f'Topography {topography} contributes no data to average.')
@@ -177,14 +181,16 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances; whether data actually exists is
         # indicated through the mask of a masked array
-        return distances, np.ma.masked_array(
-            [np.nanmean(results[i], axis=0)[1] if i in results else np.nan for i in range(len(distances))],
-            mask=np.array([i not in results for i in range(len(distances))])
-        )
+        data = np.array([np.nanmean([r[1] for r in results[i]], axis=0) if i in results else empty
+                         for i in range(len(distances))])
+        mask = np.ones_like(data, dtype=bool)
+        mask[[i in results for i in range(len(distances))]] = False
+        return distances, np.ma.masked_array(data, mask=mask)
     else:
         # If distances are not specified by the user, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
-        distances, properties = np.array([np.nanmean(vals, axis=0) for i, vals in sorted_results]).T
+        distances = np.array([x[1][0][0] for x in sorted_results])
+        properties = np.array([np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results])
         return distances, properties
 
 

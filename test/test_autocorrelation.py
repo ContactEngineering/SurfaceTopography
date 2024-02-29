@@ -1,6 +1,7 @@
 #
-# Copyright 2019-2020 Lars Pastewka
-#           2019 Antoine Sanner
+# Copyright 2019-2023 Lars Pastewka
+#           2021 Michael Röttger
+#           2019-2020 Antoine Sanner
 #
 # ### MIT license
 #
@@ -304,7 +305,7 @@ def test_self_affine_nonuniform_autocorrelation():
 
 
 def test_brute_force_vs_fft(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example.xyz'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-1.txt'))
     r, A = t.detrend().autocorrelation_from_profile()
     m = np.isfinite(A)
     r = r[m]
@@ -312,7 +313,7 @@ def test_brute_force_vs_fft(file_format_examples):
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
                                                       reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
-    assert np.alltrue(np.logical_and(x > 0.9, x < 1.1))
+    assert np.all(np.logical_and(x > 0.9, x < 1.1))
 
 
 @pytest.mark.parametrize('nb_grid_pts,physical_sizes', [((128,), (1.3,)), ((128, 128), (2.3, 3.1))])

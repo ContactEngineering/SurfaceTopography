@@ -1,5 +1,6 @@
 #
-# Copyright 2021 Lars Pastewka
+# Copyright 2020-2023 Lars Pastewka
+#           2019-2020 Antoine Sanner
 #
 # ### MIT license
 #
@@ -136,7 +137,7 @@ def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_exam
 
 
 def test_reliability_cutoff_line_scan(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'example7.txt'), unit='um', info={
+    surf = read_topography(os.path.join(file_format_examples, 'xy-4.txt'), unit='um', info={
         'instrument': {
             'parameters': {
                 'tip_radius': {

@@ -1,7 +1,6 @@
 #
-# Copyright 2019-2020 Lars Pastewka
-#           2019 Michael Röttger
-#           2019 Kai Haase
+# Copyright 2020-2021, 2023 Lars Pastewka
+#           2021 Michael Röttger
 #
 # ### MIT license
 #
@@ -31,7 +30,6 @@ from numpy.testing import assert_allclose
 from NuMPI import MPI
 
 from SurfaceTopography.IO import XYZReader
-from SurfaceTopography.IO.Text import read_xyz
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -39,7 +37,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_read_1d(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'example.xyz'))
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -49,12 +47,23 @@ def test_read_1d(file_format_examples):
     assert not surface.is_periodic
 
 
-@pytest.mark.parametrize("filename", ['example-2d.xyz', 'example-2d-different-order.xyz'])
+def test_read_1d_2(file_format_examples):
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-2.txt')).topography()
+    assert not surface.is_uniform
+    x, y = surface.positions_and_heights()
+    assert len(x) > 0
+    assert len(x) == len(y)
+    assert not surface.is_uniform
+    assert surface.dim == 1
+    assert not surface.is_periodic
+
+
+@pytest.mark.parametrize("filename", ['xyz-1.txt', 'xyz-1-different-order.txt', 'xyz-2.txt'])
 def test_read_2d(filename, file_format_examples):
     """
     Here the order of points in the input file shouldn't matter.
     """
-    surface = read_xyz(os.path.join(file_format_examples, filename))
+    surface = XYZReader(os.path.join(file_format_examples, filename)).topography()
     assert surface.is_uniform
     x, y, z = surface.positions_and_heights()
     assert x.shape == (4, 4)
@@ -62,11 +71,12 @@ def test_read_2d(filename, file_format_examples):
     assert z.shape == (4, 4)
     assert surface.dim == 2
     assert not surface.is_periodic
-    assert_allclose(z,
-                    [[1., 1., 1., 1.],
-                     [1., 2., 2., 1.],
-                     [1., 1., 1., 1.],
-                     [1., 1., 1., 1.]])
+    if filename.startswith('xyz-1'):
+        assert_allclose(z,
+                        [[1., 1., 1., 1.],
+                         [1., 2., 2., 1.],
+                         [1., 1., 1., 1.],
+                         [1., 1., 1., 1.]])
 
 
 def test_hfm_metadata(file_format_examples):
@@ -89,3 +99,10 @@ def test_hfm_metadata(file_format_examples):
 
     t = t.detrend('curvature')
     assert_allclose(t.rms_height_from_profile(), 0.000138, rtol=1e-3)
+
+
+def test_unit_1d(file_format_examples):
+    r = XYZReader(os.path.join(file_format_examples, 'xy-1.txt'))
+    assert r.channels[0].unit is None
+    r = XYZReader(os.path.join(file_format_examples, 'xy-2.txt'))
+    assert r.channels[0].unit is None

@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -24,8 +24,7 @@
 
 #
 # Reference information and implementations:
-# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/oirfile.c
-# https://github.com/ome/bioformats/blob/develop/components/formats-gpl/src/loci/formats/in/OIRReader.java
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/wsxmfile.c
 #
 
 from enum import IntEnum

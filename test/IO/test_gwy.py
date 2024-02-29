@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2020-2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -69,8 +69,8 @@ def test_gwyddion_metadata(file_format_examples):
     assert t.unit == 'm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 8.369884e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 8.306278e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.127026e-09, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 7.184364e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.117029e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 6.509704e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 6.441563e-09, rtol=1e-6)

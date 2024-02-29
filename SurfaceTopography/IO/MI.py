@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021 Lars Pastewka
+# Copyright 2019-2023 Lars Pastewka
 #           2020-2021 Michael Röttger
 #           2019-2020 Kai Haase
 #           2019 Antoine Sanner
@@ -196,7 +196,8 @@ well as its units.
                             uniform=True,
                             unit=channel.unit,
                             info={'raw_metadata': {**self.mifile.meta, **channel.meta}})
-                for i, channel in enumerate(self.mifile.channels)]
+                for i, channel in enumerate(self.mifile.channels)
+                ]
 
     @property
     def info(self):

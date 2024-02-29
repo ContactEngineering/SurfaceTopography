@@ -1,6 +1,100 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.4 (29Feb24)
+-----------------
+
+- MAINT: Performance optimization for MAD analysis
+
+v1.13.3 (19Feb24)
+-----------------
+
+- BUG: Scale-dependent statistics for containers with distances outside
+  any bandwidth
+
+v1.13.2 (19Feb24)
+-----------------
+
+- BUG: Scale-dependent statistics with multiple components now works for
+  containers
+- BUG: Fixed issue with I/O in Python 3.12
+
+v1.13.1 (13Feb24)
+-----------------
+
+- MAINT: Start Nelder-Mead optimization for MAD fits from the initial guess
+  obtained from an RMS fit
+
+v1.13.0 (13Feb24)
+-----------------
+
+- API: Standard RMS height functions are now called `Rq` and `Sq`;
+  `rms_height` returns the RMS height of the linearly-interpolated
+  topography
+- API: Translating nonperiodic topography raises error
+- ENH: Median-absolute-deviation (MAD) calculation
+- ENH: Median calculation
+- ENH: Exact bearing area model based on linear interpolation of topography
+- ENH: Arbitrary statistical functions for VBM
+- BUG: Fixed translation of decorated topographies not possible
+- BUG: Added missing test of periodicity before translation
+- MAINT: Flipped Gwyddion images, #351
+- MAINT: C++ extension module (`_SurfaceTopographyPP`)
+- MAINT: Use new API response for contact.engineering to get download URLs
+
+v1.12.2 (12Dec23)
+-----------------
+
+- BUG: Fixed issue with DI reader (#343)
+- BUG: Fixed reading of some file formats inside containers
+
+v1.12.1 (14Nov23)
+-----------------
+
+- BUG: Fixed info dictionary in Dektak CSV reader
+
+v1.12.0 (14Nov23)
+-----------------
+
+- ENH: Reader for Dektak CSV files
+
+v1.11.3 (8Nov23)
+----------------
+
+- BUG: `x`-variable of NetCDF output contained random data for uniform line
+  scans
+
+v1.11.2 (28Oct23)
+-----------------
+
+- BUG: Honor `data_source` when reading contact.engineering containers
+
+v1.11.1 (18Oct23)
+-----------------
+
+- BUG: HGT, NC and VK readers returned integer `physical_sizes`
+- MAINT: Flipped MetroPro images, #332
+
+v1.11.0 (11Sep23)
+-----------------
+
+- ENH: Reader for JPK (.jpk) files
+- BUG: Mask missing data point in DATX files
+
+v1.10.1 (30Aug23)
+-----------------
+
+- BUG: Support for Dektak OPDx 16-bit integer values 
+
+v1.10.0 (29Aug23)
+-----------------
+
+- API: Do not return None as `ChannelInfo` (this was only the GWY reader)
+- ENH: Reader for WSxM (.stp, .top) files
+- ENH: Reader for Sensorfar XML SPM (.plux) files
+- BUG: Fixed loading of non-square Gwyddion (.gwy) files
+- MAINT: More robust XY (line scan) and XYZ reader
+
 v1.9.0 (28Aug23)
 ----------------
 

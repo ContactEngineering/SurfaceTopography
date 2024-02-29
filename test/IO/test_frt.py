@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2020-2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -79,6 +79,8 @@ def test_frt1_metadata(file_format_examples):
     np.testing.assert_allclose(t.rms_height_from_area(), 3.463934e-06, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.248258e-06, rtol=1e-4)
 
+    assert t.has_undefined_data
+
 
 def test_frt2_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'frt-2.frt')
@@ -90,9 +92,9 @@ def test_frt2_metadata(file_format_examples):
     assert nx == 150
     assert ny == 300
 
-    import matplotlib.pyplot as plt
-    t.plot()
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # t.plot()
+    # plt.show()
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 0.03, rtol=1e-6)
@@ -106,3 +108,5 @@ def test_frt2_metadata(file_format_examples):
     t = t.detrend('curvature')
     np.testing.assert_allclose(t.rms_height_from_area(), 7.405055e-06, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 7.332406e-06, rtol=1e-4)
+
+    assert t.has_undefined_data

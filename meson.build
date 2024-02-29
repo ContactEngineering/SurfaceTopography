@@ -13,4 +13,5 @@ python = pymod.find_installation('python3',
 )
 
 subdir('c')
+subdir('cpp')
 subdir('SurfaceTopography')

@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2022-2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -34,11 +34,11 @@ from struct import calcsize, unpack
 
 import numpy as np
 
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import get_unit_conversion_factor, is_length_unit
+from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 
 def _read_null_terminated_string(f):
@@ -72,7 +72,7 @@ def _gwy_read_array(f, atomic_type, skip_arrays=False):
         f.seek(type.itemsize * nb_items, os.SEEK_CUR)
         return {'offset': offset, 'type': atomic_type}  # If we skip reading the array, return the file offset
     else:
-        return np.fromfile(f, dtype=type, count=nb_items)
+        return np.frombuffer(f.read(nb_items * type.itemsize), dtype=type)
 
 
 def _gwy_read_string_array(f):
@@ -177,11 +177,10 @@ visualization and analysis software Gwyddion.
             self._metadata = gwy['GwyContainer']
 
             # Construct channels
-            channels = {}
+            self._channels = []
             for key, value in self._metadata.items():
                 if key.endswith('/data'):
                     index = int(re.match(r'\/([0-9])\/data', key)[1])
-                    assert index not in channels.keys()
                     data = value['GwyDataField']
 
                     # It's not height data if 'si_unit_z' is missing.
@@ -203,9 +202,9 @@ visualization and analysis software Gwyddion.
 
                         if is_length_unit(zunit):
                             # This is height data!
-                            channels[index] = ChannelInfo(
+                            self._channels += [ChannelInfo(
                                 self,
-                                index,
+                                len(self._channels),
                                 name=self._metadata[f'/{index}/data/title'],
                                 dim=len(nb_grid_pts),
                                 nb_grid_pts=tuple(nb_grid_pts),
@@ -217,16 +216,8 @@ visualization and analysis software Gwyddion.
                                 info={key: value
                                       for key, value in self._metadata.items()
                                       if key.startswith(f'/{index}/')},
-                                tags=data['data']
-                            )
-
-            # Turn dictionary into a list
-            self._channels = []
-            for i in range(max(channels.keys())+1):
-                if i in channels:
-                    self._channels += [channels[i]]
-                else:
-                    self._channels += [None]
+                                tags={'data': data['data'], 'index': index}
+                            )]
 
     @property
     def channels(self):
@@ -254,8 +245,9 @@ visualization and analysis software Gwyddion.
 
         channel = self._channels[channel_index]
         with OpenFromAny(self.file_path, 'rb') as f:
-            f.seek(channel.tags['offset'])
-            height_data = _gwy_read_array(f, channel.tags['type']).reshape(channel.nb_grid_pts)
+            nx, ny = channel.nb_grid_pts
+            f.seek(channel.tags['data']['offset'])
+            height_data = _gwy_read_array(f, channel.tags['data']['type']).reshape((ny, nx)).T[:, ::-1]
 
         _info = channel.info.copy()
         _info.update(info)

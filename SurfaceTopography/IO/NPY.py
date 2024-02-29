@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021 Lars Pastewka
+# Copyright 2019-2021, 2023-2024 Lars Pastewka
 #           2020-2021 Michael Röttger
 #           2019 Antoine Sanner
 #
@@ -35,13 +35,13 @@ In MPI Parallelized programs:
     - load the relevant subdomain on each processor in Reader.topography()
 """
 
-from ..Exceptions import FileFormatMismatch
-from ..UniformLineScanAndTopography import Topography
-from .Reader import ReaderBase, ChannelInfo
-
-from NuMPI import MPI
 import NuMPI
 import NuMPI.IO
+from NuMPI import MPI
+
+from ..Exceptions import FileFormatMismatch
+from ..UniformLineScanAndTopography import Topography
+from .Reader import ChannelInfo, ReaderBase
 
 
 class NPYReader(ReaderBase):
@@ -67,21 +67,23 @@ heights. Numpy arrays do not store units or physical sizes. These need to be
 manually provided by the user.
     '''
 
-    def __init__(self, fn, communicator=MPI.COMM_WORLD):
+    def __init__(self, fobj, communicator=MPI.COMM_WORLD):
         """
         Open file in the NPY format.
 
         Parameters
         ----------
-        fn : str
+        fobj : str
             Name of the file
         communicator : mpi4py MPI communicator or NuMPI stub communicator
             MPI communicator object for parallel loads.
         """
         super().__init__()
 
+        if callable(fobj):
+            fobj = fobj()
         try:
-            self.mpi_file = NuMPI.IO.make_mpi_file_view(fn, communicator,
+            self.mpi_file = NuMPI.IO.make_mpi_file_view(fobj, communicator,
                                                         format="npy")
             self.dtype = self.mpi_file.dtype
             self._nb_grid_pts = self.mpi_file.nb_grid_pts

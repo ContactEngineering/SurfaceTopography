@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Lars Pastewka
+# Copyright 2018-2021, 2023 Lars Pastewka
 #           2019 Antoine Sanner
 #           2019 Michael Röttger
 #           2015-2016 Till Junge
@@ -31,7 +31,7 @@ import numpy as np
 
 from ..Exceptions import ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
-from ..Support import toiter, fromiter
+from ..Support import fromiter, toiter
 
 
 def derivative(self, n, scale_factor=None, distance=None, interpolation='linear', progress_callback=None):
@@ -113,8 +113,7 @@ def derivative(self, n, scale_factor=None, distance=None, interpolation='linear'
         dxp = x[2:] - x[1:-1]
         dxm = x[1:-1] - x[:-2]
 
-        return 2 * (dxm * (h[2:] - h[1:-1]) + dxp * (h[0:-2] - h[1:-1])) / (
-                dxp * dxm * (dxp + dxm))
+        return 2 * ((h[2:] - h[1:-1]) / dxp + (h[0:-2] - h[1:-1]) / dxm) / (dxp + dxm)
     else:
         raise RuntimeError('Currently only first and second derivatives are '
                            'supported for nonuniform topographies.')

@@ -1,5 +1,6 @@
 #
 # Copyright 2020-2021 Lars Pastewka
+#           2021 Paul Strauch
 #           2019-2020 Antoine Sanner
 #
 # ### MIT license

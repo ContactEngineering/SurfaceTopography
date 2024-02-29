@@ -1,6 +1,7 @@
 #
-# Copyright 2019-2020 Lars Pastewka
-#           2020 Michael Röttger
+# Copyright 2019-2023 Lars Pastewka
+#           2022 Johannes Hörmann
+#           2020-2021 Michael Röttger
 #           2019-2020 Antoine Sanner
 #           2020 Kai Haase
 #
@@ -27,6 +28,7 @@
 
 import io
 import json
+import numbers
 import os
 import pickle
 import tempfile
@@ -35,6 +37,7 @@ import warnings
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+from scipy.io import netcdf_file
 
 import NuMPI
 from NuMPI import MPI
@@ -44,7 +47,9 @@ from SurfaceTopography import open_topography, read_topography
 from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlreadyFixedByFile
 from SurfaceTopography.IO import readers, detect_format
 from SurfaceTopography.IO.common import is_binary_stream
-from SurfaceTopography.IO.Text import read_matrix, read_xyz
+from SurfaceTopography.IO.Text import read_matrix
+from SurfaceTopography.IO.Reader import ChannelInfo
+from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
 pytestmark = pytest.mark.skipif(
@@ -76,6 +81,8 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'di-3.di',
                                               'di-4.di',
                                               'di-5.di',
+                                              'di-6.di',
+                                              'di-7.di',
                                               'ibw-1.ibw',
                                               'spot_1-1000nm.ibw',
                                               # 'surface.2048x2048.h5',
@@ -117,6 +124,10 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'datx-1.datx',
                                               'oir-1.oir',
                                               'poir-1.poir',
+                                              'stp-1.stp',
+                                              'top-1.top',
+                                              'plux-1.plux',
+                                              'jpk-1.jpk',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
@@ -125,29 +136,32 @@ binary_without_stream_support_example_file_list = _convert_filelist([
 ])
 
 text_example_file_list = _convert_filelist([
-    'example1.txt',
-    'example2.txt',
-    'example3.txt',
-    'example4.txt',
-    'example5.txt',
-    'example8.txt',
+    'matrix-1.txt',
+    'matrix-2.txt',
+    'matrix-3.txt',
+    'matrix-4.txt',
+    'matrix-5.txt',
+    'matrix-6.txt',
     # example8: from the reader's docstring, with extra newline at end
-    'opdx1.txt',
-    'opdx2.txt',
-    'opdx3.txt',
-    'example-2d.xyz',
+    'matrix-7.txt',
+    'opdx-2.txt',
+    'opdx-3.txt',
+    'xyz-1.txt',
+    'xyz-2.txt',
     'hfm-1.hfm',
+    'dektak-1.csv',
     # Not yet working
-    # 'example6.txt',
-])
-
-text_example_without_size_file_list = _convert_filelist([
-    'example.xyz',
-    'line_scan_1_minimal_spaces.asc',
+    # 'not-yet-working-1.txt',
+    'xy-1.txt',
+    'xy-2.txt',
+    'xy-3.txt',
+    'xy-4.txt',
+    'xy-5.txt',
+    # 'xy-6.txt', # This has NaNs, which means equality tests fail
 ])
 
 explicit_physical_sizes = _convert_filelist([
-    'example5.txt',
+    'matrix-5.txt',
     'mat-1.mat',
     'example-2d.npy'
 ])
@@ -183,7 +197,7 @@ def test_no_resource_warning_on_failure(reader, file_format_examples):
 
 
 def test_uniform_stylus(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'example7.txt'))
+    t = read_topography(os.path.join(file_format_examples, 'xy-4.txt'))
     assert t.is_uniform
 
 
@@ -192,7 +206,7 @@ def test_cannot_detect_file_format_on_txt(file_format_examples):
         read_topography(os.path.join(file_format_examples, 'nonsense_txt_file.txt'))
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list)
 def test_keep_text_file_open(fn):
     # Text file can be opened as binary or text
     with open(fn, 'rb') as f:
@@ -234,7 +248,7 @@ def test_is_binary_stream():
     assert not is_binary_stream(io.StringIO("11111"))  # some bytes in memory
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_can_be_pickled(fn):
     reader = open_topography(fn)
     physical_sizes = None
@@ -266,7 +280,7 @@ def test_can_be_pickled(fn):
                 assert_array_equal(x.heights(), y.heights())
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list +
                          binary_without_stream_support_example_file_list)
 def test_reader_arguments(fn):
     """Check whether all readers have channel, physical_sizes, height_scale_factor
@@ -320,7 +334,7 @@ def test_reader_arguments(fn):
     assert t.info == info
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_readers_with_binary_file_object(fn):
     """Check whether all readers have channel, physical_sizes and
     height_scale_factor arguments. Also check whether we can execute
@@ -332,8 +346,16 @@ def test_readers_with_binary_file_object(fn):
     physical_sizes = None if r.channels[0].physical_sizes is not None else physical_sizes0
     t = r.topography(channel_index=0, physical_sizes=physical_sizes,
                      height_scale_factor=None)
+    assert t.dim == len(t.physical_sizes)
     if physical_sizes is not None:
         assert t.physical_sizes == physical_sizes
+    if t.dim == 2:
+        sx, sy = t.physical_sizes
+        assert isinstance(sx, float) or isinstance(sx, np.float64)
+        assert isinstance(sy, float) or isinstance(sy, np.float64)
+    else:
+        sx, = t.physical_sizes
+        assert isinstance(sx, float) or isinstance(sx, np.float64)
     # Second call to topography
     t2 = r.topography(channel_index=0, physical_sizes=physical_sizes,
                       height_scale_factor=None)
@@ -342,7 +364,7 @@ def test_readers_with_binary_file_object(fn):
     assert_array_equal(t.heights(), t2.heights(), err_msg=fn)
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
     r = open_topography(fn)
     assert isinstance(r.default_channel.nb_grid_pts, tuple), f'{fn} - {r.__class__}: {r.default_channel.nb_grid_pts}'
@@ -354,7 +376,7 @@ def test_nb_grid_pts_and_physical_sizes_are_tuples_or_none(fn):
             f'{fn} - {r.__class__}: {r.default_channel.physical_sizes}'
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list +
                          binary_without_stream_support_example_file_list)
 def test_channel_info_and_topography_have_same_metadata(fn):
     """
@@ -364,9 +386,13 @@ def test_channel_info_and_topography_have_same_metadata(fn):
 
     reader = open_topography(fn)
 
-    for channel in reader.channels:
-        if channel is None:
-            continue
+    for index, channel in enumerate(reader.channels):
+        # some basic consistency checks
+        assert isinstance(channel, ChannelInfo)
+        assert channel.index == index
+        assert reader.channels[index] == channel
+
+        # check number of grid points
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None
@@ -402,7 +428,7 @@ def test_channel_info_and_topography_have_same_metadata(fn):
             assert channel.has_undefined_data == topography.has_undefined_data
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_reader_args_doesnt_overwrite_data_from_file(fn):
     """
     Tests that if some properties like `physical_sizes and `height_scale_factor`
@@ -453,7 +479,7 @@ def test_periodic_flag(fn):
         assert not value_error_thrown
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_reader_height_scale_factor_arg_for_topography(fn):
     """Test whether height_scale_factor can be given to .topography() and is effective.
 
@@ -499,7 +525,30 @@ def test_reader_height_scale_factor_arg_for_topography(fn):
                 "Difference in height scale factor between channel/argument and resulting topography"
 
 
-@pytest.mark.parametrize('fn', text_example_file_list + text_example_without_size_file_list + binary_example_file_list)
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
+def test_info_dict_has_no_nans_and_no_tuples(fn):
+    """Check that readers don't return NaNs and no tuples as those don't serialize correctly to JSON"""
+    if fn in explicit_physical_sizes:
+        t = read_topography(fn, physical_sizes=(1, 1))
+    else:
+        t = read_topography(fn)
+
+    def assert_no_nans_and_no_tuples(d):
+        if isinstance(d, dict):
+            for key, value in d.items():
+                assert_no_nans_and_no_tuples(value)
+        elif isinstance(d, list):
+            for value in d:
+                assert_no_nans_and_no_tuples(value)
+        elif isinstance(d, numbers.Number):
+            assert d == d
+        else:
+            assert not isinstance(d, tuple)
+
+    assert_no_nans_and_no_tuples(t.info)
+
+
+@pytest.mark.parametrize('fn', text_example_file_list + binary_example_file_list)
 def test_to_netcdf(fn):
     """Test that files can be stored as NetCDF and that reading then gives
     an identical topography object"""
@@ -510,8 +559,31 @@ def test_to_netcdf(fn):
     with tempfile.TemporaryDirectory() as d:
         tmpfn = f'{d}/netcdf_representation.nc'
         t.to_netcdf(tmpfn)
+
+        # Try reading with surface topography
         t2 = read_topography(tmpfn)
+        assert t.info == t2.info  # We check the info dictionary separately as this is often a source of issues
         assert t == t2
+
+        # Try reading directly
+        nc = netcdf_file(tmpfn)
+        nc_h = nc.variables['heights'][...]
+        nc_x = nc.variables['x'][...]
+        if 'y' in nc.variables:
+            nc_y = nc.variables['y'][...]
+            x, y, h = t.positions_and_heights()
+
+            nc_x = np.repeat(nc_x.reshape((-1, 1)), x.shape[1], axis=1)
+            nc_y = np.repeat(nc_y.reshape((1, -1)), y.shape[0], axis=0)
+
+            np.testing.assert_allclose(nc_h, h)
+            np.testing.assert_allclose(nc_x, x)
+            np.testing.assert_allclose(nc_y, y)
+        else:
+            x, h = t.positions_and_heights()
+
+            np.testing.assert_allclose(nc_h, h)
+            np.testing.assert_allclose(nc_x, x)
 
 
 def test_read_unknown_file_format(file_format_examples):
@@ -533,11 +605,11 @@ def test_file_format_mismatch(file_format_examples):
 
 
 def test_line_scan_detect_format_then_read(file_format_examples):
-    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-3.txt')) == 'xyz'
 
 
 def test_line_scan_read(file_format_examples):
-    surface = read_xyz(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc'))
+    surface = XYZReader(os.path.join(file_format_examples, 'xy-3.txt')).topography()
 
     assert not surface.is_uniform
     assert surface.dim == 1
@@ -626,9 +698,10 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'x3p-3.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'x3p-4.x3p')) == 'x3p'
     assert detect_format(os.path.join(file_format_examples, 'mat-1.mat')) == 'mat'
-    assert detect_format(os.path.join(file_format_examples, 'example.xyz')) == 'xyz'
-    assert detect_format(os.path.join(file_format_examples, 'example-2d.xyz')) == 'xyz'
-    assert detect_format(os.path.join(file_format_examples, 'line_scan_1_minimal_spaces.asc')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-1.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-2.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xyz-1.txt')) == 'xyz'
+    assert detect_format(os.path.join(file_format_examples, 'xy-3.txt')) == 'xyz'
     assert detect_format(os.path.join(file_format_examples, 'example-2d.npy')) == 'npy'
     assert detect_format(os.path.join(file_format_examples, 'surface.2048x2048.h5')) == 'h5'
     assert detect_format(os.path.join(file_format_examples, 'zon-1.zon')) == 'zon'
@@ -650,6 +723,11 @@ def test_detect_format(file_format_examples):
     assert detect_format(os.path.join(file_format_examples, 'datx-1.datx')) == 'datx'
     assert detect_format(os.path.join(file_format_examples, 'oir-1.oir')) == 'oir'
     assert detect_format(os.path.join(file_format_examples, 'poir-1.poir')) == 'poir'
+    assert detect_format(os.path.join(file_format_examples, 'stp-1.stp')) == 'wsxm'
+    assert detect_format(os.path.join(file_format_examples, 'top-1.top')) == 'wsxm'
+    assert detect_format(os.path.join(file_format_examples, 'plux-1.plux')) == 'plux'
+    assert detect_format(os.path.join(file_format_examples, 'jpk-1.jpk')) == 'jpk'
+    assert detect_format(os.path.join(file_format_examples, 'dektak-1.csv')) == 'xyz'
 
 
 def test_to_matrix():
@@ -666,7 +744,7 @@ def test_to_matrix():
 
 
 @pytest.mark.parametrize('fn',
-                         text_example_file_list + text_example_without_size_file_list + binary_example_file_list +
+                         text_example_file_list + binary_example_file_list +
                          binary_without_stream_support_example_file_list)
 def test_json_encode_info(fn):
     """Check that info dictionary can be serialized to JSON"""

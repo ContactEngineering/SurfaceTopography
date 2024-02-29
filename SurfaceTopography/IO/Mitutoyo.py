@@ -1,4 +1,8 @@
 #
+# Copyright 2022-2024 Lars Pastewka
+#           2022-2023 Johannes Hörmann
+#           2023 Antoine Sanner
+#
 # ### MIT license
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,18 +25,17 @@
 #
 
 import logging
-import numpy as np
-import openpyxl
 import re
-
 from datetime import datetime
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+import numpy as np
+import openpyxl
 
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..NonuniformLineScan import NonuniformLineScan
-from ..UniformLineScanAndTopography import UniformLineScan
 from ..Support.UnitConversion import get_unit_conversion_factor
-from .Reader import ReaderBase, ChannelInfo
+from ..UniformLineScanAndTopography import UniformLineScan
+from .Reader import ChannelInfo, ReaderBase
 
 R_metric_regex = re.compile(r'(?P<key>[^\s]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]*)')
 cut_off_regex = re.compile(r'(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\s]+)')
@@ -72,6 +75,8 @@ surface roughness testers.
              File to read.
         """
 
+        if callable(fobj):
+            fobj = fobj()
         try:
             wb = openpyxl.load_workbook(fobj)
             _data = wb['DATA']

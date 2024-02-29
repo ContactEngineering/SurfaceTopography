@@ -1,5 +1,5 @@
 #
-# Copyright 2021 Lars Pastewka
+# Copyright 2021-2023 Lars Pastewka
 #
 # ### MIT license
 #
@@ -31,7 +31,7 @@ voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV'
 
 units = dict(length=length_units, voltage=voltage_units)
 
-mangle_units_utf8 = {
+length_units_to_utf8 = {
     'A': 'Å',
     'NanoMeters': 'nm',  # Zygo DATX
     'μm': 'µm',
@@ -43,7 +43,7 @@ mangle_units_utf8 = {
     'MICRO_METER': 'µm'  # Olympus OIR
 }
 
-mangle_units_ascii = {
+length_units_to_ascii = {
     'A': 'Å',
     'NanoMeters': 'nm',  # Zygo DATX
     'μm': 'um',
@@ -57,6 +57,7 @@ mangle_units_ascii = {
 
 
 def is_length_unit(s):
+    """Returns true if the unit is a length unit (m, mm, etc)"""
     return s in length_units.keys()
 
 
@@ -125,8 +126,8 @@ def mangle_length_unit_utf8(unit):
         unit = unit.decode('utf-8').strip()
     if unit == '':
         return None
-    elif unit in mangle_units_utf8:
-        return mangle_units_utf8[unit]
+    elif unit in length_units_to_utf8:
+        return length_units_to_utf8[unit]
     else:
         return unit
 
@@ -149,8 +150,8 @@ def mangle_length_unit_ascii(unit):
     unit = unit.strip()
     if unit == '':
         return None
-    elif unit in mangle_units_ascii:
-        return mangle_units_ascii[unit]
+    elif unit in length_units_to_ascii:
+        return length_units_to_ascii[unit]
     else:
         return unit
 
@@ -236,3 +237,11 @@ def suggest_length_unit_for_data(scale, data, unit):
         return unit
     fac = get_unit_conversion_factor(unit, 'm')
     return suggest_length_unit(scale, fac * mn, fac * mx)
+
+
+def find_length_unit_in_string(s):
+    """Check the string `s` contains any length information"""
+    for unit, normalized_unit in length_units_to_utf8.items():
+        if s.find(unit) >= 0:
+            return normalized_unit
+    return None

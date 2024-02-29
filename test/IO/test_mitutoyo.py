@@ -1,3 +1,7 @@
+#
+# Copyright 2022-2023 Johannes Hörmann
+#           2020-2021, 2023 Lars Pastewka
+#
 # ### MIT license
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

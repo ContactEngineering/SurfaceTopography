@@ -199,7 +199,7 @@ BCR-STM and BCRF file formats
             nx, ny = channel.nb_grid_pts
 
             fobj.seek(self._headersize)
-            data = np.fromfile(fobj, count=nx * ny, dtype=self._dtype).reshape(ny, nx).T
+            data = np.frombuffer(fobj.read(nx * ny * self._dtype.itemsize), dtype=self._dtype).reshape(ny, nx).T
 
         # internal information from file
         _info = channel.info.copy()
