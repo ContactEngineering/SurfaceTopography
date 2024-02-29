@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.13.3 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.13.3.dev14+gd91f4baa documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=b8a3e558"></script>
+        <script src="../_static/documentation_options.js?v=aeb00ca9"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -38,7 +38,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.13.3
+                1.13.3.dev14+gd91f4baa
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -107,6 +107,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Nonuniform.BearingArea">SurfaceTopography.Nonuniform.BearingArea module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea"><code class="docutils literal notranslate"><span class="pre">NonuniformBearingArea</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.__init__"><code class="docutils literal notranslate"><span class="pre">NonuniformBearingArea.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.bounds"><code class="docutils literal notranslate"><span class="pre">NonuniformBearingArea.bounds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.min"><code class="docutils literal notranslate"><span class="pre">NonuniformBearingArea.min</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.max"><code class="docutils literal notranslate"><span class="pre">NonuniformBearingArea.max</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.bearing_area"><code class="docutils literal notranslate"><span class="pre">bearing_area()</span></code></a></li>
 </ul>
 </li>
@@ -307,9 +314,51 @@ to None. (Default: None)</p></li>
 <span id="surfacetopography-nonuniform-bearingarea-module"></span><h2>SurfaceTopography.Nonuniform.BearingArea module<a class="headerlink" href="#module-SurfaceTopography.Nonuniform.BearingArea" title="Link to this heading"></a></h2>
 <p>Bearing area curve, also known as Abbott-Firestone curve or cumulative
 distribution function of the surface heights.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.BearingArea.</span></span><span class="sig-name descname"><span class="pre">NonuniformBearingArea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Accelerated bearing area calculation for nonuniform line scans.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.bounds">
+<span class="sig-name descname"><span class="pre">bounds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.bounds" title="Link to this definition"></a></dt>
+<dd><p>Compute bounds on the bearing area for a specific height. These bounds
+can be computed O(log(N)) time, where N is the number of elements in the
+line scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>heights</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Heights for which to compute the bearing area.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>lower_bound</strong> (<em>float or np.ndarray</em>) – Lower bound on fractional area above a threshold height.</p></li>
+<li><p><strong>upper_bound</strong> (<em>float or np.ndarray</em>) – Upper bound on fractional area above a threshold height.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.min">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">min</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.max">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max</span></span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea.max" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.BearingArea.bearing_area">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.BearingArea.</span></span><span class="sig-name descname"><span class="pre">bearing_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.bearing_area" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.BearingArea.</span></span><span class="sig-name descname"><span class="pre">bearing_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.BearingArea.bearing_area" title="Link to this definition"></a></dt>
 <dd><p>Compute the bearing area for a specific height.</p>
 <p>The bearing area as a function of height is also known as the
 Abbott-Firestone curve. If expressed as a fractional area, it is the
@@ -319,14 +368,16 @@ returns this fractional area.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>self</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformLineScan</span></code>) – Line scan container object.</p></li>
-<li><p><strong>heights</strong> (<em>float</em><em> or </em><em>np.ndarray</em>) – Heights for which to compute the bearing area.</p></li>
+<li><p><strong>heights</strong> (<em>float</em><em> or </em><em>np.ndarray</em><em>, </em><em>optional</em>) – Heights for which to compute the bearing area. (Default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fractional_area</strong> – Fractional area above a the threshold height.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float or np.ndarray</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>fractional_area</strong> (<em>float or np.ndarray</em>) – Fractional area above the threshold height, if height is given.</p></li>
+<li><p><strong>bearing_area</strong> (<a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea" title="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformBearingArea</span></code></a>) – Instance of <a class="reference internal" href="#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea" title="SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonuniformBearingArea</span></code></a> class that caches the bearing area
+calculation.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
