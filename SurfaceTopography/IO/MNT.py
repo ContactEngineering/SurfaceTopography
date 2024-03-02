@@ -32,16 +32,10 @@ import numpy as np
 import olefile
 import xmltodict
 
-from .common import OpenFromAny
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
-
-from .Reader import ReaderBase, ChannelInfo
-
-
-def xml_to_dict(xml):
-    ElementTree.fromstring(xml)
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 
 class MNTReader(ReaderBase):
@@ -62,16 +56,20 @@ File format of the Mountains software
         """
         self._file_path = file_path
 
-        f = olefile.OleFileIO(self._file_path)
-        s = f.openstream('XmlHeader')
-        s.read(6)  # Skip the first 6 bytes, not sure what is in there
-        xml_header = s.read().decode('utf-16')
+        with olefile.OleFileIO(self._file_path) as f:
+            s = f.openstream('XmlHeader')
+            s.read(6)  # Skip the first 6 bytes, not sure what is in there
+            xml_header = s.read().decode('utf-16')
+
+            s = f.openstream('ScopedContents')
+            print(s.read())
+            with open('ScopedContents', 'w') as f2:
+                f2.write(s.read())
         header_metadata = xmltodict.parse(xml_header)
         import json
         print(json.dumps(header_metadata, indent=4))
 
-        @property
-
+    @property
     def channels(self):
         return [ChannelInfo(self,
                             0,  # channel index
@@ -80,9 +78,6 @@ File format of the Mountains software
                             nb_grid_pts=(int(self._metadata['xpixels']), int(self._metadata['ypixels'])),
                             physical_sizes=(float(self._metadata['xlength']), float(self._metadata['ylength'])),
                             uniform=True,
-                            unit=xunit,
-                            height_scale_factor=float(self._metadata['bit2nm']) * get_unit_conversion_factor(zunit,
-                                                                                                             xunit),
                             info={
                                 'raw_metadata': self._metadata
                             })]
