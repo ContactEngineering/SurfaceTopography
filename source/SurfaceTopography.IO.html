@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.13.4 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.13.4.dev4+g76a6b546 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=732a7595"></script>
+        <script src="../_static/documentation_options.js?v=5c74c4f9"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.13.4
+                1.13.4.dev4+g76a6b546
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -523,6 +523,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.XYZ">SurfaceTopography.IO.XYZ module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.read_text_header_hfm"><code class="docutils literal notranslate"><span class="pre">read_text_header_hfm()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.read_text_header_dektak"><code class="docutils literal notranslate"><span class="pre">read_text_header_dektak()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.read_csv"><code class="docutils literal notranslate"><span class="pre">read_csv()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.XYZReader"><code class="docutils literal notranslate"><span class="pre">XYZReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.XYZReader.__init__"><code class="docutils literal notranslate"><span class="pre">XYZReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.XYZ.XYZReader.channels"><code class="docutils literal notranslate"><span class="pre">XYZReader.channels</span></code></a></li>
@@ -3574,13 +3575,80 @@ MPI process.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.read_text_header_hfm">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.XYZ.</span></span><span class="sig-name descname"><span class="pre">read_text_header_hfm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.read_text_header_hfm" title="Link to this definition"></a></dt>
-<dd><p>HFM files</p>
+<dd><p>Read header HFM files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fobj</strong> (<em>file object</em>) – File object to read from.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data. Raises an error if not <a href="#id69"><span class="problematic" id="id70">`</span></a>None`because HFM
+files always give a unit.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data. Raises an error if not <cite>None</cite>
+because HFM files always define a height scale.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>sep</strong> (<em>str</em>) – Separator between columns.</p></li>
+<li><p><strong>usecols</strong> (<em>list of int</em>) – List of column indices to read.</p></li>
+<li><p><strong>skiprows</strong> (<em>int</em>) – Number of rows to skip before reading data.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – Additional information.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.read_text_header_dektak">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.XYZ.</span></span><span class="sig-name descname"><span class="pre">read_text_header_dektak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.read_text_header_dektak" title="Link to this definition"></a></dt>
-<dd><p>Dektak CSV files</p>
+<dd><p>Read header of Dektak CSV files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fobj</strong> (<em>file object</em>) – File object to read from.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data, only if not present in the file.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data, only if not present in the
+file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>sep</strong> (<em>str</em>) – Separator between columns.</p></li>
+<li><p><strong>usecols</strong> (<em>list of int</em>) – List of column indices to read.</p></li>
+<li><p><strong>skiprows</strong> (<em>int</em>) – Number of rows to skip before reading data.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – Additional information.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.read_csv">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.XYZ.</span></span><span class="sig-name descname"><span class="pre">read_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usecols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skiprows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.read_csv" title="Link to this definition"></a></dt>
+<dd><p>Simple reader for tabular data in C(omma) S(eparated) V(alue) format. The
+comma should not be taken literal as the reader tries to be fuzzy (and
+flexible).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fobj</strong> (<em>file object</em>) – File object to read from.</p></li>
+<li><p><strong>sep</strong> (<em>str</em><em>, </em><em>optional</em>) – Separator between columns. (Default: White space, comma or semicolon)</p></li>
+<li><p><strong>usecols</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – List of column indices to read. (Default: All columns)</p></li>
+<li><p><strong>skiprows</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of rows to skip before reading data. (Default: 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>data</strong> – List of arrays, one for each column in the file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -3595,7 +3663,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.XYZReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.XYZReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id69"><span class="problematic" id="id70">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id71"><span class="problematic" id="id72">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3667,7 +3735,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.ZON.ZONReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id71"><span class="problematic" id="id72">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id73"><span class="problematic" id="id74">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -4030,10 +4098,11 @@ dictionary.</p></li>
 <dt class="sig sig-object py" id="SurfaceTopography.IO.common.OpenFromAny">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.common.</span></span><span class="sig-name descname"><span class="pre">OpenFromAny</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.common.OpenFromAny" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Context manager for turning file names or already open streams into a
-single stream format for subsequent reading. The file is left in an
-identical state, including its cursor position, when the context
-manager returns.</p>
+<p>Context manager for turning file names, callables that open streams or
+already open streams into a single stream format (binary or text with
+specific encoding) for subsequent reading. The file is left in an
+identical state, including its cursor position, when the context manager
+returns.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.common.OpenFromAny.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.common.OpenFromAny.__init__" title="Link to this definition"></a></dt>
@@ -4102,7 +4171,7 @@ memory.</p>
 the file has multiple channels or not.</p>
 <p>You can always check the channels and their metadata with
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
-<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id73"><span class="problematic" id="id74">``</span></a>unit` and <a href="#id75"><span class="problematic" id="id76">`</span></a>height_scale_factor:</p>
+<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id75"><span class="problematic" id="id76">``</span></a>unit` and <a href="#id77"><span class="problematic" id="id78">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
 <span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
 <span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>
