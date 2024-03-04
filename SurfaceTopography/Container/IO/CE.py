@@ -179,11 +179,11 @@ class CEReader(ContainerReaderBase):
                 unit_from_file = reader.channels[data_source].unit
                 if unit_from_file is not None:
                     if unit is not None:
-                        # Need to set this to None to avoid collision
-                        unit = None
                         if unit_from_file != unit:
                             warnings.warn(f'Unit from data file (={unit_from_file}) and from meta.yml '
                                           f'(={unit}) differ for topography {datafiles[datafile_key]}')
+                        # Need to set this to None to avoid collision
+                        unit = None
 
                 readers += [
                     _ReadTopography(reader,

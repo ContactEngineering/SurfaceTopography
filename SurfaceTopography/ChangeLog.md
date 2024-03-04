@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.1376 (05Mar24)
+-----------------
+
+- BUG: Avoid always warning about unit
+
 v1.13.6 (04Mar24)
 -----------------
 
