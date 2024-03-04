@@ -24,6 +24,7 @@
 
 import tempfile
 import textwrap
+import warnings
 from datetime import datetime
 from zipfile import ZipFile
 
@@ -162,23 +163,21 @@ class CEReader(ContainerReaderBase):
                 physical_sizes_from_file = reader.channels[data_source].physical_sizes
                 if physical_sizes_from_file is not None:
                     if physical_sizes is not None:
-                        if np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
-                            # Need to set this to None to avoid collision
-                            physical_sizes = None
-                        else:
-                            raise ValueError(f'Physical sizes from data file (={physical_sizes_from_file} and from '
-                                             f'meta.yml (={physical_sizes}) differ for topography '
-                                             f'{datafiles[datafile_key]}')
+                        if not np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
+                            warnings.warn(f'Physical sizes from data file (={physical_sizes_from_file} and from '
+                                          f'meta.yml (={physical_sizes}) differ for topography '
+                                          f'{datafiles[datafile_key]}')
+                        # Need to set this to None to avoid collision
+                        physical_sizes = None
 
                 unit_from_file = reader.channels[data_source].unit
                 if unit_from_file is not None:
                     if unit is not None:
-                        if unit_from_file == unit:
-                            # Need to set this to None to avoid collision
-                            unit = None
-                        else:
-                            raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
-                                             f'(={unit}) differ for topography {datafiles[datafile_key]}')
+                        # Need to set this to None to avoid collision
+                        unit = None
+                        if unit_from_file != unit:
+                            warnings.warn(f'Unit from data file (={unit_from_file}) and from meta.yml '
+                                          f'(={unit}) differ for topography {datafiles[datafile_key]}')
 
                 readers += [
                     _ReadTopography(reader,

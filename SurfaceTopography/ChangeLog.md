@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.6 (04Mar24)
+-----------------
+
+- MAINT: Don't fail but warn if meta.yml has wrong metadata
+
 v1.13.5 (04Mar24)
 -----------------
 
