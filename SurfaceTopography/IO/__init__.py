@@ -226,7 +226,6 @@ def open_topography(fobj, format=None, communicator=None):
             try:
                 return reader(fobj, **kwargs)
             except Exception as err:
-                print(reader.__name__, err)
                 msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
                 if hasattr(fobj, 'seek'):
