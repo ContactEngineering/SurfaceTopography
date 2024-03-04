@@ -219,7 +219,7 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
     nb_cols = None
     if usecols is not None:
         min_cols = max(usecols)  # We need at least this many columns
-    line = 0
+    nb_lines = 0
     while line:
         line = line.strip()
         if len(line) > 0:  # We ignore empty lines
@@ -230,9 +230,9 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
             if min_cols is None:
                 min_cols = nb_cols
             elif nb_cols < min_cols:
-                raise ValueError(f'Too few columns in line {line}: expected {min_cols} but found {nb_cols}.')
+                raise ValueError(f'Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}.')
             if len(line) != nb_cols:
-                raise ValueError(f'Number of columns changed during parse in line {line}: expected {nb_cols} but '
+                raise ValueError(f'Number of columns changed during parse in line {nb_lines}: expected {nb_cols} but '
                                  f'found {len(line)} (with data {line}).')
 
             if usecols is None:
@@ -244,7 +244,7 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
                 for i, key in enumerate(usecols):
                     data[key] += [line[i]]
         line = fobj.readline()
-        line += 1
+        nb_lines += 1
     retvals = []
     if usecols is None:
         for key, values in data.items():
