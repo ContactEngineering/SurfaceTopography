@@ -24,6 +24,7 @@
 
 import tempfile
 import textwrap
+import warnings
 from datetime import datetime
 from zipfile import ZipFile
 
@@ -37,8 +38,9 @@ from .Reader import ContainerReaderBase
 
 
 class _ReadTopography(object):
-    def __init__(self, reader, **kwargs):
+    def __init__(self, reader, ignore_filters=False, **kwargs):
         self._reader = reader
+        self._ignore_filters = ignore_filters
         self._kwargs = kwargs
 
     def __call__(self):
@@ -56,9 +58,11 @@ class _ReadTopography(object):
         # 'squeezed' prefix to the data file key
         datafile_key = self._kwargs['datafile_key']
         topo_meta = self._kwargs['topo_meta']
-        if not datafile_key.startswith('squeezed'):
+        if not self._ignore_filters and not datafile_key.startswith('squeezed'):
             if 'height_scale' in topo_meta:
                 t = t.scale(topo_meta['height_scale'])
+            if 'fill_undefined_data_mode' in topo_meta and topo_meta['fill_undefined_data_mode'] != 'do-not-fill':
+                t = t.interpolate_undefined_data(topo_meta['fill_undefined_data_mode'])
             if 'detrend_mode' in topo_meta:
                 t = t.detrend(topo_meta['detrend_mode'])
 
@@ -84,7 +88,7 @@ class CEReader(ContainerReaderBase):
     This reader imports digital surface twin containers from https://contact.engineering/.
     '''
 
-    def __init__(self, fn, datafile_keys=['original', 'squeezed-netcdf']):
+    def __init__(self, fn, datafile_keys=['original', 'squeezed-netcdf'], ignore_filters=False):
         """
         Read all surfaces in a contact.engineering container file and associated
         metadata. The container is a ZIP file with raw data files and a YAML file
@@ -100,6 +104,9 @@ class CEReader(ContainerReaderBase):
             starts with 'squeezed', the pipeline is not constructed from
             the metadata.
             (Default: ['original', 'squeezed-netcdf'])
+        ignore_filters : bool, optional
+            If True, the filter pipeline is not (re-)constructed from the metadata.
+            (Default: False)
 
         Returns
         -------
@@ -162,26 +169,25 @@ class CEReader(ContainerReaderBase):
                 physical_sizes_from_file = reader.channels[data_source].physical_sizes
                 if physical_sizes_from_file is not None:
                     if physical_sizes is not None:
-                        if np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
-                            # Need to set this to None to avoid collision
-                            physical_sizes = None
-                        else:
-                            raise ValueError(f'Physical sizes from data file (={physical_sizes_from_file} and from '
-                                             f'meta.yml (={physical_sizes}) differ for topography '
-                                             f'{datafiles[datafile_key]}')
+                        if not np.allclose(physical_sizes_from_file, physical_sizes, rtol=1e-4):
+                            warnings.warn(f'Physical sizes from data file (={physical_sizes_from_file} and from '
+                                          f'meta.yml (={physical_sizes}) differ for topography '
+                                          f'{datafiles[datafile_key]}')
+                        # Need to set this to None to avoid collision
+                        physical_sizes = None
 
                 unit_from_file = reader.channels[data_source].unit
                 if unit_from_file is not None:
                     if unit is not None:
-                        if unit_from_file == unit:
-                            # Need to set this to None to avoid collision
-                            unit = None
-                        else:
-                            raise ValueError(f'Unit from data file (={unit_from_file}) and from meta.yml '
-                                             f'(={unit}) differ for topography {datafiles[datafile_key]}')
+                        # Need to set this to None to avoid collision
+                        unit = None
+                        if unit_from_file != unit:
+                            warnings.warn(f'Unit from data file (={unit_from_file}) and from meta.yml '
+                                          f'(={unit}) differ for topography {datafiles[datafile_key]}')
 
                 readers += [
                     _ReadTopography(reader,
+                                    ignore_filters=ignore_filters,
                                     physical_sizes=physical_sizes,
                                     periodic=periodic,
                                     unit=unit,
