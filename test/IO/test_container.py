@@ -41,7 +41,7 @@ from SurfaceTopography.Container.IO import CEReader
 from SurfaceTopography.Container.SurfaceContainer import \
     InMemorySurfaceContainer
 
-from .test_io import binary_example_file_list
+from .test_io import binary_example_file_list, text_example_file_list
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -119,7 +119,7 @@ def test_periodic():
     assert convoluted.is_periodic
 
 
-@pytest.mark.parametrize('filenames', [binary_example_file_list])
+@pytest.mark.parametrize('filenames', [binary_example_file_list, text_example_file_list])
 def test_read_files_from_container(filenames):
     """BCRF and GWY file use np.fromfile to read data, which has issues when reading within a ZIP file"""
     with tempfile.TemporaryDirectory() as d:

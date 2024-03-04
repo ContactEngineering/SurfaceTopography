@@ -23,22 +23,53 @@
 #
 
 import logging
+import re
+from collections import defaultdict
 
 import numpy as np
-import pandas as pd
 
 from ..Exceptions import MetadataAlreadyFixedByFile, UnknownFileFormat
 from ..NonuniformLineScan import NonuniformLineScan
+from ..Support.UnitConversion import (find_length_unit_in_string,
+                                      get_unit_conversion_factor,
+                                      mangle_length_unit_utf8)
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import mangle_length_unit_utf8, get_unit_conversion_factor, find_length_unit_in_string
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 _log = logging.Logger(__name__)
 
 
 def read_text_header_hfm(fobj, unit, height_scale_factor):
-    """HFM files"""
+    """
+    Read header HFM files.
+
+    Parameters
+    ----------
+    fobj : file object
+        File object to read from.
+    unit : str
+        Length unit of the data. Raises an error if not `None`because HFM
+        files always give a unit.
+    height_scale_factor : float
+        Conversion factor for the height data. Raises an error if not `None`
+        because HFM files always define a height scale.
+
+    Returns
+    -------
+    sep : str
+        Separator between columns.
+    usecols : list of int
+        List of column indices to read.
+    skiprows : int
+        Number of rows to skip before reading data.
+    unit : str
+        Length unit of the data.
+    height_scale_factor : float
+        Conversion factor for the height data.
+    info : dict
+        Additional information.
+    """
     # HFM files have the following header
     # X;Y;valid
     # [mm];[mm];[1/0]
@@ -57,11 +88,38 @@ def read_text_header_hfm(fobj, unit, height_scale_factor):
     sep = ';'  # This file seems to use semicolons as separators
     usecols = (0, 1)
 
-    return sep, usecols, unit, height_scale_factor, {}
+    return sep, usecols, 0, unit, height_scale_factor, {}
 
 
 def read_text_header_dektak(fobj, unit, height_scale_factor):
-    """Dektak CSV files"""
+    """
+    Read header of Dektak CSV files.
+
+    Parameters
+    ----------
+    fobj : file object
+        File object to read from.
+    unit : str
+        Length unit of the data, only if not present in the file.
+    height_scale_factor : float
+        Conversion factor for the height data, only if not present in the
+        file.
+
+    Returns
+    -------
+    sep : str
+        Separator between columns.
+    usecols : list of int
+        List of column indices to read.
+    skiprows : int
+        Number of rows to skip before reading data.
+    unit : str
+        Length unit of the data.
+    height_scale_factor : float
+        Conversion factor for the height data.
+    info : dict
+        Additional information.
+    """
     sep = ','  # This file seems to use coma as separators
     usecols = (0, 1)
 
@@ -126,7 +184,83 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
         # 'Stylus' key does not exist
         pass
 
-    return sep, usecols, unit, height_scale_factor, info
+    return sep, usecols, 0, unit, height_scale_factor, info
+
+
+def read_csv(fobj, sep=None, usecols=None, skiprows=0):
+    """
+    Simple reader for tabular data in C(omma) S(eparated) V(alue) format. The
+    comma should not be taken literal as the reader tries to be fuzzy (and
+    flexible).
+
+    Parameters
+    ----------
+    fobj : file object
+        File object to read from.
+    sep : str, optional
+        Separator between columns. (Default: White space, comma or semicolon)
+    usecols : list of int, optional
+        List of column indices to read. (Default: All columns)
+    skiprows : int, optional
+        Number of rows to skip before reading data. (Default: 0)
+
+    Returns
+    -------
+    data : list of np.ndarray
+        List of arrays, one for each column in the file.
+    """
+    if sep is None:
+        sep = r'[\s,;]+'  # white space, comma or semicolon
+    for i in range(skiprows):
+        fobj.readline()
+    line = fobj.readline()
+    data = defaultdict(list)
+    min_cols = None
+    nb_cols = None
+    if usecols is not None:
+        min_cols = max(usecols)  # We need at least this many columns
+    nb_lines = 0
+    while line:
+        line = line.strip()
+        if len(line) > 0:  # We ignore empty lines
+            line = re.split(sep, line)
+            # Idiot check columns
+            if nb_cols is None:
+                nb_cols = len(line)
+            if min_cols is None:
+                min_cols = nb_cols
+            elif nb_cols < min_cols:
+                raise ValueError(f'Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}.')
+            if len(line) != nb_cols:
+                raise ValueError(f'Number of columns changed during parse in line {nb_lines}: expected {nb_cols} but '
+                                 f'found {len(line)} (with data {line}).')
+
+            if usecols is None:
+                # If columns are given by the user, only collect the data from those colums
+                for key, value in enumerate(line):
+                    data[key] += [value]
+            else:
+                # If no columns are given, we return all columns
+                for i, key in enumerate(usecols):
+                    data[key] += [line[i]]
+        line = fobj.readline()
+        nb_lines += 1
+    retvals = []
+    if usecols is None:
+        for key, values in data.items():
+            values = np.array(values)
+            try:
+                retvals += [values.astype(float)]
+            except ValueError:
+                retvals += [values]
+    else:
+        for key in usecols:
+            values = np.array(data[key])
+            try:
+                retvals += [values.astype(float)]
+            except ValueError:
+                retvals += [values]
+    return retvals
 
 
 # Dictionary of magic: parser pairs, where magic is first line of file
@@ -182,7 +316,7 @@ The reader supports parsing HFM and Dektak header information.
               max_header_rows=200, tol=1e-6):
         """
         Read the xyz-file. These files contain line scan information in terms of
-        (x,y)-positions.
+        (x,y)-positions (for line scans) or (x,y,z)-positions (for topographies).
 
         Parameters
         ----------
@@ -190,7 +324,7 @@ The reader supports parsing HFM and Dektak header information.
              File name or stream.
         max_header_rows : int, optional
              Maximum number of rows to skip when testing for headers.
-             (Default: 100)
+             (Default: 200)
         tol : float, optional
              Tolerance for detecting uniform grids. (Default: 1e-6)
 
@@ -223,8 +357,10 @@ The reader supports parsing HFM and Dektak header information.
         with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
             if header_parser is not None:
                 # Read header
-                sep, usecols, unit, height_scale_factor, _info = header_parser(fobj, unit, height_scale_factor)
+                sep, usecols, skiprows, unit, height_scale_factor, _info = header_parser(fobj, unit,
+                                                                                         height_scale_factor)
             else:
+                skiprows = 0
                 _info = {}
 
             # Update info with user-specified dictionary
@@ -232,36 +368,37 @@ The reader supports parsing HFM and Dektak header information.
 
             # Reading data, skipping first rows (which may contain headers)
             data_start = fobj.tell()
-            skiprows = 0
             data = None
+            reason = None
             while data is None and skiprows < max_header_rows:
-                fobj.seek(data_start)
                 try:
-                    data = pd.read_csv(fobj, sep=sep, usecols=usecols, header=None, skiprows=skiprows, engine='python')
-                    if (data.dtypes == 'O').any():
-                        data = None
-                except pd.errors.ParserError:
+                    data = read_csv(fobj, sep=sep, usecols=usecols, skiprows=skiprows)
+                except ValueError:
+                    reason = 'ValueError'
+                    data = None
+                except UnicodeDecodeError:
+                    reason = 'UnicodeDecodeError'
                     data = None
                 skiprows += 1
+                fobj.seek(data_start)
 
             _log.debug(f'Skipping {skiprows} rows before attempting to read data from XYZ file.')
 
             # We cannot make sense of this data
             if data is None:
-                raise UnknownFileFormat('Could not parse file as XYZ.')
+                raise UnknownFileFormat(f'Could not parse file as XYZ. Reason: {reason}')
 
             # Remove columns that contain no data
-            drop_cols = []
-            for col in data.columns:
-                arr = data.values[:, col]
-                if not np.isfinite(arr).any():
-                    drop_cols += [col]
-            data = data.drop(columns=drop_cols)
+            cols = []
+            for col, arr in enumerate(data):
+                if np.isfinite(arr).any():
+                    cols += [col]
+            data = [data[col] for col in cols]
 
         # Check is this is a line scan in XY format or two-dimensional data in XYZ format
-        if len(data.columns) == 2:
+        if len(data) == 2:
             # This is a line scan.
-            x, z = np.array(data, dtype=float).T
+            x, z = data
             x -= np.min(x)
 
             d_uniform = (x[-1] - x[0]) / (len(x) - 1)
@@ -282,9 +419,9 @@ The reader supports parsing HFM and Dektak header information.
                 if physical_sizes is not None:
                     raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        elif len(data.columns) == 3:
+        elif len(data) == 3:
             # This is a topography map.
-            x, y, z = np.array(data, dtype=float).T
+            x, y, z = data
 
             # Compute grid spacing in y-direction
             indices = np.lexsort((y, x))
