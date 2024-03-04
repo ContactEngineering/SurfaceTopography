@@ -61,7 +61,7 @@ class _ReadTopography(object):
         if not self._ignore_filters and not datafile_key.startswith('squeezed'):
             if 'height_scale' in topo_meta:
                 t = t.scale(topo_meta['height_scale'])
-            if 'fill_undefined_data_mode' in topo_meta:
+            if 'fill_undefined_data_mode' in topo_meta and topo_meta['fill_undefined_data_mode'] != 'do-not-fill':
                 t = t.interpolate_undefined_data(topo_meta['fill_undefined_data_mode'])
             if 'detrend_mode' in topo_meta:
                 t = t.detrend(topo_meta['detrend_mode'])
