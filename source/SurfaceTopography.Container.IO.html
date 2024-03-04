@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.13.5 documentation</title>
+  <title>SurfaceTopography.Container.IO package &mdash; SurfaceTopography 1.13.5.dev4+ged5cf407 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=d752f18c"></script>
+        <script src="../_static/documentation_options.js?v=3d003530"></script>
         <script src="../_static/doctools.js?v=888ff710"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.13.5
+                1.13.5.dev4+ged5cf407
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -166,11 +166,11 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.CE.CEReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.CE.</span></span><span class="sig-name descname"><span class="pre">CEReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.IO.CE.</span></span><span class="sig-name descname"><span class="pre">CEReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Container.IO.Reader.ContainerReaderBase" title="SurfaceTopography.Container.IO.Reader.ContainerReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ContainerReaderBase</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.IO.CE.CEReader.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['original',</span> <span class="pre">'squeezed-netcdf']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.IO.CE.CEReader.__init__" title="Link to this definition"></a></dt>
 <dd><p>Read all surfaces in a contact.engineering container file and associated
 metadata. The container is a ZIP file with raw data files and a YAML file
 meta.yml that contains all metadata not contained in the raw data files.</p>
@@ -183,6 +183,8 @@ datafile to open. Code will try these keys in order. If a key
 starts with ‘squeezed’, the pipeline is not constructed from
 the metadata.
 (Default: [‘original’, ‘squeezed-netcdf’])</p></li>
+<li><p><strong>ignore_filters</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the filter pipeline is not (re-)constructed from the metadata.
+(Default: False)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
