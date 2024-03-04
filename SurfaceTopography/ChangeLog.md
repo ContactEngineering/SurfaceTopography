@@ -4,6 +4,8 @@ Change log for SurfaceTopography
 v1.13.6 (04Mar24)
 -----------------
 
+- MAINT: Added `ignore_filters` option to `CEReader` which disables
+  construction of the filter pipeline from container metadata
 - MAINT: Don't fail but warn if meta.yml has wrong metadata
 
 v1.13.5 (04Mar24)
