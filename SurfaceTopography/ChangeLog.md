@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.5 (04Mar24)
+-----------------
+
+- BUG: Implemented CSV parser and removed pandas dependency (pandas
+  had issues reading CSV-style data from ZIP containers)
+
 v1.13.4 (29Feb24)
 -----------------
 
