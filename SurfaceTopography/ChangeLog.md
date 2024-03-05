@@ -1,7 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
-v1.1376 (05Mar24)
+v1.13.8 (05Mar24)
+-----------------
+
+- BUG: Fixed MAD height for data with undefined values
+
+v1.13.7 (05Mar24)
 -----------------
 
 - BUG: Avoid always warning about unit
