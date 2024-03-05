@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.9 (05Mar24)
+-----------------
+
+- BUG: Need to use relative tolerance in bisection for robust statistics
+
 v1.13.8 (05Mar24)
 -----------------
 
