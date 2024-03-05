@@ -60,11 +60,11 @@ class UniformBearingArea:
 
     @cached_property
     def min(self):
-        return self._h.min()
+        return np.nanmin(self._h)  # There are NaNs if the original topography was masked
 
     @cached_property
     def max(self):
-        return self._h.max()
+        return np.nanmax(self._h)  # There are NaNs if the original topography was masked
 
 
 class Uniform1DBearingArea(UniformBearingArea):
@@ -74,7 +74,7 @@ class Uniform1DBearingArea(UniformBearingArea):
 
     def __init__(self, dx, h, is_periodic):
         self._dx = dx
-        self._h = np.ascontiguousarray(h, dtype=float)
+        self._h = np.ascontiguousarray(h, dtype=float)  # Masked entries will be converted to NaNs
         self._is_periodic = is_periodic
 
         if self._is_periodic:
@@ -124,7 +124,7 @@ class Uniform2DBearingArea(UniformBearingArea):
     def __init__(self, dx, dy, h, is_periodic):
         self._dx = dx
         self._dy = dy
-        self._h = np.ascontiguousarray(h, dtype=float)
+        self._h = np.ascontiguousarray(h, dtype=float)  # Masked entries will be converted to NaNs
         self._is_periodic = is_periodic
 
         nx, ny = self._h.shape

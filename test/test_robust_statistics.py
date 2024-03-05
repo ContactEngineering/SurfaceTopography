@@ -114,3 +114,12 @@ def test_mad_detrending_topography(file_format_examples, plot=False):
 
     assert t.detrend('mad-tilt').mad_height() < t.mad_height()
     assert t.detrend('mad-curvature').mad_height() < t.detrend('mad-tilt').mad_height()
+
+
+@pytest.mark.parametrize('fn,ref_mad_height', [['opd-2.opd', 0.013788564614833587],
+                                               ['plux-1.plux', 1.7007060158749108]])
+def test_undefined_data(file_format_examples, fn, ref_mad_height):
+    file_path = os.path.join(file_format_examples, fn)
+    t = read_topography(file_path)
+    assert t.has_undefined_data
+    np.testing.assert_allclose(t.mad_height(), ref_mad_height)
