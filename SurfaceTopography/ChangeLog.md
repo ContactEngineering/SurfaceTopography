@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.10 (05Mar24)
+------------------
+
+- BUG: Correct bounds for bearing area of topography with undefined values
+
 v1.13.9 (05Mar24)
 -----------------
 

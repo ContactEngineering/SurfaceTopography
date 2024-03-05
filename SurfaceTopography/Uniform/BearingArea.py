@@ -78,13 +78,12 @@ class Uniform1DBearingArea(UniformBearingArea):
         self._is_periodic = is_periodic
 
         if self._is_periodic:
-            self._nb_els = self._h.size
             self._el_min_heights = np.sort(np.minimum(self._h, np.roll(self._h, -1)))
             self._el_max_heights = np.sort(np.maximum(self._h, np.roll(self._h, -1)))
         else:
-            self._nb_els = self._h.size - 1
             self._el_min_heights = np.sort(np.minimum(self._h[:-1], self._h[1:]))
             self._el_max_heights = np.sort(np.maximum(self._h[:-1], self._h[1:]))
+        self._nb_els = np.isfinite(self._el_min_heights).sum()  # This treats undefined data correctly
 
     def __call__(self, heights):
         """
@@ -129,7 +128,6 @@ class Uniform2DBearingArea(UniformBearingArea):
 
         nx, ny = self._h.shape
         if self._is_periodic:
-            self._nb_els = 2 * nx * ny
             self._el_min_heights = np.sort(np.ravel([
                 np.minimum.reduce([self._h, np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))]),
                 np.minimum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
@@ -139,7 +137,6 @@ class Uniform2DBearingArea(UniformBearingArea):
                 np.maximum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
             ]))
         else:
-            self._nb_els = 2 * (nx - 1) * (ny - 1)
             self._el_min_heights = np.sort(np.ravel([
                 np.minimum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
                 np.minimum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
@@ -148,6 +145,7 @@ class Uniform2DBearingArea(UniformBearingArea):
                 np.maximum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
                 np.maximum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
             ]))
+        self._nb_els = np.isfinite(self._el_min_heights).sum()  # This treats undefined data correctly
 
     def __call__(self, heights):
         """
