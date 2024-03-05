@@ -50,7 +50,7 @@ build_and_store_wheels: &BUILD_AND_STORE_WHEELS
 
 cirrus_wheels_macos_arm64_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.3.1
+    image: ghcr.io/cirruslabs/macos-sonoma-xcode:15.1
   matrix:
     - env:
         CIBW_BUILD: cp38-*
