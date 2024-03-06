@@ -144,7 +144,8 @@ class Uniform2DBearingArea(UniformBearingArea):
                 np.maximum(np.maximum(h[1:, 1:], h[1:, :-1]), h[:-1, 1:])
             ]))
         self._nb_els = len(self._el_min_heights)  # This treats undefined data correctly
-        self._h = np.ma.filled(h.astype(float), fill_value=np.nan)  # We pass the mask as NaNs to the C++ code
+        # We pass the mask as NaNs to the C++ code
+        self._h = np.ascontiguousarray(np.ma.filled(h, fill_value=np.nan), dtype=float)
 
     def __call__(self, heights):
         """
