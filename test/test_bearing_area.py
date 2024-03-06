@@ -22,11 +22,13 @@
 # SOFTWARE.
 #
 
+import os
+
 import numpy as np
 import pytest
 import scipy
 
-from SurfaceTopography import NonuniformLineScan, Topography
+from SurfaceTopography import NonuniformLineScan, Topography, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
@@ -223,3 +225,15 @@ def test_bearing_area_topography_is_monotonous(nb_grid_pts, periodic, plot=False
     # Test uniform
     P = t.bearing_area(heights)
     assert (np.diff(P) < 0).all()
+
+
+def test_tilt_unit_conversion(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'frt-1.frt'))
+    assert t.unit == 'm'
+    t1 = t.detrend('rms-tilt')
+    t2 = t.detrend('rms-tilt').to_unit('m')
+    ba1 = t1.bearing_area()
+    ba2 = t2.bearing_area()
+
+    assert ba1.min == ba2.min
+    assert ba1.max == ba2.max

@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.11 (06Mar24)
+----------------
+
+- BUG: Correct situation where strange values appeared when masked array were
+  converted to contiguous arrays
+
 v1.13.10 (05Mar24)
 ------------------
 

@@ -74,16 +74,16 @@ class Uniform1DBearingArea(UniformBearingArea):
 
     def __init__(self, dx, h, is_periodic):
         self._dx = dx
-        self._h = np.ascontiguousarray(h, dtype=float)  # Masked entries will be converted to NaNs
         self._is_periodic = is_periodic
 
         if self._is_periodic:
-            self._el_min_heights = np.sort(np.minimum(self._h, np.roll(self._h, -1)))
-            self._el_max_heights = np.sort(np.maximum(self._h, np.roll(self._h, -1)))
+            self._el_min_heights = np.sort(np.ma.compressed(np.minimum(h, np.roll(h, -1))))
+            self._el_max_heights = np.sort(np.ma.compressed(np.maximum(h, np.roll(h, -1))))
         else:
-            self._el_min_heights = np.sort(np.minimum(self._h[:-1], self._h[1:]))
-            self._el_max_heights = np.sort(np.maximum(self._h[:-1], self._h[1:]))
-        self._nb_els = np.isfinite(self._el_min_heights).sum()  # This treats undefined data correctly
+            self._el_min_heights = np.sort(np.ma.compressed(np.minimum(h[:-1], h[1:])))
+            self._el_max_heights = np.sort(np.ma.compressed(np.maximum(h[:-1], h[1:])))
+        self._nb_els = len(self._el_min_heights)  # This treats undefined data correctly
+        self._h = np.ma.filled(h.astype(float), fill_value=np.nan)  # We pass the mask as NaNs to the C++ code
 
     def __call__(self, heights):
         """
@@ -123,29 +123,28 @@ class Uniform2DBearingArea(UniformBearingArea):
     def __init__(self, dx, dy, h, is_periodic):
         self._dx = dx
         self._dy = dy
-        self._h = np.ascontiguousarray(h, dtype=float)  # Masked entries will be converted to NaNs
         self._is_periodic = is_periodic
 
-        nx, ny = self._h.shape
         if self._is_periodic:
-            self._el_min_heights = np.sort(np.ravel([
-                np.minimum.reduce([self._h, np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))]),
-                np.minimum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
+            self._el_min_heights = np.sort(np.ma.compressed([
+                np.minimum(np.minimum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
+                np.minimum(np.minimum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
             ]))
-            self._el_max_heights = np.sort(np.ravel([
-                np.maximum.reduce([self._h, np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))]),
-                np.maximum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
+            self._el_max_heights = np.sort(np.ma.compressed([
+                np.maximum(np.maximum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
+                np.maximum(np.maximum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
             ]))
         else:
-            self._el_min_heights = np.sort(np.ravel([
-                np.minimum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
-                np.minimum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
+            self._el_min_heights = np.sort(np.ma.compressed([
+                np.minimum(np.minimum(h[:-1, :-1], h[1:, :-1]), h[:-1, 1:]),
+                np.minimum(np.minimum(h[1:, 1:], h[1:, :-1]), h[:-1, 1:])
             ]))
-            self._el_max_heights = np.sort(np.ravel([
-                np.maximum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
-                np.maximum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
+            self._el_max_heights = np.sort(np.ma.compressed([
+                np.maximum(np.maximum(h[:-1, :-1], h[1:, :-1]), h[:-1, 1:]),
+                np.maximum(np.maximum(h[1:, 1:], h[1:, :-1]), h[:-1, 1:])
             ]))
-        self._nb_els = np.isfinite(self._el_min_heights).sum()  # This treats undefined data correctly
+        self._nb_els = len(self._el_min_heights)  # This treats undefined data correctly
+        self._h = np.ma.filled(h.astype(float), fill_value=np.nan)  # We pass the mask as NaNs to the C++ code
 
     def __call__(self, heights):
         """
