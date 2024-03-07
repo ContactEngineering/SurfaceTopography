@@ -72,8 +72,7 @@ class Uniform1DBearingArea(UniformBearingArea):
     Accelerated bearing area calculation for uniform line scans.
     """
 
-    def __init__(self, dx, h, is_periodic):
-        self._dx = dx
+    def __init__(self, h, is_periodic):
         self._is_periodic = is_periodic
 
         if self._is_periodic:
@@ -108,10 +107,10 @@ class Uniform1DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._dx, self._h, self._is_periodic,
+            return _SurfaceTopographyPP.uniform1d_bearing_area(self._h, self._is_periodic,
                                                                np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._dx, self._h, self._is_periodic,
+            return _SurfaceTopographyPP.uniform1d_bearing_area(self._h, self._is_periodic,
                                                                heights.astype(float))
 
 
@@ -120,9 +119,7 @@ class Uniform2DBearingArea(UniformBearingArea):
     Accelerated bearing area calculation for topographies.
     """
 
-    def __init__(self, dx, dy, h, is_periodic):
-        self._dx = dx
-        self._dy = dy
+    def __init__(self, h, is_periodic):
         self._is_periodic = is_periodic
 
         if self._is_periodic:
@@ -170,10 +167,10 @@ class Uniform2DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._dx, self._dy, self._h, self._is_periodic,
+            return _SurfaceTopographyPP.uniform2d_bearing_area(self._h, self._is_periodic,
                                                                np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._dx, self._dy, self._h, self._is_periodic,
+            return _SurfaceTopographyPP.uniform2d_bearing_area(self._h, self._is_periodic,
                                                                heights.astype(float))
 
 

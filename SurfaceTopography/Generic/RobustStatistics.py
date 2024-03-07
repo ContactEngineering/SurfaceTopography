@@ -154,7 +154,9 @@ def mad_polyfit(self, nb_coeffs):
     """
 
     def mad(coeffs):
-        return self.detrend(coeffs=[0, *coeffs]).mad_height()
+        h = self.detrend(coeffs=[0, *coeffs]).mad_height()
+        print(coeffs, h)
+        return h
 
     x0 = self.polyfit(nb_coeffs)
     coeffs = scipy.optimize.minimize(mad, x0=x0[1:], method='Nelder-Mead').x

@@ -237,3 +237,14 @@ def test_tilt_unit_conversion(file_format_examples):
 
     assert ba1.min == ba2.min
     assert ba1.max == ba2.max
+
+
+def test_bounds_on_topography_with_missing_data(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'plux-1.plux'))
+    ba = t.bearing_area()
+    x = np.linspace(ba.min, ba.max, 11)
+    b = ba(x)
+    bl, bu = ba.bounds(x)
+    assert (bl <= b).all()
+    assert (b <= bu).all()
+    assert (b == b).all()  # np.nan != np.nan, so this will fail if there are NaNs
