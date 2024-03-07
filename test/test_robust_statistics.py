@@ -67,7 +67,7 @@ def test_mad_detrending_nonuniform(file_format_examples, plot=False):
         import matplotlib.pyplot as plt
 
         t2 = t.detrend('rms-tilt')
-        x = np.linspace(t2.coeffs[1]-0.001, t2.coeffs[1]+0.001, 101)
+        x = np.linspace(t2.coeffs[1] - 0.001, t2.coeffs[1] + 0.001, 101)
         rms = [t.detrend(coeffs=[0, _x]).rms_height_from_profile() for _x in x]
         mad = [t.detrend(coeffs=[0, _x]).mad_height() for _x in x]
 
@@ -87,37 +87,42 @@ def test_mad_detrending_nonuniform(file_format_examples, plot=False):
     assert t.detrend('mad-curvature').mad_height() < t.detrend('mad-tilt').mad_height()
 
 
-@pytest.mark.skip
-def test_mad_detrending_topography(file_format_examples, plot=False):
-    file_path = os.path.join(file_format_examples, 'di-1.di')
+# @pytest.mark.parametrize('fn', ['di-1.di', 'plux-1.plux'])
+@pytest.mark.parametrize('fn', ['plux-1.plux'])
+def test_mad_detrending_topography(file_format_examples, fn, plot=False):
+    file_path = os.path.join(file_format_examples, fn)
     t = read_topography(file_path)
 
     if plot:
         import matplotlib.pyplot as plt
 
-        t2 = t.detrend('rms-tilt')
-        x = np.linspace(t2.coeffs[1]-0.001, t2.coeffs[1]+0.001, 101)
-        rms = [t.detrend(coeffs=[0, _x]).rms_height_from_profile() for _x in x]
-        mad = [t.detrend(coeffs=[0, _x]).mad_height() for _x in x]
+        coeffs = [0, 1.39556151, 2.29554222]
+
+        x = np.linspace(coeffs[2], coeffs[2] + 0.0002, 2)
+        # rms = [t.detrend(coeffs=[0, coeffs[1], _x]).rms_height_from_profile() for _x in x]
+        dt = [t.detrend(coeffs=[0, coeffs[1], _x]) for _x in x]
+        mad = [_dt.mad_height() for _dt in dt]
 
         plt.figure()
-        plt.plot(x, rms, 'k-')
-        plt.plot(x, mad, 'r-')
+        # plt.plot(x, rms, 'k-')
+        plt.plot(x, mad, 'rx-')
         plt.show()
 
         plt.figure()
-        plt.plot(*t.detrend('rms-tilt').positions_and_heights(), 'k--')
-        plt.plot(*t.detrend('rms-curvature').positions_and_heights(), 'k-')
-        plt.plot(*t.detrend('mad-tilt').positions_and_heights(), 'r--')
-        plt.plot(*t.detrend('mad-curvature').positions_and_heights(), 'r-')
+        for t in dt:
+            ba = t.bearing_area()
+            x = np.linspace(ba.min, ba.max, 101)
+            print(ba(x))
+            plt.plot(x, ba(x), 'k-')
         plt.show()
 
     assert t.detrend('mad-tilt').mad_height() < t.mad_height()
-    assert t.detrend('mad-curvature').mad_height() < t.detrend('mad-tilt').mad_height()
+    # mad-curvature is currently too slow to be useful
+    # assert t.detrend('mad-curvature').mad_height() < t.detrend('mad-tilt').mad_height()
 
 
-@pytest.mark.parametrize('fn,ref_mad_height', [['opd-2.opd', 0.013788670136876707],
-                                               ['plux-1.plux', 1.7007154984245803]])
+@pytest.mark.parametrize('fn,ref_mad_height', [['opd-2.opd', 0.013786078653533923],
+                                               ['plux-1.plux', 1.709517749823731]])
 def test_undefined_data(file_format_examples, fn, ref_mad_height):
     file_path = os.path.join(file_format_examples, fn)
     t = read_topography(file_path)

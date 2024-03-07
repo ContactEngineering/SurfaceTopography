@@ -143,10 +143,9 @@ def test_bearing_area_bounds_2d():
 
     # Test bounds
     lower, upper = ba.bounds(heights)
-    eps = 1e-12
-    np.testing.assert_array_less(lower, upper + eps)
-    np.testing.assert_array_less(lower, ba(heights) + eps)
-    np.testing.assert_array_less(ba(heights), upper + eps)
+    assert (lower <= upper).all()
+    assert (lower <= ba(heights)).all()
+    assert (ba(heights) <= upper).all()
 
     # Test uniform periodic
     t = fourier_synthesis((64, 63), (1, 1), 0.8, rms_slope=0.1, periodic=True)
@@ -239,10 +238,11 @@ def test_tilt_unit_conversion(file_format_examples):
     assert ba1.max == ba2.max
 
 
-def test_bounds_on_topography_with_missing_data(file_format_examples):
-    t = read_topography(os.path.join(file_format_examples, 'plux-1.plux'))
+@pytest.mark.parametrize('fn', ['opd-2.opd', 'plux-1.plux'])
+def test_bounds_on_topography_with_missing_data(file_format_examples, fn):
+    t = read_topography(os.path.join(file_format_examples, fn))
     ba = t.bearing_area()
-    x = np.linspace(ba.min, ba.max, 11)
+    x = np.linspace(ba.min, ba.max, 101)
     b = ba(x)
     bl, bu = ba.bounds(x)
     assert (bl <= b).all()
