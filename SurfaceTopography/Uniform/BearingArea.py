@@ -198,9 +198,9 @@ def bearing_area(self, heights=None):
         Instance of a class that caches the bearing area calculation.
     """
     if self.dim == 1:
-        b = Uniform1DBearingArea(*self.pixel_size, self.heights(), self.is_periodic)
+        b = Uniform1DBearingArea(self.heights(), self.is_periodic)
     elif self.dim == 2:
-        b = Uniform2DBearingArea(*self.pixel_size, self.heights(), self.is_periodic)
+        b = Uniform2DBearingArea(self.heights(), self.is_periodic)
     else:
         raise NotImplementedError('Bearing area is only implemented for 1D line scans and 2D topography maps.')
 
