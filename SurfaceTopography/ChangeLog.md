@@ -1,11 +1,10 @@
 Change log for SurfaceTopography
 ================================
 
-v1.13.11 (06Mar24)
+v1.13.11 (07Mar24)
 ----------------
 
-- BUG: Correct situation where strange values appeared when masked array were
-  converted to contiguous arrays
+- BUG: Further fixes for bearing are of topographies with undefined value
 
 v1.13.10 (05Mar24)
 ------------------
