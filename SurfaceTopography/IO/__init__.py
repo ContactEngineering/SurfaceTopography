@@ -52,6 +52,7 @@ from .Matlab import MatReader
 from .MetroPro import MetroProReader
 from .MI import MIReader
 from .Mitutoyo import MitutoyoReader
+from .MNT import MNTReader
 from .NC import NCReader
 from .NPY import NPYReader
 from .OIR import OIRReader, POIRReader
@@ -104,6 +105,7 @@ readers = [
     WSXMReader,
     PLUXReader,
     JPKReader,
+    MNTReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]
