@@ -1,8 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+v1.13.12 (21Mar24)
+------------------
+
+- MAINT: More robust CSV reader
+
 v1.13.11 (07Mar24)
-----------------
+------------------
 
 - BUG: Further fixes for bearing are of topographies with undefined value
 

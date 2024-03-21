@@ -245,28 +245,16 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
                     data[key] += [line[i]]
         line = fobj.readline()
         nb_lines += 1
-    retvals = []
     if usecols is None:
-        for key, values in data.items():
-            values = np.array(values)
-            try:
-                retvals += [values.astype(float)]
-            except ValueError:
-                retvals += [values]
+        return [np.array(values) for key, values in data.items()]
     else:
-        for key in usecols:
-            values = np.array(data[key])
-            try:
-                retvals += [values.astype(float)]
-            except ValueError:
-                retvals += [values]
-    return retvals
+        return [np.array(data[key]) for key in usecols]
 
 
 # Dictionary of magic: parser pairs, where magic is first line of file
 _text_header_parsers = {
-    b'X;Y;valid': ('utf-8', read_text_header_hfm),
-    b'Scan Parameters': ('latin-1', read_text_header_dektak)
+    b'X;Y;valid': (['utf-8'], read_text_header_hfm),
+    b'Scan Parameters': (['latin-1'], read_text_header_dektak)
 }
 
 
@@ -312,6 +300,59 @@ The reader supports parsing HFM and Dektak header information.
             unit=topography.unit
         )]
 
+    def _read_file(self, header_parser, unit, height_scale_factor, info, max_header_rows, encoding):
+        # Default is to autodetect separator and columns
+        sep = r'[\s,;]+'  # white space, comma or semicolon
+        usecols = None
+
+        # Reopen, but with correct encoding
+        with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
+            if header_parser is not None:
+                # Read header
+                sep, usecols, skiprows, unit, height_scale_factor, _info = header_parser(fobj, unit,
+                                                                                         height_scale_factor)
+            else:
+                skiprows = 0
+                _info = {}
+
+            # Update info with user-specified dictionary
+            _info.update(info)
+
+            # Reading data, skipping first rows (which may contain headers)
+            data_start = fobj.tell()
+            data = None
+            while data is None and skiprows < max_header_rows:
+                try:
+                    data = read_csv(fobj, sep=sep, usecols=usecols, skiprows=skiprows)
+                except ValueError:
+                    data = None
+                if data is not None:
+                    # Remove columns that contain no numerical data
+                    numerical_data = []
+                    for arr in data:
+                        try:
+                            arr = arr.astype(float)
+                            if np.isfinite(arr).any():
+                                numerical_data += [arr]
+                        except ValueError:
+                            pass
+
+                    # Check if columns are left
+                    if len(numerical_data) == 0:
+                        data = None
+                    else:
+                        if usecols is not None and len(numerical_data) != len(usecols):
+                            data = None
+                        else:
+                            data = numerical_data
+
+                skiprows += 1
+                fobj.seek(data_start)
+
+            _log.debug(f'Skipping {skiprows} rows before attempting to read data from XYZ file.')
+
+        return data, unit, height_scale_factor, _info
+
     def _read(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None,
               max_header_rows=200, tol=1e-6):
         """
@@ -333,17 +374,13 @@ The reader supports parsing HFM and Dektak header information.
         topography : Topography or UniformLineScan or NonuniformLineScan
             SurfaceTopography object.
         """
-        # Default is to autodetect separator and columns
-        sep = r'[\s,;]+'  # white space, comma or semicolon
-        usecols = None
-
         # Determine maximum length of magic
         maxmagic = 0
         for key in _text_header_parsers.keys():
             maxmagic = max(maxmagic, len(key))
 
         # Read header (if present) and guess file format
-        encoding = 'utf-8'  # Open with UTF-8 encoding by default
+        encoding = ['utf-8', 'utf-16', 'latin-1']  # Open with UTF-8 encoding by default
         header_parser = None  # We don't parse any headers by default
         with OpenFromAny(self._file_path, mode='rb') as fobj:
             first_line = fobj.read(maxmagic)
@@ -353,52 +390,35 @@ The reader supports parsing HFM and Dektak header information.
                     break  # Don't check other file magics since we found one
         # Stream will automatically rewind to old position here
 
-        # Reopen, but with correct encoding
-        with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
-            if header_parser is not None:
-                # Read header
-                sep, usecols, skiprows, unit, height_scale_factor, _info = header_parser(fobj, unit,
-                                                                                         height_scale_factor)
-            else:
-                skiprows = 0
-                _info = {}
+        data = None
+        for e in encoding:
+            try:
+                data, unit, height_scale_factor, _info = self._read_file(header_parser, unit, height_scale_factor, info,
+                                                                         max_header_rows, e)
+                if data is not None:
+                    break
+            except UnicodeDecodeError:
+                pass
 
-            # Update info with user-specified dictionary
-            _info.update(info)
+        if data is None:
+            raise UnknownFileFormat('Could not parse file as XYZ.')
 
-            # Reading data, skipping first rows (which may contain headers)
-            data_start = fobj.tell()
-            data = None
-            reason = None
-            while data is None and skiprows < max_header_rows:
-                try:
-                    data = read_csv(fobj, sep=sep, usecols=usecols, skiprows=skiprows)
-                except ValueError:
-                    reason = 'ValueError'
-                    data = None
-                except UnicodeDecodeError:
-                    reason = 'UnicodeDecodeError'
-                    data = None
-                skiprows += 1
-                fobj.seek(data_start)
-
-            _log.debug(f'Skipping {skiprows} rows before attempting to read data from XYZ file.')
-
-            # We cannot make sense of this data
-            if data is None:
-                raise UnknownFileFormat(f'Could not parse file as XYZ. Reason: {reason}')
-
-            # Remove columns that contain no data
-            cols = []
-            for col, arr in enumerate(data):
-                if np.isfinite(arr).any():
-                    cols += [col]
-            data = [data[col] for col in cols]
-
-        # Check is this is a line scan in XY format or two-dimensional data in XYZ format
         if len(data) == 2:
             # This is a line scan.
+            kind = 'xz'
             x, z = data
+        elif len(data) == 3:
+            x, y, z = data
+            if ((x[1:] - x[0]) / (y[1:] - y[0])).ptp() < tol:
+                # This is a line scan and the first column is likely an index column.
+                kind = 'xz'
+                x = y
+            else:
+                # This is a topography map.
+                kind = 'xyz'
+
+        # Check is this is a line scan in XY format or two-dimensional data in XYZ format
+        if kind == 'xz':
             x -= np.min(x)
 
             d_uniform = (x[-1] - x[0]) / (len(x) - 1)
@@ -419,10 +439,7 @@ The reader supports parsing HFM and Dektak header information.
                 if physical_sizes is not None:
                     raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        elif len(data) == 3:
-            # This is a topography map.
-            x, y, z = data
-
+        elif kind == 'xyz':
             # Compute grid spacing in y-direction
             indices = np.lexsort((y, x))
             y0 = y[indices[0]]

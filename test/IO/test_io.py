@@ -34,21 +34,21 @@ import pickle
 import tempfile
 import warnings
 
+import NuMPI
 import numpy as np
 import pytest
+from NuMPI import MPI
 from numpy.testing import assert_array_equal
 from scipy.io import netcdf_file
 
-import NuMPI
-from NuMPI import MPI
-
 import SurfaceTopography.IO
 from SurfaceTopography import open_topography, read_topography
-from SurfaceTopography.Exceptions import CannotDetectFileFormat, MetadataAlreadyFixedByFile
-from SurfaceTopography.IO import readers, detect_format
+from SurfaceTopography.Exceptions import (CannotDetectFileFormat,
+                                          MetadataAlreadyFixedByFile)
+from SurfaceTopography.IO import detect_format, readers
 from SurfaceTopography.IO.common import is_binary_stream
-from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.Reader import ChannelInfo
+from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.IO.XYZ import XYZReader
 from SurfaceTopography.UniformLineScanAndTopography import Topography
 
@@ -158,6 +158,9 @@ text_example_file_list = _convert_filelist([
     'xy-4.txt',
     'xy-5.txt',
     # 'xy-6.txt', # This has NaNs, which means equality tests fail
+    'csv-1.csv',
+    'csv-2.csv',
+    'csv-3.csv',
 ])
 
 explicit_physical_sizes = _convert_filelist([

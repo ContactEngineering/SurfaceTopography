@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography.IO import XYZReader
@@ -62,3 +61,10 @@ def test_dektak_csv(file_format_examples, mode, encoding):
     }
 
     np.testing.assert_allclose(t.short_reliability_cutoff(), 1.57, rtol=0.01)
+
+
+@pytest.mark.parametrize('fn', ['dektak-1.csv', 'csv-1.csv', 'csv-2.csv', 'csv-3.csv'])
+def test_generic_csv(file_format_examples, fn):
+    file_path = os.path.join(file_format_examples, fn)
+
+    XYZReader(file_path)
