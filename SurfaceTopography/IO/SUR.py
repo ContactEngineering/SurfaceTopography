@@ -31,10 +31,11 @@ import datetime
 
 import numpy as np
 
-from .binary import BinaryArray, BinaryStructure, Convert, Validate
-from .Reader import DeclarativeReaderBase, ChannelInfo, CompoundLayout
-from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          UnsupportedFormatFeature)
 from ..Support.UnitConversion import get_unit_conversion_factor
+from .binary import BinaryArray, BinaryStructure, Convert, Validate
+from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase
 
 
 class SURReader(DeclarativeReaderBase):
@@ -115,8 +116,9 @@ This reader imports Digital Surf SUR data files.
         ], name='header'),
         BinaryArray(
             'data',
-            lambda context: (context.header.nb_grid_pts_x, context.header.nb_grid_pts_y),
-            lambda context: np.dtype('<i2') if context.header.itemsize == 16 else np.dtype('<i4')
+            lambda context: (context.header.nb_grid_pts_y, context.header.nb_grid_pts_x),
+            lambda context: np.dtype('<i2') if context.header.itemsize == 16 else np.dtype('<i4'),
+            conversion_fun=lambda arr: arr.T
         )
     ])
 
