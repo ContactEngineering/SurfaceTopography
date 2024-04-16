@@ -37,7 +37,7 @@ def test_bearing_area_nonuniform(plot=False):
     hm = 0.1
     X = np.arange(n)  # n+1 because we need the endpoint
     # sinsurf = np.sin(2 * np.pi * X / L) * hm
-    trisurf = hm * scipy.signal.triang(n)
+    trisurf = hm * scipy.signal.windows.triang(n)
 
     t = NonuniformLineScan(X, trisurf)
 

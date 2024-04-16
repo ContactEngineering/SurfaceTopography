@@ -33,11 +33,12 @@ import os
 
 import numpy as np
 
+from ..Exceptions import (CorruptFile, FileFormatMismatch,
+                          MetadataAlreadyFixedByFile)
+from ..UniformLineScanAndTopography import Topography
 from .binary import decode
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
+from .Reader import ChannelInfo, ReaderBase
 
 
 class MetroProReader(ReaderBase):
@@ -256,10 +257,10 @@ This reader imports Zygo MetroPro data files.
         ('asphere_att8', '>f'),
         ('asphere_aperture_pct', '>f'),
         ('asphere_optimized_r0', '>f'),
-        ('iff_state', 'gint16_le'),
+        ('iff_state', '<i'),
         ('iff_idr_filename', '42s'),
         ('iff_ise_filename', '42s'),
-        (None, '2s'),
+        (None, '2b'),
         ('asphere_eqn_r0', '>f'),
         ('asphere_eqn_k', '>f'),
         ('asphere_eqn_coef', '>21f'),
@@ -289,7 +290,7 @@ This reader imports Zygo MetroPro data files.
         ('field_stop_name', '12s'),
         ('apert_stop_name', '12s'),
         ('illum_filt_name', '12s'),
-        (None, '2606b')
+        (None, '2608b')
     ]
 
     # Reads in the positions of all the data and metadata
@@ -318,7 +319,6 @@ This reader imports Zygo MetroPro data files.
             else:
                 if self._header['header_size'] != self._HEADER_SIZE3:
                     raise CorruptFile('Reported header size does not match expected header size.')
-                # TODO: We have no example file to actually test this code
                 header, size3 = decode(f, self._header_structure3, return_size=True)
                 assert size + size3 == self._HEADER_SIZE3
                 self._header.update(header)

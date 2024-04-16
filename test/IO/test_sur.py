@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -88,3 +87,51 @@ def test_sur3_metadata(file_format_examples):
     assert t.unit == 'm'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 0.0019200491394179297, rtol=1e-6)
+
+
+def test_sur4_metadata(file_format_examples, plot=False):
+    file_path = os.path.join(file_format_examples, 'sur-4.sur')
+
+    r = SURReader(file_path)
+    t = r.topography()
+
+    if plot:
+        import matplotlib.pyplot as plt
+        t.plot()
+        plt.show()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1232
+    assert ny == 1028
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 0.3400320075452328, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.2837280062958598, rtol=1e-6)
+
+    assert t.unit == 'mm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.1269314744701442, rtol=1e-6)
+
+
+def test_sur5_metadata(file_format_examples, plot=False):
+    file_path = os.path.join(file_format_examples, 'sur-5.sur')
+
+    r = SURReader(file_path)
+    t = r.topography()
+
+    if plot:
+        import matplotlib.pyplot as plt
+        t.plot()
+        plt.show()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 2560
+    assert ny == 2560
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
+    np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
+
+    assert t.unit == 'mm'
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 0.007327675492217414, rtol=1e-6)
