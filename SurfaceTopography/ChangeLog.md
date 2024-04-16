@@ -4,7 +4,9 @@ Change log for SurfaceTopography
 v1.13.13 (16Apr24)
 ------------------
 
-- BUG: Fixed reader for MetroPro v3 files
+- BUG: Fixed reader for MetroPro v3 files, close #364
+- BUG: Wrong data layout in SUR files
+- TST: scipy.signal.triang -> scipy.signal.windows.triang, closes #365
 
 v1.13.12 (21Mar24)
 ------------------
