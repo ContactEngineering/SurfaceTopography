@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.13.13 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.13.13.dev1+g1d1a8e24 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,8 +15,8 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=e051189c"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/documentation_options.js?v=4a1f7cc5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -38,7 +38,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.13.13
+                1.13.13.dev1+g1d1a8e24
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -2048,7 +2048,7 @@ determining scale factors. (Default: None)</p></li>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fun</strong> (<em>callable</em><em>(</em><em>X</em><em>, </em><em>Y</em><em>)</em>) – </p></li>
+<li><p><strong>fun</strong> (<em>callable</em><em>(</em><em>X</em><em>, </em><em>Y</em><em>)</em>)</p></li>
 <li><p><strong>centre</strong> (<em>tuple</em><em> or </em><em>&quot;middle&quot;</em>) – (cx, cy)
 h(X,Y) =  fun(X-cx, Y-cy)
 default (0,0)</p></li>
@@ -2314,15 +2314,15 @@ Default: ‘serial’, which fails for parallel runs.</p></li>
 default value is COMM_SELF because sometimes NON-MPI readers that
 do not set the communicator value are used in MPI Programs.
 See discussion in issue #166</p></li>
-<li><p><strong>initialisation</strong> (<em>Examples for</em>) – </p></li>
-<li><p><strong>----------------------------</strong> – </p></li>
-<li><p><strong>code</strong> (<em>2. Parallel</em>) – </p></li>
-<li><p><strong>&gt;&gt;&gt;Topography</strong><strong>(</strong><strong>heights</strong> – </p></li>
-<li><p><strong>physical_sizes</strong> – </p></li>
-<li><p><strong>[</strong><strong>periodic</strong> – </p></li>
-<li><p><strong>info</strong><strong>]</strong><strong>)</strong> – </p></li>
-<li><p><strong>code</strong> – </p></li>
-<li><p><strong>data</strong> (<em>providing local</em>) – </p></li>
+<li><p><strong>initialisation</strong> (<em>Examples for</em>)</p></li>
+<li><p><strong>----------------------------</strong></p></li>
+<li><p><strong>code</strong> (<em>2. Parallel</em>)</p></li>
+<li><p><strong>&gt;&gt;&gt;Topography</strong><strong>(</strong><strong>heights</strong></p></li>
+<li><p><strong>physical_sizes</strong></p></li>
+<li><p><strong>[</strong><strong>periodic</strong></p></li>
+<li><p><strong>info</strong><strong>]</strong><strong>)</strong></p></li>
+<li><p><strong>code</strong></p></li>
+<li><p><strong>data</strong> (<em>providing local</em>)</p></li>
 <li><p><strong>&gt;&gt;&gt;Topography</strong><strong>(</strong><strong>heights</strong> – decomposition=’subdomain’,
 subdomain_locations, nb_grid_pts, comm,
 [info])</p></li>
@@ -2343,8 +2343,8 @@ subdomain_locations, nb_grid_pts, comm,
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>code</strong> (<em>3. Parallel</em>) – </p></li>
-<li><p><strong>data</strong> (<em>providing full</em>) – </p></li>
+<li><p><strong>code</strong> (<em>3. Parallel</em>)</p></li>
+<li><p><strong>data</strong> (<em>providing full</em>)</p></li>
 <li><p><strong>&gt;&gt;&gt;Topography</strong><strong>(</strong><strong>heights</strong> – decomposition=’domain’,
 subdomain_locations, nb_subdomain_grid_pts, comm,
 [info])</p></li>
