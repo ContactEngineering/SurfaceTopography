@@ -6,8 +6,6 @@ numpy_incdir = run_command(python,
   check : true
 ).stdout().strip()
 
-eigen3_incdir = include_directories('../external/eigen3')
-
 # Build and install the extension module
 module = python.extension_module(
     '_SurfaceTopography', # Name of the module
@@ -18,8 +16,9 @@ module = python.extension_module(
         'patchfinder.cpp'
     ],
     install: true,  # Install it
-    include_directories: [eigen3_incdir, numpy_incdir],
+    include_directories: [numpy_incdir],
     dependencies: [ # List of dependencies
-        python.dependency() # Add Python.h as dependency
+        python.dependency(), # Add Python.h as dependency
+        eigen
     ]
 )

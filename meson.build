@@ -12,6 +12,9 @@ python = pymod.find_installation('python3',
     required: true,
 )
 
+eigen = dependency('eigen3', version: '>=3.4.0')
+pybind11 = dependency('pybind11')
+
 subdir('c')
 subdir('cpp')
 subdir('SurfaceTopography')
