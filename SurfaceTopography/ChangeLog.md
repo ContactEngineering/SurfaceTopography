@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-V1.13.14 (11June24)
--------------------
+v1.14.0 (11June24)
+------------------
 
 - MAINT: Switched from muSpectre to muFFT (v0.91.2) in dependencies
 
