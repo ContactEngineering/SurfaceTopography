@@ -23,18 +23,17 @@
 # SOFTWARE.
 #
 
-import pytest
 import tempfile
 
 import numpy as np
-from scipy.io import netcdf_file
-
+import pytest
 from muFFT import FFT
 from NuMPI import MPI
+from scipy.io import netcdf_file
 
+from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO import read_topography
 from SurfaceTopography.IO.NC import NCReader
-from SurfaceTopography.Generation import fourier_synthesis
 
 from .test_io import binary_example_file_list, explicit_physical_sizes
 
@@ -49,7 +48,7 @@ def test_save_and_load(maxcomm):
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit='µm')
 
-    fft = FFT(nb_grid_pts, communicator=maxcomm, fft="mpi")
+    fft = FFT(nb_grid_pts, communicator=maxcomm, engine="mpi")
     fft.create_plan(1)
     dt = t.domain_decompose(fft.subdomain_locations,
                             fft.nb_subdomain_grid_pts,

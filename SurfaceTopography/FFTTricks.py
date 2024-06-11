@@ -23,31 +23,48 @@
 #
 
 import muFFT
-
 import numpy as np
 
 
-def make_fft(topography, fft='mpi', communicator=None):
+def make_fft(topography, engine='mpi', communicator=None):
     """
     Instantiate a muFFT object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
     this is not the case).
 
+    This function checks if the topography object already has a muFFT object
+    attached to it. If it does, it returns that object. If it doesn't, it
+    creates a new muFFT object and attaches it to the topography object.
+    If the topography object is domain decomposed, it checks if the muFFT
+    object's domain decomposition matches the topography's. If it doesn't,
+    it raises a RuntimeError.
+
     Parameters
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the topography map.
-    communicator, optional : mpi4py communicator or NuMPI stub communicator
+    engine : str, optional
+        The engine to use for the Fourier transform. (Default: 'mpi')
+    communicator : mpi4py communicator or NuMPI stub communicator, optional
         Communicator object. Use communicator from topography object if not
         present. (Default: None)
-    """
 
+    Returns
+    -------
+    fft : muFFT.FFT
+        The muFFT object that can compute the Fourier transform of the topography.
+
+    Raises
+    ------
+    RuntimeError
+        If the muFFT object's domain decomposition does not match the topography's domain decomposition.
+    """
     # We only initialize this once and attach it to the topography object
     if hasattr(topography, '_mufft'):
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muFFT.FFT(topography.nb_grid_pts, fft=fft,
+        fft = muFFT.FFT(topography.nb_grid_pts, engine=engine,
                         communicator=topography.communicator if communicator is None else communicator)
         if fft.subdomain_locations != topography.subdomain_locations or \
                 fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:

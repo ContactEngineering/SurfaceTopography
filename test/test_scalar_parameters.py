@@ -46,7 +46,7 @@ def sinewave2D(comm=None):
     n = 256
     X, Y = np.mgrid[slice(0, n), slice(0, n)]
 
-    fftengine = FFT((n, n), fft="mpi", communicator=comm)
+    fftengine = FFT((n, n), engine="mpi", communicator=comm)
 
     hm = 0.1
     L = float(n)

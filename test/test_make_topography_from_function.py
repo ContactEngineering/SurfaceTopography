@@ -22,9 +22,9 @@
 # SOFTWARE.
 #
 import numpy as np
+from muFFT import FFT
 
 from SurfaceTopography.Special import make_topography_from_function
-from muFFT import FFT
 
 
 def test_sphere(comm):
@@ -34,7 +34,7 @@ def test_sphere(comm):
     sy = 7.
     R = 20.
     center = (3., 3.)
-    fftengine = FFT((nx, ny), fft="mpi", communicator=comm)
+    fftengine = FFT((nx, ny), engine="mpi", communicator=comm)
 
     topography = make_topography_from_function(
         lambda x, y: np.sqrt(R ** 2 - (x ** 2 + y ** 2)) - R, (sx, sy), nb_grid_pts=(nx, ny), centre=center,

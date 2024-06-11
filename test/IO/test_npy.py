@@ -24,22 +24,18 @@
 # SOFTWARE.
 #
 
-import unittest
-import tempfile
-
-import numpy as np
 import os
-
-import pytest
-
-from muFFT import FFT
-
-from SurfaceTopography import open_topography
-from SurfaceTopography.IO.NPY import NPYReader
-from SurfaceTopography.IO.NPY import save_npy
+import tempfile
+import unittest
 
 import NuMPI
+import numpy as np
+import pytest
+from muFFT import FFT
 from NuMPI import MPI
+
+from SurfaceTopography import open_topography
+from SurfaceTopography.IO.NPY import NPYReader, save_npy
 
 
 @pytest.mark.skipif(
@@ -123,7 +119,7 @@ def test_reader(comm, loader, examplefile):
     assert fileReader.nb_grid_pts == res
 
     fftengine = FFT(nb_grid_pts=fileReader.nb_grid_pts,
-                    fft="mpi",
+                    engine="mpi",
                     communicator=comm)
 
     top = fileReader.topography(
