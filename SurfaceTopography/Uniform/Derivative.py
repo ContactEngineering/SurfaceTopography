@@ -25,9 +25,8 @@
 
 """Compute derivatives of uniform line scans and topographies"""
 
-import numpy as np
-
 import muFFT
+import numpy as np
 
 from ..Exceptions import UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
@@ -277,8 +276,8 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     fft = self.make_fft()
 
     # These fields are reused when this function is called multiple times
-    real_field = fft.fetch_or_register_real_space_field('real_temporary', 1)
-    fourier_field = fft.fetch_or_register_fourier_space_field('complex_temporary', 1)
+    real_field = fft.real_space_field('real_temporary', 1)
+    fourier_field = fft.fourier_space_field('complex_temporary', 1)
     np.array(real_field, copy=False)[...] = self.heights()
     fft.fft(real_field, fourier_field)
 
