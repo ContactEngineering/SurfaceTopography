@@ -39,4 +39,5 @@ jobs:
 
       - name: Install package
         run: |
+          source ../venv/bin/activate
           pip install -v dist/*.tar.gz
