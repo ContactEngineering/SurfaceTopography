@@ -18,7 +18,7 @@ build_and_store_wheels: &BUILD_AND_STORE_WHEELS
 # Build linux_aarch64 natively
 ######################################################################
 
-# There is currently no muSpectre wheel for Linux aarch64, so it does not
+# There is currently no muGrid/muFFT wheel for Linux aarch64, so it does not
 # really make sense to build the aarch64 wheel here.
 #cirrus_wheels_linux_aarch64_task:
 #  compute_engine_instance:

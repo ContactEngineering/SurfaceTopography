@@ -54,10 +54,10 @@ jobs:
               libnetcdf-pnetcdf-dev \
               meson \
               ninja-build
-            # Compute mpi4py, numpy and muSpectre versions
+            # Compute mpi4py, numpy, muGrid and muFFT versions
             pip-compile pyproject.toml
             NUMPY_VERSION=$(grep 'numpy==' requirements.txt)        
-            MUSPECTRE_VERSION=$(grep 'muspectre==' requirements.txt)
+            MUFFT_VERSION=$(grep 'mufft==' requirements.txt)
             # Install numpy
             pip install -v ${NUMPY_VERSION}
             # Install mpi4py
@@ -70,9 +70,9 @@ jobs:
             CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
               --no-binary mpi4py --no-binary netCDF4 \
               netCDF4==${{ matrix.netcdf4-python-version }}
-            # Manually install muSpectre with MPI enabled
-            echo "Installing ${MUSPECTRE_VERSION}"
-            pip install -v --no-binary muspectre ${MUSPECTRE_VERSION}
+            # Manually install muFFT with MPI enabled
+            echo "Installing ${MUFFT_VERSION}"
+            pip install -v --no-binary muGrid --no-binary mufft ${MUFFT_VERSION}
           else
             sudo apt-get install -y \
               libfftw3-dev \

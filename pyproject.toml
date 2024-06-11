@@ -28,7 +28,7 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "muSpectre>=0.25.1",
+    "muFFT>=0.91.2",
     "NuMPI>=0.3.1",
     "numpyencoder",
     "openpyxl",
@@ -37,7 +37,8 @@ dependencies = [
     "pyyaml",
     "requests",
     "tiffile",
-    "xmltodict"
+    "xmltodict",
+    "pandas"
 ]
 
 [project.optional-dependencies]

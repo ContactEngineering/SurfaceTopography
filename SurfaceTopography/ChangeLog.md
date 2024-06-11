@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+V1.13.14 (11June24)
+-------------------
+
+- MAINT: Switched from muSpectre to muFFT (v0.91.2) in dependencies
+
 v1.13.13 (16Apr24)
 ------------------
 
@@ -764,7 +769,7 @@ Technical:
 
 - Use MPI wrapper provided by NuMPI (https://github.com/IMTEK-Simulation/NuMPI) for serial calculations.
 - Switch to parallel L-BFGS of NuMPI.
-- Removed Cython dependencies. (Parallel) FFT is now handled by muFFT (https://gitlab.com/muspectre/muspectre).
+- Removed Cython dependencies. (Parallel) FFT is now handled by muFFT (https://github.com/muSpectre/muFFT.git).
 - Tests have been partially converted to pytest. Parallel tests are run through run-tests
   (https://github.com/AntoineSIMTEK/runtests).
 
