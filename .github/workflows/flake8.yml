@@ -43,4 +43,4 @@ jobs:
       - name: Flake8 via pytest
         run: |
           source ../venv/bin/activate
-          python3 -m pytest --flake8 -m flake8 --verbose --full-trace -s
+          python3 -m flake8 SurfaceTopography test
