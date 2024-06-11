@@ -39,4 +39,4 @@ jobs:
 
       - name: Install package
         run: |
-          pip install dist/*.tar.gz
+          pip install -v dist/*.tar.gz
