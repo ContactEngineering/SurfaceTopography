@@ -30,7 +30,7 @@ jobs:
             ninja-build
           python3 -m venv ../venv
           source ../venv/bin/activate
-          pip install build meson
+          python3 -m pip install --upgrade pip pip-tools meson build
 
       - name: Build package
         run: |
