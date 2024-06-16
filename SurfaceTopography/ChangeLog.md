@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.14.1 (16June24)
+------------------
+
+- MAINT: Limit numpy to <2.0 (because of compatibility issues)
+
 v1.14.0 (11June24)
 ------------------
 
