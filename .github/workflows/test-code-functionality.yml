@@ -58,6 +58,8 @@ jobs:
             pip-compile pyproject.toml
             NUMPY_VERSION=$(grep 'numpy==' requirements.txt)        
             MUFFT_VERSION=$(grep 'mufft==' requirements.txt)
+            echo "numpy version: ${NUMPY_VERSION}"
+            echo "muFFT version: ${MUFFT_VERSION}"
             # Install numpy
             pip install -v ${NUMPY_VERSION}
             # Install mpi4py
@@ -84,7 +86,7 @@ jobs:
       - name: Install extension module
         run: |
           source venv/bin/activate
-          python3 -m pip install .[test]
+          python3 -m pip install --no-binary netCDF4 .[test]
 
       - name: Test with pytest
         run: |
