@@ -35,7 +35,7 @@ dependencies = [
     "igor2",
     "matplotlib>=1.0.0",
     "muFFT>=0.91.2",
-    "NuMPI>=0.3.1",
+    "NuMPI>=0.6.0",
     "numpyencoder",
     "openpyxl",
     "Pillow",
