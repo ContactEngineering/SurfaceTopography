@@ -34,6 +34,7 @@ SOFTWARE.
 #include <cmath>
 
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL PYCO_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
@@ -63,46 +64,46 @@ nonuniform_autocorrelation(PyObject *self, PyObject *args)
     FINALIZE_AND_RETURN;
   }
 
-  py_double_x = (PyObject*) PyArray_FROMANY((PyObject *) py_x, NPY_DOUBLE, 1, 1, NPY_C_CONTIGUOUS);
+  py_double_x = (PyObject*) PyArray_FROMANY((PyObject *) py_x, NPY_DOUBLE, 1, 1, NPY_ARRAY_C_CONTIGUOUS);
   if (!py_double_x) {
     FINALIZE_AND_RETURN;
   }
 
-  py_double_h = (PyObject*) PyArray_FROMANY((PyObject *) py_h, NPY_DOUBLE, 1, 1, NPY_C_CONTIGUOUS);
+  py_double_h = (PyObject*) PyArray_FROMANY((PyObject *) py_h, NPY_DOUBLE, 1, 1, NPY_ARRAY_C_CONTIGUOUS);
   if (!py_double_h) {
     FINALIZE_AND_RETURN;
   }
 
-  npy_intp nb_grid_pts = PyArray_DIM(py_double_x, 0);
-  if (PyArray_DIM(py_double_h, 0) != nb_grid_pts) {
+  npy_intp nb_grid_pts = PyArray_DIM((PyArrayObject *) py_double_x, 0);
+  if (PyArray_DIM((PyArrayObject *) py_double_h, 0) != nb_grid_pts) {
     PyErr_SetString(PyExc_TypeError, "x- and y-arrays must contain identical number of data points.");
   }
 
-  double *x = (double *) PyArray_DATA(py_double_x);
-  double *h = (double *) PyArray_DATA(py_double_h);
+  double *x = (double *) PyArray_DATA((PyArrayObject *) py_double_x);
+  double *h = (double *) PyArray_DATA((PyArrayObject *) py_double_h);
 
   double *distances;
   if (py_distances && py_distances != Py_None) {
-    py_double_distances = (PyObject*) PyArray_FROMANY((PyObject *) py_distances, NPY_DOUBLE, 1, 1, NPY_C_CONTIGUOUS);
+    py_double_distances = (PyObject*) PyArray_FROMANY((PyObject *) py_distances, NPY_DOUBLE, 1, 1, NPY_ARRAY_C_CONTIGUOUS);
     if (!py_double_distances) {
       FINALIZE_AND_RETURN;
     }
-    distances = (double *) PyArray_DATA(py_double_distances);
+    distances = (double *) PyArray_DATA((PyArrayObject *) py_double_distances);
   }
   else {
     py_double_distances = PyArray_EMPTY(1, &nb_grid_pts, NPY_DOUBLE, 0);
     if (!py_double_distances) {
       FINALIZE_AND_RETURN;
     }
-    distances = (double *) PyArray_DATA(py_double_distances);
+    distances = (double *) PyArray_DATA((PyArrayObject *) py_double_distances);
     /* Create distance array */
     for (int i = 0; i < nb_grid_pts; ++i)  distances[i] = i*physical_size/nb_grid_pts;
   }
 
-  npy_intp nb_distance_pts = PyArray_DIM(py_double_distances, 0);
+  npy_intp nb_distance_pts = PyArray_DIM((PyArrayObject *) py_double_distances, 0);
 
   py_acf = PyArray_ZEROS(1, &nb_distance_pts, NPY_DOUBLE, 0);
-  double *acf = (double *) PyArray_DATA(py_acf);
+  double *acf = (double *) PyArray_DATA((PyArrayObject *) py_acf);
 
   for (int i = 0; i < nb_grid_pts-1; ++i) {
     double x1 = x[i];
