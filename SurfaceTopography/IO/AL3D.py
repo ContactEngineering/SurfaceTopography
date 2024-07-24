@@ -102,7 +102,8 @@ AL3D format of Alicona Imaging.
         nx, ny = self._nb_grid_pts
         rowstride = (nx * np.dtype(dtype).itemsize + 7) // 8 * 8
         buffer = f.read(rowstride * ny * np.dtype(dtype).itemsize)
-        data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx), strides=(rowstride, np.dtype(dtype).itemsize))
+        data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx),
+                          strides=(rowstride, np.dtype(dtype).itemsize))
         mask = np.isnan(data)
         if not np.isnan(invalid_pixel_value):
             mask = np.logical_or(mask, np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * invalid_pixel_value)
