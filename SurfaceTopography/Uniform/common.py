@@ -32,8 +32,8 @@ import numpy as np
 
 from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
-from ..UniformLineScanAndTopography import Topography
-from ..UniformLineScanAndTopography import DecoratedUniformTopography
+from ..UniformLineScanAndTopography import (DecoratedUniformTopography,
+                                            Topography)
 
 
 def bandwidth(self):
@@ -133,7 +133,7 @@ def plot(topography, subplot_location=111):
 
 
 class FilledTopography(DecoratedUniformTopography):
-    def __init__(self, topography, fill_value=-np.infty, info={}):
+    def __init__(self, topography, fill_value=-np.inf, info={}):
         """
         masked (undefined) data is replaced with `fill_value`.
 
