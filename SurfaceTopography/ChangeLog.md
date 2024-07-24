@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.14.1 (24Jul24)
+-----------------
+
+- BUG: Fixed AL3D reader
+
 v1.14.1 (16June24)
 ------------------
 
