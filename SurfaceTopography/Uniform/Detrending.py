@@ -140,7 +140,7 @@ def polyfit2_topography(self, full_output=False):
     x_grids = np.meshgrid(*x_grids, indexing='ij')
     # Quadratic terms
     x, y = x_grids
-    x_grids += [x * x, y * y, x * y]
+    x_grids += (x * x, y * y, x * y)
     if np.ma.getmask(arr) is np.ma.nomask:
         columns = [x.reshape((-1, 1)) for x in x_grids]
     else:
