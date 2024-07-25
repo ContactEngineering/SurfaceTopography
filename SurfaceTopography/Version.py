@@ -1,5 +1,5 @@
 #
-# Copyright 2022-2024 Lars Pastewka
+# Copyright 2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -24,4 +24,4 @@
 
 from DiscoverVersion import get_version
 
-print(get_version('SurfaceTopography', __file__))
+__version__ = get_version('SurfaceTopography', __file__)

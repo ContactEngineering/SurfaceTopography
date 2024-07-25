@@ -31,8 +31,8 @@ from zipfile import ZipFile
 import numpy as np
 import yaml
 
-from ...DiscoverVersion import __version__
 from ...IO import open_topography
+from ...Version import __version__
 from ..SurfaceContainer import LazySurfaceContainer, SurfaceContainer
 from .Reader import ContainerReaderBase
 
