@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 1.14.2.dev1+gba5a0043 documentation</title>
+  <title>Index &mdash; SurfaceTopography 1.14.2.dev23+g578d0ed1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -14,7 +14,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=472c16b9"></script>
+        <script src="_static/documentation_options.js?v=cfe38aaf"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.14.2.dev1+gba5a0043
+                1.14.2.dev23+g578d0ed1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -391,8 +391,6 @@
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CannotDetectFileFormat">CannotDetectFileFormat</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.DiscoverVersion.CannotDiscoverVersion">CannotDiscoverVersion</a>
-</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CannotPerformAnalysisError">CannotPerformAnalysisError</a>
 </li>
       <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEFileOpener">CEFileOpener (class in SurfaceTopography.Container.IO.CE)</a>
@@ -739,13 +737,11 @@
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.gaussian_process_regression">gaussian_process_regression() (in module SurfaceTopography.Support.Regression)</a>
 </li>
-      <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness">generate_roughness() (SurfaceTopography.Models.SelfAffine.SelfAffine method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor">get_unit_conversion_factor() (in module SurfaceTopography.Support.UnitConversion)</a>
+      <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.generate_roughness">generate_roughness() (SurfaceTopography.Models.SelfAffine.SelfAffine method)</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.DiscoverVersion.get_version_from_git">get_version_from_git() (in module SurfaceTopography.DiscoverVersion)</a>
+      <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.get_unit_conversion_factor">get_unit_conversion_factor() (in module SurfaceTopography.Support.UnitConversion)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.get_window_2D">get_window_2D() (in module SurfaceTopography.FFTTricks)</a>
 </li>
@@ -1083,8 +1079,6 @@
 </li>
         <li><a href="source/SurfaceTopography.Container.html#module-SurfaceTopography.Container.SurfaceContainer">SurfaceTopography.Container.SurfaceContainer</a>
 </li>
-        <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.DiscoverVersion">SurfaceTopography.DiscoverVersion</a>
-</li>
         <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.Exceptions">SurfaceTopography.Exceptions</a>
 </li>
         <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks</a>
@@ -1260,6 +1254,8 @@
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth</a>
 </li>
         <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography</a>
+</li>
+        <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.Version">SurfaceTopography.Version</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1822,13 +1818,6 @@
 </li>
       </ul></li>
       <li>
-    SurfaceTopography.DiscoverVersion
-
-      <ul>
-        <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.DiscoverVersion">module</a>
-</li>
-      </ul></li>
-      <li>
     SurfaceTopography.Exceptions
 
       <ul>
@@ -2031,8 +2020,6 @@
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.LEXT">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     SurfaceTopography.IO.Matlab
 
@@ -2040,6 +2027,8 @@
         <li><a href="source/SurfaceTopography.IO.html#module-SurfaceTopography.IO.Matlab">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     SurfaceTopography.IO.MetroPro
 
@@ -2444,6 +2433,13 @@
 
       <ul>
         <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">module</a>
+</li>
+      </ul></li>
+      <li>
+    SurfaceTopography.Version
+
+      <ul>
+        <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.Version">module</a>
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.SUR.SURReader">SURReader (class in SurfaceTopography.IO.SUR)</a>

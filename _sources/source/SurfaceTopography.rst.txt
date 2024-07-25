@@ -19,14 +19,6 @@ Subpackages
 Submodules
 ----------
 
-SurfaceTopography.DiscoverVersion module
-----------------------------------------
-
-.. automodule:: SurfaceTopography.DiscoverVersion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 SurfaceTopography.Exceptions module
 -----------------------------------
 
@@ -87,6 +79,14 @@ SurfaceTopography.UniformLineScanAndTopography module
 -----------------------------------------------------
 
 .. automodule:: SurfaceTopography.UniformLineScanAndTopography
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Version module
+--------------------------------
+
+.. automodule:: SurfaceTopography.Version
    :members:
    :undoc-members:
    :show-inheritance:
