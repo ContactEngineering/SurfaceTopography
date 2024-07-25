@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography.IO import DATXReader
@@ -36,7 +35,7 @@ pytestmark = pytest.mark.skipif(
     reason="tests only serial funcionalities, please execute with pytest")
 
 
-def test_datx_metadata(file_format_examples):
+def test_datx1_metadata(file_format_examples):
     file_path = os.path.join(file_format_examples, 'datx-1.datx')
 
     r = DATXReader(file_path)
@@ -56,3 +55,25 @@ def test_datx_metadata(file_format_examples):
     np.testing.assert_allclose(t.min(), -23393.847656, rtol=1e-6)
 
     np.testing.assert_allclose(t.rms_height_from_area(), 6304.986277, rtol=1e-6)
+
+
+def test_datx2_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'datx-2.datx')
+
+    r = DATXReader(file_path)
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1000
+    assert ny == 1000
+
+    assert t.unit == 'nm'
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 173108.716695, rtol=1e-6)
+    np.testing.assert_allclose(sy, 173108.716695, rtol=1e-6)
+
+    np.testing.assert_allclose(t.max(), 11.037771, rtol=1e-6)
+    np.testing.assert_allclose(t.min(), -116.920823, rtol=1e-6)
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 1.905869, rtol=1e-6)
