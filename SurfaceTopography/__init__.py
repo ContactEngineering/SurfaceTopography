@@ -70,8 +70,6 @@ from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
 from .Special import PlasticTopography, make_sphere  # noqa: F401
 from .UniformLineScanAndTopography import Topography  # noqa: F401
 from .UniformLineScanAndTopography import UniformLineScan  # noqa: F401
-# This needs to be the first import, because __version__ is needed in the
-# packages that are subsequently imported.
 from .Version import __version__  # noqa: F401
 
 # Add contact.engineering paper to bibliography
