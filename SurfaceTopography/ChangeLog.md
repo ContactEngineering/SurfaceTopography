@@ -7,6 +7,11 @@ v1.15.0 (not yet released)
 - ENH: Support for numpy >= 2.0.0
 - CI: macOS and Linux aarch wheels
 
+v1.14.2 (24Jul24)
+-----------------
+
+- BUG: Fixed AL3D reader
+
 v1.14.1 (16June24)
 ------------------
 
