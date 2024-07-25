@@ -23,13 +23,14 @@
 # SOFTWARE.
 #
 import numpy as np
-from SurfaceTopography.Generation import fourier_synthesis
 
+from SurfaceTopography.Generation import fourier_synthesis
 
 # TODO abstract class for discrete and model PSDs
 # TODO all wavelengths and prefactors as properties
 #
 # TODO: think about abstract Statistical roughness hierarchy
+
 
 class AbstractStatisticalRoughness(object):
     def power_spectrum(seld):
@@ -52,7 +53,7 @@ class SelfAffine(AbstractIsotropicRoughness):
                  cr,
                  rolloff_wavelength,
                  hurst_exponent,
-                 longcut_wavelength=np.infty,
+                 longcut_wavelength=np.inf,
                  shortcut_wavelength=0, unit=None):
         self.cr = cr  # Ampliture of the PSD at and below the rolloff wavevector
         self.rolloff_wavelength = rolloff_wavelength
@@ -61,7 +62,7 @@ class SelfAffine(AbstractIsotropicRoughness):
         self.hurst_exponent = hurst_exponent
 
         if self.shortcut_wavelength == 0:
-            self.shortcut_wavevector = np.infty
+            self.shortcut_wavevector = np.inf
         else:
             self.shortcut_wavevector = 2 * np.pi / self.shortcut_wavelength
 
@@ -129,7 +130,7 @@ class SelfAffine(AbstractIsotropicRoughness):
         if longcut_wavelength is None:
             longcut_wavelength = self.longcut_wavelength
 
-        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
+        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.inf
         longcut_wavevector = (2 * np.pi) / longcut_wavelength
 
         # see labbook of 220304
@@ -196,7 +197,7 @@ class SelfAffine(AbstractIsotropicRoughness):
         else:
             longcut_wavelength = min(longcut_wavelength, self.longcut_wavelength)
 
-        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.infty
+        shortcut_wavevector = (2 * np.pi) / shortcut_wavelength if shortcut_wavelength > 0 else np.inf
         longcut_wavevector = (2 * np.pi) / longcut_wavelength
         rolloff_wavevector = self.rolloff_wavevector
         # prefactor of the self-afine region:

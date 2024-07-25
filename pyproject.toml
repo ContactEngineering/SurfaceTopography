@@ -1,5 +1,12 @@
 [build-system]
-requires = ["meson>=1.0.0", "meson-python>=0.16.0", "ninja", "numpy<2.0"]
+requires = [
+    "meson>=1.0.0",
+    "meson-python>=0.13.0",
+    "ninja",
+    "oldest-supported-numpy; python_version=='3.8'",
+    "numpy>=2.0.0; python_version>='3.9'",
+    "DiscoverVersion"
+]
 build-backend = "mesonpy"
 
 [project]
@@ -22,14 +29,15 @@ classifiers = [
 requires-python = ">=3.8.0"
 dynamic = [ "version" ]
 dependencies = [
-    "numpy<2.0",
+    "DiscoverVersion",
+    "numpy",
     "scipy>=1.9.0",
     "defusedxml",
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
     "muFFT>=0.91.2",
-    "NuMPI>=0.3.1",
+    "NuMPI>=0.6.1",
     "numpyencoder",
     "openpyxl",
     "Pillow",

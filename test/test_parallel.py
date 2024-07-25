@@ -27,7 +27,6 @@
 """Specific test for MPI-parallel functionality"""
 
 import numpy as np
-
 from NuMPI.Tools import Reduction
 
 from SurfaceTopography import Topography
@@ -69,7 +68,7 @@ def test_fill_undefined_data_parallel(comm):
                             subdomain_locations=(0, comm.rank)
                             )
 
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
+    filled_topography = topography.fill_undefined_data(fill_value=-np.inf)
     assert topography.has_undefined_data
     assert not filled_topography.has_undefined_data
 
@@ -79,5 +78,5 @@ def test_fill_undefined_data_parallel(comm):
     reduction = Reduction(comm)
 
     assert reduction.all(filled_topography[nmask] == topography[nmask])
-    assert reduction.all(filled_topography[mask] == - np.infty)
+    assert reduction.all(filled_topography[mask] == - np.inf)
     assert not filled_topography.has_undefined_data

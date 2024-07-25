@@ -135,7 +135,7 @@ def test_fill_undefined_data_linescan(periodic):
                                  )
     assert topography.has_undefined_data
 
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
+    filled_topography = topography.fill_undefined_data(fill_value=-np.inf)
     assert not filled_topography.has_undefined_data
 
     assert filled_topography.physical_sizes == topography.physical_sizes
@@ -153,11 +153,11 @@ def test_fill_undefined_data(periodic):
                             )
     assert topography.has_undefined_data
 
-    filled_topography = topography.fill_undefined_data(fill_value=-np.infty)
+    filled_topography = topography.fill_undefined_data(fill_value=-np.inf)
     mask = np.ma.getmask(topography.heights())
     nmask = np.logical_not(mask)
     assert (filled_topography[nmask] == topography[nmask]).all()
-    assert (filled_topography[mask] == - np.infty).all()
+    assert (filled_topography[mask] == - np.inf).all()
     assert not filled_topography.has_undefined_data
 
     assert filled_topography.physical_sizes == topography.physical_sizes

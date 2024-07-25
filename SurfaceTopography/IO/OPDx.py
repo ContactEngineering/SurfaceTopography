@@ -33,11 +33,13 @@ from collections import namedtuple
 import dateutil.parser
 import numpy as np
 
-from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
+from ..Exceptions import (FileFormatMismatch, MetadataAlreadyFixedByFile,
+                          UnsupportedFormatFeature)
+from ..Support.UnitConversion import (get_unit_conversion_factor,
+                                      mangle_length_unit_utf8)
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 MAGIC = b'VCA DATA\x01\x00\x00\x55'
 
@@ -438,13 +440,13 @@ def read_dimension2d_content(stream):
 def _read_name(stream):
     # Names always have a size of 4 bytes
     length = _read_scalar(stream, '<u4')
-    return stream.read(length).decode('UTF-8')
+    return stream.read(length).decode('utf-8')
 
 
 def _read_string(stream):
     # String have variable lengths
     string_length = _read_varlen(stream)
-    return stream.read(string_length).decode('UTF-8')
+    return stream.read(string_length).decode('utf-8')
 
 
 def _read_scalar(stream, dtype):
@@ -459,13 +461,15 @@ def _read_scalar(stream, dtype):
 def _read_varlen(stream):
     lenlen = _read_scalar(stream, 'B')
     if lenlen == 1:
-        return _read_scalar(stream, 'B')
+        L = _read_scalar(stream, 'B')
     elif lenlen == 2:
-        return _read_scalar(stream, '<u2')
+        L = _read_scalar(stream, '<u2')
     elif lenlen == 4:
-        return _read_scalar(stream, '<u4')
+        L = _read_scalar(stream, '<u4')
     else:
         raise ValueError(f"Don't know how to read a variable length of size {lenlen}.")
+    # numpy-2: Cast to int because otherwise arithmetics will overflow
+    return int(L)
 
 
 def _read_string_list(stream):

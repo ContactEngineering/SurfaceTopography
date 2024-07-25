@@ -35,6 +35,7 @@ SOFTWARE.
 #include <iostream>
 
 #include <Python.h>
+#define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL PYCO_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
@@ -357,14 +358,14 @@ bicubic_init(bicubic_t *self, PyObject *args, PyObject *kwargs)
   py_values = PyArray_FROMANY(py_values_in, NPY_DOUBLE, 2, 2, NPY_ARRAY_C_CONTIGUOUS);
   if (!py_values)
     return -1;
-  nx = PyArray_DIM(py_values, 0);
-  ny = PyArray_DIM(py_values, 1);
+  nx = PyArray_DIM((PyArrayObject *) py_values, 0);
+  ny = PyArray_DIM((PyArrayObject *) py_values, 1);
 
   if (py_derivativex_in) {
     py_derivativex = PyArray_FROMANY(py_derivativex_in, NPY_DOUBLE, 2, 2, NPY_ARRAY_C_CONTIGUOUS);
     if (!py_derivativex)
       return -1;
-    if (PyArray_DIM(py_derivativex, 0) != nx || PyArray_DIM(py_derivativex, 1) != ny) {
+    if (PyArray_DIM((PyArrayObject *) py_derivativex, 0) != nx || PyArray_DIM((PyArrayObject *) py_derivativex, 1) != ny) {
 	  PyErr_SetString(PyExc_ValueError, "x-derivative must have same shape as values.");
 	  return -1;
     }
@@ -374,7 +375,7 @@ bicubic_init(bicubic_t *self, PyObject *args, PyObject *kwargs)
     py_derivativey = PyArray_FROMANY(py_derivativey_in, NPY_DOUBLE, 2, 2, NPY_ARRAY_C_CONTIGUOUS);
     if (!py_derivativey)
       return -1;
-    if (PyArray_DIM(py_derivativey, 0) != nx || PyArray_DIM(py_derivativey, 1) != ny) {
+    if (PyArray_DIM((PyArrayObject *) py_derivativey, 0) != nx || PyArray_DIM((PyArrayObject *) py_derivativey, 1) != ny) {
 	  PyErr_SetString(PyExc_ValueError, "y-derivative must have same shape as values.");
 	  return -1;
     }
@@ -382,18 +383,18 @@ bicubic_init(bicubic_t *self, PyObject *args, PyObject *kwargs)
 
   double *derivativex{NULL}, *derivativey{NULL};
   if (py_derivativex) {
-    derivativex = static_cast<double*>(PyArray_DATA(py_derivativex));
+    derivativex = static_cast<double*>(PyArray_DATA((PyArrayObject *) py_derivativex));
   }
   if (py_derivativey) {
-    derivativey = static_cast<double*>(PyArray_DATA(py_derivativey));
+    derivativey = static_cast<double*>(PyArray_DATA((PyArrayObject *) py_derivativey));
   }
 
   if (derivativex || derivativey) {
-    self->map_ = new Bicubic(nx, ny, static_cast<double*>(PyArray_DATA(py_values)), derivativex, derivativey, false,
+    self->map_ = new Bicubic(nx, ny, static_cast<double*>(PyArray_DATA((PyArrayObject *) py_values)), derivativex, derivativey, false,
                              false);
   }
   else {
-    self->map_ = new Bicubic(nx, ny, static_cast<double*>(PyArray_DATA(py_values)), NULL, NULL, true, false);
+    self->map_ = new Bicubic(nx, ny, static_cast<double*>(PyArray_DATA((PyArrayObject *) py_values)), NULL, NULL, true, false);
   }
   Py_DECREF(py_values);
   if (py_derivativex)  Py_DECREF(py_derivativex);
@@ -434,16 +435,16 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
     if (!py_r)
       return NULL;
 
-    if (PyArray_DIM(py_r, 1) != 2) {
+    if (PyArray_DIM((PyArrayObject *) py_r, 1) != 2) {
       PyErr_SetString(PyExc_ValueError, "Map index needs to have x- and y-component only.");
       return NULL;
     }
 
-    npy_intp n = PyArray_DIM(py_r, 0);
-    double *r = (double *) PyArray_DATA(py_r);
+    npy_intp n = PyArray_DIM((PyArrayObject *) py_r, 0);
+    double *r = (double *) PyArray_DATA((PyArrayObject *) py_r);
 
     PyObject *py_v = PyArray_SimpleNew(1, &n, NPY_DOUBLE);
-    double *v = (double *) PyArray_DATA(py_v);
+    double *v = (double *) PyArray_DATA((PyArrayObject *) py_v);
 
     for (int i = 0; i < n; i++) {
       self->map_->eval(r[2*i], r[2*i+1], v[i]);
@@ -471,17 +472,17 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
       return NULL;
 
     /* Check that x and y have the same number of dimensions */
-    if (PyArray_NDIM(py_xd) != PyArray_NDIM(py_yd)) {
+    if (PyArray_NDIM((PyArrayObject *) py_xd) != PyArray_NDIM((PyArrayObject *) py_yd)) {
       PyErr_SetString(PyExc_ValueError, "x- and y-components need to have identical number of dimensions.");
       return NULL;
     }
 
     /* Check that x and y have the same length in each dimension */
-    int ndims = PyArray_NDIM(py_xd);
-    npy_intp *dims = PyArray_DIMS(py_xd);
+    int ndims = PyArray_NDIM((PyArrayObject *) py_xd);
+    npy_intp *dims = PyArray_DIMS((PyArrayObject *) py_xd);
     npy_intp n = 1;
     for (int i = 0; i < ndims; i++) {
-      npy_intp d = PyArray_DIM(py_yd, i);
+      npy_intp d = PyArray_DIM((PyArrayObject *) py_yd, i);
 
       if (dims[i] != d) {
 	    PyErr_SetString(PyExc_ValueError, "x- and y-components vectors need to have the same length.");
@@ -491,26 +492,26 @@ bicubic_call(bicubic_t *self, PyObject *args, PyObject *kwargs)
       n *= d;
     }
 
-    double *x{static_cast<double *>(PyArray_DATA(py_xd))};
-    double *y{static_cast<double *>(PyArray_DATA(py_yd))};
+    double *x{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_xd))};
+    double *y{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_yd))};
 
     PyObject *py_v{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
-    double *v{static_cast<double *>(PyArray_DATA(py_v))};
+    double *v{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_v))};
 
     PyObject *py_return_value;
 
     if (derivative > 0) {
       PyObject *py_dx{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
       PyObject *py_dy{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
-      double *dx{static_cast<double *>(PyArray_DATA(py_dx))};
-      double *dy{static_cast<double *>(PyArray_DATA(py_dy))};
+      double *dx{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_dx))};
+      double *dy{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_dy))};
       if (derivative > 1) {
         PyObject *py_d2x{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
         PyObject *py_d2y{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
         PyObject *py_d2xy{PyArray_SimpleNew(ndims, dims, NPY_DOUBLE)};
-        double *d2x{static_cast<double *>(PyArray_DATA(py_d2x))};
-        double *d2y{static_cast<double *>(PyArray_DATA(py_d2y))};
-        double *d2xy{static_cast<double *>(PyArray_DATA(py_d2xy))};
+        double *d2x{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_d2x))};
+        double *d2y{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_d2y))};
+        double *d2xy{static_cast<double *>(PyArray_DATA((PyArrayObject *) py_d2xy))};
         for (int i = 0; i < n; i++) {
           self->map_->eval(x[i], y[i], v[i], dx[i], dy[i], d2x[i], d2y[i], d2xy[i]);
         }

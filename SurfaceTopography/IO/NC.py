@@ -413,6 +413,7 @@ def write_nc_uniform(topography, fobj, format='NETCDF3_64BIT_OFFSET'):
         mask_var = None
         if topography.has_undefined_data:
             mask_var = nc.createVariable('mask', 'b', spatial, **var_kwargs)
+            mask_var.maskandscale = False  # numpy-2: _FillValue overflows
 
         # Create variables for x- and y-positions, but only if physical_sizes
         # exist. (physical_sizes should always exist, but who knows...)

@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Lars Pastewka
+# Copyright 2022-2024 Lars Pastewka
 #
 # ### MIT license
 #
@@ -22,73 +22,6 @@
 # SOFTWARE.
 #
 
-#
-# This is the most minimal-idiotic way of discovering the version that I
-# could come up with. It deals with the following issues:
-# * If we are installed, we can get the version from package metadata,
-#   either via importlib.metadata or from pkg_resources. This also holds for
-#   wheels that contain the metadata. We are good! Yay!
-# * If we are not installed, there are two options:
-#   - We are working within the source git repository. Then
-#        git describe --tags --always
-#     yields a reasonable version descriptor, but that is unfortunately not
-#     PEP 440 compliant (see https://peps.python.org/pep-0440/). We need to
-#     mangle the version string to yield something compatible.
-# - If we install from a source tarball, we need to parse PKG-INFO manually.
-#
+from DiscoverVersion import get_version
 
-import subprocess
-
-
-class CannotDiscoverVersion(Exception):
-    pass
-
-
-def get_version_from_pkg_info():
-    """
-    Discover version from PKG-INFO file.
-    """
-    f = open('PKG-INFO', 'r')
-    l = f.readline()
-    while l:
-        if l.startswith('Version:'):
-            return l[8:].strip()
-        l = f.readline()
-    raise CannotDiscoverVersion("No line starting with 'Version:' in 'PKG-INFO'.")
-
-
-def get_version_from_git():
-    """
-    Discover version from git repository.
-    """
-    git_describe = subprocess.run(
-        ['git', 'describe', '--tags', '--dirty', '--always'],
-        stdout=subprocess.PIPE)
-    if git_describe.returncode != 0:
-        raise CannotDiscoverVersion('git execution failed.')
-    version = git_describe.stdout.decode('latin-1').strip()
-
-    dirty = version.endswith('-dirty')
-
-    # Make version PEP 440 compliant
-    if dirty:
-        version = version.replace('-dirty', '')
-    version = version.strip('v')  # Remove leading 'v' if it exists
-    version = version.replace('-', '.dev', 1)
-    version = version.replace('-', '+', 1)
-    if dirty:
-        version += '.dirty'
-
-    return version
-
-
-try:
-    version = get_version_from_git()
-except CannotDiscoverVersion:
-    version = get_version_from_pkg_info()
-
-#
-# Print version to screen
-#
-
-print(version)
+print(get_version('SurfaceTopography', __file__))

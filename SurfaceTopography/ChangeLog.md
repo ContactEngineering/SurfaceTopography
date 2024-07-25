@@ -1,10 +1,19 @@
 Change log for SurfaceTopography
 ================================
 
+v1.15.0 (not yet released)
+--------------------------
+
+- ENH: Variable bandwidth analysis for topographies with missing data
+- ENH: NMM (Nanomeasuring Machine) reader
+- MAINT: Support for numpy >= 2.0.0
+- MAINT: Version discovery through `DiscoverVersion` module
+- CI: macOS and Linux aarch wheels
+
 v1.14.2 (24Jul24)
 -----------------
 
-- BUG: Fixed AL3D reader
+- BUG: Fixed data layout in AL3D reader
 
 v1.14.1 (16June24)
 ------------------
@@ -19,7 +28,7 @@ v1.14.0 (11June24)
 v1.13.13 (16Apr24)
 ------------------
 
-- BUG: Fixed reader for MetroPro v3 files, close #364
+- BUG: Fixed reader for MetroPro v3 files, closes #364
 - BUG: Wrong data layout in SUR files
 - TST: scipy.signal.triang -> scipy.signal.windows.triang, closes #365
 
