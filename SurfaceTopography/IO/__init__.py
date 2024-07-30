@@ -53,6 +53,7 @@ from .MetroPro import MetroProReader
 from .MI import MIReader
 from .Mitutoyo import MitutoyoReader
 from .NC import NCReader
+from .NMM import NMMReader
 from .NPY import NPYReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
@@ -104,6 +105,7 @@ readers = [
     WSXMReader,
     PLUXReader,
     JPKReader,
+    NMMReader,
     # HGT reader should come last as there is no file magic
     HGTReader,
 ]

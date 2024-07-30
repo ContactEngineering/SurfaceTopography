@@ -129,6 +129,7 @@ binary_example_file_list = _convert_filelist(['di-1.di',
                                               'top-1.top',
                                               'plux-1.plux',
                                               'jpk-1.jpk',
+                                              'nmm-1.nmm',
                                               # MPI I/O does not support Python streams
                                               ] + ([] if NuMPI._has_mpi4py else ['example-2d.npy']))
 
