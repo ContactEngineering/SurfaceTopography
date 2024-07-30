@@ -5,7 +5,7 @@ v1.15.0 (not yet released)
 --------------------------
 
 - ENH: Variable bandwidth analysis for topographies with missing data
-- ENH: NMM (Nanomeasuring Machine) reader
+- ENH: NMM (Nanomeasuring Machine) reader (.zip)
 - MAINT: Support for numpy >= 2.0.0
 - MAINT: Version discovery through the `DiscoverVersion` module
 - CI: macOS and Linux ARM wheels
