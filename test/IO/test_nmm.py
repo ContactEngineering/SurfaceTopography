@@ -36,12 +36,19 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def test_nmm_metadata(file_format_examples):
+def test_nmm_metadata(file_format_examples, plot=False):
     file_path = os.path.join(file_format_examples, "nmm-1.zip")
 
     r = NMMReader(file_path)
     t = r.topography()
 
     assert t.nb_grid_pts == (20001,)
-    np.testing.assert_allclose(t.physical_sizes, -3.531639e-05, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.111362e-06, rtol=1e-6)
+    print(t.physical_sizes)
+    np.testing.assert_allclose(t.physical_sizes, 0.0007071105772375498)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.135232e-06, rtol=1e-6)
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        plt.plot(*t.positions_and_heights(), "k-")
+        plt.show()

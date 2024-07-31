@@ -141,10 +141,13 @@ DSC.
             self._dat.columns = self._dsc["name"]
             self._info = {"acquisition_data": self._dsc["datetime"].values[0]}
 
-            self._x = np.sqrt(self._dat["Lx"].values ** 2 + self._dat["Ly"].values ** 2)
+            self._x = self._dat["Lx"].values
             self._h = self._dat["-Lz+Az"].values
-
             self._physical_size = self._x[-1] - self._x[0]
+            if self._physical_size < 0:
+                self._x = self._x[::-1]
+                self._h = self._h[::-1]
+                self._physical_size = self._x[-1] - self._x[0]
 
             if np.max(np.abs(np.diff(self._x) / (self._x[1] - self._x[0]))) < 1 + rtol:
                 # This is a uniform grid
@@ -199,7 +202,9 @@ DSC.
             raise MetadataAlreadyFixedByFile("height_scale_factor")
 
         if periodic and not self._uniform:
-            raise MetadataAlreadyFixedByFile("periodic")
+            raise ValueError(
+                "Nonuniform line scans cannot be periodic (while reading NMM file)"
+            )
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
