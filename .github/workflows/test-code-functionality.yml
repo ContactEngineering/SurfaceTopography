@@ -21,7 +21,6 @@ jobs:
         mpi: ['no', 'mpi']
         python-version: ['3.8', '3.9', '3.10', '3.11' , '3.12']
         mpi4py-version: [3.1.4]
-        netcdf4-python-version: [1.6.1]
         exclude:
           - mpi: 'mpi'
             python-version: '3.12'
@@ -67,11 +66,6 @@ jobs:
             CC=mpicc python3 -m pip install -v \
               --no-binary mpi4py \
               mpi4py==${{ matrix.mpi4py-version }}
-            # Install netCDF4 with MPI support
-            echo "Installing netCD4==${{ matrix.netcdf4-python-version }}"
-            CC=mpicc NETCDF4_DIR=/usr/lib/x86_64-linux-gnu/netcdf/pnetcdf python3 -m pip install -v \
-              --no-binary mpi4py --no-binary netCDF4 \
-              netCDF4==${{ matrix.netcdf4-python-version }}
             # Manually install muFFT with MPI enabled
             echo "Installing ${MUFFT_VERSION}"
             pip install -v --no-binary muGrid --no-binary mufft ${MUFFT_VERSION}
@@ -86,11 +80,10 @@ jobs:
       - name: Install extension module
         run: |
           source venv/bin/activate
-          python3 -m pip install --no-binary netCDF4 .[test]
+          python3 -m pip install .[test]
 
       - name: Test with pytest
         run: |
           source venv/bin/activate
-          python3 .check_netcdf_capabilities.py ${{ matrix.mpi }}
           python3 .check_mufft_capabilities.py ${{ matrix.mpi }}
           if [ "${{ matrix.mpi }}" == "yes" ]; then python3 run-tests.py --no-build --verbose --full-trace; else python3 -m pytest --verbose --full-trace -s; fi
