@@ -4,6 +4,8 @@ Change log for SurfaceTopography
 v1.15.1 (31Jul24)
 -----------------
 
+- ENH: Added convenience function `read_nmm` for reading NMM profiles from separate
+  files
 - MAINT: trapz and cumtrapz were removed in scipy 1.14.0
 
 v1.15.0 (31Jul24)
