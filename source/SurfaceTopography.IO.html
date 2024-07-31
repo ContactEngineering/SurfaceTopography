@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.14.2.dev23+g578d0ed1 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.14.2.dev32+g19ab3c6b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=cfe38aaf"></script>
+        <script src="../_static/documentation_options.js?v=28c83b98"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.14.2.dev23+g578d0ed1
+                1.14.2.dev32+g19ab3c6b
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -80,6 +80,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.MetroPro">SurfaceTopography.IO.MetroPro module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.Mitutoyo">SurfaceTopography.IO.Mitutoyo module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NMM">SurfaceTopography.IO.NMM module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.OIR">SurfaceTopography.IO.OIR module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.IO.OPD">SurfaceTopography.IO.OPD module</a></li>
@@ -302,6 +303,15 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NC.write_nc_uniform"><code class="docutils literal notranslate"><span class="pre">write_nc_uniform()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NC.write_nc_nonuniform"><code class="docutils literal notranslate"><span class="pre">write_nc_nonuniform()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NMM">SurfaceTopography.IO.NMM module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.NMM.NMMReader"><code class="docutils literal notranslate"><span class="pre">NMMReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NMM.NMMReader.__init__"><code class="docutils literal notranslate"><span class="pre">NMMReader.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NMM.NMMReader.channels"><code class="docutils literal notranslate"><span class="pre">NMMReader.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.IO.NMM.NMMReader.topography"><code class="docutils literal notranslate"><span class="pre">NMMReader.topography()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a><ul>
@@ -2108,6 +2118,96 @@ MPI process.</p></li>
 </dd></dl>
 
 </section>
+<section id="module-SurfaceTopography.IO.NMM">
+<span id="surfacetopography-io-nmm-module"></span><h2>SurfaceTopography.IO.NMM module<a class="headerlink" href="#module-SurfaceTopography.IO.NMM" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NMM.</span></span><span class="sig-name descname"><span class="pre">NMMReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReaderBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the NMMReader object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fobj</strong> (<em>file-like object</em><em> or </em><em>callable</em>) – The file object or a callable that returns a file object to read the ZIP
+file.</p></li>
+<li><p><strong>rtol</strong> (<em>float</em><em>, </em><em>optional</em>) – Relative tolerance for detecting uniform grids. (Default: 1e-6).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.Exceptions.FileFormatMismatch" title="SurfaceTopography.Exceptions.FileFormatMismatch"><strong>FileFormatMismatch</strong></a> – If the ZIP file does not contain exactly two files or if the files are not
+    a DSC and a DAT file.</p></li>
+<li><p><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.Exceptions.CorruptFile" title="SurfaceTopography.Exceptions.CorruptFile"><strong>CorruptFile</strong></a> – If the number of columns in the DAT file does not match the number of
+    entries in the DSC file or if the number of data points in the DSC file does
+    not match the number of rows in the DAT file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader.channels">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.channels" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of :obj:<a href="#id43"><span class="problematic" id="id44">`</span></a>ChannelInfo`s describing the available data
+channels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader.topography">
+<span class="sig-name descname"><span class="pre">topography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_subdomain_grid_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.topography" title="Link to this definition"></a></dt>
+<dd><p>Returns an instance of a subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code> that
+contains the topography data. Which specific type of height container
+(1D, 2D, uniform, nonuniform) is returned may depend on the file
+content and is determined dynamically.</p>
+<p>The returned object needs to have <cite>physical_sizes</cite> and periodicity
+information. If this information is not provided by the data file,
+then the user must specify it when calling this method. Conversely,
+metadata that is present in the file cannot be overridden but needs to
+lead to a <cite>MetadataAlreadyFixedByFile</cite> exception. The user can check
+if the metadata is present by inspecting the <cite>ChannelInfo</cite> of the
+respective data channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel_index</strong> (<em>int</em>) – Index of the channel to load. See also <cite>channels</cite> method.
+(Default: None, which load the default channel)</p></li>
+<li><p><strong>physical_sizes</strong> (<em>tuple</em><em> of </em><em>floats</em>) – Physical size of the topography. It is necessary to specify this
+if no physical size is found in the data file. If there is a
+physical size, then this parameter will override the physical
+size found in the data file.</p></li>
+<li><p><strong>height_scale_factor</strong> (<em>float</em>) – Override height scale factor found in the data file.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit.</p></li>
+<li><p><strong>info</strong> (<em>dict</em>) – This dictionary will be appended to the info dictionary returned
+by the reader.</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em>) – Whether the SurfaceTopography should be interpreted as one period of
+a periodic surface. This will affect the PSD and autocorrelation
+calculations (windowing).</p></li>
+<li><p><strong>subdomain_locations</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Origin (location) of the subdomain handled by the present MPI
+process.</p></li>
+<li><p><strong>nb_subdomain_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points within the subdomain handled by the present
+MPI process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>topography</strong> – The object containing the actual topography data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>subclass of <code class="xref py py-obj docutils literal notranslate"><span class="pre">HeightContainer</span></code></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile" title="SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile"><strong>MetadataAlreadyFixedByFile</strong></a> – Raised if <cite>physical_sizes</cite>, <cite>unit or `height_scale_factor</cite> have
+    already been defined in the file, because they should not be
+    overridden by the user.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-SurfaceTopography.IO.NPY">
 <span id="surfacetopography-io-npy-module"></span><h2>SurfaceTopography.IO.NPY module<a class="headerlink" href="#module-SurfaceTopography.IO.NPY" title="Link to this heading"></a></h2>
 <p>In MPI Parallelized programs:</p>
@@ -2149,7 +2249,7 @@ metadata so we use directly the implementation from numpy and NuMPI.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NPY.NPYReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NPY.NPYReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id43"><span class="problematic" id="id44">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id45"><span class="problematic" id="id46">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2329,7 +2429,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OIR.OIRReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OIR.OIRReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id45"><span class="problematic" id="id46">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id47"><span class="problematic" id="id48">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2347,7 +2447,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OIR.POIRReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OIR.POIRReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id47"><span class="problematic" id="id48">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id49"><span class="problematic" id="id50">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2478,7 +2578,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPD.OPDReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPD.OPDReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id49"><span class="problematic" id="id50">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id51"><span class="problematic" id="id52">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2549,7 +2649,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id51"><span class="problematic" id="id52">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id53"><span class="problematic" id="id54">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2630,7 +2730,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PLU.PLUReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PLU.PLUReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id53"><span class="problematic" id="id54">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id55"><span class="problematic" id="id56">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2651,7 +2751,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PLUX.PLUXReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PLUX.PLUXReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id55"><span class="problematic" id="id56">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id57"><span class="problematic" id="id58">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2722,7 +2822,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PS.PSReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PS.PSReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id57"><span class="problematic" id="id58">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id59"><span class="problematic" id="id60">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3040,7 +3140,7 @@ there are no typical file extensions.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ReaderBase.channels">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReaderBase.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id59"><span class="problematic" id="id60">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id61"><span class="problematic" id="id62">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3319,7 +3419,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.SUR.SURReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.SUR.SURReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id61"><span class="problematic" id="id62">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id63"><span class="problematic" id="id64">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3365,7 +3465,7 @@ the heights; the physical_sizes is not contained in the file</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id63"><span class="problematic" id="id64">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id65"><span class="problematic" id="id66">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3442,7 +3542,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.WSXM.WSXMReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.WSXM.WSXMReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id65"><span class="problematic" id="id66">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id67"><span class="problematic" id="id68">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3513,7 +3613,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.X3P.X3PReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.X3P.X3PReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id67"><span class="problematic" id="id68">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id69"><span class="problematic" id="id70">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3580,7 +3680,7 @@ MPI process.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fobj</strong> (<em>file object</em>) – File object to read from.</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data. Raises an error if not <a href="#id69"><span class="problematic" id="id70">`</span></a>None`because HFM
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data. Raises an error if not <a href="#id71"><span class="problematic" id="id72">`</span></a>None`because HFM
 files always give a unit.</p></li>
 <li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data. Raises an error if not <cite>None</cite>
 because HFM files always define a height scale.</p></li>
@@ -3663,7 +3763,7 @@ flexible).</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.XYZReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.XYZReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id71"><span class="problematic" id="id72">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id73"><span class="problematic" id="id74">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3735,7 +3835,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.ZON.ZONReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id73"><span class="problematic" id="id74">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id75"><span class="problematic" id="id76">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -4171,7 +4271,7 @@ memory.</p>
 the file has multiple channels or not.</p>
 <p>You can always check the channels and their metadata with
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
-<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id75"><span class="problematic" id="id76">``</span></a>unit` and <a href="#id77"><span class="problematic" id="id78">`</span></a>height_scale_factor:</p>
+<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id77"><span class="problematic" id="id78">``</span></a>unit` and <a href="#id79"><span class="problematic" id="id80">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
 <span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
 <span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>

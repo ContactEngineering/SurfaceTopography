@@ -148,6 +148,14 @@ SurfaceTopography.IO.NC module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.IO.NMM module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.NMM
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.IO.NPY module
 -------------------------------
 
