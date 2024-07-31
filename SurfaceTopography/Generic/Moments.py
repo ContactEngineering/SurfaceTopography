@@ -62,7 +62,8 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
     order: float, default=1
         order of the moment
     cumulative: bool, default=True
-        if True returns the cumulative value of this integral for each x (uses cumtrapz instead of trapz)
+        if True returns the cumulative value of this integral for each x
+        (uses cumulative_trapezoid instead of trapezoid)
     Returns
     -------
     If `cumulative` is `False` (Default)
@@ -72,39 +73,48 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
 
     """
     power = order
-    integ = scipy.integrate.cumtrapz if cumulative else np.trapz
-    return integ(y * x ** power, x) / np.pi
+    integ = (
+        scipy.integrate.cumulative_trapezoid
+        if cumulative
+        else scipy.integrate.trapezoid
+    )
+    return integ(y * x**power, x) / np.pi
 
 
 def compute_iso_moment(x, y, order=1, cumulative=False):
     r"""
-        Computes the moment of order :math:`\alpha` of the 2D isotropic funtion :math:`y_{2D}(x)`
+    Computes the moment of order :math:`\alpha` of the 2D isotropic funtion :math:`y_{2D}(x)`
 
-        :math:`y` is the 1D representation of the isotropic function :math:`y_{2D}(x_1, x_2) = y(|\vec x|)`
+    :math:`y` is the 1D representation of the isotropic function :math:`y_{2D}(x_1, x_2) = y(|\vec x|)`
 
-        .. math::
+    .. math::
 
-            m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}
+        m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}
 
-        using trapezoidal interpolation of the integrand
+    using trapezoidal interpolation of the integrand
 
-        Parameters:
-        -----------
-        x: np.ndarray
-            sample points
-        y: np.ndarray
-            values of the function sampled at x
-        order: float, default=1
-            order of the moment
-        cumulative: bool, default=True
-            if True returns the cumulative value of this integral for each x (uses cumtrapz instead of trapz)
-        Returns
-        -------
-        If `cumulative` is `False` (Default)
-        integral: float
-        If `cumulative` is `True`
-        integral: np.ndarray of length
+    Parameters:
+    -----------
+    x: np.ndarray
+        sample points
+    y: np.ndarray
+        values of the function sampled at x
+    order: float, default=1
+        order of the moment
+    cumulative: bool, default=True
+        if True returns the cumulative value of this integral for each x
+        (uses cumulative_trapezoid instead of trapezoid)
+    Returns
+    -------
+    If `cumulative` is `False` (Default)
+    integral: float
+    If `cumulative` is `True`
+    integral: np.ndarray of length
     """
     power = order + 1
-    integ = scipy.integrate.cumtrapz if cumulative else np.trapz
-    return integ(y * x ** power / (2 * np.pi), x)
+    integ = (
+        scipy.integrate.cumulative_trapezoid
+        if cumulative
+        else scipy.integrate.trapezoid
+    )
+    return integ(y * x**power / (2 * np.pi), x)
