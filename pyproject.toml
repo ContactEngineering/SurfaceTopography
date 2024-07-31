@@ -62,3 +62,10 @@ test = [
 documentation = "https://contactengineering.github.io/SurfaceTopography/"
 repository = "https://github.com/ContactEngineering/SurfaceTopography"
 changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"

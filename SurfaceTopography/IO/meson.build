@@ -23,6 +23,7 @@ python_sources = [
     'MetroPro.py',
     'Mitutoyo.py',
     'NC.py',
+    'NMM.py',
     'NPY.py',
     'OIR.py',
     'OPD.py',
