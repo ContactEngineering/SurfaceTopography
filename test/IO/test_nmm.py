@@ -23,12 +23,13 @@
 #
 
 import os
+import zipfile
 
 import numpy as np
 import pytest
 from NuMPI import MPI
 
-from SurfaceTopography.IO.NMM import NMMReader
+from SurfaceTopography.IO.NMM import NMMReader, read_nmm
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -52,3 +53,13 @@ def test_nmm_metadata(file_format_examples, plot=False):
 
         plt.plot(*t.positions_and_heights(), "k-")
         plt.show()
+
+
+def test_nmm_metadata_separate_files(file_format_examples):
+    with zipfile.ZipFile(os.path.join(file_format_examples, "nmm-1.zip")) as zf:
+        t = read_nmm(zf.open("profile.dsc"), zf.open("profile.dat"))
+
+    assert t.nb_grid_pts == (20001,)
+    print(t.physical_sizes)
+    np.testing.assert_allclose(t.physical_sizes, 0.0007071105772375498)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.135232e-06, rtol=1e-6)

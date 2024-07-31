@@ -27,8 +27,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 
-from ..Exceptions import (CorruptFile, FileFormatMismatch,
-                          MetadataAlreadyFixedByFile)
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import UniformLineScan
 from .Reader import ChannelInfo, ReaderBase
@@ -64,7 +63,7 @@ DSC.
         "XY vector": "m",
     }
 
-    def __init__(self, fobj, rtol=1e-6):
+    def __init__(self, fobj, dat_fobj=None, rtol=1e-6):
         """
         Initialize the NMMReader object.
 
@@ -72,7 +71,10 @@ DSC.
         ----------
         fobj : file-like object or callable
             The file object or a callable that returns a file object to read the ZIP
-            file.
+            file or the DSC file (if `dat_fobj` is specified)
+        dat_fobj : file-like object
+            The file object for the DAT file. If not specified, the file object is
+            interpreted as a ZIP file containing a DSC and a DAT file.
         rtol : float, optional
             Relative tolerance for detecting uniform grids. (Default: 1e-6).
 
@@ -89,71 +91,79 @@ DSC.
         self._fobj = fobj
         if callable(fobj):
             fobj = fobj()
-        with zipfile.ZipFile(fobj, "r") as z:
-            filenames = [
-                fn
-                for fn in z.namelist()
-                if not (fn.startswith(".") or fn.startswith("_"))
-            ]
-            if len(filenames) != 2:
-                raise FileFormatMismatch(
-                    "Expecting exactly two files in the ZIP container."
+        if dat_fobj is not None:
+            self._read(fobj, dat_fobj, rtol=rtol)
+        else:
+            with zipfile.ZipFile(fobj, "r") as z:
+                filenames = [
+                    fn
+                    for fn in z.namelist()
+                    if not (fn.startswith(".") or fn.startswith("_"))
+                ]
+                if len(filenames) != 2:
+                    raise FileFormatMismatch(
+                        "Expecting exactly two files in the ZIP container."
+                    )
+
+                fileexts = [
+                    os.path.splitext(filename)[1].lower() for filename in filenames
+                ]
+                if set(fileexts) != {".dsc", ".dat"}:
+                    raise FileFormatMismatch(
+                        "Expecting a DSC and a DAT file in the ZIP container."
+                    )
+
+                self._dsc_file = filenames[fileexts.index(".dsc")]
+                self._dat_file = filenames[fileexts.index(".dat")]
+
+                # Read data file (DAT)
+                self._read(
+                    z.open(self._dsc_file, "r"), z.open(self._dat_file, "r"), rtol=rtol
                 )
 
-            fileexts = [os.path.splitext(filename)[1].lower() for filename in filenames]
-            if set(fileexts) != {".dsc", ".dat"}:
-                raise FileFormatMismatch(
-                    "Expecting a DSC and a DAT file in the ZIP container."
-                )
+    def _read(self, dsc_file, dat_file, rtol):
+        # Read data file (DAT)
+        self._dat = pd.read_csv(dat_file, sep=r"\s+", header=None)
 
-            self._dsc_file = filenames[fileexts.index(".dsc")]
-            self._dat_file = filenames[fileexts.index(".dat")]
+        # Read index (DSC) file describing the individual data (DAT) file
+        self._dsc = pd.read_csv(
+            dsc_file,
+            sep=" : ",
+            skiprows=1,
+            names=["index", "datetime", "name", "nb_grid_pts", "description"],
+        )
+        self._dsc = self._dsc[np.isfinite(self._dsc["nb_grid_pts"])]
 
-            # Read data file (DAT)
-            with z.open(self._dat_file, "r") as dat_file:
-                # Read data file
-                self._dat = pd.read_csv(dat_file, sep=r"\s+", header=None)
+        if len(self._dsc) != len(self._dat.columns):
+            raise CorruptFile(
+                f"Number of columns reported in DSC file (= {len(self._dsc)} "
+                "does not match the number of columns in the DAT file "
+                f"(= {len(self._dat.columns)})"
+            )
 
-            # Read index (DSC) file describing the individual data (DAT) file
-            with z.open(self._dsc_file, "r") as dsc_file:
-                self._dsc = pd.read_csv(
-                    dsc_file,
-                    sep=" : ",
-                    skiprows=1,
-                    names=["index", "datetime", "name", "nb_grid_pts", "description"],
-                )
-            self._dsc = self._dsc[np.isfinite(self._dsc["nb_grid_pts"])]
+        if not np.all(len(self._dat) == self._dsc["nb_grid_pts"]):
+            raise CorruptFile(
+                f"Number of data points reported in DSC file (= "
+                f"{self._dsc['nb_grid_pts']} does not match the number of rows in "
+                f"the DAT file (= {len(self._dat)})"
+            )
 
-            if len(self._dsc) != len(self._dat.columns):
-                raise CorruptFile(
-                    f"Number of columns reported in DSC file (= {len(self._dsc)} "
-                    "does not match the number of columns in the DAT file "
-                    f"(= {len(self._dat.columns)})"
-                )
+        self._dat.columns = self._dsc["name"]
+        self._info = {"acquisition_data": self._dsc["datetime"].values[0]}
 
-            if not np.all(len(self._dat) == self._dsc["nb_grid_pts"]):
-                raise CorruptFile(
-                    f"Number of data points reported in DSC file (= "
-                    f"{self._dsc['nb_grid_pts']} does not match the number of rows in "
-                    f"the DAT file (= {len(self._dat)})"
-                )
-
-            self._dat.columns = self._dsc["name"]
-            self._info = {"acquisition_data": self._dsc["datetime"].values[0]}
-
-            self._x = self._dat["Lx"].values
-            self._h = self._dat["-Lz+Az"].values
+        self._x = self._dat["Lx"].values
+        self._h = self._dat["-Lz+Az"].values
+        self._physical_size = self._x[-1] - self._x[0]
+        if self._physical_size < 0:
+            self._x = self._x[::-1]
+            self._h = self._h[::-1]
             self._physical_size = self._x[-1] - self._x[0]
-            if self._physical_size < 0:
-                self._x = self._x[::-1]
-                self._h = self._h[::-1]
-                self._physical_size = self._x[-1] - self._x[0]
 
-            if np.max(np.abs(np.diff(self._x) / (self._x[1] - self._x[0]))) < 1 + rtol:
-                # This is a uniform grid
-                self._uniform = True
-            else:
-                self._uniform = False
+        if np.max(np.abs(np.diff(self._x) / (self._x[1] - self._x[0]))) < 1 + rtol:
+            # This is a uniform grid
+            self._uniform = True
+        else:
+            self._uniform = False
 
     @property
     def channels(self):
@@ -224,3 +234,19 @@ DSC.
             t = NonuniformLineScan(self._x, self._h, unit="m", info=_info)
 
         return t.scale(1)
+
+
+def read_nmm(dsc_file, dat_file, rtol=1e-6):
+    """
+    Convenience function for reading a Nanomeasuring Machine (NMM) profile.
+
+    Parameters
+    ----------
+    dsc_file : str or file-like object
+        Path to the DSC file or file-like object.
+    dat_file : str or file-like object
+        Path to the DAT file or file-like object.
+    rtol : float, optional
+        Relative tolerance for detecting uniform grids. (Default: 1e-6).
+    """
+    return NMMReader(dsc_file, dat_file, rtol=rtol).topography()
