@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.15.0 (not yet released)
---------------------------
+v1.15.0 (31Jul24)
+-----------------
 
 - ENH: Variable bandwidth analysis for topographies with missing data
 - ENH: NMM (Nanomeasuring Machine) reader (.zip)
