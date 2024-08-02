@@ -353,6 +353,10 @@ def derivative(
             # We need to divide by the grid spacing to make this a derivative
             _der /= scaled_pixel_size[i] ** n
 
+            # Mask array if it has NaNs
+            if np.sum(~np.isfinite(_der)):
+                _der = np.ma.masked_invalid(_der)
+
             if scale_factor_is_array:
                 der += [_der]
             else:

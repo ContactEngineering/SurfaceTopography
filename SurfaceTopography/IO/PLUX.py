@@ -27,16 +27,16 @@
 #
 #
 
-import numpy as np
-from zipfile import ZipFile, BadZipFile
+from zipfile import BadZipFile, ZipFile
 
 import dateutil.parser
+import numpy as np
 import xmltodict
 
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 
 class PLUXReader(ReaderBase):
@@ -174,7 +174,7 @@ This reader imports Sensofar's XML SPM file format.
                     .reshape(ny, nx).T
 
         if np.sum(np.isnan(height_data)) > 0:
-            height_data = np.ma.masked_array(height_data, mask=np.isnan(height_data))
+            height_data = np.ma.masked_invalid(height_data)
 
         topo = Topography(
             height_data,
