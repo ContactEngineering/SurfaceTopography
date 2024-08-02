@@ -32,8 +32,11 @@ import numpy as np
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-from .HeightContainer import (AbstractTopography, DecoratedTopography,
-                              UniformTopographyInterface)
+from .HeightContainer import (
+    AbstractTopography,
+    DecoratedTopography,
+    UniformTopographyInterface,
+)
 from .Support.UnitConversion import get_unit_conversion_factor
 
 
@@ -68,8 +71,8 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
 
         # Automatically turn this into a masked array if it is not already a
         # masked array and there is data missing
-        if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if not np.ma.is_masked(heights) and np.sum(~np.isfinite(heights)) > 0:
+            heights = np.ma.masked_invalid(heights)
         self._heights = np.asanyarray(heights, dtype=float)
         self._size = np.asarray(physical_sizes).item()
         self._periodic = periodic
@@ -229,8 +232,8 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         super().__init__(unit=unit, info=info, communicator=communicator)
 
         # Automatically turn this into a masked array if there is data missing
-        if not np.ma.is_masked(heights) and np.sum(np.logical_not(np.isfinite(heights))) > 0:
-            heights = np.ma.masked_where(np.logical_not(np.isfinite(heights)), heights)
+        if not np.ma.is_masked(heights) and np.sum(~np.isfinite(heights)) > 0:
+            heights = np.ma.masked_invalid(heights)
 
         if communicator.Get_size() == 1:
             # case 1. : no parallelization

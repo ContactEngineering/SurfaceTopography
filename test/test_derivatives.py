@@ -25,21 +25,22 @@
 """
 Test derivatives
 """
-
-import numpy as np
-import pytest
+import os
 
 import muFFT
 import muFFT.Stencils2D as Stencils2D
+import numpy as np
+import pytest
 from NuMPI import MPI
 
-from SurfaceTopography import UniformLineScan, Topography
+from SurfaceTopography import Topography, UniformLineScan, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Uniform.Derivative import third_2d, trim_nonperiodic
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_uniform_vs_nonuniform():
@@ -65,31 +66,27 @@ def test_analytic():
     d2 = t2.derivative(1)
     d3 = t3.derivative(1)
 
-    np.testing.assert_allclose(d1, np.cos(x[:-1] + (x[1] - x[0]) / 2),
-                               atol=1e-5)
-    np.testing.assert_allclose(d2, np.cos(x + (x[1] - x[0]) / 2),
-                               atol=1e-5)
-    np.testing.assert_allclose(d3, np.cos(x[:-1] + (x[1] - x[0]) / 2),
-                               atol=1e-5)
+    np.testing.assert_allclose(d1, np.cos(x[:-1] + (x[1] - x[0]) / 2), atol=1e-5)
+    np.testing.assert_allclose(d2, np.cos(x + (x[1] - x[0]) / 2), atol=1e-5)
+    np.testing.assert_allclose(d3, np.cos(x[:-1] + (x[1] - x[0]) / 2), atol=1e-5)
 
     d1 = t1.derivative(2)
     d2 = t2.derivative(2)
     d3 = t3.derivative(2)
 
-    np.testing.assert_allclose(d1, -np.sin(x[:-2] + (x[1] - x[0])),
-                               atol=1e-5)
+    np.testing.assert_allclose(d1, -np.sin(x[:-2] + (x[1] - x[0])), atol=1e-5)
     np.testing.assert_allclose(d2, -np.sin(x), atol=1e-5)
-    np.testing.assert_allclose(d3, -np.sin(x[:-2] + (x[1] - x[0])),
-                               atol=1e-5)
+    np.testing.assert_allclose(d3, -np.sin(x[:-2] + (x[1] - x[0])), atol=1e-5)
 
 
 def test_fourier_derivative(plot=False):
     nx, ny = [256] * 2
-    sx, sy = [1.] * 2
+    sx, sy = [1.0] * 2
 
     lc = 0.5
-    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
-                                   short_cutoff=lc, long_cutoff=lc + 1e-9)
+    topography = fourier_synthesis(
+        (nx, ny), (sx, sy), 0.8, rms_height=1.0, short_cutoff=lc, long_cutoff=lc + 1e-9
+    )
     topography = topography.scale(1 / topography.rms_height_from_area())
 
     # Fourier derivative
@@ -104,6 +101,7 @@ def test_fourier_derivative(plot=False):
 
     if plot:
         import matplotlib.pyplot as plt
+
         fig, ax = plt.subplots()
         x, y = topography.positions()
 
@@ -122,11 +120,12 @@ def test_fourier_derivative(plot=False):
 
 def test_third_derivatives_fourier_vs_finite_differences(plot=False):
     nx, ny = [512] * 2
-    sx, sy = [1.] * 2
+    sx, sy = [1.0] * 2
 
     lc = 0.5
-    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1.,
-                                   short_cutoff=lc, long_cutoff=lc + 1e-9)
+    topography = fourier_synthesis(
+        (nx, ny), (sx, sy), 0.8, rms_height=1.0, short_cutoff=lc, long_cutoff=lc + 1e-9
+    )
     topography = topography.scale(1 / topography.rms_height_from_area())
 
     # Fourier derivative
@@ -138,11 +137,16 @@ def test_third_derivatives_fourier_vs_finite_differences(plot=False):
     # derivative at the same point as the Fourier derivative
     dx3_num, dy3_num = topography.derivative(3, operator=third_2d)
 
-    np.testing.assert_allclose(dx3, dx3_num, atol=dx3_topography.rms_height_from_area() * 1e-1)
-    np.testing.assert_allclose(dy3, dy3_num, atol=dx3_topography.rms_height_from_area() * 1e-1)
+    np.testing.assert_allclose(
+        dx3, dx3_num, atol=dx3_topography.rms_height_from_area() * 1e-1
+    )
+    np.testing.assert_allclose(
+        dy3, dy3_num, atol=dx3_topography.rms_height_from_area() * 1e-1
+    )
 
     if plot:
         import matplotlib.pyplot as plt
+
         fig, ax = plt.subplots()
         x, y = topography.positions()
 
@@ -169,7 +173,7 @@ def test_scale_factor():
     nx = 8
     sx = 1
 
-    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=True)
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1.0, periodic=True)
     topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=True)
     topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=True)
 
@@ -182,7 +186,7 @@ def test_scale_factor():
     np.testing.assert_allclose(d3, d2[::2])
     np.testing.assert_allclose(d4, d2[1::2])
 
-    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1.0, periodic=False)
     topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=False)
     topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=False)
 
@@ -196,7 +200,9 @@ def test_scale_factor():
 
     ny = 10
     sy = 0.8
-    topography = fourier_synthesis((nx, ny), (sx, sy), 0.8, rms_height=1., periodic=False)
+    topography = fourier_synthesis(
+        (nx, ny), (sx, sy), 0.8, rms_height=1.0, periodic=False
+    )
 
     dx, dy = topography.derivative(1, scale_factor=[1, 2, 4])
     dx1, dx2, dx4 = dx
@@ -248,8 +254,12 @@ def test_fractional_scale_factor_linear_2d():
     slopex = 0.3
     slopey = 0.4
 
-    topography = Topography(slopex * np.arange(nx).reshape(nx, 1) * sx / nx +
-                            slopey * np.arange(ny).reshape(1, ny) * sy / ny, (sx, sy), periodic=False)
+    topography = Topography(
+        slopex * np.arange(nx).reshape(nx, 1) * sx / nx
+        + slopey * np.arange(ny).reshape(1, ny) * sy / ny,
+        (sx, sy),
+        periodic=False,
+    )
 
     dx1, dy1 = topography.derivative(1, scale_factor=1)
     dx2, dy2 = topography.derivative(1, scale_factor=1.5)
@@ -275,9 +285,7 @@ def test_fractional_scale_factor_linear_2d():
 
 
 def test_trim_nonperiodic_3x3_stencil():
-    op = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
-                                             [0, -2, 0],
-                                             [0, 1, 0]])
+    op = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
     nx, ny = 5, 7
     x_arr, y_arr = np.mgrid[:nx, :ny]
     tx_arr = trim_nonperiodic(x_arr, (1.0, 1.0), op)
@@ -315,9 +323,7 @@ def test_trim_nonperiodic_3x3_stencil():
 
 def test_trim_nonperiodic_3x2_stencil():
     # Stencil has shape 3, 2
-    op = muFFT.DiscreteDerivative([0, -1], [[1, 0],
-                                            [-2, 0],
-                                            [1, 0]])
+    op = muFFT.DiscreteDerivative([0, -1], [[1, 0], [-2, 0], [1, 0]])
 
     nx, ny = 5, 7
     x_arr, y_arr = np.mgrid[:nx, :ny]
@@ -357,7 +363,7 @@ def test_trim_nonperiodic_3x2_stencil():
 def test_interpolation():
     nx = 16
     sx = 1
-    uniform = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+    uniform = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1.0, periodic=False)
     nonuniform = uniform.to_nonuniform()
 
     x = np.linspace(0, sx - sx / nx, 101)
@@ -375,7 +381,7 @@ def test_interpolation():
 def test_line_scans():
     nx = 128
     sx = 1
-    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1., periodic=False)
+    topography = fourier_synthesis((nx,), (sx,), 0.8, rms_height=1.0, periodic=False)
 
     d1 = topography.derivative(n=1, distance=sx / 12)
     d2 = topography.to_nonuniform().derivative(n=1, distance=sx / 12)
@@ -388,7 +394,7 @@ def test_mufft_fourier_derivative_vs_manual():
     nx, ny = 128, 128
     sx, sy = 1, 1
 
-    topography = fourier_synthesis([nx, ny], (sx, sy), 0.8, rms_height=1.)
+    topography = fourier_synthesis([nx, ny], (sx, sy), 0.8, rms_height=1.0)
 
     qx = 2 * np.pi * np.fft.fftfreq(nx, sx / nx).reshape(-1, 1)
     qy = 2 * np.pi * np.fft.fftfreq(ny, sy / ny).reshape(1, -1)
@@ -409,3 +415,23 @@ def test_mufft_fourier_derivative_vs_manual():
 
     np.testing.assert_allclose(dx, dx2)
     np.testing.assert_allclose(dy, dy2)
+
+
+def test_derivative_with_undefined_data(file_format_examples, plot=False):
+    t = read_topography(os.path.join(file_format_examples, "opd-1.opd"))
+    assert t.has_undefined_data
+    h = t.heights()
+    dx, dy = t.derivative(1, distance=[0.001])
+    (dx,) = dx
+    (dy,) = dy
+    assert np.sum(np.isfinite(h)) < np.prod(h.shape)
+    assert np.sum(np.isfinite(dx)) < np.prod(dx.shape)
+    assert np.sum(np.isfinite(dy)) < np.prod(dy.shape)
+
+    if plot:
+        import matplotlib.pyplot as plt
+
+        plt.pcolormesh(h)
+        plt.show()
+        plt.pcolormesh(dx)
+        plt.show()
