@@ -177,11 +177,3 @@ def test_exception(
         topo.power_spectrum_from_profile()
     with pytest.raises(UndefinedDataError):
         topo.power_spectrum_from_area()
-
-
-def test_lots_of_missing_data():
-    t = read_topography("/Users/sds-pastewka/Downloads/WRN_Bot_After Polish.al3d")
-
-    t.scale_dependent_statistical_property(
-        lambda x, y: np.var(x), n=1, nb_points_per_decade=5
-    )
