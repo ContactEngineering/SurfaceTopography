@@ -5,6 +5,7 @@ v1.16.1 (03Aug24)
 -----------------
 
 - BUG: Fixed regression in masking undefined data points in OPD reader
+- BUG: Fixed computation of derivatives for topographies with missing data
 
 v1.16.0 (02Aug24)
 -----------------

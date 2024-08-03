@@ -198,14 +198,15 @@ def derivative(
         A function that takes as argument the output of FFT.fftfreq and
         returns a mask that will be multiplied with the Fourier transformed
         topography. This can be used to implement Fourier filtering before
-        computing the derivative. (Default: None)
+        computing the derivative. This only works if interpolation is set to
+        'fourier'. (Default: None)
     interpolation : str, optional
         Interpolation method to use for fractional scale factors. Use
         'linear' for a local liner interpolation or 'fourier' for global
         Fourier interpolation. Set to 'disable' to raise an error when
         interpolation is necessary. Note that Fourier interpolation carries
-        large errors for nonperiodic topographies and should be used with
-        care. (Default: 'linear')
+        large errors for nonperiodic topographies and should not be used with
+        windowing. (Default: 'linear')
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
@@ -232,17 +233,49 @@ def derivative(
     if operator is None:
         operator = _get_default_derivative_operator(n, self.dim)
 
+    nb_grid_pts = np.array(self.nb_grid_pts)
+    pixel_size = np.array(self.pixel_size)
+
     if interpolation == "linear":
+        heights = None
         linear = self.interpolate_linear()
         positions = np.transpose(self.positions())
-    elif interpolation == "fourier" or interpolation == "disable":
+        integer_positions = None
+    elif interpolation == "fourier":
+        heights = None
         linear = None
+        positions = None
+        integer_positions = None
+
+        # Return FFT object (this will only be initialized once and reused in subsequent calls)
+        fft = self.make_fft()
+
+        # These fields are reused when this function is called multiple times
+        real_field = fft.real_space_field("real_temporary", 1)
+        fourier_field = fft.fourier_space_field("complex_temporary", 1)
+        np.array(real_field, copy=False)[...] = self.heights()
+        fft.fft(real_field, fourier_field)
+
+        # Apply mask function
+        if mask_function is not None:
+            np.array(fourier_field, copy=False)[...] *= mask_function(
+                (fft.fftfreq.T / pixel_size).T
+            )
+
+        fourier_array = np.array(fourier_field, copy=False)
+        fourier_copy = fourier_array.copy()
+    elif interpolation == "disable":
+        heights = self.heights()
+        linear = None
+        positions = None
+        if self.dim == 1:
+            integer_positions = np.arange(nb_grid_pts[0])
+        else:
+            integer_positions = np.mgrid[: nb_grid_pts[0], : nb_grid_pts[1]]
     else:
         raise ValueError(
             "`interpolation` argument must be either 'linear', 'fourier' or 'disable'."
         )
-
-    pixel_size = np.array(self.pixel_size)
 
     nb_scale_factors = 1
     scale_factor_is_array = False
@@ -284,6 +317,12 @@ def derivative(
     derivatives = []
     operators = toiter(operator)
     for i, op in enumerate(operators):
+        if isinstance(op, muFFT.FourierDerivative) and not interpolation == "fourier":
+            raise ValueError(
+                "Operator is a muFFT.FourierDerivative but interpolation is not set "
+                "to 'fourier'."
+            )
+
         der = []
         for j, s in enumerate(scale_factor):
             if progress_callback is not None:
@@ -292,69 +331,72 @@ def derivative(
                 )
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
-            interpolation_required = np.any(s - s.astype(int) != 0)
-            if interpolation_required:
-                if interpolation == "disabled":
-                    raise ValueError(
-                        "Interpolation is required to compute derivative at the desired scale but is "
-                        "explicitly disabled through the `interpolation` argument."
+            interpolation_required = (
+                np.any(s - s.astype(int) != 0) or interpolation == "fourier"
+            )
+            if interpolation_required and interpolation == "disabled":
+                raise ValueError(
+                    "Interpolation is required to compute derivative at the "
+                    "desired scale but is explicitly disabled through the "
+                    "`interpolation` argument."
+                )
+
+            if interpolation == "fourier":
+                # We use Fourier interpolation
+                if self.has_undefined_data:
+                    raise UndefinedDataError(
+                        "This topography has undefined data (missing data points). "
+                        "Derivatives cannot be computed via Fourier interpolation "
+                        "for topographies with missing data points."
                     )
-                elif linear is not None:
-                    # We need to interpolate using the linear interpolator
-                    lbounds = np.array(op.lbounds)
-                    stencil = np.array(op.stencil)
-                    _der = np.zeros_like(real_field)
-                    for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
-                        if stencil_value:
-                            stencil_positions = (
-                                positions
-                                + (lbounds + stencil_coordinate) * scaled_pixel_size
+
+                # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
+                # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
+                fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
+                fft.ifft(fourier_field, real_field)
+                _der = np.array(real_field, copy=False) * fft.normalisation
+            elif interpolation == "linear":
+                # We use linear interpolator
+                lbounds = np.array(op.lbounds)
+                stencil = np.array(op.stencil)
+                _der = np.zeros(nb_grid_pts)
+                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                    if stencil_value:
+                        stencil_positions = (
+                            positions
+                            + (lbounds + stencil_coordinate) * scaled_pixel_size
+                        )
+                        # We enforce periodicity here but will trim the (erroneous)
+                        # boundary region below
+                        if self.dim == 1:
+                            _der += stencil_value * linear(
+                                stencil_positions, periodic=True
                             )
-                            # We enforce periodicity here but will trim the (erroneous) boundary region below
-                            if self.dim == 1:
-                                _der += stencil_value * linear(
-                                    stencil_positions, periodic=True
-                                )
-                            else:
-                                _der += stencil_value * linear(
-                                    *stencil_positions.T, periodic=True
-                                )
-                else:
-                    # We use Fourier interpolation
-                    if self.has_undefined_data:
-                        raise UndefinedDataError(
-                            "This topography has undefined data (missing data points). Derivatives cannot be "
-                            "computed via Fourier interpolation for topographies with missing data points."
-                        )
-
-                    # Return FFT object (this will only be initialized once and reused in subsequent calls)
-                    fft = self.make_fft()
-
-                    # These fields are reused when this function is called multiple times
-                    real_field = fft.real_space_field("real_temporary", 1)
-                    fourier_field = fft.fourier_space_field("complex_temporary", 1)
-                    np.array(real_field, copy=False)[...] = self.heights()
-                    fft.fft(real_field, fourier_field)
-
-                    # Apply mask function
-                    if mask_function is not None:
-                        np.array(fourier_field, copy=False)[...] *= mask_function(
-                            (fft.fftfreq.T / pixel_size).T
-                        )
-
-                    fourier_array = np.array(fourier_field, copy=False)
-                    fourier_copy = fourier_array.copy()
-
-                    # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
-                    # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
-                    fourier_array[...] = fourier_copy * op.fourier(
-                        (fft.fftfreq.T * s).T
-                    )
-                    fft.ifft(fourier_field, real_field)
-                    _der = np.array(real_field, copy=False) * fft.normalisation
+                        else:
+                            _der += stencil_value * linear(
+                                *stencil_positions.T, periodic=True
+                            )
             else:
-                # No interpolation
-                _der = op.apply(self.heights())
+                # Interpolation disabled
+                lbounds = np.array(op.lbounds)
+                stencil = np.array(op.stencil)
+                _der = np.zeros(nb_grid_pts)
+                s = s.astype(int)
+                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                    if stencil_value:
+                        stencil_positions = (
+                            (integer_positions.T + (lbounds + stencil_coordinate) * s)
+                            % nb_grid_pts
+                        ).T
+                        # We enforce periodicity here but will trim the (erroneous)
+                        # boundary region below
+                        if self.dim == 1:
+                            _der += stencil_value * heights[stencil_positions]
+                        else:
+                            _der += (
+                                stencil_value
+                                * heights[stencil_positions[0], stencil_positions[1]]
+                            )
 
             if not is_periodic:
                 _der = trim_nonperiodic(_der, s, op)
@@ -367,7 +409,9 @@ def derivative(
                 _der = np.ma.masked_invalid(_der)
                 if _der.mask.sum() == _der.size:
                     raise UndefinedDataError(
-                        "All data points in the derivative are undefined (probably because of missing data points in the topography). Derivatives cannot be computed."
+                        "All data points in the derivative are undefined (probably "
+                        "because of missing data points in the topography). "
+                        "Derivatives cannot be computed."
                     )
 
             if scale_factor_is_array:
@@ -449,6 +493,7 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
     return self.derivative(
         1,
         operator=(muFFT.FourierDerivative(dim, i) for i in range(dim)),
+        interpolation="fourier",
         scale_factor=scale_factor,
         distance=distance,
         mask_function=mask_function,

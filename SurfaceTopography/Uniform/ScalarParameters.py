@@ -55,12 +55,17 @@ def Rq(topography):
         Root mean square height value.
     """
     if topography.is_domain_decomposed:
-        raise NotImplementedError('`Rq` does not support MPI-decomposed topographies.')
+        raise NotImplementedError("`Rq` does not support MPI-decomposed topographies.")
 
     n = np.prod(topography.nb_grid_pts)
     reduction = Reduction(topography._communicator)
     profile = topography.heights()
-    return np.sqrt(reduction.sum((profile - reduction.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2) / n)
+    return np.sqrt(
+        reduction.sum(
+            (profile - reduction.sum(profile, axis=0) / topography.nb_grid_pts[0]) ** 2
+        )
+        / n
+    )
 
 
 def Sq(topography):
@@ -80,14 +85,16 @@ def Sq(topography):
         Root mean square height value.
     """
     if topography.dim <= 1:
-        raise ValueError('Areal rms height can only be computed for topographies, not line scans.')
+        raise ValueError(
+            "Areal rms height can only be computed for topographies, not line scans."
+        )
     elif topography.dim == 2:
         n = np.prod(topography.nb_grid_pts)
         reduction = Reduction(topography._communicator)
         profile = topography.heights()
         return np.sqrt(reduction.sum((profile - reduction.sum(profile) / n) ** 2) / n)
     else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+        raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
 
 
 def rms_gradient(topography, short_wavelength_cutoff=None, window=None, direction=None):
@@ -121,15 +128,25 @@ def rms_gradient(topography, short_wavelength_cutoff=None, window=None, directio
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim <= 1:
-        raise ValueError('RMS gradient can only be computed for topographies, not line scans.')
+        raise ValueError(
+            "RMS gradient can only be computed for topographies, not line scans."
+        )
     elif topography.dim == 2:
-        mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
-        slx, sly = topography.derivative(1, mask_function=mask_function)
+        mask_function = (
+            None
+            if short_wavelength_cutoff is None
+            else lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2)
+            < 1 / short_wavelength_cutoff**2
+        )
+        slx, sly = topography.derivative(
+            1,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
         reduction = Reduction(topography._communicator)
-        return np.sqrt(reduction.mean(slx ** 2 + sly ** 2))
+        return np.sqrt(reduction.mean(slx**2 + sly**2))
     else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+        raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
 
 
 def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
@@ -163,16 +180,27 @@ def Rdq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
-    mask_function = None if short_wavelength_cutoff is None else \
-        lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
+    mask_function = (
+        None
+        if short_wavelength_cutoff is None
+        else lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff**2
+    )
     if topography.dim == 1:
-        dx = topography.derivative(1, mask_function=mask_function)
+        dx = topography.derivative(
+            1,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
     elif topography.dim == 2:
-        dx, dy = topography.derivative(1, mask_function=mask_function)
+        dx, dy = topography.derivative(
+            1,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
     else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+        raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
     reduction = Reduction(topography._communicator)
-    return np.sqrt(reduction.mean(dx ** 2))
+    return np.sqrt(reduction.mean(dx**2))
 
 
 def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
@@ -206,19 +234,32 @@ def Rddq(topography, short_wavelength_cutoff=None, window=None, direction=None):
     """
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
-    mask_function = None if short_wavelength_cutoff is None else \
-        lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff ** 2
+    mask_function = (
+        None
+        if short_wavelength_cutoff is None
+        else lambda frequency: frequency[0] ** 2 < 1 / short_wavelength_cutoff**2
+    )
     if topography.dim == 1:
-        d2x = topography.derivative(2, mask_function=mask_function)
+        d2x = topography.derivative(
+            2,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
     elif topography.dim == 2:
-        d2x, d2y = topography.derivative(2, mask_function=mask_function)
+        d2x, d2y = topography.derivative(
+            2,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
     else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+        raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
     reduction = Reduction(topography._communicator)
-    return np.sqrt(reduction.mean(d2x ** 2))
+    return np.sqrt(reduction.mean(d2x**2))
 
 
-def rms_laplacian(topography, short_wavelength_cutoff=None, window=None, direction=None):
+def rms_laplacian(
+    topography, short_wavelength_cutoff=None, window=None, direction=None
+):
     """
     Compute the root mean square amplitude of the Laplacian (i.e. the sum of
     second derivatives in x- and y-directions) of a topography on a uniform
@@ -249,18 +290,30 @@ def rms_laplacian(topography, short_wavelength_cutoff=None, window=None, directi
     if short_wavelength_cutoff is not None:
         topography = topography.window(window=window, direction=direction)
     if topography.dim == 1:
-        raise ValueError('RMS Laplacian can only be computed for topographies, not line scans.')
+        raise ValueError(
+            "RMS Laplacian can only be computed for topographies, not line scans."
+        )
     elif topography.dim == 2:
-        mask_function = None if short_wavelength_cutoff is None else \
-            lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2) < 1 / short_wavelength_cutoff ** 2
-        curv = topography.derivative(2, mask_function=mask_function)
+        mask_function = (
+            None
+            if short_wavelength_cutoff is None
+            else lambda frequency: (frequency[0] ** 2 + frequency[1] ** 2)
+            < 1 / short_wavelength_cutoff**2
+        )
+        curv = topography.derivative(
+            2,
+            mask_function=mask_function,
+            interpolation="linear" if mask_function is None else "fourier",
+        )
         reduction = Reduction(topography._communicator)
         return np.sqrt(reduction.mean((curv[0] + curv[1]) ** 2))
     else:
-        raise ValueError(f'Cannot handle topographies of dimension {topography.dim}')
+        raise ValueError(f"Cannot handle topographies of dimension {topography.dim}")
 
 
-def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=None, direction=None):
+def rms_curvature_from_area(
+    topography, short_wavelength_cutoff=None, window=None, direction=None
+):
     """
     Compute the root mean square amplitude of the curvature of a
     topography stored on a uniform grid. The topography must be
@@ -289,19 +342,36 @@ def rms_curvature_from_area(topography, short_wavelength_cutoff=None, window=Non
     rms_curvature : float
         Root mean square curvature value.
     """
-    return rms_laplacian(topography, short_wavelength_cutoff=short_wavelength_cutoff, window=window,
-                         direction=direction) / 2
+    return (
+        rms_laplacian(
+            topography,
+            short_wavelength_cutoff=short_wavelength_cutoff,
+            window=window,
+            direction=direction,
+        )
+        / 2
+    )
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('rms_height_from_profile', Rq, deprecated=True)
-UniformTopographyInterface.register_function('Rq', Rq)
-UniformTopographyInterface.register_function('rms_height_from_area', Sq, deprecated=True)
-UniformTopographyInterface.register_function('Sq', Sq)
-UniformTopographyInterface.register_function('rms_gradient', rms_gradient)
-UniformTopographyInterface.register_function('rms_slope_from_profile', Rdq, deprecated=True)
-UniformTopographyInterface.register_function('Rdq', Rdq)
-UniformTopographyInterface.register_function('rms_curvature_from_profile', Rddq, deprecated=True)
-UniformTopographyInterface.register_function('Rddq', Rddq)
-UniformTopographyInterface.register_function('rms_laplacian', rms_laplacian)
-UniformTopographyInterface.register_function('rms_curvature_from_area', rms_curvature_from_area)
+UniformTopographyInterface.register_function(
+    "rms_height_from_profile", Rq, deprecated=True
+)
+UniformTopographyInterface.register_function("Rq", Rq)
+UniformTopographyInterface.register_function(
+    "rms_height_from_area", Sq, deprecated=True
+)
+UniformTopographyInterface.register_function("Sq", Sq)
+UniformTopographyInterface.register_function("rms_gradient", rms_gradient)
+UniformTopographyInterface.register_function(
+    "rms_slope_from_profile", Rdq, deprecated=True
+)
+UniformTopographyInterface.register_function("Rdq", Rdq)
+UniformTopographyInterface.register_function(
+    "rms_curvature_from_profile", Rddq, deprecated=True
+)
+UniformTopographyInterface.register_function("Rddq", Rddq)
+UniformTopographyInterface.register_function("rms_laplacian", rms_laplacian)
+UniformTopographyInterface.register_function(
+    "rms_curvature_from_area", rms_curvature_from_area
+)

@@ -128,9 +128,15 @@ def test_exception(make_topography_with_missing_data, dim, is_nonuniform, height
     assert np.isfinite(topo.rms_height_from_area())
     assert np.isfinite(topo.rms_slope_from_profile())
     assert np.isfinite(topo.rms_gradient())
-    assert np.isfinite(topo.rms_curvature_from_profile())
-    assert np.isfinite(topo.rms_curvature_from_area())
-    assert np.isfinite(topo.rms_laplacian())
+
+    # This raises an exception because the there are not enough data points for the
+    # computation of a second derivative
+    with pytest.raises(UndefinedDataError):
+        topo.rms_curvature_from_profile()
+    with pytest.raises(UndefinedDataError):
+        topo.rms_curvature_from_area()
+    with pytest.raises(UndefinedDataError):
+        topo.rms_laplacian()
 
     # This raises an exception because the autocorrelation is computed using an FFT
     # which cannot be computed with missing data points

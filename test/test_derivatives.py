@@ -169,7 +169,8 @@ def test_third_derivatives_fourier_vs_finite_differences(plot=False):
         fig.show()
 
 
-def test_scale_factor():
+@pytest.mark.parametrize("interpolation", ["disable", "linear", "fourier"])
+def test_scale_factor(interpolation):
     nx = 8
     sx = 1
 
@@ -177,10 +178,14 @@ def test_scale_factor():
     topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=True)
     topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=True)
 
-    d1 = topography.derivative(1, scale_factor=1)
-    d2 = topography.derivative(1, scale_factor=np.uint32(2))
-    d3 = topography1.derivative(1, scale_factor=1)
-    d4 = topography2.derivative(1, scale_factor=1)
+    d0 = topography.derivative(1, scale_factor=1, interpolation="disable")
+    d1 = topography.derivative(1, scale_factor=1, interpolation=interpolation)
+
+    np.testing.assert_allclose(d0, d1)
+
+    d2 = topography.derivative(1, scale_factor=np.uint32(2), interpolation=interpolation)
+    d3 = topography1.derivative(1, scale_factor=1, interpolation=interpolation)
+    d4 = topography2.derivative(1, scale_factor=1, interpolation=interpolation)
 
     assert len(d2) == len(d1)
     np.testing.assert_allclose(d3, d2[::2])
@@ -190,9 +195,9 @@ def test_scale_factor():
     topography1 = UniformLineScan(topography.heights()[::2], sx, periodic=False)
     topography2 = UniformLineScan(topography.heights()[1::2], sx, periodic=False)
 
-    d1, d2 = topography.derivative(1, scale_factor=[1, 2])
-    d3 = topography1.derivative(1, scale_factor=1)
-    d4 = topography2.derivative(1, scale_factor=1)
+    d1, d2 = topography.derivative(1, scale_factor=[1, 2], interpolation=interpolation)
+    d3 = topography1.derivative(1, scale_factor=1, interpolation=interpolation)
+    d4 = topography2.derivative(1, scale_factor=1, interpolation=interpolation)
 
     assert len(d2) == len(d1) - 1
     np.testing.assert_allclose(d3, d2[::2])
@@ -204,7 +209,7 @@ def test_scale_factor():
         (nx, ny), (sx, sy), 0.8, rms_height=1.0, periodic=False
     )
 
-    dx, dy = topography.derivative(1, scale_factor=[1, 2, 4])
+    dx, dy = topography.derivative(1, scale_factor=[1, 2, 4], interpolation=interpolation)
     dx1, dx2, dx4 = dx
     dy1, dy2, dy4 = dy
 
@@ -221,7 +226,7 @@ def test_scale_factor():
     assert dy4.shape[0] == nx - 4
     assert dy4.shape[1] == ny - 4
 
-    dx, dy = topography.derivative(1, scale_factor=[(1, 4), (2, 1), (4, 2)])
+    dx, dy = topography.derivative(1, scale_factor=[(1, 4), (2, 1), (4, 2)], interpolation=interpolation)
     dxn1, dxn2, dxn4 = dx
     dyn4, dyn1, dyn2 = dy
     np.testing.assert_allclose(dxn1, dx1[:, :-3])
