@@ -160,8 +160,8 @@ def test_exception(
     # This raises an exception because the there are not enough data points for the
     # computation of a second derivative
     assert np.isfinite(topo.rms_curvature_from_profile())
-    #assert topo.rms_curvature_from_area() == np.ma.masked
-    #with pytest.raises(UndefinedDataError):
+    # assert topo.rms_curvature_from_area() == np.ma.masked
+    # with pytest.raises(UndefinedDataError):
     #    topo.rms_laplacian()
 
     # This raises an exception because the autocorrelation is computed using an FFT
