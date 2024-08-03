@@ -226,11 +226,8 @@ def derivative(
             "this is required to be able to compute a derivative."
         )
 
-    if interpolation == "fourier" and self.has_undefined_data:
-        raise UndefinedDataError(
-            "This topography has undefined data (missing data points). Derivatives cannot be "
-            "computed via Fourier interpolation for topographies with missing data points."
-        )
+    if mask_function is not None and interpolation != "fourier":
+        raise ValueError("Mask function can only be used with Fourier interpolation.")
 
     if operator is None:
         operator = _get_default_derivative_operator(n, self.dim)
@@ -283,24 +280,6 @@ def derivative(
 
     is_periodic = self.is_periodic if periodic is None else periodic
 
-    # Return FFT object (this will only be initialized once and reused in subsequent calls)
-    fft = self.make_fft()
-
-    # These fields are reused when this function is called multiple times
-    real_field = fft.real_space_field("real_temporary", 1)
-    fourier_field = fft.fourier_space_field("complex_temporary", 1)
-    np.array(real_field, copy=False)[...] = self.heights()
-    fft.fft(real_field, fourier_field)
-
-    # Apply mask function
-    if mask_function is not None:
-        np.array(fourier_field, copy=False)[...] *= mask_function(
-            (fft.fftfreq.T / pixel_size).T
-        )
-
-    fourier_array = np.array(fourier_field, copy=False)
-    fourier_copy = fourier_array.copy()
-
     # Apply derivative operator in Fourier space
     derivatives = []
     operators = toiter(operator)
@@ -314,38 +293,68 @@ def derivative(
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
             interpolation_required = np.any(s - s.astype(int) != 0)
-            if interpolation_required and interpolation == "disabled":
-                raise ValueError(
-                    "Interpolation is required to compute derivative at the desired scale but is "
-                    "explicitly disabled through the `interpolation` argument."
-                )
-            if interpolation_required and linear is not None:
-                # We need to interpolate using the linear interpolator
-                lbounds = np.array(op.lbounds)
-                stencil = np.array(op.stencil)
-                _der = np.zeros_like(real_field)
-                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
-                    if stencil_value:
-                        stencil_positions = (
-                            positions
-                            + (lbounds + stencil_coordinate) * scaled_pixel_size
+            if interpolation_required:
+                if interpolation == "disabled":
+                    raise ValueError(
+                        "Interpolation is required to compute derivative at the desired scale but is "
+                        "explicitly disabled through the `interpolation` argument."
+                    )
+                elif linear is not None:
+                    # We need to interpolate using the linear interpolator
+                    lbounds = np.array(op.lbounds)
+                    stencil = np.array(op.stencil)
+                    _der = np.zeros_like(real_field)
+                    for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                        if stencil_value:
+                            stencil_positions = (
+                                positions
+                                + (lbounds + stencil_coordinate) * scaled_pixel_size
+                            )
+                            # We enforce periodicity here but will trim the (erroneous) boundary region below
+                            if self.dim == 1:
+                                _der += stencil_value * linear(
+                                    stencil_positions, periodic=True
+                                )
+                            else:
+                                _der += stencil_value * linear(
+                                    *stencil_positions.T, periodic=True
+                                )
+                else:
+                    # We use Fourier interpolation
+                    if self.has_undefined_data:
+                        raise UndefinedDataError(
+                            "This topography has undefined data (missing data points). Derivatives cannot be "
+                            "computed via Fourier interpolation for topographies with missing data points."
                         )
-                        # We enforce periodicity here but will trim the (erroneous) boundary region below
-                        if self.dim == 1:
-                            _der += stencil_value * linear(
-                                stencil_positions, periodic=True
-                            )
-                        else:
-                            _der += stencil_value * linear(
-                                *stencil_positions.T, periodic=True
-                            )
 
+                    # Return FFT object (this will only be initialized once and reused in subsequent calls)
+                    fft = self.make_fft()
+
+                    # These fields are reused when this function is called multiple times
+                    real_field = fft.real_space_field("real_temporary", 1)
+                    fourier_field = fft.fourier_space_field("complex_temporary", 1)
+                    np.array(real_field, copy=False)[...] = self.heights()
+                    fft.fft(real_field, fourier_field)
+
+                    # Apply mask function
+                    if mask_function is not None:
+                        np.array(fourier_field, copy=False)[...] *= mask_function(
+                            (fft.fftfreq.T / pixel_size).T
+                        )
+
+                    fourier_array = np.array(fourier_field, copy=False)
+                    fourier_copy = fourier_array.copy()
+
+                    # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
+                    # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
+                    fourier_array[...] = fourier_copy * op.fourier(
+                        (fft.fftfreq.T * s).T
+                    )
+                    fft.ifft(fourier_field, real_field)
+                    _der = np.array(real_field, copy=False) * fft.normalisation
             else:
-                # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
-                # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
-                fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
-                fft.ifft(fourier_field, real_field)
-                _der = np.array(real_field, copy=False) * fft.normalisation
+                # No interpolation
+                _der = op.apply(self.heights())
 
             if not is_periodic:
                 _der = trim_nonperiodic(_der, s, op)
@@ -354,8 +363,12 @@ def derivative(
             _der /= scaled_pixel_size[i] ** n
 
             # Mask array if it has NaNs
-            if np.sum(~np.isfinite(_der)):
+            if np.sum(~np.isfinite(_der)) > 0:
                 _der = np.ma.masked_invalid(_der)
+                if _der.mask.sum() == _der.size:
+                    raise UndefinedDataError(
+                        "All data points in the derivative are undefined (probably because of missing data points in the topography). Derivatives cannot be computed."
+                    )
 
             if scale_factor_is_array:
                 der += [_der]

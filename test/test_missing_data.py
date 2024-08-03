@@ -124,32 +124,24 @@ def test_exception(make_topography_with_missing_data, dim, is_nonuniform, height
     topo = make_topography_with_missing_data(dim=dim, is_nonuniform=is_nonuniform,
                                              height_scale_factor=height_scale_factor)
 
-    assert topo.rms_height_from_profile() is not None
-    assert topo.rms_height_from_area() is not None
+    assert np.isfinite(topo.rms_height_from_profile())
+    assert np.isfinite(topo.rms_height_from_area())
+    assert np.isfinite(topo.rms_slope_from_profile())
+    assert np.isfinite(topo.rms_gradient())
+    assert np.isfinite(topo.rms_curvature_from_profile())
+    assert np.isfinite(topo.rms_curvature_from_area())
+    assert np.isfinite(topo.rms_laplacian())
 
-    with pytest.raises(UndefinedDataError):
-        topo.rms_slope_from_profile()
-
-    with pytest.raises(UndefinedDataError):
-        topo.rms_gradient()
-
-    with pytest.raises(UndefinedDataError):
-        topo.rms_curvature_from_profile()
-
-    with pytest.raises(UndefinedDataError):
-        topo.rms_curvature_from_area()
-
-    with pytest.raises(UndefinedDataError):
-        topo.rms_laplacian()
-
+    # This raises an exception because the autocorrelation is computed using an FFT
+    # which cannot be computed with missing data points
     with pytest.raises(UndefinedDataError):
         topo.autocorrelation_from_profile()
-
     with pytest.raises(UndefinedDataError):
         topo.autocorrelation_from_area()
 
+    # This raises an exception because the PSD intrinsically requires a Fourier
+    # transform which cannot be computed with missing data points
     with pytest.raises(UndefinedDataError):
         topo.power_spectrum_from_profile()
-
     with pytest.raises(UndefinedDataError):
         topo.power_spectrum_from_area()
