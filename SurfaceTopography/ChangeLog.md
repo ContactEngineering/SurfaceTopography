@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.16.2 (03Aug24)
+-----------------
+
+- BUG: Don't throw UndefinedDataError in derivative, just return completely masked
+  array
+
 v1.16.1 (03Aug24)
 -----------------
 
