@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.16.0.dev2+g296d3cc0 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.16.0.dev3+g1e07e00f documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=34181ec9"></script>
+        <script src="../_static/documentation_options.js?v=b3003fad"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.16.0.dev2+g296d3cc0
+                1.16.0.dev3+g1e07e00f
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -528,13 +528,14 @@ operators in the Cartesian directions for multidimensional fields.
 <li><p><strong>mask_function</strong> (<em>function</em><em>, </em><em>optional</em>) – A function that takes as argument the output of FFT.fftfreq and
 returns a mask that will be multiplied with the Fourier transformed
 topography. This can be used to implement Fourier filtering before
-computing the derivative. (Default: None)</p></li>
+computing the derivative. This only works if interpolation is set to
+‘fourier’. (Default: None)</p></li>
 <li><p><strong>interpolation</strong> (<em>str</em><em>, </em><em>optional</em>) – Interpolation method to use for fractional scale factors. Use
 ‘linear’ for a local liner interpolation or ‘fourier’ for global
 Fourier interpolation. Set to ‘disable’ to raise an error when
 interpolation is necessary. Note that Fourier interpolation carries
-large errors for nonperiodic topographies and should be used with
-care. (Default: ‘linear’)</p></li>
+large errors for nonperiodic topographies and should not be used with
+windowing. (Default: ‘linear’)</p></li>
 <li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
 arguments for progress reporting. (Default: None)</p></li>
 </ul>
