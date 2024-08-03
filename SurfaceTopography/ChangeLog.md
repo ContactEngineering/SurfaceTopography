@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.16.1 (03Aug24)
+-----------------
+
+- BUG: Fixed regression in masking undefined data points in OPD reader
+
 v1.16.0 (02Aug24)
 -----------------
 
