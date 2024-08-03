@@ -407,12 +407,6 @@ def derivative(
             # Mask array if it has NaNs
             if np.sum(~np.isfinite(_der)) > 0:
                 _der = np.ma.masked_invalid(_der)
-                if _der.mask.sum() == _der.size:
-                    raise UndefinedDataError(
-                        "All data points in the derivative are undefined (probably "
-                        "because of missing data points in the topography). "
-                        "Derivatives cannot be computed."
-                    )
 
             if scale_factor_is_array:
                 der += [_der]
