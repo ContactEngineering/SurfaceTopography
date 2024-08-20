@@ -74,7 +74,7 @@ class ReadFileError(Exception):
 
 class CannotDetectFileFormat(ReadFileError):
     """
-    Raised when no reader is able to open_topography the file
+    Raised when no reader is able to open the file
     """
     pass
 
