@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.16.2.dev4+g2b2f35c1 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.16.2.dev6+g46aefe39 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=1e91ee19"></script>
+        <script src="../_static/documentation_options.js?v=debb5e22"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.16.2.dev4+g2b2f35c1
+                1.16.2.dev6+g46aefe39
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -165,6 +165,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.DZI">SurfaceTopography.IO.DZI module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DZI.write_dzi"><code class="docutils literal notranslate"><span class="pre">write_dzi()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DZI.write_topography_dzi"><code class="docutils literal notranslate"><span class="pre">write_topography_dzi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.IO.DZI.generate_manifest"><code class="docutils literal notranslate"><span class="pre">generate_manifest()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.IO.EZD">SurfaceTopography.IO.EZD module</a><ul>
@@ -954,7 +955,7 @@ MPI process.</p></li>
 <span id="surfacetopography-io-dzi-module"></span><h2>SurfaceTopography.IO.DZI module<a class="headerlink" href="#module-SurfaceTopography.IO.DZI" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.DZI.write_dzi">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_dzi" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">physical_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_dzi" title="Link to this definition"></a></dt>
 <dd><p>Write generic numpy array to a Deep Zoom Image file. This can for example
 be used to create a zoomable topography with OpenSeadragon
 (<a class="reference external" href="https://openseadragon.github.io/">https://openseadragon.github.io/</a>).</p>
@@ -995,7 +996,7 @@ Ignored if format is ‘npy’ or ‘nc’.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.DZI.write_topography_dzi">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_topography_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_topography_dzi" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">write_topography_dzi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.HeightContainer.UniformTopographyInterface" title="SurfaceTopography.HeightContainer.UniformTopographyInterface"><span class="pre">UniformTopographyInterface</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.write_topography_dzi" title="Link to this definition"></a></dt>
 <dd><p>Write topography to a Deep Zoom Image file. This can for example be used
 to create a zoomable topography with OpenSeadragon
 (<a class="reference external" href="https://openseadragon.github.io/">https://openseadragon.github.io/</a>).</p>
@@ -1026,6 +1027,37 @@ tiles. (Default: jpg)</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.IO.DZI.generate_manifest">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.DZI.</span></span><span class="sig-name descname"><span class="pre">generate_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_grid_pts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jpg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'xml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.DZI.generate_manifest" title="Link to this definition"></a></dt>
+<dd><p>Generate the file manifest, i.e. the list of files, that would be generated when
+writing the DZI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the exported file. This is used as a prefix. Output filter
+create the file <cite>name</cite>.xml that contains the metadata and a directory
+<a href="#id17"><span class="problematic" id="id18">`</span></a>name`_files that contains the rendered image files at different levels.</p></li>
+<li><p><strong>nb_grid_pts</strong> (<em>tuple</em><em> of </em><em>ints</em>) – Number of grid points.</p></li>
+<li><p><strong>root_directory</strong> (<em>str</em><em>, </em><em>optional</em>) – Root directory where to place <cite>name</cite>.xml and <a href="#id19"><span class="problematic" id="id20">`</span></a>name`_files.
+(Default: ‘.’)</p></li>
+<li><p><strong>tile_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Size of individual tiles. (Default: 256)</p></li>
+<li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – Data output format. Note that PNG files have seams at the boundary between
+tiles. Use ‘npy’ to output raw data in the native numpy format.
+Use ‘nc’ to output raw data as NetCDF files. (Default: ‘jpg’)</p></li>
+<li><p><strong>meta_format</strong> (<em>str</em><em>, </em><em>optional</em>) – Format for metadata information (the DZI file), can be ‘xml’ or
+‘json’. (Default: ‘xml’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>manifest</strong> – List with names of files created during write operation</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.IO.EZD">
 <span id="surfacetopography-io-ezd-module"></span><h2>SurfaceTopography.IO.EZD module<a class="headerlink" href="#module-SurfaceTopography.IO.EZD" title="Link to this heading"></a></h2>
@@ -1047,7 +1079,7 @@ tiles. (Default: jpg)</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.EZD.EZDReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.EZD.EZDReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id17"><span class="problematic" id="id18">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id21"><span class="problematic" id="id22">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1118,7 +1150,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FRT.FRTReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.FRT.FRTReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id19"><span class="problematic" id="id20">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id23"><span class="problematic" id="id24">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1206,7 +1238,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.FromFile.HGTReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.FromFile.HGTReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id21"><span class="problematic" id="id22">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id25"><span class="problematic" id="id26">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1277,7 +1309,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.GWY.GWYReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.GWY.GWYReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id23"><span class="problematic" id="id24">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id27"><span class="problematic" id="id28">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1353,7 +1385,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.H5.H5Reader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.H5.H5Reader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id25"><span class="problematic" id="id26">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id29"><span class="problematic" id="id30">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1424,7 +1456,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.IBW.IBWReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.IBW.IBWReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id27"><span class="problematic" id="id28">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id31"><span class="problematic" id="id32">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1495,7 +1527,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.JPK.JPKReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.JPK.JPKReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id29"><span class="problematic" id="id30">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id33"><span class="problematic" id="id34">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1566,7 +1598,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.LEXT.LEXTReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.LEXT.LEXTReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id31"><span class="problematic" id="id32">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id35"><span class="problematic" id="id36">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1692,7 +1724,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.MI.MIReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.MI.MIReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id33"><span class="problematic" id="id34">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id37"><span class="problematic" id="id38">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1791,7 +1823,7 @@ returned.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Matlab.MatReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Matlab.MatReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id35"><span class="problematic" id="id36">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id39"><span class="problematic" id="id40">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1867,7 +1899,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.MetroPro.MetroProReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.MetroPro.MetroProReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id37"><span class="problematic" id="id38">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id41"><span class="problematic" id="id42">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -1951,7 +1983,7 @@ acquisition date in column 5 (E) row 2 on sheet ‘Certificate’.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Mitutoyo.MitutoyoReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Mitutoyo.MitutoyoReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id39"><span class="problematic" id="id40">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id43"><span class="problematic" id="id44">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2027,7 +2059,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NC.NCReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NC.NCReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id41"><span class="problematic" id="id42">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id45"><span class="problematic" id="id46">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2154,7 +2186,7 @@ interpreted as a ZIP file containing a DSC and a DAT file.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id43"><span class="problematic" id="id44">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id47"><span class="problematic" id="id48">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2267,7 +2299,7 @@ metadata so we use directly the implementation from numpy and NuMPI.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NPY.NPYReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.NPY.NPYReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id45"><span class="problematic" id="id46">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id49"><span class="problematic" id="id50">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2447,7 +2479,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OIR.OIRReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OIR.OIRReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id47"><span class="problematic" id="id48">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id51"><span class="problematic" id="id52">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2465,7 +2497,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OIR.POIRReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OIR.POIRReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id49"><span class="problematic" id="id50">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id53"><span class="problematic" id="id54">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2596,7 +2628,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPD.OPDReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPD.OPDReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id51"><span class="problematic" id="id52">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id55"><span class="problematic" id="id56">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2667,7 +2699,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.OPDx.OPDxReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.OPDx.OPDxReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id53"><span class="problematic" id="id54">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id57"><span class="problematic" id="id58">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2748,7 +2780,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PLU.PLUReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PLU.PLUReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id55"><span class="problematic" id="id56">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id59"><span class="problematic" id="id60">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2769,7 +2801,7 @@ channels.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PLUX.PLUXReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PLUX.PLUXReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id57"><span class="problematic" id="id58">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id61"><span class="problematic" id="id62">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -2840,7 +2872,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.PS.PSReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.PS.PSReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id59"><span class="problematic" id="id60">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id63"><span class="problematic" id="id64">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3158,7 +3190,7 @@ there are no typical file extensions.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ReaderBase.channels">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ReaderBase.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id61"><span class="problematic" id="id62">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id65"><span class="problematic" id="id66">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3437,7 +3469,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.SUR.SURReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.SUR.SURReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id63"><span class="problematic" id="id64">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id67"><span class="problematic" id="id68">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3483,7 +3515,7 @@ the heights; the physical_sizes is not contained in the file</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.VK.VKReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.VK.VKReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id65"><span class="problematic" id="id66">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id69"><span class="problematic" id="id70">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3560,7 +3592,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.WSXM.WSXMReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.WSXM.WSXMReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id67"><span class="problematic" id="id68">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id71"><span class="problematic" id="id72">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3631,7 +3663,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.X3P.X3PReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.X3P.X3PReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id69"><span class="problematic" id="id70">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id73"><span class="problematic" id="id74">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3698,7 +3730,7 @@ MPI process.</p></li>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fobj</strong> (<em>file object</em>) – File object to read from.</p></li>
-<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data. Raises an error if not <a href="#id71"><span class="problematic" id="id72">`</span></a>None`because HFM
+<li><p><strong>unit</strong> (<em>str</em>) – Length unit of the data. Raises an error if not <a href="#id75"><span class="problematic" id="id76">`</span></a>None`because HFM
 files always give a unit.</p></li>
 <li><p><strong>height_scale_factor</strong> (<em>float</em>) – Conversion factor for the height data. Raises an error if not <cite>None</cite>
 because HFM files always define a height scale.</p></li>
@@ -3781,7 +3813,7 @@ flexible).</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.XYZ.XYZReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.XYZ.XYZReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id73"><span class="problematic" id="id74">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id77"><span class="problematic" id="id78">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -3853,7 +3885,7 @@ MPI process.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.ZON.ZONReader.channels">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#SurfaceTopography.IO.ZON.ZONReader.channels" title="Link to this definition"></a></dt>
-<dd><p>Returns a list of :obj:<a href="#id75"><span class="problematic" id="id76">`</span></a>ChannelInfo`s describing the available data
+<dd><p>Returns a list of :obj:<a href="#id79"><span class="problematic" id="id80">`</span></a>ChannelInfo`s describing the available data
 channels.</p>
 </dd></dl>
 
@@ -4289,7 +4321,7 @@ memory.</p>
 the file has multiple channels or not.</p>
 <p>You can always check the channels and their metadata with
 <cite>reader.channels()</cite>. This returns a list of dicts containing attributes <cite>name</cite>,
-<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id77"><span class="problematic" id="id78">``</span></a>unit` and <a href="#id79"><span class="problematic" id="id80">`</span></a>height_scale_factor:</p>
+<cite>physical_sizes</cite>, <cite>nb_grid_pts</cite>, <a href="#id81"><span class="problematic" id="id82">``</span></a>unit` and <a href="#id83"><span class="problematic" id="id84">`</span></a>height_scale_factor:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reader</span><span class="o">.</span><span class="n">channels</span>
 <span class="go">[{&#39;name&#39;: &#39;ZSensor&#39;,</span>
 <span class="go">  &#39;nb_grid_pts&#39;: (256, 256),</span>
