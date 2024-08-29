@@ -40,12 +40,26 @@ from PIL import Image
 from scipy.io import netcdf_file
 
 from ..HeightContainer import UniformTopographyInterface
-from ..Support.UnitConversion import (get_unit_conversion_factor,
-                                      suggest_length_unit_for_data)
+from ..Support.UnitConversion import (
+    get_unit_conversion_factor,
+    suggest_length_unit_for_data,
+)
 
 
-def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=256, overlap=1, format='jpg',
-              meta_format='xml', colorbar_title=None, cmap=None, **kwargs):
+def write_dzi(
+    data: np.ndarray,
+    name: str,
+    physical_sizes: tuple[float, float],
+    unit: str,
+    root_directory: str = ".",
+    tile_size: int = 256,
+    overlap: int = 1,
+    format: str = "jpg",
+    meta_format: str = "xml",
+    colorbar_title=None,
+    cmap=None,
+    **kwargs,
+):
     """
     Write generic numpy array to a Deep Zoom Image file. This can for example
     be used to create a zoomable topography with OpenSeadragon
@@ -94,22 +108,22 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     """
 
     def write_data(fn, subdata, physical_sizes):
-        if format == 'npy':
+        if format == "npy":
             # We write the raw data in the native numpy format
             np.save(fn, subdata)
-        elif format == 'nc':
+        elif format == "nc":
             # We write the raw data in NetCDF-3 format
             nx, ny = subdata.shape
             sx, sy = physical_sizes
-            nc = netcdf_file(fn, 'w')
-            nc.createDimension('x', nx)
-            nc.createDimension('y', ny)
-            heights_var = nc.createVariable('heights', 'f8', ('x', 'y'))
+            nc = netcdf_file(fn, "w")
+            nc.createDimension("x", nx)
+            nc.createDimension("y", ny)
+            heights_var = nc.createVariable("heights", "f8", ("x", "y"))
             heights_var[...] = subdata
-            x_var = nc.createVariable('x', 'f8', ('x',))
+            x_var = nc.createVariable("x", "f8", ("x",))
             x_var.length = sx
             x_var[...] = np.arange(nx) / nx * sx
-            y_var = nc.createVariable('y', 'f8', ('y',))
+            y_var = nc.createVariable("y", "f8", ("y",))
             y_var.length = sy
             y_var[...] = np.arange(ny) / ny * sy
         else:
@@ -125,7 +139,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
 
     # Compute pixels per meter
     sx, sy = physical_sizes
-    fac = get_unit_conversion_factor(unit, 'm')
+    fac = get_unit_conversion_factor(unit, "m")
     pixels_per_meter_width = width / (fac * sx)
     pixels_per_meter_height = height / (fac * sy)
 
@@ -134,51 +148,56 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     data = (data - mn) / (mx - mn)
 
     # Write configuration file
-    if meta_format == 'xml':
-        fn = os.path.join(root_directory, name + '.xml')
-        root = ET.Element('Image', TileSize=str(tile_size), Overlap=str(overlap), Format=format, Colormap=cmap.name,
-                          xmlns='http://schemas.microsoft.com/deepzoom/2008')
+    if meta_format == "xml":
+        fn = os.path.join(root_directory, name + ".xml")
+        root = ET.Element(
+            "Image",
+            TileSize=str(tile_size),
+            Overlap=str(overlap),
+            Format=format,
+            Colormap=cmap.name,
+            xmlns="http://schemas.microsoft.com/deepzoom/2008",
+        )
         if colorbar_title is not None:
-            root.set('ColorbarTitle', colorbar_title)
-        ET.SubElement(root, 'Size', Width=str(width), Height=str(height))
-        ET.SubElement(root, 'PixelsPerMeter', Width=str(pixels_per_meter_width), Height=str(pixels_per_meter_height))
-        ET.SubElement(root, 'ColorbarRange', Minimum=str(mn), Maximum=str(mx))
+            root.set("ColorbarTitle", colorbar_title)
+        ET.SubElement(root, "Size", Width=str(width), Height=str(height))
+        ET.SubElement(
+            root,
+            "PixelsPerMeter",
+            Width=str(pixels_per_meter_width),
+            Height=str(pixels_per_meter_height),
+        )
+        ET.SubElement(root, "ColorbarRange", Minimum=str(mn), Maximum=str(mx))
         os.makedirs(root_directory, exist_ok=True)
-        ET.ElementTree(root).write(fn, encoding='utf-8', xml_declaration=True)
-    elif meta_format == 'json':
-        fn = os.path.join(root_directory, name + '.json')
-        with open(fn, 'w') as f:
+        ET.ElementTree(root).write(fn, encoding="utf-8", xml_declaration=True)
+    elif meta_format == "json":
+        fn = os.path.join(root_directory, name + ".json")
+        with open(fn, "w") as f:
             image_dict = {
-                'xmlns': 'http://schemas.microsoft.com/deepzoom/2008',
-                'Format': format,
-                'Overlap': overlap,
-                'TileSize': tile_size,
-                'Size': {
-                    'Width': width,
-                    'Height': height
+                "xmlns": "http://schemas.microsoft.com/deepzoom/2008",
+                "Format": format,
+                "Overlap": overlap,
+                "TileSize": tile_size,
+                "Size": {"Width": width, "Height": height},
+                "PixelsPerMeter": {
+                    "Width": pixels_per_meter_width,
+                    "Height": pixels_per_meter_height,
                 },
-                'PixelsPerMeter': {
-                    'Width': pixels_per_meter_width,
-                    'Height': pixels_per_meter_height
-                },
-                'Colormap': cmap.name,
-                'ColorbarRange': {
-                    'Minimum': mn,
-                    'Maximum': mx
-                }
+                "Colormap": cmap.name,
+                "ColorbarRange": {"Minimum": mn, "Maximum": mx},
             }
             if colorbar_title is not None:
-                image_dict.update({'ColorbarTitle': colorbar_title})
-            json.dump({'Image': image_dict}, f, cls=NumpyEncoder)
+                image_dict.update({"ColorbarTitle": colorbar_title})
+            json.dump({"Image": image_dict}, f, cls=NumpyEncoder)
     else:
-        raise ValueError(f'Unknown metadata format {meta_format}.')
+        raise ValueError(f"Unknown metadata format {meta_format}.")
     manifest = [fn]
 
     # Determine number of levels
     max_level = math.ceil(math.log2(max(width, height)))
 
     # Loop over levels and write tiles
-    root_directory = os.path.join(root_directory, name + '_files')
+    root_directory = os.path.join(root_directory, name + "_files")
     os.makedirs(root_directory, exist_ok=True)
     scale_factor = 1
     for level in range(max_level, -1, -1):
@@ -192,7 +211,7 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
         for column in range(columns):
             for row in range(rows):
                 # File name for this tile
-                fn = os.path.join(level_root_directory, f'{column}_{row}.{format}')
+                fn = os.path.join(level_root_directory, f"{column}_{row}.{format}")
 
                 # Determine image section of this tile
                 left = (column * tile_size - overlap) * scale_factor
@@ -210,8 +229,11 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
                 if top > full_height - 1:
                     top = full_height - 1
 
-                write_data(fn, data[left:right:scale_factor, bottom:top:scale_factor],
-                           (sx / full_width * scale_factor, sy / full_height * scale_factor))
+                write_data(
+                    fn,
+                    data[left:right:scale_factor, bottom:top:scale_factor],
+                    (sx / full_width * scale_factor, sy / full_height * scale_factor),
+                )
                 manifest += [fn]
 
         width = math.ceil(width / 2)
@@ -221,8 +243,17 @@ def write_dzi(data, name, physical_sizes, unit, root_directory='.', tile_size=25
     return manifest
 
 
-def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=1, format='jpg', meta_format='xml',
-                         cmap=None, **kwargs):
+def write_topography_dzi(
+    self: UniformTopographyInterface,
+    name: str,
+    root_directory: str = ".",
+    tile_size: int = 256,
+    overlap: int = 1,
+    format: str = "jpg",
+    meta_format: str = "xml",
+    cmap=None,
+    **kwargs,
+):
     """
     Write topography to a Deep Zoom Image file. This can for example be used
     to create a zoomable topography with OpenSeadragon
@@ -259,11 +290,100 @@ def write_topography_dzi(self, name, root_directory='.', tile_size=256, overlap=
         List with names of files created during write operation
     """
     # Get reasonable unit
-    ideal_height_unit = suggest_length_unit_for_data('linear', self.heights(), self.unit)
+    ideal_height_unit = suggest_length_unit_for_data(
+        "linear", self.heights(), self.unit
+    )
     t = self.to_unit(ideal_height_unit)
-    return write_dzi(t.heights(), name, t.physical_sizes, ideal_height_unit, root_directory=root_directory,
-                     tile_size=tile_size, overlap=overlap, format=format, meta_format=meta_format,
-                     colorbar_title=f'Height ({ideal_height_unit})', cmap=cmap, **kwargs)
+    return write_dzi(
+        t.heights(),
+        name,
+        t.physical_sizes,
+        ideal_height_unit,
+        root_directory=root_directory,
+        tile_size=tile_size,
+        overlap=overlap,
+        format=format,
+        meta_format=meta_format,
+        colorbar_title=f"Height ({ideal_height_unit})",
+        cmap=cmap,
+        **kwargs,
+    )
 
 
-UniformTopographyInterface.register_function('to_dzi', write_topography_dzi)
+def generate_manifest(
+    name: str,
+    nb_grid_pts: tuple[int, int],
+    root_directory: str = ".",
+    tile_size: int = 256,
+    format: str = "jpg",
+    meta_format: str = "xml",
+):
+    """
+    Generate the file manifest, i.e. the list of files, that would be generated when
+    writing the DZI.
+
+    Parameters
+    ----------
+    name : str
+        Name of the exported file. This is used as a prefix. Output filter
+        create the file `name`.xml that contains the metadata and a directory
+        `name`_files that contains the rendered image files at different levels.
+    nb_grid_pts : tuple of ints
+        Number of grid points.
+    root_directory : str, optional
+        Root directory where to place `name`.xml and `name`_files.
+        (Default: '.')
+    tile_size : int, optional
+        Size of individual tiles. (Default: 256)
+    format : str, optional
+        Data output format. Note that PNG files have seams at the boundary between
+        tiles. Use 'npy' to output raw data in the native numpy format.
+        Use 'nc' to output raw data as NetCDF files. (Default: 'jpg')
+    meta_format : str, optional
+        Format for metadata information (the DZI file), can be 'xml' or
+        'json'. (Default: 'xml')
+
+    Returns
+    -------
+    manifest : list of str
+        List with names of files created during write operation
+    """
+
+    # Image size
+    width, height = nb_grid_pts
+
+    # Write configuration file
+    if meta_format == "xml":
+        fn = os.path.join(root_directory, name + ".xml")
+    elif meta_format == "json":
+        fn = os.path.join(root_directory, name + ".json")
+    else:
+        raise ValueError(f"Unknown metadata format {meta_format}.")
+    manifest = [fn]
+
+    # Determine number of levels
+    max_level = math.ceil(math.log2(max(width, height)))
+
+    # Loop over levels and write tiles
+    root_directory = os.path.join(root_directory, name + "_files")
+    for level in range(max_level, -1, -1):
+        level_root_directory = os.path.join(root_directory, str(level))
+
+        columns = math.ceil(width / tile_size)
+        rows = math.ceil(height / tile_size)
+
+        # Loop over all tiles
+        for column in range(columns):
+            for row in range(rows):
+                # File name for this tile
+                fn = os.path.join(level_root_directory, f"{column}_{row}.{format}")
+
+                manifest += [fn]
+
+        width = math.ceil(width / 2)
+        height = math.ceil(height / 2)
+
+    return manifest
+
+
+UniformTopographyInterface.register_function("to_dzi", write_topography_dzi)

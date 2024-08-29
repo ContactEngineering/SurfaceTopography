@@ -4,7 +4,7 @@ Change log for SurfaceTopography
 v1.16.0 (02Aug24)
 -----------------
 
-- ENH: Derivative for topographies with missing data
+- ENH: Derivatives for topographies with missing data
 
 v1.15.1 (31Jul24)
 -----------------
