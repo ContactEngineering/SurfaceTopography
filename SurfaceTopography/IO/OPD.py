@@ -44,7 +44,7 @@ def mask_undefined(data, maxval=1e32):
     # First, we mask all points that are infinite or nan
     mask = np.logical_and(np.isfinite(data), np.abs(data) < maxval)
     if mask.sum() < len(mask):
-        return np.ma.masked_invalid(data)
+        return np.ma.masked_array(data, mask=np.logical_not(mask))
     else:
         return data
 

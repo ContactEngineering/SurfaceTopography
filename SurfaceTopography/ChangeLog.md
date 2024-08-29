@@ -1,6 +1,18 @@
 Change log for SurfaceTopography
 ================================
 
+v1.16.2 (03Aug24)
+-----------------
+
+- BUG: Don't throw UndefinedDataError in derivative, just return completely masked
+  array
+
+v1.16.1 (03Aug24)
+-----------------
+
+- BUG: Fixed regression in masking undefined data points in OPD reader
+- BUG: Fixed computation of derivatives for topographies with missing data
+
 v1.16.0 (02Aug24)
 -----------------
 
