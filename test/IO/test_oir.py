@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -78,8 +77,8 @@ def test_oir_metadata(file_format_examples):
     assert ny == 1024
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 2.5, rtol=1e-6)
-    np.testing.assert_allclose(sy, 2.5, rtol=1e-6)
+    np.testing.assert_allclose(sx, 2565.801408, rtol=1e-6)
+    np.testing.assert_allclose(sy, 2565.177801, rtol=1e-6)
 
     assert t.unit == 'µm'
 
@@ -97,8 +96,8 @@ def test_poir_metadata(file_format_examples):
     assert ny == 1024
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 2.5, rtol=1e-6)
-    np.testing.assert_allclose(sy, 2.5, rtol=1e-6)
+    np.testing.assert_allclose(sx, 2565.801408, rtol=1e-6)
+    np.testing.assert_allclose(sy, 2565.177801, rtol=1e-6)
 
     assert t.unit == 'µm'
 

@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.16.3 (not yet released)
+--------------------------
+
+- BUG: Fixed phyiscal size in POIR/OIR reader
+
 v1.16.2 (03Aug24)
 -----------------
 
