@@ -33,7 +33,7 @@ import numpy as np
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from ..Support.UnitConversion import get_unit_conversion_factor
-from .binary import BinaryArray, BinaryStructure, Convert, Validate
+from .binary import BinaryArray, BinaryStructure, Convert, RawBuffer, Validate
 from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase
 
 
@@ -167,6 +167,8 @@ This reader imports Digital Surf SUR data files.
                 ],
                 name="header",
             ),
+            RawBuffer("comment", lambda context: context.header.comment_size),
+            RawBuffer("private", lambda context: context.header.private_size),
             BinaryArray(
                 "data",
                 lambda context: (
