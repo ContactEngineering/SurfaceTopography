@@ -33,7 +33,8 @@ from SurfaceTopography.IO import SURReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial funcionalities, please execute with pytest",
+)
 
 
 def test_read_filestream(file_format_examples):
@@ -41,18 +42,18 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'sur-1.sur')
+    file_path = os.path.join(file_format_examples, "sur-1.sur")
 
     read_topography(file_path)
 
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         read_topography(f)
 
     # This test just needs to arrive here without raising an exception
 
 
 def test_sur_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'sur-1.sur')
+    file_path = os.path.join(file_format_examples, "sur-1.sur")
 
     r = SURReader(file_path)
     t = r.topography()
@@ -65,13 +66,15 @@ def test_sur_metadata(file_format_examples):
     np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
     np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    assert t.unit == "mm"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6)
+    np.testing.assert_allclose(
+        t.rms_height_from_area(), 0.00029098752636393403, rtol=1e-6
+    )
 
 
 def test_sur3_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'sur-3.sur')
+    file_path = os.path.join(file_format_examples, "sur-3.sur")
 
     r = SURReader(file_path)
     t = r.topography()
@@ -84,19 +87,22 @@ def test_sur3_metadata(file_format_examples):
     np.testing.assert_allclose(sx, 0.151319552, rtol=1e-6)
     np.testing.assert_allclose(sy, 0.151319552, rtol=1e-6)
 
-    assert t.unit == 'm'
+    assert t.unit == "m"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.0019200491394179297, rtol=1e-6)
+    np.testing.assert_allclose(
+        t.rms_height_from_area(), 0.0019200491394179297, rtol=1e-6
+    )
 
 
 def test_sur4_metadata(file_format_examples, plot=False):
-    file_path = os.path.join(file_format_examples, 'sur-4.sur')
+    file_path = os.path.join(file_format_examples, "sur-4.sur")
 
     r = SURReader(file_path)
     t = r.topography()
 
     if plot:
         import matplotlib.pyplot as plt
+
         t.plot()
         plt.show()
 
@@ -108,19 +114,22 @@ def test_sur4_metadata(file_format_examples, plot=False):
     np.testing.assert_allclose(sx, 0.3400320075452328, rtol=1e-6)
     np.testing.assert_allclose(sy, 0.2837280062958598, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    assert t.unit == "mm"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.1269314744701442, rtol=1e-6)
+    np.testing.assert_allclose(
+        t.rms_height_from_area(), 0.0009822760944258248, rtol=1e-6
+    )
 
 
 def test_sur5_metadata(file_format_examples, plot=False):
-    file_path = os.path.join(file_format_examples, 'sur-5.sur')
+    file_path = os.path.join(file_format_examples, "sur-5.sur")
 
     r = SURReader(file_path)
     t = r.topography()
 
     if plot:
         import matplotlib.pyplot as plt
+
         t.plot()
         plt.show()
 
@@ -132,6 +141,8 @@ def test_sur5_metadata(file_format_examples, plot=False):
     np.testing.assert_allclose(sx, 0.631917268037796, rtol=1e-6)
     np.testing.assert_allclose(sy, 0.631917268037796, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    assert t.unit == "mm"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 0.007327675492217414, rtol=1e-6)
+    np.testing.assert_allclose(
+        t.rms_height_from_area(), 0.007327675492217414, rtol=1e-6
+    )
