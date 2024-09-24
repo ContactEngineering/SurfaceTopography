@@ -32,6 +32,7 @@ import json
 import math
 import os
 import xml.etree.cElementTree as ET
+from typing import Tuple
 
 import numpy as np
 from matplotlib import colormaps
@@ -49,7 +50,7 @@ from ..Support.UnitConversion import (
 def write_dzi(
     data: np.ndarray,
     name: str,
-    physical_sizes: tuple[float, float],
+    physical_sizes: Tuple[float, float],
     unit: str,
     root_directory: str = ".",
     tile_size: int = 256,
@@ -312,7 +313,7 @@ def write_topography_dzi(
 
 def generate_manifest(
     name: str,
-    nb_grid_pts: tuple[int, int],
+    nb_grid_pts: Tuple[int, int],
     root_directory: str = ".",
     tile_size: int = 256,
     format: str = "jpg",
