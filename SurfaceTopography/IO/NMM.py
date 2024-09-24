@@ -21,15 +21,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-import os.path
+import io
+import os
 import zipfile
 
+import dateutil.parser
 import numpy as np
 import pandas as pd
 
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..NonuniformLineScan import NonuniformLineScan
-from ..UniformLineScanAndTopography import UniformLineScan
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
+from ..Support.UnitConversion import get_unit_conversion_factor
+from ..UniformLineScanAndTopography import Topography
 from .Reader import ChannelInfo, ReaderBase
 
 #
@@ -63,18 +65,58 @@ DSC.
         "XY vector": "m",
     }
 
-    def __init__(self, fobj, dat_fobj=None, rtol=1e-6):
+    @staticmethod
+    def _assert_line(fobj, line):
+        L = fobj.readline().strip()
+        if L != line:
+            raise CorruptFile(
+                f"Expected line '{line}' in DSC file, but got '{L}' instead."
+            )
+
+    def _read_scan_procedure(self, dsc_file):
+        self._assert_line(dsc_file, "------------------------------------------")
+        self._assert_line(dsc_file, "Scan procedure description file")
+        metadata = {}
+        line = dsc_file.readline().strip()
+        while line != "------------------------------------------":
+            key, value = line.strip().split(":", maxsplit=1)
+            metadata[key.strip()] = value.strip()
+            line = dsc_file.readline().strip()
+        line = dsc_file.readline()
+        while line:
+            line = line.strip()
+            if len(line) > 0 and line != "------------------------------------------":
+                nb, section_name = line.split(" ", maxsplit=1)
+                d = {}
+                line = dsc_file.readline()
+                while (
+                    line
+                    and line.strip() != "------------------------------------------"
+                ):
+                    line = line.strip()
+                    if len(line) > 0:
+                        key, value = line.split(":", maxsplit=1)
+                        d[key.strip()] = value.strip()
+                    line = dsc_file.readline()
+                metadata[section_name.strip()] = d
+            else:
+                line = dsc_file.readline()
+        return metadata
+
+    @staticmethod
+    def _parse_value_and_unit(s):
+        value, unit = s.split(" ", maxsplit=1)
+        return float(value), unit.strip("[").strip("]")
+
+    def __init__(self, fobj, rtol=1e-6):
         """
         Initialize the NMMReader object.
 
         Parameters
         ----------
         fobj : file-like object or callable
-            The file object or a callable that returns a file object to read the ZIP
-            file or the DSC file (if `dat_fobj` is specified)
-        dat_fobj : file-like object
-            The file object for the DAT file. If not specified, the file object is
-            interpreted as a ZIP file containing a DSC and a DAT file.
+            The file object or a callable that returns a file object to the ZIP file
+            containing the NMM data.
         rtol : float, optional
             Relative tolerance for detecting uniform grids. (Default: 1e-6).
 
@@ -89,97 +131,131 @@ DSC.
             not match the number of rows in the DAT file.
         """
         self._fobj = fobj
+        self._rtol = rtol
         if callable(fobj):
             fobj = fobj()
-        if dat_fobj is not None:
-            self._read(fobj, dat_fobj, rtol=rtol)
-        else:
-            with zipfile.ZipFile(fobj, "r") as z:
-                filenames = [
-                    fn
-                    for fn in z.namelist()
-                    if not (fn.startswith(".") or fn.startswith("_"))
-                ]
-                if len(filenames) != 2:
-                    raise FileFormatMismatch(
-                        "Expecting exactly two files in the ZIP container."
-                    )
-
-                fileexts = [
-                    os.path.splitext(filename)[1].lower() for filename in filenames
-                ]
-                if set(fileexts) != {".dsc", ".dat"}:
-                    raise FileFormatMismatch(
-                        "Expecting a DSC and a DAT file in the ZIP container."
-                    )
-
-                self._dsc_file = filenames[fileexts.index(".dsc")]
-                self._dat_file = filenames[fileexts.index(".dat")]
-
-                # Read data file (DAT)
-                self._read(
-                    z.open(self._dsc_file, "r"), z.open(self._dat_file, "r"), rtol=rtol
+        with zipfile.ZipFile(fobj, "r") as z:
+            filenames = [
+                fn
+                for fn in z.namelist()
+                if not (
+                    os.path.split(fn)[1].startswith(".")
+                    or os.path.split(fn)[1].startswith("_")
                 )
+            ]
 
-    def _read(self, dsc_file, dat_file, rtol):
+            self._prefix = None
+            for fn in filenames:
+                try:
+                    p, _ = fn.split(".", maxsplit=1)
+                    if self._prefix is None or len(p) < len(self._prefix):
+                        self._prefix = p
+                except ValueError:
+                    pass
+
+            if self._prefix is None:
+                raise CorruptFile("Could not identify file prefix.")
+
+            self._metadata = self._read_scan_procedure(
+                io.TextIOWrapper(z.open(f"{self._prefix}.dsc", "r"), encoding="utf-8")
+            )
+
+            self._nb_scans = int(self._metadata["Scan field"]["Number of scans"])
+            self._nb_lines = int(self._metadata["Scan field"]["Number of lines"])
+
+            physical_size_x, xunit1 = self._parse_value_and_unit(
+                self._metadata["Scan field"]["Scan line length"]
+            )
+            grid_spacing_x, xunit2 = self._parse_value_and_unit(
+                self._metadata["Scan field"]["Distance beetween points"]
+            )
+            grid_spacing_y, yunit = self._parse_value_and_unit(
+                self._metadata["Scan field"]["Distance beetween lines"]
+            )
+
+            self._unit = xunit1
+
+            assert xunit2 == self._unit
+            assert yunit == self._unit
+
+            self._height_scale_factor = get_unit_conversion_factor("m", self._unit)
+
+            nb_grid_pts_x = int(physical_size_x / grid_spacing_x)
+            assert abs(nb_grid_pts_x * grid_spacing_x / physical_size_x - 1) < rtol
+            nb_grid_pts_y = self._nb_lines
+
+            self._physical_size = (physical_size_x, nb_grid_pts_y * grid_spacing_y)
+            self._nb_grid_pts = (nb_grid_pts_x, nb_grid_pts_y)
+
+            self._info = {
+                "acquisition_data": dateutil.parser.parse(
+                    self._metadata["Creation time"]
+                )
+            }
+
+    def _read(self, dsc_file, dat_file):
         # Read data file (DAT)
-        self._dat = pd.read_csv(dat_file, sep=r"\s+", header=None)
+        dat = pd.read_csv(dat_file, sep=r"\s+", header=None)
 
         # Read index (DSC) file describing the individual data (DAT) file
-        self._dsc = pd.read_csv(
+        dsc = pd.read_csv(
             dsc_file,
             sep=" : ",
             skiprows=1,
             names=["index", "datetime", "name", "nb_grid_pts", "description"],
         )
-        self._dsc = self._dsc[np.isfinite(self._dsc["nb_grid_pts"])]
+        dsc = dsc[np.isfinite(dsc["nb_grid_pts"])]
 
-        if len(self._dsc) != len(self._dat.columns):
+        if len(dsc) != len(dat.columns):
             raise CorruptFile(
-                f"Number of columns reported in DSC file (= {len(self._dsc)} "
+                f"Number of columns reported in DSC file (= {len(dsc)} "
                 "does not match the number of columns in the DAT file "
-                f"(= {len(self._dat.columns)})"
+                f"(= {len(dat.columns)})"
             )
 
-        if not np.all(len(self._dat) == self._dsc["nb_grid_pts"]):
+        if not np.all(len(dat) == dsc["nb_grid_pts"]):
             raise CorruptFile(
                 f"Number of data points reported in DSC file (= "
-                f"{self._dsc['nb_grid_pts']} does not match the number of rows in "
-                f"the DAT file (= {len(self._dat)})"
+                f"{dsc['nb_grid_pts']} does not match the number of rows in "
+                f"the DAT file (= {len(dat)})"
             )
 
-        self._dat.columns = self._dsc["name"]
-        self._info = {"acquisition_data": self._dsc["datetime"].values[0]}
+        dat.columns = dsc["name"]
 
-        self._x = self._dat["Lx"].values
-        self._h = self._dat["-Lz+Az"].values
-        self._physical_size = self._x[-1] - self._x[0]
-        if self._physical_size < 0:
-            self._x = self._x[::-1]
-            self._h = self._h[::-1]
-            self._physical_size = self._x[-1] - self._x[0]
+        x = dat["Lx"].values
+        h = dat["-Lz+Az"].values
+        physical_size = x[-1] - x[0]
+        if physical_size < 0:
+            x = x[::-1]
+            h = h[::-1]
+            physical_size = x[-1] - x[0]
 
-        if np.max(np.abs(np.diff(self._x) / (self._x[1] - self._x[0]))) < 1 + rtol:
-            # This is a uniform grid
-            self._uniform = True
-        else:
-            self._uniform = False
+        print(np.max(np.abs(np.diff(x) / (x[1] - x[0]) - 1)))
+        import matplotlib.pyplot as plt
+        plt.plot(np.diff(x), 'x')
+        plt.show()
+        assert np.max(np.abs(np.diff(x) / (x[1] - x[0]) - 1)) < self._rtol
+        assert abs(self._physical_sizes[0] / physical_size - 1) < self._rtol
+
+        return h
 
     @property
     def channels(self):
         return [
             ChannelInfo(
                 self,
-                0,  # channel index
-                name="Default",  # There is only a single channel
-                dim=1,
-                nb_grid_pts=len(self._dat),
-                physical_sizes=self._physical_size,
-                uniform=self._uniform,
-                unit="m",  # Everything is in meters
-                height_scale_factor=1,  # Data is in natural heights
+                0,  # Channel index
+                name=f"Scan {i+1}",  # There is only a single channel
+                dim=2,
+                nb_grid_pts=self._nb_grid_pts,
+                physical_sizes=self._physical_sizes,
+                uniform=True,
+                unit=self._unit,
+                # Height is in meters
+                height_scale_factor=self._height_scale_factor,
                 info=self._info,
             )
+            for i in range(self._nb_scans)
         ]
 
     def topography(
@@ -199,10 +275,10 @@ DSC.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if channel_index != 0:
+        if channel_index >= self._nb_scans:
             raise RuntimeError(
-                "Channel index must be zero. (DATX files only have a single height "
-                "channel.)"
+                f"Found {self._nb_scans} scans in this file, but channel index is "
+                f"{channel_index}.)"
             )
 
         if physical_sizes is not None:
@@ -222,18 +298,25 @@ DSC.
         _info = self._info.copy()
         _info.update(info)
 
-        if self._uniform:
-            t = UniformLineScan(
-                self._h,
-                self._physical_size,
-                unit="m",
-                info=_info,
-                periodic=periodic,
-            )
-        else:
-            t = NonuniformLineScan(self._x, self._h, unit="m", info=_info)
+        heights = np.empty(self._nb_grid_pts)
+        fobj = self._fobj
+        if callable(fobj):
+            fobj = fobj()
+        with zipfile.ZipFile(fobj, "r") as z:
+            for i in range(self._nb_lines):
+                heights[:, i] = self._read(
+                    z.open(f"{self._prefix}_{channel_index+1}_{i+1}.dsc", "r"),
+                    z.open(f"{self._prefix}_{channel_index+1}_{i+1}.dat", "r"),
+                )
 
-        return t.scale(1)
+        t = Topography(
+            heights,
+            self._physical_sizes,
+            unit=self._unit,
+            info=_info,
+            periodic=periodic,
+        )
+        return t.scale(self._height_scale_factor)
 
 
 def read_nmm(dsc_file, dat_file, rtol=1e-6):
