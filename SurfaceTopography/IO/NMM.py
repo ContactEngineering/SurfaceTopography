@@ -166,26 +166,37 @@ DSC.
             physical_size_x, xunit1 = self._parse_value_and_unit(
                 self._metadata["Scan field"]["Scan line length"]
             )
+            physical_size_y, yunit1 = self._parse_value_and_unit(
+                self._metadata["Scan field"]["Scan field width"]
+            )
             grid_spacing_x, xunit2 = self._parse_value_and_unit(
                 self._metadata["Scan field"]["Distance beetween points"]
             )
-            grid_spacing_y, yunit = self._parse_value_and_unit(
+            grid_spacing_y, yunit2 = self._parse_value_and_unit(
                 self._metadata["Scan field"]["Distance beetween lines"]
             )
 
             self._unit = xunit1
 
             assert xunit2 == self._unit
-            assert yunit == self._unit
+            assert yunit1 == self._unit
+            assert yunit2 == self._unit
 
             self._height_scale_factor = get_unit_conversion_factor("m", self._unit)
 
+            # The NMM files reports a scan field, number of pixels and grid spacing.
+            # The scan field is actually (nb_pixels - 1) * grid_spacing, which makes
+            # sense if we interpret the points as node positions as in the nonuniform
+            # line scans. For the topographic maps, we interpret nodes as pixel centers.
             nb_grid_pts_x = int(physical_size_x / grid_spacing_x)
             assert abs(nb_grid_pts_x * grid_spacing_x / physical_size_x - 1) < rtol
             nb_grid_pts_y = self._nb_lines
+            assert (
+                abs((nb_grid_pts_y - 1) * grid_spacing_y / physical_size_y - 1) < rtol
+            )
 
-            self._physical_size = (physical_size_x, nb_grid_pts_y * grid_spacing_y)
-            self._nb_grid_pts = (nb_grid_pts_x, nb_grid_pts_y)
+            self._physical_sizes = (physical_size_x, physical_size_y)
+            self._nb_grid_pts = (nb_grid_pts_x + 1, nb_grid_pts_y)
 
             self._info = {
                 "acquisition_data": dateutil.parser.parse(
@@ -222,20 +233,17 @@ DSC.
 
         dat.columns = dsc["name"]
 
-        x = dat["Lx"].values
+        # Coordinates are stored in the file
+        # x = dat["Lx"].values
+        # y = dat["Ly"].values
+        # r = np.sqrt((x - x[0]) ** 2 + (y - y[0]) ** 2)
         h = dat["-Lz+Az"].values
-        physical_size = x[-1] - x[0]
-        if physical_size < 0:
-            x = x[::-1]
-            h = h[::-1]
-            physical_size = x[-1] - x[0]
 
-        print(np.max(np.abs(np.diff(x) / (x[1] - x[0]) - 1)))
-        import matplotlib.pyplot as plt
-        plt.plot(np.diff(x), 'x')
-        plt.show()
-        assert np.max(np.abs(np.diff(x) / (x[1] - x[0]) - 1)) < self._rtol
-        assert abs(self._physical_sizes[0] / physical_size - 1) < self._rtol
+        # Check that the grid information is correct
+        if len(h) != self._nb_grid_pts[0]:
+            raise CorruptFile(
+                f"Expected {self._nb_grid_pts[0]} data points, got {len(h)}."
+            )
 
         return h
 

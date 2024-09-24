@@ -1,9 +1,10 @@
 Change log for SurfaceTopography
 ================================
 
-v1.16.3 (not yet released)
+v1.17.0 (not yet released)
 --------------------------
 
+- ENH: NMM reader now reads 2D topographic maps
 - BUG: Fixed physical size in POIR/OIR reader
 - BUG: Fixed reading of SUR files with comment/private sections
 
