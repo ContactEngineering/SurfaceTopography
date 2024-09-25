@@ -6,6 +6,7 @@ python_sources = [
     'Bibliography.py',
     'Deprecation.py',
     'Interpolation.py',
+    'JSON.py',
     'Regression.py',
     'UnitConversion.py'
 ]
