@@ -6,6 +6,7 @@ v1.17.0 (24Sept24)
 
 - ENH: NMM reader now reads 2D topographic maps
 - ENH: Added `show-topography` command line script (for visualizing topography data)
+- ENH: Added `ExtendedJSONEncoder` that handles dates and numpy arrays gracefully
 - MAINT: `plot` function now uses `imshow` instead of `pcolormesh`, plots are now 
   identical to what Gwyddion shows (origin in the top left corner)
 - BUG: Fixed orientation in MetroPro reader

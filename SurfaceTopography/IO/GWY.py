@@ -237,7 +237,7 @@ visualization and analysis software Gwyddion.
 
     @property
     def channels(self):
-        return self._channels
+        return [self._channels[i] for i in self._indices]
 
     def topography(
         self,

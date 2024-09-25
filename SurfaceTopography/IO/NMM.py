@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
-from ..Support.UnitConversion import get_unit_conversion_factor
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography
 from .Reader import ChannelInfo, ReaderBase
 
@@ -182,6 +182,8 @@ DSC.
             assert yunit1 == self._unit
             assert yunit2 == self._unit
 
+            self._unit = mangle_length_unit_utf8(self._unit)
+
             self._height_scale_factor = get_unit_conversion_factor("m", self._unit)
 
             # The NMM files reports a scan field, number of pixels and grid spacing.
@@ -199,7 +201,7 @@ DSC.
             self._nb_grid_pts = (nb_grid_pts_x + 1, nb_grid_pts_y)
 
             self._info = {
-                "acquisition_data": dateutil.parser.parse(
+                "acquisition_date": dateutil.parser.parse(
                     self._metadata["Creation time"]
                 )
             }
@@ -294,11 +296,6 @@ DSC.
 
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile("height_scale_factor")
-
-        if periodic and not self._uniform:
-            raise ValueError(
-                "Nonuniform line scans cannot be periodic (while reading NMM file)"
-            )
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
