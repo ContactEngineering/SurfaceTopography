@@ -27,7 +27,7 @@ classifiers = [
     "Programming Language :: Python"
 ]
 requires-python = ">=3.8.0"
-dynamic = [ "version" ]
+dynamic = ["version"]
 dependencies = [
     "DiscoverVersion",
     "numpy",
@@ -62,6 +62,9 @@ test = [
 documentation = "https://contactengineering.github.io/SurfaceTopography/"
 repository = "https://github.com/ContactEngineering/SurfaceTopography"
 changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master/SurfaceTopography/ChangeLog.md"
+
+[project.scripts]
+show-topography = "SurfaceTopography.CLI.ShowTopography:main"
 
 [tool.black]
 line-length = 88
