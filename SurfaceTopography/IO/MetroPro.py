@@ -33,8 +33,7 @@ import os
 
 import numpy as np
 
-from ..Exceptions import (CorruptFile, FileFormatMismatch,
-                          MetadataAlreadyFixedByFile)
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from .binary import decode
 from .common import OpenFromAny
@@ -325,7 +324,7 @@ This reader imports Zygo MetroPro data files.
 
             # Check that file size is large enough to hold data
             ac_nb_pixels = self._header['ac_org_height'] * self._header['ac_org_width']
-            nx, ny = self._header['cn_org_height'], self._header['cn_org_width']
+            nx, ny = self._header['cn_org_width'], self._header['cn_org_height']
             cn_nb_pixels = nx * ny
             self._data_offset = \
                 self._header['header_size'] + \
@@ -361,7 +360,7 @@ This reader imports Zygo MetroPro data files.
 
         nx, ny = self._nb_grid_pts
         buffer = f.read(nx * ny * dtype.itemsize)
-        data = np.frombuffer(buffer, dtype=dtype).reshape((nx, ny))
+        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx)).T
         mask = data >= 2147483640
         if mask.sum() > 0:
             return np.ma.masked_array(data, mask=mask)
