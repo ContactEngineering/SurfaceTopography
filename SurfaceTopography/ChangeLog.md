@@ -1,7 +1,7 @@
 Change log for SurfaceTopography
 ================================
 
-v1.17.0 (24Sept24)
+v1.17.0 (25Sept24)
 ------------------
 
 - ENH: NMM reader now reads 2D topographic maps
