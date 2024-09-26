@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   SurfaceTopography.CLI
    SurfaceTopography.Container
    SurfaceTopography.Generic
    SurfaceTopography.IO
@@ -47,6 +48,14 @@ SurfaceTopography.HeightContainer module
 ----------------------------------------
 
 .. automodule:: SurfaceTopography.HeightContainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+SurfaceTopography.Metadata module
+---------------------------------
+
+.. automodule:: SurfaceTopography.Metadata
    :members:
    :undoc-members:
    :show-inheritance:

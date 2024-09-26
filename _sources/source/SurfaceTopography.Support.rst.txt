@@ -28,6 +28,14 @@ SurfaceTopography.Support.Interpolation module
    :undoc-members:
    :show-inheritance:
 
+SurfaceTopography.Support.JSON module
+-------------------------------------
+
+.. automodule:: SurfaceTopography.Support.JSON
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 SurfaceTopography.Support.Regression module
 -------------------------------------------
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.16.2.dev15+g122e2b08 documentation</title>
+  <title>SurfaceTopography.IO package &mdash; SurfaceTopography 1.16.2.dev32+gd8c6f1ae documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=63837fae"></script>
+        <script src="../_static/documentation_options.js?v=5c5e2a07"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -37,7 +37,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.16.2.dev15+g122e2b08
+                1.16.2.dev32+gd8c6f1ae
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -58,6 +58,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.CLI.html">SurfaceTopography.CLI package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.IO package</a><ul>
@@ -113,6 +114,7 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.FFTTricks">SurfaceTopography.FFTTricks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Generation">SurfaceTopography.Generation module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.HeightContainer">SurfaceTopography.HeightContainer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Metadata">SurfaceTopography.Metadata module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan">SurfaceTopography.NonuniformLineScan module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#surfacetopography-pipeline-module">SurfaceTopography.Pipeline module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.Special">SurfaceTopography.Special module</a></li>
@@ -1730,7 +1732,7 @@ channels.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.MI.MIReader.info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.IO.MI.MIReader.info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.IO.MI.MIReader.info" title="Link to this definition"></a></dt>
 <dd><p>Return all the available metadata as a dict.</p>
 </dd></dl>
 
@@ -2155,19 +2157,17 @@ MPI process.</p></li>
 <span id="surfacetopography-io-nmm-module"></span><h2>SurfaceTopography.IO.NMM module<a class="headerlink" href="#module-SurfaceTopography.IO.NMM" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NMM.</span></span><span class="sig-name descname"><span class="pre">NMMReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat_fobj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.IO.NMM.</span></span><span class="sig-name descname"><span class="pre">NMMReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.IO.Reader.ReaderBase" title="SurfaceTopography.IO.Reader.ReaderBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReaderBase</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.NMM.NMMReader.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat_fobj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.IO.NMM.NMMReader.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialize the NMMReader object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fobj</strong> (<em>file-like object</em><em> or </em><em>callable</em>) – The file object or a callable that returns a file object to read the ZIP
-file or the DSC file (if <cite>dat_fobj</cite> is specified)</p></li>
-<li><p><strong>dat_fobj</strong> (<em>file-like object</em>) – The file object for the DAT file. If not specified, the file object is
-interpreted as a ZIP file containing a DSC and a DAT file.</p></li>
+<li><p><strong>fobj</strong> (<em>file-like object</em><em> or </em><em>callable</em>) – The file object or a callable that returns a file object to the ZIP file
+containing the NMM data.</p></li>
 <li><p><strong>rtol</strong> (<em>float</em><em>, </em><em>optional</em>) – Relative tolerance for detecting uniform grids. (Default: 1e-6).</p></li>
 </ul>
 </dd>
@@ -3105,16 +3105,9 @@ None.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.IO.Reader.ChannelInfo.info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.IO.Reader.ChannelInfo.info" title="Link to this definition"></a></dt>
 <dd><p>A dictionary containing additional information (metadata) not used by
 SurfaceTopography itself, but required by third-party application.</p>
-<p>Presently, the following entries have been standardized:
-‘height_scale_factor’:</p>
-<blockquote>
-<div><p>Factor which was used to scale the raw numbers from file (which
-can be voltages or some other quantity actually acquired in the
-measurement technique) to heights with the given ‘unit’.</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="py property">

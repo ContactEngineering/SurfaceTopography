@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.16.2.dev15+g122e2b08 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.16.2.dev32+gd8c6f1ae documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -15,14 +15,14 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=63837fae"></script>
+        <script src="../_static/documentation_options.js?v=5c5e2a07"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SurfaceTopography.Container package" href="SurfaceTopography.Container.html" />
+    <link rel="next" title="SurfaceTopography.CLI package" href="SurfaceTopography.CLI.html" />
     <link rel="prev" title="Contributing to SurfaceTopography" href="../contributing.html" /> 
 </head>
 
@@ -38,7 +38,7 @@
             SurfaceTopography
           </a>
               <div class="version">
-                1.16.2.dev15+g122e2b08
+                1.16.2.dev32+gd8c6f1ae
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -59,6 +59,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.CLI.html">SurfaceTopography.CLI package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
@@ -147,6 +148,45 @@
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.positions_and_heights"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.positions_and_heights()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.is_MPI"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.is_MPI</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.has_undefined_data"><code class="docutils literal notranslate"><span class="pre">NonuniformLineScanInterface.has_undefined_data</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Metadata">SurfaceTopography.Metadata module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel.value"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel.value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel.unit"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_config"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_fields"><code class="docutils literal notranslate"><span class="pre">ValueAndUnitModel.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.name"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.resolution"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.resolution</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.tip_radius"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.tip_radius</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_config"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentParametersModel.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel"><code class="docutils literal notranslate"><span class="pre">InstrumentModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.name"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.parameters"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.parameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.model_config"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.model_fields"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel"><code class="docutils literal notranslate"><span class="pre">InfoModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.acquisition_time"><code class="docutils literal notranslate"><span class="pre">InfoModel.acquisition_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.instrument"><code class="docutils literal notranslate"><span class="pre">InfoModel.instrument</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.raw_metadata"><code class="docutils literal notranslate"><span class="pre">InfoModel.raw_metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.channel_name"><code class="docutils literal notranslate"><span class="pre">InfoModel.channel_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.datafile"><code class="docutils literal notranslate"><span class="pre">InfoModel.datafile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">InfoModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.model_config"><code class="docutils literal notranslate"><span class="pre">InfoModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InfoModel.model_fields"><code class="docutils literal notranslate"><span class="pre">InfoModel.model_fields</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -348,6 +388,12 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.CLI.html">SurfaceTopography.CLI package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.CLI.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.CLI.html#surfacetopography-cli-showtopography-module">SurfaceTopography.CLI.ShowTopography module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.CLI.html#module-contents">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.IO.html">SurfaceTopography.Container.IO package</a><ul>
@@ -1065,14 +1111,19 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Deprecation">SurfaceTopography.Support.Deprecation module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.deprecated"><code class="docutils literal notranslate"><span class="pre">deprecated()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.__init__"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.DeprecatedDictionary.copy"><code class="docutils literal notranslate"><span class="pre">DeprecatedDictionary.copy()</span></code></a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Interpolation">SurfaceTopography.Support.Interpolation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.JSON">SurfaceTopography.Support.JSON module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.nan_to_none"><code class="docutils literal notranslate"><span class="pre">nan_to_none()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.duration_iso_string"><code class="docutils literal notranslate"><span class="pre">duration_iso_string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.ExtendedJSONEncoder"><code class="docutils literal notranslate"><span class="pre">ExtendedJSONEncoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.ExtendedJSONEncoder.default"><code class="docutils literal notranslate"><span class="pre">ExtendedJSONEncoder.default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.ExtendedJSONEncoder.encode"><code class="docutils literal notranslate"><span class="pre">ExtendedJSONEncoder.encode()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Support.html#module-SurfaceTopography.Support.Regression">SurfaceTopography.Support.Regression module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.make_grid"><code class="docutils literal notranslate"><span class="pre">make_grid()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html#SurfaceTopography.Support.Regression.gaussian_kernel"><code class="docutils literal notranslate"><span class="pre">gaussian_kernel()</span></code></a></li>
@@ -1598,42 +1649,9 @@ boundaries.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.HeightContainer.AbstractTopography.info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.HeightContainer.AbstractTopography.info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.HeightContainer.AbstractTopography.info" title="Link to this definition"></a></dt>
 <dd><p>Return the info dictionary. The info dictionary contains auxiliary data
-found in the topography data file but not directly used by PyCo.</p>
-<p>The dictionary can contain any type of information. There are a few
-standardized keys, listed in the following.</p>
-<section id="standardized-keys">
-<h3>Standardized keys<a class="headerlink" href="#standardized-keys" title="Link to this heading"></a></h3>
-<dl>
-<dt>‘acquisition_time’<span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime</span></code></span></dt><dd><p>Date and time of the measurement.</p>
-</dd>
-<dt>‘instrument’<span class="classifier">dict</span></dt><dd><dl class="simple">
-<dt>Nested dictionary containing instrument data.</dt><dd><ul class="simple">
-<li><p>‘name’ : str - Name of instrument</p></li>
-<li><dl class="simple">
-<dt>‘parameters’<span class="classifier">dict - Additional instrument parameters, e.g.</span></dt><dd><ul>
-<li><dl class="simple">
-<dt>‘tip_radius’<span class="classifier">dict - Tip radius for tip based techniques</span></dt><dd><ul>
-<li><p>‘value’ : float - Value of tip radius</p></li>
-<li><p>‘unit’ : str - Unit of tip radius</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</dd>
-<dt>‘raw_metadata’<span class="classifier">dict</span></dt><dd><p>Dictionary containing the raw (non-standardized) metadata as
-extracted during reading of the topography.</p>
-</dd>
-</dl>
-</section>
+found in the topography data file but not directly used by SurfaceTopogoraphy.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1670,7 +1688,7 @@ own physical_sizes etc. but pass this information through to the parent.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.HeightContainer.DecoratedTopography.info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.HeightContainer.DecoratedTopography.info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.HeightContainer.DecoratedTopography.info" title="Link to this definition"></a></dt>
 <dd><p>Return info dictionary</p>
 </dd></dl>
 
@@ -1823,6 +1841,174 @@ data.</p>
 </dd></dl>
 
 </section>
+<section id="module-SurfaceTopography.Metadata">
+<span id="surfacetopography-metadata-module"></span><h2>SurfaceTopography.Metadata module<a class="headerlink" href="#module-SurfaceTopography.Metadata" title="Link to this heading"></a></h2>
+<p>pydantic models for the <cite>info</cite> dictionary which stores metadata</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">ValueAndUnitModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel.value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel.unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.ValueAndUnitModel.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'unit':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'value':</span> <span class="pre">FieldInfo(annotation=float,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.ValueAndUnitModel.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">InstrumentParametersModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel" title="SurfaceTopography.Metadata.ValueAndUnitModel"><span class="pre">ValueAndUnitModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel" title="SurfaceTopography.Metadata.ValueAndUnitModel"><span class="pre">ValueAndUnitModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.resolution">
+<span class="sig-name descname"><span class="pre">resolution</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel" title="SurfaceTopography.Metadata.ValueAndUnitModel"><span class="pre">ValueAndUnitModel</span></a></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.resolution" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.tip_radius">
+<span class="sig-name descname"><span class="pre">tip_radius</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Metadata.ValueAndUnitModel" title="SurfaceTopography.Metadata.ValueAndUnitModel"><span class="pre">ValueAndUnitModel</span></a></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.tip_radius" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentParametersModel.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'resolution':</span> <span class="pre">FieldInfo(annotation=ValueAndUnitModel,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'tip_radius':</span> <span class="pre">FieldInfo(annotation=ValueAndUnitModel,</span> <span class="pre">required=False,</span> <span class="pre">default=None)}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentParametersModel.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">InstrumentModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel" title="SurfaceTopography.Metadata.InstrumentParametersModel"><span class="pre">InstrumentParametersModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel" title="SurfaceTopography.Metadata.InstrumentParametersModel"><span class="pre">InstrumentParametersModel</span></a></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.parameters" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'parameters':</span> <span class="pre">FieldInfo(annotation=InstrumentParametersModel,</span> <span class="pre">required=False,</span> <span class="pre">default=None)}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">InfoModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acquisition_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel" title="SurfaceTopography.Metadata.InstrumentModel"><span class="pre">InstrumentModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.acquisition_time">
+<span class="sig-name descname"><span class="pre">acquisition_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.acquisition_time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.instrument">
+<span class="sig-name descname"><span class="pre">instrument</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel" title="SurfaceTopography.Metadata.InstrumentModel"><span class="pre">InstrumentModel</span></a></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.instrument" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.raw_metadata">
+<span class="sig-name descname"><span class="pre">raw_metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.raw_metadata" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.channel_name">
+<span class="sig-name descname"><span class="pre">channel_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.channel_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.datafile">
+<span class="sig-name descname"><span class="pre">datafile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.datafile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InfoModel.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'acquisition_time':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'channel_name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'datafile':</span> <span class="pre">FieldInfo(annotation=dict,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'instrument':</span> <span class="pre">FieldInfo(annotation=InstrumentModel,</span> <span class="pre">required=False,</span> <span class="pre">default=None),</span> <span class="pre">'raw_metadata':</span> <span class="pre">FieldInfo(annotation=Union[dict,</span> <span class="pre">list],</span> <span class="pre">required=False,</span> <span class="pre">default=None)}</span></em><a class="headerlink" href="#SurfaceTopography.Metadata.InfoModel.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-SurfaceTopography.NonuniformLineScan">
 <span id="surfacetopography-nonuniformlinescan-module"></span><h2>SurfaceTopography.NonuniformLineScan module<a class="headerlink" href="#module-SurfaceTopography.NonuniformLineScan" title="Link to this heading"></a></h2>
 <p>Support for nonuniform topogography descriptions</p>
@@ -1925,7 +2111,7 @@ boundaries.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#SurfaceTopography.NonuniformLineScan.DecoratedNonuniformTopography.info" title="Link to this definition"></a></dt>
 <dd><p>Return info dictionary</p>
 </dd></dl>
 
@@ -2785,7 +2971,7 @@ topography_b   – second topography of the compound</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../contributing.html" class="btn btn-neutral float-left" title="Contributing to SurfaceTopography" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="SurfaceTopography.Container.html" class="btn btn-neutral float-right" title="SurfaceTopography.Container package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="SurfaceTopography.CLI.html" class="btn btn-neutral float-right" title="SurfaceTopography.CLI package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

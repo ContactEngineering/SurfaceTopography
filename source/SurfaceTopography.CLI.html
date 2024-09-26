@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.ScanningProbe package &mdash; SurfaceTopography 1.16.2.dev32+gd8c6f1ae documentation</title>
+  <title>SurfaceTopography.CLI package &mdash; SurfaceTopography 1.16.2.dev32+gd8c6f1ae documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="SurfaceTopography.Support package" href="SurfaceTopography.Support.html" />
-    <link rel="prev" title="SurfaceTopography.Nonuniform package" href="SurfaceTopography.Nonuniform.html" /> 
+    <link rel="next" title="SurfaceTopography.Container package" href="SurfaceTopography.Container.html" />
+    <link rel="prev" title="SurfaceTopography package" href="SurfaceTopography.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -58,18 +58,18 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="SurfaceTopography.html">SurfaceTopography package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="SurfaceTopography.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.CLI.html">SurfaceTopography.CLI package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.CLI package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#surfacetopography-cli-showtopography-module">SurfaceTopography.CLI.ShowTopography module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-contents">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">SurfaceTopography.ScanningProbe package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.ScanningProbe.RigidScan">SurfaceTopography.ScanningProbe.RigidScan module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.ScanningProbe">Module contents</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.ScanningProbe.html">SurfaceTopography.ScanningProbe package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
 </ul>
@@ -112,9 +112,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="SurfaceTopography.html">SurfaceTopography package</a></li>
-      <li class="breadcrumb-item active">SurfaceTopography.ScanningProbe package</li>
+      <li class="breadcrumb-item active">SurfaceTopography.CLI package</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/source/SurfaceTopography.ScanningProbe.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/source/SurfaceTopography.CLI.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -122,62 +122,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="surfacetopography-scanningprobe-package">
-<h1>SurfaceTopography.ScanningProbe package<a class="headerlink" href="#surfacetopography-scanningprobe-package" title="Link to this heading"></a></h1>
+  <section id="surfacetopography-cli-package">
+<h1>SurfaceTopography.CLI package<a class="headerlink" href="#surfacetopography-cli-package" title="Link to this heading"></a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="module-SurfaceTopography.ScanningProbe.RigidScan">
-<span id="surfacetopography-scanningprobe-rigidscan-module"></span><h2>SurfaceTopography.ScanningProbe.RigidScan module<a class="headerlink" href="#module-SurfaceTopography.ScanningProbe.RigidScan" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.ScanningProbe.RigidScan.scan_with_rigid_sphere">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.ScanningProbe.RigidScan.</span></span><span class="sig-name descname"><span class="pre">scan_with_rigid_sphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.ScanningProbe.RigidScan.scan_with_rigid_sphere" title="Link to this definition"></a></dt>
-<dd><p>Scan a topography with a rigid, spherical tip. This emulated scanning of
-a physical topography in an scanning probe instrument.</p>
-<section id="paramaters">
-<h3>Paramaters<a class="headerlink" href="#paramaters" title="Link to this heading"></a></h3>
-<dl>
-<dt>topography<span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code> or <a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan" title="SurfaceTopography.NonuniformLineScan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan</span></code></a></span></dt><dd><p>Topography to be scanned.</p>
-</dd>
-<dt>radius<span class="classifier">float</span></dt><dd><p>Tip radius.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scanned_heights</strong> – Scannned heights of topography on the same grid as the topography.</p>
-</dd>
-<dt class="field-even">rtype<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
+<section id="surfacetopography-cli-showtopography-module">
+<h2>SurfaceTopography.CLI.ShowTopography module<a class="headerlink" href="#surfacetopography-cli-showtopography-module" title="Link to this heading"></a></h2>
 </section>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="SurfaceTopography.ScanningProbe.RigidScan.pipeline_scan_with_rigid_sphere">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.ScanningProbe.RigidScan.</span></span><span class="sig-name descname"><span class="pre">pipeline_scan_with_rigid_sphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.ScanningProbe.RigidScan.pipeline_scan_with_rigid_sphere" title="Link to this definition"></a></dt>
-<dd><p>Scan the topography with a rigid, spherical tip. This emulated scanning of
-a physical topography in a scanning probe instrument.</p>
-<section id="id1">
-<h3>Paramaters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>radius<span class="classifier">float</span></dt><dd><p>Tip radius, in the same units as the topography</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>topography</strong> – Topography with scannned heights on the same grid as the topography.</p>
-</dd>
-<dt class="field-even">rtype<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography.UniformLineScan</span></code> or <a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography.NonuniformLineScan" title="SurfaceTopography.NonuniformLineScan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography.NonuniformLineScan</span></code></a></p>
-</dd>
-</dl>
-</section>
-</dd></dl>
-
-</section>
-<section id="module-SurfaceTopography.ScanningProbe">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.ScanningProbe" title="Link to this heading"></a></h2>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 </section>
 </section>
 
@@ -185,8 +139,8 @@ a physical topography in a scanning probe instrument.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="SurfaceTopography.Nonuniform.html" class="btn btn-neutral float-left" title="SurfaceTopography.Nonuniform package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="SurfaceTopography.Support.html" class="btn btn-neutral float-right" title="SurfaceTopography.Support package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="SurfaceTopography.html" class="btn btn-neutral float-left" title="SurfaceTopography package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="SurfaceTopography.Container.html" class="btn btn-neutral float-right" title="SurfaceTopography.Container package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
