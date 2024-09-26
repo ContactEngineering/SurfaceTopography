@@ -3,7 +3,7 @@ pydantic models for the `info` dictionary which stores metadata
 """
 
 from datetime import datetime
-from typing import Union
+from typing import Tuple, Union
 
 import pydantic
 
@@ -41,4 +41,4 @@ class InfoModel(pydantic.BaseModel):
     datafile: dict = None
 
     # Deprecated, unit; it is a tuple if data unit is not height
-    unit: Union[str, tuple[str, Union[str, None]]] = None
+    unit: Union[str, Tuple[str, Union[str, None]]] = None
