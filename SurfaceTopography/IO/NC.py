@@ -175,8 +175,10 @@ plt.show()
         except AttributeError:
             pass
 
-        if "acquisition_date" in self._info:
-            self._info["acquisition_date"] = dateutil.parser.parse(self._info["acquisition_date"])
+        if "acquisition_time" in self._info:
+            self._info["acquisition_time"] = dateutil.parser.parse(
+                self._info["acquisition_time"]
+            )
 
         # Determine physical sizes of topography
         if self._n_dim is not None:
@@ -538,7 +540,7 @@ def write_nc_nonuniform(line_scan, fobj, format="NETCDF3_64BIT_OFFSET"):
         except KeyError:
             pass
         if info != {}:
-            nc.json = json.dumps(info)
+            nc.json = json.dumps(info, cls=ExtendedJSONEncoder)
 
         (nx,) = line_scan.nb_grid_pts
 

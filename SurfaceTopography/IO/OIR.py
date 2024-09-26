@@ -443,10 +443,8 @@ This reader imports Olympus OIR data files.
             )
 
         self._info = {
-            "acquisition_time": str(
-                dateutil.parser.parse(
-                    image_properties["commonimage:general"]["base:creationDateTime"]
-                )
+            "acquisition_time": dateutil.parser.parse(
+                image_properties["commonimage:general"]["base:creationDateTime"]
             ),
             "instrument": {
                 "name": image_properties["commonimage:microscope"]["base:name"]

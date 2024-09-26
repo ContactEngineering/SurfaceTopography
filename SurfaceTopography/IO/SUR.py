@@ -192,15 +192,13 @@ This reader imports Digital Surf SUR data files.
         info = {"instrument": {"name": header.instrument_name}, "raw_metadata": header}
 
         try:
-            info["acquisition_time"] = str(
-                datetime.datetime(
-                    header.year,
-                    header.month,
-                    header.day,
-                    header.hour,
-                    header.minute,
-                    header.second,
-                )
+            info["acquisition_time"] = datetime.datetime(
+                header.year,
+                header.month,
+                header.day,
+                header.hour,
+                header.minute,
+                header.second,
             )
         except ValueError:
             # This can fail if the date is not valid, e.g. if there are just zeros

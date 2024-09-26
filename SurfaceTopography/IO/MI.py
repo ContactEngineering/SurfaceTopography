@@ -28,11 +28,10 @@
 import numpy as np
 
 from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
 from ..Support.UnitConversion import mangle_length_unit_utf8
-
+from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 image_head = b'fileType      Image\n'
 spec_head = b'fileType      Spectroscopy\n'
@@ -200,7 +199,7 @@ well as its units.
                 ]
 
     @property
-    def info(self):
+    def info(self) -> dict:
         """Return all the available metadata as a dict."""
         return self.mifile.meta
 

@@ -201,7 +201,7 @@ DSC.
             self._nb_grid_pts = (nb_grid_pts_x + 1, nb_grid_pts_y)
 
             self._info = {
-                "acquisition_date": dateutil.parser.parse(
+                "acquisition_time": dateutil.parser.parse(
                     self._metadata["Creation time"]
                 )
             }

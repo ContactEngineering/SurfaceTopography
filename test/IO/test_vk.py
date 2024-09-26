@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -70,7 +69,7 @@ def test_vk3_metadata(file_format_examples):
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1223148.5774419378, rtol=1e-6)
 
-    assert t.info['acquisition_time'] == '2022-10-28 09:51:59+02:00'
+    assert t.info['acquisition_time'].isoformat() == '2022-10-28T09:51:59+02:00'
 
 
 def test_vk4_metadata(file_format_examples):
@@ -91,7 +90,7 @@ def test_vk4_metadata(file_format_examples):
 
     np.testing.assert_allclose(t.rms_height_from_area(), 54193042.85097, rtol=1e-6)
 
-    assert t.info['acquisition_time'] == '2022-10-14 09:23:04+02:00'
+    assert str(t.info['acquisition_time']) == '2022-10-14 09:23:04+02:00'
 
 
 def test_vk6_metadata(file_format_examples):
@@ -112,4 +111,4 @@ def test_vk6_metadata(file_format_examples):
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1061663.7395845044, rtol=1e-6)
 
-    assert t.info['acquisition_time'] == '2022-10-23 12:13:10-04:00'
+    assert t.info['acquisition_time'].isoformat() == '2022-10-23T12:13:10-04:00'

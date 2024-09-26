@@ -29,13 +29,12 @@ import enum
 
 import dateutil.parser
 import xmltodict
-
 from tiffile import TiffFile, TiffFileError
 
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 
 class LEXTReader(ReaderBase):
@@ -48,7 +47,7 @@ class LEXTReader(ReaderBase):
 TIFF-based file format of Olympus instruments.
 """
 
-    _tag_readers = {306: lambda value: str(dateutil.parser.parse(value))}
+    _tag_readers = {306: lambda value: dateutil.parser.parse(value)}
 
     @classmethod
     def _tag_to_dict(cls, key, value):
@@ -94,11 +93,18 @@ TIFF-based file format of Olympus instruments.
                                 for key, value in tag_metadata["ExifTag"].items():
                                     try:
                                         if value.startswith("<?xml"):
-                                            updated_metadata[key] = xmltodict.parse(value)
+                                            updated_metadata[key] = xmltodict.parse(
+                                                value
+                                            )
                                     except AttributeError:
                                         pass
                                 tag_metadata["ExifTag"].update(updated_metadata)
                             page_metadata.update(tag_metadata)
+
+                        if "DateTime" in page_metadata:
+                            page_metadata["DateTime"] = page_metadata[
+                                "DateTime"
+                            ].isoformat()
 
                         if page_metadata["ImageDescription"] == "HEIGHT":
                             # This is the actual height data
@@ -111,59 +117,94 @@ TIFF-based file format of Olympus instruments.
                                 nx, ny = p.shape
 
                             # This is some metadata
-                            image_desc = page_metadata["ImageDescription"]["TiffTagDescData"]
-                            data_desc = page_metadata["ExifTag"]["DeviceSettingDescription"]["ExifTagDescData"]
+                            image_desc = page_metadata["ImageDescription"][
+                                "TiffTagDescData"
+                            ]
+                            data_desc = page_metadata["ExifTag"][
+                                "DeviceSettingDescription"
+                            ]["ExifTagDescData"]
                             self._height_scale_factor = (
-                                    1e-12
-                                    * float(image_desc["HeightInfo"]["HeightDataPerPixelZ"])
-                                    * float(data_desc["ImageCommonSettingsInfo"]["MakerCalibrationValueZ"])
+                                1e-12
+                                * float(image_desc["HeightInfo"]["HeightDataPerPixelZ"])
+                                * float(
+                                    data_desc["ImageCommonSettingsInfo"][
+                                        "MakerCalibrationValueZ"
+                                    ]
+                                )
                             )
                             self._nb_grid_pts = (nx, ny)
                             self._physical_sizes = (
-                                1e-12 * nx
+                                1e-12
+                                * nx
                                 * float(image_desc["HeightInfo"]["HeightDataPerPixelX"])
-                                * float(data_desc["ImageCommonSettingsInfo"]["MakerCalibrationValueX"]),
-                                1e-12 * ny
+                                * float(
+                                    data_desc["ImageCommonSettingsInfo"][
+                                        "MakerCalibrationValueX"
+                                    ]
+                                ),
+                                1e-12
+                                * ny
                                 * float(image_desc["HeightInfo"]["HeightDataPerPixelY"])
-                                * float(data_desc["ImageCommonSettingsInfo"]["MakerCalibrationValueY"])
+                                * float(
+                                    data_desc["ImageCommonSettingsInfo"][
+                                        "MakerCalibrationValueY"
+                                    ]
+                                ),
                             )
-                            self._x_unit_index = int(image_desc["HeightInfo"]["HeightDataUnitX"])
-                            self._y_unit_index = int(image_desc["HeightInfo"]["HeightDataUnitY"])
-                            self._height_unit_index = int(image_desc["HeightInfo"]["HeightDataUnitZ"])
+                            self._x_unit_index = int(
+                                image_desc["HeightInfo"]["HeightDataUnitX"]
+                            )
+                            self._y_unit_index = int(
+                                image_desc["HeightInfo"]["HeightDataUnitY"]
+                            )
+                            self._height_unit_index = int(
+                                image_desc["HeightInfo"]["HeightDataUnitZ"]
+                            )
 
-                            if self._x_unit_index != self._height_unit_index or \
-                                    self._y_unit_index != self._height_unit_index:
-                                raise CorruptFile("Units in x-, y- and height direction appear to differ")
+                            if (
+                                self._x_unit_index != self._height_unit_index
+                                or self._y_unit_index != self._height_unit_index
+                            ):
+                                raise CorruptFile(
+                                    "Units in x-, y- and height direction appear to "
+                                    "differ."
+                                )
 
                         metadata += [page_metadata]
 
                     self._info = {"raw_metadata": metadata}
             except TiffFileError:
-                raise FileFormatMismatch("This is not a TIFF file, so it cannot be an Olympus LEXT file.")
+                raise FileFormatMismatch(
+                    "This is not a TIFF file, so it cannot be an Olympus LEXT file."
+                )
 
     @property
     def channels(self):
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name="default",
-                            dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
-                            height_scale_factor=self._height_scale_factor,
-                            uniform=True,
-                            info=self._info,
-                            unit=self._unit)]
+        return [
+            ChannelInfo(
+                self,
+                0,  # channel index
+                name="default",
+                dim=2,
+                nb_grid_pts=self._nb_grid_pts,
+                physical_sizes=self._physical_sizes,
+                height_scale_factor=self._height_scale_factor,
+                uniform=True,
+                info=self._info,
+                unit=self._unit,
+            )
+        ]
 
     def topography(
-            self,
-            channel_index=None,
-            physical_sizes=None,
-            height_scale_factor=None,
-            unit=None,
-            info={},
-            periodic=None,
-            subdomain_locations=None,
-            nb_subdomain_grid_pts=None,
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
     ):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError("This reader does not support MPI parallelization.")
@@ -172,7 +213,9 @@ TIFF-based file format of Olympus instruments.
             channel_index = self._default_channel_index
 
         if channel_index != self._default_channel_index:
-            raise RuntimeError(f"There is only a single channel. Channel index must be {self._default_channel_index}.")
+            raise RuntimeError(
+                f"There is only a single channel. Channel index must be {self._default_channel_index}."
+            )
 
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")

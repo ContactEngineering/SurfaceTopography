@@ -43,7 +43,7 @@ def test_nmm_metadata(file_format_examples, plot=False):
     t = r.topography()
 
     assert t.nb_grid_pts == (20001, 10)
-    assert t.unit == "um"
+    assert t.unit == "µm"
     np.testing.assert_allclose(t.physical_sizes, (1000, 9))
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.222713, rtol=1e-6)
 

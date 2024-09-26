@@ -31,6 +31,7 @@ import os
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
@@ -41,9 +42,22 @@ class ChannelInfo:
     Information on topography channels contained within a file.
     """
 
-    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None,
-                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={},
-                 tags={}):
+    def __init__(
+        self,
+        reader,
+        index,
+        name=None,
+        dim=None,
+        nb_grid_pts=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        periodic=None,
+        uniform=None,
+        undefined_data=None,
+        unit=None,
+        info={},
+        tags={},
+    ):
         """
         Initialize the channel. Use as much information from the file as
         possible by passing it in the keyword arguments. Keyword arguments
@@ -84,22 +98,23 @@ class ChannelInfo:
         """
         self._reader = reader
         self._index = int(index)
-        self._name = "channel {}".format(self._index) \
-            if name is None else str(name)
+        self._name = "channel {}".format(self._index) if name is None else str(name)
         self._dim = dim
-        self._nb_grid_pts = None \
-            if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
-        self._physical_sizes = None \
-            if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        self._nb_grid_pts = (
+            None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
+        )
+        self._physical_sizes = (
+            None if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        )
         self._height_scale_factor = height_scale_factor
         self._periodic = periodic
         self._uniform = uniform
         self._undefined_data = undefined_data
         self._unit = unit
         if info is None:
-            self._info = {}
+            self._info = InfoModel()
         else:
-            self._info = info.copy()
+            self._info = InfoModel(**info)
         if tags is None:
             self._tags = {}
         else:
@@ -107,14 +122,30 @@ class ChannelInfo:
 
     def __eq__(self, other):
         # We do not compare tags
-        return self.index == other.index and self.name == other.name and self.dim == other.dim and \
-            self.nb_grid_pts == other.nb_grid_pts and self.physical_sizes == other.physical_sizes and \
-            self.height_scale_factor == other.height_scale_factor and self.is_periodic == other.is_periodic and \
-            self.is_uniform == other.is_uniform and self.has_undefined_data == other.has_undefined_data and \
-            self.unit == other.unit and self.info == other.info
+        return (
+            self.index == other.index
+            and self.name == other.name
+            and self.dim == other.dim
+            and self.nb_grid_pts == other.nb_grid_pts
+            and self.physical_sizes == other.physical_sizes
+            and self.height_scale_factor == other.height_scale_factor
+            and self.is_periodic == other.is_periodic
+            and self.is_uniform == other.is_uniform
+            and self.has_undefined_data == other.has_undefined_data
+            and self.unit == other.unit
+            and self.info == other.info
+        )
 
-    def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. The method allows to override data
@@ -160,7 +191,8 @@ class ChannelInfo:
             info=info,
             periodic=periodic,
             subdomain_locations=subdomain_locations,
-            nb_subdomain_grid_pts=nb_subdomain_grid_pts)
+            nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+        )
 
     @property
     def index(self):
@@ -270,8 +302,7 @@ class ChannelInfo:
         if self._physical_sizes is None or self._nb_grid_pts is None:
             return None
         else:
-            return tuple(np.array(self._physical_sizes) /
-                         np.array(self._nb_grid_pts))
+            return tuple(np.array(self._physical_sizes) / np.array(self._nb_grid_pts))
 
     @property
     def area_per_pt(self):
@@ -293,21 +324,12 @@ class ChannelInfo:
         return self._unit
 
     @property
-    def info(self):
+    def info(self) -> dict:
         """
         A dictionary containing additional information (metadata) not used by
         SurfaceTopography itself, but required by third-party application.
-
-        Presently, the following entries have been standardized:
-        'height_scale_factor':
-            Factor which was used to scale the raw numbers from file (which
-            can be voltages or some other quantity actually acquired in the
-            measurement technique) to heights with the given 'unit'.
         """
-        info = self._info.copy()
-        if self.unit is not None:
-            info.update(dict(unit=self.unit))
-        return info
+        return self._info.model_dump(exclude_none=True)
 
     @property
     def tags(self):
@@ -358,7 +380,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         unique and is typically equal to the file extension of this format.
         """
         if cls._format is None:
-            raise RuntimeError('Reader does not provide a format string')
+            raise RuntimeError("Reader does not provide a format string")
         return cls._format
 
     @classmethod
@@ -367,7 +389,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         MIME types supported by this reader.
         """
         if cls._mime_types is None:
-            raise RuntimeError('Reader does not provide MIME types')
+            raise RuntimeError("Reader does not provide MIME types")
         return cls._mime_types
 
     @classmethod
@@ -377,7 +399,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         there are no typical file extensions.
         """
         if cls._file_extensions is None:
-            raise RuntimeError('Reader does not provide file extensions')
+            raise RuntimeError("Reader does not provide file extensions")
         return cls._file_extensions
 
     @classmethod
@@ -386,7 +408,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Short name of this file format.
         """
         if cls._name is None:
-            raise RuntimeError('Reader does not provide a name')
+            raise RuntimeError("Reader does not provide a name")
         return cls._name
 
     @classmethod
@@ -395,7 +417,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Long description of this file format. Should be formatted as markdown.
         """
         if cls._description is None:
-            raise RuntimeError('Reader does not provide a description string')
+            raise RuntimeError("Reader does not provide a description string")
         return cls._description
 
     def __enter__(self):
@@ -423,8 +445,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(cls, physical_sizes_from_arg,
-                              physical_sizes=None):
+    def _check_physical_sizes(cls, physical_sizes_from_arg, physical_sizes=None):
         """Handle overriding of `physical_sizes` arguments and make sure,
         that return value is not `None`.
 
@@ -437,19 +458,30 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
-                raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
+                raise ValueError(
+                    "`physical_sizes` could not be extracted from file, you must provide it."
+                )
             eff_physical_sizes = physical_sizes_from_arg
         elif physical_sizes_from_arg is not None:
             # in general this should result in an exception now
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile("physical_sizes")
         else:
             eff_physical_sizes = physical_sizes
 
         return eff_physical_sizes
 
     @abc.abstractmethod
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. Which specific type of height container
@@ -518,7 +550,7 @@ class CompoundLayout(LayoutWithNameBase):
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
-            tmp_context = AttrDict({**local_context, '__parent__': context})
+            tmp_context = AttrDict({**local_context, "__parent__": context})
             if callable(structure):
                 # This is a function that returns the respective structure
                 structure = structure(tmp_context)
@@ -574,7 +606,15 @@ class Skip:
 
 
 class SizedChunk(LayoutWithNameBase):
-    def __init__(self, size, structure, mode='read-once', name=None, context_mapper=None, debug=False):
+    def __init__(
+        self,
+        size,
+        structure,
+        mode="read-once",
+        name=None,
+        context_mapper=None,
+        debug=False,
+    ):
         """
         Declare a file portion of a specific size. This allows bounds checking,
         i.e. raising exception if too much or too little data is read.
@@ -626,41 +666,53 @@ class SizedChunk(LayoutWithNameBase):
 
         starting_position = stream_obj.tell()
         if self._debug:
-            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position + size}.')
+            print(
+                f"Sized chunk is supposed to run from {starting_position} to {starting_position + size}."
+            )
 
         local_context = []
         local_context += [self._structure.from_stream(stream_obj, context)]
         final_position = stream_obj.tell()
-        while self._mode == 'loop' and final_position - starting_position < size:
+        while self._mode == "loop" and final_position - starting_position < size:
             local_context += [self._structure.from_stream(stream_obj, context)]
             final_position = stream_obj.tell()
 
         # Check if we processed the whole chunk
         if final_position - starting_position > size:
-            raise IOError(f'Chunk is supposed to contain {size} bytes, but '
-                          f'{final_position - starting_position} bytes have been decoded. '
-                          f'(Chunk starts at position {starting_position} and ends at {final_position}, '
-                          f'but is supposed to end at {starting_position + size}.)')
+            raise IOError(
+                f"Chunk is supposed to contain {size} bytes, but "
+                f"{final_position - starting_position} bytes have been decoded. "
+                f"(Chunk starts at position {starting_position} and ends at {final_position}, "
+                f"but is supposed to end at {starting_position + size}.)"
+            )
         elif final_position - starting_position < size:
-            if self._mode == 'skip-missing':
-                stream_obj.seek(size - (final_position - starting_position), os.SEEK_CUR)
+            if self._mode == "skip-missing":
+                stream_obj.seek(
+                    size - (final_position - starting_position), os.SEEK_CUR
+                )
             else:
-                raise IOError(f'Chunk is supposed to contain {size} bytes, but only '
-                              f'{final_position - starting_position} bytes have been decoded. '
-                              f'(Chunk starts at position {starting_position} and ends at {final_position}, '
-                              f'but is supposed to end at {starting_position + size}.)')
+                raise IOError(
+                    f"Chunk is supposed to contain {size} bytes, but only "
+                    f"{final_position - starting_position} bytes have been decoded. "
+                    f"(Chunk starts at position {starting_position} and ends at {final_position}, "
+                    f"but is supposed to end at {starting_position + size}.)"
+                )
 
         name = self.name(context)
-        if self._mode != 'loop':
-            local_context, = local_context
+        if self._mode != "loop":
+            (local_context,) = local_context
         if self._context_mapper is None:
+
             def context_mapper(x):
                 return x
+
         else:
             context_mapper = self._context_mapper
         if name is None:
-            if self._mode == 'loop' and self._context_mapper is None:
-                raise IOError("`name` or `context_mapper` must be specified for mode 'loop'.")
+            if self._mode == "loop" and self._context_mapper is None:
+                raise IOError(
+                    "`name` or `context_mapper` must be specified for mode 'loop'."
+                )
             return context_mapper(local_context)
         else:
             return context_mapper({name: local_context})
@@ -675,7 +727,7 @@ class For(LayoutWithNameBase):
         self._name = name
 
         if self._name is None:
-            raise ValueError('`For` statement must have a name.')
+            raise ValueError("`For` statement must have a name.")
 
     def from_stream(self, stream_obj, context):
         local_context = []
@@ -696,7 +748,7 @@ class While(LayoutWithNameBase):
         self._name = name
 
         if self._name is None:
-            raise ValueError('`While` statement must have a name.')
+            raise ValueError("`While` statement must have a name.")
 
     def from_stream(self, stream_obj, context):
         while_context = []
@@ -706,9 +758,14 @@ class While(LayoutWithNameBase):
             for arg in self._args:
                 if still_looping:
                     if callable(arg):
-                        still_looping = arg(AttrDict({**local_context, '__parent__': context}))
+                        still_looping = arg(
+                            AttrDict({**local_context, "__parent__": context})
+                        )
                     else:
-                        x = arg.from_stream(stream_obj, AttrDict({**local_context, '__parent__': context}))
+                        x = arg.from_stream(
+                            stream_obj,
+                            AttrDict({**local_context, "__parent__": context}),
+                        )
                         local_context.update(x)
             while_context += [local_context]
         return {self.name(context): while_context}
@@ -723,10 +780,12 @@ class DeclarativeReaderBase(ReaderBase):
 
     def __init__(self, file_path):
         if self._file_layout is None:
-            raise RuntimeError('Please defined the file structure via the `_file_layout` class member.')
+            raise RuntimeError(
+                "Please defined the file structure via the `_file_layout` class member."
+            )
 
         self.file_path = file_path
-        with OpenFromAny(self.file_path, 'rb') as f:
+        with OpenFromAny(self.file_path, "rb") as f:
             self._metadata = self._file_layout.from_stream(f, {})
 
         self._validate_metadata()
@@ -738,20 +797,28 @@ class DeclarativeReaderBase(ReaderBase):
     def metadata(self):
         return self._metadata
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={},
-                   periodic=None, subdomain_locations=None,
-                   nb_subdomain_grid_pts=None):
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError("This reader does not support MPI parallelization.")
 
         if channel_index is None:
             channel_index = self._default_channel_index
 
         channels = self.channels
         if channel_index < 0 or channel_index >= len(channels):
-            raise RuntimeError(f'Channel index is {channel_index} but must be between 0 and {len(channels) - 1}.')
+            raise RuntimeError(
+                f"Channel index is {channel_index} but must be between 0 and {len(channels) - 1}."
+            )
 
         # Get channel information
         channel = channels[channel_index]
@@ -759,27 +826,29 @@ class DeclarativeReaderBase(ReaderBase):
         if physical_sizes is None:
             physical_sizes = channel.physical_sizes
         elif channel.physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile("physical_sizes")
 
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
 
         if unit is None:
             unit = channel.unit
         elif channel.unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            raise MetadataAlreadyFixedByFile("unit")
 
-        with OpenFromAny(self.file_path, 'rb') as f:
-            height_data = channel.tags['reader'](f)
+        with OpenFromAny(self.file_path, "rb") as f:
+            height_data = channel.tags["reader"](f)
 
         _info = channel.info.copy()
         _info.update(info)
 
-        topo = Topography(height_data,
-                          physical_sizes,
-                          unit=unit,
-                          periodic=False if periodic is None else periodic,
-                          info=_info)
+        topo = Topography(
+            height_data,
+            physical_sizes,
+            unit=unit,
+            periodic=False if periodic is None else periodic,
+            info=_info,
+        )
         return topo.scale(height_scale_factor)

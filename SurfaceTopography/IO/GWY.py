@@ -224,9 +224,11 @@ visualization and analysis software Gwyddion.
                                 periodic=False,
                                 uniform=True,
                                 info={
-                                    key: value
-                                    for key, value in self._metadata.items()
-                                    if key.startswith(f"/{index}/")
+                                    "raw_metadata": {
+                                        key: value
+                                        for key, value in self._metadata.items()
+                                        if key.startswith(f"/{index}/")
+                                    }
                                 },
                                 tags={"data": data["data"], "index": index},
                             )
@@ -277,7 +279,8 @@ visualization and analysis software Gwyddion.
                 f.seek(self._masks[gwy_index]["offset"])
                 mask_data = (
                     _gwy_read_array(f, self._masks[gwy_index]["type"])
-                    .reshape((ny, nx)).T
+                    .reshape((ny, nx))
+                    .T
                 )
                 height_data = np.ma.masked_array(height_data, mask=mask_data > 0.5)
 

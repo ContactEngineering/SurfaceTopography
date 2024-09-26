@@ -26,24 +26,23 @@
 """
 Reader for Keyence ZON files.
 """
+
 import os
-
-# Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
-# format. See discussion here https://github.com/gabeguss/Keyence/issues/2
-
-import numpy as np
-from numpy.lib.stride_tricks import as_strided
 from struct import unpack
 from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
+import numpy as np
+from numpy.lib.stride_tricks import as_strided
 
-from ..Exceptions import MetadataAlreadyFixedByFile, FileFormatMismatch
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-
 from .binary import decode
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
+
+# Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
+# format. See discussion here https://github.com/gabeguss/Keyence/issues/2
 
 
 def _read_array(f, dtype=np.dtype("<i4")):
@@ -165,9 +164,11 @@ This reader open ZON files that are written by some Keyence instruments.
                         unit="m",
                         uniform=True,
                         info={
-                            "data_uuid": self._HEIGHT_DATA_UUID,
-                            "meter_per_pixel": meter_per_pixel,
-                            "meter_per_unit": meter_per_unit,
+                            "raw_metadata": {
+                                "data_uuid": self._HEIGHT_DATA_UUID,
+                                "meter_per_pixel": meter_per_pixel,
+                                "meter_per_unit": meter_per_unit,
+                            }
                         },
                     )
                 ]
@@ -207,7 +208,7 @@ This reader open ZON files that are written by some Keyence instruments.
         with OpenFromAny(self._file_path, "rb") as f:
             # Read image data
             with ZipFile(f, "r") as z:
-                with z.open(channel_info.info["data_uuid"]) as f:
+                with z.open(channel_info.info["raw_metadata"]["data_uuid"]) as f:
                     height_data = _read_array(f)
 
         topo = Topography(

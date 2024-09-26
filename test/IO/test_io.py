@@ -323,12 +323,6 @@ def test_reader_arguments(fn):
     )
 
     info = r.channels[0].info.copy()
-    # The `info` dict of the topography has the 'unit' entry,
-    # which will be removed in future versions.
-    info.update(
-        {"unit": r.channels[0].unit if r.channels[0].unit is not None else unit0}
-    )
-    # assert 'unit' not in info
 
     t = r.topography(
         channel_index=0,
@@ -449,17 +443,15 @@ def test_channel_info_and_topography_have_same_metadata(fn):
         foo_str = reader.format() + "-%d" % (channel.index,)  # unique for each channel
         topography = channel.topography(
             physical_sizes=(1, 1) if channel.physical_sizes is None else None,
-            info=dict(foo=foo_str),
+            info=dict(datafile=dict(foo=foo_str)),
         )
         assert channel.nb_grid_pts == topography.nb_grid_pts
         assert topography.nb_grid_pts == topography.heights().shape
 
         # some checks on info dict in channel and topography
-        assert topography.info["foo"] == foo_str
+        assert topography.info["datafile"] == dict(foo=foo_str)
         if channel.unit is not None or topography.unit is not None:
             assert channel.unit == topography.unit
-            assert channel.info["unit"] == topography.unit
-            assert channel.unit == topography.info["unit"]
 
         if channel.physical_sizes is not None:
             assert channel.physical_sizes == topography.physical_sizes
@@ -582,7 +574,7 @@ def test_reader_height_scale_factor_arg_for_topography(fn):
     #
     # (only do this if not an NC file with units, since this is special: height_scale_factor
     # should only be choosable then.)
-    if reader.format != "nc" and "unit" not in ch.info:
+    if reader.format != "nc" and not ch.unit:
         topography = reader.topography(
             physical_sizes=physical_sizes_arg,
             height_scale_factor=height_scale_factor_arg,

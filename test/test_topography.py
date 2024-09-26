@@ -42,8 +42,14 @@ from NuMPI.Tools import Reduction
 from numpy.random import rand
 from numpy.testing import assert_array_equal
 
-from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
-                               make_sphere, open_topography, read_topography)
+from SurfaceTopography import (
+    NonuniformLineScan,
+    Topography,
+    UniformLineScan,
+    make_sphere,
+    open_topography,
+    read_topography,
+)
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO import XYZReader
 from SurfaceTopography.IO.Text import AscReader, read_asc, read_matrix
@@ -592,9 +598,6 @@ def test_di_orientation():
     di_fn = os.path.join(DATADIR, "di-1.di")
 
     di_t = read_topography(di_fn)
-
-    with pytest.deprecated_call():
-        assert di_t.info['unit'] == 'nm'
 
     #
     # Check values in 4 corners, this should fix orientation
