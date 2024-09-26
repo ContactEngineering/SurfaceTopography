@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
+import datetime
 import logging
 import os
 
@@ -57,22 +57,23 @@ def _compare(source, target, marker=None):
                 logger.error("{} not in target '{}'.".format(k, source))
                 return False
 
-            logger.debug("Descending into sub-tree '{}' of '{}'.".format(
-                source[k], source))
+            logger.debug(
+                "Descending into sub-tree '{}' of '{}'.".format(source[k], source)
+            )
             # descend
             if not _compare(source[k], target[k], v):
                 return False  # one failed comparison suffices
 
     elif isinstance(marker, list):  # source, target and marker must have same length
-        logger.debug("Branching into element wise sub-trees of '{}'.".format(
-            source))
+        logger.debug("Branching into element wise sub-trees of '{}'.".format(source))
         for s, t, m in zip(source, target, marker):
             if not _compare(s, t, m):
                 return False  # one failed comparison suffices
     else:  # arrived at leaf, comparison desired?
         if marker is not False:  # yes
-            logger.debug("Comparing '{}' == '{}' -> {}.".format(
-                source, target, source == target))
+            logger.debug(
+                "Comparing '{}' == '{}' -> {}.".format(source, target, source == target)
+            )
             return source == target
 
     # comparison either not desired or successful for all elements
@@ -81,57 +82,61 @@ def _compare(source, target, marker=None):
 
 # channel info expected from 'mitutoyo_mock.xlsx'
 EXPECTED_CHANNEL_INFO = {
-    'roughness_metrics': [
-        {'key': 'Ra', 'value': 0.018, 'unit': 'µm'},
-        {'key': 'Rq', 'value': 0.027, 'unit': 'µm'},
-        {'key': 'Rz', 'value': 0.191, 'unit': 'µm'},
-        {'key': 'Rpk', 'value': 0.052, 'unit': 'µm'},
-        {'key': 'Rvk', 'value': 0.489, 'unit': 'µm'}],
-    'cut_off': {'value': '0.08', 'unit': 'mm'},
-    'acquisition_time': '2022-10-10 00:00:00',
-    'unit': 'µm'
+    "raw_metadata": {
+        "roughness_metrics": [
+            {"key": "Ra", "value": 0.018, "unit": "µm"},
+            {"key": "Rq", "value": 0.027, "unit": "µm"},
+            {"key": "Rz", "value": 0.191, "unit": "µm"},
+            {"key": "Rpk", "value": 0.052, "unit": "µm"},
+            {"key": "Rvk", "value": 0.489, "unit": "µm"},
+        ],
+        "cut_off": {"value": "0.08", "unit": "mm"},
+    },
+    "acquisition_time": datetime.datetime(2022, 10, 10, 0, 0),
 }
 
 # channel info expected from 'mitutoyo_2_mock.xlsx'
 EXPECTED_CHANNEL_INFO_2 = {
-    'roughness_metrics': [
-        {'key': 'Ra', 'value': 3.308, 'unit': 'µm'},
-        {'key': 'Rq', 'value': 3.959, 'unit': 'µm'},
-        {'key': 'Rz', 'value': 18.485, 'unit': 'µm'},
-        {'key': 'Rp', 'value': 8.244, 'unit': 'µm'},
-        {'key': 'Rv', 'value': 10.24, 'unit': 'µm'},
-        {'key': 'Rsk', 'value': -0.144, 'unit': ''},
-        {'key': 'Rkµ', 'value': 2.463, 'unit': ''},
-        {'key': 'Rc', 'value': 13.306, 'unit': 'µm'},
-        {'key': 'RSm', 'value': 419.9, 'unit': 'µm'},
-        {'key': 'RDq', 'value': 0.157, 'unit': ''},
-        {'key': 'Rmr', 'value': 0.03, 'unit': '%'},
-        {'key': 'Rmr(c)1', 'value': 2.911, 'unit': '%'},
-        {'key': 'Rmr(c)2', 'value': 5.822, 'unit': '%'},
-        {'key': 'Rdc', 'value': 1.828, 'unit': 'µm'},
-        {'key': 'Rt', 'value': 22.233, 'unit': 'µm'},
-        {'key': 'Rz1max', 'value': 22.062, 'unit': 'µm'},
-        {'key': 'Rk', 'value': 11.44, 'unit': 'µm'},
-        {'key': 'Rpk', 'value': 2.912, 'unit': 'µm'},
-        {'key': 'Rvk', 'value': 3.98, 'unit': 'µm'},
-        {'key': 'Mr1', 'value': 5.822, 'unit': '%'},
-        {'key': 'Mr2', 'value': 92.617, 'unit': '%'},
-        {'key': 'A1', 'value': 8.48, 'unit': ''},
-        {'key': 'A2', 'value': 14.69, 'unit': ''}],
-    'cut_off': {'value': '2.5', 'unit': 'mm'},
-    'acquisition_time': '2023-06-20 00:00:00',
-    'unit': 'µm'
+    "raw_metadata": {
+        "roughness_metrics": [
+            {"key": "Ra", "value": 3.308, "unit": "µm"},
+            {"key": "Rq", "value": 3.959, "unit": "µm"},
+            {"key": "Rz", "value": 18.485, "unit": "µm"},
+            {"key": "Rp", "value": 8.244, "unit": "µm"},
+            {"key": "Rv", "value": 10.24, "unit": "µm"},
+            {"key": "Rsk", "value": -0.144, "unit": ""},
+            {"key": "Rkµ", "value": 2.463, "unit": ""},
+            {"key": "Rc", "value": 13.306, "unit": "µm"},
+            {"key": "RSm", "value": 419.9, "unit": "µm"},
+            {"key": "RDq", "value": 0.157, "unit": ""},
+            {"key": "Rmr", "value": 0.03, "unit": "%"},
+            {"key": "Rmr(c)1", "value": 2.911, "unit": "%"},
+            {"key": "Rmr(c)2", "value": 5.822, "unit": "%"},
+            {"key": "Rdc", "value": 1.828, "unit": "µm"},
+            {"key": "Rt", "value": 22.233, "unit": "µm"},
+            {"key": "Rz1max", "value": 22.062, "unit": "µm"},
+            {"key": "Rk", "value": 11.44, "unit": "µm"},
+            {"key": "Rpk", "value": 2.912, "unit": "µm"},
+            {"key": "Rvk", "value": 3.98, "unit": "µm"},
+            {"key": "Mr1", "value": 5.822, "unit": "%"},
+            {"key": "Mr2", "value": 92.617, "unit": "%"},
+            {"key": "A1", "value": 8.48, "unit": ""},
+            {"key": "A2", "value": 14.69, "unit": ""},
+        ],
+        "cut_off": {"value": "2.5", "unit": "mm"},
+    },
+    "acquisition_time": datetime.datetime(2023, 6, 20, 0, 0),
 }
 
 
 def test_read_uniform(file_format_examples):
-    reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx'))
+    reader = MitutoyoReader(os.path.join(file_format_examples, "mitutoyo_mock.xlsx"))
 
     assert len(reader.channels) == 1
     assert reader.channels[0] == reader.default_channel
 
     # test a few channel properties
-    assert reader.default_channel.unit == 'µm'
+    assert reader.default_channel.unit == "µm"
 
     np.testing.assert_allclose(reader.default_channel.area_per_pt, 0.5)
 
@@ -139,9 +144,9 @@ def test_read_uniform(file_format_examples):
 
     physical_sizes = reader.default_channel.physical_sizes
     assert len(physical_sizes) == 1
-    np.testing.assert_allclose(physical_sizes[0], 480.)
+    np.testing.assert_allclose(physical_sizes[0], 480.0)
 
-    nx, = reader.channels[0].nb_grid_pts
+    (nx,) = reader.channels[0].nb_grid_pts
     assert nx == 960
 
     # test channel info
@@ -150,24 +155,26 @@ def test_read_uniform(file_format_examples):
 
     # test number of grid points in topography
     topography = reader.topography()
-    nx, = topography.nb_grid_pts
+    (nx,) = topography.nb_grid_pts
     assert nx == 960
 
     # test rms roughness
-    np.testing.assert_allclose(topography.rms_height_from_profile(), 0.16866328079293708)
+    np.testing.assert_allclose(
+        topography.rms_height_from_profile(), 0.16866328079293708
+    )
 
     # test for uniform flag
     assert topography.is_uniform
 
 
 def test_read_uniform_2(file_format_examples):
-    reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_2_mock.xlsx'))
+    reader = MitutoyoReader(os.path.join(file_format_examples, "mitutoyo_2_mock.xlsx"))
 
     assert len(reader.channels) == 1
     assert reader.channels[0] == reader.default_channel
 
     # test a few channel properties
-    assert reader.default_channel.unit == 'µm'
+    assert reader.default_channel.unit == "µm"
 
     np.testing.assert_allclose(reader.default_channel.area_per_pt, 1.5)
 
@@ -175,9 +182,9 @@ def test_read_uniform_2(file_format_examples):
 
     physical_sizes = reader.default_channel.physical_sizes
     assert len(physical_sizes) == 1
-    np.testing.assert_allclose(physical_sizes[0], 9996.)
+    np.testing.assert_allclose(physical_sizes[0], 9996.0)
 
-    nx, = reader.channels[0].nb_grid_pts
+    (nx,) = reader.channels[0].nb_grid_pts
     assert nx == 6664
 
     # test channel info
@@ -186,7 +193,7 @@ def test_read_uniform_2(file_format_examples):
 
     # test number of grid points in topography
     topography = reader.topography()
-    nx, = topography.nb_grid_pts
+    (nx,) = topography.nb_grid_pts
     assert nx == 6664
 
     # test rms roughness
@@ -197,20 +204,22 @@ def test_read_uniform_2(file_format_examples):
 
 
 def test_read_nonuniform(file_format_examples):
-    reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx'))
+    reader = MitutoyoReader(
+        os.path.join(file_format_examples, "mitutoyo_nonuniform_mock.xlsx")
+    )
 
     assert len(reader.channels) == 1
     assert reader.channels[0] == reader.default_channel
 
     # test a few channel properties
-    assert reader.default_channel.unit == 'µm'
+    assert reader.default_channel.unit == "µm"
     assert reader.default_channel.dim == 1
     # ATTENTION: physical_sizes differs from uniform linescan above
     physical_sizes = reader.default_channel.physical_sizes
     assert len(physical_sizes) == 1
     np.testing.assert_allclose(physical_sizes[0], 479.5)
 
-    nx, = reader.channels[0].nb_grid_pts
+    (nx,) = reader.channels[0].nb_grid_pts
     assert nx == 960
 
     # test channel info
@@ -219,7 +228,7 @@ def test_read_nonuniform(file_format_examples):
 
     # test number of grid points in topography
     topography = reader.topography()
-    nx, = topography.nb_grid_pts
+    (nx,) = topography.nb_grid_pts
     assert nx == 960
 
     # test rms roughness
@@ -233,8 +242,12 @@ def test_read_nonuniform(file_format_examples):
 
 def test_uniform_vs_nonuniform(file_format_examples):
     """Uniform and nonuniform reader positions should be equal with one exemption."""
-    nonuniform_reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_nonuniform_mock.xlsx'))
-    uniform_reader = MitutoyoReader(os.path.join(file_format_examples, 'mitutoyo_mock.xlsx'))
+    nonuniform_reader = MitutoyoReader(
+        os.path.join(file_format_examples, "mitutoyo_nonuniform_mock.xlsx")
+    )
+    uniform_reader = MitutoyoReader(
+        os.path.join(file_format_examples, "mitutoyo_mock.xlsx")
+    )
 
     uniform_topography = uniform_reader.topography()
     nonuniform_topography = nonuniform_reader.topography()
@@ -245,8 +258,11 @@ def test_uniform_vs_nonuniform(file_format_examples):
     # I'd like
     #   np.testing.assert_allclose(uniform_topography.physical_sizes, nonuniform_topography.physical_sizes)
     # but currently it must be
-    np.testing.assert_allclose(uniform_topography.physical_sizes[0], nonuniform_topography.physical_sizes[0] + 0.5,
-                               rtol=1e-6)
+    np.testing.assert_allclose(
+        uniform_topography.physical_sizes[0],
+        nonuniform_topography.physical_sizes[0] + 0.5,
+        rtol=1e-6,
+    )
 
     # Convention is to have uniform linescan begin at zero, nonuniform linescan
     # built from Mitutoyo file follows this convention as well by removing the

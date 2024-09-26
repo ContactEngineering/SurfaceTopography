@@ -26,37 +26,41 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography.IO.ZON import ZONReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_read_header(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'zon-1.zon')
+    file_path = os.path.join(file_format_examples, "zon-1.zon")
 
     loader = ZONReader(file_path)
 
     # Like in Gwyddion, there should be 4 channels in total
     assert len(loader.channels) == 1
-    assert [ch.name for ch in loader.channels] == ['default']
+    assert [ch.name for ch in loader.channels] == ["default"]
 
     # Check if metadata has been read in correctly
     assert loader.channels[0].dim == 2
     assert loader.channels[0].nb_grid_pts == (1779, 2588)
-    np.testing.assert_allclose(loader.channels[0].physical_sizes, (0.004378, 0.006369), rtol=1e-4)
+    np.testing.assert_allclose(
+        loader.channels[0].physical_sizes, (0.004378, 0.006369), rtol=1e-4
+    )
 
     assert loader.default_channel.index == 0
     assert loader.default_channel.nb_grid_pts == (1779, 2588)
-    np.testing.assert_allclose(loader.default_channel.physical_sizes, (0.004378, 0.006369), rtol=1e-4)
+    np.testing.assert_allclose(
+        loader.default_channel.physical_sizes, (0.004378, 0.006369), rtol=1e-4
+    )
 
 
 def test_topography(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'zon-1.zon')
+    file_path = os.path.join(file_format_examples, "zon-1.zon")
 
     loader = ZONReader(file_path)
 
@@ -67,4 +71,5 @@ def test_topography(file_format_examples):
     np.testing.assert_allclose(topography.heights()[10, 5], 8.47e-05, rtol=1e-6)
 
     # Check the value of one of the metadata
-    assert topography.info['unit'] == 'm'
+    assert topography.unit == "m"
+    assert "unit" not in topography.info

@@ -25,15 +25,14 @@
 
 import datetime
 import os
-import pytest
 
 import numpy as np
-
+import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
-from SurfaceTopography.IO import DIReader
 from SurfaceTopography.Exceptions import CorruptFile
+from SurfaceTopography.IO import DIReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -42,7 +41,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_di_date(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, 'di-1.di'))
-    assert t.info['acquisition_time'] == str(datetime.datetime(2016, 1, 12, 9, 57, 48))
+    assert t.info['acquisition_time'] == datetime.datetime(2016, 1, 12, 9, 57, 48)
     assert t.info['instrument']['name'] == 'Dimension V'
 
 

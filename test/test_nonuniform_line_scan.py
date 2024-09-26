@@ -32,7 +32,6 @@ import pickle
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import NonuniformLineScan
@@ -40,7 +39,8 @@ from SurfaceTopography.IO import XYZReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_properties():
@@ -67,7 +67,10 @@ def test_squeeze_unit():
     surface2 = surface.squeeze()
     assert surface2.unit == surface.unit
 
-    surface = NonuniformLineScan(x, h, ).scale(2.0)
+    surface = NonuniformLineScan(
+        x,
+        h,
+    ).scale(2.0)
     surface2 = surface.squeeze()
     assert surface2.unit == surface.unit
 
@@ -113,21 +116,19 @@ def test_setting_info_dict():
 
     assert t.info == {}
 
-    t = NonuniformLineScan(x, h, unit='A')
+    t = NonuniformLineScan(x, h, unit="A")
 
     #
     # This info should be inherited in the pipeline
     #
     st = t.scale(2)
-    with pytest.deprecated_call():
-        assert st.info['unit'] == 'A'
+    assert st.unit == "A"
 
     #
     # It should be also possible to set the info
     #
-    st = t.scale(2, 1, unit='B')
-    with pytest.deprecated_call():
-        assert st.info['unit'] == 'B'
+    st = t.scale(2, 1, unit="B")
+    assert st.unit == "B"
 
 
 def test_init_with_lists_calling_scale_and_detrend():
@@ -136,7 +137,7 @@ def test_init_with_lists_calling_scale_and_detrend():
 
     # the following commands should be possible without errors
     st = t.scale(1)
-    st.detrend(detrend_mode='center')
+    st.detrend(detrend_mode="center")
 
 
 def test_power_spectrum_from_profile():
@@ -145,28 +146,28 @@ def test_power_spectrum_from_profile():
     # power spectrum 1D with a window given
     #
     t = NonuniformLineScan(x=[1, 2, 3, 4], y=[2, 4, 6, 8])
-    q1, C1 = t.power_spectrum_from_profile(window='hann')
-    q1, C1 = t.detrend('center').power_spectrum_from_profile(window='hann')
-    q1, C1 = t.detrend('center').power_spectrum_from_profile()
-    q1, C1 = t.detrend('height').power_spectrum_from_profile(window='hann')
-    q1, C1 = t.detrend('height').power_spectrum_from_profile()
+    q1, C1 = t.power_spectrum_from_profile(window="hann")
+    q1, C1 = t.detrend("center").power_spectrum_from_profile(window="hann")
+    q1, C1 = t.detrend("center").power_spectrum_from_profile()
+    q1, C1 = t.detrend("height").power_spectrum_from_profile(window="hann")
+    q1, C1 = t.detrend("height").power_spectrum_from_profile()
     # ok can be called without errors
 
 
 def test_detrend(file_format_examples):
-    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
-    assert not t.detrend('center').is_periodic
-    assert not t.detrend('height').is_periodic
+    t = XYZReader(os.path.join(file_format_examples, "xy-1.txt")).topography()
+    assert not t.detrend("center").is_periodic
+    assert not t.detrend("height").is_periodic
 
 
 def test_detrend_slope(file_format_examples):
-    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
-    assert not t.detrend('slope').is_periodic
+    t = XYZReader(os.path.join(file_format_examples, "xy-1.txt")).topography()
+    assert not t.detrend("slope").is_periodic
 
 
 def test_detrend_curvature(file_format_examples):
-    t = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
-    assert not t.detrend('curvature').is_periodic
+    t = XYZReader(os.path.join(file_format_examples, "xy-1.txt")).topography()
+    assert not t.detrend("curvature").is_periodic
 
 
 def test_masked_input():

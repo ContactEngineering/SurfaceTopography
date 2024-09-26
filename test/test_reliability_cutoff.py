@@ -32,20 +32,27 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
-from SurfaceTopography import read_container, read_topography, NonuniformLineScan, UniformLineScan, Topography
+from SurfaceTopography import (
+    NonuniformLineScan,
+    Topography,
+    UniformLineScan,
+    read_container,
+    read_topography,
+)
 from SurfaceTopography.Container.SurfaceContainer import InMemorySurfaceContainer
 from SurfaceTopography.Exceptions import NoReliableDataError
+from SurfaceTopography.Metadata import InstrumentModel
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_scanning_probe_reliability_cutoff(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'))
+    surf = read_topography(os.path.join(file_format_examples, "di-1.di"))
     np.testing.assert_allclose(surf.scanning_probe_reliability_cutoff(40), 90.700854)
 
     # Should be None because there is no tip radius information
@@ -56,31 +63,39 @@ def test_scanning_probe_reliability_cutoff(file_format_examples):
     np.testing.assert_almost_equal(cut, 0.2)
 
 
-@pytest.mark.parametrize('unit,fac', [('pm', 1e-3), ('nm', 1.0), ('um', 1e3), ('mm', 1e6)])
+@pytest.mark.parametrize(
+    "unit,fac", [("pm", 1e-3), ("nm", 1.0), ("um", 1e3), ("mm", 1e6)]
+)
 def test_unit_invariance(file_format_examples, unit, fac):
     """Test that we get the same reliability cutoff if we rescale the topography"""
-    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'))
+    surf = read_topography(os.path.join(file_format_examples, "di-1.di"))
 
     ref_value = 90.700854
 
-    np.testing.assert_allclose(surf.to_unit(unit).scanning_probe_reliability_cutoff(40 / fac) * fac, ref_value,
-                               rtol=1e-3)
+    np.testing.assert_allclose(
+        surf.to_unit(unit).scanning_probe_reliability_cutoff(40 / fac) * fac,
+        ref_value,
+        rtol=1e-3,
+    )
 
 
 def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'), info={
-        'instrument': {
-            'parameters': {
-                'tip_radius': {
-                    'value': 40,
-                    'unit': 'nm',
+    surf = read_topography(
+        os.path.join(file_format_examples, "di-1.di"),
+        info={
+            "instrument": {
+                "parameters": {
+                    "tip_radius": {
+                        "value": 40,
+                        "unit": "nm",
+                    }
                 }
             }
-        }
-    })
+        },
+    )
     dois = set()
     cut = surf.short_reliability_cutoff(dois=dois)
-    assert dois == {'10.1016/j.apsadv.2021.100190', '10.1088/2051-672X/ac860a'}
+    assert dois == {"10.1016/j.apsadv.2021.100190", "10.1088/2051-672X/ac860a"}
     np.testing.assert_allclose(cut, 90.700854)
 
     # Make sure PSD returns only reliable portion
@@ -104,16 +119,19 @@ def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_exam
 
 def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_examples):
     resolution = 70
-    surf = read_topography(os.path.join(file_format_examples, 'di-1.di'), info={
-        'instrument': {
-            'parameters': {
-                'resolution': {
-                    'value': resolution,
-                    'unit': 'nm',
+    surf = read_topography(
+        os.path.join(file_format_examples, "di-1.di"),
+        info={
+            "instrument": {
+                "parameters": {
+                    "resolution": {
+                        "value": resolution,
+                        "unit": "nm",
+                    }
                 }
             }
-        }
-    })
+        },
+    )
     cut = surf.short_reliability_cutoff()
     np.testing.assert_almost_equal(cut, resolution)
 
@@ -137,16 +155,20 @@ def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_exam
 
 
 def test_reliability_cutoff_line_scan(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'xy-4.txt'), unit='um', info={
-        'instrument': {
-            'parameters': {
-                'tip_radius': {
-                    'value': 40,
-                    'unit': 'nm',
+    surf = read_topography(
+        os.path.join(file_format_examples, "xy-4.txt"),
+        unit="um",
+        info={
+            "instrument": {
+                "parameters": {
+                    "tip_radius": {
+                        "value": 40,
+                        "unit": "nm",
+                    }
                 }
             }
-        }
-    })
+        },
+    )
     cut = surf.short_reliability_cutoff()
     np.testing.assert_allclose(cut, 0.126519, atol=1e-6)
 
@@ -164,25 +186,43 @@ def test_reliability_cutoff_line_scan(file_format_examples):
 
 
 def test_problem1(file_format_examples):
-    surf = read_topography(os.path.join(file_format_examples, 'di-6.di'), info={
-        'instrument': {
-            'parameters': {
-                'tip_radius': {
-                    'value': 26,
-                    'unit': 'nm',
+    surf = read_topography(
+        os.path.join(file_format_examples, "di-6.di"),
+        info={
+            "instrument": {
+                "parameters": {
+                    "tip_radius": {
+                        "value": 26,
+                        "unit": "nm",
+                    }
                 }
             }
-        }
-    })
+        },
+    )
     assert surf.short_reliability_cutoff() is None
 
 
 def test_no_reliable_data_uniform():
-    t = UniformLineScan([-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667], 6,
-                        unit='nm',
-                        info=dict(instrument={'name': 'Bla',
-                                              'type': 'microscope-based',
-                                              'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+    t = UniformLineScan(
+        [
+            -0.16666667,
+            -0.16666667,
+            -0.16666667,
+            0.83333333,
+            -0.16666667,
+            -0.16666667,
+            -0.16666667,
+        ],
+        6,
+        unit="nm",
+        info=dict(
+            instrument={
+                "name": "Bla",
+                "type": "microscope-based",
+                "parameters": {"resolution": {"unit": "µm", "value": 10.0}},
+            }
+        ),
+    )
 
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_profile()
@@ -204,26 +244,44 @@ def test_no_reliable_data_uniform():
 
     c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
-        c.power_spectrum(unit='um')
+        c.power_spectrum(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.autocorrelation(unit='um')
+        c.autocorrelation(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.variable_bandwidth(unit='um')
+        c.variable_bandwidth(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit="um")
 
 
 def test_no_reliable_data_topography():
     t = Topography(
-        np.array([[-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667]] * 6),
+        np.array(
+            [
+                [
+                    -0.16666667,
+                    -0.16666667,
+                    -0.16666667,
+                    0.83333333,
+                    -0.16666667,
+                    -0.16666667,
+                    -0.16666667,
+                ]
+            ]
+            * 6
+        ),
         (6, 6),
-        unit='nm',
-        info=dict(instrument={'name': 'Bla',
-                              'type': 'microscope-based',
-                              'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+        unit="nm",
+        info=dict(
+            instrument={
+                "name": "Bla",
+                "type": "microscope-based",
+                "parameters": {"resolution": {"unit": "µm", "value": 10.0}},
+            }
+        ),
+    )
 
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_area()
@@ -239,12 +297,26 @@ def test_no_reliable_data_topography():
 
 
 def test_no_reliable_data_nonuniform():
-    t = NonuniformLineScan([0., 1., 2., 3.5, 4., 5., 6.],
-                           [-0.16666667, -0.16666667, -0.16666667, 0.83333333, -0.16666667, -0.16666667, -0.16666667],
-                           unit='nm',
-                           info=dict(instrument={'name': 'Bla',
-                                                 'type': 'microscope-based',
-                                                 'parameters': {'resolution': {'unit': 'µm', 'value': 10.0}}}))
+    t = NonuniformLineScan(
+        [0.0, 1.0, 2.0, 3.5, 4.0, 5.0, 6.0],
+        [
+            -0.16666667,
+            -0.16666667,
+            -0.16666667,
+            0.83333333,
+            -0.16666667,
+            -0.16666667,
+            -0.16666667,
+        ],
+        unit="nm",
+        info=dict(
+            instrument={
+                "name": "Bla",
+                "type": "microscope-based",
+                "parameters": {"resolution": {"unit": "µm", "value": 10.0}},
+            }
+        ),
+    )
 
     with pytest.raises(NoReliableDataError):
         t.power_spectrum_from_profile()
@@ -266,38 +338,47 @@ def test_no_reliable_data_nonuniform():
 
     c = InMemorySurfaceContainer([t])
     with pytest.raises(NoReliableDataError):
-        c.power_spectrum(unit='um')
+        c.power_spectrum(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.autocorrelation(unit='um')
+        c.autocorrelation(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.variable_bandwidth(unit='um')
+        c.variable_bandwidth(unit="um")
 
     with pytest.raises(NoReliableDataError):
-        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit='um')
+        c.scale_dependent_statistical_property(lambda x: np.mean(x * x), n=1, unit="um")
 
 
 def test_linear_2d_small_tip():
-    t = Topography(np.array([[9, 9, 9, 9, 9],
-                             [7, 7, 7, 7, 7],
-                             [5, 5, 5, 5, 5],
-                             [3, 3, 3, 3, 3],
-                             [1, 1, 1, 1, 1],
-                             [-1, -1, -1, -1, -1],
-                             [-3, -3, -3, -3, -3],
-                             [-5, -5, -5, -5, -5],
-                             [-7, -7, -7, -7, -7],
-                             [-9, -9, -9, -9, -9]]).T,
-                   (1, 2), unit='um', info={
-            'instrument': {
-                'parameters': {
-                    'tip_radius': {
-                        'value': 26,
-                        'unit': 'nm',
+    t = Topography(
+        np.array(
+            [
+                [9, 9, 9, 9, 9],
+                [7, 7, 7, 7, 7],
+                [5, 5, 5, 5, 5],
+                [3, 3, 3, 3, 3],
+                [1, 1, 1, 1, 1],
+                [-1, -1, -1, -1, -1],
+                [-3, -3, -3, -3, -3],
+                [-5, -5, -5, -5, -5],
+                [-7, -7, -7, -7, -7],
+                [-9, -9, -9, -9, -9],
+            ]
+        ).T,
+        (1, 2),
+        unit="um",
+        info={
+            "instrument": {
+                "parameters": {
+                    "tip_radius": {
+                        "value": 26,
+                        "unit": "nm",
                     }
                 }
-            }}).detrend('center')
+            }
+        },
+    ).detrend("center")
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
@@ -313,25 +394,34 @@ def test_linear_2d_small_tip():
 
 
 def test_linear_2d_large_tip():
-    t = Topography(np.array([[9, 9, 9, 9, 9],
-                             [7, 7, 7, 7, 7],
-                             [5, 5, 5, 5, 5],
-                             [3, 3, 3, 3, 3],
-                             [1, 1, 1, 1, 1],
-                             [-1, -1, -1, -1, -1],
-                             [-3, -3, -3, -3, -3],
-                             [-5, -5, -5, -5, -5],
-                             [-7, -7, -7, -7, -7],
-                             [-9, -9, -9, -9, -9]]).T,
-                   (1, 2), unit='um', info={
-            'instrument': {
-                'parameters': {
-                    'tip_radius': {
-                        'value': 10,
-                        'unit': 'mm',
+    t = Topography(
+        np.array(
+            [
+                [9, 9, 9, 9, 9],
+                [7, 7, 7, 7, 7],
+                [5, 5, 5, 5, 5],
+                [3, 3, 3, 3, 3],
+                [1, 1, 1, 1, 1],
+                [-1, -1, -1, -1, -1],
+                [-3, -3, -3, -3, -3],
+                [-5, -5, -5, -5, -5],
+                [-7, -7, -7, -7, -7],
+                [-9, -9, -9, -9, -9],
+            ]
+        ).T,
+        (1, 2),
+        unit="um",
+        info={
+            "instrument": {
+                "parameters": {
+                    "tip_radius": {
+                        "value": 10,
+                        "unit": "mm",
                     }
                 }
-            }}).detrend('center')
+            }
+        },
+    ).detrend("center")
 
     # This has zero curvature, so everything should be reliable
     assert t.short_reliability_cutoff() is None
@@ -347,13 +437,19 @@ def test_linear_2d_large_tip():
 
 
 def test_partially_reliable_data_container(file_format_examples):
-    c, = read_container(f'{file_format_examples}/container-1.zip')
+    (c,) = read_container(f"{file_format_examples}/container-1.zip")
     c = c.read_all()  # read everything to memory so we can patch info dict
 
     # Patch info dictionary
-    c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
-    c[1]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
-    c[2]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'um'}}}
+    c[0]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "um"}}
+    )
+    c[1]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "um"}}
+    )
+    c[2]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "um"}}
+    )
 
     # Check that we raise NoReliableDataError for one of the topographies
     c[0].power_spectrum_from_profile()
@@ -362,12 +458,18 @@ def test_partially_reliable_data_container(file_format_examples):
         c[2].power_spectrum_from_profile()
 
     # This should raise no error
-    c.power_spectrum(unit='um')
+    c.power_spectrum(unit="um")
 
     # Patch info dictionary such that all data is unreliable
-    c[0]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
-    c[1]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
-    c[2]._info['instrument'] = {'parameters': {'tip_radius': {'value': 10, 'unit': 'mm'}}}
+    c[0]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "mm"}}
+    )
+    c[1]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "mm"}}
+    )
+    c[2]._info.instrument = InstrumentModel(
+        parameters={"tip_radius": {"value": 10, "unit": "mm"}}
+    )
 
     # Check that we raise NoReliableDataError for one of the topographies
     with pytest.raises(NoReliableDataError):
@@ -379,4 +481,4 @@ def test_partially_reliable_data_container(file_format_examples):
 
     # This should now raise a NoReliableDataError
     with pytest.raises(NoReliableDataError):
-        c.power_spectrum(unit='um')
+        c.power_spectrum(unit="um")

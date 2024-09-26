@@ -36,11 +36,11 @@ from typing import Tuple
 
 import numpy as np
 from matplotlib import colormaps
-from numpyencoder import NumpyEncoder
 from PIL import Image
 from scipy.io import netcdf_file
 
 from ..HeightContainer import UniformTopographyInterface
+from ..Support.JSON import ExtendedJSONEncoder
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
     suggest_length_unit_for_data,
@@ -189,7 +189,7 @@ def write_dzi(
             }
             if colorbar_title is not None:
                 image_dict.update({"ColorbarTitle": colorbar_title})
-            json.dump({"Image": image_dict}, f, cls=NumpyEncoder)
+            json.dump({"Image": image_dict}, f, cls=ExtendedJSONEncoder)
     else:
         raise ValueError(f"Unknown metadata format {meta_format}.")
     manifest = [fn]

@@ -31,8 +31,11 @@ Support for nonuniform topogography descriptions
 
 import numpy as np
 
-from .HeightContainer import (AbstractTopography, DecoratedTopography,
-                              NonuniformLineScanInterface)
+from .HeightContainer import (
+    AbstractTopography,
+    DecoratedTopography,
+    NonuniformLineScanInterface,
+)
 from .Support.UnitConversion import get_unit_conversion_factor
 
 
@@ -58,19 +61,21 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         """
         super().__init__(unit=unit, info=info)
         if np.ma.is_masked(x) or np.ma.is_masked(y):
-            raise ValueError('Storage arrays for nonuniform line scans cannot be masked.')
+            raise ValueError(
+                "Storage arrays for nonuniform line scans cannot be masked."
+            )
         self._x = np.asanyarray(x, dtype=float)
         self._h = np.asanyarray(y, dtype=float)
 
     def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
+        """is called and the returned object is pickled as the contents for
+        the instance
         """
         state = super().__getstate__(), self._x, self._h
         return state
 
     def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
+        """Upon unpickling, it is called with the unpickled state
         Keyword Arguments:
         state -- result of __getstate__
         """
@@ -86,7 +91,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     @property
     def physical_sizes(self):
         """Returns distance between maximum and minimum x-value."""
-        return self._x[-1] - self._x[0],
+        return (self._x[-1] - self._x[0],)
 
     @property
     def is_periodic(self):
@@ -98,7 +103,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
 
     @property
     def nb_grid_pts(self):
-        return len(self._x),
+        return (len(self._x),)
 
     @property
     def x_range(self):
@@ -114,8 +119,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
         return self
 
 
-class DecoratedNonuniformTopography(DecoratedTopography,
-                                    NonuniformLineScanInterface):
+class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInterface):
     @property
     def is_periodic(self):
         return self.parent_topography.is_periodic
@@ -136,11 +140,9 @@ class DecoratedNonuniformTopography(DecoratedTopography,
             return self._unit
 
     @property
-    def info(self):
+    def info(self) -> dict:
         info = self.parent_topography.info
-        info.update(self._info)
-        if self.unit is not None:
-            info.update(dict(unit=self.unit))
+        info.update(self._info.model_dump(exclude_none=True))
         return info
 
     @property
@@ -155,8 +157,9 @@ class DecoratedNonuniformTopography(DecoratedTopography,
         return self.parent_topography.positions()
 
     def squeeze(self):
-        return NonuniformLineScan(self.positions(), self.heights(),
-                                  info=self.info, unit=self.unit)
+        return NonuniformLineScan(
+            self.positions(), self.heights(), info=self.info, unit=self.unit
+        )
 
 
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):
@@ -189,22 +192,28 @@ class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     @property
     def physical_sizes(self):
         """Compute rescaled physical sizes."""
-        return self.position_scale_factor * super().physical_sizes[0],
+        return (self.position_scale_factor * super().physical_sizes[0],)
 
     def positions(self):
         """Compute the rescaled positions."""
         return self.position_scale_factor * super().positions()
 
     def heights(self):
-        """ Computes the rescaled profile.
-        """
+        """Computes the rescaled profile."""
         return self.height_scale_factor * self.parent_topography.heights()
 
 
 class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
     """Scale heights, positions, or both."""
 
-    def __init__(self, topography, height_scale_factor, position_scale_factor=1, unit=None, info={}):
+    def __init__(
+        self,
+        topography,
+        height_scale_factor,
+        position_scale_factor=1,
+        unit=None,
+        info={},
+    ):
         """
         This topography wraps a parent topography and rescales x and z
         coordinates according to certain rules.
@@ -225,22 +234,36 @@ class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
             Updated entries to the info dictionary. (Default: {})
         """
         super().__init__(topography, unit=unit, info=info)
-        self._height_scale_factor = None if height_scale_factor is None else float(height_scale_factor)
-        self._position_scale_factor = None if position_scale_factor is None else float(position_scale_factor)
+        self._height_scale_factor = (
+            None if height_scale_factor is None else float(height_scale_factor)
+        )
+        self._position_scale_factor = (
+            None if position_scale_factor is None else float(position_scale_factor)
+        )
 
     def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
+        """is called and the returned object is pickled as the contents for
+        the instance
         """
-        state = super().__getstate__(), self._height_scale_factor, self._position_scale_factor, self._unit
+        state = (
+            super().__getstate__(),
+            self._height_scale_factor,
+            self._position_scale_factor,
+            self._unit,
+        )
         return state
 
     def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
+        """Upon unpickling, it is called with the unpickled state
         Keyword Arguments:
         state -- result of __getstate__
         """
-        superstate, self._height_scale_factor, self._position_scale_factor, self._unit = state
+        (
+            superstate,
+            self._height_scale_factor,
+            self._position_scale_factor,
+            self._unit,
+        ) = state
         super().__setstate__(superstate)
 
     @property
@@ -253,9 +276,11 @@ class StaticallyScaledNonuniformTopography(ScaledNonuniformTopography):
 
 
 # Register analysis functions from this module
-NonuniformLineScanInterface.register_function('min', lambda this: this.heights().min())
-NonuniformLineScanInterface.register_function('max', lambda this: this.heights().max())
+NonuniformLineScanInterface.register_function("min", lambda this: this.heights().min())
+NonuniformLineScanInterface.register_function("max", lambda this: this.heights().max())
 
 # Register pipeline functions from this module
-NonuniformLineScanInterface.register_function('to_unit', ScaledNonuniformTopography)
-NonuniformLineScanInterface.register_function('scale', StaticallyScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function("to_unit", ScaledNonuniformTopography)
+NonuniformLineScanInterface.register_function(
+    "scale", StaticallyScaledNonuniformTopography
+)

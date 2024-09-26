@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -34,7 +33,8 @@ from SurfaceTopography.IO import GWYReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial funcionalities, please execute with pytest",
+)
 
 
 def test_read_filestream(file_format_examples):
@@ -42,21 +42,23 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'gwy-1.gwy')
+    file_path = os.path.join(file_format_examples, "gwy-1.gwy")
 
     read_topography(file_path)
 
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         read_topography(f)
 
     # This test just needs to arrive here without raising an exception
 
 
 def test_gwyddion_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'gwy-1.gwy')
+    file_path = os.path.join(file_format_examples, "gwy-1.gwy")
 
     r = GWYReader(file_path)
     t = r.topography()
+
+    assert t.heights().shape == t.nb_grid_pts
 
     nx, ny = t.nb_grid_pts
     assert nx == 640
@@ -66,11 +68,23 @@ def test_gwyddion_metadata(file_format_examples):
     np.testing.assert_allclose(sx, 0.0001259091403335333, rtol=1e-6)
     np.testing.assert_allclose(sy, 9.443185525014996e-05, rtol=1e-6)
 
-    assert t.unit == 'm'
+    assert t.unit == "m"
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 8.369884e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.127026e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 8.355506e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.14371e-09, rtol=1e-6)
 
-    t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 6.509704e-09, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 6.441563e-09, rtol=1e-6)
+    t = t.detrend("curvature")
+    np.testing.assert_allclose(t.rms_height_from_area(), 6.499288e-09, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 6.429779e-09, rtol=1e-6)
+
+
+def test_gwyddion_undefined(file_format_examples):
+    file_path = os.path.join(file_format_examples, "gwy-2.gwy")
+
+    r = GWYReader(file_path)
+    t = r.topography()
+    assert t.has_undefined_data
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1000
+    assert ny == 1000

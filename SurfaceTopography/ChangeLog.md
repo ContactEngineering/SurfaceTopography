@@ -1,9 +1,18 @@
 Change log for SurfaceTopography
 ================================
 
-v1.16.3 (not yet released)
---------------------------
+v1.17.0 (26Sept24)
+------------------
 
+- API: Removed "unit" entry from `info` dictionary (which was deprecated in v0.95.0)
+- ENH: NMM reader now reads 2D topographic maps
+- ENH: Added `show-topography` command line script (for visualizing topography data)
+- ENH: Added `ExtendedJSONEncoder` that handles dates and numpy arrays gracefully
+- MAINT: Validation of `info` metadata via pydantic models
+- MAINT: `plot` function now uses `imshow` instead of `pcolormesh`, plots are now 
+  identical to what Gwyddion shows (origin in the top left corner)
+- BUG: Fixed orientation in MetroPro reader
+- BUG: Fixed handling of undefined data in GWY reader
 - BUG: Fixed physical size in POIR/OIR reader
 - BUG: Fixed reading of SUR files with comment/private sections
 

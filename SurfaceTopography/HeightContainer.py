@@ -34,16 +34,8 @@ import numpy as np
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 
-from .Support import DeprecatedDictionary, doi
-
-# Standardized entries for the info dictionary
-
-# Length unit of the measurement. The unit applies to both lateral and heights.
-# Data type: str
-INFO_UNIT = 'unit'
-# Data and time of the data acquisition.
-# Data type: datetime.datetime
-INFO_ACQUISITION_TIME = 'acquisition_time'
+from .Metadata import InfoModel
+from .Support import doi
 
 
 class AbstractTopography(object):
@@ -67,7 +59,8 @@ class AbstractTopography(object):
 
     def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
         self._unit = unit
-        self._info = info.copy()
+        # We use a pydantic model to have validation of the info parameters
+        self._info = InfoModel(**info)
         self._communicator = communicator
 
     def apply(self, name, *args, **kwargs):
@@ -75,6 +68,7 @@ class AbstractTopography(object):
 
     def __getattr__(self, name):
         if name in self._functions:
+
             def func(*args, **kwargs):
                 return self._functions[name](self, *args, **kwargs)
 
@@ -83,7 +77,10 @@ class AbstractTopography(object):
         else:
             raise AttributeError(
                 "Unkown attribute '{}' and no analysis or pipeline function of this name registered (class {}). "
-                "Available functions: {}".format(name, self.__class__.__name__, ', '.join(self._functions.keys())))
+                "Available functions: {}".format(
+                    name, self.__class__.__name__, ", ".join(self._functions.keys())
+                )
+            )
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
@@ -93,14 +90,15 @@ class AbstractTopography(object):
         Upon pickling, it is called and the returned object is pickled as the
         contents for the instance.
         """
-        return self._unit, self._info
+        return self._unit, self._info.model_dump(exclude_none=True)
 
     def __setstate__(self, state):
         """
         Upon unpickling, it is called with the unpickled state.
         The argument `state` is the result of `__getstate__`.
         """
-        self._unit, self._info = state
+        self._unit, info = state
+        self._info = InfoModel(**info)
         self._communicator = MPI.COMM_WORLD
 
     @property
@@ -118,7 +116,9 @@ class AbstractTopography(object):
 
     @property
     @abc.abstractmethod
-    def physical_sizes(self, ):
+    def physical_sizes(
+        self,
+    ):
         """Return the physical sizes of the topography."""
         raise NotImplementedError
 
@@ -128,33 +128,12 @@ class AbstractTopography(object):
         return self._unit
 
     @property
-    def info(self):
+    def info(self) -> dict:
         """
         Return the info dictionary. The info dictionary contains auxiliary data
-        found in the topography data file but not directly used by PyCo.
-
-        The dictionary can contain any type of information. There are a few
-        standardized keys, listed in the following.
-
-        Standardized keys
-        -----------------
-        'acquisition_time' : :obj:`datetime`
-            Date and time of the measurement.
-        'instrument' : dict
-            Nested dictionary containing instrument data.
-                - 'name' : str - Name of instrument
-                - 'parameters' : dict - Additional instrument parameters, e.g.
-                    - 'tip_radius' : dict - Tip radius for tip based techniques
-                        - 'value' : float - Value of tip radius
-                        - 'unit' : str - Unit of tip radius
-        'raw_metadata' : dict
-            Dictionary containing the raw (non-standardized) metadata as
-            extracted during reading of the topography.
+        found in the topography data file but not directly used by SurfaceTopogoraphy.
         """
-        info = DeprecatedDictionary(self._info, deprecated_keys=['unit'])
-        if self.unit is not None:
-            info.update(dict(unit=self.unit))
-        return info
+        return self._info.model_dump(exclude_none=True)
 
     @property
     def communicator(self):
@@ -187,14 +166,14 @@ class DecoratedTopography(AbstractTopography):
         self._communicator = self.parent_topography.communicator
 
     def __getstate__(self):
-        """ is called and the returned object is pickled as the contents for
-            the instance
+        """is called and the returned object is pickled as the contents for
+        the instance
         """
         state = super().__getstate__(), self.parent_topography
         return state
 
     def __setstate__(self, state):
-        """ Upon unpickling, it is called with the unpickled state
+        """Upon unpickling, it is called with the unpickled state
         Keyword Arguments:
         state -- result of __getstate__
         """
@@ -202,11 +181,11 @@ class DecoratedTopography(AbstractTopography):
         super().__setstate__(superstate)
 
     @property
-    def info(self):
-        """ Return info dictionary """
-        info = self.parent_topography._info.copy()
-        info.update(self._info)
-        return info
+    def info(self) -> dict:
+        """Return info dictionary"""
+        return self.parent_topography._info.model_copy(update=self._info).model_dump(
+            exclude_none=True
+        )
 
     @property
     def nb_subdomain_grid_pts(self):
@@ -220,7 +199,7 @@ class TopographyInterface(object):
     @classmethod
     def register_function(cls, name, function, deprecated=False):  # noqa: N805
         # FIXME! Wrap in warnings.deprecated decorator, will be introduced in Python 3.13
-        if function.__name__ != 'func_with_doi':
+        if function.__name__ != "func_with_doi":
             # We want the `dois` argument for all pipeline functions. If no
             # doi has been specified, we simply wrap it in an empty decorator.
             cls._functions.update({name: doi()(function)})
@@ -304,8 +283,12 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     def __eq__(self, other):
         return Reduction(self._communicator).all(
-            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and
-            np.allclose(self.positions(), other.positions()) and np.allclose(self.heights(), other.heights()))
+            self.unit == other.unit
+            and self.info == other.info
+            and self.is_periodic == other.is_periodic
+            and np.allclose(self.positions(), other.positions())
+            and np.allclose(self.heights(), other.heights())
+        )
 
     def __getitem__(self, i):
         return self.heights()[i]
@@ -363,8 +346,11 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     def __eq__(self, other):
         return Reduction(self._communicator).all(
-            self.unit == other.unit and self.info == other.info and self.is_periodic == other.is_periodic and
-            np.allclose(self.positions_and_heights(), other.positions_and_heights()))
+            self.unit == other.unit
+            and self.info == other.info
+            and self.is_periodic == other.is_periodic
+            and np.allclose(self.positions_and_heights(), other.positions_and_heights())
+        )
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]
