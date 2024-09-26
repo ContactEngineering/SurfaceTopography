@@ -8,6 +8,7 @@ python_sources = [
     'FFTTricks.py',
     'Generation.py',
     'HeightContainer.py',
+    'Metadata.py',
     'NonuniformLineScan.py',
     'Special.py',
     'UniformLineScanAndTopography.py'
