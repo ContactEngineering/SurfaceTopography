@@ -438,11 +438,6 @@ def write_nc_uniform(topography, fobj, format="NETCDF3_64BIT_OFFSET"):
     with Dataset(fobj, "w", **kwargs) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file
         info = topography.info.copy()
-        try:
-            # We store the unit information separately
-            del info["unit"]
-        except KeyError:
-            pass
         if info != {}:
             nc.json = json.dumps(info, ensure_ascii=True, cls=ExtendedJSONEncoder)
 
@@ -471,10 +466,8 @@ def write_nc_uniform(topography, fobj, format="NETCDF3_64BIT_OFFSET"):
         # Create variables for x- and y-positions, but only if physical_sizes
         # exist. (physical_sizes should always exist, but who knows...)
         if topography.physical_sizes is not None:
-            x = topography.positions()
             try:
                 sx, sy = topography.physical_sizes
-                x, y = x
             except ValueError:
                 (sx,) = topography.physical_sizes
 

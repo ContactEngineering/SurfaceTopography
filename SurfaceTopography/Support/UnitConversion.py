@@ -44,7 +44,7 @@ length_units_to_utf8 = {
 }
 
 length_units_to_ascii = {
-    'A': 'Å',
+    'Å': 'A',
     'NanoMeters': 'nm',  # Zygo DATX
     'μm': 'um',
     'µm': 'um',
