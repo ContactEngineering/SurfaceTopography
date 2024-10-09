@@ -33,8 +33,8 @@ from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
 
 #
-# The DI file format is described in detail here:
-# http://www.physics.arizona.edu/~smanne/DI/software/fileformats.html
+# Reference information and implementations:
+# https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/wsxmfile.c
 #
 
 
