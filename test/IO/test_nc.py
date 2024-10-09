@@ -123,6 +123,7 @@ def test_save_and_load_angstrom_unit():
 
     t2 = read_topography("angstrom_unit.nc")
 
+    assert t.unit == t2.unit
     assert t.physical_sizes == t2.physical_sizes
     assert "unit" not in t2.info
     np.testing.assert_array_almost_equal(t.heights(), t2.heights())
