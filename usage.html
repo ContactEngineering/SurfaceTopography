@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; SurfaceTopography 1.17.1 documentation</title>
+  <title>Usage &mdash; SurfaceTopography 1.17.1.dev1+gb890bd67 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3707c40e"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/documentation_options.js?v=3eeba0da"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -50,6 +50,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#data-orientation">Data Orientation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#analysis-functions">Analysis functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pipelines">Pipelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-functions">Output functions</a></li>
 </ul>
 </li>
 </ul>
@@ -179,18 +180,31 @@ of other software as e.g. Gwyddion, use</p>
 <p>All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.</p>
 <ul class="simple">
 <li><p><cite>mean</cite>: Compute the mean value.</p></li>
-<li><p><cite>rms_height_from_area</cite>: Computes the root mean square height of the topography by integrating over the area. (This is the value known as ‘Sq’.)</p></li>
-<li><p><cite>rms_height_from_profile</cite>: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as ‘Rq’.)</p></li>
+<li><p><cite>median</cite>: Compute the median value.</p></li>
+<li><p><cite>min</cite>: Compute the minimum value.</p></li>
+<li><p><cite>max</cite>: Compute the maximum value.</p></li>
+<li><p><cite>bandwidth</cite>: Compute the bandwidth of the topography (minimum and maximum lateral length scales).</p></li>
+<li><p><cite>rms_height_from_area</cite> or <cite>Sq</cite>: Computes the root mean square height of the topography by integrating over the area. (This is the value known as ‘Sq’.)</p></li>
+<li><p><cite>rms_height_from_profile</cite> or <cite>Rq</cite>: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as ‘Rq’.)</p></li>
+<li><p><cite>moment</cite>: Computes an arbitrary moment of the heights.</p></li>
+<li><p><cite>mad_height</cite>: Computes the mean absolute deviation of the height.</p></li>
 <li><p><cite>rms_gradient</cite>: Computes the root mean square gradient.</p></li>
-<li><p><cite>rms_slope_from_profile</cite>: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.</p></li>
+<li><p><cite>rms_slope_from_profile</cite> or <cite>Rdq</cite>: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.</p></li>
 <li><p><cite>rms_curvature_from_area</cite>: Computes the root mean square curvature by integrating over the area.</p></li>
-<li><p><cite>rms_curvature_from_profile</cite>: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.</p></li>
+<li><p><cite>rms_curvature_from_profile</cite> or <cite>Rddq</cite>: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.</p></li>
 <li><p><cite>power_spectrum_from_profile</cite>: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
 <li><p><cite>power_spectrum_from_area</cite>: Only two-dimensional maps: Computes the radially averaged PSD.</p></li>
 <li><p><cite>autocorrelation_from_profile</cite>: Computes the one-dimensional height difference autocorrelation function (ACF). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.</p></li>
 <li><p><cite>autocorrelation_from_area</cite>: Only two-dimensional maps: Computes the radially averaged height difference autocorrelation function.</p></li>
 <li><p><cite>variable_bandwidth_from_profile</cite>: Computes the one-dimentional scan-size dependent rms-height using the variable bandwidth method.</p></li>
 <li><p><cite>variable_bandwidth_from_area</cite>: Computes the two-dimentional scan-size dependent rms-height using the variable bandwidth method.</p></li>
+<li><p><cite>derivative</cite>: Computes the (scale-dependent) derivative of the topography. This is described in detail in the paper <a class="reference external" href="https://doi.org/10.1016/j.apsadv.2021.100190">Scale-dependent roughness parameters for topography analysis</a>.</p></li>
+<li><p><cite>scale_dependent_statistical_property</cite>: Computes the scale-dependent statistical property (SDRP) of the topography. This is described in detail in the paper <a class="reference external" href="https://doi.org/10.1016/j.apsadv.2021.100190">Scale-dependent roughness parameters for topography analysis</a>.</p></li>
+<li><p><cite>scale_dependent_slope_from_area</cite>: Computes the scale-dependent slope from the area. This is a convenience function yielding a specific SDRP.</p></li>
+<li><p><cite>scale_dependent_slope_from_profile</cite>: Computes the scale-dependent slope from the profile. This is a convenience function yielding a specific SDRP.</p></li>
+<li><p><cite>scale_dependent_curvature_from_area</cite>: Computes the scale-dependent curvature from the area. This is a convenience function yielding a specific SDRP.</p></li>
+<li><p><cite>scale_dependent_curvature_from_profile</cite>: Computes the scale-dependent curvature from the profile. This is a convenience function yielding a specific SDRP.</p></li>
+<li><p><cite>scaning_proper_reliability_cutoff</cite>: Use the SDRP to estimate a resolution cutoff for the measurement given the tip size of the probe. (The theory behind this analysis is described in detail in <a class="reference external" href="https://doi.org/10.1016/j.apsadv.2021.100190">Scale-dependent roughness parameters for topography analysis</a>.)</p></li>
 </ul>
 <p>Example::</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">read_topography</span>
@@ -210,8 +224,10 @@ but also documents the whole process leading from the raw heights to the current
 The <cite>squeeze</cite> method returns a new topography that contains the data returned by the pipeline.
 Pipelines can be concatenated together.</p>
 <ul class="simple">
-<li><p><cite>scale</cite>: Rescale all heights by a certain factor.</p></li>
 <li><p><cite>detrend</cite>: Compute a detrended topography.</p></li>
+<li><p><cite>fill_undefined_data</cite>: Fill undefined/missing data points using harmonic interpolation.</p></li>
+<li><p><cite>scale</cite>: Rescale all heights by a certain factor.</p></li>
+<li><p><cite>to_unit</cite>: Convert the topography to a different unit (scaling lateral lengths and heights).</p></li>
 </ul>
 <p>Example::</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">read_topography</span>
@@ -222,6 +238,15 @@ Pipelines can be concatenated together.</p>
       <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 </pre></div>
 </div>
+</section>
+<section id="output-functions">
+<h3>Output functions<a class="headerlink" href="#output-functions" title="Link to this heading"></a></h3>
+<p>Output functions are used to save the topography data to a file.</p>
+<ul class="simple">
+<li><p><cite>to_matrix</cite>: Write a text representation of the height data to file.</p></li>
+<li><p><cite>to_netCDF</cite>: Write the topography to a NetCDF file.</p></li>
+<li><p><cite>to_dzi</cite>: Write the topography as a Deep Zoom Image (DZI) file.</p></li>
+</ul>
 </section>
 </section>
 </section>
