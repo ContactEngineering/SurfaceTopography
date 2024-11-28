@@ -111,6 +111,28 @@ def test_save_and_load_no_unit():
     MPI.COMM_WORLD.Get_size() > 1,
     reason="tests only serial functionalities, please execute with pytest",
 )
+def test_save_and_load_angstrom_unit():
+    nb_grid_pts = (128, 128)
+    size = (3, 3)
+
+    np.random.seed(1)
+    t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit="Å")
+
+    # Save file
+    t.to_netcdf("angstrom_unit.nc")
+
+    t2 = read_topography("angstrom_unit.nc")
+
+    assert t.unit == t2.unit
+    assert t.physical_sizes == t2.physical_sizes
+    assert "unit" not in t2.info
+    np.testing.assert_array_almost_equal(t.heights(), t2.heights())
+
+
+@pytest.mark.skipif(
+    MPI.COMM_WORLD.Get_size() > 1,
+    reason="tests only serial functionalities, please execute with pytest",
+)
 def test_load_no_physical_sizes():
     nb_grid_pts = (128, 128)
     size = (3, 3)

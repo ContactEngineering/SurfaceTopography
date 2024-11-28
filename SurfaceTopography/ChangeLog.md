@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.17.1 (09Oct24)
+-----------------
+
+- BUG: Mangling Angstrom unit to ascii
+- BUG: Missing Meson build files for CLI
+
 v1.17.0 (26Sept24)
 ------------------
 

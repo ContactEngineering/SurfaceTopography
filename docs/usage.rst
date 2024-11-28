@@ -111,19 +111,31 @@ Analysis functions
 All topography classes implement the following analysis functions that can return scalar values or more complex properties. They can be accessed as methods of the topography classes.
 
 - `mean`: Compute the mean value.
-- `rms_height_from_area`: Computes the root mean square height of the topography by integrating over the area. (This is the value known as 'Sq'.)
-- `rms_height_from_profile`: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as 'Rq'.)
+- `median`: Compute the median value.
+- `min`: Compute the minimum value.
+- `max`: Compute the maximum value.
+- `bandwidth`: Compute the bandwidth of the topography (minimum and maximum lateral length scales).
+- `rms_height_from_area` or `Sq`: Computes the root mean square height of the topography by integrating over the area. (This is the value known as 'Sq'.)
+- `rms_height_from_profile` or `Rq`: Computes the root mean square height of the topography as the average of the rms height of individual line scans (profiles) in x-direction. (This is the value known as 'Rq'.)
+- `moment`: Computes an arbitrary moment of the heights.
+- `mad_height`: Computes the mean absolute deviation of the height.
 - `rms_gradient`: Computes the root mean square gradient.
-- `rms_slope_from_profile`: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.
+- `rms_slope_from_profile` or `Rdq`: Computes the root mean square slope as the average of the rms slope of individual line scans (profiles) in x-direction. Note that there is a factors of sqrt(2) between this values and the rms gradient.
 - `rms_curvature_from_area`: Computes the root mean square curvature by integrating over the area.
-- `rms_curvature_from_profile`: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.
+- `rms_curvature_from_profile` or `Rddq`: Computes the root mean square curvature as the average of the rms curvature of individual line scans (profiles) in x-direction.
 - `power_spectrum_from_profile`: Computes the one-dimensional power-spectrum (PSD). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
 - `power_spectrum_from_area`: Only two-dimensional maps: Computes the radially averaged PSD.
 - `autocorrelation_from_profile`: Computes the one-dimensional height difference autocorrelation function (ACF). For two-dimensional topography maps, this functions returns the mean value of all PSDs across the perpendicular direction.
 - `autocorrelation_from_area`: Only two-dimensional maps: Computes the radially averaged height difference autocorrelation function.
 - `variable_bandwidth_from_profile`: Computes the one-dimentional scan-size dependent rms-height using the variable bandwidth method.
 - `variable_bandwidth_from_area`: Computes the two-dimentional scan-size dependent rms-height using the variable bandwidth method.
-
+- `derivative`: Computes the (scale-dependent) derivative of the topography. This is described in detail in the paper `Scale-dependent roughness parameters for topography analysis`_.
+- `scale_dependent_statistical_property`: Computes the scale-dependent statistical property (SDRP) of the topography. This is described in detail in the paper `Scale-dependent roughness parameters for topography analysis`_.
+- `scale_dependent_slope_from_area`: Computes the scale-dependent slope from the area. This is a convenience function yielding a specific SDRP.
+- `scale_dependent_slope_from_profile`: Computes the scale-dependent slope from the profile. This is a convenience function yielding a specific SDRP.
+- `scale_dependent_curvature_from_area`: Computes the scale-dependent curvature from the area. This is a convenience function yielding a specific SDRP.
+- `scale_dependent_curvature_from_profile`: Computes the scale-dependent curvature from the profile. This is a convenience function yielding a specific SDRP.
+- `scaning_proper_reliability_cutoff`: Use the SDRP to estimate a resolution cutoff for the measurement given the tip size of the probe. (The theory behind this analysis is described in detail in `Scale-dependent roughness parameters for topography analysis`_.)
 
 Example:::
 
@@ -143,8 +155,10 @@ but also documents the whole process leading from the raw heights to the current
 The `squeeze` method returns a new topography that contains the data returned by the pipeline.
 Pipelines can be concatenated together.
 
-- `scale`: Rescale all heights by a certain factor.
 - `detrend`: Compute a detrended topography.
+- `fill_undefined_data`: Fill undefined/missing data points using harmonic interpolation.
+- `scale`: Rescale all heights by a certain factor.
+- `to_unit`: Convert the topography to a different unit (scaling lateral lengths and heights).
 
 Example:::
 
@@ -154,3 +168,14 @@ Example:::
     print('rms height after detrending =', topo.detrend(detrend_mode='curvature').rms_height_from_area())
     print('rms height after detrending and rescaling =',
           topo.detrend(detrend_mode='curvature').scale(2.0).rms_height_from_area())
+
+Output functions
+++++++++++++++++
+
+Output functions are used to save the topography data to a file.
+
+- `to_matrix`: Write a text representation of the height data to file.
+- `to_netCDF`: Write the topography to a NetCDF file.
+- `to_dzi`: Write the topography as a Deep Zoom Image (DZI) file.
+
+.. _`Scale-dependent roughness parameters for topography analysis`: https://doi.org/10.1016/j.apsadv.2021.100190

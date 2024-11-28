@@ -25,12 +25,13 @@ install_data(
     'ChangeLog.md'
 )
 
-subdir('ScanningProbe')
-subdir('Models')
+subdir('CLI')
 subdir('Container')
 subdir('Generic')
 subdir('IO')
+subdir('Models')
 subdir('Nonuniform')
+subdir('ScanningProbe')
 subdir('Support')
 subdir('Uniform')
 
