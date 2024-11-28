@@ -77,9 +77,6 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
         of these distances.
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
-    unit : str
-        Unit of the distance array. All topographies are converted to this
-        unit before the derivative is computed.
     interpolation : str, optional
         Interpolation method to use for computing derivatives at distances
         that do not equal an integer multiple of the grid spacing. Use
