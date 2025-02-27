@@ -30,6 +30,10 @@ you need to run `git submodule update --init` after a fresh checkout.
 
 The most basic configuration of SurfaceTopography installs all requirements autonomously `python3 -m pip install SurfaceTopgography`
 
+If you need an editable install (e.g. for development purposes), make sure you disable build isolation:
+
+    python3 -m pip install --no-build-isolation -e .
+
 Containerized SurfaceTopography
 -------------------------------
 
