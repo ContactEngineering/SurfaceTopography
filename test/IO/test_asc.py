@@ -28,7 +28,7 @@ import numpy as np
 import pytest
 from NuMPI import MPI
 
-from SurfaceTopography.IO import AscReader
+from SurfaceTopography.IO import AscReader, read_topography
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -44,6 +44,17 @@ def test_wyko(file_format_examples, filename):
     assert len(r.channels) == 1
 
     t = r.topography()
+    assert t.unit == "nm"
+    np.testing.assert_allclose(t.physical_sizes, (950400.0, 1267200.0))
+    np.testing.assert_allclose(t.rms_height_from_area(), 74424.357775)
+
+
+@pytest.mark.parametrize("filename", ["matrix-8.txt"])
+def test_wyko_format_detection(file_format_examples, filename):
+    file_path = os.path.join(file_format_examples, filename)
+
+    t = read_topography(file_path)
+
     assert t.unit == "nm"
     np.testing.assert_allclose(t.physical_sizes, (950400.0, 1267200.0))
     np.testing.assert_allclose(t.rms_height_from_area(), 74424.357775)

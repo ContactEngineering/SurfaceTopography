@@ -30,9 +30,11 @@ import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile, UnknownFileFormat
 from ..NonuniformLineScan import NonuniformLineScan
-from ..Support.UnitConversion import (find_length_unit_in_string,
-                                      get_unit_conversion_factor,
-                                      mangle_length_unit_utf8)
+from ..Support.UnitConversion import (
+    find_length_unit_in_string,
+    get_unit_conversion_factor,
+    mangle_length_unit_utf8,
+)
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
@@ -236,13 +238,13 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
                                  f'found {len(line)} (with data {line}).')
 
             if usecols is None:
-                # If columns are given by the user, only collect the data from those colums
-                for key, value in enumerate(line):
-                    data[key] += [value]
-            else:
                 # If no columns are given, we return all columns
+                for key, value in enumerate(line):
+                    data[key] += [float(value)]
+            else:
+                # If columns are given by the user, only collect the data from those colums
                 for i, key in enumerate(usecols):
-                    data[key] += [line[i]]
+                    data[key] += [float(line[i])]
         line = fobj.readline()
         nb_lines += 1
     if usecols is None:
