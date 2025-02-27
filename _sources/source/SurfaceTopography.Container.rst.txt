@@ -17,45 +17,45 @@ SurfaceTopography.Container.Averaging module
 
 .. automodule:: SurfaceTopography.Container.Averaging
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Container.Integration module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Container.Integration
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Container.ScaleDependentStatistics module
 -----------------------------------------------------------
 
 .. automodule:: SurfaceTopography.Container.ScaleDependentStatistics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Container.SurfaceContainer module
 ---------------------------------------------------
 
 .. automodule:: SurfaceTopography.Container.SurfaceContainer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Container.common module
 -----------------------------------------
 
 .. automodule:: SurfaceTopography.Container.common
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.Container
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,13 +9,13 @@ SurfaceTopography.CLI.ShowTopography module
 
 .. automodule:: SurfaceTopography.CLI.ShowTopography
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.CLI
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.17.1.dev5+g7d4a93e5 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+  <title>SurfaceTopography.Generic package &mdash; SurfaceTopography 1.17.1.dev6+g525d3235 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=68f20994"></script>
+      <script src="../_static/documentation_options.js?v=5668fc73"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -252,7 +252,7 @@ h_\text{rms}^{\prime\prime}(\lambda) = 4\left[8A(\lambda/2) - 2A(\lambda)\right]
 <span id="surfacetopography-generic-moments-module"></span><h2>SurfaceTopography.Generic.Moments module<a class="headerlink" href="#module-SurfaceTopography.Generic.Moments" title="Link to this heading"></a></h2>
 <p>Computation of moments of a discrete curve, e.g. the PSD</p>
 <p>The example below computes the PSD of a surface topography and integrates it to obtain the RMS height.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">SurfaceTopography.Generation</span> <span class="kn">import</span> <span class="n">fourier_synthesis</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography.Generation</span><span class="w"> </span><span class="kn">import</span> <span class="n">fourier_synthesis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">fourier_synthesis</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span> <span class="n">hurst</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">rms_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">short_cutoff</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">long_cutoff</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hrms</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">rms_height_from_profile</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hrms_from_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">compute_1d_moment</span><span class="p">(,)</span>

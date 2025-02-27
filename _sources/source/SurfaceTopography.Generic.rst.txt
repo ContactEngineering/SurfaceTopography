@@ -9,69 +9,69 @@ SurfaceTopography.Generic.Curvature module
 
 .. automodule:: SurfaceTopography.Generic.Curvature
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.Fractional module
 -------------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.Fractional
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.Moments module
 ----------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.Moments
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.ReliabilityCutoff module
 --------------------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.ReliabilityCutoff
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.RobustStatistics module
 -------------------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.RobustStatistics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.ScaleDependentStatistics module
 ---------------------------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.ScaleDependentStatistics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.ScanningProbe module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.ScanningProbe
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generic.Slope module
 --------------------------------------
 
 .. automodule:: SurfaceTopography.Generic.Slope
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.Generic
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

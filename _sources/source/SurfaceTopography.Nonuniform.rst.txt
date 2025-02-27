@@ -9,85 +9,85 @@ SurfaceTopography.Nonuniform.Autocorrelation module
 
 .. automodule:: SurfaceTopography.Nonuniform.Autocorrelation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.BearingArea module
 -----------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.BearingArea
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.Converters module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.Converters
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.Derivative module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.Derivative
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.Detrending module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.Detrending
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.Interpolation module
 -------------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.Interpolation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.PowerSpectrum module
 -------------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.PowerSpectrum
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.ScalarParameters module
 ----------------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.ScalarParameters
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.VariableBandwidth module
 -----------------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.VariableBandwidth
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Nonuniform.common module
 ------------------------------------------
 
 .. automodule:: SurfaceTopography.Nonuniform.common
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.Nonuniform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

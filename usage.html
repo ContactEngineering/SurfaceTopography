@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; SurfaceTopography 1.17.1.dev5+g7d4a93e5 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+  <title>Usage &mdash; SurfaceTopography 1.17.1.dev6+g525d3235 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=68f20994"></script>
+      <script src="_static/documentation_options.js?v=5668fc73"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -111,7 +111,7 @@
 Each reader provides an interface to one or more channels in the file.
 Each channel returns one of the basic topography classes, depending on the structure of the data contained in the file.
 The classes expose a homogeneous interface for handling topographies. Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
 
 <span class="c1"># get a handle to the file (&quot;reader&quot;)</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
@@ -148,7 +148,7 @@ e.g. a detrended one, from the current topography. Both are described in the sec
 <p>When working with 2D topographies it is useful to know, how the data in <cite>SurfaceTopography</cite> is oriented,
 also when compared against the expected image.</p>
 <p>After loading a topography, e.g. by</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">open_topography</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;example.opd&quot;</span><span class="p">)</span>   <span class="c1"># you can find this file in the folder &#39;tests/file_format_examples&#39;</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>  <span class="c1"># returns the default channel</span>
 </pre></div>
@@ -162,7 +162,7 @@ also when compared against the expected image.</p>
 </pre></div>
 </div>
 <p>If matplotlib has been installed, these heights can be plotted by</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">heights</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>   <span class="c1"># only heights, axes labels are just indices</span>
 <span class="c1"># or</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="o">*</span><span class="n">topo</span><span class="o">.</span><span class="n">positions_and_heights</span><span class="p">())</span>   <span class="c1"># heights and coordinates, axes labels are positions</span>
@@ -207,7 +207,7 @@ of other software as e.g. Gwyddion, use</p>
 <li><p><cite>scaning_proper_reliability_cutoff</cite>: Use the SDRP to estimate a resolution cutoff for the measurement given the tip size of the probe. (The theory behind this analysis is described in detail in <a class="reference external" href="https://doi.org/10.1016/j.apsadv.2021.100190">Scale-dependent roughness parameters for topography analysis</a>.)</p></li>
 </ul>
 <p>Example::</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">read_topography</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height (Sq) =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms gradient =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_gradient</span><span class="p">())</span>
@@ -230,7 +230,7 @@ Pipelines can be concatenated together.</p>
 <li><p><cite>to_unit</cite>: Convert the topography to a different unit (scaling lateral lengths and heights).</p></li>
 </ul>
 <p>Example::</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">SurfaceTopography</span> <span class="kn">import</span> <span class="n">read_topography</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height after detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>

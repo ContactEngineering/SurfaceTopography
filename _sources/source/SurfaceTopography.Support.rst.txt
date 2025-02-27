@@ -9,53 +9,53 @@ SurfaceTopography.Support.Bibliography module
 
 .. automodule:: SurfaceTopography.Support.Bibliography
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Support.Deprecation module
 --------------------------------------------
 
 .. automodule:: SurfaceTopography.Support.Deprecation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Support.Interpolation module
 ----------------------------------------------
 
 .. automodule:: SurfaceTopography.Support.Interpolation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Support.JSON module
 -------------------------------------
 
 .. automodule:: SurfaceTopography.Support.JSON
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Support.Regression module
 -------------------------------------------
 
 .. automodule:: SurfaceTopography.Support.Regression
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Support.UnitConversion module
 -----------------------------------------------
 
 .. automodule:: SurfaceTopography.Support.UnitConversion
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.Support
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

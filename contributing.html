@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.17.1.dev5+g7d4a93e5 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+  <title>Contributing to SurfaceTopography &mdash; SurfaceTopography 1.17.1.dev6+g525d3235 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=68f20994"></script>
+      <script src="_static/documentation_options.js?v=5668fc73"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -177,14 +177,14 @@ and/or is incompatible with <cite>runtests</cite> (<cite>unittest</cite>), inclu
 <p>In order to vary the number of processors used in the tests, you should always
 explictely use the communicator defined as fixture in <cite>tests/conftest.py</cite> instead
 of <cite>MPI.COMM_WORLD</cite>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_parallel</span><span class="p">(</span><span class="n">comm</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_parallel</span><span class="p">(</span><span class="n">comm</span><span class="p">):</span>
     <span class="n">substrate</span> <span class="o">=</span> <span class="n">PeriodicFFTElasticHalfSpace</span><span class="p">(</span><span class="o">....</span><span class="p">,</span> <span class="n">commincator</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
     <span class="c1"># Take care not to let your functions use their default value</span>
     <span class="c1"># for the communicator !</span>
 </pre></div>
 </div>
 <p>Note: a single test function that should be run only with one processor:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_parallel</span><span class="p">(</span><span class="n">comm_serial</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_parallel</span><span class="p">(</span><span class="n">comm_serial</span><span class="p">):</span>
     <span class="k">pass</span>
 </pre></div>
 </div>
@@ -194,7 +194,7 @@ of <cite>MPI.COMM_WORLD</cite>.</p>
 <p>Often when you develop your test you need to plot and print things to see what
 happens. It is a good idea to let the plots ready for use:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="o">-</span> <span class="n">system</span><span class="o">.</span><span class="n">substrate</span><span class="o">.</span><span class="n">force</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;pressure&quot;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

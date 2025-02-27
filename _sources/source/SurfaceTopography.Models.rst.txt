@@ -9,13 +9,13 @@ SurfaceTopography.Models.SelfAffine module
 
 .. automodule:: SurfaceTopography.Models.SelfAffine
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.Models
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,293 +9,293 @@ SurfaceTopography.IO.AL3D module
 
 .. automodule:: SurfaceTopography.IO.AL3D
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.BCR module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.BCR
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.DATX module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.DATX
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.DI module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.DI
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.DZI module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.DZI
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.EZD module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.EZD
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.FRT module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.FRT
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.FromFile module
 ------------------------------------
 
 .. automodule:: SurfaceTopography.IO.FromFile
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.GWY module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.GWY
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.H5 module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.H5
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.IBW module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.IBW
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.JPK module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.JPK
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.LEXT module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.LEXT
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.MI module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.MI
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.Matlab module
 ----------------------------------
 
 .. automodule:: SurfaceTopography.IO.Matlab
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.MetroPro module
 ------------------------------------
 
 .. automodule:: SurfaceTopography.IO.MetroPro
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.Mitutoyo module
 ------------------------------------
 
 .. automodule:: SurfaceTopography.IO.Mitutoyo
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.NC module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.NC
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.NMM module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.NMM
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.NPY module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.NPY
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.OIR module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.OIR
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.OPD module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.OPD
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.OPDx module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.OPDx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.PLU module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.PLU
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.PLUX module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.PLUX
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.PS module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.PS
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.Reader module
 ----------------------------------
 
 .. automodule:: SurfaceTopography.IO.Reader
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.SUR module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.SUR
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.Text module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.Text
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.VK module
 ------------------------------
 
 .. automodule:: SurfaceTopography.IO.VK
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.WSXM module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.WSXM
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.X3P module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.X3P
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.XYZ module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.XYZ
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.ZON module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.ZON
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.binary module
 ----------------------------------
 
 .. automodule:: SurfaceTopography.IO.binary
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.IO.common module
 ----------------------------------
 
 .. automodule:: SurfaceTopography.IO.common
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.IO
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

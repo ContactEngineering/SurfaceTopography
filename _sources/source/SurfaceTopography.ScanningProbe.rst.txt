@@ -9,13 +9,13 @@ SurfaceTopography.ScanningProbe.RigidScan module
 
 .. automodule:: SurfaceTopography.ScanningProbe.RigidScan
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography.ScanningProbe
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

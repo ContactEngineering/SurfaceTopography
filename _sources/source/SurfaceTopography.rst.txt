@@ -25,85 +25,85 @@ SurfaceTopography.Exceptions module
 
 .. automodule:: SurfaceTopography.Exceptions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.FFTTricks module
 ----------------------------------
 
 .. automodule:: SurfaceTopography.FFTTricks
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Generation module
 -----------------------------------
 
 .. automodule:: SurfaceTopography.Generation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.HeightContainer module
 ----------------------------------------
 
 .. automodule:: SurfaceTopography.HeightContainer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Metadata module
 ---------------------------------
 
 .. automodule:: SurfaceTopography.Metadata
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.NonuniformLineScan module
 -------------------------------------------
 
 .. automodule:: SurfaceTopography.NonuniformLineScan
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Pipeline module
 ---------------------------------
 
 .. automodule:: SurfaceTopography.Pipeline
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Special module
 --------------------------------
 
 .. automodule:: SurfaceTopography.Special
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.UniformLineScanAndTopography module
 -----------------------------------------------------
 
 .. automodule:: SurfaceTopography.UniformLineScanAndTopography
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 SurfaceTopography.Version module
 --------------------------------
 
 .. automodule:: SurfaceTopography.Version
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: SurfaceTopography
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
