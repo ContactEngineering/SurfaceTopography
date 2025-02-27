@@ -31,14 +31,16 @@ import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
-from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from ..Support.UnitConversion import length_units, mangle_length_unit_utf8
+from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import CHANNEL_NAME_INFO_KEY, text
 from .FromFile import make_wrapped_reader
 
 
 @text()
-def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
+def read_matrix(
+    fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False
+):
     """
     Reads a surface profile from a text file and presents in in a
     SurfaceTopography-conformant manner. No additional parsing of
@@ -58,14 +60,26 @@ def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, 
 
 
 MatrixReader = make_wrapped_reader(
-    read_matrix, class_name="MatrixReader", format='matrix', mime_types=['text/plain'],
-    file_extensions=['txt', 'asc', 'dat'],
-    name='Plain text (matrix)')
+    read_matrix,
+    class_name="MatrixReader",
+    format="matrix",
+    mime_types=["text/plain"],
+    file_extensions=["txt", "asc", "dat"],
+    name="Plain text (matrix)",
+)
 
 
 @text()
-def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
-             z_factor=None, unit=None, info={}, periodic=False):
+def read_asc(
+    fobj,
+    physical_sizes=None,
+    height_scale_factor=None,
+    x_factor=1.0,
+    z_factor=None,
+    unit=None,
+    info={},
+    periodic=False,
+):
     # pylint: disable=too-many-branches,too-many-statements,invalid-name
     """
     Reads a surface profile (topography) from an generic asc file and presents
@@ -90,45 +104,83 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     info: dict
     periodic: bool
     """
-    _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
+    _float_regex = r"[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?"
 
     checks = list()
     # Resolution keywords
-    checks.append((re.compile(r"\b(?:x-pixels|h)\b\s*=\s*([0-9]+)"), int,
-                   "yres"))
-    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
-                   "xres"))
+    checks.append((re.compile(r"\b(?:x-pixels|h)\b\s*=\s*([0-9]+)"), int, "yres"))
+    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int, "xres"))
+    wyko_yres = re.compile(r"\b(?:X Size|h)\b\s*([0-9]+)")
+    wyko_xres = re.compile(r"\b(?:Y Size|h)\b\s*([0-9]+)")
 
     # Size keywords
     checks.append(
-        (re.compile(r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>" +
-                    _float_regex + ")(?P<unit>.*)"), float, "xsiz"))
+        (
+            re.compile(
+                r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>"
+                + _float_regex
+                + ")(?P<unit>.*)"
+            ),
+            float,
+            "xsiz",
+        )
+    )
     checks.append(
-        (re.compile(r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>" +
-                    _float_regex + ")(?P<unit>.*)"), float, "ysiz"))
+        (
+            re.compile(
+                r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>"
+                + _float_regex
+                + ")(?P<unit>.*)"
+            ),
+            float,
+            "ysiz",
+        )
+    )
+    wyko_pixel_size = re.compile(
+        r"\b(?:Pixel_size|h)\b\s*7\s*[0-9]+\s*(" + _float_regex + ")"
+    )
+    wyko_aspect = re.compile(r"\b(?:Aspect|h)\b\s*7\s*[0-9]+\s*(" + _float_regex + ")")
 
     # Unit keywords
+    checks.append((re.compile(r"\b(?:x-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "xunit"))
+    checks.append((re.compile(r"\b(?:y-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "yunit"))
     checks.append(
-        (re.compile(r"\b(?:x-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "xunit"))
-    checks.append(
-        (re.compile(r"\b(?:y-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "yunit"))
-    checks.append(
-        (re.compile(r"\b(?:z-unit|Value units)\b\s*(?:=|\:)\s*(\w+)"),
-         str, "zunit"))
+        (re.compile(r"\b(?:z-unit|Value units)\b\s*(?:=|\:)\s*(\w+)"), str, "zunit")
+    )
 
     # Scale factor keywords
     checks.append(
-        (re.compile(r"(?:pixel\s+size)\s*=\s*(?P<value>" + _float_regex +
-                    ")(?P<unit>.*)"), float, "xfac"))
-    checks.append((
-        re.compile((
-                r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<unit>.*)\))\s*="
-                r"\s*(?P<value>" + _float_regex + ")")),
-        float, "zfac"))
+        (
+            re.compile(
+                r"(?:pixel\s+size)\s*=\s*(?P<value>" + _float_regex + ")(?P<unit>.*)"
+            ),
+            float,
+            "xfac",
+        )
+    )
+    checks.append(
+        (
+            re.compile(
+                (
+                    r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<unit>.*)\))\s*="
+                    r"\s*(?P<value>" + _float_regex + ")"
+                )
+            ),
+            float,
+            "zfac",
+        )
+    )
+    wyko_mult = re.compile(r"\b(?:Mult|h)\b\s*7\s*[0-9]+\s*(" + _float_regex + ")")
+    wyko_wavelength = re.compile(r"\b(?:Wavelength|h)\b\s*7\s*[0-9]+\s*(" + _float_regex + ")")
+
     # Channel name keywords
-    checks.append((
-        re.compile(r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)"),
-        str, "channel_name"))
+    checks.append(
+        (
+            re.compile(r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)"),
+            str,
+            "channel_name",
+        )
+    )
 
     xres = yres = xsiz = ysiz = xunit = yunit = zunit = xfac = yfac = None
     zfac = None
@@ -144,64 +196,111 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
             match = reg.search(line)
             if match is None:
                 continue
-            if key == 'xres':
+            if key == "xres":
                 xres = int(match.group(1))
-            elif key == 'yres':
+            elif key == "yres":
                 yres = int(match.group(1))
-            elif key == 'xsiz':
-                xsiz = float(match.group('value'))
-                x = match.group('unit')
+            elif key == "xsiz":
+                xsiz = float(match.group("value"))
+                x = match.group("unit")
                 if x:
                     xunit = mangle_length_unit_utf8(x)
-            elif key == 'ysiz':
-                ysiz = float(match.group('value'))
-                y = match.group('unit')
+            elif key == "ysiz":
+                ysiz = float(match.group("value"))
+                y = match.group("unit")
                 if y:
                     yunit = mangle_length_unit_utf8(y)
-            elif key == 'xunit':
+            elif key == "xunit":
                 xunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'yunit':
+            elif key == "yunit":
                 yunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'zunit':
+            elif key == "zunit":
                 zunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'xfac':
-                xfac = float(match.group('value'))
-                xunit = mangle_length_unit_utf8(match.group('unit'))
-            elif key == 'zfac':
-                zfac = float(match.group('value'))
-                zunit = mangle_length_unit_utf8(match.group('unit'))
-            elif key == 'channel_name':
+            elif key == "xfac":
+                xfac = float(match.group("value"))
+                xunit = mangle_length_unit_utf8(match.group("unit"))
+            elif key == "zfac":
+                zfac = float(match.group("value"))
+                zunit = mangle_length_unit_utf8(match.group("unit"))
+            elif key == "channel_name":
                 channel_name = match.group(1).strip()
+
+    def process_wyko_header(fobj):
+        nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, zfac
+        line = fobj.readline()
+        aspect = 1
+        zfac = 1
+        pixel_size = None
+        while line and not line.startswith("RAW_DATA"):
+            match = wyko_xres.match(line)
+            if match:
+                xres = int(match.group(1))
+            match = wyko_yres.match(line)
+            if match:
+                yres = int(match.group(1))
+            match = wyko_pixel_size.match(line)
+            if match:
+                pixel_size = float(match.group(1))
+            match = wyko_aspect.match(line)
+            if match:
+                aspect = float(match.group(1))
+            match = wyko_mult.match(line)
+            if match:
+                zfac *= float(match.group(1))
+            match = wyko_wavelength.match(line)
+            if match:
+                zfac *= float(match.group(1))
+            line = fobj.readline()
+        if pixel_size is not None and xres is not None:
+            xsiz = xres * pixel_size * aspect
+        if pixel_size is not None and yres is not None:
+            ysiz = yres * pixel_size
+        xunit = yunit = "mm"
+        zunit = "nm"
+        return line
+
+    def tofloat(s):
+        if s.lower() == "bad":
+            # This is a placeholder for missing data in Wyko text files
+            return np.nan
+        return float(s)
 
     data = []
     for line in fobj:
+        if line.startswith("Wyko ASCII Data File Format"):
+            line = process_wyko_header(fobj)
         line_elements = line.strip().split()
         if len(line_elements) > 0:
             try:
-                data += [[float(strval) for strval in line_elements]]
+                data += [[tofloat(strval) for strval in line_elements]]
             except ValueError:
                 process_comment(line)
 
     if (height_scale_factor is not None) and (zfac is not None):
         # it should not be allowed to override a height scale factor if
         # there is one already in the file
-        raise MetadataAlreadyFixedByFile('height_scale_factor')
+        raise MetadataAlreadyFixedByFile("height_scale_factor")
 
     data = np.array(data).T
     nx, ny = data.shape
     if nx == 2 or ny == 2:
         raise Exception(
             "This file has just two rows or two columns and is more likely a "
-            "line scan than a map.")
+            "line scan than a map."
+        )
     if xres is not None and xres != nx:
         raise Exception(
             "The number of rows (={}) open_topography from the file '{}' "
-            "does not match the nb_grid_pts in the file's metadata (={}).".format(nx, fobj, xres))
+            "does not match the nb_grid_pts in the file's metadata (={}).".format(
+                nx, fobj, xres
+            )
+        )
     if yres is not None and yres != ny:
         raise Exception(
             "The number of columns (={}) open_topography from the file '{}' "
             "does not match the nb_grid_pts in the file's metadata "
-            "(={}).".format(ny, fobj, yres))
+            "(={}).".format(ny, fobj, yres)
+        )
 
     # Handle scale factors
     if xfac is not None and yfac is None:
@@ -252,13 +351,17 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
         if physical_sizes is None:
             physical_sizes = (x_factor * xsiz, x_factor * ysiz)
         else:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile("physical_sizes")
     if data.shape[0] == 1:
         if physical_sizes is not None and len(physical_sizes) > 1:
             physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[0, :], physical_sizes, unit=unit, info=info, periodic=periodic)
+        surface = UniformLineScan(
+            data[0, :], physical_sizes, unit=unit, info=info, periodic=periodic
+        )
     else:
-        surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
+        surface = Topography(
+            data, physical_sizes, unit=unit, info=info, periodic=periodic
+        )
     if height_scale_factor is not None:
         zfac = height_scale_factor
     if zfac is not None:
@@ -266,10 +369,14 @@ def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
     return surface
 
 
-AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', mime_types=['text/plain'],
-                                file_extensions=['txt', 'asc', 'dat'],
-                                name='Plain text (with headers)',
-                                description='''
+AscReader = make_wrapped_reader(
+    read_asc,
+    class_name="AscReader",
+    format="asc",
+    mime_types=["text/plain"],
+    file_extensions=["txt", "asc", "dat"],
+    name="Plain text (with headers)",
+    description="""
 SurfaceTopography data stored in plain text (ASCII) format needs to be stored
 in a matrix format. Each row contains the height information for subsequent
 points in x-direction separated by a whitespace. The next row belong to the
@@ -293,7 +400,8 @@ When writing your own ASCII files, we recommend to prepent the header with a
  5.0  6.0  7.0  8.0
  9.0 10.0 11.0 12.0
 ```
-''')
+""",
+)
 
 
 def write_matrix(self, fname):
@@ -305,4 +413,4 @@ def write_matrix(self, fname):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('to_matrix', write_matrix)
+UniformTopographyInterface.register_function("to_matrix", write_matrix)
