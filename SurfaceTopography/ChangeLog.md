@@ -4,7 +4,7 @@ Change log for SurfaceTopography
 v1.18.0 (27Feb25)
 -----------------
 
-- ENH: Reading Wyko text files
+- ENH: Reading Wyko text files (#399)
 
 v1.17.1 (09Oct24)
 -----------------
