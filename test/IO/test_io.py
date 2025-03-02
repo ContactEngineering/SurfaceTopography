@@ -155,6 +155,7 @@ text_example_file_list = _convert_filelist(
         # example8: from the reader's docstring, with extra newline at end
         "matrix-7.txt",
         "matrix-8.txt",
+        "matrix-9.txt",
         "opdx-2.txt",
         "opdx-3.txt",
         "xyz-1.txt",

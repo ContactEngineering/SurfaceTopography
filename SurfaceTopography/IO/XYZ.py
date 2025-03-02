@@ -76,18 +76,18 @@ def read_text_header_hfm(fobj, unit, height_scale_factor):
     # X;Y;valid
     # [mm];[mm];[1/0]
     first_line = fobj.readline()
-    assert first_line.strip() == 'X;Y;valid'  # This is the file magic
+    assert first_line.strip() == "X;Y;valid"  # This is the file magic
     second_line = fobj.readline()
-    xunit, zunit, _ = second_line.split(';')
-    xunit = xunit.strip('[').strip(']')
-    zunit = zunit.strip('[').strip(']')
+    xunit, zunit, _ = second_line.split(";")
+    xunit = xunit.strip("[").strip("]")
+    zunit = zunit.strip("[").strip("]")
     if unit is not None:
-        raise MetadataAlreadyFixedByFile('unit')
+        raise MetadataAlreadyFixedByFile("unit")
     unit = xunit
     if height_scale_factor is not None:
-        raise MetadataAlreadyFixedByFile('height_scale_factor')
+        raise MetadataAlreadyFixedByFile("height_scale_factor")
     height_scale_factor = get_unit_conversion_factor(zunit, xunit)
-    sep = ';'  # This file seems to use semicolons as separators
+    sep = ";"  # This file seems to use semicolons as separators
     usecols = (0, 1)
 
     return sep, usecols, 0, unit, height_scale_factor, {}
@@ -122,13 +122,13 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
     info : dict
         Additional information.
     """
-    sep = ','  # This file seems to use coma as separators
+    sep = ","  # This file seems to use coma as separators
     usecols = (0, 1)
 
     # We just parse everything before scan data in key-value pairs
     raw_metadata = {}
     line = fobj.readline()
-    while line and not line.startswith('Scan Data'):
+    while line and not line.startswith("Scan Data"):
         s = line.strip().split(sep, maxsplit=1)
         if len(s) == 2:
             # Skip if this is not a key-value pair
@@ -153,29 +153,29 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
 
     if xunit is not None:
         if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            raise MetadataAlreadyFixedByFile("unit")
         else:
             unit = xunit
     if yunit is not None:
         if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         else:
             height_scale_factor = get_unit_conversion_factor(yunit, unit)
 
     # Prepare info dictionary
-    info = {'raw_metadata': raw_metadata}
+    info = {"raw_metadata": raw_metadata}
 
     # Some interpretation of metadata, if present
     try:
-        stylus = raw_metadata['Stylus']
-        if stylus.startswith('Radius:'):
-            tip_radius_value, tip_radius_unit = stylus[7:].strip().split(' ')
+        stylus = raw_metadata["Stylus"]
+        if stylus.startswith("Radius:"):
+            tip_radius_value, tip_radius_unit = stylus[7:].strip().split(" ")
             try:
-                info['instrument'] = {
-                    'parameters': {
-                        'tip_radius': {
-                            'value': float(tip_radius_value),
-                            'unit': mangle_length_unit_utf8(tip_radius_unit),
+                info["instrument"] = {
+                    "parameters": {
+                        "tip_radius": {
+                            "value": float(tip_radius_value),
+                            "unit": mangle_length_unit_utf8(tip_radius_unit),
                         }
                     }
                 }
@@ -212,7 +212,7 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
         List of arrays, one for each column in the file.
     """
     if sep is None:
-        sep = r'[\s,;]+'  # white space, comma or semicolon
+        sep = r"[\s,;]+"  # white space, comma or semicolon
     for i in range(skiprows):
         fobj.readline()
     line = fobj.readline()
@@ -232,10 +232,14 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
             if min_cols is None:
                 min_cols = nb_cols
             elif nb_cols < min_cols:
-                raise ValueError(f'Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}.')
+                raise ValueError(
+                    f"Too few columns in line {nb_lines}: expected {min_cols} but found {nb_cols}."
+                )
             if len(line) != nb_cols:
-                raise ValueError(f'Number of columns changed during parse in line {nb_lines}: expected {nb_cols} but '
-                                 f'found {len(line)} (with data {line}).')
+                raise ValueError(
+                    f"Number of columns changed during parse in line {nb_lines}: expected {nb_cols} but "
+                    f"found {len(line)} (with data {line})."
+                )
 
             if usecols is None:
                 # If no columns are given, we return all columns
@@ -255,18 +259,18 @@ def read_csv(fobj, sep=None, usecols=None, skiprows=0):
 
 # Dictionary of magic: parser pairs, where magic is first line of file
 _text_header_parsers = {
-    b'X;Y;valid': (['utf-8'], read_text_header_hfm),
-    b'Scan Parameters': (['latin-1'], read_text_header_dektak)
+    b"X;Y;valid": (["utf-8"], read_text_header_hfm),
+    b"Scan Parameters": (["latin-1"], read_text_header_dektak),
 }
 
 
 class XYZReader(ReaderBase):
-    _format = 'xyz'
-    _mime_types = ['text/plain']
-    _file_extensions = ['xyz', 'hfm', 'csv']
+    _format = "xyz"
+    _mime_types = ["text/plain"]
+    _file_extensions = ["xyz", "hfm", "csv"]
 
-    _name = 'Plain text (x,y,z coordinates)'
-    _description = '''
+    _name = "Plain text (x,y,z coordinates)"
+    _description = """
 Surface topography information can be provided as coordinate data. This is a
 text file that contains either two columns (for line scans) or three columns
 (for two-dimensional topographies) of data.
@@ -280,7 +284,7 @@ Two-dimensional topography maps need to reside on a regular grid. The x- and
 y-coordinates need to be equally spaced.
 
 The reader supports parsing HFM and Dektak header information.
-'''
+"""
 
     def __init__(self, file_path):
         self._file_path = file_path
@@ -289,30 +293,39 @@ The reader supports parsing HFM and Dektak header information.
         # We read this thing once to get the metadata
         topography = self._read()
 
-        self._channels = [ChannelInfo(
-            self,
-            0,  # channel index
-            name="default",
-            dim=topography.dim,
-            nb_grid_pts=topography.nb_grid_pts,
-            physical_sizes=topography.physical_sizes,
-            height_scale_factor=topography.height_scale_factor if hasattr(topography, 'height_scale_factor') else None,
-            uniform=topography.is_uniform,
-            info=topography.info,
-            unit=topography.unit
-        )]
+        self._channels = [
+            ChannelInfo(
+                self,
+                0,  # channel index
+                name="default",
+                dim=topography.dim,
+                nb_grid_pts=topography.nb_grid_pts,
+                physical_sizes=topography.physical_sizes,
+                height_scale_factor=(
+                    topography.height_scale_factor
+                    if hasattr(topography, "height_scale_factor")
+                    else None
+                ),
+                uniform=topography.is_uniform,
+                info=topography.info,
+                unit=topography.unit,
+            )
+        ]
 
-    def _read_file(self, header_parser, unit, height_scale_factor, info, max_header_rows, encoding):
+    def _read_file(
+        self, header_parser, unit, height_scale_factor, info, max_header_rows, encoding
+    ):
         # Default is to autodetect separator and columns
-        sep = r'[\s,;]+'  # white space, comma or semicolon
+        sep = r"[\s,;]+"  # white space, comma or semicolon
         usecols = None
 
         # Reopen, but with correct encoding
-        with OpenFromAny(self._file_path, mode='r', encoding=encoding) as fobj:
+        with OpenFromAny(self._file_path, mode="r", encoding=encoding) as fobj:
             if header_parser is not None:
                 # Read header
-                sep, usecols, skiprows, unit, height_scale_factor, _info = header_parser(fobj, unit,
-                                                                                         height_scale_factor)
+                sep, usecols, skiprows, unit, height_scale_factor, _info = (
+                    header_parser(fobj, unit, height_scale_factor)
+                )
             else:
                 skiprows = 0
                 _info = {}
@@ -351,12 +364,22 @@ The reader supports parsing HFM and Dektak header information.
                 skiprows += 1
                 fobj.seek(data_start)
 
-            _log.debug(f'Skipping {skiprows} rows before attempting to read data from XYZ file.')
+            _log.debug(
+                f"Skipping {skiprows} rows before attempting to read data from XYZ file."
+            )
 
         return data, unit, height_scale_factor, _info
 
-    def _read(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=None,
-              max_header_rows=200, tol=1e-6):
+    def _read(
+        self,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        max_header_rows=200,
+        tol=1e-6,
+    ):
         """
         Read the xyz-file. These files contain line scan information in terms of
         (x,y)-positions (for line scans) or (x,y,z)-positions (for topographies).
@@ -382,9 +405,9 @@ The reader supports parsing HFM and Dektak header information.
             maxmagic = max(maxmagic, len(key))
 
         # Read header (if present) and guess file format
-        encoding = ['utf-8', 'utf-16', 'latin-1']  # Open with UTF-8 encoding by default
+        encoding = ["utf-8", "utf-16", "latin-1"]  # Open with UTF-8 encoding by default
         header_parser = None  # We don't parse any headers by default
-        with OpenFromAny(self._file_path, mode='rb') as fobj:
+        with OpenFromAny(self._file_path, mode="rb") as fobj:
             first_line = fobj.read(maxmagic)
             for magic, parser in _text_header_parsers.items():
                 if first_line.startswith(magic):
@@ -395,32 +418,34 @@ The reader supports parsing HFM and Dektak header information.
         data = None
         for e in encoding:
             try:
-                data, unit, height_scale_factor, _info = self._read_file(header_parser, unit, height_scale_factor, info,
-                                                                         max_header_rows, e)
+                data, unit, height_scale_factor, _info = self._read_file(
+                    header_parser, unit, height_scale_factor, info, max_header_rows, e
+                )
                 if data is not None:
                     break
             except UnicodeDecodeError:
                 pass
 
         if data is None:
-            raise UnknownFileFormat('Could not parse file as XYZ.')
+            raise UnknownFileFormat("Could not parse file as XYZ.")
 
+        kind = None
         if len(data) == 2:
             # This is a line scan.
-            kind = 'xz'
+            kind = "xz"
             x, z = data
         elif len(data) == 3:
             x, y, z = data
             if np.ptp((x[1:] - x[0]) / (y[1:] - y[0])) < tol:
                 # This is a line scan and the first column is likely an index column.
-                kind = 'xz'
+                kind = "xz"
                 x = y
             else:
                 # This is a topography map.
-                kind = 'xyz'
+                kind = "xyz"
 
         # Check is this is a line scan in XY format or two-dimensional data in XYZ format
-        if kind == 'xz':
+        if kind == "xz":
             x -= np.min(x)
 
             d_uniform = (x[-1] - x[0]) / (len(x) - 1)
@@ -428,20 +453,25 @@ The reader supports parsing HFM and Dektak header information.
                 if physical_sizes is None:
                     physical_sizes = d_uniform * len(x)
                 else:
-                    raise MetadataAlreadyFixedByFile('physical_sizes')
-                t = UniformLineScan(z, physical_sizes,
-                                    periodic=False if periodic is None else periodic,
-                                    unit=unit,
-                                    info=_info)
+                    raise MetadataAlreadyFixedByFile("physical_sizes")
+                t = UniformLineScan(
+                    z,
+                    physical_sizes,
+                    periodic=False if periodic is None else periodic,
+                    unit=unit,
+                    info=_info,
+                )
             else:
                 if periodic is not None and periodic:
-                    raise ValueError('XYZ reader found nonuniform data, and the user specified that it is periodic. '
-                                     'Nonuniform line scans cannot be periodic.')
+                    raise ValueError(
+                        "XYZ reader found nonuniform data, and the user specified that it is periodic. "
+                        "Nonuniform line scans cannot be periodic."
+                    )
                 t = NonuniformLineScan(x, z, unit=unit, info=_info)
                 if physical_sizes is not None:
-                    raise MetadataAlreadyFixedByFile('physical_sizes')
+                    raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        elif kind == 'xyz':
+        elif kind == "xyz":
             # Compute grid spacing in y-direction
             indices = np.lexsort((y, x))
             y0 = y[indices[0]]
@@ -481,11 +511,15 @@ The reader supports parsing HFM and Dektak header information.
             if physical_sizes is None:
                 physical_sizes = (dx * nx, dy * ny)
             else:
-                raise MetadataAlreadyFixedByFile('physical_sizes')
-            t = Topography(data, physical_sizes, unit=unit, info=_info, periodic=periodic)
+                raise MetadataAlreadyFixedByFile("physical_sizes")
+            t = Topography(
+                data, physical_sizes, unit=unit, info=_info, periodic=periodic
+            )
         else:
             raise UnknownFileFormat(
-                'Expected two or three columns for topography that is a list of positions and heights.')
+                "Expected two or three columns for topography that is a list of "
+                f"positions and heights. This file has {len(data)} columns."
+            )
 
         if height_scale_factor is not None:
             t = t.scale(height_scale_factor)
@@ -499,8 +533,17 @@ The reader supports parsing HFM and Dektak header information.
         """
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
-                   periodic=None, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError("This reader does not support MPI parallelization.")
 
@@ -508,7 +551,14 @@ The reader supports parsing HFM and Dektak header information.
             channel_index = self._default_channel_index
 
         if channel_index != self._default_channel_index:
-            raise RuntimeError(f"There is only a single channel. Channel index must be {self._default_channel_index}.")
+            raise RuntimeError(
+                f"There is only a single channel. Channel index must be {self._default_channel_index}."
+            )
 
-        return self._read(physical_sizes=physical_sizes, height_scale_factor=height_scale_factor, unit=unit, info=info,
-                          periodic=False if periodic is None else periodic)
+        return self._read(
+            physical_sizes=physical_sizes,
+            height_scale_factor=height_scale_factor,
+            unit=unit,
+            info=info,
+            periodic=False if periodic is None else periodic,
+        )

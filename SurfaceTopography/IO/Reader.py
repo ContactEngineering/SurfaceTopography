@@ -459,7 +459,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
                 raise ValueError(
-                    "`physical_sizes` could not be extracted from file, you must provide it."
+                    "`physical_sizes` could not be extracted from file, you must "
+                    "provide it."
                 )
             eff_physical_sizes = physical_sizes_from_arg
         elif physical_sizes_from_arg is not None:
