@@ -1,11 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
-v1.18.0 (02Mar25)
+v1.18.0 (03Mar25)
 -----------------
 
 - ENH: Reading Wyko text files (#399)
 - MAINT: Text reader is now a new style, class-based reader
+- MAINT: Bumped muFFT dependency to 0.93.0; updated code to reflect API changes
 
 v1.17.1 (09Oct24)
 -----------------

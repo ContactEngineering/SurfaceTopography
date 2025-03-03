@@ -36,7 +36,7 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "muFFT>=0.91.2",
+    "muFFT>=0.93.0",
     "NuMPI>=0.6.1",
     "numpyencoder",
     "openpyxl",

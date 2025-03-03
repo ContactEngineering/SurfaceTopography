@@ -251,18 +251,18 @@ def derivative(
         fft = self.make_fft()
 
         # These fields are reused when this function is called multiple times
-        real_field = fft.real_space_field("real_temporary", 1)
-        fourier_field = fft.fourier_space_field("complex_temporary", 1)
-        np.array(real_field, copy=False)[...] = self.heights()
+        real_field = fft.real_space_field("real_temporary")
+        fourier_field = fft.fourier_space_field("complex_temporary")
+        real_field.p = self.heights()
         fft.fft(real_field, fourier_field)
 
         # Apply mask function
         if mask_function is not None:
-            np.array(fourier_field, copy=False)[...] *= mask_function(
+            fourier_field.p *= mask_function(
                 (fft.fftfreq.T / pixel_size).T
             )
 
-        fourier_array = np.array(fourier_field, copy=False)
+        fourier_array = fourier_field.p
         fourier_copy = fourier_array.copy()
     elif interpolation == "disable":
         heights = self.heights()
@@ -354,7 +354,7 @@ def derivative(
                 # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
                 fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
                 fft.ifft(fourier_field, real_field)
-                _der = np.array(real_field, copy=False) * fft.normalisation
+                _der = real_field.p * fft.normalisation
             elif interpolation == "linear":
                 # We use linear interpolator
                 lbounds = np.array(op.lbounds)
