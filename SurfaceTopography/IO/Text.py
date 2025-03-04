@@ -269,6 +269,7 @@ When writing your own ASCII files, we recommend to prepend the header with a
         self._channel_names = []
         self._metadata = defaultdict(None)
         self._data = defaultdict(list)
+        self._dim = 2
         with OpenFromAny(file_path, "r") as fobj:
             for line in fobj:
                 try:
@@ -288,41 +289,39 @@ When writing your own ASCII files, we recommend to prepend the header with a
             nb_grid_pts_y = self._metadata.get("nb_grid_pts_y")
             for channel_name in self._channel_names:
                 data = np.array(self._data[channel_name]).T
+                if data.shape[0] == 1:
+                    self._dim = 1
+                    data = np.ravel(data)
                 self._data[channel_name] = data
-                nx, ny = data.shape
-                if nx == 2 or ny == 2:
-                    raise Exception(
-                        "This file has just two rows or two columns and is more likely a "
-                        "line scan than a map."
-                    )
+                try:
+                    nx, ny = data.shape
+                except ValueError:
+                    if nb_grid_pts_y is not None:
+                        raise Exception(
+                            "This file has just a single column and is hence a line "
+                            f"scan, but the files metadata specifies {nb_grid_pts_y} "
+                            "grid points in y-direction."
+                        )
+                    (nx,) = data.shape
+                    ny = None
+                else:
+                    if nx == 2 or ny == 2:
+                        raise Exception(
+                            "This file has just two rows or two columns and is more "
+                            "likely a line scan than a map."
+                        )
+                    if nb_grid_pts_y is not None and nb_grid_pts_y != ny:
+                        raise Exception(
+                            f"The number of columns (={ny}) of the topography from the "
+                            f"file '{fobj}' does not match the number of grid points "
+                            f"in the file's metadata (={nb_grid_pts_y})."
+                        )
                 if nb_grid_pts_x is not None and nb_grid_pts_x != nx:
                     raise Exception(
-                        "The number of rows (={}) open_topography from the file '{}' "
-                        "does not match the number of grid points in the file's metadata "
-                        "(={}).".format(nx, fobj, nb_grid_pts_x)
+                        f"The number of rows (={nx}) of the topography from the file "
+                        f"'{fobj}' does not match the number of grid points in the "
+                        f"file's metadata (={nb_grid_pts_x})."
                     )
-                if nb_grid_pts_y is not None and nb_grid_pts_y != ny:
-                    raise Exception(
-                        "The number of columns (={}) open_topography from the file '{}' "
-                        "does not match the number of grid points in the file's metadata "
-                        "(={}).".format(ny, fobj, nb_grid_pts_y)
-                    )
-
-            for channel_name in self._channel_names:
-                data = self._data[channel_name]
-                nx, ny = data.shape
-                if nb_grid_pts_x is not None:
-                    if nx != nb_grid_pts_x:
-                        raise CorruptFile(
-                            "The number of rows in the data does not match the number "
-                            "of grid points in the metadata."
-                        )
-                if nb_grid_pts_y is not None:
-                    if ny != nb_grid_pts_y:
-                        raise CorruptFile(
-                            "The number of columns in the data does not match the "
-                            "number of grid points in the metadata."
-                        )
 
             # Set grid points if not in metadata
             if nb_grid_pts_x is None:
@@ -416,11 +415,17 @@ When writing your own ASCII files, we recommend to prepend the header with a
 
             # Store processed metadata
             self._nb_grid_pts = None
-            if nb_grid_pts_x is not None and nb_grid_pts_y is not None:
-                self._nb_grid_pts = (nb_grid_pts_x, nb_grid_pts_y)
+            if nb_grid_pts_x is not None:
+                if nb_grid_pts_y is not None:
+                    self._nb_grid_pts = (nb_grid_pts_x, nb_grid_pts_y)
+                else:
+                    self._nb_grid_pts = (nb_grid_pts_x,)
             self._physical_sizes = None
-            if physical_size_x is not None and physical_size_y is not None:
-                self._physical_sizes = (physical_size_x, physical_size_y)
+            if physical_size_x is not None:
+                if physical_size_y is not None:
+                    self._physical_sizes = (physical_size_x, physical_size_y)
+                else:
+                    self._physical_sizes = (physical_size_x,)
             self._unit = unit
             self._height_scale_factor = zfac
 
@@ -431,7 +436,7 @@ When writing your own ASCII files, we recommend to prepend the header with a
                 self,
                 i,  # channel index
                 name=name,
-                dim=2,
+                dim=self._dim,
                 nb_grid_pts=self._nb_grid_pts,
                 physical_sizes=self._physical_sizes,
                 uniform=True,
@@ -486,11 +491,9 @@ When writing your own ASCII files, we recommend to prepend the header with a
         data = self._data[channel_name]
         if np.sum(np.isnan(data)) > 0:
             data = np.ma.masked_invalid(data)
-        if data.shape[0] == 1:
-            if physical_sizes is not None and len(physical_sizes) > 1:
-                physical_sizes = physical_sizes[0]
+        if self._dim == 1:
             topography = UniformLineScan(
-                data[0, :],
+                data,
                 physical_sizes,
                 unit=unit or self._unit,
                 info=_info,

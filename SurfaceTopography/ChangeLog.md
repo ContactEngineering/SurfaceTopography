@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.18.1 (04Mar25)
+-----------------
+
+- BUG: Fixed regression in reading single-column text files in new-style reader
+
 v1.18.0 (03Mar25)
 -----------------
 

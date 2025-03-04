@@ -148,3 +148,15 @@ def test_wyko_matrix9(file_format_examples, filename="matrix-9.txt"):
     assert t.unit == "nm"
     np.testing.assert_allclose(t.physical_sizes, (475200, 633600))
     np.testing.assert_allclose(t.rms_height_from_area(), 1459.460335)
+
+
+def test_single_column(file_format_examples, filename="single_column.txt"):
+    r = open_topography(os.path.join(file_format_examples, filename))
+    assert r.format() == "asc"
+    assert r.default_channel.dim == 1
+    assert r.default_channel.nb_grid_pts == (9,)
+    assert r.default_channel.physical_sizes is None
+    t = r.topography(physical_sizes=(2.3,))
+    assert t.nb_grid_pts == (9,)
+    assert t.physical_sizes == (2.3,)
+    np.testing.assert_allclose(t.heights(), np.arange(9) + 1)
