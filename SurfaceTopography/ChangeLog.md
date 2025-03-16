@@ -1,6 +1,12 @@
 Change log for SurfaceTopography
 ================================
 
+v1.18.2 (16Mar25)
+-----------------
+
+- MAINT: Pass generic keyword arguments from container scale-dependent statistical
+  properties function to the underlying functions for topographies
+
 v1.18.1 (04Mar25)
 -----------------
 

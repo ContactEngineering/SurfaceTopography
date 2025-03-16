@@ -370,6 +370,11 @@ def test_reader_arguments(fn):
         assert t.height_scale_factor == height_scale_factor
     assert t.info == info
 
+    print(type(t.has_undefined_data))
+    assert isinstance(t.has_undefined_data, bool) or isinstance(
+        t.has_undefined_data, np.bool_
+    )
+
 
 @pytest.mark.parametrize("fn", text_example_file_list + binary_example_file_list)
 def test_readers_with_binary_file_object(fn):

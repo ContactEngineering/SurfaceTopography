@@ -35,8 +35,17 @@ from .SurfaceContainer import SurfaceContainer
 _log = logging.Logger(__name__)
 
 
-def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_decade=10, distances=None,
-                                         interpolation='linear', reliable=True, progress_callback=None, threshold=4):
+def scale_dependent_statistical_property(
+    self,
+    func,
+    n,
+    unit,
+    nb_points_per_decade=10,
+    distances=None,
+    reliable=True,
+    progress_callback=None,
+    **kwargs,
+):
     """
     Compute statistical properties of a topography container (i.e. of a set of
     topographies and line scans) at specific scales. These properties are
@@ -81,25 +90,11 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         Characteristic distances at which the derivatives are computed. If
         this is an array, then the statistical property is computed at each
         of these distances. (Default: None)
-    interpolation : str, optional
-        Interpolation method to use for computing derivatives at distances
-        that do not equal an integer multiple of the grid spacing. Use
-        'linear' for a local liner interpolation or 'fourier' for global
-        Fourier interpolation. Note that Fourier interpolation carries large
-        errors for nonperiodic topographies and should be used with care.
-        (Default: 'linear')
     reliable : bool, optional
         Only incorporate data deemed reliable. (Default: True)
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
-    threshold : int, optional
-        Defines the minimal amount of data points of the probability distribution
-        to calculate the statistical properties with func and returns a np.nan if
-        the value is below the threshold.
-        E.g. the scipy.stats.kstat function needs at least 4 data points to
-        calculate the 4th cumulant function, otherwise it returns nan or inf
-        (Default: 4)
 
     Returns
     -------
@@ -131,7 +126,8 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
 
         topography = topography.to_unit(unit)
 
-        # Only compute the statistical property for distances that actually exist for this specific topography...
+        # Only compute the statistical property for distances that actually exist for
+        # this specific topography...
         lower, upper = topography.bandwidth()
         # ...and that are reliable
         if reliable:
@@ -142,15 +138,23 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
 
         if distances is None:
             if lower >= upper:
-                _log.warning(f'Topography {topography} contributes no data to average.')
+                _log.warning(f"Topography {topography} contributes no data to average.")
                 continue
 
-            # The automatic grid must include the full decades, i.e. 0.01, 0.1, 1, 10, 100, etc. as values. This
-            # ensures that the grid of subsequent calculations are aligned.
-            lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(np.ceil(np.log10(upper)))
-            existing_distances = np.logspace(lower_decade, upper_decade,
-                                             (upper_decade - lower_decade) * nb_points_per_decade + 1)
-            unique_distance_index = lower_decade * nb_points_per_decade + np.arange(len(existing_distances))
+            # The automatic grid must include the full decades, i.e. 0.01, 0.1, 1, 10,
+            # 100, etc. as values. This ensures that the grid of subsequent calculations
+            # are aligned.
+            lower_decade, upper_decade = int(np.floor(np.log10(lower))), int(
+                np.ceil(np.log10(upper))
+            )
+            existing_distances = np.logspace(
+                lower_decade,
+                upper_decade,
+                (upper_decade - lower_decade) * nb_points_per_decade + 1,
+            )
+            unique_distance_index = lower_decade * nb_points_per_decade + np.arange(
+                len(existing_distances)
+            )
         else:
             existing_distances = np.array(distances)
             unique_distance_index = np.arange(len(distances))
@@ -163,26 +167,38 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         if len(existing_distances) > 0:
             # Yes! Let's compute the statistical properties at these scales
             _, stat = topography.scale_dependent_statistical_property(
-                func, n=n, distance=existing_distances, interpolation=interpolation, threshold=threshold)
+                func,
+                n=n,
+                distance=existing_distances,
+                **kwargs,
+            )
             # Append results to our return values
             for i, e, s in zip(unique_distance_index, existing_distances, stat):
                 if empty is None:
                     empty = np.zeros_like(s) * np.nan
                 results[i] += [(e, s)]
         else:
-            _log.warning(f'Topography {topography} contributes no data to average.')
+            _log.warning(f"Topography {topography} contributes no data to average.")
 
     if progress_callback is not None:
         progress_callback(len(self), len(self))
 
     if len(results) == 0:
-        raise NoReliableDataError('Container contains no reliable data.')
+        raise NoReliableDataError("Container contains no reliable data.")
 
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances; whether data actually exists is
         # indicated through the mask of a masked array
-        data = np.array([np.nanmean([r[1] for r in results[i]], axis=0) if i in results else empty
-                         for i in range(len(distances))])
+        data = np.array(
+            [
+                (
+                    np.nanmean([r[1] for r in results[i]], axis=0)
+                    if i in results
+                    else empty
+                )
+                for i in range(len(distances))
+            ]
+        )
         mask = np.ones_like(data, dtype=bool)
         mask[[i in results for i in range(len(distances))]] = False
         return distances, np.ma.masked_array(data, mask=mask)
@@ -190,8 +206,12 @@ def scale_dependent_statistical_property(self, func, n, unit, nb_points_per_deca
         # If distances are not specified by the user, the distance array contains only distances where data exists
         sorted_results = sorted(results.items(), key=lambda x: x[0])
         distances = np.array([x[1][0][0] for x in sorted_results])
-        properties = np.array([np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results])
+        properties = np.array(
+            [np.nanmean([r[1] for r in vals], axis=0) for i, vals in sorted_results]
+        )
         return distances, properties
 
 
-SurfaceContainer.register_function('scale_dependent_statistical_property', scale_dependent_statistical_property)
+SurfaceContainer.register_function(
+    "scale_dependent_statistical_property", scale_dependent_statistical_property
+)
