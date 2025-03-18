@@ -161,7 +161,7 @@ def rms_curvature(self):
     # The second derivative cannot be evaluated on the two end points
     L = x[-2] - x[1]
 
-    return np.sqrt(np.trapz(d2 ** 2, x[1:-1]) / L)
+    return np.sqrt(np.trapezoid(d2 ** 2, x[1:-1]) / L)
 
 
 # Register analysis functions from this module

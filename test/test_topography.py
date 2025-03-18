@@ -373,11 +373,11 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertFalse(surface.is_reentrant)
         x, h = surface.positions_and_heights()
         s, = surface.physical_sizes
-        self.assertAlmostEqual(surface.mean(), np.trapz(h, x) / s)
+        self.assertAlmostEqual(surface.mean(), np.trapezoid(h, x) / s)
         detrended_surface = surface.detrend(detrend_mode='height')
         self.assertAlmostEqual(detrended_surface.mean(), 0)
         x, h = detrended_surface.positions_and_heights()
-        self.assertAlmostEqual(np.trapz(h, x), 0)
+        self.assertAlmostEqual(np.trapezoid(h, x), 0)
 
     def test_uniform_curvatures_2d(self):
         radius = 100.

@@ -299,7 +299,7 @@ def test_q0_1D():
     surf = fourier_synthesis([1024, 512], [2.3, 1.5], 0.8, rms_height=0.87)
     rms_height = surf.rms_height_from_profile()  # Need to measure it since it can fluctuate wildly
     q, C = surf.power_spectrum_from_profile(reliable=False, resampling_method=None)
-    ratio = rms_height ** 2 / (np.trapz(C, q) / np.pi)
+    ratio = rms_height ** 2 / (np.trapezoid(C, q) / np.pi)
     assert ratio > 0.1
     assert ratio < 10
 
@@ -310,7 +310,7 @@ def test_q0_2D():
     q, C = surf.power_spectrum_from_area(nb_points=200, collocation='quadratic')
     # This is really not quantitative, it's just checking whether it's the right ballpark.
     # Any bug in normalization would show up here as an order of magnitude
-    ratio = rms_height ** 2 / (np.trapz(q * C, q) / np.pi)
+    ratio = rms_height ** 2 / (np.trapezoid(q * C, q) / np.pi)
     assert ratio > 0.1
     assert ratio < 10
 

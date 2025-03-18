@@ -210,7 +210,7 @@ class SinewaveTest(unittest.TestCase):
         t = NonuniformLineScan(self.X, self.sinsurf)
         numerical = t.rms_height_from_profile()
         analytical = np.sqrt(self.hm**2 / 2)
-        # numerical = np.sqrt(np.trapz(self.sinsurf**2, self.X))
+        # numerical = np.sqrt(np.trapezoid(self.sinsurf**2, self.X))
 
         self.assertAlmostEqual(numerical, analytical, self.precision)
 
