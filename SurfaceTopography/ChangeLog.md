@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.18.3 (13Apr25)
+-----------------
+
+- ENH: Encoding masked arrays
+
 v1.18.2 (16Mar25)
 -----------------
 

@@ -4,6 +4,7 @@ import uuid
 from json import JSONEncoder
 
 import numpy as np
+from numpy.ma import MaskedArray
 
 try:
     from jaxlib.xla_extension import ArrayImpl
@@ -16,6 +17,8 @@ def nan_to_none(obj):
         return {k: nan_to_none(v) for k, v in obj.items()}
     elif isinstance(obj, list) or isinstance(obj, set):
         return [nan_to_none(v) for v in obj]
+    elif isinstance(obj, MaskedArray):
+        return [None if m else nan_to_none(v) for v, m in zip(obj.data, obj.mask)]
     elif isinstance(obj, np.ndarray) or isinstance(obj, ArrayImpl):
         if obj.ndim == 0:
             return nan_to_none(obj.item())
