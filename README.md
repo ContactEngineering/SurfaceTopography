@@ -34,9 +34,9 @@ If you need an editable install (e.g. for development purposes), make sure you d
 
     python3 -m pip install --no-build-isolation -e .
 
-You may need to install `ninja`, `meson-python`, `runtests`, `DiscoverVersion` and `numpy` before:
+You need to manually install `ninja`, `meson-python`, `pytest`, `runtests`, `DiscoverVersion` and `numpy` before:
 
-    python3 -m pip install ninja meson-python runtests DiscoverVersion numpy
+    python3 -m pip install ninja meson-python pytest runtests DiscoverVersion numpy
 
 Containerized SurfaceTopography
 -------------------------------
