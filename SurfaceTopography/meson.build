@@ -10,6 +10,7 @@ python_sources = [
     'HeightContainer.py',
     'Metadata.py',
     'NonuniformLineScan.py',
+    'Pipeline.py',
     'Special.py',
     'UniformLineScanAndTopography.py'
 ]
