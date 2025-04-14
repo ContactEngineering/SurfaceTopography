@@ -4,6 +4,7 @@ Change log for SurfaceTopography
 v1.18.3 (13Apr25)
 -----------------
 
+- BUILD: Removed support for Python 3.8; require numpy>=2.0.0
 - ENH: Encoding masked arrays
 
 v1.18.2 (16Mar25)
