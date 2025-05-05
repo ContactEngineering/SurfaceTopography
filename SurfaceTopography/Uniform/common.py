@@ -33,7 +33,7 @@ import numpy as np
 from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
 from ..Support.UnitConversion import suggest_length_unit
-from ..UniformLineScanAndTopography import DecoratedUniformTopography, Topography
+from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
 def bandwidth(self):
@@ -100,7 +100,7 @@ def domain_decompose(
     )
 
 
-def plot(topography, subplot_location=111):
+def plot_2d(topography, subplot_location=111):
     """
     Plot an image of the topography using matplotlib.
 
@@ -123,7 +123,6 @@ def plot(topography, subplot_location=111):
     except TypeError:
         sx, sy = topography.nb_grid_pts
         unit = "a.u."
-    nx, ny = topography.nb_grid_pts
 
     ax = plt.subplot(subplot_location, aspect=1)
     mesh = ax.imshow(topography[...].T, extent=(0, sx, sy, 0))
@@ -131,6 +130,21 @@ def plot(topography, subplot_location=111):
     ax.set_xlabel(f"Position $x$ ({unit})")
     ax.set_ylabel(f"Position $y$ ({unit})")
     return ax
+
+
+def plot(topography, subplot_location=111):
+    """
+    Plot topogaphy.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography`
+        Height information
+    """
+    if topography.dim == 2:
+        return plot_2d(topography, subplot_location=subplot_location)
+    else:
+        return topography.to_nonuniform().plot()
 
 
 class FilledTopography(DecoratedUniformTopography):
@@ -161,5 +175,5 @@ class FilledTopography(DecoratedUniformTopography):
 UniformTopographyInterface.register_function("make_fft", make_fft)
 UniformTopographyInterface.register_function("bandwidth", bandwidth)
 UniformTopographyInterface.register_function("domain_decompose", domain_decompose)
-Topography.register_function("plot", plot)
+UniformTopographyInterface.register_function("plot", plot)
 UniformTopographyInterface.register_function("fill_undefined_data", FilledTopography)

@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.18.4 (05May25)
+-----------------
+
+- ENH: `plot` pipeline function for line scans
+
 v1.18.3 (13Apr25)
 -----------------
 
