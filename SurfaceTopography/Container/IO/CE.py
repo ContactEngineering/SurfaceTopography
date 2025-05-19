@@ -212,7 +212,7 @@ class CEReader(ContainerReaderBase):
                     )
                 ]
 
-            self._containers += [LazySurfaceContainer(readers)]
+            self._containers += [LazySurfaceContainer(readers, info=surf_meta)]
 
     @property
     def nb_containers(self):

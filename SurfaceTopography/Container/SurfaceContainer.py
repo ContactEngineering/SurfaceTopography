@@ -78,8 +78,9 @@ class InMemorySurfaceContainer(SurfaceContainer):
 class LazySurfaceContainer(SurfaceContainer):
     """A list of readers with lazy loading of topography data"""
 
-    def __init__(self, readers=[]):
+    def __init__(self, readers=[], info={}):
         self._readers = readers
+        self._info = {}
 
     def __len__(self):
         return len(self._readers)
@@ -96,3 +97,7 @@ class LazySurfaceContainer(SurfaceContainer):
         container : :obj:`InMemorySurfaceContainer`
         """
         return InMemorySurfaceContainer([x for x in self])
+
+    @property
+    def info(self):
+        return self._info
