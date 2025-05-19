@@ -80,7 +80,7 @@ class LazySurfaceContainer(SurfaceContainer):
 
     def __init__(self, readers=[], info={}):
         self._readers = readers
-        self._info = {}
+        self._info = info
 
     def __len__(self):
         return len(self._readers)
