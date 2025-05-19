@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.18.3.dev4+g8c55a956 documentation</title>
+  <title>SurfaceTopography.Container package &mdash; SurfaceTopography 1.18.3.dev8+gc8790c05 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=41959842"></script>
+      <script src="../_static/documentation_options.js?v=75390502"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -122,6 +122,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.read_all"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer.read_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.info"><code class="docutils literal notranslate"><span class="pre">LazySurfaceContainer.info</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -441,12 +442,12 @@ able to accept one argument (for line scans) and two arguments
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">LazySurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.SurfaceContainer.</span></span><span class="sig-name descname"><span class="pre">LazySurfaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceContainer</span></code></a></p>
 <p>A list of readers with lazy loading of topography data</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -462,6 +463,11 @@ able to accept one argument (for line scans) and two arguments
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.info">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
