@@ -201,3 +201,8 @@ def test_ce_container():
             0.078929223879882,
         ],
     )
+
+
+def test_read_multiple_surfaces(file_format_examples):
+    c = read_container(f"{file_format_examples}/container-4.zip")
+    assert len(c) == 2

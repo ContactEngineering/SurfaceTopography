@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.18.5 (not yet released)
+--------------------------
+
+- BUG: Reading ZIP file with multiple containers
+
 v1.18.4 (05May25)
 -----------------
 

@@ -214,6 +214,11 @@ class CEReader(ContainerReaderBase):
 
             self._containers += [LazySurfaceContainer(readers)]
 
+    @property
+    def nb_containers(self):
+        """Number of surfaces stored in this container file"""
+        return len(self._containers)
+
     def container(self, index=0):
         """
         Returns an instance of a subclass of :obj:`SurfaceContainer` that
