@@ -125,8 +125,8 @@ class CEReader(ContainerReaderBase):
         with ZipFile(self._fn, "r") as z:
             meta = yaml.load(z.open("meta.yml"), Loader=yaml.FullLoader)
 
-        readers = []
         for surf_meta in meta["surfaces"]:
+            readers = []
             for topo_meta in surf_meta["topographies"]:
                 info = topo_meta.copy()
 
