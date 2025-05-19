@@ -206,3 +206,7 @@ def test_ce_container():
 def test_read_multiple_surfaces(file_format_examples):
     c = read_container(f"{file_format_examples}/container-4.zip")
     assert len(c) == 2
+    s1, s2 = c
+    assert len(s1) == 1
+    assert len(s2) == 1
+    assert not np.allclose(s1[0].heights(), s2[0].heights())
