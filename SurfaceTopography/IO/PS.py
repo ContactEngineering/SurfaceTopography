@@ -44,7 +44,7 @@ class PSReader(ReaderBase):
     _mime_types = ['image/tiff']
     _file_extensions = ['tiff', 'tif']
 
-    _name = 'Park Systems'
+    _name = 'Park Systems TIFF'
     _description = '''
 TIFF-based file format of Park Systems instruments.
 '''
