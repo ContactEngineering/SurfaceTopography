@@ -44,15 +44,19 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
 
     def __getattr__(self, name):
         if name in self._functions:
+
             def func(*args, **kwargs):
                 return self._functions[name](self, *args, **kwargs)
 
             func.__doc__ = self._functions[name].__doc__
             return func
         else:
-            raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered"
-                                 "(class {}). Available functions: {}".format(name, self.__class__.__name__,
-                                                                              ', '.join(self._functions.keys())))
+            raise AttributeError(
+                "Unkown attribute '{}' and no analysis or pipeline function of this name registered"
+                "(class {}). Available functions: {}".format(
+                    name, self.__class__.__name__, ", ".join(self._functions.keys())
+                )
+            )
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
