@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
+
 SurfaceTopography
 =================
 
@@ -9,13 +11,6 @@ Surface topographies can be easily analyzed using standard (rms height, power sp
 If you use this code, please cite:
 * [Jacobs, Junge, Pastewka, Surf. Topogr. Metrol. Prop. 1, 013001 (2017)](https://doi.org/10.1088/2051-672X/aa51f8)
 * [Röttger el al., Surf. Topogr. Metrol. Prop. 10, 035032 (2022)](https://doi.org/10.1088/2051-672X/ac860a) 
-
-Build status
-------------
-
-The following badge should say _tests passing_. This means that all automated tests completed successfully for the master branch.
-
-[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
 
 Documentation
 -------------
