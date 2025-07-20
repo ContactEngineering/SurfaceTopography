@@ -47,7 +47,8 @@ dependencies = [
     "tiffile",
     "xmltodict",
     "pandas",
-    "pydantic"
+    "pydantic",
+    "zstandard"
 ]
 
 [project.optional-dependencies]

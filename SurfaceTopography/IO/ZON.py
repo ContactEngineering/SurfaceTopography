@@ -33,6 +33,7 @@ from zipfile import ZipFile
 
 import defusedxml.ElementTree as ElementTree
 import numpy as np
+import zstandard
 from numpy.lib.stride_tricks import as_strided
 
 from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
@@ -96,7 +97,11 @@ class ZONReader(ReaderBase):
 This reader open ZON files that are written by some Keyence instruments.
 """
 
-    _MAGIC = "KPK0"
+    # The files appear to start with KPK0 or KPK1; this may be different versions of
+    # the file format.
+    _MAGIC0 = "KPK0"
+    _MAGIC1 = "KPK1"
+    _MAGIC = {_MAGIC0, _MAGIC1}
 
     # The files within ZON (zip) files are named using UUIDs. Some of these
     # UUIDs are fixed and contain the same information in each of these files.
@@ -124,8 +129,10 @@ This reader open ZON files that are written by some Keyence instruments.
         with OpenFromAny(self._file_path, "rb") as f:
             # There is a header with a file magic and size information
             header = decode(f, self._header_structure, "<")
-            if header["magic"] != self._MAGIC:
+            if header["magic"] not in self._MAGIC:
                 raise FileFormatMismatch("This is not a Keyence ZON file.")
+
+            self._is_compressed = header["magic"] == self._MAGIC1
 
             # The beginning of the file contains a BMP thumbnail, we skip it
             f.seek(header["bmp_size"], os.SEEK_CUR)
@@ -133,7 +140,7 @@ This reader open ZON files that are written by some Keyence instruments.
             # The rest is a ZIP archive
             with ZipFile(f, "r") as z:
                 # Parse unit information
-                root = ElementTree.parse(z.open(self._UNIT_UUID)).getroot()
+                root = ElementTree.parse(self.open(z, self._UNIT_UUID)).getroot()
                 meter_per_pixel = float(
                     root.find("XYCalibration").find("MeterPerPixel").text
                 )
@@ -146,7 +153,7 @@ This reader open ZON files that are written by some Keyence instruments.
                 # Parse height data information
                 # Header consists of four int32, followed by image data
                 width, height, element_size = unpack(
-                    "iii", z.open(self._HEIGHT_DATA_UUID).read(12)
+                    "iii", self.open(z, self._HEIGHT_DATA_UUID).read(12)
                 )
                 assert element_size == 4
                 self._channels += [
@@ -172,6 +179,14 @@ This reader open ZON files that are written by some Keyence instruments.
                         },
                     )
                 ]
+
+    def open(self, z, fn):
+        f = z.open(fn, "r")
+        if self._is_compressed:
+            decomp = zstandard.ZstdDecompressor()
+            return decomp.stream_reader(f)
+        else:
+            return f
 
     @property
     def channels(self):
@@ -208,7 +223,7 @@ This reader open ZON files that are written by some Keyence instruments.
         with OpenFromAny(self._file_path, "rb") as f:
             # Read image data
             with ZipFile(f, "r") as z:
-                with z.open(channel_info.info["raw_metadata"]["data_uuid"]) as f:
+                with self.open(z, channel_info.info["raw_metadata"]["data_uuid"]) as f:
                     height_data = _read_array(f)
 
         topo = Topography(
