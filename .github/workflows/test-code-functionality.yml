@@ -23,7 +23,7 @@ jobs:
         mpi4py-version: [4.0.3]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           submodules: recursive
