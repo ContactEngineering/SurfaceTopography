@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.19.1 (not yet released)
+--------------------------
+
+- MAINT: Adjusted thresholds for mask data in OPD files to what Gwyddion uses
+
 v1.19.0 (19Jul25)
 -----------------
 
