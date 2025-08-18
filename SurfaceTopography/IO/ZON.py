@@ -31,6 +31,7 @@ import os
 from struct import unpack
 from zipfile import ZipFile
 
+import dateutil
 import defusedxml.ElementTree as ElementTree
 import numpy as np
 import zstandard
@@ -112,9 +113,19 @@ This reader open ZON files that are written by some Keyence instruments.
     # This contains information on unit conversion
     _UNIT_UUID = "686613b8-27b5-4a29-8ffc-438c2780873e"
 
+    # Additional user calibration information
+    _CALIBRATION_UUID = "7d5ea102-58f4-4c0f-b5ba-c8b71be6a4ae"
+
     # This contains an inventory of *image* data
     _INVENTORY_UUID = "772e6d38-40aa-4590-85d3-b041fa243570"
 
+    # Device information
+    _DEVICE_UUID = "cbc1d39b-215f-4d56-a20e-cf8e5f570755"
+
+    # Scan information
+    _SCAN_UUID = "1d35862b-3b48-4df2-9235-833ef590b043"
+
+    # The header of the ZON file contains a BMP thumbnail, which we skip.
     _header_structure = [("magic", "4s"), ("bmp_size", "L")]
 
     # Reads in the positions of all the data and metadata
@@ -139,6 +150,15 @@ This reader open ZON files that are written by some Keyence instruments.
 
             # The rest is a ZIP archive
             with ZipFile(f, "r") as z:
+                # Parse device information
+                root = ElementTree.parse(self.open(z, self._DEVICE_UUID)).getroot()
+                device_model_name = root.find("DeviceModelName").text
+                device_serial_id = root.find("DeviceSerialId").text
+
+                # Parse scan information
+                root = ElementTree.parse(self.open(z, self._SCAN_UUID)).getroot()
+                acquisition_time = dateutil.parser.parse(root.find("ScanDateTime").text)
+
                 # Parse unit information
                 root = ElementTree.parse(self.open(z, self._UNIT_UUID)).getroot()
                 meter_per_pixel = float(
@@ -171,11 +191,16 @@ This reader open ZON files that are written by some Keyence instruments.
                         unit="m",
                         uniform=True,
                         info={
+                            "acquisition_time": acquisition_time,
+                            "instrument": {
+                                "name": device_model_name,
+                                "serial": device_serial_id,
+                            },
                             "raw_metadata": {
                                 "data_uuid": self._HEIGHT_DATA_UUID,
                                 "meter_per_pixel": meter_per_pixel,
                                 "meter_per_unit": meter_per_unit,
-                            }
+                            },
                         },
                     )
                 ]
