@@ -1,10 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
-v1.19.1 (not yet released)
---------------------------
+v1.19.1 (19Aug25)
+-----------------
 
 - MAINT: Adjusted thresholds for mask data in OPD files to what Gwyddion uses
+- BUG: Fixed reading of JPK files with thumbnails
 
 v1.19.0 (19Jul25)
 -----------------

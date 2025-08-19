@@ -239,7 +239,7 @@ TIFF-based file format of JPK instruments (now Bruker)
             default_slot_name = channel["DefaultSlot"]
             default_slot = slots[default_slot_name]
             default_slot_unit = default_slot["EncoderUnit"]
-            if is_length_unit(default_slot_unit):
+            if is_length_unit(default_slot_unit) and "ChannelFancyName" in channel:
                 # This has units of length, so it is probably height information
                 name = channel["ChannelFancyName"]
                 if channel["ChannelRetrace"]:

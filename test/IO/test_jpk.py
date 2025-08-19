@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -34,7 +33,8 @@ from SurfaceTopography.IO import JPKReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial funcionalities, please execute with pytest")
+    reason="tests only serial funcionalities, please execute with pytest",
+)
 
 
 def test_read_filestream(file_format_examples):
@@ -42,22 +42,22 @@ def test_read_filestream(file_format_examples):
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'jpk-1.jpk')
+    file_path = os.path.join(file_format_examples, "jpk-1.jpk")
 
     read_topography(file_path)
 
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         read_topography(f)
 
     # This test just needs to arrive here without raising an exception
 
 
-def test_jpk_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'jpk-1.jpk')
+def test_jpk1_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, "jpk-1.jpk")
 
     r = JPKReader(file_path)
 
-    assert r.channels[0].name == 'Height (measured, retrace)'
+    assert r.channels[0].name == "Height (measured, retrace)"
 
     t = r.topography(0)
 
@@ -66,14 +66,41 @@ def test_jpk_metadata(file_format_examples):
     assert ny == 376
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 5.e-07, rtol=1e-6)
+    np.testing.assert_allclose(sx, 5.0e-07, rtol=1e-6)
     np.testing.assert_allclose(sy, 3.5e-07, rtol=1e-6)
 
-    assert t.unit == 'm'
+    assert t.unit == "m"
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.144639e-08, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.495942e-09, rtol=1e-6)
 
-    t = t.detrend('curvature')
+    t = t.detrend("curvature")
     np.testing.assert_allclose(t.rms_height_from_area(), 3.54634e-09, rtol=1e-4)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.394314e-09, rtol=1e-4)
+
+
+def test_jpk2_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, "jpk-2.jpk")
+
+    r = JPKReader(file_path)
+
+    assert r.channels[0].name == "Height"
+
+    t = r.topography(0)
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 512
+    assert ny == 512
+
+    sx, sy = t.physical_sizes
+    np.testing.assert_allclose(sx, 5.0e-06, rtol=1e-6)
+    np.testing.assert_allclose(sy, 5.0e-06, rtol=1e-6)
+
+    assert t.unit == "m"
+
+    np.testing.assert_allclose(t.rms_height_from_area(), 6.877323e-07, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 5.946019e-07, rtol=1e-6)
+
+    t = t.detrend("curvature")
+    np.testing.assert_allclose(t.rms_height_from_area(), 3.448658e-07, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 3.032367e-07, rtol=1e-4)
