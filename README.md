@@ -1,5 +1,7 @@
 [![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ContactEngineering/SurfaceTopography)
+
 SurfaceTopography
 =================
 
