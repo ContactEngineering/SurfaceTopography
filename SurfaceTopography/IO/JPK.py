@@ -329,20 +329,15 @@ TIFF-based file format of JPK instruments (now Bruker)
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
+        self._validate_metadata_params(channel, unit=unit, height_scale_factor=height_scale_factor)
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
 
         with OpenFromAny(self._file_path, "rb") as f:
             with TiffFile(f) as t:
                 height_data = t.pages[channel.tags["page_index"]].asarray().T
                 assert height_data.shape == channel.nb_grid_pts
 
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         topo = Topography(
             height_data,

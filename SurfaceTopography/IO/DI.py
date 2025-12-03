@@ -264,8 +264,7 @@ The reader supports V4.3 and later version of the format.
         with OpenFromAny(self._file_path, "rb") as fobj:
             channel = self._channels[channel_index]
 
-            if unit is not None:
-                raise MetadataAlreadyFixedByFile("unit")
+            self._validate_metadata_params(channel, unit=unit, physical_sizes=physical_sizes)
 
             sx, sy = self._check_physical_sizes(physical_sizes, channel.physical_sizes)
 
@@ -293,9 +292,7 @@ The reader supports V4.3 and later version of the format.
             )
 
         # internal information from file
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:

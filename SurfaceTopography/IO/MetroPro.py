@@ -419,12 +419,11 @@ This reader imports Zygo MetroPro data files.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
 
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         with OpenFromAny(self.file_path, "rb") as f:
             height_data = self.read_height_data(f)
 

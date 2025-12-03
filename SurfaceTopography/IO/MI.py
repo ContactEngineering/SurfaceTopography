@@ -172,9 +172,8 @@ well as its units.
         info.update({'raw_metadata': joined_meta})
 
         if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-
-        # Initialize heights with transposed array in order to match Gwdyydion
+            raise MetadataAlreadyFixedByFile("unit")
+# Initialize heights with transposed array in order to match Gwdyydion
         # when plotted with pcolormesh(t.heights().T), except that the y axis
         # is flipped because the origin is in lower left with pcolormesh;
         # imshow(t.heights().T) shows the image like gwyddion

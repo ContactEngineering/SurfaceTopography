@@ -134,8 +134,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         channel_info = self._channels[channel_index]
         prefix = channel_info.info["raw_metadata"]["opdx_prefix"]
         if channel_info.unit is not None:
-            if unit is not None:
-                raise MetadataAlreadyFixedByFile("unit")
+            self._validate_metadata_params(channel_info, unit=unit)
             unit = channel_info.unit
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile("height_scale_factor")

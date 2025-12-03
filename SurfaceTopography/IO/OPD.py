@@ -173,13 +173,8 @@ interferometer.
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError("This reader does not support MPI parallelization.")
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
-
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         channel = self._channels[channel_index]
+        self._validate_metadata_params(channel, unit=unit, height_scale_factor=height_scale_factor)
 
         nb_pixels = np.prod(channel.nb_grid_pts)
         dtype = channel.tags["dtype"]
@@ -196,8 +191,7 @@ interferometer.
         data.shape = channel.nb_grid_pts
 
         # Height are in nm, width in mm
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile("physical_sizes")
+        self._validate_metadata_params(channel, physical_sizes=physical_sizes)
         topography = Topography(
             np.fliplr(data),
             channel.physical_sizes,

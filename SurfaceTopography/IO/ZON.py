@@ -241,8 +241,7 @@ This reader open ZON files that are written by some Keyence instruments.
 
         info.update(channel_info.info)
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
+        self._validate_metadata_params(channel_info, unit=unit)
         unit = channel_info.unit
 
         with OpenFromAny(self._file_path, "rb") as f:

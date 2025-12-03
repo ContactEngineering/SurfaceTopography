@@ -179,12 +179,11 @@ This reader imports Sensofar's XML SPM file format.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
 
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         channel = self.channels[channel_index]
 
         _info = channel._info.model_dump(exclude_none=True)

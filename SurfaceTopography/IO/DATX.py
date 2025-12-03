@@ -159,11 +159,8 @@ Import filter for Zygo DATX, an HDF5-based format.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        self._validate_metadata_params(channel, unit=unit, height_scale_factor=height_scale_factor)
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
 
         _info = {'raw_metadata': self._metadata}
         if info is not None:

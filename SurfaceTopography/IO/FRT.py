@@ -592,11 +592,8 @@ This reader imports MicroProf FRT profilometry data.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+        self._validate_metadata_params(channel, unit=unit, height_scale_factor=height_scale_factor)
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
 
         channel = self._channels[channel_index]
         with OpenFromAny(self.file_path, 'rb') as f:
@@ -607,9 +604,7 @@ This reader imports MicroProf FRT profilometry data.
                 .reshape((nb_grid_pts_y, nb_grid_pts_x)).T
             height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         topo = Topography(height_data,
                           channel.physical_sizes,

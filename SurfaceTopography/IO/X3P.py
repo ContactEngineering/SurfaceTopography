@@ -277,7 +277,6 @@ data. The full specification of the format can be found
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
-
         _info = self._info.copy()
         if info is not None:
             _info.update(info)

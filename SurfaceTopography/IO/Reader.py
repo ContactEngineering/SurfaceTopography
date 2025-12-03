@@ -347,6 +347,30 @@ class ChannelInfo:
     def reader(self, value):
         self._reader = value
 
+    def merge_info(self, additional_info=None):
+        """
+        Merge channel info with additional user-provided info.
+
+        This is a helper method that reduces code duplication across readers.
+        It returns a copy of the channel's info dictionary with additional
+        user-provided info merged in.
+
+        Parameters
+        ----------
+        additional_info : dict, optional
+            Additional info dictionary to merge. If None, returns a copy
+            of the channel's info.
+
+        Returns
+        -------
+        dict
+            Merged info dictionary
+        """
+        merged = self.info.copy()
+        if additional_info is not None:
+            merged.update(additional_info)
+        return merged
+
 
 class ReaderBase(metaclass=abc.ABCMeta):
     """
@@ -470,6 +494,41 @@ class ReaderBase(metaclass=abc.ABCMeta):
             eff_physical_sizes = physical_sizes
 
         return eff_physical_sizes
+
+    @classmethod
+    def _validate_metadata_params(cls, channel, unit=None, physical_sizes=None,
+                                   height_scale_factor=None):
+        """
+        Validate that file-fixed metadata is not being overridden by user arguments.
+
+        This is a helper method that reduces code duplication across readers.
+        Many readers have metadata (unit, physical_sizes, height_scale_factor)
+        that is fixed by the file format and cannot be overridden.
+
+        Parameters
+        ----------
+        channel : ChannelInfo
+            The channel info object containing metadata from the file
+        unit : str, optional
+            User-provided unit parameter
+        physical_sizes : tuple, optional
+            User-provided physical_sizes parameter
+        height_scale_factor : float, optional
+            User-provided height_scale_factor parameter
+
+        Raises
+        ------
+        MetadataAlreadyFixedByFile
+            If any non-None parameter conflicts with file-fixed metadata
+        """
+        if unit is not None and channel.unit is not None:
+            raise MetadataAlreadyFixedByFile('unit')
+
+        if physical_sizes is not None and channel.physical_sizes is not None:
+            raise MetadataAlreadyFixedByFile('physical_sizes')
+
+        if height_scale_factor is not None and channel.height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile('height_scale_factor')
 
     @abc.abstractmethod
     def topography(

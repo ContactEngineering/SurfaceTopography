@@ -206,12 +206,11 @@ scanning probe microscopy available at http://www.wsxm.eu/.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
 
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         channel = self.channels[channel_index]
 
         with OpenFromAny(self._file_path, "rb") as f:
@@ -224,9 +223,7 @@ scanning probe microscopy available at http://www.wsxm.eu/.
                 .T
             )
 
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         topo = Topography(
             height_data,

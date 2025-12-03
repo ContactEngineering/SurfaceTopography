@@ -261,11 +261,8 @@ visualization and analysis software Gwyddion.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
+        self._validate_metadata_params(channel, unit=unit, height_scale_factor=height_scale_factor)
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
 
         gwy_index = self._indices[channel_index]
         channel = self._channels[gwy_index]
@@ -284,9 +281,7 @@ visualization and analysis software Gwyddion.
                 )
                 height_data = np.ma.masked_array(height_data, mask=mask_data > 0.5)
 
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         topo = Topography(
             height_data,

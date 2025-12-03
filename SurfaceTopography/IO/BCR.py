@@ -188,10 +188,9 @@ BCR-STM and BCRF file formats
             raise RuntimeError(
                 'This reader does not support MPI parallelization.')
 
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-
         channel = self._channels[channel_index]
+        self._validate_metadata_params(channel, unit=unit)
+
         with OpenFromAny(self._file_path, 'rb') as fobj:
             sx, sy = self._check_physical_sizes(physical_sizes,
                                                 channel.physical_sizes)
@@ -202,9 +201,7 @@ BCR-STM and BCRF file formats
             data = np.frombuffer(fobj.read(nx * ny * self._dtype.itemsize), dtype=self._dtype).reshape(ny, nx).T
 
         # internal information from file
-        _info = channel.info.copy()
-        if info is not None:
-            _info.update(info)
+        _info = channel.merge_info(info)
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:

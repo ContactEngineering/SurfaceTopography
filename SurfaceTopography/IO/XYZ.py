@@ -152,10 +152,8 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
     yunit = find_length_unit_in_string(yheader)
 
     if xunit is not None:
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile("unit")
-        else:
-            unit = xunit
+        self._validate_metadata_params(channel, unit=unit)
+        unit = xunit
     if yunit is not None:
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile("height_scale_factor")

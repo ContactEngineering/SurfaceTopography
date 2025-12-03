@@ -329,11 +329,11 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
+
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
 
         with OpenFromAny(self.file_path, "rb") as f:
             if self._file_version in [3, 4]:  # VK3 or VK4

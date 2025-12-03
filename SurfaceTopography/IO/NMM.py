@@ -294,12 +294,11 @@ DSC.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile("physical_sizes")
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile("height_scale_factor")
-
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
 
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         _info = self._info.copy()
         if info is not None:
             _info.update(info)

@@ -194,12 +194,11 @@ TIFF-based file format of Park Systems instruments.
         if physical_sizes is not None:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-
         if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            raise MetadataAlreadyFixedByFile("unit")
 
+        if height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
         with OpenFromAny(self._file_path, 'rb') as f:
             with TiffFile(f) as t:
                 # The data itself is not the image, but inside a tag
