@@ -43,7 +43,7 @@ class InterpolateUndefinedDataHarmonic(DecoratedUniformTopography):
 
     name = 'interpolate_undefined_data_harmonic'
 
-    def __init__(self, topography, info={}):
+    def __init__(self, topography, info=None):
         super().__init__(topography, info=info)
 
     @property
