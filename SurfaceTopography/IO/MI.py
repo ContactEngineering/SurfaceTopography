@@ -168,7 +168,7 @@ well as its units.
             pass  # TODO
 
         joined_meta = {**self.mifile.meta, **output_channel.meta}
-        info = info.copy()
+        info = {} if info is None else info.copy()
         info.update({'raw_metadata': joined_meta})
 
         if unit is not None:

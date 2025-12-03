@@ -429,7 +429,8 @@ This reader imports Zygo MetroPro data files.
             height_data = self.read_height_data(f)
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

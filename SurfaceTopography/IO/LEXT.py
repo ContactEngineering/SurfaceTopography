@@ -232,7 +232,8 @@ TIFF-based file format of Olympus instruments.
                 assert height_data.shape == self._nb_grid_pts
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

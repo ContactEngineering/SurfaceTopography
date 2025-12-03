@@ -219,7 +219,8 @@ surface roughness testers.
             unit = self._unit
         # Augment info dictionary with user-specified data
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         # Get channel information (there is only one)
         channel = self._channels[channel_index]

@@ -148,7 +148,7 @@ AL3D format of Alicona Imaging.
         with OpenFromAny(self.file_path, 'rb') as f:
             height_data = self.read_height_data(f)
 
-        _info = info.copy()
+        _info = {} if info is None else info.copy()
         _info['raw_metadata'] = self._header
 
         topo = Topography(height_data,

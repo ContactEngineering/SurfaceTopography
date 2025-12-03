@@ -285,7 +285,8 @@ visualization and analysis software Gwyddion.
                 height_data = np.ma.masked_array(height_data, mask=mask_data > 0.5)
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

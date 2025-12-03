@@ -480,7 +480,7 @@ When writing your own ASCII files, we recommend to prepend the header with a
         if unit is not None and self._unit is not None:
             raise MetadataAlreadyFixedByFile("unit")
 
-        _info = info.copy()
+        _info = {} if info is None else info.copy()
         _info["raw_metadata"] = self._metadata
 
         # handle channel name

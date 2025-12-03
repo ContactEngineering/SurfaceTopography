@@ -341,7 +341,8 @@ TIFF-based file format of JPK instruments (now Bruker)
                 assert height_data.shape == channel.nb_grid_pts
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

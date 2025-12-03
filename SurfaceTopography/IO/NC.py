@@ -315,7 +315,8 @@ plt.show()
             unit = self._unit
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         heights = self._heights_var[...]
         if self._mask_var is not None:

@@ -331,7 +331,8 @@ The reader supports parsing HFM and Dektak header information.
                 _info = {}
 
             # Update info with user-specified dictionary
-            _info.update(info)
+            if info is not None:
+                _info.update(info)
 
             # Reading data, skipping first rows (which may contain headers)
             data_start = fobj.tell()

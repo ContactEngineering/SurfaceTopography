@@ -166,7 +166,8 @@ Import filter for Zygo DATX, an HDF5-based format.
             raise MetadataAlreadyFixedByFile('unit')
 
         _info = {'raw_metadata': self._metadata}
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         fobj = self._fobj
         if callable(fobj):

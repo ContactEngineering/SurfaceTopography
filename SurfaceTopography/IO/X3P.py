@@ -279,7 +279,8 @@ data. The full specification of the format can be found
             raise MetadataAlreadyFixedByFile("unit")
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         with OpenFromAny(self.file_path, "rb") as f:
             with ZipFile(f, "r") as x3p:

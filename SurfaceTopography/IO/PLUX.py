@@ -188,7 +188,8 @@ This reader imports Sensofar's XML SPM file format.
         channel = self.channels[channel_index]
 
         _info = channel._info.model_dump(exclude_none=True)
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         with OpenFromAny(self._file_path, "rb") as f:
             with ZipFile(f, "r") as z:

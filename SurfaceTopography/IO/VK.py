@@ -345,7 +345,8 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                     height_data = self.read_height_data(z.open("Vk4File"))
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

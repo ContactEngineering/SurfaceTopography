@@ -617,7 +617,8 @@ containers that contain a number of OIR files.
                 height_data = reader(z.open(fn, "r"))
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

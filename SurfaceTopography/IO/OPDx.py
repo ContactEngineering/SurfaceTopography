@@ -140,7 +140,7 @@ File format of the Bruker Dektak XT* series stylus profilometer.
         if height_scale_factor is not None:
             raise MetadataAlreadyFixedByFile("height_scale_factor")
 
-        info = info.copy()
+        info = {} if info is None else info.copy()
         info.update(channel_info.info)
 
         if channel_info.dim == 1:

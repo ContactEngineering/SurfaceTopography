@@ -211,7 +211,8 @@ TIFF-based file format of Park Systems instruments.
                     np.frombuffer(raw_data, dtype=dtype, count=np.prod(self._nb_grid_pts)).reshape(self._nb_grid_pts).T
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(height_data,
                           self._physical_sizes,

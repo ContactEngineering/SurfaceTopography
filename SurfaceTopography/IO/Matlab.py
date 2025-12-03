@@ -96,7 +96,7 @@ These need to be manually provided by the user.
 
         name = self.channels[channel_index].name
 
-        info = info.copy()
+        info = {} if info is None else info.copy()
 
         with OpenFromAny(self._fobj, 'rb') as f:
             height_data = loadmat(f, variable_names=[name])

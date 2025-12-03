@@ -150,7 +150,7 @@ def make_wrapped_reader(
             reader_kwargs = dict(
                 height_scale_factor=height_scale_factor,
                 unit=unit,
-                info=info.copy(),
+                info={} if info is None else info.copy(),
                 periodic=periodic,
             )
             if self._topography.physical_sizes is None:

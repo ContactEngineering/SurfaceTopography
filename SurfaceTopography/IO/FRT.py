@@ -608,7 +608,8 @@ This reader imports MicroProf FRT profilometry data.
             height_data = np.ma.masked_array(height_data, mask=height_data == self._UNDEFINED_DATA)
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(height_data,
                           channel.physical_sizes,

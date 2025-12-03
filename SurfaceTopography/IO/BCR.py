@@ -203,7 +203,8 @@ BCR-STM and BCRF file formats
 
         # internal information from file
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         # it is not allowed to provide extra `physical_sizes` here:
         if physical_sizes is not None:

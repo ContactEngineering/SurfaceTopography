@@ -225,7 +225,8 @@ scanning probe microscopy available at http://www.wsxm.eu/.
             )
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

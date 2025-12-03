@@ -843,7 +843,8 @@ class DeclarativeReaderBase(ReaderBase):
             height_data = channel.tags["reader"](f)
 
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         topo = Topography(
             height_data,

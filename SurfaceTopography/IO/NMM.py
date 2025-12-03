@@ -301,7 +301,8 @@ DSC.
             raise MetadataAlreadyFixedByFile("unit")
 
         _info = self._info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
         heights = np.empty(self._nb_grid_pts)
         fobj = self._fobj
