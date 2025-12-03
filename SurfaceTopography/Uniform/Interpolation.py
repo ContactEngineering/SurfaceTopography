@@ -239,7 +239,7 @@ class MirrorStichedTopography(DecoratedUniformTopography):
 
     """
 
-    def __init__(self, parent_topography, info={}):
+    def __init__(self, parent_topography, info=None):
         if parent_topography.communicator.Get_size() > 1:
             raise (NotImplementedError("MirrorStichedTopography "
                                        "not domain decomposable"))

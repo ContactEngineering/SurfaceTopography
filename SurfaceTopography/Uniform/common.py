@@ -148,7 +148,7 @@ def plot(topography, subplot_location=111):
 
 
 class FilledTopography(DecoratedUniformTopography):
-    def __init__(self, topography, fill_value=-np.inf, info={}):
+    def __init__(self, topography, fill_value=-np.inf, info=None):
         """
         masked (undefined) data is replaced with `fill_value`.
 

@@ -38,7 +38,7 @@ class WrapAsNonuniformLineScan(DecoratedNonuniformTopography):
     Wrap a uniform topography into a nonuniform one.
     """
 
-    def __init__(self, topography, info={}):
+    def __init__(self, topography, info=None):
         """
         Parameters
         ----------

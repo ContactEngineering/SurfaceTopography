@@ -117,7 +117,7 @@ def make_wrapped_reader(
             physical_sizes=None,
             height_scale_factor=None,
             unit=None,
-            info={},
+            info=None,
             periodic=False,
             subdomain_locations=None,
             nb_subdomain_grid_pts=None,
@@ -173,7 +173,7 @@ def read_hgt(
     physical_sizes=None,
     height_scale_factor=None,
     unit=None,
-    info={},
+    info=None,
     periodic=False,
 ):
     """

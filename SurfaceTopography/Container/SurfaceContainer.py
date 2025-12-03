@@ -69,7 +69,9 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
 class InMemorySurfaceContainer(SurfaceContainer):
     """A list of topographies that whose data is stored in memory"""
 
-    def __init__(self, topographies=[]):
+    def __init__(self, topographies=None):
+        if topographies is None:
+            topographies = []
         self._topographies = topographies
 
     def __len__(self):
@@ -82,7 +84,11 @@ class InMemorySurfaceContainer(SurfaceContainer):
 class LazySurfaceContainer(SurfaceContainer):
     """A list of readers with lazy loading of topography data"""
 
-    def __init__(self, readers=[], info={}):
+    def __init__(self, readers=None, info=None):
+        if readers is None:
+            readers = []
+        if info is None:
+            info = {}
         self._readers = readers
         self._info = info
 

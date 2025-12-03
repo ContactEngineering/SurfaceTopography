@@ -44,7 +44,7 @@ class NonuniformLineScan(AbstractTopography, NonuniformLineScanInterface):
     Nonuniform topography with point list consisting of static numpy arrays.
     """
 
-    def __init__(self, x, y, unit=None, info={}):
+    def __init__(self, x, y, unit=None, info=None):
         """
         Constructor.
 
@@ -165,7 +165,7 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
 class ScaledNonuniformTopography(DecoratedNonuniformTopography):
     """Scale heights, positions, or both."""
 
-    def __init__(self, topography, unit, info={}):
+    def __init__(self, topography, unit, info=None):
         """
         This topography wraps a parent topography and rescales x and z
         coordinates according to certain rules.

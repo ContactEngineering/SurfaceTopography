@@ -55,8 +55,8 @@ class ChannelInfo:
         uniform=None,
         undefined_data=None,
         unit=None,
-        info={},
-        tags={},
+        info=None,
+        tags=None,
     ):
         """
         Initialize the channel. Use as much information from the file as
@@ -141,7 +141,7 @@ class ChannelInfo:
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
-        info={},
+        info=None,
         periodic=False,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
@@ -478,7 +478,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
-        info={},
+        info=None,
         periodic=False,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
@@ -804,7 +804,7 @@ class DeclarativeReaderBase(ReaderBase):
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
-        info={},
+        info=None,
         periodic=None,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,

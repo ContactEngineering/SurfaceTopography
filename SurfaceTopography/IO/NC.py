@@ -433,7 +433,7 @@ def write_nc_uniform(topography, fobj, format="NETCDF3_64BIT_OFFSET"):
         Dataset = _SpecialNetCDFFile
         kwargs = dict(version=format_to_scipy_version[format], maskandscale=True)
         var_kwargs = {}
-    if not topography.is_domain_decomposed and topography.communicator.rank > 1:
+    if not topography.is_domain_decomposed and topography.communicator.rank > 0:
         return
     with Dataset(fobj, "w", **kwargs) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file

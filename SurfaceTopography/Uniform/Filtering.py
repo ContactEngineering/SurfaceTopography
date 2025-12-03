@@ -38,7 +38,7 @@ class WindowedUniformTopography(DecoratedUniformTopography):
 
     name = 'windowed_topography'
 
-    def __init__(self, topography, window=None, direction=None, info={}):
+    def __init__(self, topography, window=None, direction=None, info=None):
         """
         window : str, optional
             Window for eliminating edge effect. See scipy.signal.get_window.

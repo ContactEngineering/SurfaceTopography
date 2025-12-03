@@ -142,7 +142,10 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A = ((A0_xy - A_xy[:nx]).T / (nx - np.arange(nx))).T
+        # Avoid division by zero at nx by setting denominator to 1 there (will be masked anyway)
+        denominator = nx - np.arange(nx)
+        denominator = np.where(denominator == 0, 1, denominator)
+        A = ((A0_xy - A_xy[:nx]).T / denominator).T
 
         r = sx * np.arange(nx) / nx
         max_distance = sx
@@ -259,8 +262,10 @@ def autocorrelation_from_area(self, reliable=True, collocation='log', nb_points=
 
         # Convert height-height autocorrelation to height-difference
         # autocorrelation
-        A_xy = (A0_xy - A_xy[:nx, :ny]) / (
-                (nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
+        # Avoid division by zero
+        denominator = ((nx - np.arange(nx)).reshape(-1, 1) * (ny - np.arange(ny)).reshape(1, -1))
+        denominator = np.where(denominator == 0, 1, denominator)
+        A_xy = (A0_xy - A_xy[:nx, :ny]) / denominator
 
         # Radial average
         r_val, r_edges, A_val, _ = resample_radial(A_xy, physical_sizes=(sx, sy), collocation=collocation,

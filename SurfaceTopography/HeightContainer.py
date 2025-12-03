@@ -57,9 +57,11 @@ class AbstractTopography(object):
         # pylint: disable=missing-docstring
         pass
 
-    def __init__(self, unit=None, info={}, communicator=MPI.COMM_WORLD):
+    def __init__(self, unit=None, info=None, communicator=MPI.COMM_WORLD):
         self._unit = unit
         # We use a pydantic model to have validation of the info parameters
+        if info is None:
+            info = {}
         self._info = InfoModel(**info)
         self._communicator = communicator
 
@@ -153,7 +155,7 @@ class DecoratedTopography(AbstractTopography):
     own physical_sizes etc. but pass this information through to the parent.
     """
 
-    def __init__(self, topography, unit=None, info={}):
+    def __init__(self, topography, unit=None, info=None):
         """
         Arguments
         ---------

@@ -68,7 +68,7 @@ The original contact mechanics challenge data can be downloaded
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
+    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info=None,
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
         if subdomain_locations is not None or \
                 nb_subdomain_grid_pts is not None:

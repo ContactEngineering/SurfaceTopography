@@ -51,7 +51,7 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
         physical_sizes,
         periodic=False,
         unit=None,
-        info={},
+        info=None,
         communicator=MPI.COMM_SELF,
     ):
         """
@@ -125,6 +125,8 @@ class UniformLineScan(AbstractTopography, UniformTopographyInterface):
 
     @property
     def pixel_size(self):
+        if self.nb_grid_pts[0] == 0:
+            raise ValueError("Cannot compute pixel size for topography with zero grid points")
         return (self.physical_sizes[0] / self.nb_grid_pts[0],)
 
     @property
@@ -185,7 +187,7 @@ class Topography(AbstractTopography, UniformTopographyInterface):
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
         unit=None,
-        info={},
+        info=None,
         decomposition="serial",
         communicator=MPI.COMM_SELF,
     ):
@@ -551,7 +553,7 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 class ScaledUniformTopography(DecoratedUniformTopography):
     """Scale heights, positions or both."""
 
-    def __init__(self, topography, unit=None, info={}):
+    def __init__(self, topography, unit=None, info=None):
         """
         This topography wraps a parent topography and rescales x, y and z
         coordinates according to certain rules.
@@ -671,7 +673,7 @@ class TransposedUniformTopography(DecoratedUniformTopography):
     Tranpose topography.
     """
 
-    def __init__(self, topography, info={}):
+    def __init__(self, topography, info=None):
         """
         Parameters
         ----------
@@ -714,7 +716,7 @@ class TranslatedTopography(DecoratedUniformTopography):
 
     name = "translated_topography"
 
-    def __init__(self, topography, offset=(0, 0), info={}):
+    def __init__(self, topography, offset=(0, 0), info=None):
         """
         Keyword Arguments:
         topography  -- SurfaceTopography to translate
@@ -755,7 +757,7 @@ class CompoundTopography(DecoratedUniformTopography):
 
     name = "compound_topography"
 
-    def __init__(self, topography_a, topography_b, info={}):
+    def __init__(self, topography_a, topography_b, info=None):
         """Behaves like a topography that is a sum of two Topographies
         Keyword Arguments:
         topography_a   -- first topography of the compound

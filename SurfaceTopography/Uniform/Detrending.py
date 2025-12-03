@@ -229,7 +229,7 @@ class DetrendedUniformTopography(DecoratedUniformTopography):
         'mad-curvature': lambda self: self.parent_topography.mad_polyfit(2),
     }
 
-    def __init__(self, topography, detrend_mode='height', coeffs=None, info={}):
+    def __init__(self, topography, detrend_mode='height', coeffs=None, info=None):
         """
         Note on periodicity: Detrended Topographies with mode other than
         "center" will have `is_periodic` property set to False.
