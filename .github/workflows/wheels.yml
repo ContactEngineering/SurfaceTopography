@@ -19,7 +19,6 @@ jobs:
         buildplat:
         - [ubuntu-22.04, manylinux, x86_64]
         - [ubuntu-22.04, manylinux, aarch64]
-        - [macos-13, macosx, x86_64]
         - [macos-14, macosx, arm64]
         # - [windows-2019, win, AMD64]
         python: ["cp310", "cp311", "cp312", "cp313", "cp314"]
@@ -27,7 +26,7 @@ jobs:
 
     env:
       IS_32_BIT: ${{ matrix.buildplat[2] == 'x86' }}
-      MACOSX_DEPLOYMENT_TARGET: "${{ matrix.buildplat[0] == 'macos-13' && '13.0' || '14.0' }}"
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
 
     steps:
       - if: matrix.buildplat[2] == 'aarch64'
