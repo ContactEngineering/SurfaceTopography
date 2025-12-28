@@ -24,7 +24,7 @@
 #
 
 import numpy as np
-from muFFT import FFT
+from muGrid import FFTEngine
 
 from SurfaceTopography import make_sphere
 
@@ -36,7 +36,7 @@ def test_sphere(comm):
     sy = 7.
     R = 20.
     center = (3., 3.)
-    fftengine = FFT((nx, ny), engine="mpi", communicator=comm)
+    fftengine = FFTEngine((nx, ny), engine="mpi", communicator=comm)
 
     topography = make_sphere(
         R, (nx, ny), (sx, sy), centre=center,
@@ -56,7 +56,7 @@ def test_sphere_periodic(comm):
     sy = 7.
     R = 20.
     center = (1., 1.5)
-    fftengine = FFT((nx, ny), engine="mpi", communicator=comm)
+    fftengine = FFTEngine((nx, ny), engine="mpi", communicator=comm)
 
     extended_topography = make_sphere(
         R, (nx, ny), (sx, sy),
@@ -85,7 +85,7 @@ def test_sphere_standoff(comm):
 
     standoff = 10.
 
-    fftengine = FFT((nx, ny), engine="mpi", communicator=comm)
+    fftengine = FFTEngine((nx, ny), engine="mpi", communicator=comm)
 
     topography = make_sphere(
         R, (nx, ny), (sx, sy),

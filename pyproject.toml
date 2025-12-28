@@ -3,8 +3,7 @@ requires = [
     "meson>=1.0.0",
     "meson-python>=0.13.0",
     "ninja",
-    "oldest-supported-numpy; python_version=='3.8'",
-    "numpy>=2.0.0; python_version>='3.9'",
+    "numpy>=2.0.0",
     "DiscoverVersion"
 ]
 build-backend = "mesonpy"
@@ -26,7 +25,7 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python"
 ]
-requires-python = ">=3.9.0"
+requires-python = ">=3.10.0"
 dynamic = ["version"]
 dependencies = [
     "DiscoverVersion",
@@ -36,7 +35,7 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "muFFT>=0.93.0",
+    "muGrid>=0.99.0",
     "NuMPI>=0.7.1",
     "numpyencoder",
     "openpyxl",
@@ -70,7 +69,7 @@ show-topography = "SurfaceTopography.CLI.ShowTopography:main"
 
 [tool.black]
 line-length = 88
-target-version = ["py39", "py310", "py311", "py312", "py313"]
+target-version = ["py310", "py311", "py312", "py313"]
 
 [tool.isort]
 profile = "black"

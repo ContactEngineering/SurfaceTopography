@@ -25,7 +25,7 @@
 
 """Compute derivatives of uniform line scans and topographies"""
 
-import muFFT
+import muGrid
 import numpy as np
 
 from ..Exceptions import UndefinedDataError
@@ -33,35 +33,92 @@ from ..HeightContainer import UniformTopographyInterface
 from ..Support import toiter
 from ..UniformLineScanAndTopography import Topography
 
+
+class FourierDerivative:
+    """
+    Fourier derivative operator.
+
+    Computes the derivative in Fourier space by multiplication with i * 2π * q,
+    where q is the wave vector component in the specified direction.
+    """
+
+    def __init__(self, dim, direction, shift=None):
+        """
+        Initialize a Fourier derivative operator.
+
+        Parameters
+        ----------
+        dim : int
+            Dimension of the field.
+        direction : int
+            Direction of the derivative (0 for x, 1 for y, etc.).
+        shift : array_like, optional
+            Shift vector for the derivative. Default is no shift.
+        """
+        self.dim = dim
+        self.direction = direction
+        self.shift = np.zeros(dim) if shift is None else np.asarray(shift)
+
+    def fourier(self, phase):
+        """
+        Return the Fourier multiplier for the derivative.
+
+        Parameters
+        ----------
+        phase : array_like
+            Phase array (frequency * scale_factor).
+
+        Returns
+        -------
+        multiplier : complex array
+            The Fourier multiplier i * 2π * phase[direction] * exp(i * 2π * shift · phase).
+        """
+        result = 1j * 2 * np.pi * phase[self.direction]
+        if np.any(self.shift != 0):
+            shift_dot_phase = sum(
+                self.shift[i] * phase[i] for i in range(self.dim)
+            )
+            result = result * np.exp(1j * 2 * np.pi * shift_dot_phase)
+        return result
+
+
 #
 # Stencils for first and second derivatives
 #
 
 # First order upwind differences
-first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
+first_1d = muGrid.ConvolutionOperator([0], [-1, 1])
+
+# Second order central differences of the first derivative
+first_central_1d = muGrid.ConvolutionOperator([-1], [-1 / 2, 0, 1 / 2])
 
 # second order central differences of the second derivative
-second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
+second_1d = muGrid.ConvolutionOperator([-1], [1, -2, 1])
 
 # first order upwind differences of the third derivative
-third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
+third_1d = muGrid.ConvolutionOperator([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
-third_central_1d = muFFT.DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
+third_central_1d = muGrid.ConvolutionOperator([-2], [-1 / 2, 1, 0, -1, 1 / 2])
 
 # First order upwind differences
-first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
-first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
+first_2d_x = muGrid.ConvolutionOperator([0, 0], [[-1, 0], [1, 0]])
+first_2d_y = muGrid.ConvolutionOperator([0, 0], [[-1, 1], [0, 0]])
 first_2d = (first_2d_x, first_2d_y)
 
+# Second order central differences of the first derivative
+first_central_2d_x = muGrid.ConvolutionOperator([-1, 0], [[-1 / 2], [0], [1 / 2]])
+first_central_2d_y = muGrid.ConvolutionOperator([0, -1], [[-1 / 2, 0, 1 / 2]])
+first_central_2d = (first_central_2d_x, first_central_2d_y)
+
 # second order central differences of the second derivative
-second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
-second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
+second_2d_x = muGrid.ConvolutionOperator([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
+second_2d_y = muGrid.ConvolutionOperator([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
 second_2d = (second_2d_x, second_2d_y)
 
 # first order upwind differences of the third derivative
-third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1], [3], [-3], [1]])
-third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
+third_2d_x = muGrid.ConvolutionOperator([-1, -1], [[-1], [3], [-3], [1]])
+third_2d_y = muGrid.ConvolutionOperator([-1, -1], [[-1, 3, -3, 1]])
 
 third_2d = (third_2d_x, third_2d_y)
 
@@ -119,11 +176,11 @@ def trim_nonperiodic(arr, scale_factor, op):
         Array to be trimmed.
     scale_factor : int, optional
         Integer factor that scales the stencil difference.
-    op : muFFT.DiscreteDerivative
+    op : muGrid.ConvolutionOperator
         Derivative operator that contains information about the size of the
         stencil.
     """
-    if not isinstance(op, muFFT.DiscreteDerivative):
+    if not isinstance(op, muGrid.ConvolutionOperator):
         raise ValueError("Can only trim edges for discrete derivatives.")
 
     lbounds = np.array(op.lbounds)
@@ -186,7 +243,7 @@ def derivative(
         factor is then given by distance / (n * px) where n is the order of the
         derivative and px the grid spacing.
         (Default: None)
-    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
+    operator : :obj:`muGrid.Derivative` object or tuple of :obj:`muGrid.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative
@@ -317,9 +374,9 @@ def derivative(
     derivatives = []
     operators = toiter(operator)
     for i, op in enumerate(operators):
-        if isinstance(op, muFFT.FourierDerivative) and not interpolation == "fourier":
+        if isinstance(op, FourierDerivative) and not interpolation == "fourier":
             raise ValueError(
-                "Operator is a muFFT.FourierDerivative but interpolation is not set "
+                "Operator is a FourierDerivative but interpolation is not set "
                 "to 'fourier'."
             )
 
@@ -486,7 +543,7 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
     dim = self.dim
     return self.derivative(
         1,
-        operator=(muFFT.FourierDerivative(dim, i) for i in range(dim)),
+        operator=(FourierDerivative(dim, i) for i in range(dim)),
         interpolation="fourier",
         scale_factor=scale_factor,
         distance=distance,

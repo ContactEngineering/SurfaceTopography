@@ -22,20 +22,20 @@
 # SOFTWARE.
 #
 
-import muFFT
+import muGrid
 import numpy as np
 
 
 def make_fft(topography, engine='mpi', communicator=None):
     """
-    Instantiate a muFFT object that can compute the Fourier transform of the
+    Instantiate a muGrid FFTEngine object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
     this is not the case).
 
-    This function checks if the topography object already has a muFFT object
+    This function checks if the topography object already has a muGrid FFTEngine object
     attached to it. If it does, it returns that object. If it doesn't, it
-    creates a new muFFT object and attaches it to the topography object.
-    If the topography object is domain decomposed, it checks if the muFFT
+    creates a new muGrid FFTEngine object and attaches it to the topography object.
+    If the topography object is domain decomposed, it checks if the muGrid FFTEngine
     object's domain decomposition matches the topography's. If it doesn't,
     it raises a RuntimeError.
 
@@ -51,27 +51,27 @@ def make_fft(topography, engine='mpi', communicator=None):
 
     Returns
     -------
-    fft : muFFT.FFT
-        The muFFT object that can compute the Fourier transform of the topography.
+    fft : muGrid.FFTEngine
+        The muGrid FFTEngine object that can compute the Fourier transform of the topography.
 
     Raises
     ------
     RuntimeError
-        If the muFFT object's domain decomposition does not match the topography's domain decomposition.
+        If the muGrid FFTEngine object's domain decomposition does not match the topography's domain decomposition.
     """
     # We only initialize this once and attach it to the topography object
     if hasattr(topography, '_mufft'):
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muFFT.FFT(topography.nb_grid_pts, engine=engine,
-                        communicator=topography.communicator if communicator is None else communicator)
+        fft = muGrid.FFTEngine(topography.nb_grid_pts, engine=engine,
+                               communicator=topography.communicator if communicator is None else communicator)
         if fft.subdomain_locations != topography.subdomain_locations or \
                 fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
-            raise RuntimeError('muFFT suggested a domain decomposition that '
+            raise RuntimeError('muGrid suggested a domain decomposition that '
                                'differs from the decomposition of the topography.')
     else:
-        fft = muFFT.FFT(topography.nb_grid_pts)
+        fft = muGrid.FFTEngine(topography.nb_grid_pts)
     topography._mufft = fft
     return fft
 
