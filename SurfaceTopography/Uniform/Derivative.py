@@ -113,6 +113,11 @@ class DiscreteDerivative:
         """Return the stencil (coefficients) array."""
         return np.asarray(self._operator.coefficients)
 
+    @property
+    def shape(self):
+        """Return the shape of the stencil."""
+        return self._operator.shape
+
     def fourier(self, phase):
         """
         Return the Fourier multiplier for the discrete derivative.
@@ -232,7 +237,7 @@ def trim_nonperiodic(arr, scale_factor, op):
         raise ValueError("Can only trim edges for discrete derivatives.")
 
     lbounds = np.array(op.lbounds)
-    rbounds = lbounds + np.array(op.stencil.shape)
+    rbounds = lbounds + np.array(op.shape)
 
     # Loop over dimension and add slicing information to `trimmed_slice`
     trimmed_slice = []
