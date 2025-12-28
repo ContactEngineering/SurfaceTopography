@@ -53,7 +53,7 @@ jobs:
           CIBW_TEST_COMMAND: python -c 'import SurfaceTopography; print(SurfaceTopography.__version__)'
           CIBW_TEST_SKIP: "*-*linux_{aarch64,ppc64le,s390x}"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           path: ./wheelhouse/*.whl
           name: ${{ matrix.python }}-${{ matrix.buildplat[1] }}-${{ matrix.buildplat[2] }}
