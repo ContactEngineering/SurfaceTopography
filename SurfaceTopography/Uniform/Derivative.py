@@ -111,7 +111,7 @@ class DiscreteDerivative:
     @property
     def stencil(self):
         """Return the stencil (coefficients) array."""
-        return np.asarray(self._operator.coefficients)
+        return np.asarray(self._operator.coefficients).reshape(self._operator.shape)
 
     @property
     def shape(self):
