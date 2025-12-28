@@ -26,7 +26,7 @@ import muGrid
 import numpy as np
 
 
-def make_fft(topography, engine='mpi', communicator=None):
+def make_fft(topography, communicator=None):
     """
     Instantiate a muGrid FFTEngine object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
@@ -43,8 +43,6 @@ def make_fft(topography, engine='mpi', communicator=None):
     ----------
     topography : :obj:`SurfaceTopography`
         Container storing the topography map.
-    engine : str, optional
-        The engine to use for the Fourier transform. (Default: 'mpi')
     communicator : mpi4py communicator or NuMPI stub communicator, optional
         Communicator object. Use communicator from topography object if not
         present. (Default: None)
@@ -64,7 +62,7 @@ def make_fft(topography, engine='mpi', communicator=None):
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muGrid.FFTEngine(topography.nb_grid_pts, engine=engine,
+        fft = muGrid.FFTEngine(topography.nb_grid_pts,
                                communicator=topography.communicator if communicator is None else communicator)
         if fft.subdomain_locations != topography.subdomain_locations or \
                 fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:

@@ -82,43 +82,83 @@ class FourierDerivative:
         return result
 
 
+class DiscreteDerivative:
+    """
+    Wrapper around muGrid.ConvolutionOperator that stores lbounds and stencil.
+
+    Since muGrid.ConvolutionOperator no longer exposes the lbounds and stencil
+    attributes, this wrapper stores them along with the operator.
+    """
+
+    def __init__(self, lbounds, stencil):
+        """
+        Initialize a discrete derivative operator.
+
+        Parameters
+        ----------
+        lbounds : array_like
+            Lower bounds of the stencil.
+        stencil : array_like
+            The stencil array.
+        """
+        self.lbounds = np.asarray(lbounds)
+        self.stencil = np.asarray(stencil)
+        self._operator = muGrid.ConvolutionOperator(list(lbounds), stencil)
+
+    def fourier(self, phase):
+        """
+        Return the Fourier multiplier for the discrete derivative.
+
+        Parameters
+        ----------
+        phase : array_like
+            Phase array (frequency * scale_factor).
+
+        Returns
+        -------
+        multiplier : complex array
+            The Fourier multiplier for the discrete derivative.
+        """
+        return self._operator.fourier(phase)
+
+
 #
 # Stencils for first and second derivatives
 #
 
 # First order upwind differences
-first_1d = muGrid.ConvolutionOperator([0], [-1, 1])
+first_1d = DiscreteDerivative([0], [-1, 1])
 
 # Second order central differences of the first derivative
-first_central_1d = muGrid.ConvolutionOperator([-1], [-1 / 2, 0, 1 / 2])
+first_central_1d = DiscreteDerivative([-1], [-1 / 2, 0, 1 / 2])
 
 # second order central differences of the second derivative
-second_1d = muGrid.ConvolutionOperator([-1], [1, -2, 1])
+second_1d = DiscreteDerivative([-1], [1, -2, 1])
 
 # first order upwind differences of the third derivative
-third_1d = muGrid.ConvolutionOperator([-1], [-1, 3, -3, 1])
+third_1d = DiscreteDerivative([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
-third_central_1d = muGrid.ConvolutionOperator([-2], [-1 / 2, 1, 0, -1, 1 / 2])
+third_central_1d = DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
 
 # First order upwind differences
-first_2d_x = muGrid.ConvolutionOperator([0, 0], [[-1, 0], [1, 0]])
-first_2d_y = muGrid.ConvolutionOperator([0, 0], [[-1, 1], [0, 0]])
+first_2d_x = DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
+first_2d_y = DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
 first_2d = (first_2d_x, first_2d_y)
 
 # Second order central differences of the first derivative
-first_central_2d_x = muGrid.ConvolutionOperator([-1, 0], [[-1 / 2], [0], [1 / 2]])
-first_central_2d_y = muGrid.ConvolutionOperator([0, -1], [[-1 / 2, 0, 1 / 2]])
+first_central_2d_x = DiscreteDerivative([-1, 0], [[-1 / 2], [0], [1 / 2]])
+first_central_2d_y = DiscreteDerivative([0, -1], [[-1 / 2, 0, 1 / 2]])
 first_central_2d = (first_central_2d_x, first_central_2d_y)
 
 # second order central differences of the second derivative
-second_2d_x = muGrid.ConvolutionOperator([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
-second_2d_y = muGrid.ConvolutionOperator([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
+second_2d_x = DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
+second_2d_y = DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
 second_2d = (second_2d_x, second_2d_y)
 
 # first order upwind differences of the third derivative
-third_2d_x = muGrid.ConvolutionOperator([-1, -1], [[-1], [3], [-3], [1]])
-third_2d_y = muGrid.ConvolutionOperator([-1, -1], [[-1, 3, -3, 1]])
+third_2d_x = DiscreteDerivative([-1, -1], [[-1], [3], [-3], [1]])
+third_2d_y = DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
 
 third_2d = (third_2d_x, third_2d_y)
 
@@ -176,11 +216,11 @@ def trim_nonperiodic(arr, scale_factor, op):
         Array to be trimmed.
     scale_factor : int, optional
         Integer factor that scales the stencil difference.
-    op : muGrid.ConvolutionOperator
+    op : DiscreteDerivative
         Derivative operator that contains information about the size of the
         stencil.
     """
-    if not isinstance(op, muGrid.ConvolutionOperator):
+    if not isinstance(op, DiscreteDerivative):
         raise ValueError("Can only trim edges for discrete derivatives.")
 
     lbounds = np.array(op.lbounds)
@@ -310,7 +350,7 @@ def derivative(
         # These fields are reused when this function is called multiple times
         real_field = fft.real_space_field("real_temporary")
         fourier_field = fft.fourier_space_field("complex_temporary")
-        real_field.p = self.heights()
+        real_field.p[...] = self.heights()
         fft.fft(real_field, fourier_field)
 
         # Apply mask function

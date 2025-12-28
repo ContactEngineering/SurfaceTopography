@@ -49,7 +49,7 @@ def test_save_and_load(maxcomm):
     np.random.seed(1)
     t = fourier_synthesis(nb_grid_pts, size, 0.8, rms_slope=0.1, unit="µm")
 
-    fft = FFTEngine(nb_grid_pts, communicator=maxcomm, engine="mpi")
+    fft = FFTEngine(nb_grid_pts, communicator=maxcomm)
     fft.create_plan(1)
     dt = t.domain_decompose(
         fft.subdomain_locations, fft.nb_subdomain_grid_pts, communicator=maxcomm

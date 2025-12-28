@@ -27,14 +27,15 @@ Test derivatives
 """
 import os
 
-import muGrid
 import numpy as np
 import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import Topography, UniformLineScan, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Uniform.Derivative import first_central_2d, third_2d, trim_nonperiodic
+from SurfaceTopography.Uniform.Derivative import (
+    DiscreteDerivative, first_central_2d, third_2d, trim_nonperiodic
+)
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -289,7 +290,7 @@ def test_fractional_scale_factor_linear_2d():
 
 
 def test_trim_nonperiodic_3x3_stencil():
-    op = muGrid.ConvolutionOperator([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
+    op = DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
     nx, ny = 5, 7
     x_arr, y_arr = np.mgrid[:nx, :ny]
     tx_arr = trim_nonperiodic(x_arr, (1.0, 1.0), op)
@@ -327,7 +328,7 @@ def test_trim_nonperiodic_3x3_stencil():
 
 def test_trim_nonperiodic_3x2_stencil():
     # Stencil has shape 3, 2
-    op = muGrid.ConvolutionOperator([0, -1], [[1, 0], [-2, 0], [1, 0]])
+    op = DiscreteDerivative([0, -1], [[1, 0], [-2, 0], [1, 0]])
 
     nx, ny = 5, 7
     x_arr, y_arr = np.mgrid[:nx, :ny]

@@ -119,7 +119,6 @@ def test_reader(comm, loader, examplefile):
     assert fileReader.nb_grid_pts == res
 
     fftengine = FFTEngine(nb_grid_pts=fileReader.nb_grid_pts,
-                          engine="mpi",
                           communicator=comm)
 
     top = fileReader.topography(
