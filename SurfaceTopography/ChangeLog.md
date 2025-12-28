@@ -6,6 +6,7 @@ v1.20.0 (28Dec25)
 
 - BUILD: Removed support for Python 3.9; minimum Python version is now 3.10
 - BUILD: Added support for Python 3.14
+- BUILD: Switched from DiscoverVersion to setuptools_scm for version management
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 
 v1.19.1 (19Aug25)

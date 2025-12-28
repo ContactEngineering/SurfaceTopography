@@ -4,7 +4,7 @@ requires = [
     "meson-python>=0.13.0",
     "ninja",
     "numpy>=2.0.0",
-    "DiscoverVersion"
+    "setuptools_scm>=8.0"
 ]
 build-backend = "mesonpy"
 
@@ -28,7 +28,6 @@ classifiers = [
 requires-python = ">=3.10.0"
 dynamic = ["version"]
 dependencies = [
-    "DiscoverVersion",
     "numpy>=2.0.0",
     "scipy>=1.9.0",
     "defusedxml",
@@ -73,3 +72,7 @@ target-version = ["py310", "py311", "py312", "py313", "py314"]
 
 [tool.isort]
 profile = "black"
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
