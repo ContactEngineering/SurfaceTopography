@@ -1,8 +1,8 @@
 Change log for SurfaceTopography
 ================================
 
-v1.20.0 (unreleased)
---------------------
+v1.20.0 (28Dec25)
+-----------------
 
 - BUILD: Removed support for Python 3.9; minimum Python version is now 3.10
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
