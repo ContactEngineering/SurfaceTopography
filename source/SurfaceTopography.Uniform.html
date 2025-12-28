@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.19.1.dev14+g2ce29bfd documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=8d0ebd2a"></script>
+      <script src="../_static/documentation_options.js?v=83c99c83"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -137,6 +137,19 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative"><code class="docutils literal notranslate"><span class="pre">FourierDerivative</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative.__init__"><code class="docutils literal notranslate"><span class="pre">FourierDerivative.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative.fourier"><code class="docutils literal notranslate"><span class="pre">FourierDerivative.fourier()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.lbounds"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.lbounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.stencil"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.stencil</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.shape"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.fourier"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.fourier()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.trim_nonperiodic"><code class="docutils literal notranslate"><span class="pre">trim_nonperiodic()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.derivative"><code class="docutils literal notranslate"><span class="pre">derivative()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.fourier_derivative"><code class="docutils literal notranslate"><span class="pre">fourier_derivative()</span></code></a></li>
@@ -467,6 +480,105 @@ boundaries.</p>
 <section id="module-SurfaceTopography.Uniform.Derivative">
 <span id="surfacetopography-uniform-derivative-module"></span><h2>SurfaceTopography.Uniform.Derivative module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Derivative" title="Link to this heading"></a></h2>
 <p>Compute derivatives of uniform line scans and topographies</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.FourierDerivative">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">FourierDerivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Fourier derivative operator.</p>
+<p>Computes the derivative in Fourier space by multiplication with i * 2π * q,
+where q is the wave vector component in the specified direction.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.FourierDerivative.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize a Fourier derivative operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<em>int</em>) – Dimension of the field.</p></li>
+<li><p><strong>direction</strong> (<em>int</em>) – Direction of the derivative (0 for x, 1 for y, etc.).</p></li>
+<li><p><strong>shift</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Shift vector for the derivative. Default is no shift.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.FourierDerivative.fourier">
+<span class="sig-name descname"><span class="pre">fourier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.FourierDerivative.fourier" title="Link to this definition"></a></dt>
+<dd><p>Return the Fourier multiplier for the derivative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>phase</strong> (<em>array_like</em>) – Phase array (frequency * scale_factor).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>multiplier</strong> – The Fourier multiplier i * 2π * phase[direction] * exp(i * 2π * shift · phase).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">DiscreteDerivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lbounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper around muGrid.ConvolutionOperator that provides lbounds and stencil.</p>
+<p>This wrapper exposes the lbounds (offset) and stencil (coefficients)
+via properties that delegate to the underlying ConvolutionOperator.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lbounds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stencil</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize a discrete derivative operator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lbounds</strong> (<em>array_like</em>) – Lower bounds of the stencil (offset).</p></li>
+<li><p><strong>stencil</strong> (<em>array_like</em>) – The stencil array (coefficients).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.lbounds">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lbounds</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.lbounds" title="Link to this definition"></a></dt>
+<dd><p>Return the lower bounds (offset) of the stencil.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.stencil">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">stencil</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.stencil" title="Link to this definition"></a></dt>
+<dd><p>Return the stencil (coefficients) array.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.shape">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.shape" title="Link to this definition"></a></dt>
+<dd><p>Return the shape of the stencil.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.DiscreteDerivative.fourier">
+<span class="sig-name descname"><span class="pre">fourier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.fourier" title="Link to this definition"></a></dt>
+<dd><p>Return the Fourier multiplier for the discrete derivative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>phase</strong> (<em>array_like</em>) – Phase array (frequency * scale_factor).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>multiplier</strong> – The Fourier multiplier for the discrete derivative.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>complex array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Derivative.trim_nonperiodic">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Derivative.</span></span><span class="sig-name descname"><span class="pre">trim_nonperiodic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Derivative.trim_nonperiodic" title="Link to this definition"></a></dt>
@@ -478,7 +590,7 @@ be wrong.)</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>arr</strong> (<em>np.ndarray</em>) – Array to be trimmed.</p></li>
 <li><p><strong>scale_factor</strong> (<em>int</em><em>, </em><em>optional</em>) – Integer factor that scales the stencil difference.</p></li>
-<li><p><strong>op</strong> (<em>muFFT.DiscreteDerivative</em>) – Derivative operator that contains information about the size of the
+<li><p><strong>op</strong> (<a class="reference internal" href="#SurfaceTopography.Uniform.Derivative.DiscreteDerivative" title="SurfaceTopography.Uniform.Derivative.DiscreteDerivative"><em>DiscreteDerivative</em></a>) – Derivative operator that contains information about the size of the
 stencil.</p></li>
 </ul>
 </dd>
@@ -517,7 +629,7 @@ order, not the effective grid spacing used by this stencil. The scale
 factor is then given by distance / (n * px) where n is the order of the
 derivative and px the grid spacing.
 (Default: None)</p></li>
-<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muFFT.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
+<li><p><strong>operator</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">muGrid.Derivative</span></code> object or tuple of <code class="xref py py-obj docutils literal notranslate"><span class="pre">muGrid.Derivative</span></code> objects, optional) – Derivative operator used to compute the derivative. If unspecified,
 a simple upwind differences scheme will be applied to compute the
 derivative. A tuple contains the gradient, i.e. the derivative
 operators in the Cartesian directions for multidimensional fields.

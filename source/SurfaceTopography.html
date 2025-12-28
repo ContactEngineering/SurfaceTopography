@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.19.1.dev14+g2ce29bfd documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=8d0ebd2a"></script>
+      <script src="../_static/documentation_options.js?v=83c99c83"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -1195,6 +1195,19 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Derivative">SurfaceTopography.Uniform.Derivative module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.FourierDerivative"><code class="docutils literal notranslate"><span class="pre">FourierDerivative</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.FourierDerivative.__init__"><code class="docutils literal notranslate"><span class="pre">FourierDerivative.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.FourierDerivative.fourier"><code class="docutils literal notranslate"><span class="pre">FourierDerivative.fourier()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.__init__"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.lbounds"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.lbounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.stencil"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.stencil</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.shape"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative.fourier"><code class="docutils literal notranslate"><span class="pre">DiscreteDerivative.fourier()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.trim_nonperiodic"><code class="docutils literal notranslate"><span class="pre">trim_nonperiodic()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.derivative"><code class="docutils literal notranslate"><span class="pre">derivative()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.fourier_derivative"><code class="docutils literal notranslate"><span class="pre">fourier_derivative()</span></code></a></li>
@@ -1442,33 +1455,32 @@ the default one.</p></li>
 <span id="surfacetopography-ffttricks-module"></span><h2>SurfaceTopography.FFTTricks module<a class="headerlink" href="#module-SurfaceTopography.FFTTricks" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.FFTTricks.make_fft">
-<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.FFTTricks.</span></span><span class="sig-name descname"><span class="pre">make_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.FFTTricks.make_fft" title="Link to this definition"></a></dt>
-<dd><p>Instantiate a muFFT object that can compute the Fourier transform of the
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.FFTTricks.</span></span><span class="sig-name descname"><span class="pre">make_fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">communicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.FFTTricks.make_fft" title="Link to this definition"></a></dt>
+<dd><p>Instantiate a muGrid FFTEngine object that can compute the Fourier transform of the
 topography and has the same decomposition layout (or raise an error if
 this is not the case).</p>
-<p>This function checks if the topography object already has a muFFT object
+<p>This function checks if the topography object already has a muGrid FFTEngine object
 attached to it. If it does, it returns that object. If it doesn’t, it
-creates a new muFFT object and attaches it to the topography object.
-If the topography object is domain decomposed, it checks if the muFFT
+creates a new muGrid FFTEngine object and attaches it to the topography object.
+If the topography object is domain decomposed, it checks if the muGrid FFTEngine
 object’s domain decomposition matches the topography’s. If it doesn’t,
 it raises a RuntimeError.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>topography</strong> (<a class="reference internal" href="#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the topography map.</p></li>
-<li><p><strong>engine</strong> (<em>str</em><em>, </em><em>optional</em>) – The engine to use for the Fourier transform. (Default: ‘mpi’)</p></li>
 <li><p><strong>communicator</strong> (<em>mpi4py communicator</em><em> or </em><em>NuMPI stub communicator</em><em>, </em><em>optional</em>) – Communicator object. Use communicator from topography object if not
 present. (Default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fft</strong> – The muFFT object that can compute the Fourier transform of the topography.</p>
+<dd class="field-even"><p><strong>fft</strong> – The muGrid FFTEngine object that can compute the Fourier transform of the topography.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>muFFT.FFT</p>
+<dd class="field-odd"><p>muGrid.FFTEngine</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RuntimeError</strong> – If the muFFT object’s domain decomposition does not match the topography’s domain decomposition.</p>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If the muGrid FFTEngine object’s domain decomposition does not match the topography’s domain decomposition.</p>
 </dd>
 </dl>
 </dd></dl>
