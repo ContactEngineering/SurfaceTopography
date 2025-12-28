@@ -31,7 +31,7 @@ import unittest
 import NuMPI
 import numpy as np
 import pytest
-from muFFT import FFT
+from muGrid import FFTEngine
 from NuMPI import MPI
 
 from SurfaceTopography import open_topography
@@ -118,9 +118,8 @@ def test_reader(comm, loader, examplefile):
 
     assert fileReader.nb_grid_pts == res
 
-    fftengine = FFT(nb_grid_pts=fileReader.nb_grid_pts,
-                    engine="mpi",
-                    communicator=comm)
+    fftengine = FFTEngine(nb_grid_pts=fileReader.nb_grid_pts,
+                          communicator=comm)
 
     top = fileReader.topography(
         subdomain_locations=fftengine.subdomain_locations,

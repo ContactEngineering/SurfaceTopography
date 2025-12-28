@@ -36,7 +36,7 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from muFFT import FFT
+from muGrid import FFTEngine
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 from numpy.random import rand
@@ -649,7 +649,7 @@ def test_positions(comm):
     nx, ny = (12 * comm.Get_size(), 10 * comm.Get_size() + 1)
     sx = 33.
     sy = 54.
-    fftengine = FFT((nx, ny), engine='mpi', communicator=comm)
+    fftengine = FFTEngine((nx, ny), communicator=comm)
 
     surf = Topography(np.zeros(fftengine.nb_subdomain_grid_pts),
                       physical_sizes=(sx, sy),

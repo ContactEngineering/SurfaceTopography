@@ -60,15 +60,15 @@ Tip: to install NetCDF on mac using Homebrew_,
 Installation: Common problems
 -----------------------------
 
-- Sometimes muFFT_ will not find the FFTW3 installation you expect.
+- Sometimes muGrid_ will not find the FFTW3 installation you expect.
   You can specify the directory where you installed FFTW3_
   by setting the environment variable `FFTWDIR` (e.g. to `$USER/.local`).
 
-- If muFFT_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
+- If muGrid_ is unable to find the NetCDF libraries (the `FileIONetCDF` class
   is missing), then set the environment variables `NETCDFDIR` (for serial
   compile) or `PNETCDFDIR` (for parallel compiles, to e.g. `$USER/.local`).
 
-- Sometimes the installation fails because muFFT_ attempts to compile with
+- Sometimes the installation fails because muGrid_ attempts to compile with
   `MPI` support but not all necessary libraries are available.
 
 - Note that if you do not install a tagged version of a dependency
@@ -156,7 +156,7 @@ We provide a definition file to build a singularity container `here <https://git
 
 .. _Singularity: https://sylabs.io/singularity/
 .. _FFTW3: http://www.fftw.org/
-.. _muFFT: https://gitlab.com/muspectre/muspectre.git
+.. _muGrid: https://github.com/muSpectre/muGrid.git
 .. _NuMPI: https://github.com/IMTEK-Simulation/NuMPI.git
 .. _runtests: https://github.com/bccp/runtests
 .. _Homebrew: https://brew.sh/

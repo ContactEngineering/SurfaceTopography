@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         mpi: ['no', 'mpi']
-        python-version: ['3.9', '3.10', '3.11' , '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
         mpi4py-version: [4.0.3]
 
     steps:
@@ -50,12 +50,12 @@ jobs:
               libnetcdf-pnetcdf-dev \
               meson \
               ninja-build
-            # Compute mpi4py, numpy, muGrid and muFFT versions
+            # Compute mpi4py, numpy and muGrid versions
             pip-compile pyproject.toml
-            NUMPY_VERSION=$(grep 'numpy==' requirements.txt)        
-            MUFFT_VERSION=$(grep 'mufft==' requirements.txt)
+            NUMPY_VERSION=$(grep 'numpy==' requirements.txt)
+            MUGRID_VERSION=$(grep 'mugrid==' requirements.txt)
             echo "numpy version: ${NUMPY_VERSION}"
-            echo "muFFT version: ${MUFFT_VERSION}"
+            echo "muGrid version: ${MUGRID_VERSION}"
             # Install numpy
             pip install -v ${NUMPY_VERSION}
             # Install mpi4py
@@ -63,9 +63,9 @@ jobs:
             CC=mpicc python3 -m pip install -v \
               --no-binary mpi4py \
               mpi4py==${{ matrix.mpi4py-version }}
-            # Manually install muFFT with MPI enabled
-            echo "Installing ${MUFFT_VERSION}"
-            pip install -v --no-binary muGrid --no-binary mufft ${MUFFT_VERSION}
+            # Manually install muGrid with MPI enabled
+            echo "Installing ${MUGRID_VERSION}"
+            pip install -v --no-binary muGrid ${MUGRID_VERSION}
           else
             sudo apt-get install -y \
               libfftw3-dev \
