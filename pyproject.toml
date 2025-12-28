@@ -34,7 +34,7 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "muGrid>=0.100.0",
+    "muGrid>=0.101.1",
     "NuMPI>=0.7.1",
     "numpyencoder",
     "openpyxl",

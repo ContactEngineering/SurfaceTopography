@@ -368,7 +368,7 @@ def derivative(
 
         # Apply mask function
         if mask_function is not None:
-            fourier_field.p *= mask_function(
+            fourier_field.p[...] *= mask_function(
                 (fft.fftfreq.T / pixel_size).T
             )
 
@@ -464,7 +464,7 @@ def derivative(
                 # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
                 fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
                 fft.ifft(fourier_field, real_field)
-                _der = real_field.p * fft.normalisation
+                _der = np.squeeze(real_field.p * fft.normalisation)
             elif interpolation == "linear":
                 # We use linear interpolator
                 lbounds = np.array(op.lbounds)

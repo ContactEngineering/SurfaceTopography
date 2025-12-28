@@ -118,8 +118,7 @@ def test_reader(comm, loader, examplefile):
 
     assert fileReader.nb_grid_pts == res
 
-    fftengine = FFTEngine(nb_grid_pts=fileReader.nb_grid_pts,
-                          communicator=comm)
+    fftengine = FFTEngine(fileReader.nb_grid_pts, communicator=comm)
 
     top = fileReader.topography(
         subdomain_locations=fftengine.subdomain_locations,
@@ -135,19 +134,22 @@ def test_reader(comm, loader, examplefile):
     np.testing.assert_array_equal(top.heights(), data[top.subdomain_slices])
 
     # test that the slicing is what is expected
+    nb_domain_grid_pts = fftengine.nb_domain_grid_pts
+    nb_subdomain_grid_pts = fftengine.nb_subdomain_grid_pts
+    subdomain_locations = fftengine.subdomain_locations
 
-    fulldomain_field = np.arange(np.prod(fftengine.nb_domain_grid_pts)
-                                 ).reshape(fftengine.nb_domain_grid_pts)
+    fulldomain_field = np.arange(np.prod(nb_domain_grid_pts)
+                                 ).reshape(nb_domain_grid_pts)
 
     np.testing.assert_array_equal(
         fulldomain_field[top.subdomain_slices],
         fulldomain_field[tuple([
-            slice(fftengine.subdomain_locations[i],
-                  fftengine.subdomain_locations[i]
-                  + max(0, min(fftengine.nb_domain_grid_pts[i]
-                               - fftengine.subdomain_locations[i],
-                               fftengine.nb_subdomain_grid_pts[i])))
-            for i in range(len(fftengine.nb_domain_grid_pts))])])
+            slice(subdomain_locations[i],
+                  subdomain_locations[i]
+                  + max(0, min(nb_domain_grid_pts[i]
+                               - subdomain_locations[i],
+                               nb_subdomain_grid_pts[i])))
+            for i in range(len(nb_domain_grid_pts))])])
 
 
 class npySurfaceTest(unittest.TestCase):
