@@ -84,10 +84,10 @@ class FourierDerivative:
 
 class DiscreteDerivative:
     """
-    Wrapper around muGrid.ConvolutionOperator that stores lbounds and stencil.
+    Wrapper around muGrid.ConvolutionOperator that provides lbounds and stencil.
 
-    Since muGrid.ConvolutionOperator no longer exposes the lbounds and stencil
-    attributes, this wrapper stores them along with the operator.
+    This wrapper exposes the lbounds (offset) and stencil (coefficients)
+    via properties that delegate to the underlying ConvolutionOperator.
     """
 
     def __init__(self, lbounds, stencil):
@@ -97,13 +97,21 @@ class DiscreteDerivative:
         Parameters
         ----------
         lbounds : array_like
-            Lower bounds of the stencil.
+            Lower bounds of the stencil (offset).
         stencil : array_like
-            The stencil array.
+            The stencil array (coefficients).
         """
-        self.lbounds = np.asarray(lbounds)
-        self.stencil = np.asarray(stencil)
         self._operator = muGrid.ConvolutionOperator(list(lbounds), stencil)
+
+    @property
+    def lbounds(self):
+        """Return the lower bounds (offset) of the stencil."""
+        return np.asarray(self._operator.offset)
+
+    @property
+    def stencil(self):
+        """Return the stencil (coefficients) array."""
+        return np.asarray(self._operator.coefficients)
 
     def fourier(self, phase):
         """
