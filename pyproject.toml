@@ -4,7 +4,7 @@ requires = [
     "meson-python>=0.13.0",
     "ninja",
     "numpy>=2.0.0",
-    "DiscoverVersion>=0.3.1"
+    "DiscoverVersion>=0.3.2"
 ]
 build-backend = "mesonpy"
 
