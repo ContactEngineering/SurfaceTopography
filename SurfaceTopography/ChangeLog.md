@@ -10,6 +10,7 @@ v1.20.0 (28Dec25)
 - BUILD: Minimum muGrid version is now 0.101.1
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 - MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
+- BUG: Fixed `open_topography` passing `communicator` to readers that don't support it
 
 v1.19.1 (19Aug25)
 -----------------
