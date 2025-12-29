@@ -4,7 +4,7 @@ requires = [
     "meson-python>=0.13.0",
     "ninja",
     "numpy>=2.0.0",
-    "setuptools_scm>=8.0"
+    "DiscoverVersion>=0.3.0"
 ]
 build-backend = "mesonpy"
 
@@ -73,6 +73,3 @@ target-version = ["py310", "py311", "py312", "py313", "py314"]
 [tool.isort]
 profile = "black"
 
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"

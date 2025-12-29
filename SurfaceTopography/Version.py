@@ -22,10 +22,6 @@
 # SOFTWARE.
 #
 
-from importlib.metadata import version, PackageNotFoundError
+from DiscoverVersion import get_version
 
-try:
-    __version__ = version('SurfaceTopography')
-except PackageNotFoundError:
-    # Package is not installed (e.g., running from source)
-    __version__ = '0.0.0.dev0'
+__version__ = get_version('SurfaceTopography', __file__)
