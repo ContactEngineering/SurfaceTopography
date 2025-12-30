@@ -26,8 +26,10 @@
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/jpkscan.c
 
 import enum
+import warnings
 
 import dateutil
+from dateutil.parser import UnknownTimezoneWarning
 from tiffile import TiffFile, TiffFileError
 
 from ..Exceptions import (
@@ -228,9 +230,11 @@ TIFF-based file format of JPK instruments (now Bruker)
                 )
 
         # Acquisition date
-        acquisition_time = dateutil.parser.parse(
-            global_metadata["StartDate"]
-        )  # There is also an EndData
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UnknownTimezoneWarning)
+            acquisition_time = dateutil.parser.parse(
+                global_metadata["StartDate"]
+            )  # There is also an EndDate
 
         # We now detect channels with height information
         self._channels = []

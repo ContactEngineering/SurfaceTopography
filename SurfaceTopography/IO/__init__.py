@@ -26,20 +26,27 @@
 # SOFTWARE.
 #
 
+import inspect
 import os
 
 # Registers DZI writers with Topography class
 import SurfaceTopography.IO.DZI  # noqa: F401
 
 from ..Exceptions import UnknownFileFormat  # noqa: F401
-from ..Exceptions import (CannotDetectFileFormat, CorruptFile,  # noqa: F401
-                          MetadataAlreadyFixedByFile, ReadFileError)
+from ..Exceptions import (  # noqa: F401
+    CannotDetectFileFormat,
+    CorruptFile,
+    MetadataAlreadyFixedByFile,
+    ReadFileError,
+)
+
 # New-style readers
 from .AL3D import AL3DReader
 from .BCR import BCRReader
 from .DATX import DATXReader
 from .DI import DIReader
 from .EZD import EZDReader
+
 # Old-style readers
 from .FromFile import HGTReader
 from .FRT import FRTReader
@@ -213,10 +220,22 @@ def open_topography(fobj, format=None, communicator=None):
 
     with origin in the upper left (inverted y axis).
     """  # noqa: E501
-    if communicator is not None:
-        kwargs = {"communicator": communicator}
-    else:
-        kwargs = {}
+    def reader_accepts_communicator(reader_class):
+        """Check if a reader's __init__ accepts a 'communicator' argument."""
+        try:
+            sig = inspect.signature(reader_class.__init__)
+            return 'communicator' in sig.parameters
+        except (ValueError, TypeError):
+            return False
+
+    def check_parallel_support(reader_class):
+        """Raise an error if parallel I/O is requested but not supported."""
+        if communicator is not None and communicator.size > 1:
+            if not reader_accepts_communicator(reader_class):
+                raise ValueError(
+                    f"{reader_class.__name__} does not support parallel I/O, "
+                    f"but communicator has size {communicator.size}."
+                )
 
     if not hasattr(fobj, 'read') and not callable(fobj):  # fobj is a path
         if not os.path.isfile(fobj):
@@ -225,8 +244,13 @@ def open_topography(fobj, format=None, communicator=None):
     if format is None:
         msg = ""
         for reader in readers:
+            kwargs = {}
+            if communicator is not None and reader_accepts_communicator(reader):
+                kwargs["communicator"] = communicator
             try:
-                return reader(fobj, **kwargs)
+                r = reader(fobj, **kwargs)
+                check_parallel_support(reader)
+                return r
             except Exception as err:
                 msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
@@ -239,7 +263,12 @@ def open_topography(fobj, format=None, communicator=None):
         if format not in lookup_reader_by_format.keys():
             raise UnknownFileFormat(
                 f"{format} not in registered file formats {lookup_reader_by_format.keys()}.")
-        return lookup_reader_by_format[format](fobj, **kwargs)
+        reader = lookup_reader_by_format[format]
+        check_parallel_support(reader)
+        kwargs = {}
+        if communicator is not None and reader_accepts_communicator(reader):
+            kwargs["communicator"] = communicator
+        return reader(fobj, **kwargs)
 
 
 def read_topography(fn, format=None, communicator=None, **kwargs):

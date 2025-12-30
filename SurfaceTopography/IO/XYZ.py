@@ -436,7 +436,9 @@ The reader supports parsing HFM and Dektak header information.
             x, z = data
         elif len(data) == 3:
             x, y, z = data
-            if np.ptp((x[1:] - x[0]) / (y[1:] - y[0])) < tol:
+            with np.errstate(divide='ignore', invalid='ignore'):
+                ratio = (x[1:] - x[0]) / (y[1:] - y[0])
+            if np.all(np.isfinite(ratio)) and np.ptp(ratio) < tol:
                 # This is a line scan and the first column is likely an index column.
                 kind = "xz"
                 x = y

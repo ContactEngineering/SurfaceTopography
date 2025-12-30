@@ -104,10 +104,48 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
 
 def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
+    """
+    Gaussian (squared exponential) kernel for Gaussian process regression.
+
+    Parameters
+    ----------
+    x1 : array_like
+        First set of input points.
+    x2 : array_like
+        Second set of input points.
+    length_scale : float, optional
+        Characteristic length scale of the kernel. (Default: 1)
+    signal_variance : float, optional
+        Signal variance (amplitude). (Default: 1)
+
+    Returns
+    -------
+    K : array_like
+        Covariance matrix.
+    """
     return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
 
 
 def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
+    """
+    Gaussian kernel operating in log-space, suitable for power-law data.
+
+    Parameters
+    ----------
+    x1 : array_like
+        First set of input points.
+    x2 : array_like
+        Second set of input points.
+    length_scale : float, optional
+        Characteristic length scale of the kernel in log-space. (Default: 1)
+    signal_variance : float, optional
+        Signal variance (amplitude). (Default: 1)
+
+    Returns
+    -------
+    K : array_like
+        Covariance matrix.
+    """
     return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
 
 
@@ -279,7 +317,7 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         if not provided. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
     method : str, optional
         Method can be 'bin-average' for simple bin averaging and
         'gaussian-process' for Gaussian process regression.
@@ -368,7 +406,7 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         if not provided. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 5)
     full : bool, optional
         Number of quadrants contained in data.
         True: Full radial average from 0 to 2*pi.

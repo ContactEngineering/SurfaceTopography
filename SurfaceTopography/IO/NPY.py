@@ -85,7 +85,7 @@ manually provided by the user.
         try:
             self.mpi_file = NuMPI.IO.mpi_open(fobj, communicator, format="npy")
             self.dtype = self.mpi_file.dtype
-            self._nb_grid_pts = self.mpi_file.nb_grid_pts
+            self._nb_grid_pts = self.mpi_file.array_shape
         except NuMPI.IO.MPIFileTypeError:
             raise FileFormatMismatch()
 

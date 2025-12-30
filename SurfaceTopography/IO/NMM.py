@@ -216,6 +216,7 @@ DSC.
             sep=" : ",
             skiprows=1,
             names=["index", "datetime", "name", "nb_grid_pts", "description"],
+            engine="python",
         )
         dsc = dsc[np.isfinite(dsc["nb_grid_pts"])]
 

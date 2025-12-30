@@ -650,17 +650,19 @@ def test_positions(comm):
     sx = 33.
     sy = 54.
     fftengine = FFTEngine((nx, ny), communicator=comm)
+    nb_subdomain_grid_pts = fftengine.nb_subdomain_grid_pts
+    subdomain_locations = fftengine.subdomain_locations
 
-    surf = Topography(np.zeros(fftengine.nb_subdomain_grid_pts),
+    surf = Topography(np.zeros(nb_subdomain_grid_pts),
                       physical_sizes=(sx, sy),
                       decomposition='subdomain',
                       nb_grid_pts=(nx, ny),
-                      subdomain_locations=fftengine.subdomain_locations,
+                      subdomain_locations=subdomain_locations,
                       communicator=comm)
 
     x, y = surf.positions()
-    assert x.shape == fftengine.nb_subdomain_grid_pts
-    assert y.shape == fftengine.nb_subdomain_grid_pts
+    assert x.shape == nb_subdomain_grid_pts
+    assert y.shape == nb_subdomain_grid_pts
 
     assert Reduction(comm).min(x) == 0
     assert abs(Reduction(comm).max(x) - sx * (1 - 1. / nx)) \

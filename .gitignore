@@ -25,3 +25,5 @@ dist
 .vscode
 build
 docs/_build
+/subprojects/*
+!/subprojects/*.wrap

@@ -30,15 +30,19 @@ Tests for autocorrelation function analysis
 
 import os
 
-import pytest
-
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
+import pytest
+from NuMPI import MPI
+from numpy.testing import assert_allclose, assert_almost_equal
 from scipy.interpolate import interp1d
 
-from NuMPI import MPI
-
-from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan, NonuniformLineScan
+from SurfaceTopography import (
+    NonuniformLineScan,
+    Topography,
+    UniformLineScan,
+    read_container,
+    read_topography,
+)
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.Nonuniform.Autocorrelation import height_height_autocorrelation
 
@@ -136,12 +140,13 @@ def test_uniform_brute_force_autocorrelation_from_profile():
                             periodic=False)]:
         r, A = surf.autocorrelation_from_profile(resampling_method=None)
 
+        heights = surf.heights()
         n = len(A)
         dir_A = np.zeros(n)
         for d in range(n):
             for i in range(n - d):
-                dir_A[d] += (surf.heights()[i] - surf.heights()[
-                    i + d]) ** 2 / 2
+                # Use np.sum for vectorized operation across all profiles (columns)
+                dir_A[d] += np.sum((heights[i] - heights[i + d]) ** 2) / 2
             dir_A[d] /= (n - d)
         assert_allclose(A, dir_A, atol=1e-12)
 

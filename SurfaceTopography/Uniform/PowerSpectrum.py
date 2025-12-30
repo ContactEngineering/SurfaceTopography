@@ -70,14 +70,14 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         to None. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
 
     Returns
     -------
     q : array_like
-        Reciprocal space vectors.
+        Reciprocal space vectors. (Units: 1/length)
     C_all : array_like
-        Power spectrum. (Units: length**3)
+        Power spectrum. (Units: length³)
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -161,7 +161,7 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
         to None. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
     return_map : bool, optional
         Return full 2D power spectrum map. (Default: False)
     resampling_method : str, optional
@@ -172,9 +172,11 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
     Returns
     -------
     q : array_like
-        Reciprocal space vectors.
+        Reciprocal space vectors. (Units: 1/length)
     C_all : array_like
-        Power spectrum. (Units: length**4)
+        Power spectrum. (Units: length⁴)
+    C_qk : array_like, optional
+        Full 2D power spectrum map, only returned if `return_map` is True.
     """
     if self.has_undefined_data:
         raise UndefinedDataError('This topography has undefined data (missing data points). Power-spectrum cannot be '
@@ -211,8 +213,23 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
 
 def fftfreq(t, meshgrid=True):
     """
-    computes and returns the grid of wavevectors corresponding to np.fft.fft
+    Compute and return the grid of wavevectors corresponding to np.fft.fft.
 
+    Parameters
+    ----------
+    t : UniformLineScan or Topography
+        Container with height information.
+    meshgrid : bool, optional
+        If True, return wavevectors as a meshgrid for 2D topographies.
+        If False, return separate 1D arrays. (Default: True)
+
+    Returns
+    -------
+    qx : array_like
+        Wavevectors in the x-direction. (Units: 1/length)
+    qy : array_like, optional
+        Wavevectors in the y-direction, only returned for 2D topographies.
+        (Units: 1/length)
     """
 
     # if t.dim == 1:
@@ -235,6 +252,23 @@ def fftfreq(t, meshgrid=True):
 
 
 def wavevectors_norm2(t, meshgrid=True):
+    """
+    Compute the norm (magnitude) of the wavevectors.
+
+    Parameters
+    ----------
+    t : UniformLineScan or Topography
+        Container with height information.
+    meshgrid : bool, optional
+        If True, return wavevector norms as a meshgrid for 2D topographies.
+        If False, the wavevectors are computed without meshgrid before taking
+        the norm. (Default: True)
+
+    Returns
+    -------
+    q : array_like
+        Norm of the wavevectors. (Units: 1/length)
+    """
     if t.dim == 1:
         return np.abs(t.fftfreq(meshgrid=meshgrid))
     else:
