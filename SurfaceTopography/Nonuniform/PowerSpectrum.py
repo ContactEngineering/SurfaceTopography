@@ -29,7 +29,7 @@ Power-spectral density for nonuniform topographies.
 
 import numpy as np
 
-from ..Exceptions import ReentrantDataError, NoReliableDataError
+from ..Exceptions import NoReliableDataError, ReentrantDataError
 from ..HeightContainer import NonuniformLineScanInterface
 
 
@@ -39,7 +39,7 @@ def sinc(x):
 
 
 def dsinc(x):
-    """Derivative of the sinc function"""
+    """Derivative of the sinc function, d/dx [sin(x)/x]."""
     tol = 1e-6
     x = np.asarray(x)
     small_values = np.abs(x) < tol
@@ -47,7 +47,7 @@ def dsinc(x):
         ret = np.zeros_like(x)
 
         # For small values, use the Taylor series expansion
-        # (accurate to O(x^^))
+        # (accurate to O(x⁴))
         ret[small_values] = -x[small_values] / 3 + x[small_values] ** 3 / 30
 
         # For large values, use the normal expression
@@ -87,6 +87,23 @@ def ft_one_sided_triangle(q):
 
 
 def apply_window(x, y, window=None):
+    """
+    Apply a window function to height data.
+
+    Parameters
+    ----------
+    x : array_like
+        Position array.
+    y : array_like
+        Height array.
+    window : str, optional
+        Name of window function. Supported: 'hann' or None. (Default: None)
+
+    Returns
+    -------
+    y_windowed : array_like
+        Height array with window applied.
+    """
     if window == 'hann':
         length = x.max() - x.min()
         return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / length)) * y
@@ -142,7 +159,7 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
         Method can be None for no resampling (return on the grid of the
         data) 'bin-average' for simple bin averaging and 'gaussian-process'
         for Gaussian process regression.
-        (Default: None)
+        (Default: 'bin-average')
     collocation : {'log', 'quadratic', 'linear', array_like}, optional
         Resampling grid. Specifying 'log' yields collocation points
         equally spaced on a log scale, 'quadratic' yields bins with
@@ -155,14 +172,14 @@ def power_spectrum(self, reliable=True, algorithm='fft', wavevectors=None, nb_in
         to None. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
 
     Returns
     -------
     wavevectors : array
-        Wavevector array at which the PSD has been computed. (Unit: length)
+        Wavevector array at which the PSD has been computed. (Units: 1/length)
     psd : array
-        PSD values. (Unit: length**-3)
+        PSD values. (Units: length³)
     """
     if not self.is_periodic and window is None:
         window = "hann"
