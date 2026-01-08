@@ -162,8 +162,15 @@ def ciso_moment(self, order=1, cumulative=False, **kwargs):
     """
     power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum
-    q = q[~np.isnan(C1D)]
-    C1D = C1D[~np.isnan(C1D)]
+    # Filter out masked/invalid values (handle both masked arrays and NaN)
+    if np.ma.isMaskedArray(C1D):
+        valid = ~C1D.mask
+        q = np.asarray(q[valid])
+        C1D = np.asarray(C1D[valid])
+    else:
+        valid = ~np.isnan(C1D)
+        q = q[valid]
+        C1D = C1D[valid]
     Ciso = C1D * np.pi / q
     return compute_iso_moment(q, Ciso, order, cumulative=cumulative)
 
@@ -186,8 +193,15 @@ def c1d_moment(self, order=1, cumulative=False, **kwargs):
     """
     power_spectrum = self.power_spectrum(**kwargs)  #
     q, C1D = power_spectrum
-    q = q[~np.isnan(C1D)]
-    C1D = C1D[~np.isnan(C1D)]
+    # Filter out masked/invalid values (handle both masked arrays and NaN)
+    if np.ma.isMaskedArray(C1D):
+        valid = ~C1D.mask
+        q = np.asarray(q[valid])
+        C1D = np.asarray(C1D[valid])
+    else:
+        valid = ~np.isnan(C1D)
+        q = q[valid]
+        C1D = C1D[valid]
     return compute_1d_moment(q, C1D, order, cumulative=cumulative)
 
 

@@ -100,10 +100,14 @@ def test_tip_radius_reliability_cutoff_from_instrument_metadata(file_format_exam
 
     # Make sure PSD returns only reliable portion
     q, _ = surf.power_spectrum_from_profile()
-    assert q[-1] < 2 * np.pi / cut
+    # q is a masked array - check the last non-masked value
+    q_valid = q.compressed() if hasattr(q, 'compressed') else q
+    assert q_valid[-1] < 2 * np.pi / cut
 
     q, _ = surf.power_spectrum_from_area()
-    assert q[-1] < 2 * np.pi / cut
+    # q is a masked array - check the last non-masked value
+    q_valid = q.compressed() if hasattr(q, 'compressed') else q
+    assert q_valid[-1] < 2 * np.pi / cut
 
     # Make sure ACF returns only reliable portion
     r, A = surf.autocorrelation_from_profile()
@@ -137,10 +141,14 @@ def test_resolution_reliability_cutoff_from_instrument_metadata(file_format_exam
 
     # Make sure PSD returns only reliable portion
     q, _ = surf.power_spectrum_from_profile()
-    assert q[-1] < 2 * np.pi / cut
+    # q is a masked array - check the last non-masked value
+    q_valid = q.compressed() if hasattr(q, 'compressed') else q
+    assert q_valid[-1] < 2 * np.pi / cut
 
     q, _ = surf.power_spectrum_from_area()
-    assert q[-1] < 2 * np.pi / cut
+    # q is a masked array - check the last non-masked value
+    q_valid = q.compressed() if hasattr(q, 'compressed') else q
+    assert q_valid[-1] < 2 * np.pi / cut
 
     # Make sure ACF returns only reliable portion
     r, A = surf.autocorrelation_from_profile()

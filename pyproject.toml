@@ -4,7 +4,7 @@ requires = [
     "meson-python>=0.13.0",
     "ninja",
     "numpy>=2.0.0",
-    "setuptools_scm>=8.0"
+    "DiscoverVersion>=0.3.2"
 ]
 build-backend = "mesonpy"
 
@@ -34,8 +34,8 @@ dependencies = [
     "h5py",
     "igor2",
     "matplotlib>=1.0.0",
-    "muGrid>=0.100.0",
-    "NuMPI>=0.7.1",
+    "muGrid>=0.103.0",
+    "NuMPI>=0.9.0",
     "numpyencoder",
     "openpyxl",
     "Pillow",
@@ -66,6 +66,10 @@ changelog = "https://github.com/ContactEngineering/SurfaceTopography/blob/master
 [project.scripts]
 show-topography = "SurfaceTopography.CLI.ShowTopography:main"
 
+[tool.meson-python]
+# Allow bundling shared libraries on Windows (needed for extension modules)
+allow-windows-internal-shared-libs = true
+
 [tool.black]
 line-length = 88
 target-version = ["py310", "py311", "py312", "py313", "py314"]
@@ -73,6 +77,3 @@ target-version = ["py310", "py311", "py312", "py313", "py314"]
 [tool.isort]
 profile = "black"
 
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"

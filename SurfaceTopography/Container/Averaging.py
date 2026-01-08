@@ -25,9 +25,10 @@
 """Compute properties as averages over individual results."""
 
 import logging
+import warnings
+from collections import defaultdict
 
 import numpy as np
-from collections import defaultdict
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..Support.Regression import resample
@@ -103,8 +104,33 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     if len(results) == 0:
         raise NoReliableDataError('Container contains no reliable data.')
 
-    avgresults = np.array(sorted([np.nanmean(vals, axis=0) for vals in results.values()], key=lambda x: x[0]))
-    return avgresults.T[0], avgresults.T[1]
+    # Compute mean of results, handling masked values
+    # Sort keys to ensure correct order
+    sorted_keys = sorted(results.keys())
+    min_key, max_key = min(sorted_keys), max(sorted_keys)
+
+    # Allocate output arrays with all bins (including those with no data)
+    n_bins = max_key - min_key + 1
+    x_out = np.ma.zeros(n_bins)
+    y_out = np.ma.zeros(n_bins)
+    mask = np.ones(n_bins, dtype=bool)  # Start with all masked
+
+    for key in sorted_keys:
+        idx = key - min_key
+        # Masked values are converted to NaN; suppress the warning
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            vals = np.array(results[key])
+        # Filter out NaN values (which come from masked values)
+        valid_mask = np.isfinite(vals[:, 0]) & np.isfinite(vals[:, 1])
+        if valid_mask.sum() > 0:
+            x_out[idx] = np.mean(vals[valid_mask, 0])
+            y_out[idx] = np.mean(vals[valid_mask, 1])
+            mask[idx] = False
+
+    x_out.mask = mask
+    y_out.mask = mask
+    return x_out, y_out
 
 
 # All container functionsa are 'profile' functions, because container can contain mixtures of topgoraphic maps and line

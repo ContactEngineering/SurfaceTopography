@@ -30,7 +30,7 @@ Or if you want the latest unreleased version
     python3 -m pip  install [--user] git+https://github.com/ContactEngineering/SurfaceTopography.git
 
 
-The command will install other dependencies including muSpectre_, NuMPI_ and
+The command will install other dependencies including muGrid_, NuMPI_ and
 runtests_.
 
 If you want to install all optional dependencies for full functionality:

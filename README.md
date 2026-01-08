@@ -35,17 +35,6 @@ You need to manually install `ninja`, `meson-python`, `pytest`, `runtests`, `Dis
 
     python3 -m pip install ninja meson-python pytest runtests DiscoverVersion numpy
 
-Containerized SurfaceTopography
--------------------------------
-
-*ContactEngineering* provides container descriptions at the [ce-container-stack](https://github.com/ContactEngineering/ce-container-stack).
-
-For getting started quickly with [Docker](https://www.docker.com/) and `SurfaceTopography` in a ready-to-run JupyterLab environment, try
-
-    docker run -p 8888:8888 imteksim/jupyterlab-surfacetopography:latest
-
-Navigate to the JupyterLab server in your browser as instructed by the terminal output and launch a notebook with the `SurfaceTopography` kernel.
-
 Funding
 -------
 
