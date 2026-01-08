@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=83c99c83"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -330,12 +330,46 @@ the <cite>collocation_points</cite> array.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Regression.gaussian_kernel">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">gaussian_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.gaussian_kernel" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Gaussian (squared exponential) kernel for Gaussian process regression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>array_like</em>) – First set of input points.</p></li>
+<li><p><strong>x2</strong> (<em>array_like</em>) – Second set of input points.</p></li>
+<li><p><strong>length_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Characteristic length scale of the kernel. (Default: 1)</p></li>
+<li><p><strong>signal_variance</strong> (<em>float</em><em>, </em><em>optional</em>) – Signal variance (amplitude). (Default: 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>K</strong> – Covariance matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array_like</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Regression.gaussian_log_kernel">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">gaussian_log_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_variance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.gaussian_log_kernel" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Gaussian kernel operating in log-space, suitable for power-law data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x1</strong> (<em>array_like</em>) – First set of input points.</p></li>
+<li><p><strong>x2</strong> (<em>array_like</em>) – Second set of input points.</p></li>
+<li><p><strong>length_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Characteristic length scale of the kernel in log-space. (Default: 1)</p></li>
+<li><p><strong>signal_variance</strong> (<em>float</em><em>, </em><em>optional</em>) – Signal variance (amplitude). (Default: 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>K</strong> – Covariance matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array_like</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Regression.suggest_kernel_for_grid">
@@ -371,7 +405,7 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.Regression.bin_average">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.Regression.</span></span><span class="sig-name descname"><span class="pre">bin_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collocation_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.Regression.bin_average" title="Link to this definition"></a></dt>
-<dd><p>Average values over bins. Returns NaN for bins without data.</p>
+<dd><p>Average values over bins. Returns masked arrays with bins without data masked.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -383,9 +417,10 @@ is the first value - the leftmost bin edge with always be zero.</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>resampled_collocation_points</strong> (<em>np.ndarray</em>) – Collocation points, resampled as average over input <cite>x</cite> if data is present.</p></li>
-<li><p><strong>resampled_values</strong> (<em>np.ndarray</em>) – Resampled/averaged values.</p></li>
-<li><p><strong>resampled_variance</strong> (<em>np.ndarray</em>) – Variance of resampled data.</p></li>
+<li><p><strong>resampled_collocation_points</strong> (<em>np.ma.MaskedArray</em>) – Collocation points, resampled as average over input <cite>x</cite> if data is
+present. Bins without data are masked.</p></li>
+<li><p><strong>resampled_values</strong> (<em>np.ma.MaskedArray</em>) – Resampled/averaged values. Bins without data are masked.</p></li>
+<li><p><strong>resampled_variance</strong> (<em>np.ma.MaskedArray</em>) – Variance of resampled data. Bins without data are masked.</p></li>
 </ul>
 </p>
 </dd>
@@ -439,7 +474,7 @@ if not provided. (Default: None)</p></li>
 <li><p><strong>max_value</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum value, is automatically determined from the range of the data
 if not provided. (Default: None)</p></li>
 <li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
-(Default: None)</p></li>
+(Default: 10)</p></li>
 <li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be ‘bin-average’ for simple bin averaging and
 ‘gaussian-process’ for Gaussian process regression.
 (Default: ‘bin-average’)</p></li>
@@ -447,10 +482,13 @@ if not provided. (Default: None)</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – Points where the data has been collected.</p></li>
+<li><p><strong>collocation_points</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Points where the data has been collected. Returns masked array for
+‘bin-average’ method with bins without data masked.</p></li>
 <li><p><strong>bin_edges</strong> (<em>np.ndarray</em>) – Bin edges.</p></li>
-<li><p><strong>resampled_values</strong> (<em>np.ndarray</em>) – Resampled values.</p></li>
-<li><p><strong>resampled_variance</strong> (<em>np.ndarray</em>) – Variance of resampled data.</p></li>
+<li><p><strong>resampled_values</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Resampled values. Returns masked array for ‘bin-average’ method with
+bins without data masked.</p></li>
+<li><p><strong>resampled_variance</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Variance of resampled data. Returns masked array for ‘bin-average’
+method with bins without data masked.</p></li>
 </ul>
 </p>
 </dd>
@@ -480,7 +518,7 @@ to None. (Default: None)</p></li>
 <li><p><strong>max_radius</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum radius, is automatically determined from the range of the data
 if not provided. (Default: None)</p></li>
 <li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
-(Default: None)</p></li>
+(Default: 5)</p></li>
 <li><p><strong>full</strong> (<em>bool</em><em>, </em><em>optional</em>) – Number of quadrants contained in data.
 True: Full radial average from 0 to 2*pi.
 False: Only the one quarter of the full circle is present. Radial
@@ -493,10 +531,13 @@ average from 0 to pi/2.
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>collocation_points</strong> (<em>np.ndarray</em>) – Points where the data has been collected.</p></li>
+<li><p><strong>collocation_points</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Points where the data has been collected. Returns masked array for
+‘bin-average’ method with bins without data masked.</p></li>
 <li><p><strong>bin_edges</strong> (<em>np.ndarray</em>) – Bin edges.</p></li>
-<li><p><strong>resampled_values</strong> (<em>np.ndarray</em>) – Resampled values.</p></li>
-<li><p><strong>resampled_variance</strong> (<em>np.ndarray</em>) – Variance of resampled data.</p></li>
+<li><p><strong>resampled_values</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Resampled values. Returns masked array for ‘bin-average’ method with
+bins without data masked.</p></li>
+<li><p><strong>resampled_variance</strong> (<em>np.ndarray or np.ma.MaskedArray</em>) – Variance of resampled data. Returns masked array for ‘bin-average’
+method with bins without data masked.</p></li>
 </ul>
 </p>
 </dd>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
+  <title>Index &mdash; SurfaceTopography 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=83c99c83"></script>
+      <script src="_static/documentation_options.js?v=7026087e"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -126,6 +126,10 @@
         <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer.__init__">(SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile.__init__">(SurfaceTopography.Exceptions.MetadataAlreadyFixedByFile method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.__init__">(SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.Field.__init__">(SurfaceTopography.FFTTricks.NumpyFFTEngine.Field method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.__init__">(SurfaceTopography.HeightContainer.AbstractTopography method)</a>
 </li>
@@ -684,8 +688,16 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.fftfreq">fftfreq() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.fft">fft() (SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
 </li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.fftfreq">fftfreq (SurfaceTopography.FFTTricks.NumpyFFTEngine property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.fftfreq">fftfreq() (in module SurfaceTopography.FFTTricks)</a>
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.fftfreq">(in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+</li>
+      </ul></li>
       <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.file_extensions">file_extensions() (SurfaceTopography.Container.IO.Reader.ContainerReaderBase class method)</a>
 
       <ul>
@@ -716,10 +728,12 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.fourier_derivative">fourier_derivative() (in module SurfaceTopography.Uniform.Derivative)</a>
 </li>
-      <li><a href="source/SurfaceTopography.html#SurfaceTopography.Generation.fourier_synthesis">fourier_synthesis() (in module SurfaceTopography.Generation)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.fourier_space_field">fourier_space_field() (SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.Generation.fourier_synthesis">fourier_synthesis() (in module SurfaceTopography.Generation)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.FourierDerivative">FourierDerivative (class in SurfaceTopography.Uniform.Derivative)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography">FourierFilteredUniformTopography (class in SurfaceTopography.Uniform.Filtering)</a>
@@ -877,6 +891,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.IBW.IBWReader">IBWReader (class in SurfaceTopography.IO.IBW)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.If">If (class in SurfaceTopography.IO.Reader)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.ifft">ifft() (SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType.IMAGE">IMAGE (SurfaceTopography.IO.OIR.OirChunkType attribute)</a>
 </li>
@@ -1383,6 +1399,10 @@
         <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.Reader.ContainerReaderBase.nb_containers">(SurfaceTopography.Container.IO.Reader.ContainerReaderBase property)</a>
 </li>
       </ul></li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.nb_domain_grid_pts">nb_domain_grid_pts (SurfaceTopography.FFTTricks.NumpyFFTEngine property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.nb_fourier_grid_pts">nb_fourier_grid_pts (SurfaceTopography.FFTTricks.NumpyFFTEngine property)</a>
+</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.nb_grid_pts">nb_grid_pts (SurfaceTopography.HeightContainer.NonuniformLineScanInterface property)</a>
 
       <ul>
@@ -1435,7 +1455,13 @@
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.NoReliableDataError">NoReliableDataError</a>
 </li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.normalisation">normalisation (SurfaceTopography.FFTTricks.NumpyFFTEngine property)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader">NPYReader (class in SurfaceTopography.IO.NPY)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine">NumpyFFTEngine (class in SurfaceTopography.FFTTricks)</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.Field">NumpyFFTEngine.Field (class in SurfaceTopography.FFTTricks)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1477,6 +1503,8 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.Field.p">p (SurfaceTopography.FFTTricks.NumpyFFTEngine.Field property)</a>
+</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Metadata.InstrumentModel.parameters">parameters (SurfaceTopography.Metadata.InstrumentModel attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Text.AscReader.parse_data">parse_data() (SurfaceTopography.IO.Text.AscReader method)</a>
@@ -1557,10 +1585,10 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.PLUX.PLUXReader">PLUXReader (class in SurfaceTopography.IO.PLUX)</a>
 </li>
-      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.POIRReader">POIRReader (class in SurfaceTopography.IO.OIR)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.POIRReader">POIRReader (class in SurfaceTopography.IO.OIR)</a>
+</li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.polyfit">polyfit() (in module SurfaceTopography.Nonuniform.Detrending)</a>
 
       <ul>
@@ -1716,6 +1744,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase">ReaderBase (class in SurfaceTopography.IO.Reader)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.ReadFileError">ReadFileError</a>
+</li>
+      <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.real_space_field">real_space_field() (SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.ReentrantDataError">ReentrantDataError</a>
 </li>

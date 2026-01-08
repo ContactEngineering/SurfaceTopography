@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=83c99c83"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -1409,13 +1409,47 @@ boundaries.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.fftfreq">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">fftfreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.fftfreq" title="Link to this definition"></a></dt>
-<dd><p>computes and returns the grid of wavevectors corresponding to np.fft.fft</p>
+<dd><p>Compute and return the grid of wavevectors corresponding to np.fft.fft.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – Container with height information.</p></li>
+<li><p><strong>meshgrid</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, return wavevectors as a meshgrid for 2D topographies.
+If False, return separate 1D arrays. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>qx</strong> (<em>array_like</em>) – Wavevectors in the x-direction. (Units: 1/length)</p></li>
+<li><p><strong>qy</strong> (<em>array_like, optional</em>) – Wavevectors in the y-direction, only returned for 2D topographies.
+(Units: 1/length)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">wavevectors_norm2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Compute the norm (magnitude) of the wavevectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – Container with height information.</p></li>
+<li><p><strong>meshgrid</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, return wavevector norms as a meshgrid for 2D topographies.
+If False, the wavevectors are computed without meshgrid before taking
+the norm. (Default: True)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>q</strong> – Norm of the wavevectors. (Units: 1/length)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array_like</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 <section id="module-SurfaceTopography.Uniform.ScalarParameters">

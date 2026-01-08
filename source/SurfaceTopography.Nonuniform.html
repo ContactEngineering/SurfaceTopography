@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 1.19.2.dev24+gb6af688a7 documentation</title>
+  <title>SurfaceTopography.Nonuniform package &mdash; SurfaceTopography 0.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=83c99c83"></script>
+      <script src="../_static/documentation_options.js?v=7026087e"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -656,7 +656,7 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.dsinc">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">dsinc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.dsinc" title="Link to this definition"></a></dt>
-<dd><p>Derivative of the sinc function</p>
+<dd><p>Derivative of the sinc function, d/dx [sin(x)/x].</p>
 </dd></dl>
 
 <dl class="py function">
@@ -681,7 +681,23 @@ function is real-valued.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.apply_window">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Nonuniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">apply_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Apply a window function to height data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – Position array.</p></li>
+<li><p><strong>y</strong> (<em>array_like</em>) – Height array.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of window function. Supported: ‘hann’ or None. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>y_windowed</strong> – Height array with window applied.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array_like</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">
@@ -720,7 +736,7 @@ nonperiodic Topographies</p></li>
 <li><p><strong>resampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be None for no resampling (return on the grid of the
 data) ‘bin-average’ for simple bin averaging and ‘gaussian-process’
 for Gaussian process regression.
-(Default: None)</p></li>
+(Default: ‘bin-average’)</p></li>
 <li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Resampling grid. Specifying ‘log’ yields collocation points
 equally spaced on a log scale, ‘quadratic’ yields bins with
 similar number of data points and ‘linear’ yields linear bins.
@@ -730,13 +746,13 @@ ignored. (Default: ‘log’)</p></li>
 <li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
 to None. (Default: None)</p></li>
 <li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
-(Default: None)</p></li>
+(Default: 10)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>wavevectors</strong> (<em>array</em>) – Wavevector array at which the PSD has been computed. (Unit: length)</p></li>
-<li><p><strong>psd</strong> (<em>array</em>) – PSD values. (Unit: length**-3)</p></li>
+<li><p><strong>wavevectors</strong> (<em>array</em>) – Wavevector array at which the PSD has been computed. (Units: 1/length)</p></li>
+<li><p><strong>psd</strong> (<em>array</em>) – PSD values. (Units: length³)</p></li>
 </ul>
 </p>
 </dd>
