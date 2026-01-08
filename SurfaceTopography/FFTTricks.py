@@ -31,13 +31,34 @@ class NumpyFFTEngine:
     A numpy-based FFT engine for 1D topographies.
 
     muGrid FFTEngine only supports 2D and 3D grids, so we use this wrapper
-    for 1D line scans.
+    for 1D line scans. The interface mimics muGrid.FFTEngine for compatibility.
     """
 
+    # TODO: fix in muGrid expose direction from FFTEngine
+    class _CppShim:
+        """Shim to provide _cpp.fourier_* properties like muGrid.FFTEngine"""
+        def __init__(self, engine):
+            self._engine = engine
+
+        @property
+        def fourier_subdomain_locations(self):
+            """For serial 1D, Fourier subdomain starts at origin."""
+            return (0,)
+
+        @property
+        def nb_fourier_subdomain_grid_pts(self):
+            """For serial 1D, Fourier subdomain equals full Fourier domain."""
+            return self._engine.nb_fourier_grid_pts
+
     class Field:
-        """Simple field wrapper with .p accessor for pixel data."""
-        def __init__(self, data):
-            self._data = data
+        """
+        Field wrapper with .p accessor matching muGrid interface.
+
+        muGrid fields have shape (nb_components, *grid_pts), so for 1 component
+        and 1D grid, shape is (1, n). This allows field.p[0] to return the data.
+        """
+        def __init__(self, shape, dtype):
+            self._data = np.zeros((1,) + tuple(shape), dtype=dtype)
 
         @property
         def p(self):
@@ -55,6 +76,7 @@ class NumpyFFTEngine:
         self._normalisation = 1.0
         self._real_field = None
         self._fourier_field = None
+        self._cpp = self._CppShim(self)
 
     @property
     def nb_domain_grid_pts(self):
@@ -63,6 +85,16 @@ class NumpyFFTEngine:
     @property
     def nb_fourier_grid_pts(self):
         return (self._nb_fourier_pts,)
+
+    @property
+    def nb_subdomain_grid_pts(self):
+        """For serial 1D, subdomain equals full domain."""
+        return self._nb_grid_pts
+
+    @property
+    def subdomain_locations(self):
+        """For serial 1D, subdomain starts at origin."""
+        return (0,)
 
     @property
     def normalisation(self):
@@ -76,24 +108,24 @@ class NumpyFFTEngine:
         return (np.arange(n // 2 + 1) / n).reshape(1, -1)
 
     def real_space_field(self, name, nb_components=1):
-        """Create a real-space field."""
+        """Create a real-space field with muGrid-compatible interface."""
         if self._real_field is None:
-            self._real_field = self.Field(np.zeros(self._n, dtype=np.float64))
+            self._real_field = self.Field((self._n,), np.float64)
         return self._real_field
 
     def fourier_space_field(self, name, nb_components=1):
-        """Create a Fourier-space field."""
+        """Create a Fourier-space field with muGrid-compatible interface."""
         if self._fourier_field is None:
-            self._fourier_field = self.Field(np.zeros(self._nb_fourier_pts, dtype=np.complex128))
+            self._fourier_field = self.Field((self._nb_fourier_pts,), np.complex128)
         return self._fourier_field
 
     def fft(self, real_field, fourier_field):
         """Forward FFT: real space -> Fourier space."""
-        fourier_field.p[...] = np.fft.rfft(real_field.p)
+        fourier_field.p[0, ...] = np.fft.rfft(real_field.p[0])
 
     def ifft(self, fourier_field, real_field):
         """Inverse FFT: Fourier space -> real space."""
-        real_field.p[...] = np.fft.irfft(fourier_field.p, n=self._n)
+        real_field.p[0, ...] = np.fft.irfft(fourier_field.p[0], n=self._n)
 
 
 def fftfreq(fft):
