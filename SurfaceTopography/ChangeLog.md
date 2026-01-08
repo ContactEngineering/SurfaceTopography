@@ -10,6 +10,7 @@ v1.20.0 (08Jan26)
 - BUILD: DiscoverVersion is now used for version management (requires DiscoverVersion>=0.3.2)
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 - MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
+- MAINT: Pipeline functions now preserve docstrings and source code for IPython introspection
 - BUG: Fixed `open_topography` passing `communicator` to readers that don't support it
 
 v1.19.1 (19Aug25)

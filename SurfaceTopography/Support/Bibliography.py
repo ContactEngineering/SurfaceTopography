@@ -27,6 +27,8 @@
 Tracing bibliography through function calls.
 """
 
+from functools import wraps
+
 _default_dois = set()
 
 
@@ -62,6 +64,7 @@ class doi(object):
         self._add_these_dois = args
 
     def __call__(self, func):
+        @wraps(func)
         def func_with_doi(*args, **kwargs):
             if 'dois' in kwargs:
                 # `dois` is present. We store a reference to this set that
