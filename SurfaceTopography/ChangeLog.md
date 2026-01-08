@@ -9,6 +9,7 @@ v1.20.0 (08Jan26)
 - BUILD: Minimum muGrid version is now 0.103.0
 - BUILD: DiscoverVersion is now used for version management (requires DiscoverVersion>=0.3.2)
 - API: Added X3P writer (`topography.to_x3p()`) for ISO 5436-2 / ISO 25178-72 format
+- API: Added Gwyddion writer (`topography.to_gwy()`) for GWY format
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 - MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
 - MAINT: Pipeline functions now preserve docstrings and source code for IPython introspection
