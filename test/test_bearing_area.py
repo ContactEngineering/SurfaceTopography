@@ -248,3 +248,64 @@ def test_bounds_on_topography_with_missing_data(file_format_examples, fn):
     assert (bl <= b).all()
     assert (b <= bu).all()
     assert (b == b).all()  # np.nan != np.nan, so this will fail if there are NaNs
+
+
+# =============================================================================
+# Edge case tests for bearing area C++ extension
+# =============================================================================
+
+def test_bearing_area_all_same_height():
+    """All points at the same height - bearing area should be step function."""
+    h = np.full((10, 10), 5.0)
+    t = Topography(h, (1, 1))
+
+    ba = t.bearing_area()
+
+    # Below the height: bearing area = 1
+    assert ba(4.9) > 0.99
+    # Above the height: bearing area = 0
+    assert ba(5.1) < 0.01
+
+
+def test_bearing_area_single_point_linescan():
+    """Line scan with minimal points."""
+    from SurfaceTopography import UniformLineScan
+    h = np.array([0.0, 1.0])
+    t = UniformLineScan(h, 1.0, periodic=False)
+
+    ba = t.bearing_area()
+    heights = np.linspace(0, 1, 11)
+    P = ba(heights)
+
+    # Bearing area should decrease monotonically
+    assert (np.diff(P) <= 0).all()
+
+
+def test_bearing_area_negative_heights():
+    """Test bearing area with negative height values."""
+    h = np.array([[-2.0, -1.0], [0.0, 1.0]])
+    t = Topography(h, (1, 1))
+
+    ba = t.bearing_area()
+    heights = np.linspace(-2, 1, 31)
+    P = ba(heights)
+
+    # Should be monotonically decreasing
+    assert (np.diff(P) <= 0).all()
+    # Should go from ~1 to ~0
+    assert P[0] > 0.9
+    assert P[-1] < 0.1
+
+
+def test_bearing_area_large_topography():
+    """Test with larger topography to check for performance/overflow issues."""
+    np.random.seed(42)
+    h = np.random.randn(128, 128)
+    t = Topography(h, (10, 10))
+
+    ba = t.bearing_area()
+    heights = np.linspace(h.min(), h.max(), 50)
+    P = ba(heights)
+
+    # Should be monotonically decreasing
+    assert (np.diff(P) <= 0).all()
