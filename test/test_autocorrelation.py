@@ -251,8 +251,12 @@ def test_self_affine_uniform_autocorrelation():
 
     r, A = t.autocorrelation_from_profile()
 
-    m = np.logical_and(np.logical_and(r > 1e-3, r < 10 ** (-1.5)), np.isfinite(A))
-    b, a = np.polyfit(np.log(r[m]), np.log(A[m]), 1)
+    # A is a masked array - use the mask combined with value range filter
+    m = np.logical_and(r > 1e-3, r < 10 ** (-1.5))
+    if hasattr(A, 'mask'):
+        m = np.logical_and(m, ~A.mask)
+    b, a = np.polyfit(np.log(r[m].data if hasattr(r, 'data') else r[m]),
+                      np.log(A[m].data if hasattr(A, 'data') else A[m]), 1)
     assert abs(b / 2 - H) < 0.1
 
 
@@ -312,9 +316,10 @@ def test_self_affine_nonuniform_autocorrelation():
 def test_brute_force_vs_fft(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, 'xy-1.txt'))
     r, A = t.detrend().autocorrelation_from_profile()
-    m = np.isfinite(A)
-    r = r[m]
-    A = A[m]
+    # A is a masked array - use the mask to filter
+    m = ~A.mask if hasattr(A, 'mask') else np.isfinite(A)
+    r = r[m].data if hasattr(r, 'data') else r[m]
+    A = A[m].data if hasattr(A, 'data') else A[m]
     r2, A2 = t.detrend().autocorrelation_from_profile(algorithm='brute-force', distances=r, nb_interpolate=5,
                                                       reliable=False, resampling_method=None, short_cutoff=None)
     x = A[1:] / A2[1:]
@@ -344,7 +349,9 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
         plt.show()
 
     f = interp1d(r1, A1)
-    assert_allclose(A2[np.isfinite(A2)], f(r2[np.isfinite(A2)]), atol=1e-6)
+    # A2 and r2 are masked arrays - use the mask to filter out bins without data
+    valid = ~A2.mask
+    assert_allclose(A2[valid].data, f(r2[valid].data), atol=1e-6)
     # assert_allclose(A3, f(r3), atol=1e-4)
 
 

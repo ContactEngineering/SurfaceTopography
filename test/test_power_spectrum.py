@@ -29,17 +29,22 @@ Tests for power-spectral density analysis
 """
 
 import os
-import pytest
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_allclose
+import pytest
+from NuMPI import MPI
+from numpy.testing import assert_allclose, assert_almost_equal
 from scipy.interpolate import interp1d
 
-from NuMPI import MPI
-
-from SurfaceTopography import read_container, read_topography, UniformLineScan, NonuniformLineScan, Topography
+from SurfaceTopography import (
+    NonuniformLineScan,
+    Topography,
+    UniformLineScan,
+    read_container,
+    read_topography,
+)
 from SurfaceTopography.Generation import fourier_synthesis
-from SurfaceTopography.Nonuniform.PowerSpectrum import sinc, dsinc
+from SurfaceTopography.Nonuniform.PowerSpectrum import dsinc, sinc
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -198,10 +203,14 @@ def test_dsinc():
         assert_almost_equal(dsinc(x), (v1 - v2) / (2 * dx), decimal=5)
 
 
-def test_NaNs():
+def test_masked_values():
+    """Test that bins without data are masked instead of NaN."""
     surf = fourier_synthesis([1024, 512], [2, 1], 0.8, rms_slope=0.1)
     q, C = surf.power_spectrum_from_area(nb_points=1000)
-    assert np.isnan(C).sum() == 390
+    # Result should be a masked array
+    assert isinstance(C, np.ma.MaskedArray)
+    # 390 bins have no data and should be masked
+    assert C.mask.sum() == 390
 
 
 def test_brute_force_vs_fft(file_format_examples):
@@ -372,7 +381,9 @@ def test_resampling(nb_grid_pts, physical_sizes, plot=False):
         plt.show()
 
     f = interp1d(q1, C1)
-    assert_allclose(C2[np.isfinite(C2)], f(q2[np.isfinite(C2)]), atol=1e-6)
+    # C2 and q2 are masked arrays - use the mask to filter out bins without data
+    valid = ~C2.mask
+    assert_allclose(C2[valid].data, f(q2[valid].data), atol=1e-6)
     # assert_allclose(C3, f(q3), atol=1e-5)
 
 
@@ -393,8 +404,13 @@ def test_container_uniform(file_format_examples, plot=False):
             plt.loglog(*t.to_unit('um').power_spectrum_from_profile(), 'x-')
         plt.show()
 
-    assert_allclose(s, [np.nan, 7.694374e-02, 3.486013e-02, 8.882600e-04, 8.680968e-05, 3.947691e-06, 4.912031e-07,
-                        1.136185e-08, 1.466590e-09, 9.681977e-12, 4.609198e-21, np.nan], atol=1e-8)
+    # s is a masked array - check the mask and values
+    assert isinstance(s, np.ma.MaskedArray)
+    expected_mask = [True, False, False, False, False, False, False, False, False, False, False, True]
+    np.testing.assert_array_equal(s.mask, expected_mask)
+    expected_values = [7.694374e-02, 3.486013e-02, 8.882600e-04, 8.680968e-05, 3.947691e-06, 4.912031e-07,
+                       1.136185e-08, 1.466590e-09, 9.681977e-12, 4.609198e-21]
+    assert_allclose(s.compressed(), expected_values, atol=1e-8)
 
 
 # This test is just supposed to finish without an exception

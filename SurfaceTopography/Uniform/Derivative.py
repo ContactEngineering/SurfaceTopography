@@ -25,7 +25,7 @@
 
 """Compute derivatives of uniform line scans and topographies"""
 
-import muGrid
+import muGrid._muGrid
 import numpy as np
 
 from ..Exceptions import UndefinedDataError
@@ -101,7 +101,7 @@ class DiscreteDerivative:
         stencil : array_like
             The stencil array (coefficients).
         """
-        self._operator = muGrid.ConvolutionOperator(list(lbounds), stencil)
+        self._operator = muGrid._muGrid.ConvolutionOperator(list(lbounds), stencil)
 
     @property
     def lbounds(self):
@@ -111,12 +111,14 @@ class DiscreteDerivative:
     @property
     def stencil(self):
         """Return the stencil (coefficients) array."""
-        return np.asarray(self._operator.coefficients).reshape(self._operator.shape)
+        # Coefficients have shape (1, 1, 1, *stencil_shape) - extract the stencil
+        coeffs = np.asarray(self._operator.coefficients)
+        return coeffs.reshape(self._operator.stencil_shape)
 
     @property
     def shape(self):
         """Return the shape of the stencil."""
-        return self._operator.shape
+        return self._operator.stencil_shape
 
     def fourier(self, phase):
         """
