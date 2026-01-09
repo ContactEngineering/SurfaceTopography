@@ -44,7 +44,7 @@ from ..Support.UnitConversion import (
 )
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 def _read_null_terminated_string(f):
@@ -171,6 +171,14 @@ visualization and analysis software Gwyddion.
 """
 
     _MAGIC = b"GWYP"
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

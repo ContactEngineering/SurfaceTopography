@@ -34,7 +34,7 @@ import numpy as np
 from ..Exceptions import CorruptFile, FileFormatMismatch, UnsupportedFormatFeature
 from ..Support.UnitConversion import get_unit_conversion_factor
 from .binary import BinaryArray, BinaryStructure, Convert, RawBuffer, Validate
-from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase
+from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, MagicMatch
 
 
 class SURReader(DeclarativeReaderBase):
@@ -46,6 +46,16 @@ class SURReader(DeclarativeReaderBase):
     _description = """
 This reader imports Digital Surf SUR data files.
 """
+
+    _MAGIC = b"DIGITAL SURF"
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     _file_layout = CompoundLayout(
         [

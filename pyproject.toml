@@ -25,6 +25,22 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python"
 ]
+keywords = [
+    # General terms
+    "surface", "topography", "roughness", "profilometry", "profilometer",
+    "metrology", "surface-metrology", "AFM", "SPM", "confocal", "interferometer",
+    "stylus", "contact-mechanics", "tribology",
+    # Manufacturers / Instruments
+    "Alicona", "Bruker", "Dektak", "Wyko", "Veeco", "Digital-Instruments",
+    "Keyence", "Zygo", "MetroPro", "Sensofar", "Olympus", "LEXT",
+    "Park-Systems", "JPK", "NanoSurf", "Mitutoyo", "SurfTest",
+    "Agilent", "Molecular-Imaging", "MicroProf", "FRT",
+    # File formats
+    "X3P", "ISO-5436", "SUR", "OPD", "OPDx", "VK4", "VK6", "AL3D",
+    "GWY", "Gwyddion", "WSxM", "NetCDF", "HDF5", "IBW", "Igor",
+    # Data types
+    "height-map", "surface-profile", "line-scan", "SRTM"
+]
 requires-python = ">=3.10.0"
 dynamic = ["version"]
 dependencies = [

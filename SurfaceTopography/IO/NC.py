@@ -39,7 +39,7 @@ from ..NonuniformLineScan import NonuniformLineScan
 from ..Support.JSON import ExtendedJSONEncoder
 from ..Support.UnitConversion import mangle_length_unit_ascii, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 format_to_scipy_version = {"NETCDF3_CLASSIC": 1, "NETCDF3_64BIT_OFFSET": 2}
 
@@ -122,6 +122,22 @@ plt.pcolormesh(x, y, heights.T)
 plt.show()
 ```
 """
+
+    # Classic NetCDF magic (CDF format versions 1 and 2)
+    _MAGIC_CDF = b'CDF'
+    # HDF5 magic (for NetCDF4)
+    _MAGIC_HDF5 = b'\x89HDF\r\n\x1a\n'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_HDF5):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_CDF):
+            return MagicMatch.YES
+        if buffer.startswith(cls._MAGIC_HDF5):
+            # NetCDF4 is HDF5-based, return MAYBE to allow H5Reader fallback
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     def __init__(self, fobj, communicator=None):
         self._nc = None

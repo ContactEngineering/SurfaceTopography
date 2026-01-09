@@ -41,7 +41,7 @@ from NuMPI import MPI
 
 from ..Exceptions import FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class NPYReader(ReaderBase):
@@ -66,6 +66,16 @@ The reader expects a two-dimensional array and interprets it as a map of
 heights. Numpy arrays do not store units or physical sizes. These need to be
 manually provided by the user.
     """
+
+    _MAGIC = b'\x93NUMPY'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     def __init__(self, fobj, communicator=MPI.COMM_WORLD):
         """

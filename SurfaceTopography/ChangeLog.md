@@ -1,6 +1,14 @@
 Change log for SurfaceTopography
 ================================
 
+v1.21.0 (not yet released)
+--------------------------
+
+- BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
+- API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
+- ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
+- DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats
+
 v1.20.0 (08Jan26)
 -----------------
 

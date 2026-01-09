@@ -40,7 +40,7 @@ from ..HeightContainer import UniformTopographyInterface
 from ..Support.UnitConversion import get_unit_conversion_factor
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class X3PReader(ReaderBase):
@@ -68,6 +68,18 @@ data. The full specification of the format can be found
         "F": np.dtype("f4"),
         "D": np.dtype("f8"),
     }
+
+    # ZIP magic bytes (PK\x03\x04)
+    _MAGIC_ZIP = b'PK\x03\x04'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_ZIP):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_ZIP):
+            # ZIP file, could be X3P - need full parsing to confirm
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):

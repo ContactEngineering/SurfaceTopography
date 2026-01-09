@@ -27,6 +27,7 @@
 
 import abc
 import os
+from enum import Enum
 
 import numpy as np
 
@@ -35,6 +36,14 @@ from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
+
+
+class MagicMatch(Enum):
+    """Result of magic-based file format check."""
+
+    YES = "yes"  # Magic matches, this reader should work
+    NO = "no"  # Magic does NOT match, skip this reader
+    MAYBE = "maybe"  # Cannot determine from magic alone
 
 
 class ChannelInfo:
@@ -419,6 +428,29 @@ class ReaderBase(metaclass=abc.ABCMeta):
         if cls._description is None:
             raise RuntimeError("Reader does not provide a description string")
         return cls._description
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        """
+        Check if this reader can handle a file based on magic bytes.
+
+        This method performs a fast check using the first N bytes of a file
+        to determine if this reader can handle the format. It is used to
+        quickly reject incompatible formats during auto-detection.
+
+        Parameters
+        ----------
+        buffer : bytes
+            First N bytes of the file (typically 512 bytes).
+
+        Returns
+        -------
+        MagicMatch
+            YES if magic matches and this reader should work.
+            NO if magic does NOT match and this reader should be skipped.
+            MAYBE if cannot determine from magic alone (default).
+        """
+        return MagicMatch.MAYBE
 
     def __enter__(self):
         return self

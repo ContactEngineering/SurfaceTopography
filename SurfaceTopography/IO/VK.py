@@ -38,7 +38,7 @@ from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedBy
 from ..UniformLineScanAndTopography import Topography
 from .binary import decode
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class VKReader(ReaderBase):
@@ -62,6 +62,15 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
 
     _MAGIC6 = b"VK6"
     _MAGIC7 = b"VK7"
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        # VK3/VK4 have 4-byte magic, VK6/VK7 have 3-byte magic
+        if len(buffer) < 4:
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith((cls._MAGIC3, cls._MAGIC4, cls._MAGIC6, cls._MAGIC7)):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     _offset_table_structure = [
         ("setting", "I"),

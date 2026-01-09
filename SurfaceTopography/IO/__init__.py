@@ -68,7 +68,7 @@ from .OPDx import OPDxReader
 from .PLU import PLUReader
 from .PLUX import PLUXReader
 from .PS import PSReader
-from .Reader import ReaderBase  # noqa: F401
+from .Reader import MagicMatch, ReaderBase  # noqa: F401
 from .SUR import SURReader
 from .Text import AscReader
 from .VK import VKReader
@@ -122,6 +122,64 @@ for reader in readers:
     lookup_reader_by_format[reader.format()] = reader
 
 
+# Buffer size for magic-based format detection
+MAGIC_BUFFER_SIZE = 512
+
+
+def _read_magic_buffer(fobj):
+    """
+    Read the first N bytes of a file for magic-based format detection.
+
+    Parameters
+    ----------
+    fobj : str, file-like object, or callable
+        File path, file object, or callable that returns a file object.
+
+    Returns
+    -------
+    bytes
+        First MAGIC_BUFFER_SIZE bytes of the file.
+    """
+    # Handle callable (e.g., CEFileOpener that returns file handle when called)
+    if callable(fobj) and not hasattr(fobj, 'read'):
+        try:
+            f = fobj()
+            buffer = f.read(MAGIC_BUFFER_SIZE)
+            f.close()
+            return buffer if isinstance(buffer, bytes) else b''
+        except Exception:
+            return b''  # Fall back to full parsing on any error
+
+    if hasattr(fobj, 'read'):
+        # File-like object
+        # Check if file is in text mode - if so, we can't read binary magic
+        if hasattr(fobj, 'mode') and 'b' not in fobj.mode:
+            return b''  # Return empty buffer, fall back to full parsing
+        pos = fobj.tell() if hasattr(fobj, 'tell') else 0
+        try:
+            buffer = fobj.read(MAGIC_BUFFER_SIZE)
+            # If read returns a string, file is in text mode
+            if isinstance(buffer, str):
+                if hasattr(fobj, 'seek'):
+                    fobj.seek(pos)
+                return b''  # Return empty buffer, fall back to full parsing
+        except UnicodeDecodeError:
+            # Binary content in text-mode file
+            if hasattr(fobj, 'seek'):
+                fobj.seek(pos)
+            return b''  # Return empty buffer, fall back to full parsing
+        if hasattr(fobj, 'seek'):
+            fobj.seek(pos)
+        return buffer
+    else:
+        # File path (string or PathLike)
+        try:
+            with open(fobj, 'rb') as f:
+                return f.read(MAGIC_BUFFER_SIZE)
+        except (TypeError, OSError):
+            return b''  # Fall back to full parsing on any error
+
+
 def detect_format(fobj, comm=None):
     """
     Detect file format based on its content.
@@ -131,8 +189,17 @@ def detect_format(fobj, comm=None):
     fobj : filename or file object
     comm : mpi communicator, optional
     """
+    # Read magic buffer once for fast pre-filtering
+    magic_buffer = _read_magic_buffer(fobj)
+
     msg = ""
     for reader in readers:
+        # Fast magic-based rejection
+        magic_result = reader.can_read(magic_buffer)
+        if magic_result == MagicMatch.NO:
+            continue  # Skip this reader
+
+        # Try full instantiation
         try:
             if comm is not None:
                 reader(fobj, comm)
@@ -242,8 +309,16 @@ def open_topography(fobj, format=None, communicator=None):
             raise FileExistsError("file {} not found".format(fobj))
 
     if format is None:
+        # Read magic buffer once for fast pre-filtering
+        magic_buffer = _read_magic_buffer(fobj)
+
         msg = ""
         for reader in readers:
+            # Fast magic-based rejection
+            magic_result = reader.can_read(magic_buffer)
+            if magic_result == MagicMatch.NO:
+                continue  # Skip this reader
+
             kwargs = {}
             if communicator is not None and reader_accepts_communicator(reader):
                 kwargs["communicator"] = communicator
