@@ -29,7 +29,7 @@ distribution function of the surface heights.
 
 from functools import cached_property
 
-import _SurfaceTopographyPP
+import _SurfaceTopography
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
@@ -107,11 +107,11 @@ class Uniform1DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._h, self._is_periodic,
-                                                               np.array([heights], dtype=float))[0]
+            return _SurfaceTopography.uniform1d_bearing_area(self._h, self._is_periodic,
+                                                             np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._h, self._is_periodic,
-                                                               heights.astype(float))
+            return _SurfaceTopography.uniform1d_bearing_area(self._h, self._is_periodic,
+                                                             heights.astype(float))
 
 
 class Uniform2DBearingArea(UniformBearingArea):
@@ -167,11 +167,11 @@ class Uniform2DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._h, self._is_periodic,
-                                                               np.array([heights], dtype=float))[0]
+            return _SurfaceTopography.uniform2d_bearing_area(self._h, self._is_periodic,
+                                                             np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._h, self._is_periodic,
-                                                               heights.astype(float))
+            return _SurfaceTopography.uniform2d_bearing_area(self._h, self._is_periodic,
+                                                             heights.astype(float))
 
 
 def bearing_area(self, heights=None):
