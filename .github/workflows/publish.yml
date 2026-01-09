@@ -24,11 +24,10 @@ jobs:
             python3-dev \
             python3-pip \
             python3-venv \
-            meson \
             ninja-build
           python3 -m venv ../venv
           source ../venv/bin/activate
-          pip install build DiscoverVersion
+          pip install build meson meson-python numpy DiscoverVersion
 
       - name: Get version from DiscoverVersion
         id: get_version
@@ -39,9 +38,7 @@ jobs:
       - name: Build package
         run: |
           source ../venv/bin/activate
-          python3 -m build . -s
-        env:
-          DISCOVER_VERSION: ${{ steps.get_version.outputs.version }}
+          python3 -m build . -s --no-isolation
 
       - name: Install extension module
         run: |

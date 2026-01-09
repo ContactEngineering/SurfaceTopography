@@ -1,10 +1,9 @@
 Change log for SurfaceTopography
 ================================
 
-v1.21.0 (09Jan26)
+v1.20.0 (09Jan26)
 -----------------
 
-- BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
 - API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
 - API: Added `scan_line_align()` pipeline function for line-by-line polynomial correction of AFM scan data (supports variable polynomial degree for scanner bow correction)
 - API: Added `DataKind` enum and stable `channel_id` identifier for file reader channelsNo
@@ -12,23 +11,20 @@ v1.21.0 (09Jan26)
 - API: Added `height_channels` property to readers for backwards-compatible access to height data channels only
 - API: Added `height_index_to_channel_id()` and `channel_id_to_height_index()` utility methods for database migration
 - API: `ChannelInfo` now has `data_kind`, `data_unit`, `lateral_unit`, `is_height_channel`, `channel_id`, and `height_index` properties
+- API: Added X3P writer (`topography.to_x3p()`) for ISO 5436-2 / ISO 25178-72 format
+- API: Added Gwyddion writer (`topography.to_gwy()`) for GWY format
 - ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
 - DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats
 - BUG: SurfaceContainer `autocorrelation`, `power_spectrum`, and `variable_bandwidth` methods now have proper docstrings
-
-v1.20.0 (08Jan26)
------------------
-
+- BUG: Fixed `open_topography` passing `communicator` to readers that don't support it
+- BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
 - BUILD: Removed support for Python 3.9; minimum Python version is now 3.10
 - BUILD: Added support for Python 3.14
 - BUILD: Minimum muGrid version is now 0.103.0
 - BUILD: DiscoverVersion is now used for version management (requires DiscoverVersion>=0.3.2)
-- API: Added X3P writer (`topography.to_x3p()`) for ISO 5436-2 / ISO 25178-72 format
-- API: Added Gwyddion writer (`topography.to_gwy()`) for GWY format
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 - MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
 - MAINT: Pipeline functions now preserve docstrings and source code for IPython introspection
-- BUG: Fixed `open_topography` passing `communicator` to readers that don't support it
 
 v1.19.1 (19Aug25)
 -----------------
