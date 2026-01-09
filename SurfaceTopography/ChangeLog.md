@@ -1,8 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
-v1.21.0 (not yet released)
---------------------------
+v1.21.1 (09Jan26)
+-----------------
+
+- BUILD: Fixed CI publication workflow
+
+v1.21.0 (09Jan26)
+-----------------
 
 - BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
 - API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
