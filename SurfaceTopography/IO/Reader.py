@@ -27,6 +27,7 @@
 
 import abc
 import os
+from enum import Enum
 
 import numpy as np
 
@@ -35,6 +36,28 @@ from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
+
+
+class MagicMatch(Enum):
+    """Result of magic-based file format check."""
+
+    YES = "yes"  # Magic matches, this reader should work
+    NO = "no"  # Magic does NOT match, skip this reader
+    MAYBE = "maybe"  # Cannot determine from magic alone
+
+
+class DataKind(Enum):
+    """Kind of data stored in a channel."""
+
+    HEIGHT = "height"          # Topography height data
+    VOLTAGE = "voltage"        # Piezo voltage, bias voltage, etc.
+    CURRENT = "current"        # Tunneling current (STM), etc.
+    PHASE = "phase"            # AFM phase data
+    AMPLITUDE = "amplitude"    # AFM amplitude data
+    ERROR = "error"            # Error signal
+    DEFLECTION = "deflection"  # Cantilever deflection
+    FRICTION = "friction"      # Friction/lateral force
+    OTHER = "other"            # Generic non-height data
 
 
 class ChannelInfo:
@@ -55,6 +78,8 @@ class ChannelInfo:
         uniform=None,
         undefined_data=None,
         unit=None,
+        data_kind=None,
+        data_unit=None,
         info={},
         tags={},
     ):
@@ -90,7 +115,14 @@ class ChannelInfo:
         has_undefined_data : bool, optional
             Underlying data has missing/undefined points.
         unit : str, optional
-            Length unit of measurement.
+            Length unit of measurement (lateral dimensions).
+        data_kind : DataKind, optional
+            Kind of data stored in this channel (HEIGHT, VOLTAGE, etc.).
+            Defaults to HEIGHT if not specified.
+        data_unit : str, optional
+            Unit for data values (z-axis). For height channels, this is
+            typically the same as unit. For non-height channels, this could
+            be 'V', 'A', 'deg', etc.
         info : dict, optional
             Meta data found in the file. (Default: {})
         tags : dict, optional
@@ -111,6 +143,11 @@ class ChannelInfo:
         self._uniform = uniform
         self._undefined_data = undefined_data
         self._unit = unit
+        self._data_kind = data_kind if data_kind is not None else DataKind.HEIGHT
+        self._data_unit = data_unit
+        # These will be set by reader._finalize_channels()
+        self._channel_id = None
+        self._height_index = None
         if info is None:
             self._info = InfoModel()
         else:
@@ -121,7 +158,7 @@ class ChannelInfo:
             self._tags = tags.copy()
 
     def __eq__(self, other):
-        # We do not compare tags
+        # We do not compare tags, channel_id, or height_index
         return (
             self.index == other.index
             and self.name == other.name
@@ -133,6 +170,8 @@ class ChannelInfo:
             and self.is_uniform == other.is_uniform
             and self.has_undefined_data == other.has_undefined_data
             and self.unit == other.unit
+            and self.data_kind == other.data_kind
+            and self.data_unit == other.data_unit
             and self.info == other.info
         )
 
@@ -319,9 +358,134 @@ class ChannelInfo:
     @property
     def unit(self):
         """
-        Length unit.
+        Length unit for lateral dimensions (x, y).
+
+        This is the unit for physical_sizes. For height channels, this is
+        typically also the unit of the height data. For non-height channels,
+        see data_unit for the unit of the data values.
         """
         return self._unit
+
+    @property
+    def lateral_unit(self):
+        """
+        Length unit for lateral dimensions (x, y).
+
+        Alias for `unit` property.
+        """
+        return self._unit
+
+    @property
+    def data_kind(self):
+        """
+        Kind of data stored in this channel.
+
+        Returns
+        -------
+        DataKind
+            The kind of data (HEIGHT, VOLTAGE, CURRENT, PHASE, etc.)
+        """
+        return self._data_kind
+
+    @property
+    def data_unit(self):
+        """
+        Unit for data values (z-axis).
+
+        For height channels, this returns the lateral unit if no specific
+        data unit was provided (since height is typically in the same unit
+        as lateral dimensions). For non-height channels, this could be
+        'V', 'A', 'deg', etc.
+
+        Returns
+        -------
+        str or None
+            Unit string for the data values.
+        """
+        if self._data_unit is None and self._data_kind == DataKind.HEIGHT:
+            return self._unit
+        return self._data_unit
+
+    @property
+    def is_height_channel(self):
+        """
+        Return whether this channel contains height data.
+
+        Returns
+        -------
+        bool
+            True if this is a height channel, False otherwise.
+        """
+        return self._data_kind == DataKind.HEIGHT
+
+    @property
+    def channel_id(self):
+        """
+        Stable unique string identifier for this channel.
+
+        This ID is stable across different reads of the same file and does
+        not depend on channel ordering. Format is '{name}' if the name is
+        unique, or '{name}#{n}' if there are multiple channels with the
+        same name.
+
+        Returns
+        -------
+        str
+            Stable channel identifier.
+        """
+        if self._channel_id is None:
+            # Compute channel_id lazily by looking at all channels
+            self._compute_id_and_height_index()
+        return self._channel_id
+
+    def _compute_id_and_height_index(self):
+        """Compute channel_id and height_index by looking at reader's channels."""
+        channels = self._reader.channels
+        # Count channels with the same name before this one
+        name_counts = {}
+        height_idx = 0
+        for ch in channels:
+            ch_name = ch.name
+            if ch_name not in name_counts:
+                name_counts[ch_name] = 0
+            if ch is self:
+                # Found ourselves
+                count = name_counts[ch_name]
+                if count == 0:
+                    # Check if there are more channels with this name after us
+                    has_duplicate = any(
+                        c.name == ch_name for c in channels if c is not self
+                    )
+                    if has_duplicate:
+                        self._channel_id = f"{ch_name}#1"
+                    else:
+                        self._channel_id = ch_name
+                else:
+                    self._channel_id = f"{ch_name}#{count + 1}"
+                if self.is_height_channel:
+                    self._height_index = height_idx
+                break
+            name_counts[ch_name] += 1
+            if ch.is_height_channel:
+                height_idx += 1
+
+    @property
+    def height_index(self):
+        """
+        Index among height channels only.
+
+        This provides backwards compatibility for code that expects channels
+        to be indexed only among height data. Non-height channels return None.
+
+        Returns
+        -------
+        int or None
+            Index among height channels, or None for non-height channels.
+        """
+        if self._height_index is None and self.is_height_channel:
+            # Compute lazily if not set
+            self._compute_id_and_height_index()
+        return self._height_index
 
     @property
     def info(self) -> dict:
@@ -420,6 +584,29 @@ class ReaderBase(metaclass=abc.ABCMeta):
             raise RuntimeError("Reader does not provide a description string")
         return cls._description
 
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        """
+        Check if this reader can handle a file based on magic bytes.
+
+        This method performs a fast check using the first N bytes of a file
+        to determine if this reader can handle the format. It is used to
+        quickly reject incompatible formats during auto-detection.
+
+        Parameters
+        ----------
+        buffer : bytes
+            First N bytes of the file (typically 512 bytes).
+
+        Returns
+        -------
+        MagicMatch
+            YES if magic matches and this reader should work.
+            NO if magic does NOT match and this reader should be skipped.
+            MAYBE if cannot determine from magic alone (default).
+        """
+        return MagicMatch.MAYBE
+
     def __enter__(self):
         return self
 
@@ -429,6 +616,183 @@ class ReaderBase(metaclass=abc.ABCMeta):
     def close(self):
         pass
 
+    def _get_channel_by_id(self, channel_id):
+        """
+        Find a channel by its stable channel ID.
+
+        Parameters
+        ----------
+        channel_id : str
+            The stable channel identifier.
+
+        Returns
+        -------
+        ChannelInfo
+            The channel with the given ID.
+
+        Raises
+        ------
+        ValueError
+            If no channel with the given ID is found.
+        """
+        for ch in self.channels:
+            if ch.channel_id == channel_id:
+                return ch
+        raise ValueError(f"No channel with id '{channel_id}' found.")
+
+    def _get_channel_by_height_index(self, height_index):
+        """
+        Find a channel by its height index (index among height channels only).
+
+        Parameters
+        ----------
+        height_index : int
+            Index among height channels.
+
+        Returns
+        -------
+        ChannelInfo
+            The height channel at the given index.
+
+        Raises
+        ------
+        ValueError
+            If no height channel with the given index is found.
+        """
+        for ch in self.channels:
+            if ch.height_index == height_index:
+                return ch
+        raise ValueError(f"No height channel with height_index {height_index} found.")
+
+    def height_index_to_channel_id(self, height_index):
+        """
+        Convert a height channel index to a stable channel ID.
+
+        This utility function is useful for migrating databases that stored
+        channel references using the old height-only index system to the new
+        stable channel_id system.
+
+        Parameters
+        ----------
+        height_index : int
+            Index among height channels (0-based).
+
+        Returns
+        -------
+        str
+            The stable channel_id for the height channel at that index.
+
+        Raises
+        ------
+        ValueError
+            If no height channel exists at the given index.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> # Migrate old database entry
+        >>> old_index = 0  # stored in database
+        >>> new_id = reader.height_index_to_channel_id(old_index)
+        >>> # Store new_id in database instead
+        """
+        channel = self._get_channel_by_height_index(height_index)
+        return channel.channel_id
+
+    def channel_id_to_height_index(self, channel_id):
+        """
+        Convert a stable channel ID to a height channel index.
+
+        This utility function can be used to convert channel IDs back to
+        height indices for backwards compatibility with systems that
+        require numeric indices.
+
+        Parameters
+        ----------
+        channel_id : str
+            The stable channel identifier.
+
+        Returns
+        -------
+        int
+            The height index for the channel with that ID.
+
+        Raises
+        ------
+        ValueError
+            If no channel with the given ID is found, or if the channel
+            is not a height channel.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> height_idx = reader.channel_id_to_height_index("Height")
+        """
+        channel = self._get_channel_by_id(channel_id)
+        if not channel.is_height_channel:
+            raise ValueError(
+                f"Channel '{channel_id}' is not a height channel and has no "
+                f"height_index. Its data_kind is {channel.data_kind.value}."
+            )
+        return channel.height_index
+
+    def _resolve_channel(self, channel_index=None, channel_id=None,
+                         height_channel_index=None):
+        """
+        Resolve channel from any of the three selection methods.
+
+        This helper method validates that at most one selection method is used
+        and returns the appropriate channel. If no selection is provided,
+        returns the default channel.
+
+        Parameters
+        ----------
+        channel_index : int, optional
+            Index into the full channels list.
+        channel_id : str, optional
+            Stable channel identifier string.
+        height_channel_index : int, optional
+            Index among height channels only.
+
+        Returns
+        -------
+        tuple
+            (channel_info, resolved_channel_index) where channel_info is the
+            ChannelInfo object and resolved_channel_index is the index into
+            the full channels list.
+
+        Raises
+        ------
+        ValueError
+            If more than one selection method is provided.
+        """
+        # Count how many selection methods are provided
+        n_specified = sum(x is not None for x in
+                          [channel_index, channel_id, height_channel_index])
+        if n_specified > 1:
+            raise ValueError(
+                "Only one of channel_index, channel_id, or height_channel_index "
+                "should be specified, but multiple were provided."
+            )
+
+        if channel_id is not None:
+            # Look up by stable ID
+            channel_info = self._get_channel_by_id(channel_id)
+            resolved_index = self.channels.index(channel_info)
+        elif height_channel_index is not None:
+            # Look up by height channel index (backwards compatible)
+            channel_info = self._get_channel_by_height_index(height_channel_index)
+            resolved_index = self.channels.index(channel_info)
+        elif channel_index is not None:
+            # Direct index into channels list
+            resolved_index = channel_index
+            channel_info = self.channels[resolved_index]
+        else:
+            # Use default channel
+            resolved_index = self._default_channel_index
+            channel_info = self.channels[resolved_index]
+
+        return channel_info, resolved_index
+
     @property
     @abc.abstractmethod
     def channels(self):
@@ -437,6 +801,16 @@ class ReaderBase(metaclass=abc.ABCMeta):
         channels.
         """
         raise NotImplementedError
+
+    @property
+    def height_channels(self):
+        """
+        Returns a list of :obj:`ChannelInfo`s for height channels only.
+
+        This provides backwards compatibility for code that expects only
+        height data channels.
+        """
+        return [ch for ch in self.channels if ch.is_height_channel]
 
     @property
     def default_channel(self):
@@ -475,6 +849,8 @@ class ReaderBase(metaclass=abc.ABCMeta):
     def topography(
         self,
         channel_index=None,
+        channel_id=None,
+        height_channel_index=None,
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
@@ -497,11 +873,28 @@ class ReaderBase(metaclass=abc.ABCMeta):
         if the metadata is present by inspecting the `ChannelInfo` of the
         respective data channel.
 
+        There are three ways to specify which channel to load:
+        1. `channel_index`: Index into the full channels list (all data types)
+        2. `channel_id`: Stable string identifier (e.g., "Height", "Phase#2")
+        3. `height_channel_index`: Index among height channels only (backwards
+           compatible with pre-existing database indices)
+
+        Only one of these parameters should be specified. If none are given,
+        the default channel is loaded.
+
         Arguments
         ---------
         channel_index : int
             Index of the channel to load. See also `channels` method.
-            (Default: None, which load the default channel)
+            (Default: None, which loads the default channel)
+        channel_id : str
+            Stable channel identifier string. This is the recommended way to
+            identify channels for storage in databases as it remains stable
+            even if channel ordering changes.
+        height_channel_index : int
+            Index among height channels only. This provides backwards
+            compatibility for databases that stored channel indices before
+            non-height channels were supported.
         physical_sizes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
@@ -536,6 +929,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
             Raised if `physical_sizes`, `unit or `height_scale_factor` have
             already been defined in the file, because they should not be
             overridden by the user.
+        ValueError
+            Raised if more than one channel selection parameter is provided,
+            or if the specified channel cannot be found.
         """
         raise NotImplementedError
 

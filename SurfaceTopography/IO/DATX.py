@@ -28,12 +28,15 @@
 import h5py
 import numpy as np
 
-from ..Exceptions import (CorruptFile, FileFormatMismatch,
-                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
-from ..Support.UnitConversion import (get_unit_conversion_factor,
-                                      mangle_length_unit_utf8)
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class DATXReader(ReaderBase):
@@ -45,6 +48,18 @@ class DATXReader(ReaderBase):
     _description = '''
 Import filter for Zygo DATX, an HDF5-based format.
     '''  # noqa: E501
+
+    # HDF5 magic bytes
+    _MAGIC_HDF5 = b'\x89HDF\r\n\x1a\n'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_HDF5):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_HDF5):
+            # HDF5 file, could be DATX - need full parsing to confirm
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     def __init__(self, fobj):
         self._fobj = fobj

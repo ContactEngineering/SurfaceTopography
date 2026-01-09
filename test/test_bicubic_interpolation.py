@@ -27,13 +27,12 @@
 Tests for the bicubic interpolation module
 """
 
-import pytest
 import numpy as np
-
+import pytest
 from NuMPI import MPI
 
-from SurfaceTopography.Support.Interpolation import Bicubic
 from SurfaceTopography.Generation import fourier_synthesis
+from SurfaceTopography.Support.Interpolation import Bicubic
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -188,3 +187,96 @@ def test_wrapped_bicubic_vs_fourier(sx, sy):
     np.testing.assert_allclose(interp_slopey, dery, atol=1e-1 * rms_slope)
 
 # TODO: check 2nd order derivatives of the wrapper against some function
+
+
+# =============================================================================
+# Edge case tests for Bicubic C extension
+# =============================================================================
+
+def test_bicubic_constant_field():
+    """Bicubic interpolation of constant field should return constant."""
+    field = np.full((10, 10), 3.14)
+    interp = Bicubic(field)
+
+    # Test at various points
+    for x in [0.5, 2.3, 5.7, 8.9]:
+        for y in [0.5, 2.3, 5.7, 8.9]:
+            assert abs(interp(x, y) - 3.14) < 1e-10
+
+
+def test_bicubic_2x2_grid():
+    """Test minimum grid size (2x2)."""
+    field = np.array([[0.0, 1.0], [1.0, 2.0]])
+    interp = Bicubic(field)
+
+    # At corners
+    assert abs(interp(0, 0) - 0.0) < 1e-10
+    assert abs(interp(0, 1) - 1.0) < 1e-10
+    assert abs(interp(1, 0) - 1.0) < 1e-10
+    assert abs(interp(1, 1) - 2.0) < 1e-10
+
+
+def test_bicubic_at_boundaries():
+    """Test interpolation at exact boundary points."""
+    np.random.seed(42)
+    field = np.random.random((5, 6))
+    interp = Bicubic(field)
+
+    # Test all corner points
+    assert abs(interp(0, 0) - field[0, 0]) < 1e-10
+    assert abs(interp(4, 0) - field[4, 0]) < 1e-10
+    assert abs(interp(0, 5) - field[0, 5]) < 1e-10
+    assert abs(interp(4, 5) - field[4, 5]) < 1e-10
+
+
+def test_bicubic_large_array():
+    """Test with large array for performance/memory issues."""
+    np.random.seed(42)
+    field = np.random.random((100, 100))
+    interp = Bicubic(field)
+
+    # Test a few points
+    val = interp(50.5, 50.5)
+    assert np.isfinite(val)
+
+
+def test_bicubic_smooth_function():
+    """Bicubic should accurately interpolate smooth functions."""
+    nx, ny = 20, 20
+
+    def f(x, y):
+        return np.sin(x / 5) * np.cos(y / 5)
+
+    x, y = np.meshgrid(np.arange(nx), np.arange(ny), indexing='ij')
+    field = f(x, y)
+    interp = Bicubic(field)
+
+    # Test at non-grid points
+    for test_x in [3.3, 7.7, 12.1]:
+        for test_y in [4.4, 9.9, 14.5]:
+            interp_val = interp(test_x, test_y)
+            exact_val = f(test_x, test_y)
+            # Should be close for smooth function
+            assert abs(interp_val - exact_val) < 0.1
+
+
+def test_bicubic_derivatives_at_grid_points():
+    """Test that derivatives are computed correctly at grid points."""
+    np.random.seed(42)
+    field = np.random.random((10, 10))
+    derx = np.zeros_like(field)
+    dery = np.zeros_like(field)
+
+    # Estimate derivatives using finite differences
+    derx[1:-1, :] = (field[2:, :] - field[:-2, :]) / 2
+    dery[:, 1:-1] = (field[:, 2:] - field[:, :-2]) / 2
+
+    interp = Bicubic(field, derx, dery)
+
+    # Check that derivatives at grid points match input using array inputs
+    x = np.array([[5]])
+    y = np.array([[5]])
+    val, dx, dy = interp(x, y, derivative=1)
+    assert abs(val[0, 0] - field[5, 5]) < 1e-10
+    assert abs(dx[0, 0] - derx[5, 5]) < 1e-10
+    assert abs(dy[0, 0] - dery[5, 5]) < 1e-10

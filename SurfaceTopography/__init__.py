@@ -38,6 +38,7 @@ import SurfaceTopography.Generic.ScanningProbe  # noqa: F401
 import SurfaceTopography.Generic.Slope  # noqa: F401
 import SurfaceTopography.Nonuniform.Autocorrelation  # noqa: F401
 import SurfaceTopography.Nonuniform.BearingArea  # noqa: F401
+
 # import SurfaceTopography.Models # noqa: F401
 import SurfaceTopography.Nonuniform.common  # noqa: F401
 import SurfaceTopography.Nonuniform.Converters  # noqa: F401
@@ -61,10 +62,14 @@ import SurfaceTopography.Uniform.Integration  # noqa: F401
 import SurfaceTopography.Uniform.Interpolation  # noqa: F401
 import SurfaceTopography.Uniform.PowerSpectrum  # noqa: F401
 import SurfaceTopography.Uniform.ScalarParameters  # noqa: F401
+import SurfaceTopography.Uniform.ScanLineAlignment  # noqa: F401
 import SurfaceTopography.Uniform.VariableBandwidth  # noqa: F401
 
-from .Container import (open_container, read_container,  # noqa: F401
-                        read_published_container)
+from .Container import (  # noqa: F401
+    open_container,
+    read_container,
+    read_published_container,
+)
 from .IO import open_topography, read_topography  # noqa: F401
 from .NonuniformLineScan import NonuniformLineScan  # noqa: F401
 from .Special import PlasticTopography, make_sphere  # noqa: F401

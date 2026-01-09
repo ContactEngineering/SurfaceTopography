@@ -15,6 +15,7 @@ python_sources = [
     'Interpolation.py',
     'PowerSpectrum.py',
     'ScalarParameters.py',
+    'ScanLineAlignment.py',
     'VariableBandwidth.py',
     'Integration.py'
 ]

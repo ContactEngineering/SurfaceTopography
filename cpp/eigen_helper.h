@@ -29,5 +29,7 @@ SOFTWARE.
 
 using ArrayXl = Eigen::Array<long, Eigen::Dynamic, 1>;
 using RowMajorXXd = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using RowMajorXXi = Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using RowMajorXXb = Eigen::Array<bool, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 #endif

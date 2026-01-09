@@ -246,6 +246,8 @@ The reader supports V4.3 and later version of the format.
     def topography(
         self,
         channel_index=None,
+        channel_id=None,
+        height_channel_index=None,
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
@@ -254,15 +256,14 @@ The reader supports V4.3 and later version of the format.
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
     ):
-
-        if channel_index is None:
-            channel_index = self._default_channel_index
+        channel, channel_index = self._resolve_channel(
+            channel_index, channel_id, height_channel_index
+        )
 
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError("This reader does not support MPI parallelization.")
 
         with OpenFromAny(self._file_path, "rb") as fobj:
-            channel = self._channels[channel_index]
 
             if unit is not None:
                 raise MetadataAlreadyFixedByFile("unit")

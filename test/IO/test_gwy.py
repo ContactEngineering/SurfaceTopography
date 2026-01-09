@@ -23,12 +23,13 @@
 #
 
 import os
+import tempfile
 
 import numpy as np
 import pytest
 from NuMPI import MPI
 
-from SurfaceTopography import read_topography
+from SurfaceTopography import Topography, read_topography
 from SurfaceTopography.IO import GWYReader
 
 pytestmark = pytest.mark.skipif(
@@ -88,3 +89,106 @@ def test_gwyddion_undefined(file_format_examples):
     nx, ny = t.nb_grid_pts
     assert nx == 1000
     assert ny == 1000
+
+
+# =============================================================================
+# Writer tests
+# =============================================================================
+
+def test_write_gwy_roundtrip():
+    """Test writing and reading back a topography preserves data."""
+    np.random.seed(42)
+    heights = np.random.randn(50, 60)
+    t = Topography(heights, (1e-3, 1.2e-3), unit='m')
+
+    with tempfile.NamedTemporaryFile(suffix='.gwy', delete=False) as f:
+        fname = f.name
+
+    try:
+        t.to_gwy(fname)
+        t2 = read_topography(fname)
+
+        assert t2.nb_grid_pts == t.nb_grid_pts
+        np.testing.assert_allclose(t2.physical_sizes, t.physical_sizes, rtol=1e-10)
+        assert t2.unit == 'm'
+        np.testing.assert_allclose(t2.heights(), t.heights(), rtol=1e-10)
+    finally:
+        os.unlink(fname)
+
+
+def test_write_gwy_with_mask():
+    """Test that masked data is preserved."""
+    np.random.seed(42)
+    heights = np.random.randn(30, 40)
+    mask = np.zeros((30, 40), dtype=bool)
+    mask[10:20, 15:25] = True
+    heights_masked = np.ma.array(heights, mask=mask)
+
+    t = Topography(heights_masked, (100, 120), unit='um')
+
+    with tempfile.NamedTemporaryFile(suffix='.gwy', delete=False) as f:
+        fname = f.name
+
+    try:
+        t.to_gwy(fname)
+        t2 = read_topography(fname)
+
+        assert t2.has_undefined_data
+        m1 = np.ma.getmask(t.heights())
+        m2 = np.ma.getmask(t2.heights())
+        np.testing.assert_array_equal(m1, m2)
+    finally:
+        os.unlink(fname)
+
+
+def test_write_gwy_unit_conversion():
+    """Test that different units work correctly."""
+    np.random.seed(42)
+    heights = np.random.randn(20, 25)
+    t = Topography(heights, (50, 60), unit='um')
+
+    with tempfile.NamedTemporaryFile(suffix='.gwy', delete=False) as f:
+        fname = f.name
+
+    try:
+        t.to_gwy(fname)
+        t2 = read_topography(fname)
+
+        np.testing.assert_allclose(t2.physical_sizes, t.physical_sizes, rtol=1e-10)
+        np.testing.assert_allclose(t2.heights(), t.heights(), rtol=1e-10)
+    finally:
+        os.unlink(fname)
+
+
+def test_write_gwy_read_back_existing_file(file_format_examples):
+    """Test that we can read, write, and read back an existing GWY file."""
+    original = read_topography(os.path.join(file_format_examples, 'gwy-1.gwy'))
+
+    with tempfile.NamedTemporaryFile(suffix='.gwy', delete=False) as f:
+        fname = f.name
+
+    try:
+        original.to_gwy(fname)
+        reread = read_topography(fname)
+
+        assert reread.nb_grid_pts == original.nb_grid_pts
+        np.testing.assert_allclose(reread.physical_sizes, original.physical_sizes, rtol=1e-10)
+        np.testing.assert_allclose(reread.heights(), original.heights(), rtol=1e-10)
+    finally:
+        os.unlink(fname)
+
+
+def test_write_gwy_1d_raises():
+    """Test that writing 1D topography raises an error."""
+    from SurfaceTopography import UniformLineScan
+    t = UniformLineScan(np.random.randn(100), 1.0)
+
+    with tempfile.NamedTemporaryFile(suffix='.gwy', delete=False) as f:
+        fname = f.name
+
+    try:
+        with pytest.raises(ValueError, match="2D topographies"):
+            t.to_gwy(fname)
+    finally:
+        if os.path.exists(fname):
+            os.unlink(fname)

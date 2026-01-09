@@ -27,16 +27,20 @@
 # https://sourceforge.net/p/open-gps/mwiki
 #
 
+import hashlib
 import xml.etree.ElementTree as ElementTree
+from datetime import datetime
 from zipfile import BadZipFile, ZipFile
 
 import dateutil.parser
 import numpy as np
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..HeightContainer import UniformTopographyInterface
+from ..Support.UnitConversion import get_unit_conversion_factor
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class X3PReader(ReaderBase):
@@ -64,6 +68,18 @@ data. The full specification of the format can be found
         "F": np.dtype("f4"),
         "D": np.dtype("f8"),
     }
+
+    # ZIP magic bytes (PK\x03\x04)
+    _MAGIC_ZIP = b'PK\x03\x04'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_ZIP):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_ZIP):
+            # ZIP file, could be X3P - need full parsing to confirm
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     # Reads in the positions of all the data and metadata
     def __init__(self, file_path):
@@ -308,3 +324,249 @@ data. The full specification of the format can be found
             return topo.scale(height_scale_factor)
         else:
             return topo
+
+
+def write_x3p(
+    self,
+    fobj,
+    dtype="D",
+    manufacturer="SurfaceTopography",
+    model="Python Library",
+    version=None,
+):
+    """
+    Write topography to an X3P file (ISO 5436-2 / ISO 25178-72 format).
+
+    X3P is a container format conforming to the ISO 5436-2 standard for
+    surface texture data exchange.
+
+    Parameters
+    ----------
+    self : :obj:`Topography`
+        The topography to write.
+    fobj : str or file-like object
+        File path or file-like object to write to.
+    dtype : str, optional
+        Data type for height values. Options are:
+        - 'D' : 64-bit float (default)
+        - 'F' : 32-bit float
+        - 'L' : 32-bit unsigned integer (requires height_scale_factor)
+        - 'I' : 16-bit unsigned integer (requires height_scale_factor)
+    manufacturer : str, optional
+        Manufacturer name to include in metadata. (Default: 'SurfaceTopography')
+    model : str, optional
+        Model/software name. (Default: 'Python Library')
+    version : str, optional
+        Version string. If None, uses the SurfaceTopography version.
+    """
+    if self.dim != 2:
+        raise ValueError("X3P format only supports 2D topographies.")
+
+    if self.communicator is not None and self.communicator.size > 1:
+        raise RuntimeError("X3P writer does not support MPI parallelization.")
+
+    # Data type mapping (reverse of reader)
+    dtype_map = {
+        "I": np.dtype("<u2"),
+        "L": np.dtype("<u4"),
+        "F": np.dtype("f4"),
+        "D": np.dtype("f8"),
+    }
+
+    if dtype not in dtype_map:
+        raise ValueError(f"Invalid dtype '{dtype}'. Must be one of: {list(dtype_map.keys())}")
+
+    np_dtype = dtype_map[dtype]
+
+    # Get version if not provided
+    if version is None:
+        try:
+            from .. import __version__
+            version = __version__
+        except ImportError:
+            version = "unknown"
+
+    # Convert to meters (X3P uses meters as the base unit)
+    unit = self.unit if self.unit is not None else "m"
+    scale_to_meters = get_unit_conversion_factor(unit, "m")
+
+    nx, ny = self.nb_grid_pts
+    sx, sy = self.physical_sizes
+
+    # Grid spacing in meters
+    dx = sx * scale_to_meters / nx
+    dy = sy * scale_to_meters / ny
+
+    # Get height data and convert to meters
+    heights = self.heights()
+    if np.ma.isMaskedArray(heights):
+        # X3P doesn't directly support masked data - use NaN for undefined
+        heights = np.ma.filled(heights, np.nan)
+    heights = heights * scale_to_meters
+
+    # For integer types, we need to scale the data
+    if dtype in ("I", "L"):
+        height_min = np.nanmin(heights)
+        height_max = np.nanmax(heights)
+        height_range = height_max - height_min
+        if height_range == 0:
+            height_range = 1.0
+        if dtype == "I":
+            scale_factor = height_range / 65535
+            heights = ((heights - height_min) / scale_factor).astype(np_dtype)
+        else:  # L
+            scale_factor = height_range / 4294967295
+            heights = ((heights - height_min) / scale_factor).astype(np_dtype)
+        z_offset = height_min
+        z_increment = scale_factor
+    else:
+        z_offset = None
+        z_increment = None
+
+    # Convert heights to the target dtype
+    heights = heights.astype(np_dtype)
+
+    # Build XML structure
+    ns = "http://www.opengps.eu/2008/ISO5436_2"
+    xsi = "http://www.w3.org/2001/XMLSchema-instance"
+
+    root = ElementTree.Element(
+        f"{{{ns}}}ISO5436_2",
+        attrib={
+            f"{{{xsi}}}schemaLocation": f"{ns} {ns}/ISO5436_2.xsd",
+        }
+    )
+    root.set("xmlns:p", ns)
+    root.set("xmlns:xsi", xsi)
+
+    # Record1: Axes information
+    record1 = ElementTree.SubElement(root, "Record1")
+    ElementTree.SubElement(record1, "Revision").text = "ISO5436 - 2000"
+    ElementTree.SubElement(record1, "FeatureType").text = "SUR"
+
+    axes = ElementTree.SubElement(record1, "Axes")
+
+    # CX axis
+    cx = ElementTree.SubElement(axes, "CX")
+    ElementTree.SubElement(cx, "AxisType").text = "I"
+    ElementTree.SubElement(cx, "DataType").text = "L"
+    ElementTree.SubElement(cx, "Increment").text = f"{dx:.15e}"
+    ElementTree.SubElement(cx, "Offset").text = "0"
+
+    # CY axis
+    cy = ElementTree.SubElement(axes, "CY")
+    ElementTree.SubElement(cy, "AxisType").text = "I"
+    ElementTree.SubElement(cy, "DataType").text = "L"
+    ElementTree.SubElement(cy, "Increment").text = f"{dy:.15e}"
+    ElementTree.SubElement(cy, "Offset").text = "0"
+
+    # CZ axis
+    cz = ElementTree.SubElement(axes, "CZ")
+    ElementTree.SubElement(cz, "AxisType").text = "A"
+    ElementTree.SubElement(cz, "DataType").text = dtype
+    if z_increment is not None:
+        ElementTree.SubElement(cz, "Increment").text = f"{z_increment:.15e}"
+    if z_offset is not None:
+        ElementTree.SubElement(cz, "Offset").text = f"{z_offset:.15e}"
+
+    # Record2: Metadata
+    record2 = ElementTree.SubElement(root, "Record2")
+
+    # Date - use acquisition_time from info if available, otherwise current time
+    info = self.info
+    if "acquisition_time" in info and info["acquisition_time"] is not None:
+        date_str = info["acquisition_time"].isoformat()
+    else:
+        date_str = datetime.now().isoformat()
+    ElementTree.SubElement(record2, "Date").text = date_str
+
+    # Instrument information
+    instrument = ElementTree.SubElement(record2, "Instrument")
+    ElementTree.SubElement(instrument, "Manufacturer").text = manufacturer
+    ElementTree.SubElement(instrument, "Model").text = model
+    ElementTree.SubElement(instrument, "Serial").text = "not available"
+    ElementTree.SubElement(instrument, "Version").text = version
+
+    ElementTree.SubElement(record2, "CalibrationDate").text = date_str
+
+    probing = ElementTree.SubElement(record2, "ProbingSystem")
+    ElementTree.SubElement(probing, "Type").text = "Software"
+    ElementTree.SubElement(probing, "Identification").text = "SurfaceTopography Python Library"
+
+    ElementTree.SubElement(record2, "Comment").text = ""
+
+    # Record3: Matrix dimension and data link
+    record3 = ElementTree.SubElement(root, "Record3")
+
+    matrix_dim = ElementTree.SubElement(record3, "MatrixDimension")
+    ElementTree.SubElement(matrix_dim, "SizeX").text = str(nx)
+    ElementTree.SubElement(matrix_dim, "SizeY").text = str(ny)
+    ElementTree.SubElement(matrix_dim, "SizeZ").text = "1"
+
+    # Prepare binary data (X3P stores data in column-major order, transposed)
+    binary_data = heights.T.tobytes()
+    md5_hash = hashlib.md5(binary_data).hexdigest().upper()
+
+    data_link = ElementTree.SubElement(record3, "DataLink")
+    ElementTree.SubElement(data_link, "PointDataLink").text = "bindata/data.bin"
+    ElementTree.SubElement(data_link, "MD5ChecksumPointData").text = md5_hash
+
+    # Record4: Checksum file reference (optional, but included for completeness)
+    record4 = ElementTree.SubElement(root, "Record4")
+    ElementTree.SubElement(record4, "ChecksumFile").text = "md5checksum.hex"
+
+    # Generate XML string
+    xml_declaration = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n'
+
+    # Manual XML serialization to match X3P format expectations
+    def serialize_element(elem, indent=0):
+        """Serialize element with proper formatting."""
+        tag = elem.tag
+        # Remove namespace prefix if present
+        if tag.startswith("{"):
+            tag = "p:" + tag.split("}")[1]
+
+        result = "  " * indent + f"<{tag}"
+        for key, value in elem.attrib.items():
+            if key.startswith("{"):
+                # Handle namespace attributes
+                ns_url, attr_name = key[1:].split("}")
+                if "XMLSchema-instance" in ns_url:
+                    result += f' xsi:{attr_name}="{value}"'
+                else:
+                    result += f' {attr_name}="{value}"'
+            else:
+                result += f' {key}="{value}"'
+
+        if len(elem) == 0 and elem.text is None:
+            result += "/>\n"
+        elif len(elem) == 0:
+            result += f">{elem.text}</{tag}>\n"
+        else:
+            result += ">\n"
+            for child in elem:
+                result += serialize_element(child, indent + 1)
+            result += "  " * indent + f"</{tag}>\n"
+
+        return result
+
+    xml_string = xml_declaration + serialize_element(root)
+
+    # Create checksum file content
+    checksum_content = f"{md5_hash} *bindata/data.bin\n"
+
+    # Write ZIP file
+    if isinstance(fobj, str):
+        with ZipFile(fobj, "w") as x3p:
+            x3p.writestr("main.xml", xml_string.encode("utf-8"))
+            x3p.writestr("bindata/data.bin", binary_data)
+            x3p.writestr("md5checksum.hex", checksum_content.encode("utf-8"))
+    else:
+        # File-like object
+        with ZipFile(fobj, "w") as x3p:
+            x3p.writestr("main.xml", xml_string.encode("utf-8"))
+            x3p.writestr("bindata/data.bin", binary_data)
+            x3p.writestr("md5checksum.hex", checksum_content.encode("utf-8"))
+
+
+UniformTopographyInterface.register_function("to_x3p", write_x3p)

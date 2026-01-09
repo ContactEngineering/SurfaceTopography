@@ -30,11 +30,11 @@
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
 
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
+from .binary import decode
+from .common import OpenFromAny
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class AL3DReader(ReaderBase):
@@ -48,6 +48,14 @@ AL3D format of Alicona Imaging.
 '''
 
     _MAGIC = b'AliconaImaging\x00\r\n'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     # Relative tolerance for catching invalid pixels
     _INVALID_RELTOL = 1.5e-7

@@ -29,6 +29,7 @@ Base class for geometric topogography descriptions
 """
 
 import abc
+from functools import update_wrapper
 
 import numpy as np
 from NuMPI import MPI
@@ -72,7 +73,7 @@ class AbstractTopography(object):
             def func(*args, **kwargs):
                 return self._functions[name](self, *args, **kwargs)
 
-            func.__doc__ = self._functions[name].__doc__
+            update_wrapper(func, self._functions[name])
             return func
         else:
             raise AttributeError(

@@ -24,6 +24,7 @@
 
 
 import abc
+from functools import update_wrapper
 
 
 class SurfaceContainer(metaclass=abc.ABCMeta):
@@ -48,7 +49,7 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
             def func(*args, **kwargs):
                 return self._functions[name](self, *args, **kwargs)
 
-            func.__doc__ = self._functions[name].__doc__
+            update_wrapper(func, self._functions[name])
             return func
         else:
             raise AttributeError(
