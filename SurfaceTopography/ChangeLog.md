@@ -10,6 +10,7 @@ v1.21.0 (not yet released)
 - API: Added `DataKind` enum and stable `channel_id` identifier for file reader channels
 - API: Added `channel_id` and `height_channel_index` parameters to `topography()` method for stable channel selection
 - API: Added `height_channels` property to readers for backwards-compatible access to height data channels only
+- API: Added `height_index_to_channel_id()` and `channel_id_to_height_index()` utility methods for database migration
 - API: `ChannelInfo` now has `data_kind`, `data_unit`, `lateral_unit`, `is_height_channel`, `channel_id`, and `height_index` properties
 - ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
 - DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats

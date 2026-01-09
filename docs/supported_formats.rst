@@ -224,6 +224,42 @@ Example for database storage:
     # Later, when loading from database
     topo = reader.topography(channel_id=channel_to_store)
 
+Migrating from Height Index to Channel ID
++++++++++++++++++++++++++++++++++++++++++
+
+For databases that previously stored ``height_channel_index`` values, utility functions are provided to convert between the old and new systems:
+
+.. code-block:: python
+
+    from SurfaceTopography import open_topography
+
+    reader = open_topography("scan.ibw")
+
+    # Convert old height index to new channel_id
+    old_index = 0  # stored in database
+    new_id = reader.height_index_to_channel_id(old_index)
+    # new_id is now something like "Height" or "ZSensor"
+
+    # Convert back if needed (only works for height channels)
+    recovered_index = reader.channel_id_to_height_index(new_id)
+    assert recovered_index == old_index
+
+Migration script example:
+
+.. code-block:: python
+
+    from SurfaceTopography import open_topography
+
+    def migrate_database_entry(file_path, old_height_index):
+        """Migrate a database entry from height_index to channel_id."""
+        reader = open_topography(file_path)
+        new_channel_id = reader.height_index_to_channel_id(old_height_index)
+        return new_channel_id
+
+    # Example usage
+    # old_entry = {"file": "scan.ibw", "channel": 0}
+    # new_entry = {"file": "scan.ibw", "channel_id": migrate_database_entry("scan.ibw", 0)}
+
 Notes
 -----
 

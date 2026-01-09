@@ -664,6 +664,77 @@ class ReaderBase(metaclass=abc.ABCMeta):
                 return ch
         raise ValueError(f"No height channel with height_index {height_index} found.")
 
+    def height_index_to_channel_id(self, height_index):
+        """
+        Convert a height channel index to a stable channel ID.
+
+        This utility function is useful for migrating databases that stored
+        channel references using the old height-only index system to the new
+        stable channel_id system.
+
+        Parameters
+        ----------
+        height_index : int
+            Index among height channels (0-based).
+
+        Returns
+        -------
+        str
+            The stable channel_id for the height channel at that index.
+
+        Raises
+        ------
+        ValueError
+            If no height channel exists at the given index.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> # Migrate old database entry
+        >>> old_index = 0  # stored in database
+        >>> new_id = reader.height_index_to_channel_id(old_index)
+        >>> # Store new_id in database instead
+        """
+        channel = self._get_channel_by_height_index(height_index)
+        return channel.channel_id
+
+    def channel_id_to_height_index(self, channel_id):
+        """
+        Convert a stable channel ID to a height channel index.
+
+        This utility function can be used to convert channel IDs back to
+        height indices for backwards compatibility with systems that
+        require numeric indices.
+
+        Parameters
+        ----------
+        channel_id : str
+            The stable channel identifier.
+
+        Returns
+        -------
+        int
+            The height index for the channel with that ID.
+
+        Raises
+        ------
+        ValueError
+            If no channel with the given ID is found, or if the channel
+            is not a height channel.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> height_idx = reader.channel_id_to_height_index("Height")
+        """
+        channel = self._get_channel_by_id(channel_id)
+        if not channel.is_height_channel:
+            raise ValueError(
+                f"Channel '{channel_id}' is not a height channel and has no "
+                f"height_index. Its data_kind is {channel.data_kind.value}."
+            )
+        return channel.height_index
+
     def _resolve_channel(self, channel_index=None, channel_id=None,
                          height_channel_index=None):
         """

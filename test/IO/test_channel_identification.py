@@ -362,3 +362,122 @@ class TestBackwardsCompatibility:
             ch_by_index, _ = reader._resolve_channel(channel_index=i)
             ch_by_height_index, _ = reader._resolve_channel(height_channel_index=i)
             assert ch_by_index.name == ch_by_height_index.name
+
+
+class TestMigrationUtilities:
+    """Tests for database migration utility functions."""
+
+    def test_height_index_to_channel_id_simple(self):
+        """Test converting height index to channel ID with unique names."""
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+            {"name": "Amplitude"},
+        ])
+        # Height index 0 -> "Height", Height index 1 -> "Amplitude"
+        assert reader.height_index_to_channel_id(0) == "Height"
+        assert reader.height_index_to_channel_id(1) == "Amplitude"
+
+    def test_height_index_to_channel_id_with_duplicates(self):
+        """Test converting height index to channel ID with duplicate names."""
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Height"},
+            {"name": "Height"},
+        ])
+        assert reader.height_index_to_channel_id(0) == "Height#1"
+        assert reader.height_index_to_channel_id(1) == "Height#2"
+        assert reader.height_index_to_channel_id(2) == "Height#3"
+
+    def test_height_index_to_channel_id_with_mixed_channels(self):
+        """Test conversion with non-height channels interspersed."""
+        reader = MockReader([
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+            {"name": "Height1", "data_kind": DataKind.HEIGHT},
+            {"name": "Voltage", "data_kind": DataKind.VOLTAGE},
+            {"name": "Height2", "data_kind": DataKind.HEIGHT},
+            {"name": "Current", "data_kind": DataKind.CURRENT},
+        ])
+        # Only height channels are indexed: Height1=0, Height2=1
+        assert reader.height_index_to_channel_id(0) == "Height1"
+        assert reader.height_index_to_channel_id(1) == "Height2"
+
+    def test_height_index_to_channel_id_invalid_index(self):
+        """Test that invalid height index raises error."""
+        reader = MockReader([{"name": "Height"}])
+        with pytest.raises(ValueError, match="No height channel"):
+            reader.height_index_to_channel_id(5)
+
+    def test_channel_id_to_height_index_simple(self):
+        """Test converting channel ID back to height index."""
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+            {"name": "Amplitude"},
+        ])
+        assert reader.channel_id_to_height_index("Height") == 0
+        assert reader.channel_id_to_height_index("Amplitude") == 1
+
+    def test_channel_id_to_height_index_with_duplicates(self):
+        """Test converting disambiguated channel IDs back to height index."""
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Height"},
+            {"name": "Height"},
+        ])
+        assert reader.channel_id_to_height_index("Height#1") == 0
+        assert reader.channel_id_to_height_index("Height#2") == 1
+        assert reader.channel_id_to_height_index("Height#3") == 2
+
+    def test_channel_id_to_height_index_non_height_raises(self):
+        """Test that converting non-height channel ID raises error."""
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+        ])
+        with pytest.raises(ValueError, match="not a height channel"):
+            reader.channel_id_to_height_index("Phase")
+
+    def test_channel_id_to_height_index_invalid_id(self):
+        """Test that invalid channel ID raises error."""
+        reader = MockReader([{"name": "Height"}])
+        with pytest.raises(ValueError, match="No channel with id"):
+            reader.channel_id_to_height_index("NonExistent")
+
+    def test_roundtrip_conversion(self):
+        """Test that converting height_index -> channel_id -> height_index works."""
+        reader = MockReader([
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+            {"name": "Height1", "data_kind": DataKind.HEIGHT},
+            {"name": "Voltage", "data_kind": DataKind.VOLTAGE},
+            {"name": "Height2", "data_kind": DataKind.HEIGHT},
+        ])
+        for original_idx in range(2):  # 2 height channels
+            channel_id = reader.height_index_to_channel_id(original_idx)
+            recovered_idx = reader.channel_id_to_height_index(channel_id)
+            assert recovered_idx == original_idx
+
+    def test_migration_scenario(self):
+        """Test a realistic database migration scenario."""
+        # Simulate a reader with channels in a specific order
+        reader = MockReader([
+            {"name": "Height"},
+            {"name": "Deflection Error", "data_kind": DataKind.ERROR},
+            {"name": "Phase", "data_kind": DataKind.PHASE},
+            {"name": "ZSensor"},  # Another height channel
+        ])
+
+        # Old database has stored height_index = 0 and height_index = 1
+        old_indices = [0, 1]
+
+        # Migrate to new channel_id system
+        new_ids = [reader.height_index_to_channel_id(idx) for idx in old_indices]
+
+        assert new_ids == ["Height", "ZSensor"]
+
+        # Verify we can load the same channels using the new IDs
+        for old_idx, new_id in zip(old_indices, new_ids):
+            # Both should resolve to the same channel
+            ch_by_old, _ = reader._resolve_channel(height_channel_index=old_idx)
+            ch_by_new, _ = reader._resolve_channel(channel_id=new_id)
+            assert ch_by_old.name == ch_by_new.name
