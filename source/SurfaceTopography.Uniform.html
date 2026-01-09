@@ -46,6 +46,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported_formats.html">Supported File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
 </ul>
@@ -75,6 +76,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Interpolation">SurfaceTopography.Uniform.Interpolation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScanLineAlignment">SurfaceTopography.Uniform.ScanLineAlignment module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform.common">SurfaceTopography.Uniform.common module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-SurfaceTopography.Uniform">Module contents</a></li>
@@ -103,7 +105,11 @@
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile"><code class="docutils literal notranslate"><span class="pre">autocorrelation_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area"><code class="docutils literal notranslate"><span class="pre">autocorrelation_from_area()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.BearingArea">SurfaceTopography.Uniform.BearingArea module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.BearingArea.UniformBearingArea"><code class="docutils literal notranslate"><span class="pre">UniformBearingArea</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.BearingArea.UniformBearingArea.bounds"><code class="docutils literal notranslate"><span class="pre">UniformBearingArea.bounds()</span></code></a></li>
@@ -247,6 +253,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile"><code class="docutils literal notranslate"><span class="pre">power_spectrum_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area"><code class="docutils literal notranslate"><span class="pre">power_spectrum_from_area()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.fftfreq"><code class="docutils literal notranslate"><span class="pre">fftfreq()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2"><code class="docutils literal notranslate"><span class="pre">wavevectors_norm2()</span></code></a></li>
 </ul>
@@ -259,6 +267,20 @@
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScalarParameters.Rddq"><code class="docutils literal notranslate"><span class="pre">Rddq()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian"><code class="docutils literal notranslate"><span class="pre">rms_laplacian()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">rms_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.ScanLineAlignment">SurfaceTopography.Uniform.ScanLineAlignment module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.__init__"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.direction"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.mode"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.degree"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.degree</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.line_coeffs"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.line_coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.offsets"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.heights"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.heights()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth module</a><ul>
@@ -320,6 +342,91 @@
 <section id="module-SurfaceTopography.Uniform.Autocorrelation">
 <span id="surfacetopography-uniform-autocorrelation-module"></span><h2>SurfaceTopography.Uniform.Autocorrelation module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Autocorrelation" title="Link to this heading"></a></h2>
 <p>Height-difference autocorrelation functions</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin-average'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile" title="Link to this definition"></a></dt>
+<dd><p>Compute the one-dimensional height-difference autocorrelation function
+(ACF).</p>
+<p>For non-periodic surfaces the ACF at distance d is given by:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\begin{equation}
+\begin{split}
+
+ \text{ACF}(d) =&amp; \sum_{i=0}^{n-d-1} \frac{1}{n-d} \frac{1}{2} \left( h_i - h_{i+d} \right)^2 \\
+
+               =&amp; \frac{1}{2(n-d)} \sum_{i=0}^{n-d-1} \left( h_i^2 + h_{i+d}^2 \right)
+                - \frac{1}{n-d} \sum_{i=0}^{n-d-1} h_i h_{i+d}
+ \end{split}
+ \end{equation}</div></div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformLineScan</span></code>) – Container storing the uniform topography map</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>resampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be None for no resampling (return on the grid of the
+data) ‘bin-average’ for simple bin averaging and ‘gaussian-process’
+for Gaussian process regression.
+(Default: ‘bin-average’)</p></li>
+<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Resampling grid. Specifying ‘log’ yields collocation points
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</cite> is
+ignored. (Default: ‘log’)</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
+to None. (Default: None)</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
+(Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>A</strong> (<em>array</em>) – Autocorrelation function. (Units: length**2)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Autocorrelation.</span></span><span class="sig-name descname"><span class="pre">autocorrelation_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin-average'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area" title="Link to this definition"></a></dt>
+<dd><p>Compute height-difference autocorrelation function and radial average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the (two-dimensional) topography map.</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Resampling grid. Specifying ‘log’ yields collocation points
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</cite> is
+ignored. (Default: ‘log’)</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
+to None. (Default: None)</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
+(Default: None)</p></li>
+<li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return full 2D autocorrelation map. (Default: False)</p></li>
+<li><p><strong>resampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be ‘bin-average’ for simple bin averaging and
+‘gaussian-process’ for Gaussian process regression.
+(Default: ‘bin-average’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>r</strong> (<em>array</em>) – Distances. (Units: length)</p></li>
+<li><p><strong>A</strong> (<em>array</em>) – Radially averaged autocorrelation function. (Units: length**2)</p></li>
+<li><p><strong>A_xy</strong> (<em>array</em>) – 2D autocorrelation function. Only returned if return_map=True.
+(Units: length**2)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-SurfaceTopography.Uniform.BearingArea">
 <span id="surfacetopography-uniform-bearingarea-module"></span><h2>SurfaceTopography.Uniform.BearingArea module<a class="headerlink" href="#module-SurfaceTopography.Uniform.BearingArea" title="Link to this heading"></a></h2>
@@ -1407,6 +1514,84 @@ boundaries.</p>
 <span id="surfacetopography-uniform-powerspectrum-module"></span><h2>SurfaceTopography.Uniform.PowerSpectrum module<a class="headerlink" href="#module-SurfaceTopography.Uniform.PowerSpectrum" title="Link to this heading"></a></h2>
 <p>Power-spectral density for uniform topographies.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin-average'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile" title="Link to this definition"></a></dt>
+<dd><p>Compute power spectrum from 1D FFT(s) of a topography or line scan
+stored on a uniform grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>SurfaceTopography</em><em> or </em><a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan" title="SurfaceTopography.UniformLineScanAndTopography.UniformLineScan"><em>UniformLineScan</em></a>) – Container with height information.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: no window for periodic Topographies, “hann” window for
+nonperiodic Topographies)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>resampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be None for no resampling (return on the grid of the
+data) ‘bin-average’ for simple bin averaging and ‘gaussian-process’
+for Gaussian process regression.
+(Default: ‘bin-average’)</p></li>
+<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Resampling grid. Specifying ‘log’ yields collocation points
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</cite> is
+ignored. (Default: ‘log’)</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
+to None. (Default: None)</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
+(Default: 10)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Reciprocal space vectors. (Units: 1/length)</p></li>
+<li><p><strong>C_all</strong> (<em>array_like</em>) – Power spectrum. (Units: length³)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">power_spectrum_from_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reliable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collocation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_points_per_decade</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bin-average'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area" title="Link to this definition"></a></dt>
+<dd><p>Compute power spectrum from 2D FFT and radial average of a topography
+stored on a uniform grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="SurfaceTopography.html#module-SurfaceTopography" title="SurfaceTopography"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTopography</span></code></a>) – Container storing the (two-dimensional) topography map.</p></li>
+<li><p><strong>window</strong> (<em>str</em><em>, </em><em>optional</em>) – Window for eliminating edge effect. See scipy.signal.get_window.
+(Default: None)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>collocation</strong> (<em>{'log'</em><em>, </em><em>'quadratic'</em><em>, </em><em>'linear'</em><em>, </em><em>array_like}</em><em>, </em><em>optional</em>) – Resampling grid. Specifying ‘log’ yields collocation points
+equally spaced on a log scale, ‘quadratic’ yields bins with
+similar number of data points and ‘linear’ yields linear bins.
+Alternatively, it is possible to explicitly specify the bin edges.
+If bin_edges are explicitly specified, then <cite>rmax</cite> and <cite>nbins</cite> is
+ignored. (Default: ‘log’)</p></li>
+<li><p><strong>nb_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bins for averaging. Bins are automatically determined if set
+to None. (Default: None)</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade for log-spaced collocation points.
+(Default: 10)</p></li>
+<li><p><strong>return_map</strong> (<em>bool</em><em>, </em><em>optional</em>) – Return full 2D power spectrum map. (Default: False)</p></li>
+<li><p><strong>resampling_method</strong> (<em>str</em><em>, </em><em>optional</em>) – Method can be ‘bin-average’ for simple bin averaging and
+‘gaussian-process’ for Gaussian process regression.
+(Default: ‘bin-average’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Reciprocal space vectors. (Units: 1/length)</p></li>
+<li><p><strong>C_all</strong> (<em>array_like</em>) – Power spectrum. (Units: length⁴)</p></li>
+<li><p><strong>C_qk</strong> (<em>array_like, optional</em>) – Full 2D power spectrum map, only returned if <cite>return_map</cite> is True.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.PowerSpectrum.fftfreq">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.PowerSpectrum.</span></span><span class="sig-name descname"><span class="pre">fftfreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.PowerSpectrum.fftfreq" title="Link to this definition"></a></dt>
 <dd><p>Compute and return the grid of wavevectors corresponding to np.fft.fft.</p>
@@ -1644,6 +1829,132 @@ cutoff is set. (Default: None)</p></li>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="module-SurfaceTopography.Uniform.ScanLineAlignment">
+<span id="surfacetopography-uniform-scanlinealignment-module"></span><h2>SurfaceTopography.Uniform.ScanLineAlignment module<a class="headerlink" href="#module-SurfaceTopography.Uniform.ScanLineAlignment" title="Link to this heading"></a></h2>
+<p>Scan line alignment for AFM topography data.</p>
+<p>This module provides functions to correct scan line artifacts common in AFM
+measurements, including per-line tilt and inter-line height offsets.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.ScanLineAlignment.</span></span><span class="sig-name descname"><span class="pre">ScanLineAlignedTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">DecoratedUniformTopography</span></code></a></p>
+<p>Remove scan line artifacts from topography.</p>
+<p>This correction performs two steps:
+1. Removes trends from each scan line individually by fitting and</p>
+<blockquote>
+<div><p>subtracting a polynomial of specified degree</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>Aligns adjacent lines by adjusting their mean heights to minimize
+discontinuities between lines</p></li>
+</ol>
+<p>This is useful for AFM data where each scan line may have different offset
+and tilt due to scanner drift or feedback errors. Higher polynomial degrees
+can correct for scanner bow or other nonlinear distortions within each line.</p>
+<p>Note on periodicity: Aligned topographies will have <cite>is_periodic</cite> property
+set to False, since the alignment process breaks periodicity.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography" title="SurfaceTopography.UniformLineScanAndTopography.Topography"><em>Topography</em></a>) – 2D topography to align.</p></li>
+<li><p><strong>direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Scan line direction: ‘x’ (rows, default) or ‘y’ (columns).
+‘x’ means each row is a scan line (fast scan in x-direction).
+For AFM, ‘x’ is typically the fast scan direction.</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Method for computing line centers during alignment:
+- ‘median’: Use median for robust offset alignment (default).</p>
+<blockquote>
+<div><p>More robust against outliers and spikes.</p>
+</div></blockquote>
+<ul>
+<li><p>’mean’: Use mean for offset alignment.</p></li>
+</ul>
+</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – Degree of polynomial to fit and subtract from each line.
+- 0: Only offset (mean/median) removal per line
+- 1: Linear fit (offset + tilt) per line (default)
+- 2: Quadratic fit (offset + tilt + curvature) per line
+- Higher values for more complex corrections</p></li>
+<li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – Metadata dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.direction">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">direction</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.direction" title="Link to this definition"></a></dt>
+<dd><p>Return the scan line direction (‘x’ or ‘y’).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.mode">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mode</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.mode" title="Link to this definition"></a></dt>
+<dd><p>Return the alignment mode (‘median’ or ‘mean’).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.degree">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">degree</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.degree" title="Link to this definition"></a></dt>
+<dd><p>Return the polynomial degree used for per-line fitting.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.line_coeffs">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">line_coeffs</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.line_coeffs" title="Link to this definition"></a></dt>
+<dd><p>Return the per-line polynomial coefficients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Coefficients for each line in numpy polyfit order (highest power
+first). For a polynomial p(t) = c[0]*t^n + c[1]*t^(n-1) + … + c[n],
+where t is the normalized position along the line (0 to 1).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ndarray of shape (n_lines, degree+1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.offsets">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">offsets</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.offsets" title="Link to this definition"></a></dt>
+<dd><p>Return the inter-line alignment offsets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Offset applied to each line to align adjacent lines.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ndarray of shape (n_lines,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.is_periodic">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_periodic</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.is_periodic" title="Link to this definition"></a></dt>
+<dd><p>Scan line alignment breaks periodicity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.heights" title="Link to this definition"></a></dt>
+<dd><p>Compute aligned heights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2D array of aligned height values with per-line polynomial removed
+and adjacent lines aligned.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>

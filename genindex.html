@@ -43,6 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supported_formats.html">Supported File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SurfaceTopography</a></li>
 </ul>
@@ -108,6 +109,7 @@
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
@@ -275,6 +277,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.__init__">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.__init__">(SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography method)</a>
+</li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.__init__">(SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography method)</a>
@@ -308,6 +312,8 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader">AL3DReader (class in SurfaceTopography.IO.AL3D)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.AMPLITUDE">AMPLITUDE (SurfaceTopography.IO.Reader.DataKind attribute)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType.ANNOTATIONS">ANNOTATIONS (SurfaceTopography.IO.OIR.OirMetadataBlockType attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer.apply">apply() (SurfaceTopography.Container.SurfaceContainer.SurfaceContainer method)</a>
@@ -318,8 +324,6 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.apply_window">apply_window() (in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.UniformTopographyInterface.area_per_pt">area_per_pt (SurfaceTopography.HeightContainer.UniformTopographyInterface property)</a>
 
       <ul>
@@ -336,11 +340,19 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.area_per_pt">(SurfaceTopography.UniformLineScanAndTopography.UniformLineScan property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Text.AscReader">AscReader (class in SurfaceTopography.IO.Text)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.assign_patch_numbers_profile">assign_patch_numbers_profile() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.binary.AttrDict">AttrDict (class in SurfaceTopography.IO.binary)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.autocorrelation">autocorrelation() (in module SurfaceTopography.Container.Averaging)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area">autocorrelation_from_area() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile">autocorrelation_from_profile() (in module SurfaceTopography.Uniform.Autocorrelation)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -398,6 +410,28 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType.CAMERA_UUIDS">CAMERA_UUIDS (SurfaceTopography.IO.OIR.OirMetadataBlockType attribute)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.can_read">can_read() (SurfaceTopography.IO.AL3D.AL3DReader class method)</a>
+
+      <ul>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader.can_read">(SurfaceTopography.IO.DATX.DATXReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader.can_read">(SurfaceTopography.IO.GWY.GWYReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.can_read">(SurfaceTopography.IO.H5.H5Reader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.can_read">(SurfaceTopography.IO.NC.NCReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.can_read">(SurfaceTopography.IO.NPY.NPYReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.can_read">(SurfaceTopography.IO.Reader.ReaderBase class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.SUR.SURReader.can_read">(SurfaceTopography.IO.SUR.SURReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.can_read">(SurfaceTopography.IO.VK.VKReader class method)</a>
+</li>
+        <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader.can_read">(SurfaceTopography.IO.X3P.X3PReader class method)</a>
+</li>
+      </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CannotDetectFileFormat">CannotDetectFileFormat</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CannotPerformAnalysisError">CannotPerformAnalysisError</a>
@@ -407,6 +441,10 @@
       <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.CEReader">CEReader (class in SurfaceTopography.Container.IO.CE)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.MI.Channel">Channel (class in SurfaceTopography.IO.MI)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.channel_id">channel_id (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.channel_id_to_height_index">channel_id_to_height_index() (SurfaceTopography.IO.Reader.ReaderBase method)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Metadata.InfoModel.channel_name">channel_name (SurfaceTopography.Metadata.InfoModel attribute)</a>
 </li>
@@ -548,6 +586,8 @@
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Exceptions.CorruptFile">CorruptFile</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.CURRENT">CURRENT (SurfaceTopography.IO.Reader.DataKind attribute)</a>
+</li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.curvatures">curvatures (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 
       <ul>
@@ -574,7 +614,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType.DATA_BLOCK">DATA_BLOCK (SurfaceTopography.IO.OIR.OirChunkType attribute)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.data_kind">data_kind (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.data_unit">data_unit (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
+</li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Metadata.InfoModel.datafile">datafile (SurfaceTopography.Metadata.InfoModel attribute)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind">DataKind (class in SurfaceTopography.IO.Reader)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType.DATASETS">DATASETS (SurfaceTopography.IO.OIR.OirMetadataBlockType attribute)</a>
 </li>
@@ -596,6 +642,10 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.default_channel">default_channel (SurfaceTopography.IO.Reader.ReaderBase property)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.DEFLECTION">DEFLECTION (SurfaceTopography.IO.Reader.DataKind attribute)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.degree">degree (SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OPDx.DektakUnit">DektakUnit (class in SurfaceTopography.IO.OPDx)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Deprecation.deprecated">deprecated() (in module SurfaceTopography.Support.Deprecation)</a>
@@ -612,14 +662,14 @@
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.description">(SurfaceTopography.IO.Reader.ReaderBase class method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.detect_format">detect_format() (in module SurfaceTopography.Container.IO)</a>
 
       <ul>
         <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.detect_format">(in module SurfaceTopography.IO)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography.detrend_mode">detrend_mode (SurfaceTopography.Nonuniform.Detrending.DetrendedNonuniformTopography property)</a>
 
       <ul>
@@ -652,6 +702,8 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.DI.DIReader">DIReader (class in SurfaceTopography.IO.DI)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.direction">direction (SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.DiscreteDerivative">DiscreteDerivative (class in SurfaceTopography.Uniform.Derivative)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.Bibliography.doi">doi (class in SurfaceTopography.Support.Bibliography)</a>
@@ -671,6 +723,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.JSON.ExtendedJSONEncoder.encode">encode() (SurfaceTopography.Support.JSON.ExtendedJSONEncoder method)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.ERROR">ERROR (SurfaceTopography.IO.Reader.DataKind attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType.EVENTS">EVENTS (SurfaceTopography.IO.OIR.OirMetadataBlockType attribute)</a>
 </li>
@@ -728,15 +782,17 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.fourier_derivative">fourier_derivative() (in module SurfaceTopography.Uniform.Derivative)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.FFTTricks.NumpyFFTEngine.fourier_space_field">fourier_space_field() (SurfaceTopography.FFTTricks.NumpyFFTEngine method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Generation.fourier_synthesis">fourier_synthesis() (in module SurfaceTopography.Generation)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Derivative.FourierDerivative">FourierDerivative (class in SurfaceTopography.Uniform.Derivative)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography">FourierFilteredUniformTopography (class in SurfaceTopography.Uniform.Filtering)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.FRICTION">FRICTION (SurfaceTopography.IO.Reader.DataKind attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.binary.BinaryArray.from_stream">from_stream() (SurfaceTopography.IO.binary.BinaryArray method)</a>
 
@@ -820,9 +876,17 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.has_undefined_data">(SurfaceTopography.UniformLineScanAndTopography.UniformLineScan property)</a>
 </li>
       </ul></li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.HEIGHT">HEIGHT (SurfaceTopography.IO.Reader.DataKind attribute)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.height_channels">height_channels (SurfaceTopography.IO.Reader.ReaderBase property)</a>
+</li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_difference_autocorrelation">height_difference_autocorrelation() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
 </li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Autocorrelation.height_height_autocorrelation">height_height_autocorrelation() (in module SurfaceTopography.Nonuniform.Autocorrelation)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.height_index">height_index (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.height_index_to_channel_id">height_index_to_channel_id() (SurfaceTopography.IO.Reader.ReaderBase method)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.height_scale_factor">height_scale_factor (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
 
@@ -836,6 +900,8 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography.height_scale_factor">(SurfaceTopography.UniformLineScanAndTopography.StaticallyScaledUniformTopography property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.NonuniformLineScanInterface.heights">heights() (SurfaceTopography.HeightContainer.NonuniformLineScanInterface method)</a>
 
       <ul>
@@ -865,6 +931,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.heights">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography method)</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.heights">(SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography method)</a>
+</li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.CompoundTopography.heights">(SurfaceTopography.UniformLineScanAndTopography.CompoundTopography method)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography.heights">(SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography method)</a>
@@ -878,8 +946,6 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.UniformLineScan.heights">(SurfaceTopography.UniformLineScanAndTopography.UniformLineScan method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.FromFile.HGTReader">HGTReader (class in SurfaceTopography.IO.FromFile)</a>
 </li>
   </ul></td>
@@ -948,10 +1014,10 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.interpolate_linear">(in module SurfaceTopography.Uniform.Interpolation)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.interpolate_undefined_data">interpolate_undefined_data() (in module SurfaceTopography.Uniform.Imputation)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Imputation.InterpolateUndefinedDataHarmonic">InterpolateUndefinedDataHarmonic (class in SurfaceTopography.Uniform.Imputation)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.is_binary_stream">is_binary_stream() (in module SurfaceTopography.IO.common)</a>
@@ -965,6 +1031,8 @@
 </li>
       </ul></li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography.is_filter_isotropic">is_filter_isotropic (SurfaceTopography.Uniform.Filtering.FourierFilteredUniformTopography property)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.is_height_channel">is_height_channel (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
 </li>
       <li><a href="source/SurfaceTopography.Support.html#SurfaceTopography.Support.UnitConversion.is_length_unit">is_length_unit() (in module SurfaceTopography.Support.UnitConversion)</a>
 </li>
@@ -988,6 +1056,8 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography.is_periodic">(SurfaceTopography.Uniform.Detrending.DetrendedUniformTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography.is_periodic">(SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography property)</a>
+</li>
+        <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.is_periodic">(SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
 </li>
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography.is_periodic">(SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography property)</a>
 </li>
@@ -1026,6 +1096,8 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.lateral_unit">lateral_unit (SurfaceTopography.IO.Reader.ChannelInfo property)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.binary.LayoutWithNameBase">LayoutWithNameBase (class in SurfaceTopography.IO.binary)</a>
 </li>
       <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.SurfaceContainer.LazySurfaceContainer">LazySurfaceContainer (class in SurfaceTopography.Container.SurfaceContainer)</a>
@@ -1036,6 +1108,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.line_coeffs">line_coeffs (SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
+</li>
       <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.log_average">log_average() (in module SurfaceTopography.Container.Averaging)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Filtering.LongCutTopography">LongCutTopography (class in SurfaceTopography.Uniform.Filtering)</a>
@@ -1053,6 +1127,8 @@
       <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.mad_height">mad_height() (in module SurfaceTopography.Generic.RobustStatistics)</a>
 </li>
       <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.mad_polyfit">mad_polyfit() (in module SurfaceTopography.Generic.RobustStatistics)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch">MagicMatch (class in SurfaceTopography.IO.Reader)</a>
 </li>
       <li><a href="source/SurfaceTopography.CLI.html#SurfaceTopography.CLI.ShowTopography.main">main() (in module SurfaceTopography.CLI.ShowTopography)</a>
 </li>
@@ -1080,6 +1156,8 @@
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.BearingArea.UniformBearingArea.max">(SurfaceTopography.Uniform.BearingArea.UniformBearingArea property)</a>
 </li>
       </ul></li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.MAYBE">MAYBE (SurfaceTopography.IO.Reader.MagicMatch attribute)</a>
+</li>
       <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.median">median() (in module SurfaceTopography.Generic.RobustStatistics)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType.METADATA">METADATA (SurfaceTopography.IO.OIR.OirChunkType attribute)</a>
@@ -1111,6 +1189,8 @@
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Interpolation.MirrorStichedTopography">MirrorStichedTopography (class in SurfaceTopography.Uniform.Interpolation)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Mitutoyo.MitutoyoReader">MitutoyoReader (class in SurfaceTopography.IO.Mitutoyo)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.mode">mode (SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Metadata.InfoModel.model_config">model_config (SurfaceTopography.Metadata.InfoModel attribute)</a>
 
@@ -1332,6 +1412,8 @@
 </li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScalarParameters">SurfaceTopography.Uniform.ScalarParameters</a>
 </li>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScanLineAlignment">SurfaceTopography.Uniform.ScanLineAlignment</a>
+</li>
         <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth</a>
 </li>
         <li><a href="source/SurfaceTopography.html#module-SurfaceTopography.UniformLineScanAndTopography">SurfaceTopography.UniformLineScanAndTopography</a>
@@ -1447,6 +1529,8 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.NMM.NMMReader">NMMReader (class in SurfaceTopography.IO.NMM)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.NO">NO (SurfaceTopography.IO.Reader.MagicMatch attribute)</a>
+</li>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.BearingArea.NonuniformBearingArea">NonuniformBearingArea (class in SurfaceTopography.Nonuniform.BearingArea)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.NonuniformLineScan">NonuniformLineScan (class in SurfaceTopography.NonuniformLineScan)</a>
@@ -1471,6 +1555,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography.offset">offset (SurfaceTopography.UniformLineScanAndTopography.TranslatedTopography property)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.offsets">offsets (SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography property)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirChunkType">OirChunkType (class in SurfaceTopography.IO.OIR)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType">OirMetadataBlockType (class in SurfaceTopography.IO.OIR)</a>
@@ -1490,6 +1576,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.open_topography">open_topography() (in module SurfaceTopography.IO)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.common.OpenFromAny">OpenFromAny (class in SurfaceTopography.IO.common)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.OTHER">OTHER (SurfaceTopography.IO.Reader.DataKind attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.outer_perimeter_area">outer_perimeter_area() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
 </li>
@@ -1512,6 +1600,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Text.AscReader.parse_metadata">parse_metadata() (SurfaceTopography.IO.Text.AscReader method)</a>
 </li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.GeometryAnalysis.patch_areas">patch_areas() (in module SurfaceTopography.Uniform.GeometryAnalysis)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.PHASE">PHASE (SurfaceTopography.IO.Reader.DataKind attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.HeightContainer.AbstractTopography.physical_sizes">physical_sizes (SurfaceTopography.HeightContainer.AbstractTopography property)</a>
 
@@ -1585,10 +1675,10 @@
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.PLUX.PLUXReader">PLUXReader (class in SurfaceTopography.IO.PLUX)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.POIRReader">POIRReader (class in SurfaceTopography.IO.OIR)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.Detrending.polyfit">polyfit() (in module SurfaceTopography.Nonuniform.Detrending)</a>
 
       <ul>
@@ -1653,12 +1743,18 @@
         <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.Topography.positions_and_heights">(SurfaceTopography.UniformLineScanAndTopography.Topography method)</a>
 </li>
       </ul></li>
-      <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">power_spectrum() (in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
+      <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.power_spectrum">power_spectrum() (in module SurfaceTopography.Container.Averaging)</a>
 
       <ul>
+        <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.PowerSpectrum.power_spectrum">(in module SurfaceTopography.Nonuniform.PowerSpectrum)</a>
+</li>
         <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness.power_spectrum">(SurfaceTopography.Models.SelfAffine.AbstractStatisticalRoughness method)</a>
 </li>
       </ul></li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area">power_spectrum_from_area() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile">power_spectrum_from_profile() (in module SurfaceTopography.Uniform.PowerSpectrum)</a>
+</li>
       <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.power_spectrum_isotropic">power_spectrum_isotropic() (SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness method)</a>
 
       <ul>
@@ -1798,12 +1894,20 @@
       <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile">scale_dependent_slope_from_profile() (in module SurfaceTopography.Generic.Slope)</a>
 </li>
       <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.ScaleDependentStatistics.scale_dependent_statistical_property">scale_dependent_statistical_property() (in module SurfaceTopography.Container.ScaleDependentStatistics)</a>
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property">(in module SurfaceTopography.Generic.ScaleDependentStatistics)</a>
 </li>
+      </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.NonuniformLineScan.ScaledNonuniformTopography">ScaledNonuniformTopography (class in SurfaceTopography.NonuniformLineScan)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.ScaledUniformTopography">ScaledUniformTopography (class in SurfaceTopography.UniformLineScanAndTopography)</a>
 </li>
       <li><a href="source/SurfaceTopography.ScanningProbe.html#SurfaceTopography.ScanningProbe.RigidScan.scan_with_rigid_sphere">scan_with_rigid_sphere() (in module SurfaceTopography.ScanningProbe.RigidScan)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography">ScanLineAlignedTopography (class in SurfaceTopography.Uniform.ScanLineAlignment)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff">scanning_probe_reliability_cutoff() (in module SurfaceTopography.Generic.ScanningProbe)</a>
 </li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Generation.self_affine_prefactor">self_affine_prefactor() (in module SurfaceTopography.Generation)</a>
 </li>
@@ -2597,6 +2701,13 @@
 </li>
       </ul></li>
       <li>
+    SurfaceTopography.Uniform.ScanLineAlignment
+
+      <ul>
+        <li><a href="source/SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScanLineAlignment">module</a>
+</li>
+      </ul></li>
+      <li>
     SurfaceTopography.Uniform.VariableBandwidth
 
       <ul>
@@ -2783,23 +2894,33 @@
       </ul></li>
       <li><a href="source/SurfaceTopography.html#SurfaceTopography.Metadata.ValueAndUnitModel">ValueAndUnitModel (class in SurfaceTopography.Metadata)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.variable_bandwidth">variable_bandwidth() (in module SurfaceTopography.Container.Averaging)</a>
+</li>
       <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_area">variable_bandwidth_from_area() (in module SurfaceTopography.Uniform.VariableBandwidth)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Nonuniform.html#SurfaceTopography.Nonuniform.VariableBandwidth.variable_bandwidth_from_profile">variable_bandwidth_from_profile() (in module SurfaceTopography.Nonuniform.VariableBandwidth)</a>
 
       <ul>
         <li><a href="source/SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.VariableBandwidth.variable_bandwidth_from_profile">(in module SurfaceTopography.Uniform.VariableBandwidth)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness.variance_derivatice">variance_derivatice() (SurfaceTopography.Models.SelfAffine.AbstractIsotropicRoughness method)</a>
 </li>
       <li><a href="source/SurfaceTopography.Models.html#SurfaceTopography.Models.SelfAffine.SelfAffine.variance_derivative">variance_derivative() (SurfaceTopography.Models.SelfAffine.SelfAffine method)</a>
 </li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_autocorrelation_from_area">variance_half_derivative_via_autocorrelation_from_area() (in module SurfaceTopography.Generic.Fractional)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_autocorrelation_from_profile">variance_half_derivative_via_autocorrelation_from_profile() (in module SurfaceTopography.Generic.Fractional)</a>
+</li>
+      <li><a href="source/SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_scale_dependent_slope">variance_half_derivative_via_scale_dependent_slope() (in module SurfaceTopography.Generic.Fractional)</a>
+</li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.OIR.OirMetadataBlockType.VERSION">VERSION (SurfaceTopography.IO.OIR.OirMetadataBlockType attribute)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader">VKReader (class in SurfaceTopography.IO.VK)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.VOLTAGE">VOLTAGE (SurfaceTopography.IO.Reader.DataKind attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2819,9 +2940,11 @@
 </li>
       <li><a href="source/SurfaceTopography.Container.IO.html#SurfaceTopography.Container.IO.CE.write_containers">write_containers() (in module SurfaceTopography.Container.IO.CE)</a>
 </li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.DZI.write_dzi">write_dzi() (in module SurfaceTopography.IO.DZI)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.DZI.write_dzi">write_dzi() (in module SurfaceTopography.IO.DZI)</a>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.write_gwy">write_gwy() (in module SurfaceTopography.IO.GWY)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Text.write_matrix">write_matrix() (in module SurfaceTopography.IO.Text)</a>
 </li>
@@ -2830,6 +2953,8 @@
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.NC.write_nc_uniform">write_nc_uniform() (in module SurfaceTopography.IO.NC)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.DZI.write_topography_dzi">write_topography_dzi() (in module SurfaceTopography.IO.DZI)</a>
+</li>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.write_x3p">write_x3p() (in module SurfaceTopography.IO.X3P)</a>
 </li>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.WSXM.WSXMReader">WSXMReader (class in SurfaceTopography.IO.WSXM)</a>
 </li>
@@ -2856,6 +2981,14 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.XYZ.XYZReader">XYZReader (class in SurfaceTopography.IO.XYZ)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.YES">YES (SurfaceTopography.IO.Reader.MagicMatch attribute)</a>
 </li>
   </ul></td>
 </tr></table>

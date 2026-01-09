@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Testing" href="testing.html" />
+    <link rel="next" title="Supported File Formats" href="supported_formats.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
@@ -55,6 +55,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="supported_formats.html">Supported File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SurfaceTopography</a></li>
 </ul>
@@ -123,13 +124,18 @@ The classes expose a homogeneous interface for handling topographies. Example:</
 
 <span class="c1"># each channel has some defined meta data</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># channel name</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">channel_id</span><span class="p">)</span>  <span class="c1"># stable unique identifier for this channel</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">is_height_channel</span><span class="p">)</span>  <span class="c1"># True if this is a height/topography channel</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimensions</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">nb_grid_pts</span><span class="p">)</span>  <span class="c1"># number of grid points</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>  <span class="c1"># number of dimensions (1 or 2)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">info</span><span class="p">)</span>  <span class="c1"># more metadata, e.g. &#39;unit&#39; if unit was given in file</span>
 
-<span class="c1"># you can get a topography from a channel</span>
-<span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>   <span class="c1"># here meta data from the file is taken</span>
+<span class="c1"># you can get a topography from a channel - multiple selection methods:</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>  <span class="c1"># from channel object</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># by index</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="s2">&quot;Height&quot;</span><span class="p">)</span>  <span class="c1"># by stable ID (recommended for databases)</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">height_channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># by height-only index (backwards compatible)</span>
 
 <span class="c1"># each topography has a rich set of methods and properties for meta data and analysis</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">topo</span><span class="o">.</span><span class="n">physical_sizes</span><span class="p">)</span>  <span class="c1"># lateral dimension</span>
@@ -223,13 +229,34 @@ By using the pipeline, this topography is not only a (pseudo-) height container
 but also documents the whole process leading from the raw heights to the current heights.
 The <cite>squeeze</cite> method returns a new topography that contains the data returned by the pipeline.
 Pipelines can be concatenated together.</p>
+<p><strong>Data correction:</strong></p>
 <ul class="simple">
-<li><p><cite>detrend</cite>: Compute a detrended topography.</p></li>
+<li><p><cite>detrend</cite>: Compute a detrended topography by removing polynomial trends (constant, linear, quadratic, etc.).</p></li>
+<li><p><cite>scan_line_align</cite>: Remove scan line artifacts from AFM data by fitting and subtracting per-line polynomials and aligning adjacent lines. Supports variable polynomial degree for scanner bow correction.</p></li>
 <li><p><cite>fill_undefined_data</cite>: Fill undefined/missing data points using harmonic interpolation.</p></li>
+<li><p><cite>interpolate_undefined_data</cite>: Interpolate undefined data points.</p></li>
+</ul>
+<p><strong>Scaling and conversion:</strong></p>
+<ul class="simple">
 <li><p><cite>scale</cite>: Rescale all heights by a certain factor.</p></li>
 <li><p><cite>to_unit</cite>: Convert the topography to a different unit (scaling lateral lengths and heights).</p></li>
+<li><p><cite>to_nonuniform</cite>: Convert a uniform topography to a nonuniform representation.</p></li>
 </ul>
-<p>Example::</p>
+<p><strong>Filtering:</strong></p>
+<ul class="simple">
+<li><p><cite>window</cite>: Apply a windowing function to the topography (for spectral analysis).</p></li>
+<li><p><cite>filter</cite>: Apply a Fourier filter to the topography.</p></li>
+<li><p><cite>shortcut</cite>: Apply a short-wavelength cutoff filter (high-pass).</p></li>
+<li><p><cite>longcut</cite>: Apply a long-wavelength cutoff filter (low-pass).</p></li>
+</ul>
+<p><strong>Interpolation:</strong></p>
+<ul class="simple">
+<li><p><cite>interpolate_fourier</cite>: Interpolate the topography using Fourier methods.</p></li>
+<li><p><cite>interpolate_linear</cite>: Linear interpolation at arbitrary positions (2D maps only).</p></li>
+<li><p><cite>interpolate_bicubic</cite>: Bicubic interpolation at arbitrary positions (2D maps only).</p></li>
+<li><p><cite>mirror_stitch</cite>: Create a periodic topography by mirror stitching (2D maps only).</p></li>
+</ul>
+<p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_topography</span>
 <span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;my_surface.opd&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;rms height before detrending =&#39;</span><span class="p">,</span> <span class="n">topo</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
@@ -238,14 +265,30 @@ Pipelines can be concatenated together.</p>
       <span class="n">topo</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="n">detrend_mode</span><span class="o">=</span><span class="s1">&#39;curvature&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">rms_height_from_area</span><span class="p">())</span>
 </pre></div>
 </div>
+<p>Scan line alignment example (for AFM data with stripe artifacts):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_topography</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s1">&#39;afm_scan.ibw&#39;</span><span class="p">)</span>
+
+<span class="c1"># Remove per-line tilt and align adjacent lines</span>
+<span class="n">aligned</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">scan_line_align</span><span class="p">()</span>
+
+<span class="c1"># For scanner bow correction, use higher polynomial degree</span>
+<span class="n">aligned</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">scan_line_align</span><span class="p">(</span><span class="n">degree</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Removes quadratic curvature per line</span>
+
+<span class="c1"># Can be combined with other pipeline operations</span>
+<span class="n">corrected</span> <span class="o">=</span> <span class="n">topo</span><span class="o">.</span><span class="n">scan_line_align</span><span class="p">()</span><span class="o">.</span><span class="n">detrend</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="output-functions">
 <h3>Output functions<a class="headerlink" href="#output-functions" title="Link to this heading"></a></h3>
 <p>Output functions are used to save the topography data to a file.</p>
 <ul class="simple">
 <li><p><cite>to_matrix</cite>: Write a text representation of the height data to file.</p></li>
-<li><p><cite>to_netCDF</cite>: Write the topography to a NetCDF file.</p></li>
+<li><p><cite>to_netcdf</cite>: Write the topography to a NetCDF file.</p></li>
 <li><p><cite>to_dzi</cite>: Write the topography as a Deep Zoom Image (DZI) file.</p></li>
+<li><p><cite>to_x3p</cite>: Write the topography to an X3P file (ISO 5436-2 format).</p></li>
+<li><p><cite>to_gwy</cite>: Write the topography to a Gwyddion file.</p></li>
 </ul>
 </section>
 </section>
@@ -256,7 +299,7 @@ Pipelines can be concatenated together.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="testing.html" class="btn btn-neutral float-right" title="Testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="supported_formats.html" class="btn btn-neutral float-right" title="Supported File Formats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

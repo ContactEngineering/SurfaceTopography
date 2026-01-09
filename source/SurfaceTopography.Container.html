@@ -47,6 +47,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported_formats.html">Supported File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
 </ul>
@@ -97,6 +98,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.log_average"><code class="docutils literal notranslate"><span class="pre">log_average()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.autocorrelation"><code class="docutils literal notranslate"><span class="pre">autocorrelation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.power_spectrum"><code class="docutils literal notranslate"><span class="pre">power_spectrum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Container.Averaging.variable_bandwidth"><code class="docutils literal notranslate"><span class="pre">variable_bandwidth()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a><ul>
@@ -249,6 +253,93 @@ unit before the properties are computed.</p></li>
 <li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
 arguments for progress reporting. (Default: None)</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Averaging.autocorrelation">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.autocorrelation" title="Link to this definition"></a></dt>
+<dd><p>Return average autocorrelation function on a logarithmic grid.</p>
+<p>This computes the autocorrelation function for each topography in the
+container and returns an average over all topographies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
+unit before the properties are computed.</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade in length for automatic grid construction.
+(Default: 10)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
+arguments for progress reporting. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>distances</strong> (<em>np.ma.MaskedArray</em>) – Distances on a logarithmic grid.</p></li>
+<li><p><strong>acf</strong> (<em>np.ma.MaskedArray</em>) – Averaged autocorrelation function values.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Averaging.power_spectrum">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">power_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.power_spectrum" title="Link to this definition"></a></dt>
+<dd><p>Return average power spectral density on a logarithmic grid.</p>
+<p>This computes the power spectral density for each topography in the
+container and returns an average over all topographies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
+unit before the properties are computed.</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade in length for automatic grid construction.
+(Default: 10)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
+arguments for progress reporting. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>wavevectors</strong> (<em>np.ma.MaskedArray</em>) – Wavevectors on a logarithmic grid.</p></li>
+<li><p><strong>psd</strong> (<em>np.ma.MaskedArray</em>) – Averaged power spectral density values.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Container.Averaging.variable_bandwidth">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Container.Averaging.</span></span><span class="sig-name descname"><span class="pre">variable_bandwidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Container.Averaging.variable_bandwidth" title="Link to this definition"></a></dt>
+<dd><p>Return average variable bandwidth analysis on a logarithmic grid.</p>
+<p>This computes the variable bandwidth analysis for each topography in the
+container and returns an average over all topographies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<a class="reference internal" href="#SurfaceTopography.Container.SurfaceContainer.SurfaceContainer" title="SurfaceTopography.Container.SurfaceContainer.SurfaceContainer"><em>SurfaceContainer</em></a>) – Container object containing the underlying data sets.</p></li>
+<li><p><strong>unit</strong> (<em>str</em>) – Unit of the distance array. All topographies are converted to this
+unit before the properties are computed.</p></li>
+<li><p><strong>nb_points_per_decade</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points per decade in length for automatic grid construction.
+(Default: 10)</p></li>
+<li><p><strong>reliable</strong> (<em>bool</em><em>, </em><em>optional</em>) – Only return data deemed reliable. (Default: True)</p></li>
+<li><p><strong>progress_callback</strong> (<em>func</em><em>, </em><em>optional</em>) – Function taking iteration and the total number of iterations as
+arguments for progress reporting. (Default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>magnifications</strong> (<em>np.ma.MaskedArray</em>) – Magnifications on a logarithmic grid.</p></li>
+<li><p><strong>rms_heights</strong> (<em>np.ma.MaskedArray</em>) – Averaged RMS height values.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>

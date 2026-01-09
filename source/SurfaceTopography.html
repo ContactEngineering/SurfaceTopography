@@ -47,6 +47,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported_formats.html">Supported File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
 </ul>
@@ -416,6 +417,9 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.Averaging">SurfaceTopography.Container.Averaging module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.log_average"><code class="docutils literal notranslate"><span class="pre">log_average()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.autocorrelation"><code class="docutils literal notranslate"><span class="pre">autocorrelation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.power_spectrum"><code class="docutils literal notranslate"><span class="pre">power_spectrum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Container.html#SurfaceTopography.Container.Averaging.variable_bandwidth"><code class="docutils literal notranslate"><span class="pre">variable_bandwidth()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Container.html#module-SurfaceTopography.Container.Integration">SurfaceTopography.Container.Integration module</a><ul>
@@ -462,6 +466,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Fractional">SurfaceTopography.Generic.Fractional module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_autocorrelation_from_area"><code class="docutils literal notranslate"><span class="pre">variance_half_derivative_via_autocorrelation_from_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_autocorrelation_from_profile"><code class="docutils literal notranslate"><span class="pre">variance_half_derivative_via_autocorrelation_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.variance_half_derivative_via_scale_dependent_slope"><code class="docutils literal notranslate"><span class="pre">variance_half_derivative_via_scale_dependent_slope()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Fractional.container_variance_half_derivative_from_autocorrelation"><code class="docutils literal notranslate"><span class="pre">container_variance_half_derivative_from_autocorrelation()</span></code></a></li>
 </ul>
 </li>
@@ -481,8 +488,14 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.RobustStatistics.mad_polyfit"><code class="docutils literal notranslate"><span class="pre">mad_polyfit()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScaleDependentStatistics">SurfaceTopography.Generic.ScaleDependentStatistics module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.ScaleDependentStatistics.scale_dependent_statistical_property"><code class="docutils literal notranslate"><span class="pre">scale_dependent_statistical_property()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.ScanningProbe">SurfaceTopography.Generic.ScanningProbe module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.ScanningProbe.scanning_probe_reliability_cutoff"><code class="docutils literal notranslate"><span class="pre">scanning_probe_reliability_cutoff()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Generic.html#module-SurfaceTopography.Generic.Slope">SurfaceTopography.Generic.Slope module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_profile"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_profile()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Generic.html#SurfaceTopography.Generic.Slope.scale_dependent_slope_from_area"><code class="docutils literal notranslate"><span class="pre">scale_dependent_slope_from_area()</span></code></a></li>
@@ -495,6 +508,7 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.AL3D">SurfaceTopography.IO.AL3D module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader"><code class="docutils literal notranslate"><span class="pre">AL3DReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.can_read"><code class="docutils literal notranslate"><span class="pre">AL3DReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.__init__"><code class="docutils literal notranslate"><span class="pre">AL3DReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.read_height_data"><code class="docutils literal notranslate"><span class="pre">AL3DReader.read_height_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.channels"><code class="docutils literal notranslate"><span class="pre">AL3DReader.channels</span></code></a></li>
@@ -514,6 +528,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.DATX">SurfaceTopography.IO.DATX module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader"><code class="docutils literal notranslate"><span class="pre">DATXReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader.can_read"><code class="docutils literal notranslate"><span class="pre">DATXReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader.__init__"><code class="docutils literal notranslate"><span class="pre">DATXReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader.channels"><code class="docutils literal notranslate"><span class="pre">DATXReader.channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.DATX.DATXReader.topography"><code class="docutils literal notranslate"><span class="pre">DATXReader.topography()</span></code></a></li>
@@ -568,15 +583,18 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.GWY">SurfaceTopography.IO.GWY module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader"><code class="docutils literal notranslate"><span class="pre">GWYReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader.can_read"><code class="docutils literal notranslate"><span class="pre">GWYReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader.__init__"><code class="docutils literal notranslate"><span class="pre">GWYReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader.channels"><code class="docutils literal notranslate"><span class="pre">GWYReader.channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.GWYReader.topography"><code class="docutils literal notranslate"><span class="pre">GWYReader.topography()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.GWY.write_gwy"><code class="docutils literal notranslate"><span class="pre">write_gwy()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.H5">SurfaceTopography.IO.H5 module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader"><code class="docutils literal notranslate"><span class="pre">H5Reader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.can_read"><code class="docutils literal notranslate"><span class="pre">H5Reader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.__init__"><code class="docutils literal notranslate"><span class="pre">H5Reader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.close"><code class="docutils literal notranslate"><span class="pre">H5Reader.close()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.H5.H5Reader.channels"><code class="docutils literal notranslate"><span class="pre">H5Reader.channels</span></code></a></li>
@@ -663,6 +681,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.NC">SurfaceTopography.IO.NC module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader"><code class="docutils literal notranslate"><span class="pre">NCReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.can_read"><code class="docutils literal notranslate"><span class="pre">NCReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.__init__"><code class="docutils literal notranslate"><span class="pre">NCReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.close"><code class="docutils literal notranslate"><span class="pre">NCReader.close()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NC.NCReader.channels"><code class="docutils literal notranslate"><span class="pre">NCReader.channels</span></code></a></li>
@@ -686,6 +705,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.NPY">SurfaceTopography.IO.NPY module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader"><code class="docutils literal notranslate"><span class="pre">NPYReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.can_read"><code class="docutils literal notranslate"><span class="pre">NPYReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.__init__"><code class="docutils literal notranslate"><span class="pre">NPYReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.channels"><code class="docutils literal notranslate"><span class="pre">NPYReader.channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.NPY.NPYReader.topography"><code class="docutils literal notranslate"><span class="pre">NPYReader.topography()</span></code></a></li>
@@ -788,6 +808,24 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.Reader">SurfaceTopography.IO.Reader module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch"><code class="docutils literal notranslate"><span class="pre">MagicMatch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.YES"><code class="docutils literal notranslate"><span class="pre">MagicMatch.YES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.NO"><code class="docutils literal notranslate"><span class="pre">MagicMatch.NO</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.MagicMatch.MAYBE"><code class="docutils literal notranslate"><span class="pre">MagicMatch.MAYBE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind"><code class="docutils literal notranslate"><span class="pre">DataKind</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.HEIGHT"><code class="docutils literal notranslate"><span class="pre">DataKind.HEIGHT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.VOLTAGE"><code class="docutils literal notranslate"><span class="pre">DataKind.VOLTAGE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.CURRENT"><code class="docutils literal notranslate"><span class="pre">DataKind.CURRENT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.PHASE"><code class="docutils literal notranslate"><span class="pre">DataKind.PHASE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.AMPLITUDE"><code class="docutils literal notranslate"><span class="pre">DataKind.AMPLITUDE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.ERROR"><code class="docutils literal notranslate"><span class="pre">DataKind.ERROR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.DEFLECTION"><code class="docutils literal notranslate"><span class="pre">DataKind.DEFLECTION</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.FRICTION"><code class="docutils literal notranslate"><span class="pre">DataKind.FRICTION</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.DataKind.OTHER"><code class="docutils literal notranslate"><span class="pre">DataKind.OTHER</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo"><code class="docutils literal notranslate"><span class="pre">ChannelInfo</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.__init__"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.topography"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.topography()</span></code></a></li>
@@ -803,6 +841,12 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.pixel_size"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.pixel_size</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.area_per_pt"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.area_per_pt</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.unit"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.lateral_unit"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.lateral_unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.data_kind"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.data_kind</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.data_unit"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.data_unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.is_height_channel"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.is_height_channel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.channel_id"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.channel_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.height_index"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.height_index</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.info"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.info</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.tags"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.tags</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ChannelInfo.reader"><code class="docutils literal notranslate"><span class="pre">ChannelInfo.reader</span></code></a></li>
@@ -814,8 +858,12 @@
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.file_extensions"><code class="docutils literal notranslate"><span class="pre">ReaderBase.file_extensions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.name"><code class="docutils literal notranslate"><span class="pre">ReaderBase.name()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.description"><code class="docutils literal notranslate"><span class="pre">ReaderBase.description()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.can_read"><code class="docutils literal notranslate"><span class="pre">ReaderBase.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.close"><code class="docutils literal notranslate"><span class="pre">ReaderBase.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.height_index_to_channel_id"><code class="docutils literal notranslate"><span class="pre">ReaderBase.height_index_to_channel_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.channel_id_to_height_index"><code class="docutils literal notranslate"><span class="pre">ReaderBase.channel_id_to_height_index()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.channels"><code class="docutils literal notranslate"><span class="pre">ReaderBase.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.height_channels"><code class="docutils literal notranslate"><span class="pre">ReaderBase.height_channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.default_channel"><code class="docutils literal notranslate"><span class="pre">ReaderBase.default_channel</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.Reader.ReaderBase.topography"><code class="docutils literal notranslate"><span class="pre">ReaderBase.topography()</span></code></a></li>
 </ul>
@@ -861,6 +909,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.SUR">SurfaceTopography.IO.SUR module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.SUR.SURReader"><code class="docutils literal notranslate"><span class="pre">SURReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.SUR.SURReader.can_read"><code class="docutils literal notranslate"><span class="pre">SURReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.SUR.SURReader.channels"><code class="docutils literal notranslate"><span class="pre">SURReader.channels</span></code></a></li>
 </ul>
 </li>
@@ -882,6 +931,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.VK">SurfaceTopography.IO.VK module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader"><code class="docutils literal notranslate"><span class="pre">VKReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.can_read"><code class="docutils literal notranslate"><span class="pre">VKReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.__init__"><code class="docutils literal notranslate"><span class="pre">VKReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.read_vk3467_header"><code class="docutils literal notranslate"><span class="pre">VKReader.read_vk3467_header()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.VK.VKReader.read_vk34_header"><code class="docutils literal notranslate"><span class="pre">VKReader.read_vk34_header()</span></code></a></li>
@@ -903,11 +953,13 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.X3P">SurfaceTopography.IO.X3P module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader"><code class="docutils literal notranslate"><span class="pre">X3PReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader.can_read"><code class="docutils literal notranslate"><span class="pre">X3PReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader.__init__"><code class="docutils literal notranslate"><span class="pre">X3PReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader.channels"><code class="docutils literal notranslate"><span class="pre">X3PReader.channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.X3PReader.topography"><code class="docutils literal notranslate"><span class="pre">X3PReader.topography()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.X3P.write_x3p"><code class="docutils literal notranslate"><span class="pre">write_x3p()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.XYZ">SurfaceTopography.IO.XYZ module</a><ul>
@@ -1175,7 +1227,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.Autocorrelation">SurfaceTopography.Uniform.Autocorrelation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_profile"><code class="docutils literal notranslate"><span class="pre">autocorrelation_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.Autocorrelation.autocorrelation_from_area"><code class="docutils literal notranslate"><span class="pre">autocorrelation_from_area()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.BearingArea">SurfaceTopography.Uniform.BearingArea module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.BearingArea.UniformBearingArea"><code class="docutils literal notranslate"><span class="pre">UniformBearingArea</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.BearingArea.UniformBearingArea.bounds"><code class="docutils literal notranslate"><span class="pre">UniformBearingArea.bounds()</span></code></a></li>
@@ -1319,6 +1375,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.PowerSpectrum">SurfaceTopography.Uniform.PowerSpectrum module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_profile"><code class="docutils literal notranslate"><span class="pre">power_spectrum_from_profile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.power_spectrum_from_area"><code class="docutils literal notranslate"><span class="pre">power_spectrum_from_area()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.fftfreq"><code class="docutils literal notranslate"><span class="pre">fftfreq()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.PowerSpectrum.wavevectors_norm2"><code class="docutils literal notranslate"><span class="pre">wavevectors_norm2()</span></code></a></li>
 </ul>
@@ -1331,6 +1389,20 @@
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.Rddq"><code class="docutils literal notranslate"><span class="pre">Rddq()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_laplacian"><code class="docutils literal notranslate"><span class="pre">rms_laplacian()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScalarParameters.rms_curvature_from_area"><code class="docutils literal notranslate"><span class="pre">rms_curvature_from_area()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.ScanLineAlignment">SurfaceTopography.Uniform.ScanLineAlignment module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.__init__"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.direction"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.mode"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.degree"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.degree</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.line_coeffs"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.line_coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.offsets"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.is_periodic"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.is_periodic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.Uniform.html#SurfaceTopography.Uniform.ScanLineAlignment.ScanLineAlignedTopography.heights"><code class="docutils literal notranslate"><span class="pre">ScanLineAlignedTopography.heights()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.Uniform.html#module-SurfaceTopography.Uniform.VariableBandwidth">SurfaceTopography.Uniform.VariableBandwidth module</a><ul>

@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supported File Formats &mdash; SurfaceTopography 0.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7026087e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing" href="testing.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SurfaceTopography
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Supported File Formats</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#file-format-table">File Format Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#container-formats">Container Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-channels">Working with Channels</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#inspecting-channels">Inspecting Channels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#channel-selection-methods">Channel Selection Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#channel-properties">Channel Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stable-channel-identification">Stable Channel Identification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#migrating-from-height-index-to-channel-id">Migrating from Height Index to Channel ID</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SurfaceTopography</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Supported File Formats</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/supported_formats.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="supported-file-formats">
+<h1>Supported File Formats<a class="headerlink" href="#supported-file-formats" title="Link to this heading"></a></h1>
+<p>SurfaceTopography supports reading surface topography data from a wide variety of file formats commonly used by commercial profilometers, AFMs, and other surface measurement instruments.</p>
+<section id="file-format-table">
+<h2>File Format Table<a class="headerlink" href="#file-format-table" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Format Name</p></th>
+<th class="head"><p>Extensions</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Alicona Imaging AL3D</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.al3d</span></code></p></td>
+<td><p>AL3D format of Alicona Imaging optical 3D measurement systems</p></td>
+</tr>
+<tr class="row-odd"><td><p>BCR-STM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.bcr</span></code>, <code class="docutils literal notranslate"><span class="pre">.bcrf</span></code></p></td>
+<td><p>BCR-STM and BCRF file formats for scanning tunneling microscopy</p></td>
+</tr>
+<tr class="row-even"><td><p>Bruker/Veeco/DI Nanoscope</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.spm</span></code>, <code class="docutils literal notranslate"><span class="pre">.001</span></code>-<code class="docutils literal notranslate"><span class="pre">.005</span></code></p></td>
+<td><p>Digital Instruments, Veeco, and Bruker Dimension AFM formats</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bruker Dektak OPDx</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.opdx</span></code></p></td>
+<td><p>File format of the Bruker Dektak XT series stylus profilometer</p></td>
+</tr>
+<tr class="row-even"><td><p>Bruker Wyko OPD</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.opd</span></code></p></td>
+<td><p>Files generated by Vision software of Bruker Wyko white-light interferometers</p></td>
+</tr>
+<tr class="row-odd"><td><p>Digital Surf SUR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.sur</span></code></p></td>
+<td><p>Digital Surf SUR data files</p></td>
+</tr>
+<tr class="row-even"><td><p>Gwyddion</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.gwy</span></code></p></td>
+<td><p>Native file format of the open-source SPM visualization software Gwyddion</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hierarchical Data Format (HDF5)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.h5</span></code></p></td>
+<td><p>HDF5 files with 2D arrays (e.g., contact mechanics challenge data)</p></td>
+</tr>
+<tr class="row-even"><td><p>Igor Binary Wave</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.ibw</span></code></p></td>
+<td><p>Igor binary wave container format (WaveMetrics Igor Pro)</p></td>
+</tr>
+<tr class="row-odd"><td><p>JPK Image Scan</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.jpk</span></code></p></td>
+<td><p>TIFF-based file format of JPK instruments (now Bruker)</p></td>
+</tr>
+<tr class="row-even"><td><p>Keyence VK</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.vk3</span></code>, <code class="docutils literal notranslate"><span class="pre">.vk4</span></code>, <code class="docutils literal notranslate"><span class="pre">.vk6</span></code>, <code class="docutils literal notranslate"><span class="pre">.vk7</span></code></p></td>
+<td><p>VK3/VK4/VK6/VK7 formats of Keyence laser confocal microscopes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Keyence ZON</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.zon</span></code></p></td>
+<td><p>ZON files from some Keyence instruments</p></td>
+</tr>
+<tr class="row-even"><td><p>MATLAB</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.mat</span></code></p></td>
+<td><p>MATLAB workspace files containing topography data</p></td>
+</tr>
+<tr class="row-odd"><td><p>Microprof FRT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.frt</span></code></p></td>
+<td><p>MicroProf FRT profilometry data</p></td>
+</tr>
+<tr class="row-even"><td><p>Mitutoyo SurfTest</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.xlsx</span></code></p></td>
+<td><p>Excel spreadsheets from Mitutoyo SurfTest instruments</p></td>
+</tr>
+<tr class="row-odd"><td><p>Molecular Imaging (MI)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.mi</span></code></p></td>
+<td><p>Agilent Technologies (Molecular Imaging) AFM format</p></td>
+</tr>
+<tr class="row-even"><td><p>NanoSurf easyScan</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.ezd</span></code>, <code class="docutils literal notranslate"><span class="pre">.nid</span></code></p></td>
+<td><p>NanoSurf easyScan data files</p></td>
+</tr>
+<tr class="row-odd"><td><p>Nanomeasuring Machine (NMM)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.zip</span></code></p></td>
+<td><p>ZIP-packaged nanomeasuring machine files</p></td>
+</tr>
+<tr class="row-even"><td><p>NASA SRTM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.hgt</span></code></p></td>
+<td><p>NASA Shuttle Radar Topography Mission elevation data</p></td>
+</tr>
+<tr class="row-odd"><td><p>NetCDF</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.nc</span></code></p></td>
+<td><p>Network Common Data Format (classic and HDF5-based NetCDF4)</p></td>
+</tr>
+<tr class="row-even"><td><p>NumPy Array</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.npy</span></code></p></td>
+<td><p>NumPy binary array format</p></td>
+</tr>
+<tr class="row-odd"><td><p>Olympus LEXT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.lext</span></code></p></td>
+<td><p>TIFF-based format of Olympus LEXT confocal microscopes</p></td>
+</tr>
+<tr class="row-even"><td><p>Olympus OIR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.oir</span></code></p></td>
+<td><p>Olympus OIR data files</p></td>
+</tr>
+<tr class="row-odd"><td><p>Olympus Packed OIR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.poir</span></code></p></td>
+<td><p>ZIP-packaged Olympus OIR files</p></td>
+</tr>
+<tr class="row-even"><td><p>Park Systems TIFF</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.tiff</span></code>, <code class="docutils literal notranslate"><span class="pre">.tif</span></code></p></td>
+<td><p>TIFF-based format of Park Systems AFM instruments</p></td>
+</tr>
+<tr class="row-odd"><td><p>Plain Text (ASCII)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">.asc</span></code>, <code class="docutils literal notranslate"><span class="pre">.dat</span></code></p></td>
+<td><p>Plain text files with optional headers</p></td>
+</tr>
+<tr class="row-even"><td><p>Plain Text (XYZ)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.xyz</span></code>, <code class="docutils literal notranslate"><span class="pre">.hfm</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code></p></td>
+<td><p>Coordinate data as (x, y, z) tuples</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sensofar PLU</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.plu</span></code>, <code class="docutils literal notranslate"><span class="pre">.apx</span></code></p></td>
+<td><p>Sensofar SPM file format</p></td>
+</tr>
+<tr class="row-even"><td><p>Sensofar PLUX</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.plux</span></code></p></td>
+<td><p>Sensofar XML-based SPM file format</p></td>
+</tr>
+<tr class="row-odd"><td><p>WSxM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.cur</span></code>, <code class="docutils literal notranslate"><span class="pre">.stp</span></code>, <code class="docutils literal notranslate"><span class="pre">.tom</span></code>, <code class="docutils literal notranslate"><span class="pre">.top</span></code></p></td>
+<td><p>WSxM SPM data files</p></td>
+</tr>
+<tr class="row-even"><td><p>X3P</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.x3p</span></code></p></td>
+<td><p>ISO 5436-2 XML 3D surface profile container format</p></td>
+</tr>
+<tr class="row-odd"><td><p>Zygo DATX</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.datx</span></code></p></td>
+<td><p>Zygo DATX HDF5-based format</p></td>
+</tr>
+<tr class="row-even"><td><p>Zygo MetroPro</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.dat</span></code></p></td>
+<td><p>Zygo MetroPro data files</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="container-formats">
+<h2>Container Formats<a class="headerlink" href="#container-formats" title="Link to this heading"></a></h2>
+<p>In addition to individual topography files, SurfaceTopography can read container formats that bundle multiple topographies:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Format Name</p></th>
+<th class="head"><p>Extensions</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>contact.engineering</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.zip</span></code></p></td>
+<td><p>Digital surface twin containers from <a class="reference external" href="https://contact.engineering/">contact.engineering</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Keyence ZAG</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.zag</span></code></p></td>
+<td><p>Keyence ZAG container format</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span><span class="p">,</span> <span class="n">read_topography</span>
+
+<span class="c1"># Auto-detect format and open file</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;measurement.vk4&quot;</span><span class="p">)</span>
+<span class="n">topography</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">()</span>
+
+<span class="c1"># Or read directly</span>
+<span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">&quot;measurement.vk4&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For formats that don’t store physical sizes or units (e.g., NPY, HDF5), you must provide them:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topography</span> <span class="o">=</span> <span class="n">read_topography</span><span class="p">(</span><span class="s2">&quot;data.npy&quot;</span><span class="p">,</span> <span class="n">physical_sizes</span><span class="o">=</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;um&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="working-with-channels">
+<h2>Working with Channels<a class="headerlink" href="#working-with-channels" title="Link to this heading"></a></h2>
+<p>Many file formats support multiple data channels (e.g., height, phase, amplitude error). You can inspect available channels and select which one to load.</p>
+<section id="inspecting-channels">
+<h3>Inspecting Channels<a class="headerlink" href="#inspecting-channels" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
+
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;afm_scan.ibw&quot;</span><span class="p">)</span>
+
+<span class="c1"># List all channels</span>
+<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">channel_id</span><span class="si">}</span><span class="s2"> (height=</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">is_height_channel</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access only height channels (backwards compatible)</span>
+<span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_channels</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Height channel: </span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="channel-selection-methods">
+<h3>Channel Selection Methods<a class="headerlink" href="#channel-selection-methods" title="Link to this heading"></a></h3>
+<p>There are three ways to select which channel to load:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method 1: By channel index (default behavior)</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Method 2: By stable channel ID (recommended for database storage)</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="s2">&quot;Height&quot;</span><span class="p">)</span>
+
+<span class="c1"># Method 3: By height channel index (backwards compatible, only counts height channels)</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">height_channel_index</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="channel-properties">
+<h3>Channel Properties<a class="headerlink" href="#channel-properties" title="Link to this heading"></a></h3>
+<p>Each channel (<code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelInfo</span></code>) has the following properties:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> - Human-readable channel name from the file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_id</span></code> - Stable unique identifier (e.g., “Height”, “Phase#2” for duplicates)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_height_channel</span></code> - <code class="docutils literal notranslate"><span class="pre">True</span></code> if channel contains height/topography data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">height_index</span></code> - Index among height channels only (<code class="docutils literal notranslate"><span class="pre">None</span></code> for non-height channels)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_kind</span></code> - Type of data (HEIGHT, VOLTAGE, PHASE, AMPLITUDE, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dim</span></code> - Dimensionality (1 for line scans, 2 for maps)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nb_grid_pts</span></code> - Number of grid points</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">physical_sizes</span></code> - Physical dimensions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> - Unit of measurement</p></li>
+</ul>
+</section>
+<section id="stable-channel-identification">
+<h3>Stable Channel Identification<a class="headerlink" href="#stable-channel-identification" title="Link to this heading"></a></h3>
+<p>For applications that store channel references in databases, use <code class="docutils literal notranslate"><span class="pre">channel_id</span></code> instead of <code class="docutils literal notranslate"><span class="pre">channel_index</span></code>. The <code class="docutils literal notranslate"><span class="pre">channel_id</span></code> is:</p>
+<ul class="simple">
+<li><p><strong>Stable</strong>: Remains the same across different reads of the same file</p></li>
+<li><p><strong>Order-independent</strong>: Doesn’t depend on the internal order channels appear</p></li>
+<li><p><strong>Unique</strong>: Automatically disambiguated for duplicate names (e.g., “Height#1”, “Height#2”)</p></li>
+</ul>
+<p>Example for database storage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># When saving to database, store the channel_id</span>
+<span class="n">channel_to_store</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">channel_id</span>  <span class="c1"># e.g., &quot;Height&quot;</span>
+
+<span class="c1"># Later, when loading from database</span>
+<span class="n">topo</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">topography</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="n">channel_to_store</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="migrating-from-height-index-to-channel-id">
+<h3>Migrating from Height Index to Channel ID<a class="headerlink" href="#migrating-from-height-index-to-channel-id" title="Link to this heading"></a></h3>
+<p>For databases that previously stored <code class="docutils literal notranslate"><span class="pre">height_channel_index</span></code> values, utility functions are provided to convert between the old and new systems:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
+
+<span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="s2">&quot;scan.ibw&quot;</span><span class="p">)</span>
+
+<span class="c1"># Convert old height index to new channel_id</span>
+<span class="n">old_index</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># stored in database</span>
+<span class="n">new_id</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_index_to_channel_id</span><span class="p">(</span><span class="n">old_index</span><span class="p">)</span>
+<span class="c1"># new_id is now something like &quot;Height&quot; or &quot;ZSensor&quot;</span>
+
+<span class="c1"># Convert back if needed (only works for height channels)</span>
+<span class="n">recovered_index</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">channel_id_to_height_index</span><span class="p">(</span><span class="n">new_id</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">recovered_index</span> <span class="o">==</span> <span class="n">old_index</span>
+</pre></div>
+</div>
+<p>Migration script example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">SurfaceTopography</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_topography</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">migrate_database_entry</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">old_height_index</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Migrate a database entry from height_index to channel_id.&quot;&quot;&quot;</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">open_topography</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">new_channel_id</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">height_index_to_channel_id</span><span class="p">(</span><span class="n">old_height_index</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_channel_id</span>
+
+<span class="c1"># Example usage</span>
+<span class="c1"># old_entry = {&quot;file&quot;: &quot;scan.ibw&quot;, &quot;channel&quot;: 0}</span>
+<span class="c1"># new_entry = {&quot;file&quot;: &quot;scan.ibw&quot;, &quot;channel_id&quot;: migrate_database_entry(&quot;scan.ibw&quot;, 0)}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>File format is auto-detected from file content (magic bytes) when possible</p></li>
+<li><p>Some formats support multiple channels - use <code class="docutils literal notranslate"><span class="pre">reader.channels</span></code> to inspect</p></li>
+<li><p>Most readers support both file paths and file-like objects</p></li>
+<li><p>Some readers support MPI-parallel reading for large datasets</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="testing.html" class="btn btn-neutral float-right" title="Testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
