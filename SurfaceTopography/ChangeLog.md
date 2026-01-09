@@ -7,6 +7,10 @@ v1.21.0 (not yet released)
 - BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
 - API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
 - API: Added `scan_line_align()` pipeline function for line-by-line polynomial correction of AFM scan data (supports variable polynomial degree for scanner bow correction)
+- API: Added `DataKind` enum and stable `channel_id` identifier for file reader channels
+- API: Added `channel_id` and `height_channel_index` parameters to `topography()` method for stable channel selection
+- API: Added `height_channels` property to readers for backwards-compatible access to height data channels only
+- API: `ChannelInfo` now has `data_kind`, `data_unit`, `lateral_unit`, `is_height_channel`, `channel_id`, and `height_index` properties
 - ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
 - DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats
 - BUG: SurfaceContainer `autocorrelation`, `power_spectrum`, and `variable_bandwidth` methods now have proper docstrings

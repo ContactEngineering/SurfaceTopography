@@ -25,14 +25,12 @@
 #
 
 import numpy as np
-
 from igor2.binarywave import load as loadibw
 
 from ..Exceptions import MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
 
 
 class IBWReader(ReaderBase):
@@ -135,12 +133,14 @@ on the physical size of the topography map as well as its units.
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None,
+    def topography(self, channel_index=None, channel_id=None,
+                   height_channel_index=None, physical_sizes=None,
                    height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None,
                    nb_subdomain_grid_pts=None):
-        if channel_index is None:
-            channel_index = self._default_channel_index
+        channel, channel_index = self._resolve_channel(
+            channel_index, channel_id, height_channel_index
+        )
 
         if unit is not None and self._data_unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
@@ -167,7 +167,6 @@ on the physical size of the topography map as well as its units.
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
 
-        channel = self._channels[channel_index]
         if channel.height_scale_factor is not None:
             if height_scale_factor is not None:
                 raise MetadataAlreadyFixedByFile('height_scale_factor')
