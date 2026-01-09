@@ -42,7 +42,7 @@ keywords = [
     "height-map", "surface-profile", "line-scan", "SRTM"
 ]
 requires-python = ">=3.10.0"
-dynamic = ["version"]PlP
+dynamic = ["version"]
 dependencies = [
     "numpy>=2.0.0",
     "scipy>=1.9.0",

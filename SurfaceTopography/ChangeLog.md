@@ -1,18 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
-v1.21.1 (09Jan26)
------------------
-
-- BUILD: Fixed CI publication workflow
-
 v1.21.0 (09Jan26)
 -----------------
 
 - BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
 - API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
 - API: Added `scan_line_align()` pipeline function for line-by-line polynomial correction of AFM scan data (supports variable polynomial degree for scanner bow correction)
-- API: Added `DataKind` enum and stable `channel_id` identifier for file reader channels
+- API: Added `DataKind` enum and stable `channel_id` identifier for file reader channelsNo
 - API: Added `channel_id` and `height_channel_index` parameters to `topography()` method for stable channel selection
 - API: Added `height_channels` property to readers for backwards-compatible access to height data channels only
 - API: Added `height_index_to_channel_id()` and `channel_id_to_height_index()` utility methods for database migration
