@@ -133,12 +133,109 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     return x_out, y_out
 
 
-# All container functionsa are 'profile' functions, because container can contain mixtures of topgoraphic maps and line
+# All container functions are 'profile' functions, because container can contain mixtures of topographic maps and line
 # scans.
-SurfaceContainer.register_function(
-    'autocorrelation', lambda self, unit, **kwargs: log_average(self, 'autocorrelation_from_profile', unit, **kwargs))
-SurfaceContainer.register_function(
-    'power_spectrum', lambda self, unit, **kwargs: log_average(self, 'power_spectrum_from_profile', unit, **kwargs))
-SurfaceContainer.register_function(
-    'variable_bandwidth',
-    lambda self, unit, **kwargs: log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs))
+
+
+def autocorrelation(self, unit, **kwargs):
+    """
+    Return average autocorrelation function on a logarithmic grid.
+
+    This computes the autocorrelation function for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    distances : np.ma.MaskedArray
+        Distances on a logarithmic grid.
+    acf : np.ma.MaskedArray
+        Averaged autocorrelation function values.
+    """
+    return log_average(self, 'autocorrelation_from_profile', unit, **kwargs)
+
+
+def power_spectrum(self, unit, **kwargs):
+    """
+    Return average power spectral density on a logarithmic grid.
+
+    This computes the power spectral density for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    wavevectors : np.ma.MaskedArray
+        Wavevectors on a logarithmic grid.
+    psd : np.ma.MaskedArray
+        Averaged power spectral density values.
+    """
+    return log_average(self, 'power_spectrum_from_profile', unit, **kwargs)
+
+
+def variable_bandwidth(self, unit, **kwargs):
+    """
+    Return average variable bandwidth analysis on a logarithmic grid.
+
+    This computes the variable bandwidth analysis for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    magnifications : np.ma.MaskedArray
+        Magnifications on a logarithmic grid.
+    rms_heights : np.ma.MaskedArray
+        Averaged RMS height values.
+    """
+    return log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs)
+
+
+SurfaceContainer.register_function('autocorrelation', autocorrelation)
+SurfaceContainer.register_function('power_spectrum', power_spectrum)
+SurfaceContainer.register_function('variable_bandwidth', variable_bandwidth)

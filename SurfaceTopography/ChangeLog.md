@@ -8,6 +8,7 @@ v1.21.0 (not yet released)
 - API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
 - ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
 - DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats
+- BUG: SurfaceContainer `autocorrelation`, `power_spectrum`, and `variable_bandwidth` methods now have proper docstrings
 
 v1.20.0 (08Jan26)
 -----------------
