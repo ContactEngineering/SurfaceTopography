@@ -9,7 +9,7 @@
 
 @section LICENCE
 
-Copyright 2015-2018 Till Junge, Lars Pastewka
+Copyright 2015-2025 Till Junge, Lars Pastewka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,20 +33,34 @@ SOFTWARE.
 #ifndef __PATCHFINDER_H
 #define __PATCHFINDER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <optional>
+#include <tuple>
 
-PyObject *assign_patch_numbers(PyObject *self, PyObject *args);
-PyObject *assign_segment_numbers(PyObject *self, PyObject *args);
-PyObject *shortest_distance(PyObject *self, PyObject *args);
-PyObject *closest_patch_map(PyObject *self, PyObject *args);
-PyObject *distance_map(PyObject *self, PyObject *args);
-PyObject *correlation_function(PyObject *self, PyObject *args);
-PyObject *perimeter_length(PyObject *self, PyObject *args);
+#include "eigen_helper.h"
 
-#ifdef __cplusplus
-}
-#endif
+std::tuple<int, RowMajorXXi> assign_patch_numbers(
+    Eigen::Ref<RowMajorXXb> map,
+    bool periodic,
+    std::optional<Eigen::Ref<ArrayXl>> stencil = std::nullopt);
+
+std::tuple<int, RowMajorXXi> assign_segment_numbers(
+    Eigen::Ref<RowMajorXXb> map);
+
+RowMajorXXd distance_map(Eigen::Ref<RowMajorXXb> map);
+
+RowMajorXXi closest_patch_map(Eigen::Ref<RowMajorXXi> map);
+
+RowMajorXXd shortest_distance(
+    Eigen::Ref<RowMajorXXb> fromc,
+    Eigen::Ref<RowMajorXXb> fromp,
+    Eigen::Ref<RowMajorXXb> to,
+    int maxd = -1);
+
+std::tuple<Eigen::ArrayXd, Eigen::ArrayXd, Eigen::ArrayXd> correlation_function(
+    Eigen::Ref<RowMajorXXd> map1,
+    Eigen::Ref<RowMajorXXd> map2,
+    int max_dist);
+
+double perimeter_length(Eigen::Ref<RowMajorXXb> map);
 
 #endif

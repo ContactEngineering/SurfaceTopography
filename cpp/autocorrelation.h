@@ -9,7 +9,7 @@
 
 @section LICENCE
 
-Copyright 2019 Lars Pastewka
+Copyright 2019-2025 Lars Pastewka
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,14 +33,15 @@ SOFTWARE.
 #ifndef __AUTOCORRELATION_H
 #define __AUTOCORRELATION_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <optional>
+#include <tuple>
 
-PyObject *nonuniform_autocorrelation(PyObject *self, PyObject *args);
+#include <Eigen/Dense>
 
-#ifdef __cplusplus
-}
-#endif
+std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
+    Eigen::Ref<Eigen::ArrayXd> x,
+    Eigen::Ref<Eigen::ArrayXd> h,
+    double physical_size,
+    std::optional<Eigen::Ref<Eigen::ArrayXd>> distances = std::nullopt);
 
 #endif
