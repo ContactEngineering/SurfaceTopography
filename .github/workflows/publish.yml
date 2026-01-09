@@ -27,18 +27,12 @@ jobs:
             ninja-build
           python3 -m venv ../venv
           source ../venv/bin/activate
-          pip install build meson meson-python numpy DiscoverVersion
-
-      - name: Get version from DiscoverVersion
-        id: get_version
-        run: |
-          source ../venv/bin/activate
-          echo "version=$(python -m DiscoverVersion)" >> $GITHUB_OUTPUT
+          pip install build
 
       - name: Build package
         run: |
           source ../venv/bin/activate
-          python3 -m build . -s --no-isolation
+          python3 -m build . -s
 
       - name: Install extension module
         run: |
