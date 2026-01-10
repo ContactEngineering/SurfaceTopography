@@ -4,7 +4,7 @@ requires = [
     "meson-python>=0.13.0",
     "ninja",
     "numpy>=2.0.0",
-    "setuptools-scm>=8"
+    "DiscoverVersion>=0.3.2"
 ]
 build-backend = "mesonpy"
 
@@ -85,10 +85,6 @@ show-topography = "SurfaceTopography.CLI.ShowTopography:main"
 [tool.meson-python]
 # Allow bundling shared libraries on Windows (needed for extension modules)
 allow-windows-internal-shared-libs = true
-
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
 
 [tool.black]
 line-length = 88

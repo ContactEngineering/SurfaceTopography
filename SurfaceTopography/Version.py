@@ -28,8 +28,9 @@ try:
     __version__ = version('SurfaceTopography')
 except PackageNotFoundError:
     # Package is not installed (e.g., running from source checkout)
+    # Try DiscoverVersion if available
     try:
-        from setuptools_scm import get_version
-        __version__ = get_version(root='..', relative_to=__file__)
-    except (ImportError, LookupError):
+        from DiscoverVersion import get_version
+        __version__ = get_version('SurfaceTopography', __file__)
+    except ImportError:
         __version__ = '0.0.0+unknown'

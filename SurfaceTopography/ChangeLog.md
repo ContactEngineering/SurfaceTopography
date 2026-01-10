@@ -21,7 +21,6 @@ v1.20.0 (09Jan26)
 - BUILD: Removed support for Python 3.9; minimum Python version is now 3.10
 - BUILD: Added support for Python 3.14
 - BUILD: Minimum muGrid version is now 0.103.0
-- BUILD: setuptools-scm is now used for version management (requires setuptools-scm>=8)
 - MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
 - MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
 - MAINT: Pipeline functions now preserve docstrings and source code for IPython introspection
