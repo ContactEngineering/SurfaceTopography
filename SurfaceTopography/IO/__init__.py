@@ -61,23 +61,30 @@ from .MI import MIReader
 from .Mitutoyo import MitutoyoReader
 from .NC import NCReader
 from .NMM import NMMReader
+from .NMS import NMSReader
 from .NPY import NPYReader
 from .OIR import OIRReader, POIRReader
 from .OPD import OPDReader
 from .OPDx import OPDxReader
+from .OS3D import OS3DReader
 from .PLU import PLUReader
 from .PLUX import PLUXReader
 from .PS import PSReader
 from .Reader import MagicMatch, ReaderBase  # noqa: F401
+from .SDF import SDFReader
 from .SUR import SURReader
 from .Text import AscReader
+from .TMD import TMDReader
 from .VK import VKReader
 from .WSXM import WSXMReader
 from .X3P import X3PReader
 from .XYZ import XYZReader
+from .ZMG import ZMGReader
 from .ZON import ZONReader
 
 readers = [
+    # SDFReader must come before ASC, because SDF ASCII is readable as ASC
+    SDFReader,
     # XYZ must come before ASC, because 2D XYZ is a specialized ASC
     XYZReader,
     AscReader,
@@ -97,8 +104,11 @@ readers = [
     NPYReader,
     PSReader,
     SURReader,
+    TMDReader,
     VKReader,
+    ZMGReader,
     ZONReader,
+    OS3DReader,
     AL3DReader,
     EZDReader,
     BCRReader,
@@ -113,7 +123,8 @@ readers = [
     PLUXReader,
     JPKReader,
     NMMReader,
-    # HGT reader should come last as there is no file magic
+    # NMS and HGT readers should come last as there is no file magic
+    NMSReader,
     HGTReader,
 ]
 

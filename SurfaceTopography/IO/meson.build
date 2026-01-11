@@ -24,7 +24,9 @@ python_sources = [
     'Mitutoyo.py',
     'NC.py',
     'NMM.py',
+    'NMS.py',
     'NPY.py',
+    'OS3D.py',
     'OIR.py',
     'OPD.py',
     'OPDx.py',
@@ -32,12 +34,15 @@ python_sources = [
     'PLUX.py',
     'PS.py',
     'Reader.py',
+    'SDF.py',
     'SUR.py',
     'Text.py',
+    'TMD.py',
     'VK.py',
     'WSXM.py',
     'X3P.py',
     'XYZ.py',
+    'ZMG.py',
     'ZON.py'
 ]
 
