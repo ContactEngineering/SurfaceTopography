@@ -680,3 +680,44 @@ class TLVContainer(LayoutWithNameBase):
         if name is not None:
             return {name: entries}
         return entries
+
+
+class LayoutWithTrailingData(LayoutWithNameBase):
+    """
+    Layout that parses structured fields then stores remaining bytes as raw data.
+
+    This is useful for TLV blocks that have a known header structure followed
+    by variable-length data (e.g., compressed data blocks).
+
+    Parameters
+    ----------
+    name : str
+        Name for this block in the result dict.
+    fields : list
+        Field definitions for the header. Can include:
+        - Tuples: (name, format) following struct module conventions
+        - Layout classes: Objects with from_stream() method (like For)
+    """
+
+    def __init__(self, name, fields):
+        self._name = name
+        self._fields = fields
+
+    def from_stream(self, stream_obj, context):
+        block_size = context.get('_block_size', 0)
+
+        # Parse fields (decode handles layout classes in fields)
+        result, fields_size = decode(
+            stream_obj, self._fields, byte_order='<', return_size=True,
+            context=context
+        )
+
+        # Store remaining bytes as raw data
+        remaining = block_size - fields_size
+        if remaining > 0:
+            result['_raw'] = stream_obj.read(remaining)
+
+        name = self.name(context)
+        if name:
+            return {name: result}
+        return result
