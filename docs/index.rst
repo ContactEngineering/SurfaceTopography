@@ -23,6 +23,7 @@ If you use this code, please cite:
    installation
    usage
    supported_formats
+   file_formats/index
    testing
    contributing
 

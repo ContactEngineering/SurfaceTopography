@@ -59,21 +59,25 @@ def test_mnt_metadata(file_format_examples):
 
     t = r.topography()
 
+    # Dimensions calculated from header: 1000 × 576
+    # (elements_per_block=18000, rows_per_block=9×2=18, num_blocks=32)
     nx, ny = t.nb_grid_pts
-    assert nx == 400
-    assert ny == 1440
+    assert nx == 1000
+    assert ny == 576
 
     # Physical sizes default to pixel count (format doesn't reliably store sizes)
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 400)
-    np.testing.assert_almost_equal(sy, 1440)
+    np.testing.assert_almost_equal(sx, 1000)
+    np.testing.assert_almost_equal(sy, 576)
 
     # Height data is in raw int16 units (no scale factor extracted from format)
     assert t.unit == 'µm'
 
-    # Verify height data is in int16 range
-    assert t.heights().min() > -32768
-    assert t.heights().max() < 32768
+    # This file has a small number of masked pixels at extreme int16 values
+    # (316 pixels with values near -32766)
+    assert t.has_undefined_data
+    h = t.heights()
+    assert np.sum(h.mask) < 1000  # Very few masked pixels
 
 
 def test_mnt2_read_filestream(file_format_examples):

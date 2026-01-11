@@ -27,9 +27,18 @@ Reader for Digital Surf Mountains MNT files.
 
 The MNT format is a Microsoft Compound Document File (OLE) containing:
 - ImagePreview: JPEG preview image
-- ScopedContents: Binary data with zlib-compressed height data
+- ScopedContents: Binary data with TLV-encoded metadata and zlib-compressed
+  height data
 - ScopedResults: Parameter data
 - XmlHeader: UTF-16 encoded XML metadata
+
+The ScopedContents stream uses a hierarchical TLV (Tag-Length-Value) structure:
+- First 8 bytes: uint64 LE size field (= stream size - 8)
+- Remaining bytes: TLV entries with tag (uint16 LE) + size (uint64 LE) + data
+
+Height data is stored as int16 pairs: (height, secondary). The height is
+in the even indices. The secondary channel may be a validity flag (0/-1)
+or other small values.
 """
 
 import struct
@@ -52,9 +61,163 @@ class MNTReader(ReaderBase):
     _name = 'Digital Surf Mountains'
     _description = '''
 File format of the Digital Surf Mountains software. This format is a
-Microsoft Compound Document (OLE) file containing compressed height data
-and metadata.
+Microsoft Compound Document (OLE) file containing TLV-encoded metadata
+and compressed height data.
 '''
+
+    # TLV tag definitions for ScopedContents
+    # Structure: tag_id -> (name, format_or_children)
+    # Format codes: 'B'=uint8, 'H'=uint16, 'I'=uint32, 'Q'=uint64,
+    #               'd'=double, 'utf16'=UTF-16 string with 0x04 prefix
+    # Children: dict of nested tag definitions for container tags
+
+    # Top-level tags (before main container)
+    _top_level_tags = {
+        0x0003: ('format_version', 'B'),
+        0x0002: ('format_flags', 'I'),
+        0x0004: ('unknown_1', 'Q'),
+        0x0005: ('unknown_2', 'Q'),
+        0x0001: ('main_container', 'container'),
+    }
+
+    # Tags inside tag 0x00c8 (file metadata)
+    _tag_c8_children = {
+        0x0001: ('factor_a', 'I'),  # Rows factor A for dimension calculation
+        0x0002: ('factor_b', 'I'),  # Rows factor B for dimension calculation
+        0x0003: ('unknown_c8_1', 'I'),
+        0x0004: ('build_number', 'I'),  # Software build number
+        0x0005: ('unknown_c8_2', 'I'),
+        0x0006: ('unknown_c8_3', 'I'),
+        0x0007: ('unknown_c8_4', 'I'),
+        0x0008: ('unknown_c8_5', 'container'),  # Variable-size block
+        0x0009: ('unknown_c8_6', 'H'),  # Value 67 = 'C' in ASCII
+        0x000a: ('unknown_c8_7', 'B'),
+    }
+
+    # Tags inside tag 0x012d -> 0x0009 (measurement settings)
+    _tag_012d_009_children = {
+        0x0001: ('unknown_009_1', 'I'),
+        0x0002: ('unknown_009_2', 'I'),
+        0x0003: ('unknown_009_3', 'I'),
+        0x0004: ('unknown_009_4', 'I'),
+        0x0005: ('unknown_009_5', 'I'),
+        0x0006: ('unknown_009_6', 'I'),
+        0x0007: ('unknown_009_7', 'I'),
+        0x0008: ('unknown_009_8', 'I'),
+        0x0009: ('unknown_009_9', 'I'),
+        0x000a: ('unknown_009_10', 'I'),
+        0x000b: ('unknown_009_11', 'I'),
+        0x000c: ('unknown_009_12', 'I'),
+        0x000d: ('unknown_009_13', 'I'),
+        0x000e: ('unknown_009_14', 'I'),
+        0x000f: ('unknown_009_15', 'I'),
+        0x0010: ('scale_x', 'd'),  # Scale factor X (10.0)
+        0x0011: ('scale_y', 'd'),  # Scale factor Y (10.0)
+        0x0012: ('scale_z', 'd'),  # Scale factor Z (10.0)
+        0x0013: ('unit_x', 'utf16'),  # Unit string X ('mm')
+        0x0014: ('unit_y', 'utf16'),  # Unit string Y ('mm')
+        0x0015: ('unit_z', 'utf16'),  # Unit string Z ('mm')
+        0x0016: ('unknown_009_16', 'I'),
+        0x0017: ('unknown_009_17', 'I'),
+        0x0018: ('unknown_009_18', 'I'),
+        0x0019: ('unknown_009_19', 'd'),  # Value 0.2
+        0x001a: ('unknown_009_20', 'd'),  # Value 0.2
+        0x001b: ('unknown_009_21', 'I'),
+        0x001c: ('unknown_009_22', 'I'),
+        0x001d: ('unknown_009_23', 'I'),
+        0x001e: ('unknown_009_24', 'I'),
+        0x001f: ('unit_display', 'utf16'),  # Display unit ('mm')
+        0x0020: ('unit_other', 'utf16'),  # Other unit ('eV')
+        0x0021: ('unknown_009_25', 'I'),
+    }
+
+    # Tags inside tag 0x012d -> 0x000a (height settings)
+    _tag_012d_00a_children = {
+        0x0001: ('unknown_00a_1', 'I'),
+        0x0002: ('unknown_00a_2', 'Q'),
+        0x0003: ('unknown_00a_3', 'Q'),
+        0x0004: ('height_unit', 'utf16'),  # Height unit ('µm')
+        0x0005: ('unknown_00a_4', 'I'),
+    }
+
+    # Tags inside tag 0x012d (extended metadata container)
+    _tag_012d_children = {
+        0x0001: ('params_1', 'container'),  # Contains doubles: 0.5, 2.5, etc.
+        0x0002: ('params_2', 'container'),
+        0x0003: ('params_3', 'container'),
+        0x0004: ('params_4', 'container'),
+        0x0005: ('params_5', 'container'),
+        0x0006: ('params_6', 'container'),
+        0x0007: ('params_7', 'container'),
+        0x0008: ('params_8', 'container'),
+        0x0009: ('measurement_settings', 'container'),  # Uses _tag_012d_009_children
+        0x000a: ('height_settings', 'container'),  # Uses _tag_012d_00a_children
+        0x000b: ('params_9', 'container'),
+        0x000c: ('params_10', 'container'),
+        0x000d: ('params_11', 'container'),
+        0x000e: ('params_12', 'container'),
+        0x000f: ('params_13', 'container'),
+    }
+
+    # Tags inside tag 0x0006 (pixel scale factors)
+    _tag_0006_children = {
+        0x0001: ('pixel_scale_1', 'd'),  # Value 10.0
+        0x0002: ('pixel_scale_2', 'd'),  # Value 10.0
+        0x0003: ('pixel_scale_3', 'd'),  # Value 10.0
+        0x0004: ('pixel_scale_4', 'd'),  # Value 10.0
+    }
+
+    # Tags inside tag 0x0003 (dimension parameters)
+    _tag_0003_children = {
+        0x0001: ('dimension_param_1', 'I'),  # Values: 1123 / 816
+        0x0002: ('dimension_param_2', 'I'),  # Values: 1588 / 1054
+    }
+
+    # Tags inside tag 0x000a (at main level)
+    _tag_000a_children = {
+        0x0001: ('unknown_0a_1', 'H'),
+        0x0002: ('unknown_0a_2', 'H'),
+        0x0003: ('unknown_0a_3', 'container'),
+        0x0004: ('unknown_0a_4', 'container'),
+        0x0005: ('unknown_0a_5', 'container'),
+    }
+
+    # Tags at the main container level (inside tag 0x0001)
+    _main_container_tags = {
+        0x00c8: ('file_metadata', 'container'),  # Uses _tag_c8_children
+        0x00c9: ('unknown_c9', 'I'),
+        0x00ca: ('unknown_ca', 'container'),  # Variable-size block
+        0x00cb: ('serial_number', 'utf16'),  # DS-XXXXXXXXX
+        0xffff: ('marker', 'container'),  # Separator/marker
+        0x012d: ('extended_metadata', 'container'),  # Uses _tag_012d_children
+        0x0190: ('unknown_190', 'I'),
+        0x0001: ('unknown_main_1', 'I'),  # Value 1
+        0x0002: ('unknown_main_2', 'I'),  # Value 0
+        0x0003: ('dimension_params', 'container'),  # Uses _tag_0003_children
+        0x0004: ('unknown_main_3', 'I'),  # Values: 794 / 1054
+        0x0005: ('unknown_main_4', 'I'),  # Value 0
+        0x0006: ('pixel_scales', 'container'),  # Uses _tag_0006_children
+        0x0007: ('unknown_main_5', 'I'),  # Value 0
+        0x0008: ('unknown_main_6', 'I'),  # Values: 2 / 1
+        0x0009: ('unknown_main_7', 'I'),  # Value 0
+        0x000a: ('unknown_main_8', 'container'),  # Uses _tag_000a_children
+        0x000b: ('pixel_aspect_ratio', 'd'),  # Values: 0.918347 / 1.0
+        0x000c: ('unknown_main_9', 'I'),  # Value 96
+        0x0064: ('unknown_main_10', 'I'),  # Value 0
+        0x0065: ('unknown_main_11', 'I'),  # Value 1
+        0x0066: ('unknown_main_12', 'B'),  # Value 4
+        0x000d: ('unknown_main_13', 'I'),  # Values: 10 / 2
+        0x0258: ('color_palette', 'container'),  # Color palette data
+        0x02bd: ('height_data', 'container'),  # Compressed height blocks
+        0x0014: ('trailing_1', 'container'),
+        0x0015: ('trailing_2', 'container'),
+        0x0016: ('trailing_3', 'container'),
+        0x0017: ('trailing_4', 'B'),
+        0x0018: ('trailing_5', 'B'),
+        0x0019: ('trailing_6', 'container'),
+        0x001a: ('trailing_7', 'container'),
+        0x001b: ('trailing_8', 'container'),
+    }
 
     def __init__(self, fobj):
         """
@@ -94,15 +257,27 @@ and metadata.
         # Read ScopedContents
         scoped_contents = ole.openstream('ScopedContents').read()
 
-        # Extract dimensions from header (at offset 0x4f as uint16 pair)
-        if len(scoped_contents) < 0x53:
+        # Verify minimum header length for dimension extraction
+        if len(scoped_contents) < 0x72:
             ole.close()
-            raise CorruptFile('ScopedContents too short')
+            raise CorruptFile('ScopedContents header too short')
 
-        nx_header, ny_header = struct.unpack('<HH', scoped_contents[0x4f:0x53])
+        # Extract dimension parameters from header
+        # These are at fixed byte offsets within the TLV structure
+        num_blocks = scoped_contents[0x3d]  # Number of compressed blocks
+        factor_a = scoped_contents[0x63]    # First rows-per-block factor
+        factor_b = scoped_contents[0x71]    # Second rows-per-block factor
+        rows_per_block = factor_a * factor_b
+
+        if num_blocks == 0 or rows_per_block == 0:
+            ole.close()
+            raise CorruptFile('Invalid dimension parameters in header')
 
         # Find all zlib-compressed blocks
-        # Each block has a 16-byte prefix containing row offset info
+        # Each block has a 16-byte prefix:
+        #   Bytes 0-7:  uint64 LE - Element offset (for ordering)
+        #   Bytes 8-11: uint32 LE - Elements per block
+        #   Bytes 12-15: uint32 LE - Compressed size
         zlib_blocks = []
         i = 0
         while i < len(scoped_contents) - 2:
@@ -111,12 +286,20 @@ and metadata.
                 try:
                     decompressed = zlib.decompress(scoped_contents[i:])
                     if len(decompressed) >= 1000:  # Only substantial blocks
-                        # Extract row_offset from prefix (bytes 1-2 as little-endian uint16)
-                        # This indicates the correct ordering of blocks
-                        row_offset = 0
+                        # Extract block prefix information
+                        element_offset = 0
+                        elements_per_block = 0
                         if i >= 16:
-                            row_offset = struct.unpack('<H', scoped_contents[i-15:i-13])[0]
-                        zlib_blocks.append((i, len(decompressed), decompressed, row_offset))
+                            prefix = scoped_contents[i - 16:i]
+                            element_offset = struct.unpack('<Q', prefix[0:8])[0]
+                            elements_per_block = struct.unpack('<I', prefix[8:12])[0]
+                        zlib_blocks.append({
+                            'pos': i,
+                            'size': len(decompressed),
+                            'data': decompressed,
+                            'element_offset': element_offset,
+                            'elements_per_block': elements_per_block
+                        })
                 except zlib.error:
                     pass
             i += 1
@@ -125,93 +308,59 @@ and metadata.
             ole.close()
             raise CorruptFile('No zlib-compressed data found')
 
-        # Find the most common block size (this is the height data block size)
-        block_sizes = {}
-        for pos, size, data, row_offset in zlib_blocks:
-            if size not in block_sizes:
-                block_sizes[size] = []
-            block_sizes[size].append((pos, data, row_offset))
+        # Group blocks by elements_per_block to identify height data blocks
+        blocks_by_epb = {}
+        for block in zlib_blocks:
+            epb = block['elements_per_block']
+            if epb not in blocks_by_epb:
+                blocks_by_epb[epb] = []
+            blocks_by_epb[epb].append(block)
 
-        # Get the largest group of same-sized blocks (height data)
-        height_block_size = max(block_sizes.keys(), key=lambda s: len(block_sizes[s]))
-        height_blocks = block_sizes[height_block_size]
-        num_height_blocks = len(height_blocks)
+        # The largest group of same-sized blocks contains height data
+        height_epb = max(blocks_by_epb.keys(), key=lambda k: len(blocks_by_epb[k]))
+        height_blocks = blocks_by_epb[height_epb]
+        elements_per_block = height_epb
 
-        # Sort blocks by row_offset (not file position) to get correct ordering
-        height_blocks.sort(key=lambda x: x[2])
+        # Sort blocks by element_offset to get correct ordering
+        height_blocks.sort(key=lambda b: b['element_offset'])
 
-        # Try to determine dimensions and data format
-        # Collect all possible interpretations and score them
-        candidates = []
+        # Calculate dimensions from header parameters and block info
+        nx = elements_per_block // rows_per_block
+        ny = num_blocks * rows_per_block
 
-        # Helper function to add candidate if valid
-        def add_candidate(test_nx, test_ny, test_dtype, elem_size):
-            n_elements = height_block_size // elem_size
-            if n_elements % test_nx != 0:
-                return
-            rows = n_elements // test_nx
-            total_rows = rows * num_height_blocks
-
-            if total_rows < test_ny:
-                return  # Not enough data
-
-            # Score: prefer interpretations where total_rows == test_ny (exact fit)
-            # Lower ratio = better fit
-            ratio = total_rows / test_ny if test_ny > 0 else float('inf')
-            candidates.append((ratio, test_nx, test_ny, test_dtype, rows))
-
-        # Try header dimensions with both dtypes
-        if nx_header > 0 and ny_header > 0:
-            add_candidate(nx_header, ny_header, '<i2', 2)
-            add_candidate(nx_header, ny_header, '<i4', 4)
-
-        # Try common width values to infer dimensions
-        candidate_widths = [1280, 1024, 960, 800, 640, 512, 480, 400, 320, 256, 200, 100]
-        for test_width in candidate_widths:
-            # For int32
-            n_elements_i32 = height_block_size // 4
-            if n_elements_i32 % test_width == 0:
-                rows_i32 = n_elements_i32 // test_width
-                total_rows_i32 = rows_i32 * num_height_blocks
-                add_candidate(test_width, total_rows_i32, '<i4', 4)
-
-            # For int16
-            n_elements_i16 = height_block_size // 2
-            if n_elements_i16 % test_width == 0:
-                rows_i16 = n_elements_i16 // test_width
-                total_rows_i16 = rows_i16 * num_height_blocks
-                add_candidate(test_width, total_rows_i16, '<i2', 2)
-
-        if not candidates:
+        # Verify the calculation
+        if elements_per_block % rows_per_block != 0:
             ole.close()
-            raise CorruptFile('Cannot determine data format or dimensions')
+            raise CorruptFile(
+                f'Elements per block ({elements_per_block}) not divisible by '
+                f'rows per block ({rows_per_block})'
+            )
 
-        # Prefer ratio=1.0 candidates (exact fit to block structure)
-        # This means all compressed data is used exactly once
-        ratio_one_candidates = [c for c in candidates if abs(c[0] - 1.0) < 0.01]
-
-        if ratio_one_candidates:
-            # Among ratio=1.0 candidates, prefer:
-            # 1. int32 over int16 (more precision)
-            # 2. Smaller ny (fewer total rows = smaller image)
-            # 3. Larger nx (wider images are more common)
-            ratio_one_candidates.sort(key=lambda c: (0 if c[3] == '<i4' else 1, c[2], -c[1]))
-            candidates = ratio_one_candidates + [c for c in candidates
-                                                 if c not in ratio_one_candidates]
-
-        _, nx, ny, dtype, rows_per_block = candidates[0]
-
-        if nx == 0 or ny == 0:
+        if len(height_blocks) != num_blocks:
             ole.close()
-            raise CorruptFile('Cannot determine data format or dimensions')
+            raise CorruptFile(
+                f'Found {len(height_blocks)} height blocks, expected {num_blocks}'
+            )
+
+        # MNT files store data as int16 pairs: (height, secondary)
+        # The secondary channel may be:
+        #   - A validity flag (only 0 and -1 values) - used to create mask
+        #   - Some other small value (e.g., error estimate) - ignored
+        # Heights are always in the even indices (first int16 of each pair)
+        combined_sample = b''.join(b['data'] for b in height_blocks[:4])
+        arr_i16_sample = np.frombuffer(combined_sample, dtype='<i2')
+        secondary_sample = arr_i16_sample[1::2]
+
+        # Check if secondary channel is a validity flag (only contains 0 and -1)
+        unique_secondary = np.unique(secondary_sample)
+        has_validity_flag = set(unique_secondary).issubset({-1, 0})
 
         # Store metadata for later use
         self._ole_data = file_data
-        self._height_blocks = [(pos, data) for pos, data, row_offset in height_blocks]
-        self._dtype = dtype
-        self._rows_per_block = rows_per_block
+        self._height_blocks = [(b['pos'], b['data']) for b in height_blocks]
         self._nx = nx
         self._ny = ny
+        self._has_validity_flag = has_validity_flag
 
         # Physical sizes are difficult to reliably extract from MNT files
         # Default to pixel count (user can override with physical_sizes parameter)
@@ -259,20 +408,28 @@ and metadata.
         channel = self._channels[channel_index]
         nx, ny = channel.nb_grid_pts
 
-        # Combine all blocks (already sorted by row_offset)
+        # Combine all blocks (already sorted by element_offset)
         combined_data = b''.join(data for pos, data in self._height_blocks)
 
-        # MNT data is stored as (height_i16, flag_i16) pairs
-        # The flag indicates validity: 0 = valid, -1 = invalid/masked
+        # Data is stored as int16 pairs: (height, secondary)
+        # Heights are in even indices, secondary channel in odd indices
         arr_i16 = np.frombuffer(combined_data, dtype='<i2')
 
-        # Extract heights (even indices) and flags (odd indices)
+        # Extract heights (even indices)
         heights_i16 = arr_i16[::2]
-        flags_i16 = arr_i16[1::2]
 
         # Reshape to image dimensions
         heights = heights_i16[:nx * ny].reshape(ny, nx).T.astype(float)
-        flags = flags_i16[:nx * ny].reshape(ny, nx).T
+
+        # Create mask based on format
+        if self._has_validity_flag:
+            # Secondary channel is a validity flag: 0 = valid, -1 = invalid
+            flags_i16 = arr_i16[1::2]
+            flags = flags_i16[:nx * ny].reshape(ny, nx).T
+            invalid_mask = (flags != 0)
+        else:
+            # No validity flag - only mask extreme int16 values
+            invalid_mask = (heights <= -32760) | (heights >= 32760)
 
         # Apply scale factor if provided
         if height_scale_factor is not None:
@@ -286,12 +443,6 @@ and metadata.
         # Build info dict
         _info = channel.info.copy()
         _info.update(info)
-
-        # Create mask from flag channel (flag != 0 means invalid)
-        invalid_mask = (flags != 0)
-
-        # Also mask extreme values (shouldn't happen but just in case)
-        invalid_mask |= (heights <= -32760) | (heights >= 32760)
 
         if invalid_mask.any():
             heights = np.ma.masked_array(heights, mask=invalid_mask)

@@ -23,21 +23,25 @@
 #
 
 import os
+from struct import unpack
+
+import numpy as np
+
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
+from ..UniformLineScanAndTopography import Topography
+from .binary import decode
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 #
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/microprof.c
 #
-
-from struct import unpack
-
-import numpy as np
-
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
-from ..UniformLineScanAndTopography import Topography
 
 
 class FRTReader(ReaderBase):
@@ -55,21 +59,32 @@ This reader imports MicroProf FRT profilometry data.
 
     _UNDEFINED_DATA = 1.0  # undefined data is marked by the value 1
 
+    # Block structure definitions
+    # Format: block_id -> dict with:
+    #   'fields': list of (name, format) tuples for decode()
+    #   'trailing_data': bool - record offset of remaining data after fields
+    #   'subblocks': (count_field, subblock_fields) - repeated subblocks
+    #   'skip_rest': bool - skip remaining bytes after fields
+    #   'text': bool - entire block is ASCII text
+    #
+    # For backwards compatibility, a plain list is interpreted as {'fields': list}
+
     _block_structures = {
-        0x0066: [
+        0x0065: {'text': True},  # Text block
+        0x0066: {'fields': [
             ('nb_grid_pts_x', 'I'),
             ('nb_grid_pts_y', 'I'),
             ('bytes_per_pixel', 'I'),
-        ],
-        0x0067: [
+        ]},
+        0x0067: {'fields': [
             ('physical_size_x', 'd'),
             ('physical_size_y', 'd'),
             ('offset_x', 'd'),
             ('offset_y', 'd'),
             ('factor_y', 'd'),
             ('scan_direction', 'I'),
-        ],
-        0x0068: [
+        ]},
+        0x0068: {'fields': [
             ('xspeed', 'd'),
             ('yspeed', 'd'),
             ('override_speed', 'I'),
@@ -77,123 +92,127 @@ This reader imports MicroProf FRT profilometry data.
             ('scan_back_meas', 'I'),
             ('sensor_delay', 'I'),
             ('sensor_error_time', 'I'),
-        ],
-        0x0069: [
+        ]},
+        0x0069: {'fields': [
             ('range_unit_type', 'I'),
             ('offset_unit_type', 'I'),
             ('xspeed_unit_type', 'I'),
             ('yspeed_unit_type', 'I'),
-        ],
-        0x006a: [
+        ]},
+        0x006a: {'fields': [
             ('step_xcount', 'I'),
             ('step_ycount', 'I'),
             ('xstep', 'd'),
             ('ystep', 'd'),
             ('step_delay', 'I'),
             ('back_scan_step', 'I'),
-        ],
-        0x006b: [
+        ]},
+        0x006b: {'fields': [
             ('wait_at_start_of_line', 'I'),
             ('display_start_box', 'I'),
             ('do_hysteresis_corr', 'I'),
             ('back_scan_delay', 'I'),
-        ],
-        0x006c: [
+        ]},
+        0x006c: {'fields': [
             ('meas_range', 'I'),
             ('height_scale_factor', 'd'),
-        ],
-        0x006d: [
+        ]},
+        0x006d: {'fields': [
             ('zrange', 'd'),
             ('use_percentage', 'd'),
             ('display_correction', 'I'),
             ('palette_type', 'I'),
             ('display_size', 'I'),
             ('autorange', 'I'),
-        ],
-        0x006e: [
+        ]},
+        0x006e: {'fields': [
             ('sensor_type', 'I'),
             ('xytable_type', 'I'),
             ('ztable_type', 'I'),
-        ],
-        0x006f: [
+        ]},
+        0x006f: {'fields': [
             ('do_integrate', 'I'),
             ('integrate_over', 'I'),
             ('sensor_was_piezo', 'I'),
             ('sensor_was_full', 'I'),
-        ],
-        0x0070: [
+        ]},
+        0x0070: {'fields': [
             ('first_valid', 'I'),
             ('last_valid', 'I'),
-        ],
-        0x0071: [
+        ]},
+        0x0071: {'fields': [
             ('zoffset', 'd'),
-        ],
-        0x0072: [
+        ]},
+        0x0072: {'fields': [
             ('meas_started', 'I'),
             ('meas_ended', 'I'),
             ('meas_time', 'I'),
-        ],
-        0x0073: [
+        ]},
+        0x0073: {'fields': [
             ('dio_type', 'I'),
-        ],
-        0x0074: [
+        ]},
+        0x0074: {'fields': [
             ('dllver1', 'I'),
             ('dllver2', 'I'),
-        ],
-        0x0075: [
-            ('nb_values', 'I'),
-            ('is_applied', 'I'),
-            ('do_drift_corr_scan', 'I'),
-            ('data_available', 'I'),
-            ('line_not_row', 'I'),
-        ],
-        0x0076: [
+        ]},
+        0x0075: {
+            'fields': [
+                ('nb_values', 'I'),
+                ('is_applied', 'I'),
+                ('do_drift_corr_scan', 'I'),
+                ('data_available', 'I'),
+                ('line_not_row', 'I'),
+            ],
+            'trailing_data': True,  # Has data block after fields
+        },
+        0x0076: {'fields': [
             ('xstart', 'd'),
             ('ystart', 'd'),
             ('xend', 'd'),
             ('yend', 'd'),
-        ],
-        0x0079: [
+        ]},
+        0x0077: {'text': True},  # Text block
+        0x0079: {'fields': [
             ('xdispoffset', 'd'),
             ('ydispoffset', 'd'),
-        ],
-        0x007a: [
+        ]},
+        0x007a: {'fields': [
             ('meas_rate', 'I'),
             ('min_intensity', 'I'),
-        ],
-        0x007b: [
+        ]},
+        0x007b: {'fields': [
             ('sensor_subtype', 'I'),
             ('xytable_subtype', 'I'),
-        ],
-        0x007c: [
+        ]},
+        0x007c: {'fields': [
             ('speed_control', 'I')
-        ],
-        0x007e: [
+        ]},
+        0x007e: {'fields': [
             ('max_xrange', 'd'),
             ('max_yrange', 'd')
-        ],
-        0x007f: [
+        ]},
+        0x007f: {'fields': [
             ('calibration', '255s'),
             ('is_calibrated', '?'),
-        ],  # check
-        0x0080: [
+        ]},
+        0x0080: {'fields': [
             ('is_z_motor_ctrl_on', 'I'),
-        ],
-        0x0081: [
+        ]},
+        0x0081: {'fields': [
             ('nb_layers', 'I'),
             ('range1', 'd'),
             ('range_rest', 'd')
-        ],
-        0x0082: [
+        ]},
+        0x0082: {'fields': [
             ('motion_type', 'I')
-        ],
-        0x0083: [
+        ]},
+        0x0083: {'fields': [
             ('data_type', 'I')
-        ],
-        0x0084: [
+        ]},
+        0x0084: {'fields': [
             ('use_std_schichthohe', 'I')
-        ],
-        0x0085: [
+        ]},
+        0x0085: {'fields': [
             ('volt_range', 'I'),
             ('val_channel', 'I'),
             ('int_channel', 'I'),
@@ -212,15 +231,15 @@ This reader imports MicroProf FRT profilometry data.
             ('unit7', '16s'),
             ('unit8', '16s'),
             ('selected_unit', 'I')
-        ],
-        0x0086: [
+        ]},
+        0x0086: {'fields': [
             ('product_id', 'H'),
             ('series_no', 'H'),
-        ],
-        0x0087: [
+        ]},
+        0x0087: {'fields': [
             ('use_frt_offset', 'I'),
-        ],
-        0x0088: [
+        ]},
+        0x0088: {'fields': [
             ('volt_range', 'I'),
             ('val_channel', 'I'),
             ('int_channel', 'I'),
@@ -240,26 +259,26 @@ This reader imports MicroProf FRT profilometry data.
             ('selected_unit', 'I'),
             ('min_valid_unit_value', 'd'),
             ('max_valid_unit_value', 'd'),
-        ],
-        0x0089: [
+        ]},
+        0x0089: {'fields': [
             ('auto_approach', 'I'),
             ('auto_retract', 'I'),
-        ],
-        0x008a: [
+        ]},
+        0x008a: {'fields': [
             ('zmotor_drive_allowed', 'I'),
             ('zmotor_drive_way', 'd'),
-        ],
-        0x008b: [
+        ]},
+        0x008b: {'fields': [
             ('do_wait', 'I')
-        ],
-        0x008c: [
+        ]},
+        0x008c: {'fields': [
             ('tv_range', 'd'),
             ('tv_offset', 'd'),
             ('set_tv_offset', 'B'),
             ('set_tv_automatic', 'B'),
             ('tv_range_percent', 'f'),
-        ],
-        0x008d: [
+        ]},
+        0x008d: {'fields': [
             ('meas_mode', 'I'),
             ('height_edit', 'd'),
             ('topo_edit', 'd'),
@@ -270,19 +289,19 @@ This reader imports MicroProf FRT profilometry data.
             ('phase_edit', 'd'),
             ('nf_mode', 'I'),
             ('topo_scale', 'd'),
-        ],
-        0x008e: [
+        ]},
+        0x008e: {'fields': [
             ('serial_number', 'T'),
             ('day', 'B'),
             ('month', 'B'),
             ('year', 'H'),
             ('was_created', 'I'),
             ('nb_values', 'I'),
-        ],
-        0x008f: [
+        ]},
+        0x008f: {'fields': [
             ('tracking_mode_activated', 'I'),
-        ],
-        0x0090: [
+        ]},
+        0x0090: {'fields': [
             ('despike_do_it', 'I'),
             ('despike_threshold', 'd'),
             ('filter_meas_do_it', 'I'),
@@ -291,54 +310,68 @@ This reader imports MicroProf FRT profilometry data.
             ('tip_simul_do_it', 'I'),
             ('tip_simul_angle', 'd'),
             ('tip_simul_radius', 'd'),
-        ],
-        0x0091: [
-            ('topography', 'I'),
-            ('differential', 'I'),
-            ('topo_edit', 'd'),
-            ('height_edit', 'd'),
-            ('topo_scale', 'd'),
-            ('nb_subblocks', 'I'),
-        ],
+        ]},
+        0x0091: {
+            'fields': [
+                ('topography', 'I'),
+                ('differential', 'I'),
+                ('topo_edit', 'd'),
+                ('height_edit', 'd'),
+                ('topo_scale', 'd'),
+                ('nb_subblocks', 'I'),
+            ],
+            'subblocks': ('nb_subblocks', [
+                ('active', 'I'),
+                ('frequency', 'f'),
+                ('ac_dB', 'f'),
+                ('low_pass', 'f'),
+                ('high_pass', 'f'),
+                ('out_gain', 'f'),
+                ('pre_gain', 'f'),
+            ]),
+        },
         # 0x0092:
-        0x0093: [
+        0x0093: {'fields': [
             ('invalid_values', 'I'),
             ('lower_values', 'I'),
             ('upper_values', 'I'),
-        ],
-        0x0094: [
-            ('min_teach', 'd'),
-            ('max_teach', 'd'),
-            ('min_norm_teach', 'I'),
-            ('max_norm_teach', 'I'),
-            ('name_of_teach', 'T'),
-        ],
-        0x0095: [
+        ]},
+        0x0094: {
+            'fields': [
+                ('min_teach', 'd'),
+                ('max_teach', 'd'),
+                ('min_norm_teach', 'I'),
+                ('max_norm_teach', 'I'),
+                ('name_of_teach', 'T'),
+            ],
+            'skip_rest': True,  # Rest of block appears to be empty
+        },
+        0x0095: {'fields': [
             ('thickness_mode', 'I'),
             ('kind_of_thickness', 'I'),
             ('refractive_index', 'd'),
-        ],
-        0x0096: [
+        ]},
+        0x0096: {'fields': [
             ('thickness_lints_on', 'I'),
             ('low_limit', 'd'),
             ('high_limit', 'd'),
-        ],
-        0x0097: [
+        ]},
+        0x0097: {'fields': [
             ('laser_power', 'I'),
             ('laser_power_fine', 'I'),
             ('laser_frequency', 'I'),
             ('intensity', 'I'),
             ('min_valid_intens', 'I'),
-        ],
-        0x0098: [
+        ]},
+        0x0098: {'fields': [
             ('meas_z_position', 'd'),
-        ],
-        0x0099: [
+        ]},
+        0x0099: {'fields': [
             ('is_dual_scan', 'I'),
             ('scan_frequency', 'd'),
             ('duty', 'f'),
-        ],
-        0x009a: [
+        ]},
+        0x009a: {'fields': [
             ('is_ttv', 'I'),
             ('meas_rate2', 'I'),
             ('intensity2', 'I'),
@@ -346,30 +379,30 @@ This reader imports MicroProf FRT profilometry data.
             ('zoffsets2', 'd'),
             ('scale1', 'd'),
             ('scale2', 'd'),
-        ],
-        0x009b: [
+        ]},
+        0x009b: {'fields': [
             ('is_roundness', 'I'),
             ('is_sample_used', 'I'),
             ('radius', 'd'),
             ('max_xrange', 'd'),
             ('max_yrange', 'd'),
-        ],
-        0x009c: [
+        ]},
+        0x009c: {'fields': [
             ('do_despike', 'I'),
             ('do_interpolate', 'I'),
-        ],
-        0x009d: [
+        ]},
+        0x009d: {'fields': [
             ('subtract_sinus', 'I'),
-        ],
-        0x009e: [
+        ]},
+        0x009e: {'fields': [
             ('layer_info', 'I'),
             ('fit_threshold', 'd'),
-        ],
-        0x009f: [
+        ]},
+        0x009f: {'fields': [
             ('textlen', 'H'),
             # There is a string 'zunit' here
-        ],
-        0x00a0: [
+        ]},
+        0x00a0: {'fields': [
             ('brightness', 'H'),
             ('eval_method', 'H'),
             ('focus', 'H'),
@@ -378,12 +411,12 @@ This reader imports MicroProf FRT profilometry data.
             ('objective', 'H'),
             ('shutter', 'H'),
             ('zresolution', 'd'),
-        ],
-        0x00a1: [
+        ]},
+        0x00a1: {'fields': [
             ('min_quality', 'H'),
             ('focus', 'd'),
-        ],
-        0x00a2: [
+        ]},
+        0x00a2: {'fields': [
             ('volt_range', 'I'),
             ('val_channel', 'I'),
             ('int_channel', 'I'),
@@ -403,8 +436,8 @@ This reader imports MicroProf FRT profilometry data.
             ('selected_unit', 'I'),
             ('min_valid_unit_value', 'd'),
             ('max_valid_unit_value', 'd'),
-        ],
-        0x00a3: [
+        ]},
+        0x00a3: {'fields': [
             ('cfm_objective', 'H'),
             ('cfm_shutter', 'H'),
             ('start_pos', 'd'),
@@ -412,8 +445,8 @@ This reader imports MicroProf FRT profilometry data.
             ('cfm_zresolution', 'd'),
             ('lower_reflect_threshold', 'd'),
             ('upper_reflect_threshold', 'd'),
-        ],
-        0x00a4: [
+        ]},
+        0x00a4: {'fields': [
             ('angle', 'd'),
             ('I_zfb', 'd'),
             ('P_zfb', 'd'),
@@ -421,19 +454,19 @@ This reader imports MicroProf FRT profilometry data.
             ('xoffset', 'd'),
             ('yoffset', 'd'),
             ('zgain', 'd'),
-        ],
-        0x00a5: [
+        ]},
+        0x00a5: {'fields': [
             ('external_timing', 'I'),
-        ],
-        0x00a6: [
+        ]},
+        0x00a6: {'fields': [
             ('textlen', 'I'),
             # There is a string 'objective_name' here
-        ],
-        0x00a9: [
+        ]},
+        0x00a9: {'fields': [
             ('xaxis_subtracted', 'I'),
             ('yaxis_subtracted', 'I'),
-        ],
-        0x00aa: [
+        ]},
+        0x00aa: {'fields': [
             ('sensor_ini_path', '259s'),
             ('start_pos', 'd'),
             ('end_pos', 'd'),
@@ -443,12 +476,12 @@ This reader imports MicroProf FRT profilometry data.
             ('pos_after_zscan', 'I'),
             ('preprocessor', 'I'),
             ('postprocessor', 'I'),
-        ],
+        ]},
         # 0x00ac user name and description
-        0x00ad: [
+        0x00ad: {'fields': [
             ('nb_subblocks', 'I'),
-        ],
-        0x00ae: [
+        ]},
+        0x00ae: {'fields': [
             ('signal', 'I'),
             ('filter', 'I'),
             ('reference_type', 'I'),
@@ -456,26 +489,16 @@ This reader imports MicroProf FRT profilometry data.
             ('reference_material_id', 'gint32'),
             ('reference_constant', 'd'),
             ('material_thickness', 'd'),
-        ],
-        0x00af: [
+        ]},
+        0x00af: {'fields': [
             ('auto_focus', 'I'),
             ('auto_brightness', 'I'),
             ('focus_search_length', 'd'),
             ('max_brightness', 'I'),
             ('move_back_after_meas', 'I'),
             ('move_back_below_scan_range', 'I'),
-        ]
+        ]},
     }
-
-    _subblocks_0x0091 = [
-        ('active', 'I'),
-        ('frequency', 'f'),
-        ('ac_dB', 'f'),
-        ('low_pass', 'f'),
-        ('high_pass', 'f'),
-        ('out_gain', 'f'),
-        ('pre_gain', 'f'),
-    ]
 
     _bytes_per_pixel_to_dtype = {
         16: np.dtype('<H'),
@@ -496,7 +519,7 @@ This reader imports MicroProf FRT profilometry data.
             # Read file metadata
             self._metadata = {}
             nb_blocks, = unpack('<H', f.read(2))  # Not sure what's in here
-            for i in range(nb_blocks):
+            for _ in range(nb_blocks):
                 if self._version == '1.00':
                     data = f.read(6)
                     if len(data) < 6:
@@ -508,32 +531,42 @@ This reader imports MicroProf FRT profilometry data.
                         break  # we are at the end of the file
                     block_id, block_size = unpack('<HQ', data)
 
-                if block_id in self._block_structures.keys():
-                    meta, size = decode(f, self._block_structures[block_id], return_size=True)
+                if block_id in self._block_structures:
+                    block_def = self._block_structures[block_id]
 
-                    if block_id == 0x0075:
-                        # There is a data block at the end of this section
+                    # Handle text blocks
+                    if block_def.get('text'):
+                        meta = {'text': f.read(block_size).decode('ascii').strip('\x00')}
+                        self._metadata[hex(block_id)] = meta
+                        continue
+
+                    # Parse structured fields
+                    meta, size = decode(f, block_def['fields'], return_size=True)
+
+                    # Handle trailing data (e.g., 0x0075)
+                    if block_def.get('trailing_data'):
                         meta['data_offset'] = f.tell()
                         f.seek(block_size - size, os.SEEK_CUR)
                         size = block_size
-                    elif block_id == 0x0091:
-                        # There are subblocks at the end
+
+                    # Handle subblocks (e.g., 0x0091)
+                    if 'subblocks' in block_def:
+                        count_field, subblock_fields = block_def['subblocks']
                         subblocks = []
-                        for i in range(meta['nb_subblocks']):
-                            _meta, _size = decode(f, self._subblocks_0x0091, return_size=True)
-                            subblocks += [_meta]
+                        for _ in range(meta[count_field]):
+                            _meta, _size = decode(f, subblock_fields, return_size=True)
+                            subblocks.append(_meta)
                             size += _size
                         meta['subblocks'] = subblocks
-                    elif block_id == 0x0094:
-                        # Skip rest of this block which appears to be empty
+
+                    # Handle skip_rest (e.g., 0x0094)
+                    if block_def.get('skip_rest'):
                         f.seek(block_size - size, os.SEEK_CUR)
                         size = block_size
 
                     assert size == block_size  # Check that we read the correct size
-                elif block_id == 0x0065 or block_id == 0x0077:
-                    meta = {'text': f.read(block_size).decode('ascii').strip('\x00')}
                 else:
-                    # For all other block, store size and offset
+                    # For all other blocks, store size and offset
                     meta = {'block_size': block_size, 'block_offset': f.tell()}
                     f.seek(block_size, os.SEEK_CUR)
 
