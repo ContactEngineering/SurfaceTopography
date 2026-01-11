@@ -259,35 +259,24 @@ and metadata.
         channel = self._channels[channel_index]
         nx, ny = channel.nb_grid_pts
 
-        # For MNT files, multiple blocks may represent different processing stages
-        # We use only the first block (or enough blocks to cover ny rows)
-        elem_size = 4 if self._dtype == '<i4' else 2
-        elements_per_row = nx
-        rows_needed = ny
+        # Combine all blocks (already sorted by row_offset)
+        combined_data = b''.join(data for pos, data in self._height_blocks)
 
-        # Calculate how many blocks we need
-        first_block_data = self._height_blocks[0][1]
-        rows_in_first_block = len(first_block_data) // elem_size // elements_per_row
+        # MNT data is stored as (height_i16, flag_i16) pairs
+        # The flag indicates validity: 0 = valid, -1 = invalid/masked
+        arr_i16 = np.frombuffer(combined_data, dtype='<i2')
 
-        if rows_in_first_block >= rows_needed:
-            # First block has all the data we need
-            arr = np.frombuffer(first_block_data, dtype=self._dtype)
-            arr = arr[:rows_needed * elements_per_row].reshape(rows_needed, nx)
-        else:
-            # Need to combine multiple blocks
-            combined_data = b''.join(data for pos, data in self._height_blocks)
-            total_elements = len(combined_data) // elem_size
-            total_rows = total_elements // elements_per_row
-            arr = np.frombuffer(combined_data, dtype=self._dtype)
-            arr = arr[:min(total_rows, rows_needed) * elements_per_row]
-            arr = arr.reshape(-1, nx)[:rows_needed, :]
+        # Extract heights (even indices) and flags (odd indices)
+        heights_i16 = arr_i16[::2]
+        flags_i16 = arr_i16[1::2]
 
-        # Transpose to (nx, ny) format
-        data = arr.T.astype(float)
+        # Reshape to image dimensions
+        heights = heights_i16[:nx * ny].reshape(ny, nx).T.astype(float)
+        flags = flags_i16[:nx * ny].reshape(ny, nx).T
 
         # Apply scale factor if provided
         if height_scale_factor is not None:
-            data = data * height_scale_factor
+            heights = heights * height_scale_factor
 
         # Check physical sizes
         sx, sy = channel.physical_sizes
@@ -298,18 +287,17 @@ and metadata.
         _info = channel.info.copy()
         _info.update(info)
 
-        # Create topography
-        # Mask invalid values (use int16/int32 min/max as indicators)
-        if self._dtype == '<i2':
-            invalid_mask = (data <= -32760) | (data >= 32760)
-        else:
-            invalid_mask = (data <= -2147483640) | (data >= 2147483640)
+        # Create mask from flag channel (flag != 0 means invalid)
+        invalid_mask = (flags != 0)
+
+        # Also mask extreme values (shouldn't happen but just in case)
+        invalid_mask |= (heights <= -32760) | (heights >= 32760)
 
         if invalid_mask.any():
-            data = np.ma.masked_array(data, mask=invalid_mask)
+            heights = np.ma.masked_array(heights, mask=invalid_mask)
 
         topography = Topography(
-            data,
+            heights,
             physical_sizes=(sx, sy),
             unit=unit if unit is not None else channel.unit,
             info=_info,

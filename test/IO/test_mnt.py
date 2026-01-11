@@ -68,12 +68,12 @@ def test_mnt_metadata(file_format_examples):
     np.testing.assert_almost_equal(sx, 400)
     np.testing.assert_almost_equal(sy, 1440)
 
-    # Height data is in raw int32 units (no scale factor extracted from format)
+    # Height data is in raw int16 units (no scale factor extracted from format)
     assert t.unit == 'µm'
 
-    # Verify height data is in int32 range
-    assert t.heights().min() > -2147483648
-    assert t.heights().max() < 2147483647
+    # Verify height data is in int16 range
+    assert t.heights().min() > -32768
+    assert t.heights().max() < 32768
 
 
 def test_mnt2_read_filestream(file_format_examples):
@@ -108,6 +108,10 @@ def test_mnt2_metadata(file_format_examples):
 
     assert t.unit == 'µm'
 
-    # Verify height data is in reasonable range
-    assert t.heights().min() > -20000
-    assert t.heights().max() < 10000
+    # File has masked (invalid) regions at corners
+    assert t.has_undefined_data
+
+    # Verify valid height data range (corners are masked, valid region is positive)
+    h = t.heights()
+    assert h.compressed().min() >= 0
+    assert h.compressed().max() < 10000
