@@ -91,19 +91,21 @@ double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eig
 
 
 template <int order>
-double uniform1d_moment(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
-    /* The physical length of the line scan */
-    const double physical_size{periodic ? dx * topography_h.size() : dx * (topography_h.size()-1)};
-
+double uniform1d_moment(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
     /* Accumulator for moment */
     double moment{0};
+    int physical_size{0};
 
     /* Compute moment */
     const auto maxi{periodic ? topography_h.size() : topography_h.size()-1};
     for (int i{0}; i < maxi; i++) {
         const auto i1{i < topography_h.size()-1 ? i+1 : 0};
         const double hi{topography_h(i) - ref_h}, hi1{topography_h(i1) - ref_h};
-        moment += dx * _LineScanMoment<order>::eval(hi, hi1);
+        /* Check for NaNs and only add if there are no NaNs */
+        if (hi == hi && hi1 == hi1) {
+            moment += _LineScanMoment<order>::eval(hi, hi1);
+            physical_size += 1;
+        }
     }
 
     return moment / ((order+1) * physical_size);
@@ -174,29 +176,34 @@ public:
 
 
 template <int order>
-double uniform2d_moment(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic, double ref_h) {
+double uniform2d_moment(Eigen::Ref<RowMajorXXd> topography_h, bool periodic, double ref_h) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
 
-    /* The physical length of the line scan */
-    const double triangle_area{dx * dy / 2};
-    const double projected_area{dx * nx * dy * ny};
-
     /* Accumulator for moment */
     double moment{0};
+    int projected_area{0};
 
     /* Compute moment. Loop assumes column-major storage */
     for (int x{0}; x < nx; x++) {
         const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
         for (int y{0}; y < ny; y++) {
             const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
-            moment += triangle_area * (_TriangleMoment<order>::eval(topography_h(x, y) - ref_h,
-                                                                    topography_h(x1, y) - ref_h,
-                                                                    topography_h(x, y1) - ref_h) +
-                                       _TriangleMoment<order>::eval(topography_h(x1, y) - ref_h,
-                                                                    topography_h(x1, y1) - ref_h,
-                                                                    topography_h(x, y1) - ref_h));
+            const double h00{topography_h(x, y)};
+            const double h10{topography_h(x1, y)};
+            const double h01{topography_h(x, y1)};
+            const double h11{topography_h(x1, y1)};
+            /* Check for NaNs and only add triangle if there are no NaNs */
+            if (h00 == h00 && h10 == h10 && h01 == h01) {
+                moment += _TriangleMoment<order>::eval(h00 - ref_h, h10 - ref_h, h01 - ref_h);
+                projected_area += 1;
+            }
+            /* Check for NaNs and only add triangle if there are no NaNs */
+            if (h10 == h10 && h11 == h11 && h01 == h01) {
+                moment += _TriangleMoment<order>::eval(h10 - ref_h, h11 - ref_h, h01 - ref_h);
+                projected_area += 1;
+            }
         }
     }
 

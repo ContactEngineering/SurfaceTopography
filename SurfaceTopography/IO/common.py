@@ -83,10 +83,11 @@ def _get_binary_stream(fstream):
 
 class OpenFromAny(object):
     """
-    Context manager for turning file names or already open streams into a
-    single stream format for subsequent reading. The file is left in an
-    identical state, including its cursor position, when the context
-    manager returns.
+    Context manager for turning file names, callables that open streams or
+    already open streams into a single stream format (binary or text with
+    specific encoding) for subsequent reading. The file is left in an
+    identical state, including its cursor position, when the context manager
+    returns.
     """
 
     def __init__(self, fobj, mode='r', encoding=None):
@@ -134,7 +135,16 @@ class OpenFromAny(object):
                 return ValueError(f"Unknown file open mode '{self._mode}'.")
         elif callable(self._fobj):
             # This is a function that returns the file stream
-            self._fstream = self._fobj()
+            fobj = self._fobj()
+            if self._mode == 'rb':
+                # Turn this into a binary stream, if it is a text stream
+                self._fstream = _get_binary_stream(fobj)
+            elif self._mode == 'r':
+                # file was opened without the 'b' option, we just need to make sure the encoding is correct
+                if isinstance(fobj, io.TextIOBase) and (self._encoding is None or fobj.encoding == self._encoding):
+                    self._fstream = fobj
+                else:
+                    self._fstream = io.TextIOWrapper(_get_binary_stream(fobj), encoding=self._encoding)
         else:
             # This is a string, just open the file
             self._fstream = open(self._fobj, mode=self._mode, encoding=self._encoding)

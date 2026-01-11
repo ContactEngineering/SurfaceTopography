@@ -28,7 +28,7 @@
 Functions computing scalar roughness parameters
 """
 
-import _SurfaceTopographyPP
+import _SurfaceTopography
 import numpy as np
 
 from ..Exceptions import ReentrantDataError
@@ -102,7 +102,7 @@ def rms_height(self):
     rms_height : float or array
         Root-mean square height.
     """  # noqa: E501
-    return np.sqrt(_SurfaceTopographyPP.nonuniform_variance(*self.positions_and_heights(), ref_h=self.mean()))
+    return np.sqrt(_SurfaceTopography.nonuniform_variance(*self.positions_and_heights(), ref_h=self.mean()))
 
 
 def rms_slope(self):
@@ -161,12 +161,12 @@ def rms_curvature(self):
     # The second derivative cannot be evaluated on the two end points
     L = x[-2] - x[1]
 
-    return np.sqrt(np.trapz(d2 ** 2, x[1:-1]) / L)
+    return np.sqrt(np.trapezoid(d2 ** 2, x[1:-1]) / L)
 
 
 # Register analysis functions from this module
 NonuniformLineScanInterface.register_function(
-    'mean', lambda self: _SurfaceTopographyPP.nonuniform_mean(*self.positions_and_heights()))
+    'mean', lambda self: _SurfaceTopography.nonuniform_mean(*self.positions_and_heights()))
 NonuniformLineScanInterface.register_function('moment', moment)
 NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height, deprecated=True)
 NonuniformLineScanInterface.register_function('Rq', rms_height)

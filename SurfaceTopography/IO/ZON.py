@@ -26,24 +26,25 @@
 """
 Reader for Keyence ZON files.
 """
+
 import os
-
-# Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
-# format. See discussion here https://github.com/gabeguss/Keyence/issues/2
-
-import numpy as np
-from numpy.lib.stride_tricks import as_strided
 from struct import unpack
 from zipfile import ZipFile
 
+import dateutil
 import defusedxml.ElementTree as ElementTree
+import numpy as np
+import zstandard
+from numpy.lib.stride_tricks import as_strided
 
-from ..Exceptions import MetadataAlreadyFixedByFile, FileFormatMismatch
+from ..Exceptions import FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
-
 from .binary import decode
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, ReaderBase
+
+# Thanks to @mcmalburg (https://github.com/mcmalburg) for reverse engineering the
+# format. See discussion here https://github.com/gabeguss/Keyence/issues/2
 
 
 def _read_array(f, dtype=np.dtype("<i4")):
@@ -97,7 +98,11 @@ class ZONReader(ReaderBase):
 This reader open ZON files that are written by some Keyence instruments.
 """
 
-    _MAGIC = "KPK0"
+    # The files appear to start with KPK0 or KPK1; this may be different versions of
+    # the file format.
+    _MAGIC0 = "KPK0"
+    _MAGIC1 = "KPK1"
+    _MAGIC = {_MAGIC0, _MAGIC1}
 
     # The files within ZON (zip) files are named using UUIDs. Some of these
     # UUIDs are fixed and contain the same information in each of these files.
@@ -108,9 +113,19 @@ This reader open ZON files that are written by some Keyence instruments.
     # This contains information on unit conversion
     _UNIT_UUID = "686613b8-27b5-4a29-8ffc-438c2780873e"
 
+    # Additional user calibration information
+    _CALIBRATION_UUID = "7d5ea102-58f4-4c0f-b5ba-c8b71be6a4ae"
+
     # This contains an inventory of *image* data
     _INVENTORY_UUID = "772e6d38-40aa-4590-85d3-b041fa243570"
 
+    # Device information
+    _DEVICE_UUID = "cbc1d39b-215f-4d56-a20e-cf8e5f570755"
+
+    # Scan information
+    _SCAN_UUID = "1d35862b-3b48-4df2-9235-833ef590b043"
+
+    # The header of the ZON file contains a BMP thumbnail, which we skip.
     _header_structure = [("magic", "4s"), ("bmp_size", "L")]
 
     # Reads in the positions of all the data and metadata
@@ -125,16 +140,27 @@ This reader open ZON files that are written by some Keyence instruments.
         with OpenFromAny(self._file_path, "rb") as f:
             # There is a header with a file magic and size information
             header = decode(f, self._header_structure, "<")
-            if header["magic"] != self._MAGIC:
+            if header["magic"] not in self._MAGIC:
                 raise FileFormatMismatch("This is not a Keyence ZON file.")
+
+            self._is_compressed = header["magic"] == self._MAGIC1
 
             # The beginning of the file contains a BMP thumbnail, we skip it
             f.seek(header["bmp_size"], os.SEEK_CUR)
 
             # The rest is a ZIP archive
             with ZipFile(f, "r") as z:
+                # Parse device information
+                root = ElementTree.parse(self.open(z, self._DEVICE_UUID)).getroot()
+                device_model_name = root.find("DeviceModelName").text
+                device_serial_id = root.find("DeviceSerialId").text
+
+                # Parse scan information
+                root = ElementTree.parse(self.open(z, self._SCAN_UUID)).getroot()
+                acquisition_time = dateutil.parser.parse(root.find("ScanDateTime").text)
+
                 # Parse unit information
-                root = ElementTree.parse(z.open(self._UNIT_UUID)).getroot()
+                root = ElementTree.parse(self.open(z, self._UNIT_UUID)).getroot()
                 meter_per_pixel = float(
                     root.find("XYCalibration").find("MeterPerPixel").text
                 )
@@ -147,7 +173,7 @@ This reader open ZON files that are written by some Keyence instruments.
                 # Parse height data information
                 # Header consists of four int32, followed by image data
                 width, height, element_size = unpack(
-                    "iii", z.open(self._HEIGHT_DATA_UUID).read(12)
+                    "iii", self.open(z, self._HEIGHT_DATA_UUID).read(12)
                 )
                 assert element_size == 4
                 self._channels += [
@@ -165,12 +191,27 @@ This reader open ZON files that are written by some Keyence instruments.
                         unit="m",
                         uniform=True,
                         info={
-                            "data_uuid": self._HEIGHT_DATA_UUID,
-                            "meter_per_pixel": meter_per_pixel,
-                            "meter_per_unit": meter_per_unit,
+                            "acquisition_time": acquisition_time,
+                            "instrument": {
+                                "name": device_model_name,
+                                "serial": device_serial_id,
+                            },
+                            "raw_metadata": {
+                                "data_uuid": self._HEIGHT_DATA_UUID,
+                                "meter_per_pixel": meter_per_pixel,
+                                "meter_per_unit": meter_per_unit,
+                            },
                         },
                     )
                 ]
+
+    def open(self, z, fn):
+        f = z.open(fn, "r")
+        if self._is_compressed:
+            decomp = zstandard.ZstdDecompressor()
+            return decomp.stream_reader(f)
+        else:
+            return f
 
     @property
     def channels(self):
@@ -207,7 +248,7 @@ This reader open ZON files that are written by some Keyence instruments.
         with OpenFromAny(self._file_path, "rb") as f:
             # Read image data
             with ZipFile(f, "r") as z:
-                with z.open(channel_info.info["data_uuid"]) as f:
+                with self.open(z, channel_info.info["raw_metadata"]["data_uuid"]) as f:
                     height_data = _read_array(f)
 
         topo = Topography(

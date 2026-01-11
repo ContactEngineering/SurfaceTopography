@@ -27,14 +27,13 @@ Test tools for variable bandwidth analysis.
 """
 
 import os
-import pytest
 
 import numpy as np
-
+import pytest
 from NuMPI import MPI
 
-from SurfaceTopography import read_container, read_topography, Topography, UniformLineScan
-from SurfaceTopography.Exceptions import UndefinedDataError
+from SurfaceTopography import (Topography, UniformLineScan, read_container,
+                               read_topography)
 from SurfaceTopography.Generation import fourier_synthesis
 
 pytestmark = pytest.mark.skipif(
@@ -197,5 +196,9 @@ def test_container_mixed(file_format_examples, plot=False):
 def test_missing_data_points(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, 'opd-3.opd'))
     assert t.has_undefined_data
-    with pytest.raises(UndefinedDataError):
-        t.variable_bandwidth_from_profile()
+    x, y = t.variable_bandwidth_from_profile()
+    assert np.isfinite(x).all()
+    assert np.isfinite(y).all()
+    x, y = t.variable_bandwidth_from_area()
+    assert np.isfinite(x).all()
+    assert np.isfinite(y).all()

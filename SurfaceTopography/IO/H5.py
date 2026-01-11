@@ -26,7 +26,7 @@
 import h5py
 
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ReaderBase, ChannelInfo
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class H5Reader(ReaderBase):
@@ -44,6 +44,18 @@ need to be manually provided by the user.
 The original contact mechanics challenge data can be downloaded
 [here](https://www.lmp.uni-saarland.de/index.php/research-topics/contact-mechanics-challenge-announcement/).
     '''  # noqa: E501
+
+    # HDF5 magic bytes
+    _MAGIC_HDF5 = b'\x89HDF\r\n\x1a\n'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_HDF5):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_HDF5):
+            # Generic HDF5 - return MAYBE so specific HDF5 readers can be tried first
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     def __init__(self, fobj):
         self._h5 = h5py.File(fobj, 'r')

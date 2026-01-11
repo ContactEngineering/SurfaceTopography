@@ -27,13 +27,37 @@
 
 import abc
 import os
+from enum import Enum
 
 import numpy as np
 
 from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Metadata import InfoModel
 from ..UniformLineScanAndTopography import Topography
 from .binary import AttrDict, LayoutWithNameBase
 from .common import OpenFromAny
+
+
+class MagicMatch(Enum):
+    """Result of magic-based file format check."""
+
+    YES = "yes"  # Magic matches, this reader should work
+    NO = "no"  # Magic does NOT match, skip this reader
+    MAYBE = "maybe"  # Cannot determine from magic alone
+
+
+class DataKind(Enum):
+    """Kind of data stored in a channel."""
+
+    HEIGHT = "height"          # Topography height data
+    VOLTAGE = "voltage"        # Piezo voltage, bias voltage, etc.
+    CURRENT = "current"        # Tunneling current (STM), etc.
+    PHASE = "phase"            # AFM phase data
+    AMPLITUDE = "amplitude"    # AFM amplitude data
+    ERROR = "error"            # Error signal
+    DEFLECTION = "deflection"  # Cantilever deflection
+    FRICTION = "friction"      # Friction/lateral force
+    OTHER = "other"            # Generic non-height data
 
 
 class ChannelInfo:
@@ -41,9 +65,24 @@ class ChannelInfo:
     Information on topography channels contained within a file.
     """
 
-    def __init__(self, reader, index, name=None, dim=None, nb_grid_pts=None, physical_sizes=None,
-                 height_scale_factor=None, periodic=None, uniform=None, undefined_data=None, unit=None, info={},
-                 tags={}):
+    def __init__(
+        self,
+        reader,
+        index,
+        name=None,
+        dim=None,
+        nb_grid_pts=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        periodic=None,
+        uniform=None,
+        undefined_data=None,
+        unit=None,
+        data_kind=None,
+        data_unit=None,
+        info={},
+        tags={},
+    ):
         """
         Initialize the channel. Use as much information from the file as
         possible by passing it in the keyword arguments. Keyword arguments
@@ -76,7 +115,14 @@ class ChannelInfo:
         has_undefined_data : bool, optional
             Underlying data has missing/undefined points.
         unit : str, optional
-            Length unit of measurement.
+            Length unit of measurement (lateral dimensions).
+        data_kind : DataKind, optional
+            Kind of data stored in this channel (HEIGHT, VOLTAGE, etc.).
+            Defaults to HEIGHT if not specified.
+        data_unit : str, optional
+            Unit for data values (z-axis). For height channels, this is
+            typically the same as unit. For non-height channels, this could
+            be 'V', 'A', 'deg', etc.
         info : dict, optional
             Meta data found in the file. (Default: {})
         tags : dict, optional
@@ -84,37 +130,61 @@ class ChannelInfo:
         """
         self._reader = reader
         self._index = int(index)
-        self._name = "channel {}".format(self._index) \
-            if name is None else str(name)
+        self._name = "channel {}".format(self._index) if name is None else str(name)
         self._dim = dim
-        self._nb_grid_pts = None \
-            if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
-        self._physical_sizes = None \
-            if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        self._nb_grid_pts = (
+            None if nb_grid_pts is None else tuple(np.ravel(nb_grid_pts))
+        )
+        self._physical_sizes = (
+            None if physical_sizes is None else tuple(np.ravel(physical_sizes))
+        )
         self._height_scale_factor = height_scale_factor
         self._periodic = periodic
         self._uniform = uniform
         self._undefined_data = undefined_data
         self._unit = unit
+        self._data_kind = data_kind if data_kind is not None else DataKind.HEIGHT
+        self._data_unit = data_unit
+        # These will be set by reader._finalize_channels()
+        self._channel_id = None
+        self._height_index = None
         if info is None:
-            self._info = {}
+            self._info = InfoModel()
         else:
-            self._info = info.copy()
+            self._info = InfoModel(**info)
         if tags is None:
             self._tags = {}
         else:
             self._tags = tags.copy()
 
     def __eq__(self, other):
-        # We do not compare tags
-        return self.index == other.index and self.name == other.name and self.dim == other.dim and \
-            self.nb_grid_pts == other.nb_grid_pts and self.physical_sizes == other.physical_sizes and \
-            self.height_scale_factor == other.height_scale_factor and self.is_periodic == other.is_periodic and \
-            self.is_uniform == other.is_uniform and self.has_undefined_data == other.has_undefined_data and \
-            self.unit == other.unit and self.info == other.info
+        # We do not compare tags, channel_id, or height_index
+        return (
+            self.index == other.index
+            and self.name == other.name
+            and self.dim == other.dim
+            and self.nb_grid_pts == other.nb_grid_pts
+            and self.physical_sizes == other.physical_sizes
+            and self.height_scale_factor == other.height_scale_factor
+            and self.is_periodic == other.is_periodic
+            and self.is_uniform == other.is_uniform
+            and self.has_undefined_data == other.has_undefined_data
+            and self.unit == other.unit
+            and self.data_kind == other.data_kind
+            and self.data_unit == other.data_unit
+            and self.info == other.info
+        )
 
-    def topography(self, physical_sizes=None, height_scale_factor=None, unit=None, info={}, periodic=False,
-                   subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. The method allows to override data
@@ -160,7 +230,8 @@ class ChannelInfo:
             info=info,
             periodic=periodic,
             subdomain_locations=subdomain_locations,
-            nb_subdomain_grid_pts=nb_subdomain_grid_pts)
+            nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+        )
 
     @property
     def index(self):
@@ -270,8 +341,7 @@ class ChannelInfo:
         if self._physical_sizes is None or self._nb_grid_pts is None:
             return None
         else:
-            return tuple(np.array(self._physical_sizes) /
-                         np.array(self._nb_grid_pts))
+            return tuple(np.array(self._physical_sizes) / np.array(self._nb_grid_pts))
 
     @property
     def area_per_pt(self):
@@ -288,26 +358,142 @@ class ChannelInfo:
     @property
     def unit(self):
         """
-        Length unit.
+        Length unit for lateral dimensions (x, y).
+
+        This is the unit for physical_sizes. For height channels, this is
+        typically also the unit of the height data. For non-height channels,
+        see data_unit for the unit of the data values.
         """
         return self._unit
 
     @property
-    def info(self):
+    def lateral_unit(self):
+        """
+        Length unit for lateral dimensions (x, y).
+
+        Alias for `unit` property.
+        """
+        return self._unit
+
+    @property
+    def data_kind(self):
+        """
+        Kind of data stored in this channel.
+
+        Returns
+        -------
+        DataKind
+            The kind of data (HEIGHT, VOLTAGE, CURRENT, PHASE, etc.)
+        """
+        return self._data_kind
+
+    @property
+    def data_unit(self):
+        """
+        Unit for data values (z-axis).
+
+        For height channels, this returns the lateral unit if no specific
+        data unit was provided (since height is typically in the same unit
+        as lateral dimensions). For non-height channels, this could be
+        'V', 'A', 'deg', etc.
+
+        Returns
+        -------
+        str or None
+            Unit string for the data values.
+        """
+        if self._data_unit is None and self._data_kind == DataKind.HEIGHT:
+            return self._unit
+        return self._data_unit
+
+    @property
+    def is_height_channel(self):
+        """
+        Return whether this channel contains height data.
+
+        Returns
+        -------
+        bool
+            True if this is a height channel, False otherwise.
+        """
+        return self._data_kind == DataKind.HEIGHT
+
+    @property
+    def channel_id(self):
+        """
+        Stable unique string identifier for this channel.
+
+        This ID is stable across different reads of the same file and does
+        not depend on channel ordering. Format is '{name}' if the name is
+        unique, or '{name}#{n}' if there are multiple channels with the
+        same name.
+
+        Returns
+        -------
+        str
+            Stable channel identifier.
+        """
+        if self._channel_id is None:
+            # Compute channel_id lazily by looking at all channels
+            self._compute_id_and_height_index()
+        return self._channel_id
+
+    def _compute_id_and_height_index(self):
+        """Compute channel_id and height_index by looking at reader's channels."""
+        channels = self._reader.channels
+        # Count channels with the same name before this one
+        name_counts = {}
+        height_idx = 0
+        for ch in channels:
+            ch_name = ch.name
+            if ch_name not in name_counts:
+                name_counts[ch_name] = 0
+            if ch is self:
+                # Found ourselves
+                count = name_counts[ch_name]
+                if count == 0:
+                    # Check if there are more channels with this name after us
+                    has_duplicate = any(
+                        c.name == ch_name for c in channels if c is not self
+                    )
+                    if has_duplicate:
+                        self._channel_id = f"{ch_name}#1"
+                    else:
+                        self._channel_id = ch_name
+                else:
+                    self._channel_id = f"{ch_name}#{count + 1}"
+                if self.is_height_channel:
+                    self._height_index = height_idx
+                break
+            name_counts[ch_name] += 1
+            if ch.is_height_channel:
+                height_idx += 1
+
+    @property
+    def height_index(self):
+        """
+        Index among height channels only.
+
+        This provides backwards compatibility for code that expects channels
+        to be indexed only among height data. Non-height channels return None.
+
+        Returns
+        -------
+        int or None
+            Index among height channels, or None for non-height channels.
+        """
+        if self._height_index is None and self.is_height_channel:
+            # Compute lazily if not set
+            self._compute_id_and_height_index()
+        return self._height_index
+
+    @property
+    def info(self) -> dict:
         """
         A dictionary containing additional information (metadata) not used by
         SurfaceTopography itself, but required by third-party application.
-
-        Presently, the following entries have been standardized:
-        'height_scale_factor':
-            Factor which was used to scale the raw numbers from file (which
-            can be voltages or some other quantity actually acquired in the
-            measurement technique) to heights with the given 'unit'.
         """
-        info = self._info.copy()
-        if self.unit is not None:
-            info.update(dict(unit=self.unit))
-        return info
+        return self._info.model_dump(exclude_none=True)
 
     @property
     def tags(self):
@@ -358,7 +544,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         unique and is typically equal to the file extension of this format.
         """
         if cls._format is None:
-            raise RuntimeError('Reader does not provide a format string')
+            raise RuntimeError("Reader does not provide a format string")
         return cls._format
 
     @classmethod
@@ -367,7 +553,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         MIME types supported by this reader.
         """
         if cls._mime_types is None:
-            raise RuntimeError('Reader does not provide MIME types')
+            raise RuntimeError("Reader does not provide MIME types")
         return cls._mime_types
 
     @classmethod
@@ -377,7 +563,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         there are no typical file extensions.
         """
         if cls._file_extensions is None:
-            raise RuntimeError('Reader does not provide file extensions')
+            raise RuntimeError("Reader does not provide file extensions")
         return cls._file_extensions
 
     @classmethod
@@ -386,7 +572,7 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Short name of this file format.
         """
         if cls._name is None:
-            raise RuntimeError('Reader does not provide a name')
+            raise RuntimeError("Reader does not provide a name")
         return cls._name
 
     @classmethod
@@ -395,8 +581,31 @@ class ReaderBase(metaclass=abc.ABCMeta):
         Long description of this file format. Should be formatted as markdown.
         """
         if cls._description is None:
-            raise RuntimeError('Reader does not provide a description string')
+            raise RuntimeError("Reader does not provide a description string")
         return cls._description
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        """
+        Check if this reader can handle a file based on magic bytes.
+
+        This method performs a fast check using the first N bytes of a file
+        to determine if this reader can handle the format. It is used to
+        quickly reject incompatible formats during auto-detection.
+
+        Parameters
+        ----------
+        buffer : bytes
+            First N bytes of the file (typically 512 bytes).
+
+        Returns
+        -------
+        MagicMatch
+            YES if magic matches and this reader should work.
+            NO if magic does NOT match and this reader should be skipped.
+            MAYBE if cannot determine from magic alone (default).
+        """
+        return MagicMatch.MAYBE
 
     def __enter__(self):
         return self
@@ -406,6 +615,183 @@ class ReaderBase(metaclass=abc.ABCMeta):
 
     def close(self):
         pass
+
+    def _get_channel_by_id(self, channel_id):
+        """
+        Find a channel by its stable channel ID.
+
+        Parameters
+        ----------
+        channel_id : str
+            The stable channel identifier.
+
+        Returns
+        -------
+        ChannelInfo
+            The channel with the given ID.
+
+        Raises
+        ------
+        ValueError
+            If no channel with the given ID is found.
+        """
+        for ch in self.channels:
+            if ch.channel_id == channel_id:
+                return ch
+        raise ValueError(f"No channel with id '{channel_id}' found.")
+
+    def _get_channel_by_height_index(self, height_index):
+        """
+        Find a channel by its height index (index among height channels only).
+
+        Parameters
+        ----------
+        height_index : int
+            Index among height channels.
+
+        Returns
+        -------
+        ChannelInfo
+            The height channel at the given index.
+
+        Raises
+        ------
+        ValueError
+            If no height channel with the given index is found.
+        """
+        for ch in self.channels:
+            if ch.height_index == height_index:
+                return ch
+        raise ValueError(f"No height channel with height_index {height_index} found.")
+
+    def height_index_to_channel_id(self, height_index):
+        """
+        Convert a height channel index to a stable channel ID.
+
+        This utility function is useful for migrating databases that stored
+        channel references using the old height-only index system to the new
+        stable channel_id system.
+
+        Parameters
+        ----------
+        height_index : int
+            Index among height channels (0-based).
+
+        Returns
+        -------
+        str
+            The stable channel_id for the height channel at that index.
+
+        Raises
+        ------
+        ValueError
+            If no height channel exists at the given index.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> # Migrate old database entry
+        >>> old_index = 0  # stored in database
+        >>> new_id = reader.height_index_to_channel_id(old_index)
+        >>> # Store new_id in database instead
+        """
+        channel = self._get_channel_by_height_index(height_index)
+        return channel.channel_id
+
+    def channel_id_to_height_index(self, channel_id):
+        """
+        Convert a stable channel ID to a height channel index.
+
+        This utility function can be used to convert channel IDs back to
+        height indices for backwards compatibility with systems that
+        require numeric indices.
+
+        Parameters
+        ----------
+        channel_id : str
+            The stable channel identifier.
+
+        Returns
+        -------
+        int
+            The height index for the channel with that ID.
+
+        Raises
+        ------
+        ValueError
+            If no channel with the given ID is found, or if the channel
+            is not a height channel.
+
+        Examples
+        --------
+        >>> reader = open_topography("scan.ibw")
+        >>> height_idx = reader.channel_id_to_height_index("Height")
+        """
+        channel = self._get_channel_by_id(channel_id)
+        if not channel.is_height_channel:
+            raise ValueError(
+                f"Channel '{channel_id}' is not a height channel and has no "
+                f"height_index. Its data_kind is {channel.data_kind.value}."
+            )
+        return channel.height_index
+
+    def _resolve_channel(self, channel_index=None, channel_id=None,
+                         height_channel_index=None):
+        """
+        Resolve channel from any of the three selection methods.
+
+        This helper method validates that at most one selection method is used
+        and returns the appropriate channel. If no selection is provided,
+        returns the default channel.
+
+        Parameters
+        ----------
+        channel_index : int, optional
+            Index into the full channels list.
+        channel_id : str, optional
+            Stable channel identifier string.
+        height_channel_index : int, optional
+            Index among height channels only.
+
+        Returns
+        -------
+        tuple
+            (channel_info, resolved_channel_index) where channel_info is the
+            ChannelInfo object and resolved_channel_index is the index into
+            the full channels list.
+
+        Raises
+        ------
+        ValueError
+            If more than one selection method is provided.
+        """
+        # Count how many selection methods are provided
+        n_specified = sum(x is not None for x in
+                          [channel_index, channel_id, height_channel_index])
+        if n_specified > 1:
+            raise ValueError(
+                "Only one of channel_index, channel_id, or height_channel_index "
+                "should be specified, but multiple were provided."
+            )
+
+        if channel_id is not None:
+            # Look up by stable ID
+            channel_info = self._get_channel_by_id(channel_id)
+            resolved_index = self.channels.index(channel_info)
+        elif height_channel_index is not None:
+            # Look up by height channel index (backwards compatible)
+            channel_info = self._get_channel_by_height_index(height_channel_index)
+            resolved_index = self.channels.index(channel_info)
+        elif channel_index is not None:
+            # Direct index into channels list
+            resolved_index = channel_index
+            channel_info = self.channels[resolved_index]
+        else:
+            # Use default channel
+            resolved_index = self._default_channel_index
+            channel_info = self.channels[resolved_index]
+
+        return channel_info, resolved_index
 
     @property
     @abc.abstractmethod
@@ -417,14 +803,23 @@ class ReaderBase(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @property
+    def height_channels(self):
+        """
+        Returns a list of :obj:`ChannelInfo`s for height channels only.
+
+        This provides backwards compatibility for code that expects only
+        height data channels.
+        """
+        return [ch for ch in self.channels if ch.is_height_channel]
+
+    @property
     def default_channel(self):
         """Return the default channel. This is often the first channel with
         height information."""
         return self.channels[self._default_channel_index]
 
     @classmethod
-    def _check_physical_sizes(cls, physical_sizes_from_arg,
-                              physical_sizes=None):
+    def _check_physical_sizes(cls, physical_sizes_from_arg, physical_sizes=None):
         """Handle overriding of `physical_sizes` arguments and make sure,
         that return value is not `None`.
 
@@ -437,19 +832,33 @@ class ReaderBase(metaclass=abc.ABCMeta):
         """
         if physical_sizes is None:
             if physical_sizes_from_arg is None:
-                raise ValueError("`physical_sizes` could not be extracted from file, you must provide it.")
+                raise ValueError(
+                    "`physical_sizes` could not be extracted from file, you must "
+                    "provide it."
+                )
             eff_physical_sizes = physical_sizes_from_arg
         elif physical_sizes_from_arg is not None:
             # in general this should result in an exception now
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile("physical_sizes")
         else:
             eff_physical_sizes = physical_sizes
 
         return eff_physical_sizes
 
     @abc.abstractmethod
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        channel_id=None,
+        height_channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
         """
         Returns an instance of a subclass of :obj:`HeightContainer` that
         contains the topography data. Which specific type of height container
@@ -464,11 +873,28 @@ class ReaderBase(metaclass=abc.ABCMeta):
         if the metadata is present by inspecting the `ChannelInfo` of the
         respective data channel.
 
+        There are three ways to specify which channel to load:
+        1. `channel_index`: Index into the full channels list (all data types)
+        2. `channel_id`: Stable string identifier (e.g., "Height", "Phase#2")
+        3. `height_channel_index`: Index among height channels only (backwards
+           compatible with pre-existing database indices)
+
+        Only one of these parameters should be specified. If none are given,
+        the default channel is loaded.
+
         Arguments
         ---------
         channel_index : int
             Index of the channel to load. See also `channels` method.
-            (Default: None, which load the default channel)
+            (Default: None, which loads the default channel)
+        channel_id : str
+            Stable channel identifier string. This is the recommended way to
+            identify channels for storage in databases as it remains stable
+            even if channel ordering changes.
+        height_channel_index : int
+            Index among height channels only. This provides backwards
+            compatibility for databases that stored channel indices before
+            non-height channels were supported.
         physical_sizes : tuple of floats
             Physical size of the topography. It is necessary to specify this
             if no physical size is found in the data file. If there is a
@@ -503,6 +929,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
             Raised if `physical_sizes`, `unit or `height_scale_factor` have
             already been defined in the file, because they should not be
             overridden by the user.
+        ValueError
+            Raised if more than one channel selection parameter is provided,
+            or if the specified channel cannot be found.
         """
         raise NotImplementedError
 
@@ -518,7 +947,7 @@ class CompoundLayout(LayoutWithNameBase):
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
-            tmp_context = AttrDict({**local_context, '__parent__': context})
+            tmp_context = AttrDict({**local_context, "__parent__": context})
             if callable(structure):
                 # This is a function that returns the respective structure
                 structure = structure(tmp_context)
@@ -574,7 +1003,15 @@ class Skip:
 
 
 class SizedChunk(LayoutWithNameBase):
-    def __init__(self, size, structure, mode='read-once', name=None, context_mapper=None, debug=False):
+    def __init__(
+        self,
+        size,
+        structure,
+        mode="read-once",
+        name=None,
+        context_mapper=None,
+        debug=False,
+    ):
         """
         Declare a file portion of a specific size. This allows bounds checking,
         i.e. raising exception if too much or too little data is read.
@@ -626,41 +1063,53 @@ class SizedChunk(LayoutWithNameBase):
 
         starting_position = stream_obj.tell()
         if self._debug:
-            print(f'Sized chunk is supposed to run from {starting_position} to {starting_position + size}.')
+            print(
+                f"Sized chunk is supposed to run from {starting_position} to {starting_position + size}."
+            )
 
         local_context = []
         local_context += [self._structure.from_stream(stream_obj, context)]
         final_position = stream_obj.tell()
-        while self._mode == 'loop' and final_position - starting_position < size:
+        while self._mode == "loop" and final_position - starting_position < size:
             local_context += [self._structure.from_stream(stream_obj, context)]
             final_position = stream_obj.tell()
 
         # Check if we processed the whole chunk
         if final_position - starting_position > size:
-            raise IOError(f'Chunk is supposed to contain {size} bytes, but '
-                          f'{final_position - starting_position} bytes have been decoded. '
-                          f'(Chunk starts at position {starting_position} and ends at {final_position}, '
-                          f'but is supposed to end at {starting_position + size}.)')
+            raise IOError(
+                f"Chunk is supposed to contain {size} bytes, but "
+                f"{final_position - starting_position} bytes have been decoded. "
+                f"(Chunk starts at position {starting_position} and ends at {final_position}, "
+                f"but is supposed to end at {starting_position + size}.)"
+            )
         elif final_position - starting_position < size:
-            if self._mode == 'skip-missing':
-                stream_obj.seek(size - (final_position - starting_position), os.SEEK_CUR)
+            if self._mode == "skip-missing":
+                stream_obj.seek(
+                    size - (final_position - starting_position), os.SEEK_CUR
+                )
             else:
-                raise IOError(f'Chunk is supposed to contain {size} bytes, but only '
-                              f'{final_position - starting_position} bytes have been decoded. '
-                              f'(Chunk starts at position {starting_position} and ends at {final_position}, '
-                              f'but is supposed to end at {starting_position + size}.)')
+                raise IOError(
+                    f"Chunk is supposed to contain {size} bytes, but only "
+                    f"{final_position - starting_position} bytes have been decoded. "
+                    f"(Chunk starts at position {starting_position} and ends at {final_position}, "
+                    f"but is supposed to end at {starting_position + size}.)"
+                )
 
         name = self.name(context)
-        if self._mode != 'loop':
-            local_context, = local_context
+        if self._mode != "loop":
+            (local_context,) = local_context
         if self._context_mapper is None:
+
             def context_mapper(x):
                 return x
+
         else:
             context_mapper = self._context_mapper
         if name is None:
-            if self._mode == 'loop' and self._context_mapper is None:
-                raise IOError("`name` or `context_mapper` must be specified for mode 'loop'.")
+            if self._mode == "loop" and self._context_mapper is None:
+                raise IOError(
+                    "`name` or `context_mapper` must be specified for mode 'loop'."
+                )
             return context_mapper(local_context)
         else:
             return context_mapper({name: local_context})
@@ -675,7 +1124,7 @@ class For(LayoutWithNameBase):
         self._name = name
 
         if self._name is None:
-            raise ValueError('`For` statement must have a name.')
+            raise ValueError("`For` statement must have a name.")
 
     def from_stream(self, stream_obj, context):
         local_context = []
@@ -696,7 +1145,7 @@ class While(LayoutWithNameBase):
         self._name = name
 
         if self._name is None:
-            raise ValueError('`While` statement must have a name.')
+            raise ValueError("`While` statement must have a name.")
 
     def from_stream(self, stream_obj, context):
         while_context = []
@@ -706,9 +1155,14 @@ class While(LayoutWithNameBase):
             for arg in self._args:
                 if still_looping:
                     if callable(arg):
-                        still_looping = arg(AttrDict({**local_context, '__parent__': context}))
+                        still_looping = arg(
+                            AttrDict({**local_context, "__parent__": context})
+                        )
                     else:
-                        x = arg.from_stream(stream_obj, AttrDict({**local_context, '__parent__': context}))
+                        x = arg.from_stream(
+                            stream_obj,
+                            AttrDict({**local_context, "__parent__": context}),
+                        )
                         local_context.update(x)
             while_context += [local_context]
         return {self.name(context): while_context}
@@ -723,10 +1177,12 @@ class DeclarativeReaderBase(ReaderBase):
 
     def __init__(self, file_path):
         if self._file_layout is None:
-            raise RuntimeError('Please defined the file structure via the `_file_layout` class member.')
+            raise RuntimeError(
+                "Please defined the file structure via the `_file_layout` class member."
+            )
 
         self.file_path = file_path
-        with OpenFromAny(self.file_path, 'rb') as f:
+        with OpenFromAny(self.file_path, "rb") as f:
             self._metadata = self._file_layout.from_stream(f, {})
 
         self._validate_metadata()
@@ -738,20 +1194,28 @@ class DeclarativeReaderBase(ReaderBase):
     def metadata(self):
         return self._metadata
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={},
-                   periodic=None, subdomain_locations=None,
-                   nb_subdomain_grid_pts=None):
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError("This reader does not support MPI parallelization.")
 
         if channel_index is None:
             channel_index = self._default_channel_index
 
         channels = self.channels
         if channel_index < 0 or channel_index >= len(channels):
-            raise RuntimeError(f'Channel index is {channel_index} but must be between 0 and {len(channels) - 1}.')
+            raise RuntimeError(
+                f"Channel index is {channel_index} but must be between 0 and {len(channels) - 1}."
+            )
 
         # Get channel information
         channel = channels[channel_index]
@@ -759,27 +1223,29 @@ class DeclarativeReaderBase(ReaderBase):
         if physical_sizes is None:
             physical_sizes = channel.physical_sizes
         elif channel.physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
+            raise MetadataAlreadyFixedByFile("physical_sizes")
 
         if height_scale_factor is None:
             height_scale_factor = channel.height_scale_factor
         elif channel.height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
 
         if unit is None:
             unit = channel.unit
         elif channel.unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
+            raise MetadataAlreadyFixedByFile("unit")
 
-        with OpenFromAny(self.file_path, 'rb') as f:
-            height_data = channel.tags['reader'](f)
+        with OpenFromAny(self.file_path, "rb") as f:
+            height_data = channel.tags["reader"](f)
 
         _info = channel.info.copy()
         _info.update(info)
 
-        topo = Topography(height_data,
-                          physical_sizes,
-                          unit=unit,
-                          periodic=False if periodic is None else periodic,
-                          info=_info)
+        topo = Topography(
+            height_data,
+            physical_sizes,
+            unit=unit,
+            periodic=False if periodic is None else periodic,
+            info=_info,
+        )
         return topo.scale(height_scale_factor)

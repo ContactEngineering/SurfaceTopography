@@ -33,6 +33,7 @@ topographies.
 import numpy as np
 
 from ..HeightContainer import NonuniformLineScanInterface
+from ..Support.UnitConversion import suggest_length_unit
 
 
 def bandwidth(self):
@@ -56,5 +57,28 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
+def plot(self, subplot_location=111):
+    """
+    Plot the topography.
+
+    Parameters
+    ----------
+    subplot_location : int, optional
+        The location of the subplot. The default is 111.
+    """
+    # We import here because we don't want a global dependence on matplotlib
+    import matplotlib.pyplot as plt
+
+    sx, = self.to_unit("m").physical_sizes
+    unit = suggest_length_unit("linear", 0, sx)
+    topography = self.to_unit(unit)
+    ax = plt.subplot(subplot_location)
+    ax.plot(*topography.positions_and_heights(), label=f"Height ({unit})")
+    ax.set_xlabel(f"Position $x$ ({unit})")
+    ax.set_ylabel(f"Height $h$ ({unit})")
+    return ax
+
+
 # Register analysis functions from this module
 NonuniformLineScanInterface.register_function('bandwidth', bandwidth)
+NonuniformLineScanInterface.register_function('plot', plot)

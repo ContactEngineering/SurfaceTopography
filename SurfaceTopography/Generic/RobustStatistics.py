@@ -38,7 +38,7 @@ from SurfaceTopography.HeightContainer import (NonuniformLineScanInterface,
 _rms_percentile = scipy.stats.norm.cdf(-1)
 
 
-def bisect(bearing_area, target_area, tol=1e-6):
+def bisect(bearing_area, target_area, rtol=1e-6):
     """
     Find the root of a function using the bisection method.
 
@@ -48,8 +48,8 @@ def bisect(bearing_area, target_area, tol=1e-6):
         Instance of bearing area class.
     target_area : float
         Target bearing area.
-    tol : float
-        Tolerance for the root.
+    rtol : float
+        Relative tolerance for the root with respect to the initial bounds.
 
     Returns
     -------
@@ -58,10 +58,11 @@ def bisect(bearing_area, target_area, tol=1e-6):
     """
     a = bearing_area.min
     b = bearing_area.max
+    initial_ab = b - a
     fa_lower, fa_upper = bearing_area.bounds(a)
     fb_lower, fb_upper = bearing_area.bounds(b)
     assert fa_upper >= target_area >= fb_lower
-    while b - a > tol:
+    while b - a > initial_ab * rtol:
         c = (a + b) / 2
         fc_lower, fc_upper = bearing_area.bounds(c)  # This is O(log(N))
         if fc_lower < target_area < fc_upper:

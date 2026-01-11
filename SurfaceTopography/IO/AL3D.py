@@ -28,12 +28,13 @@
 #
 
 import numpy as np
+from numpy.lib.stride_tricks import as_strided
 
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
+from .binary import decode
+from .common import OpenFromAny
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class AL3DReader(ReaderBase):
@@ -48,6 +49,14 @@ AL3D format of Alicona Imaging.
 
     _MAGIC = b'AliconaImaging\x00\r\n'
 
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
+
     # Relative tolerance for catching invalid pixels
     _INVALID_RELTOL = 1.5e-7
 
@@ -55,18 +64,6 @@ AL3D format of Alicona Imaging.
         ('key', '20s'),
         ('value', '30s'),
         ('crlf', '2s'),
-    ]
-
-    _header_structure = [
-        ('nb_tags', 'I'),
-        ('nb_grid_pts_x', 'I'),
-        ('nb_grid_pts_y', 'I'),
-        ('nb_planes', 'I'),
-        ('grid_spacing_x', 'd'),
-        ('grid_spacing_y', 'd'),
-        ('icon_offset', 'I'),
-        ('texture_offset', 'I'),
-        ('depth_offset', 'I'),
     ]
 
     # Reads in the positions of all the data and metadata
@@ -110,9 +107,11 @@ AL3D format of Alicona Imaging.
         f.seek(int(self._header['DepthImageOffset']))
         invalid_pixel_value = float(self._header['InvalidPixelValue'])
         dtype = np.single
-        buffer = f.read(np.prod(self._nb_grid_pts) * np.dtype(dtype).itemsize)
         nx, ny = self._nb_grid_pts
-        data = np.frombuffer(buffer, dtype=dtype).reshape((ny, nx))
+        rowstride = (nx * np.dtype(dtype).itemsize + 7) // 8 * 8
+        buffer = f.read(rowstride * ny * np.dtype(dtype).itemsize)
+        data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx),
+                          strides=(rowstride, np.dtype(dtype).itemsize))
         mask = np.isnan(data)
         if not np.isnan(invalid_pixel_value):
             mask = np.logical_or(mask, np.abs(data - invalid_pixel_value) < self._INVALID_RELTOL * invalid_pixel_value)

@@ -126,7 +126,7 @@ def read_container(fn, format=None, **kwargs):
     """
     containers = []
     with open_container(fn, format=format) as reader:
-        for i in range(reader.nb_surfaces):
+        for i in range(reader.nb_containers):
             containers += [reader.container(index=i, **kwargs)]
     return containers
 

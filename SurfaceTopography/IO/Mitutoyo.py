@@ -37,8 +37,10 @@ from ..Support.UnitConversion import get_unit_conversion_factor
 from ..UniformLineScanAndTopography import UniformLineScan
 from .Reader import ChannelInfo, ReaderBase
 
-R_metric_regex = re.compile(r'(?P<key>[^\s]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]*)')
-cut_off_regex = re.compile(r'(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\s]+)')
+R_metric_regex = re.compile(
+    r"(?P<key>[^\s]+)\s+(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s+(?P<unit>[^\s]*)"
+)
+cut_off_regex = re.compile(r"(?P<value>[+-]?(?:[0-9]*[.])?[0-9]+)\s*(?P<unit>[^\s]+)")
 
 _log = logging.getLogger(__file__)
 
@@ -49,15 +51,15 @@ class MitutoyoReader(ReaderBase):
     Excel spreadsheets.
     """
 
-    _format = 'mitutoyo'
-    _mime_types = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-    _file_extensions = ['xlsx']
+    _format = "mitutoyo"
+    _mime_types = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]
+    _file_extensions = ["xlsx"]
 
-    _name = 'Mitutoyo SurfTest Excel spreadsheet (xlsx)'
-    _description = '''
+    _name = "Mitutoyo SurfTest Excel spreadsheet (xlsx)"
+    _description = """
 Load topography information stored as Excel spreadsheet by Mitutoyo SurfTest
 surface roughness testers.
-    '''
+    """
 
     def __init__(self, fobj):
         """
@@ -79,18 +81,20 @@ surface roughness testers.
             fobj = fobj()
         try:
             wb = openpyxl.load_workbook(fobj)
-            _data = wb['DATA']
-            _metadata = wb['Certificate']
+            _data = wb["DATA"]
+            _metadata = wb["Certificate"]
             # How should a reader properly fulfill test_no_resource_warning_on_failure?
         except openpyxl.utils.exceptions.InvalidFileException as exc:
             # reraise openpyxl exceptions as IOError
             raise IOError(exc)
         else:
-            _x_cells, _h_cells = _data['E:F']
+            _x_cells, _h_cells = _data["E:F"]
             _x = np.array([cell.value for cell in _x_cells if cell.value is not None])
             # We store the profile (and metadata) in the object since there
             # can only be a single data channel.
-            self._h = np.array([cell.value for cell in _h_cells if cell.value is not None])
+            self._h = np.array(
+                [cell.value for cell in _h_cells if cell.value is not None]
+            )
 
             # check if positions are distributed uniformly
             _diff = np.diff(_x)
@@ -110,7 +114,7 @@ surface roughness testers.
 
             # try extracting simple roughness metrics from first column
 
-            _roughness_metrics_cells = _data['A']
+            _roughness_metrics_cells = _data["A"]
             _roughness_metrics_list = []
             for cell in _roughness_metrics_cells:
                 # iterate until first empty row
@@ -120,27 +124,30 @@ surface roughness testers.
                 R_metric_regex_match = R_metric_regex.match(cell.value)
                 if R_metric_regex_match is not None:
                     _roughness_metrics_record = {
-                        key: float(value) if key == 'value' else value
+                        key: float(value) if key == "value" else value
                         for key, value in R_metric_regex_match.groupdict().items()
                     }
 
                     _roughness_metrics_list.append(_roughness_metrics_record)
                 else:
-                    _log.warning("%s does not conform with MitutoyoReader scalar roughness metrics regex", cell.value)
+                    _log.warning(
+                        "%s does not conform with MitutoyoReader scalar roughness metrics regex",
+                        cell.value,
+                    )
 
             # try to infer heights unit from roughness metrics
-            _h_unit = _roughness_metrics_list[0]['unit']
+            _h_unit = _roughness_metrics_list[0]["unit"]
 
             # get creation date
-            _date_string = _metadata['E2'].value
+            _date_string = _metadata["E2"].value
 
             # remove all whitespace from date string
             _date_string = re.sub(r"\s+", "", _date_string, flags=re.UNICODE)
 
             # try to infer x unit from cut off
-            _cut_off_string = _metadata['E48'].value
+            _cut_off_string = _metadata["E48"].value
             _cut_off_dict = cut_off_regex.match(_cut_off_string).groupdict()
-            _x_unit = _cut_off_dict['unit']
+            _x_unit = _cut_off_dict["unit"]
 
             # convert x unit to h unit
             self._x = _x * get_unit_conversion_factor(_x_unit, _h_unit)
@@ -153,42 +160,52 @@ surface roughness testers.
             self._physical_sizes = np.max(self._x)
 
             self._info = {
-                'roughness_metrics': _roughness_metrics_list,
-                'cut_off': _cut_off_dict,
-                'acquisition_time': str(datetime.strptime(_date_string, '%d-%b-%Y'))
+                "acquisition_time": datetime.strptime(_date_string, "%d-%b-%Y"),
+                "raw_metadata": {
+                    "roughness_metrics": _roughness_metrics_list,
+                    "cut_off": _cut_off_dict,
+                },
             }
-            self._channels = [ChannelInfo(self,
-                                          0,  # channel index
-                                          # Since the is only a single channel and the file has no channel information,
-                                          # the name is 'Default'
-                                          name='Default',
-                                          dim=1,
-                                          uniform=self._uniform,
-                                          nb_grid_pts=len(self._h),
-                                          unit=self._unit,
-                                          physical_sizes=self._physical_sizes,
-                                          info=self._info)
-                              ]
+            self._channels = [
+                ChannelInfo(
+                    self,
+                    0,  # channel index
+                    # Since the is only a single channel and the file has no channel information,
+                    # the name is 'Default'
+                    name="Default",
+                    dim=1,
+                    uniform=self._uniform,
+                    nb_grid_pts=len(self._h),
+                    unit=self._unit,
+                    physical_sizes=self._physical_sizes,
+                    info=self._info,
+                )
+            ]
 
     # Return list of channels (here only a single one)
     @property
     def channels(self):
         return self._channels
 
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={},
-                   periodic=None, subdomain_locations=None,
-                   nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=None,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
 
         # Check if only a subdomain should be loaded
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError(
-                'This reader does not support MPI parallelization.')
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError("This reader does not support MPI parallelization.")
 
         # Check that channel_index is valid
         if channel_index is not None and channel_index != 0:
-            raise ValueError('`channel_index` must be None or 0.')
+            raise ValueError("`channel_index` must be None or 0.")
 
         # If no channel index is given, we use the default index
         if channel_index is None:
@@ -197,7 +214,7 @@ surface roughness testers.
         # Units are specified in the XLSX file and cannot be overridden
         if unit is not None:
             if self._unit is not None:
-                raise MetadataAlreadyFixedByFile('unit')
+                raise MetadataAlreadyFixedByFile("unit")
         else:
             unit = self._unit
         # Augment info dictionary with user-specified data
@@ -211,28 +228,29 @@ surface roughness testers.
         # or given by the user. Also make sure that if the user specifies it,
         # it cannot be set in the file. (We cannot override metadata from
         # files.)
-        physical_sizes = self._check_physical_sizes(physical_sizes,
-                                                    channel.physical_sizes)
+        physical_sizes = self._check_physical_sizes(
+            physical_sizes, channel.physical_sizes
+        )
 
         # may a reader return either NonuniformLineScan or UniformLineScan?
         if self._uniform:
             # Return a uniform line scan if data is equally spaced
             topography = UniformLineScan(
-                self._h, physical_sizes,
+                self._h,
+                physical_sizes,
                 periodic=False if periodic is None else periodic,
                 unit=unit,
-                info=_info)
+                info=_info,
+            )
         else:
             if periodic is not None and periodic:
-                raise ValueError('Mitutoyo reader found nonuniform data, and the user specified that it is periodic. '
-                                 'Nonuniform line scans cannot be periodic.')
+                raise ValueError(
+                    "Mitutoyo reader found nonuniform data, and the user specified that it is periodic. "
+                    "Nonuniform line scans cannot be periodic."
+                )
 
             # Return a nonuniform line scan otherwise
-            topography = NonuniformLineScan(
-                self._x,
-                self._h,
-                unit=unit,
-                info=_info)
+            topography = NonuniformLineScan(self._x, self._h, unit=unit, info=_info)
 
         # Check if there is a user-specified height scale factor
         if height_scale_factor is not None:

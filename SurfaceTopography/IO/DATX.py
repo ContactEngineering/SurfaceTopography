@@ -28,12 +28,15 @@
 import h5py
 import numpy as np
 
-from ..Exceptions import (CorruptFile, FileFormatMismatch,
-                          MetadataAlreadyFixedByFile, UnsupportedFormatFeature)
-from ..Support.UnitConversion import (get_unit_conversion_factor,
-                                      mangle_length_unit_utf8)
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class DATXReader(ReaderBase):
@@ -45,6 +48,18 @@ class DATXReader(ReaderBase):
     _description = '''
 Import filter for Zygo DATX, an HDF5-based format.
     '''  # noqa: E501
+
+    # HDF5 magic bytes
+    _MAGIC_HDF5 = b'\x89HDF\r\n\x1a\n'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC_HDF5):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC_HDF5):
+            # HDF5 file, could be DATX - need full parsing to confirm
+            return MagicMatch.MAYBE
+        return MagicMatch.NO
 
     def __init__(self, fobj):
         self._fobj = fobj
@@ -98,19 +113,25 @@ Import filter for Zygo DATX, an HDF5-based format.
                 z_converter, = h5[self._surface_path].attrs['Z Converter']
 
                 # Interpret converters and throw error if unsupported
-                category, unit, values = x_converter
+                category = x_converter[0]
+                unit = x_converter[1]
+                values = x_converter[-1]
                 if category != b'LateralCat' and unit != b'Pixels':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` with `Pixels` unit for '
                                                    'X converter.')
                 physical_sizes_x = self._nb_grid_pts[0] * values[1]  # in units of meters!
 
-                category, unit, values = y_converter
+                category = y_converter[0]
+                unit = y_converter[1]
+                values = y_converter[-1]
                 if category != b'LateralCat' and unit != b'Pixels':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` with `Pixels` unit for '
                                                    'Y converter.')
                 physical_sizes_y = self._nb_grid_pts[1] * values[1]  # in units of meters!
 
-                category, height_unit, values = z_converter
+                category = z_converter[0]
+                height_unit = z_converter[1]
+                values = z_converter[-1]
                 if category != b'HeightCat':
                     raise UnsupportedFormatFeature('DATX reader only supports `LateralCat` for Z converter.')
                 height_unit = mangle_length_unit_utf8(height_unit.decode('ascii'))

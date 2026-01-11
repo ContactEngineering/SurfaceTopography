@@ -32,7 +32,7 @@ import numpy as np
 
 from ..FFTTricks import make_fft
 from ..HeightContainer import UniformTopographyInterface
-from ..UniformLineScanAndTopography import Topography
+from ..Support.UnitConversion import suggest_length_unit
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
@@ -57,8 +57,9 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def domain_decompose(self, subdomain_locations, nb_subdomain_grid_pts,
-                     communicator=None):
+def domain_decompose(
+    self, subdomain_locations, nb_subdomain_grid_pts, communicator=None
+):
     """
     Turn a topography that is defined over the whole domain into one that is
     decomposed for each individual MPI process.
@@ -85,19 +86,21 @@ def domain_decompose(self, subdomain_locations, nb_subdomain_grid_pts,
         process.
     """
     if communicator is None and self.communicator is None:
-        raise RuntimeError('Please provide an MPI communicator.')
-    return self.__class__(self.heights(),
-                          self.physical_sizes,
-                          periodic=self.is_periodic,
-                          decomposition='domain',
-                          subdomain_locations=subdomain_locations,
-                          nb_subdomain_grid_pts=nb_subdomain_grid_pts,
-                          communicator=self.communicator if communicator is None else communicator,
-                          unit=self.unit,
-                          info=self.info)
+        raise RuntimeError("Please provide an MPI communicator.")
+    return self.__class__(
+        self.heights(),
+        self.physical_sizes,
+        periodic=self.is_periodic,
+        decomposition="domain",
+        subdomain_locations=subdomain_locations,
+        nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+        communicator=self.communicator if communicator is None else communicator,
+        unit=self.unit,
+        info=self.info,
+    )
 
 
-def plot(topography, subplot_location=111):
+def plot_2d(topography, subplot_location=111):
     """
     Plot an image of the topography using matplotlib.
 
@@ -110,30 +113,42 @@ def plot(topography, subplot_location=111):
     import matplotlib.pyplot as plt
 
     try:
-        sx, sy = topography.physical_sizes
+        sx, sy = topography.to_unit("m").physical_sizes
+        unit = suggest_length_unit("linear", 0, max(sx, sy))
+        topography = topography.to_unit(unit)
+        (
+            sx,
+            sy,
+        ) = topography.physical_sizes
     except TypeError:
         sx, sy = topography.nb_grid_pts
-    nx, ny = topography.nb_grid_pts
+        unit = "a.u."
 
     ax = plt.subplot(subplot_location, aspect=1)
-    Y, X = np.meshgrid(np.arange(ny + 1) * sy / ny,
-                       np.arange(nx + 1) * sx / nx)
-    Z = topography[...]
-    mesh = ax.pcolormesh(X, Y, Z)
-    plt.colorbar(mesh, ax=ax)
-    ax.set_xlim(0, sx)
-    ax.set_ylim(0, sy)
-    if topography.unit is not None:
-        unit = topography.unit
-    else:
-        unit = 'a.u.'
-    ax.set_xlabel('Position $x$ ({})'.format(unit))
-    ax.set_ylabel('Position $y$ ({})'.format(unit))
+    mesh = ax.imshow(topography[...].T, extent=(0, sx, sy, 0))
+    plt.colorbar(mesh, ax=ax, label=f"Height ({unit})")
+    ax.set_xlabel(f"Position $x$ ({unit})")
+    ax.set_ylabel(f"Position $y$ ({unit})")
     return ax
 
 
+def plot(topography, subplot_location=111):
+    """
+    Plot topogaphy.
+
+    Parameters
+    ----------
+    topography : :obj:`SurfaceTopography`
+        Height information
+    """
+    if topography.dim == 2:
+        return plot_2d(topography, subplot_location=subplot_location)
+    else:
+        return topography.to_nonuniform().plot()
+
+
 class FilledTopography(DecoratedUniformTopography):
-    def __init__(self, topography, fill_value=-np.infty, info={}):
+    def __init__(self, topography, fill_value=-np.inf, info={}):
         """
         masked (undefined) data is replaced with `fill_value`.
 
@@ -147,8 +162,9 @@ class FilledTopography(DecoratedUniformTopography):
         self.fill_value = fill_value
 
     def heights(self):
-        return np.ma.filled(self.parent_topography.heights(),
-                            fill_value=self.fill_value)
+        return np.ma.filled(
+            self.parent_topography.heights(), fill_value=self.fill_value
+        )
 
     @property
     def has_undefined_data(self):
@@ -156,8 +172,8 @@ class FilledTopography(DecoratedUniformTopography):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('make_fft', make_fft)
-UniformTopographyInterface.register_function('bandwidth', bandwidth)
-UniformTopographyInterface.register_function('domain_decompose', domain_decompose)
-Topography.register_function('plot', plot)
-UniformTopographyInterface.register_function('fill_undefined_data', FilledTopography)
+UniformTopographyInterface.register_function("make_fft", make_fft)
+UniformTopographyInterface.register_function("bandwidth", bandwidth)
+UniformTopographyInterface.register_function("domain_decompose", domain_decompose)
+UniformTopographyInterface.register_function("plot", plot)
+UniformTopographyInterface.register_function("fill_undefined_data", FilledTopography)

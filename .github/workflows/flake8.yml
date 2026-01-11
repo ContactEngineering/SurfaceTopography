@@ -15,28 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
 
-          submodules: recursive
+        submodules: recursive
 
-      - name: Set up python3 ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qy
+        sudo apt-get install -y flake8
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -qy
-          sudo apt-get install -y python3-dev python3-pip meson ninja-build
-          # Upgrade pip
-          sudo python3 -m pip install --upgrade pip pip-tools
-
-      - name: Build extension module
-        run: |
-          python3 -m pip install ".[test]"
-
-      - name: Flake8 via pytest
-        run: |
-          python3 -m pytest --flake8 -m flake8 --verbose --full-trace -s
+    - name: Flake8
+      run: |
+        flake8 SurfaceTopography test

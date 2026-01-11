@@ -25,10 +25,10 @@
 
 import numpy as np
 
-from ..HeightContainer import UniformTopographyInterface
 from SurfaceTopography.Support.Interpolation import Bicubic
-from ..UniformLineScanAndTopography import Topography
-from ..UniformLineScanAndTopography import DecoratedUniformTopography
+
+from ..HeightContainer import UniformTopographyInterface
+from ..UniformLineScanAndTopography import DecoratedUniformTopography, Topography
 
 
 def interpolate_linear(self):
@@ -83,7 +83,7 @@ def interpolate_linear(self):
 
         return np.where(frac_x + frac_y > 1, upper_triangle, lower_triangle)
 
-    heights = self.heights()
+    heights = np.ma.filled(self.heights(), np.nan)
     is_periodic = self.is_periodic
     if self.dim == 1:
         nx, = self.nb_grid_pts

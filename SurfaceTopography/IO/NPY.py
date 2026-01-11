@@ -41,7 +41,7 @@ from NuMPI import MPI
 
 from ..Exceptions import FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, MagicMatch, ReaderBase
 
 
 class NPYReader(ReaderBase):
@@ -53,19 +53,29 @@ class NPYReader(ReaderBase):
     https://docs.scipy.org/doc/numpy/reference/generated/numpy.lib.format.html
     """
 
-    _format = 'npy'
-    _mime_types = ['application/x-npy']
-    _file_extensions = ['npy']
+    _format = "npy"
+    _mime_types = ["application/x-npy"]
+    _file_extensions = ["npy"]
 
-    _name = 'Numpy arrays (NPY)'
-    _description = '''
+    _name = "Numpy arrays (NPY)"
+    _description = """
 Load topography information stored as a numpy array. The numpy array format is
 specified
 [here](https://numpy.org/devdocs/reference/generated/numpy.lib.format.html).
 The reader expects a two-dimensional array and interprets it as a map of
 heights. Numpy arrays do not store units or physical sizes. These need to be
 manually provided by the user.
-    '''
+    """
+
+    _MAGIC = b'\x93NUMPY'
+
+    @classmethod
+    def can_read(cls, buffer: bytes) -> MagicMatch:
+        if len(buffer) < len(cls._MAGIC):
+            return MagicMatch.MAYBE  # Buffer too short to determine
+        if buffer.startswith(cls._MAGIC):
+            return MagicMatch.YES
+        return MagicMatch.NO
 
     def __init__(self, fobj, communicator=MPI.COMM_WORLD):
         """
@@ -83,10 +93,9 @@ manually provided by the user.
         if callable(fobj):
             fobj = fobj()
         try:
-            self.mpi_file = NuMPI.IO.make_mpi_file_view(fobj, communicator,
-                                                        format="npy")
+            self.mpi_file = NuMPI.IO.mpi_open(fobj, communicator, format="npy")
             self.dtype = self.mpi_file.dtype
-            self._nb_grid_pts = self.mpi_file.nb_grid_pts
+            self._nb_grid_pts = self.mpi_file.array_shape
         except NuMPI.IO.MPIFileTypeError:
             raise FileFormatMismatch()
 
@@ -95,38 +104,56 @@ manually provided by the user.
 
     @property
     def channels(self):
-        return [ChannelInfo(self, 0,
-                            name='Default',
-                            dim=len(self._nb_grid_pts),
-                            uniform=True,
-                            nb_grid_pts=self._nb_grid_pts)]
+        return [
+            ChannelInfo(
+                self,
+                0,
+                name="Default",
+                dim=len(self._nb_grid_pts),
+                uniform=True,
+                nb_grid_pts=self._nb_grid_pts,
+            )
+        ]
 
-    def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
-                   periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
 
         if channel_index is not None and channel_index != 0:
-            raise ValueError('`channel_index` must be None or 0.')
+            raise ValueError("`channel_index` must be None or 0.")
 
         physical_sizes = self._check_physical_sizes(physical_sizes)
         if subdomain_locations is None and nb_subdomain_grid_pts is None:
             if self.mpi_file.comm.size > 1:
-                raise ValueError("This is a parallel run, you should provide "
-                                 "subdomain location and number of grid "
-                                 "points")
+                raise ValueError(
+                    "This is a parallel run, you should provide "
+                    "subdomain location and number of grid "
+                    "points"
+                )
             topography = Topography(
                 heights=self.mpi_file.read(
                     subdomain_locations=subdomain_locations,
-                    nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+                    nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                ),
                 physical_sizes=physical_sizes,
                 periodic=periodic,
                 unit=unit,
-                info=info
+                info=info,
             )
         else:
             topography = Topography(
                 heights=self.mpi_file.read(
                     subdomain_locations=subdomain_locations,
-                    nb_subdomain_grid_pts=nb_subdomain_grid_pts),
+                    nb_subdomain_grid_pts=nb_subdomain_grid_pts,
+                ),
                 decomposition="subdomain",
                 subdomain_locations=subdomain_locations,
                 nb_grid_pts=self._nb_grid_pts,
@@ -134,7 +161,8 @@ manually provided by the user.
                 physical_sizes=physical_sizes,
                 periodic=periodic,
                 unit=unit,
-                info=info)
+                info=info,
+            )
 
         if height_scale_factor is not None:
             topography = topography.scale(height_scale_factor)
@@ -146,7 +174,10 @@ manually provided by the user.
 
 
 def save_npy(fn, topography):
-    NuMPI.IO.save_npy(fn=fn, data=topography.heights(),
-                      subdomain_locations=topography.subdomain_locations,
-                      nb_grid_pts=topography.nb_subdomain_grid_pts,
-                      comm=topography.communicator)
+    NuMPI.IO.save_npy(
+        fn=fn,
+        data=topography.heights(),
+        subdomain_locations=topography.subdomain_locations,
+        nb_grid_pts=topography.nb_subdomain_grid_pts,
+        comm=topography.communicator,
+    )

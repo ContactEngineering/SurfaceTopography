@@ -29,7 +29,7 @@ Variable bandwidth analysis for uniform topographies
 
 import numpy as np
 
-from ..Exceptions import NoReliableDataError, UndefinedDataError
+from ..Exceptions import NoReliableDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import build_tuple
 
@@ -87,7 +87,7 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
 
     b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
     C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
-    a = np.linalg.solve(C.T, b.T).T
+    a = np.linalg.solve(C.T, b.T.reshape(b.T.shape + (1,))).T[0]
 
     detrended_h = h - np.sum([a[i, region_index] * x ** i for i in range(order + 1)], axis=0)
     detrended_h.shape = shape
@@ -168,7 +168,7 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
 
     b = np.array([np.bincount(region_index, h * (x ** i) * (y ** j)) for i, j in ij])
     C = np.array([[np.bincount(region_index, x ** (k + i) * y ** (l + j)) for i, j in ij] for k, l in ij])
-    a = np.linalg.solve(C.T, b.T).T
+    a = np.linalg.solve(C.T, b.T.reshape(b.T.shape + (1,))).T[0]
 
     detrended_h = h - np.sum([a[k, region_index] * (x ** i) * (y ** j) for k, (i, j) in enumerate(ij)], axis=0)
     detrended_h.shape = shape
@@ -230,10 +230,6 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
-
-    if self.has_undefined_data:
-        raise UndefinedDataError('This topography has undefined data (missing data points). Variable bandwidth '
-                                 'analysis cannot be computed for topographies with missing data points.')
 
     magnification = 1
     subdivisions = 1
@@ -322,10 +318,6 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
     """
     if resampling_method is not None:
         raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
-
-    if self.has_undefined_data:
-        raise UndefinedDataError('This topography has undefined data (missing data points). Variable bandwidth '
-                                 'analysis cannot be computed for topographies with missing data points.')
 
     magnification = 1
     physical_sizes = np.array(self.physical_sizes)

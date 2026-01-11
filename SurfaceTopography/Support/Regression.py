@@ -104,10 +104,48 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
 
 
 def gaussian_kernel(x1, x2, length_scale=1, signal_variance=1):
+    """
+    Gaussian (squared exponential) kernel for Gaussian process regression.
+
+    Parameters
+    ----------
+    x1 : array_like
+        First set of input points.
+    x2 : array_like
+        Second set of input points.
+    length_scale : float, optional
+        Characteristic length scale of the kernel. (Default: 1)
+    signal_variance : float, optional
+        Signal variance (amplitude). (Default: 1)
+
+    Returns
+    -------
+    K : array_like
+        Covariance matrix.
+    """
     return signal_variance * np.exp(-(x1 - x2) ** 2 / (2 * length_scale ** 2))
 
 
 def gaussian_log_kernel(x1, x2, length_scale=1, signal_variance=1):
+    """
+    Gaussian kernel operating in log-space, suitable for power-law data.
+
+    Parameters
+    ----------
+    x1 : array_like
+        First set of input points.
+    x2 : array_like
+        Second set of input points.
+    length_scale : float, optional
+        Characteristic length scale of the kernel in log-space. (Default: 1)
+    signal_variance : float, optional
+        Signal variance (amplitude). (Default: 1)
+
+    Returns
+    -------
+    K : array_like
+        Covariance matrix.
+    """
     return signal_variance * np.exp(-(np.log10(x1) - np.log10(x2)) ** 2 / (2 * length_scale ** 2))
 
 
@@ -150,7 +188,7 @@ def suggest_kernel_for_grid(collocation, nb_collocation_points, min_value, max_v
 
 def bin_average(collocation_points, bin_edges, x, values):
     """
-    Average values over bins. Returns NaN for bins without data.
+    Average values over bins. Returns masked arrays with bins without data masked.
 
     Parameters
     ----------
@@ -165,12 +203,13 @@ def bin_average(collocation_points, bin_edges, x, values):
 
     Returns
     -------
-    resampled_collocation_points : np.ndarray
-        Collocation points, resampled as average over input `x` if data is present.
-    resampled_values : np.ndarray
-        Resampled/averaged values.
-    resampled_variance : np.ndarray
-        Variance of resampled data.
+    resampled_collocation_points : np.ma.MaskedArray
+        Collocation points, resampled as average over input `x` if data is
+        present. Bins without data are masked.
+    resampled_values : np.ma.MaskedArray
+        Resampled/averaged values. Bins without data are masked.
+    resampled_variance : np.ma.MaskedArray
+        Variance of resampled data. Bins without data are masked.
     """
     # Find bin index
     bin_index = np.searchsorted(bin_edges, x)
@@ -193,11 +232,15 @@ def bin_average(collocation_points, bin_edges, x, values):
     resampled_values = resampled_values[1:-1]
     resampled_variance = resampled_variance[1:-1]
 
-    # Mark elements with no data
+    # Mask elements with no data
     mask = number_of_data_points[1:-1] == 0
     resampled_collocation_points[mask] = collocation_points[mask]
-    resampled_values[mask] = np.nan
-    resampled_variance[mask] = np.nan
+
+    # Convert to masked arrays
+    resampled_collocation_points = np.ma.array(resampled_collocation_points, mask=mask)
+    resampled_values = np.ma.array(resampled_values, mask=mask)
+    resampled_variance = np.ma.array(resampled_variance, mask=mask)
+
     return resampled_collocation_points, resampled_values, resampled_variance
 
 
@@ -279,7 +322,7 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
         if not provided. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 10)
     method : str, optional
         Method can be 'bin-average' for simple bin averaging and
         'gaussian-process' for Gaussian process regression.
@@ -287,14 +330,17 @@ def resample(x, values, collocation='log', nb_points=None, min_value=None, max_v
 
     Returns
     -------
-    collocation_points : np.ndarray
-        Points where the data has been collected.
+    collocation_points : np.ndarray or np.ma.MaskedArray
+        Points where the data has been collected. Returns masked array for
+        'bin-average' method with bins without data masked.
     bin_edges : np.ndarray
         Bin edges.
-    resampled_values : np.ndarray
-        Resampled values.
-    resampled_variance : np.ndarray
-        Variance of resampled data.
+    resampled_values : np.ndarray or np.ma.MaskedArray
+        Resampled values. Returns masked array for 'bin-average' method with
+        bins without data masked.
+    resampled_variance : np.ndarray or np.ma.MaskedArray
+        Variance of resampled data. Returns masked array for 'bin-average'
+        method with bins without data masked.
     """
     # pylint: disable=invalid-name
     if max_value is None:
@@ -368,7 +414,7 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
         if not provided. (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
-        (Default: None)
+        (Default: 5)
     full : bool, optional
         Number of quadrants contained in data.
         True: Full radial average from 0 to 2*pi.
@@ -382,14 +428,17 @@ def resample_radial(data, physical_sizes=None, collocation='log', nb_points=None
 
     Returns
     -------
-    collocation_points : np.ndarray
-        Points where the data has been collected.
+    collocation_points : np.ndarray or np.ma.MaskedArray
+        Points where the data has been collected. Returns masked array for
+        'bin-average' method with bins without data masked.
     bin_edges : np.ndarray
         Bin edges.
-    resampled_values : np.ndarray
-        Resampled values.
-    resampled_variance : np.ndarray
-        Variance of resampled data.
+    resampled_values : np.ndarray or np.ma.MaskedArray
+        Resampled values. Returns masked array for 'bin-average' method with
+        bins without data masked.
+    resampled_variance : np.ndarray or np.ma.MaskedArray
+        Variance of resampled data. Returns masked array for 'bin-average'
+        method with bins without data masked.
     """
     # pylint: disable=invalid-name
     nx, ny = data.shape

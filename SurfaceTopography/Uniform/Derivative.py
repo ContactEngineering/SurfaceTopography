@@ -25,51 +25,155 @@
 
 """Compute derivatives of uniform line scans and topographies"""
 
+import muGrid._muGrid
 import numpy as np
-
-import muFFT
 
 from ..Exceptions import UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import toiter
 from ..UniformLineScanAndTopography import Topography
 
+
+class FourierDerivative:
+    """
+    Fourier derivative operator.
+
+    Computes the derivative in Fourier space by multiplication with i * 2π * q,
+    where q is the wave vector component in the specified direction.
+    """
+
+    def __init__(self, dim, direction, shift=None):
+        """
+        Initialize a Fourier derivative operator.
+
+        Parameters
+        ----------
+        dim : int
+            Dimension of the field.
+        direction : int
+            Direction of the derivative (0 for x, 1 for y, etc.).
+        shift : array_like, optional
+            Shift vector for the derivative. Default is no shift.
+        """
+        self.dim = dim
+        self.direction = direction
+        self.shift = np.zeros(dim) if shift is None else np.asarray(shift)
+
+    def fourier(self, phase):
+        """
+        Return the Fourier multiplier for the derivative.
+
+        Parameters
+        ----------
+        phase : array_like
+            Phase array (frequency * scale_factor).
+
+        Returns
+        -------
+        multiplier : complex array
+            The Fourier multiplier i * 2π * phase[direction] * exp(i * 2π * shift · phase).
+        """
+        result = 1j * 2 * np.pi * phase[self.direction]
+        if np.any(self.shift != 0):
+            shift_dot_phase = sum(
+                self.shift[i] * phase[i] for i in range(self.dim)
+            )
+            result = result * np.exp(1j * 2 * np.pi * shift_dot_phase)
+        return result
+
+
+class DiscreteDerivative:
+    """
+    Wrapper around muGrid.ConvolutionOperator that provides lbounds and stencil.
+
+    This wrapper exposes the lbounds (offset) and stencil (coefficients)
+    via properties that delegate to the underlying ConvolutionOperator.
+    """
+
+    def __init__(self, lbounds, stencil):
+        """
+        Initialize a discrete derivative operator.
+
+        Parameters
+        ----------
+        lbounds : array_like
+            Lower bounds of the stencil (offset).
+        stencil : array_like
+            The stencil array (coefficients).
+        """
+        self._operator = muGrid._muGrid.ConvolutionOperator(list(lbounds), stencil)
+
+    @property
+    def lbounds(self):
+        """Return the lower bounds (offset) of the stencil."""
+        return np.asarray(self._operator.offset)
+
+    @property
+    def stencil(self):
+        """Return the stencil (coefficients) array."""
+        # Coefficients have shape (1, 1, 1, *stencil_shape) - extract the stencil
+        coeffs = np.asarray(self._operator.coefficients)
+        return coeffs.reshape(self._operator.stencil_shape)
+
+    @property
+    def shape(self):
+        """Return the shape of the stencil."""
+        return self._operator.stencil_shape
+
+    def fourier(self, phase):
+        """
+        Return the Fourier multiplier for the discrete derivative.
+
+        Parameters
+        ----------
+        phase : array_like
+            Phase array (frequency * scale_factor).
+
+        Returns
+        -------
+        multiplier : complex array
+            The Fourier multiplier for the discrete derivative.
+        """
+        return self._operator.fourier(phase)
+
+
 #
 # Stencils for first and second derivatives
 #
 
 # First order upwind differences
-first_1d = muFFT.DiscreteDerivative([0], [-1, 1])
+first_1d = DiscreteDerivative([0], [-1, 1])
+
+# Second order central differences of the first derivative
+first_central_1d = DiscreteDerivative([-1], [-1 / 2, 0, 1 / 2])
 
 # second order central differences of the second derivative
-second_1d = muFFT.DiscreteDerivative([-1], [1, -2, 1])
+second_1d = DiscreteDerivative([-1], [1, -2, 1])
 
 # first order upwind differences of the third derivative
-third_1d = muFFT.DiscreteDerivative([-1], [-1, 3, -3, 1])
+third_1d = DiscreteDerivative([-1], [-1, 3, -3, 1])
 
 # second order central differences of the third derivative
-third_central_1d = muFFT.DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
+third_central_1d = DiscreteDerivative([-2], [-1 / 2, 1, 0, -1, 1 / 2])
 
 # First order upwind differences
-first_2d_x = muFFT.DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
-first_2d_y = muFFT.DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
+first_2d_x = DiscreteDerivative([0, 0], [[-1, 0], [1, 0]])
+first_2d_y = DiscreteDerivative([0, 0], [[-1, 1], [0, 0]])
 first_2d = (first_2d_x, first_2d_y)
 
+# Second order central differences of the first derivative
+first_central_2d_x = DiscreteDerivative([-1, 0], [[-1 / 2], [0], [1 / 2]])
+first_central_2d_y = DiscreteDerivative([0, -1], [[-1 / 2, 0, 1 / 2]])
+first_central_2d = (first_central_2d_x, first_central_2d_y)
+
 # second order central differences of the second derivative
-second_2d_x = muFFT.DiscreteDerivative([-1, -1], [[0, 1, 0],
-                                                  [0, -2, 0],
-                                                  [0, 1, 0]])
-second_2d_y = muFFT.DiscreteDerivative([-1, -1], [[0, 0, 0],
-                                                  [1, -2, 1],
-                                                  [0, 0, 0]])
+second_2d_x = DiscreteDerivative([-1, -1], [[0, 1, 0], [0, -2, 0], [0, 1, 0]])
+second_2d_y = DiscreteDerivative([-1, -1], [[0, 0, 0], [1, -2, 1], [0, 0, 0]])
 second_2d = (second_2d_x, second_2d_y)
 
 # first order upwind differences of the third derivative
-third_2d_x = muFFT.DiscreteDerivative([-1, -1], [[-1],
-                                                 [3],
-                                                 [-3],
-                                                 [1]])
-third_2d_y = muFFT.DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
+third_2d_x = DiscreteDerivative([-1, -1], [[-1], [3], [-3], [1]])
+third_2d_y = DiscreteDerivative([-1, -1], [[-1, 3, -3, 1]])
 
 third_2d = (third_2d_x, third_2d_y)
 
@@ -94,8 +198,9 @@ def _get_default_derivative_operator(n, dim):
         elif n == 3:
             return third_1d
         else:
-            raise ValueError("Don't know how to compute derivative of order "
-                             "{}.".format(n))
+            raise ValueError(
+                "Don't know how to compute derivative of order " "{}.".format(n)
+            )
     elif dim == 2:
         if n == 1:
             return first_2d
@@ -104,11 +209,14 @@ def _get_default_derivative_operator(n, dim):
         elif n == 3:
             return third_2d
         else:
-            raise ValueError("Don't know how to compute derivative of order "
-                             "{}.".format(n))
+            raise ValueError(
+                "Don't know how to compute derivative of order " "{}.".format(n)
+            )
     else:
-        raise ValueError("Don't know how to compute the derivative of a "
-                         "topography of dimension {}.".format(dim))
+        raise ValueError(
+            "Don't know how to compute the derivative of a "
+            "topography of dimension {}.".format(dim)
+        )
 
 
 def trim_nonperiodic(arr, scale_factor, op):
@@ -123,15 +231,15 @@ def trim_nonperiodic(arr, scale_factor, op):
         Array to be trimmed.
     scale_factor : int, optional
         Integer factor that scales the stencil difference.
-    op : muFFT.DiscreteDerivative
+    op : DiscreteDerivative
         Derivative operator that contains information about the size of the
         stencil.
     """
-    if not isinstance(op, muFFT.DiscreteDerivative):
-        raise ValueError('Can only trim edges for discrete derivatives.')
+    if not isinstance(op, DiscreteDerivative):
+        raise ValueError("Can only trim edges for discrete derivatives.")
 
     lbounds = np.array(op.lbounds)
-    rbounds = lbounds + np.array(op.stencil.shape)
+    rbounds = lbounds + np.array(op.shape)
 
     # Loop over dimension and add slicing information to `trimmed_slice`
     trimmed_slice = []
@@ -150,8 +258,17 @@ def trim_nonperiodic(arr, scale_factor, op):
     return arr[tuple(trimmed_slice)]
 
 
-def derivative(self, n, scale_factor=None, distance=None, operator=None, periodic=None, mask_function=None,
-               interpolation='linear', progress_callback=None):
+def derivative(
+    self,
+    n,
+    scale_factor=None,
+    distance=None,
+    operator=None,
+    periodic=None,
+    mask_function=None,
+    interpolation="linear",
+    progress_callback=None,
+):
     """
     Compute derivative of topography or line scan stored on a uniform grid.
 
@@ -181,7 +298,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         factor is then given by distance / (n * px) where n is the order of the
         derivative and px the grid spacing.
         (Default: None)
-    operator : :obj:`muFFT.Derivative` object or tuple of :obj:`muFFT.Derivative` objects, optional
+    operator : :obj:`muGrid.Derivative` object or tuple of :obj:`muGrid.Derivative` objects, optional
         Derivative operator used to compute the derivative. If unspecified,
         a simple upwind differences scheme will be applied to compute the
         derivative. A tuple contains the gradient, i.e. the derivative
@@ -193,14 +310,15 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         A function that takes as argument the output of FFT.fftfreq and
         returns a mask that will be multiplied with the Fourier transformed
         topography. This can be used to implement Fourier filtering before
-        computing the derivative. (Default: None)
+        computing the derivative. This only works if interpolation is set to
+        'fourier'. (Default: None)
     interpolation : str, optional
         Interpolation method to use for fractional scale factors. Use
         'linear' for a local liner interpolation or 'fourier' for global
         Fourier interpolation. Set to 'disable' to raise an error when
         interpolation is necessary. Note that Fourier interpolation carries
-        large errors for nonperiodic topographies and should be used with
-        care. (Default: 'linear')
+        large errors for nonperiodic topographies and should not be used with
+        windowing. (Default: 'linear')
     progress_callback : func, optional
         Function taking iteration and the total number of iterations as
         arguments for progress reporting. (Default: None)
@@ -217,25 +335,59 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
     """
     if self.physical_sizes is None:
         raise ValueError(
-            'SurfaceTopography does not have physical size information, but '
-            'this is required to be able to compute a derivative.')
+            "SurfaceTopography does not have physical size information, but "
+            "this is required to be able to compute a derivative."
+        )
 
-    if self.has_undefined_data:
-        raise UndefinedDataError('This topography has undefined data (missing data points). Derivatives cannot be '
-                                 'computed for topographies with missing data points.')
+    if mask_function is not None and interpolation != "fourier":
+        raise ValueError("Mask function can only be used with Fourier interpolation.")
 
     if operator is None:
         operator = _get_default_derivative_operator(n, self.dim)
 
-    if interpolation == 'linear':
+    nb_grid_pts = np.array(self.nb_grid_pts)
+    pixel_size = np.array(self.pixel_size)
+
+    if interpolation == "linear":
+        heights = None
         linear = self.interpolate_linear()
         positions = np.transpose(self.positions())
-    elif interpolation == 'fourier' or interpolation == 'disable':
+        integer_positions = None
+    elif interpolation == "fourier":
+        heights = None
         linear = None
-    else:
-        raise ValueError("`interpolation` argument must be either 'linear', 'fourier' or 'disable'.")
+        positions = None
+        integer_positions = None
 
-    pixel_size = np.array(self.pixel_size)
+        # Return FFT object (this will only be initialized once and reused in subsequent calls)
+        fft = self.make_fft()
+
+        # These fields are reused when this function is called multiple times
+        real_field = fft.real_space_field("real_temporary")
+        fourier_field = fft.fourier_space_field("complex_temporary")
+        real_field.p[...] = self.heights()
+        fft.fft(real_field, fourier_field)
+
+        # Apply mask function
+        if mask_function is not None:
+            fourier_field.p[...] *= mask_function(
+                (fft.fftfreq.T / pixel_size).T
+            )
+
+        fourier_array = fourier_field.p
+        fourier_copy = fourier_array.copy()
+    elif interpolation == "disable":
+        heights = self.heights()
+        linear = None
+        positions = None
+        if self.dim == 1:
+            integer_positions = np.arange(nb_grid_pts[0])
+        else:
+            integer_positions = np.mgrid[: nb_grid_pts[0], : nb_grid_pts[1]]
+    else:
+        raise ValueError(
+            "`interpolation` argument must be either 'linear', 'fourier' or 'disable'."
+        )
 
     nb_scale_factors = 1
     scale_factor_is_array = False
@@ -246,7 +398,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         else:
             # Convert distance to scale factor
             if self.dim == 1:
-                px, = pixel_size
+                (px,) = pixel_size
                 try:
                     scale_factor = [d / (n * px) for d in distance]
                     nb_scale_factors = len(scale_factor)
@@ -262,7 +414,7 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
                 except TypeError:
                     scale_factor = [(distance / (n * px), distance / (n * py))]
     elif distance is not None:
-        raise ValueError('Please specify either `scale_factor` or `distance`')
+        raise ValueError("Please specify either `scale_factor` or `distance`")
     else:
         try:
             iter(scale_factor)
@@ -273,62 +425,100 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
 
     is_periodic = self.is_periodic if periodic is None else periodic
 
-    # Return FFT object (this will only be initialized once and reused in subsequent calls)
-    fft = self.make_fft()
-
-    # These fields are reused when this function is called multiple times
-    real_field = fft.fetch_or_register_real_space_field('real_temporary', 1)
-    fourier_field = fft.fetch_or_register_fourier_space_field('complex_temporary', 1)
-    np.array(real_field, copy=False)[...] = self.heights()
-    fft.fft(real_field, fourier_field)
-
-    # Apply mask function
-    if mask_function is not None:
-        np.array(fourier_field, copy=False)[...] *= mask_function((fft.fftfreq.T / pixel_size).T)
-
-    fourier_array = np.array(fourier_field, copy=False)
-    fourier_copy = fourier_array.copy()
-
     # Apply derivative operator in Fourier space
     derivatives = []
     operators = toiter(operator)
     for i, op in enumerate(operators):
+        if isinstance(op, FourierDerivative) and not interpolation == "fourier":
+            raise ValueError(
+                "Operator is a FourierDerivative but interpolation is not set "
+                "to 'fourier'."
+            )
+
         der = []
         for j, s in enumerate(scale_factor):
             if progress_callback is not None:
-                progress_callback(i * nb_scale_factors + j, len(operators) * nb_scale_factors)
+                progress_callback(
+                    i * nb_scale_factors + j, len(operators) * nb_scale_factors
+                )
             s = np.array(s) * np.ones_like(pixel_size)
             scaled_pixel_size = s * pixel_size
-            interpolation_required = np.any(s - s.astype(int) != 0)
-            if interpolation_required and interpolation == 'disabled':
-                raise ValueError('Interpolation is required to compute derivative at the desired scale but is '
-                                 'explicitly disabled through the `interpolation` argument.')
-            if interpolation_required and linear is not None:
-                # We need to interpolate using the linear interpolator
-                lbounds = np.array(op.lbounds)
-                stencil = np.array(op.stencil)
-                _der = np.zeros_like(real_field)
-                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
-                    if stencil_value:
-                        stencil_positions = positions + (lbounds + stencil_coordinate) * scaled_pixel_size
-                        # We enforce periodicity here but will trim the (erroneous) boundary region below
-                        if self.dim == 1:
-                            _der += stencil_value * linear(stencil_positions, periodic=True)
-                        else:
-                            _der += stencil_value * linear(*stencil_positions.T, periodic=True)
+            interpolation_required = (
+                np.any(s - s.astype(int) != 0) or interpolation == "fourier"
+            )
+            if interpolation_required and interpolation == "disabled":
+                raise ValueError(
+                    "Interpolation is required to compute derivative at the "
+                    "desired scale but is explicitly disabled through the "
+                    "`interpolation` argument."
+                )
 
-            else:
+            if interpolation == "fourier":
+                # We use Fourier interpolation
+                if self.has_undefined_data:
+                    raise UndefinedDataError(
+                        "This topography has undefined data (missing data points). "
+                        "Derivatives cannot be computed via Fourier interpolation "
+                        "for topographies with missing data points."
+                    )
+
                 # We can use the Fourier trick to compute the derivative; this gives the exact stencil derivative if
                 # interpolation is not required and the Fourier-interpolated derivative for fractional scale factors
                 fourier_array[...] = fourier_copy * op.fourier((fft.fftfreq.T * s).T)
                 fft.ifft(fourier_field, real_field)
-                _der = np.array(real_field, copy=False) * fft.normalisation
+                _der = np.squeeze(real_field.p * fft.normalisation)
+            elif interpolation == "linear":
+                # We use linear interpolator
+                lbounds = np.array(op.lbounds)
+                stencil = np.array(op.stencil)
+                _der = np.zeros(nb_grid_pts)
+                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                    if stencil_value:
+                        stencil_positions = (
+                            positions
+                            + (lbounds + stencil_coordinate) * scaled_pixel_size
+                        )
+                        # We enforce periodicity here but will trim the (erroneous)
+                        # boundary region below
+                        if self.dim == 1:
+                            _der += stencil_value * linear(
+                                stencil_positions, periodic=True
+                            )
+                        else:
+                            _der += stencil_value * linear(
+                                *stencil_positions.T, periodic=True
+                            )
+            else:
+                # Interpolation disabled
+                lbounds = np.array(op.lbounds)
+                stencil = np.array(op.stencil)
+                _der = np.zeros(nb_grid_pts)
+                s = s.astype(int)
+                for stencil_coordinate, stencil_value in np.ndenumerate(stencil):
+                    if stencil_value:
+                        stencil_positions = (
+                            (integer_positions.T + (lbounds + stencil_coordinate) * s)
+                            % nb_grid_pts
+                        ).T
+                        # We enforce periodicity here but will trim the (erroneous)
+                        # boundary region below
+                        if self.dim == 1:
+                            _der += stencil_value * heights[stencil_positions]
+                        else:
+                            _der += (
+                                stencil_value
+                                * heights[stencil_positions[0], stencil_positions[1]]
+                            )
 
             if not is_periodic:
                 _der = trim_nonperiodic(_der, s, op)
 
             # We need to divide by the grid spacing to make this a derivative
             _der /= scaled_pixel_size[i] ** n
+
+            # Mask array if it has NaNs
+            if np.sum(~np.isfinite(_der)) > 0:
+                _der = np.ma.masked_invalid(_der)
 
             if scale_factor_is_array:
                 der += [_der]
@@ -340,7 +530,9 @@ def derivative(self, n, scale_factor=None, distance=None, operator=None, periodi
         except TypeError:
             derivatives = der
     if progress_callback is not None:
-        progress_callback(len(operators) * nb_scale_factors, len(operators) * nb_scale_factors)
+        progress_callback(
+            len(operators) * nb_scale_factors, len(operators) * nb_scale_factors
+        )
     return derivatives
 
 
@@ -404,10 +596,16 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
         arrays.
     """
     dim = self.dim
-    return self.derivative(1, operator=(muFFT.FourierDerivative(dim, i) for i in range(dim)),
-                           scale_factor=scale_factor, distance=distance, mask_function=mask_function)
+    return self.derivative(
+        1,
+        operator=(FourierDerivative(dim, i) for i in range(dim)),
+        interpolation="fourier",
+        scale_factor=scale_factor,
+        distance=distance,
+        mask_function=mask_function,
+    )
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('derivative', derivative)
-Topography.register_function('fourier_derivative', fourier_derivative)
+UniformTopographyInterface.register_function("derivative", derivative)
+Topography.register_function("fourier_derivative", fourier_derivative)

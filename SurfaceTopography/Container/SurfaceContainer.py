@@ -24,6 +24,7 @@
 
 
 import abc
+from functools import update_wrapper
 
 
 class SurfaceContainer(metaclass=abc.ABCMeta):
@@ -44,15 +45,19 @@ class SurfaceContainer(metaclass=abc.ABCMeta):
 
     def __getattr__(self, name):
         if name in self._functions:
+
             def func(*args, **kwargs):
                 return self._functions[name](self, *args, **kwargs)
 
-            func.__doc__ = self._functions[name].__doc__
+            update_wrapper(func, self._functions[name])
             return func
         else:
-            raise AttributeError("Unkown attribute '{}' and no analysis or pipeline function of this name registered"
-                                 "(class {}). Available functions: {}".format(name, self.__class__.__name__,
-                                                                              ', '.join(self._functions.keys())))
+            raise AttributeError(
+                "Unkown attribute '{}' and no analysis or pipeline function of this name registered"
+                "(class {}). Available functions: {}".format(
+                    name, self.__class__.__name__, ", ".join(self._functions.keys())
+                )
+            )
 
     def __dir__(self):
         return sorted(super().__dir__() + [*self._functions])
@@ -78,8 +83,9 @@ class InMemorySurfaceContainer(SurfaceContainer):
 class LazySurfaceContainer(SurfaceContainer):
     """A list of readers with lazy loading of topography data"""
 
-    def __init__(self, readers=[]):
+    def __init__(self, readers=[], info={}):
         self._readers = readers
+        self._info = info
 
     def __len__(self):
         return len(self._readers)
@@ -96,3 +102,7 @@ class LazySurfaceContainer(SurfaceContainer):
         container : :obj:`InMemorySurfaceContainer`
         """
         return InMemorySurfaceContainer([x for x in self])
+
+    @property
+    def info(self):
+        return self._info

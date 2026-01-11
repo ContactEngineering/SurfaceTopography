@@ -24,19 +24,19 @@
 
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/psia.c
+# https://gitlab.gwdg.de/ikuhlem/jpkfile
 
 import io
 
 import numpy as np
-
 from tiffile import TiffFile, TiffFileError
 
+from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
+from ..Support.UnitConversion import get_unit_conversion_factor
+from ..UniformLineScanAndTopography import Topography
 from .binary import decode
 from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
-from ..Support.UnitConversion import get_unit_conversion_factor
+from .Reader import ChannelInfo, ReaderBase
 
 
 class PSReader(ReaderBase):
@@ -44,7 +44,7 @@ class PSReader(ReaderBase):
     _mime_types = ['image/tiff']
     _file_extensions = ['tiff', 'tif']
 
-    _name = 'Park Systems'
+    _name = 'Park Systems TIFF'
     _description = '''
 TIFF-based file format of Park Systems instruments.
 '''

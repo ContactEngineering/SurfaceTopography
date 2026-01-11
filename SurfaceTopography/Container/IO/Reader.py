@@ -105,7 +105,7 @@ class ContainerReaderBase(metaclass=abc.ABCMeta):
         pass
 
     @property
-    def nb_surfaces(self):
+    def nb_containers(self):
         """Number of surfaces stored in this container file"""
         return 1
 

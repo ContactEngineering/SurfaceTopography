@@ -22,11 +22,13 @@
 # SOFTWARE.
 #
 
+import os
+
 import numpy as np
 import pytest
 import scipy
 
-from SurfaceTopography import NonuniformLineScan, Topography
+from SurfaceTopography import NonuniformLineScan, Topography, read_topography
 from SurfaceTopography.Generation import fourier_synthesis
 
 
@@ -35,7 +37,7 @@ def test_bearing_area_nonuniform(plot=False):
     hm = 0.1
     X = np.arange(n)  # n+1 because we need the endpoint
     # sinsurf = np.sin(2 * np.pi * X / L) * hm
-    trisurf = hm * scipy.signal.triang(n)
+    trisurf = hm * scipy.signal.windows.triang(n)
 
     t = NonuniformLineScan(X, trisurf)
 
@@ -141,10 +143,9 @@ def test_bearing_area_bounds_2d():
 
     # Test bounds
     lower, upper = ba.bounds(heights)
-    eps = 1e-12
-    np.testing.assert_array_less(lower, upper + eps)
-    np.testing.assert_array_less(lower, ba(heights) + eps)
-    np.testing.assert_array_less(ba(heights), upper + eps)
+    assert (lower <= upper).all()
+    assert (lower <= ba(heights)).all()
+    assert (ba(heights) <= upper).all()
 
     # Test uniform periodic
     t = fourier_synthesis((64, 63), (1, 1), 0.8, rms_slope=0.1, periodic=True)
@@ -223,3 +224,88 @@ def test_bearing_area_topography_is_monotonous(nb_grid_pts, periodic, plot=False
     # Test uniform
     P = t.bearing_area(heights)
     assert (np.diff(P) < 0).all()
+
+
+def test_tilt_unit_conversion(file_format_examples):
+    t = read_topography(os.path.join(file_format_examples, 'frt-1.frt'))
+    assert t.unit == 'm'
+    t1 = t.detrend('rms-tilt')
+    t2 = t.detrend('rms-tilt').to_unit('m')
+    ba1 = t1.bearing_area()
+    ba2 = t2.bearing_area()
+
+    assert ba1.min == ba2.min
+    assert ba1.max == ba2.max
+
+
+@pytest.mark.parametrize('fn', ['opd-2.opd', 'plux-1.plux'])
+def test_bounds_on_topography_with_missing_data(file_format_examples, fn):
+    t = read_topography(os.path.join(file_format_examples, fn))
+    ba = t.bearing_area()
+    x = np.linspace(ba.min, ba.max, 101)
+    b = ba(x)
+    bl, bu = ba.bounds(x)
+    assert (bl <= b).all()
+    assert (b <= bu).all()
+    assert (b == b).all()  # np.nan != np.nan, so this will fail if there are NaNs
+
+
+# =============================================================================
+# Edge case tests for bearing area C++ extension
+# =============================================================================
+
+def test_bearing_area_all_same_height():
+    """All points at the same height - bearing area should be step function."""
+    h = np.full((10, 10), 5.0)
+    t = Topography(h, (1, 1))
+
+    ba = t.bearing_area()
+
+    # Below the height: bearing area = 1
+    assert ba(4.9) > 0.99
+    # Above the height: bearing area = 0
+    assert ba(5.1) < 0.01
+
+
+def test_bearing_area_single_point_linescan():
+    """Line scan with minimal points."""
+    from SurfaceTopography import UniformLineScan
+    h = np.array([0.0, 1.0])
+    t = UniformLineScan(h, 1.0, periodic=False)
+
+    ba = t.bearing_area()
+    heights = np.linspace(0, 1, 11)
+    P = ba(heights)
+
+    # Bearing area should decrease monotonically
+    assert (np.diff(P) <= 0).all()
+
+
+def test_bearing_area_negative_heights():
+    """Test bearing area with negative height values."""
+    h = np.array([[-2.0, -1.0], [0.0, 1.0]])
+    t = Topography(h, (1, 1))
+
+    ba = t.bearing_area()
+    heights = np.linspace(-2, 1, 31)
+    P = ba(heights)
+
+    # Should be monotonically decreasing
+    assert (np.diff(P) <= 0).all()
+    # Should go from ~1 to ~0
+    assert P[0] > 0.9
+    assert P[-1] < 0.1
+
+
+def test_bearing_area_large_topography():
+    """Test with larger topography to check for performance/overflow issues."""
+    np.random.seed(42)
+    h = np.random.randn(128, 128)
+    t = Topography(h, (10, 10))
+
+    ba = t.bearing_area()
+    heights = np.linspace(h.min(), h.max(), 50)
+    P = ba(heights)
+
+    # Should be monotonically decreasing
+    assert (np.diff(P) <= 0).all()

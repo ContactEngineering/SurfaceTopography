@@ -26,23 +26,25 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography.IO import XYZReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
-@pytest.mark.parametrize('mode,encoding', [('rb', None), ('r', 'utf-8'), ('r', 'latin-1')])
+@pytest.mark.parametrize(
+    "mode,encoding", [("rb", None), ("r", "utf-8"), ("r", "latin-1")]
+)
 def test_dektak_csv(file_format_examples, mode, encoding):
     """
     The reader has to work when the file was already opened as binary for
     it to work in topobank.
     """
-    file_path = os.path.join(file_format_examples, 'dektak-1.csv')
+    file_path = os.path.join(file_format_examples, "dektak-1.csv")
 
     r = XYZReader(open(file_path, mode=mode, encoding=encoding))
 
@@ -52,13 +54,20 @@ def test_dektak_csv(file_format_examples, mode, encoding):
     np.testing.assert_allclose(t.rms_height_from_profile(), 4.763596)
     np.testing.assert_allclose(t.rms_slope_from_profile(), 0.015448, rtol=1e-5)
 
-    assert t.info['instrument'] == {
-        'parameters': {
-            'tip_radius': {
-                'value': 2.5,
-                'unit': 'µm',
+    assert t.info["instrument"] == {
+        "parameters": {
+            "tip_radius": {
+                "value": 2.5,
+                "unit": "µm",
             }
         }
     }
 
     np.testing.assert_allclose(t.short_reliability_cutoff(), 1.57, rtol=0.01)
+
+
+@pytest.mark.parametrize("fn", ["dektak-1.csv", "csv-1.csv", "csv-2.csv", "csv-3.csv"])
+def test_generic_csv(file_format_examples, fn):
+    file_path = os.path.join(file_format_examples, fn)
+
+    XYZReader(file_path)

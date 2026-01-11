@@ -1,6 +1,186 @@
 Change log for SurfaceTopography
 ================================
 
+v1.20.0 (09Jan26)
+-----------------
+
+- API: Added `MagicMatch` enum and `can_read()` classmethod to reader infrastructure for magic-based format detection
+- API: Added `scan_line_align()` pipeline function for line-by-line polynomial correction of AFM scan data (supports variable polynomial degree for scanner bow correction)
+- API: Added `DataKind` enum and stable `channel_id` identifier for file reader channelsNo
+- API: Added `channel_id` and `height_channel_index` parameters to `topography()` method for stable channel selection
+- API: Added `height_channels` property to readers for backwards-compatible access to height data channels only
+- API: Added `height_index_to_channel_id()` and `channel_id_to_height_index()` utility methods for database migration
+- API: `ChannelInfo` now has `data_kind`, `data_unit`, `lateral_unit`, `is_height_channel`, `channel_id`, and `height_index` properties
+- API: Added X3P writer (`topography.to_x3p()`) for ISO 5436-2 / ISO 25178-72 format
+- API: Added Gwyddion writer (`topography.to_gwy()`) for GWY format
+- ENH: File format detection now uses magic bytes for fast pre-filtering before attempting full parsing
+- DOC: Added SUPPORTED_FORMATS.md documenting all 35+ supported file formats
+- BUG: SurfaceContainer `autocorrelation`, `power_spectrum`, and `variable_bandwidth` methods now have proper docstrings
+- BUG: Fixed `open_topography` passing `communicator` to readers that don't support it
+- BUILD: Added PyPI keywords for instrument manufacturers and file formats (improves package discoverability)
+- BUILD: Removed support for Python 3.9; minimum Python version is now 3.10
+- BUILD: Added support for Python 3.14
+- BUILD: Minimum muGrid version is now 0.103.0
+- MAINT: Updated from muFFT to muGrid dependency (muFFT has been merged into muGrid)
+- MAINT: Added numpy-based FFT engine for 1D topographies (muGrid only supports 2D/3D)
+- MAINT: Pipeline functions now preserve docstrings and source code for IPython introspection
+
+v1.19.1 (19Aug25)
+-----------------
+
+- MAINT: Adjusted thresholds for mask data in OPD files to what Gwyddion uses
+- BUG: Fixed reading of JPK files with thumbnails
+
+v1.19.0 (19Jul25)
+-----------------
+
+- ENH: Support for ZStandard compressed ZON files
+- ENH: `plot` pipeline function for line scans
+- BUG: Reading ZIP file with multiple containers
+
+v1.18.3 (13Apr25)
+-----------------
+
+- BUILD: Removed support for Python 3.8; require numpy>=2.0.0
+- ENH: Encoding masked arrays
+
+v1.18.2 (16Mar25)
+-----------------
+
+- MAINT: Pass generic keyword arguments from container scale-dependent statistical
+  properties function to the underlying functions for topographies
+
+v1.18.1 (04Mar25)
+-----------------
+
+- BUG: Fixed regression in reading single-column text files in new-style reader
+
+v1.18.0 (03Mar25)
+-----------------
+
+- ENH: Reading Wyko text files (#399)
+- MAINT: Text reader is now a new style, class-based reader
+- MAINT: Bumped muFFT dependency to 0.93.0; updated code to reflect API changes
+
+v1.17.1 (09Oct24)
+-----------------
+
+- BUG: Mangling Angstrom unit to ascii
+- BUG: Missing Meson build files for CLI
+
+v1.17.0 (26Sept24)
+------------------
+
+- API: Removed "unit" entry from `info` dictionary (which was deprecated in v0.95.0)
+- ENH: NMM reader now reads 2D topographic maps
+- ENH: Added `show-topography` command line script (for visualizing topography data)
+- ENH: Added `ExtendedJSONEncoder` that handles dates and numpy arrays gracefully
+- MAINT: Validation of `info` metadata via pydantic models
+- MAINT: `plot` function now uses `imshow` instead of `pcolormesh`, plots are now 
+  identical to what Gwyddion shows (origin in the top left corner)
+- BUG: Fixed orientation in MetroPro reader
+- BUG: Fixed handling of undefined data in GWY reader
+- BUG: Fixed physical size in POIR/OIR reader
+- BUG: Fixed reading of SUR files with comment/private sections
+
+v1.16.2 (03Aug24)
+-----------------
+
+- BUG: Don't throw UndefinedDataError in derivative, just return completely masked
+  array
+
+v1.16.1 (03Aug24)
+-----------------
+
+- BUG: Fixed regression in masking undefined data points in OPD reader
+- BUG: Fixed computation of derivatives for topographies with missing data
+
+v1.16.0 (02Aug24)
+-----------------
+
+- ENH: Derivatives for topographies with missing data
+
+v1.15.1 (31Jul24)
+-----------------
+
+- ENH: Added convenience function `read_nmm` for reading NMM profiles from separate
+  files
+- MAINT: trapz and cumtrapz were removed in scipy 1.14.0
+
+v1.15.0 (31Jul24)
+-----------------
+
+- ENH: Variable bandwidth analysis for topographies with missing data
+- ENH: NMM (Nanomeasuring Machine) reader (.zip)
+- MAINT: Support for numpy >= 2.0.0
+- MAINT: Version discovery through the `DiscoverVersion` module
+- CI: macOS and Linux ARM wheels
+
+v1.14.2 (24Jul24)
+-----------------
+
+- BUG: Fixed data layout in AL3D reader
+
+v1.14.1 (16June24)
+------------------
+
+- MAINT: Limit numpy to <2.0 (because of compatibility issues)
+
+v1.14.0 (11June24)
+------------------
+
+- MAINT: Switched from muSpectre to muFFT (v0.91.2) in dependencies
+
+v1.13.13 (16Apr24)
+------------------
+
+- BUG: Fixed reader for MetroPro v3 files, closes #364
+- BUG: Wrong data layout in SUR files
+- TST: scipy.signal.triang -> scipy.signal.windows.triang, closes #365
+
+v1.13.12 (21Mar24)
+------------------
+
+- MAINT: More robust CSV reader
+
+v1.13.11 (07Mar24)
+------------------
+
+- BUG: Further fixes for bearing are of topographies with undefined value
+
+v1.13.10 (05Mar24)
+------------------
+
+- BUG: Correct bounds for bearing area of topography with undefined values
+
+v1.13.9 (05Mar24)
+-----------------
+
+- BUG: Need to use relative tolerance in bisection for robust statistics
+
+v1.13.8 (05Mar24)
+-----------------
+
+- BUG: Fixed MAD height for data with undefined values
+
+v1.13.7 (05Mar24)
+-----------------
+
+- BUG: Avoid always warning about unit
+
+v1.13.6 (04Mar24)
+-----------------
+
+- MAINT: Added `ignore_filters` option to `CEReader` which disables
+  construction of the filter pipeline from container metadata
+- MAINT: Don't fail but warn if meta.yml has wrong metadata
+
+v1.13.5 (04Mar24)
+-----------------
+
+- BUG: Implemented CSV parser and removed pandas dependency (pandas
+  had issues reading CSV-style data from ZIP containers)
+
 v1.13.4 (29Feb24)
 -----------------
 
@@ -242,7 +422,7 @@ v1.2.1 (22Nov22)
 ----------------
 
 - ENH: Extract X3P metadata
-- MAINT: Converted X3P reader to new style
+- MAINT: Converted X3P reader to new style (class-based) reader
 - MAINT: Bumped muFFT require to 0.24.0 - this avoids installation problems
   downstream, but disables automatic MPI detection
 - BUG: X3P data was read in the wrong storage order
@@ -714,7 +894,7 @@ Technical:
 
 - Use MPI wrapper provided by NuMPI (https://github.com/IMTEK-Simulation/NuMPI) for serial calculations.
 - Switch to parallel L-BFGS of NuMPI.
-- Removed Cython dependencies. (Parallel) FFT is now handled by muFFT (https://gitlab.com/muspectre/muspectre).
+- Removed Cython dependencies. (Parallel) FFT is now handled by muFFT (https://github.com/muSpectre/muFFT.git).
 - Tests have been partially converted to pytest. Parallel tests are run through run-tests
   (https://github.com/AntoineSIMTEK/runtests).
 

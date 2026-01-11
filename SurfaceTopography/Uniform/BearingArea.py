@@ -29,7 +29,7 @@ distribution function of the surface heights.
 
 from functools import cached_property
 
-import _SurfaceTopographyPP
+import _SurfaceTopography
 import numpy as np
 
 from ..HeightContainer import UniformTopographyInterface
@@ -60,11 +60,11 @@ class UniformBearingArea:
 
     @cached_property
     def min(self):
-        return self._h.min()
+        return np.nanmin(self._h)  # There are NaNs if the original topography was masked
 
     @cached_property
     def max(self):
-        return self._h.max()
+        return np.nanmax(self._h)  # There are NaNs if the original topography was masked
 
 
 class Uniform1DBearingArea(UniformBearingArea):
@@ -72,19 +72,17 @@ class Uniform1DBearingArea(UniformBearingArea):
     Accelerated bearing area calculation for uniform line scans.
     """
 
-    def __init__(self, dx, h, is_periodic):
-        self._dx = dx
-        self._h = np.ascontiguousarray(h, dtype=float)
+    def __init__(self, h, is_periodic):
         self._is_periodic = is_periodic
 
         if self._is_periodic:
-            self._nb_els = self._h.size
-            self._el_min_heights = np.sort(np.minimum(self._h, np.roll(self._h, -1)))
-            self._el_max_heights = np.sort(np.maximum(self._h, np.roll(self._h, -1)))
+            self._el_min_heights = np.sort(np.ma.compressed(np.minimum(h, np.roll(h, -1))))
+            self._el_max_heights = np.sort(np.ma.compressed(np.maximum(h, np.roll(h, -1))))
         else:
-            self._nb_els = self._h.size - 1
-            self._el_min_heights = np.sort(np.minimum(self._h[:-1], self._h[1:]))
-            self._el_max_heights = np.sort(np.maximum(self._h[:-1], self._h[1:]))
+            self._el_min_heights = np.sort(np.ma.compressed(np.minimum(h[:-1], h[1:])))
+            self._el_max_heights = np.sort(np.ma.compressed(np.maximum(h[:-1], h[1:])))
+        self._nb_els = len(self._el_min_heights)  # This treats undefined data correctly
+        self._h = np.ma.filled(h.astype(float), fill_value=np.nan)  # We pass the mask as NaNs to the C++ code
 
     def __call__(self, heights):
         """
@@ -109,11 +107,11 @@ class Uniform1DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._dx, self._h, self._is_periodic,
-                                                               np.array([heights], dtype=float))[0]
+            return _SurfaceTopography.uniform1d_bearing_area(self._h, self._is_periodic,
+                                                             np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform1d_bearing_area(self._dx, self._h, self._is_periodic,
-                                                               heights.astype(float))
+            return _SurfaceTopography.uniform1d_bearing_area(self._h, self._is_periodic,
+                                                             heights.astype(float))
 
 
 class Uniform2DBearingArea(UniformBearingArea):
@@ -121,33 +119,30 @@ class Uniform2DBearingArea(UniformBearingArea):
     Accelerated bearing area calculation for topographies.
     """
 
-    def __init__(self, dx, dy, h, is_periodic):
-        self._dx = dx
-        self._dy = dy
-        self._h = np.ascontiguousarray(h, dtype=float)
+    def __init__(self, h, is_periodic):
         self._is_periodic = is_periodic
 
-        nx, ny = self._h.shape
         if self._is_periodic:
-            self._nb_els = 2 * nx * ny
-            self._el_min_heights = np.sort(np.ravel([
-                np.minimum.reduce([self._h, np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))]),
-                np.minimum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
+            self._el_min_heights = np.sort(np.ma.compressed([
+                np.minimum(np.minimum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
+                np.minimum(np.minimum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
             ]))
-            self._el_max_heights = np.sort(np.ravel([
-                np.maximum.reduce([self._h, np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))]),
-                np.maximum.reduce([np.roll(self._h, (-1, -1)), np.roll(self._h, (-1, 0)), np.roll(self._h, (0, -1))])
+            self._el_max_heights = np.sort(np.ma.compressed([
+                np.maximum(np.maximum(h, np.roll(h, (-1, 0))), np.roll(h, (0, -1))),
+                np.maximum(np.maximum(np.roll(h, (-1, -1)), np.roll(h, (-1, 0))), np.roll(h, (0, -1)))
             ]))
         else:
-            self._nb_els = 2 * (nx - 1) * (ny - 1)
-            self._el_min_heights = np.sort(np.ravel([
-                np.minimum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
-                np.minimum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
+            self._el_min_heights = np.sort(np.ma.compressed([
+                np.minimum(np.minimum(h[:-1, :-1], h[1:, :-1]), h[:-1, 1:]),
+                np.minimum(np.minimum(h[1:, 1:], h[1:, :-1]), h[:-1, 1:])
             ]))
-            self._el_max_heights = np.sort(np.ravel([
-                np.maximum.reduce([self._h[:-1, :-1], self._h[1:, :-1], self._h[:-1, 1:]]),
-                np.maximum.reduce([self._h[1:, 1:], self._h[1:, :-1], self._h[:-1, 1:]])
+            self._el_max_heights = np.sort(np.ma.compressed([
+                np.maximum(np.maximum(h[:-1, :-1], h[1:, :-1]), h[:-1, 1:]),
+                np.maximum(np.maximum(h[1:, 1:], h[1:, :-1]), h[:-1, 1:])
             ]))
+        self._nb_els = len(self._el_min_heights)  # This treats undefined data correctly
+        # We pass the mask as NaNs to the C++ code
+        self._h = np.ascontiguousarray(np.ma.filled(h, fill_value=np.nan), dtype=float)
 
     def __call__(self, heights):
         """
@@ -172,11 +167,11 @@ class Uniform2DBearingArea(UniformBearingArea):
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._dx, self._dy, self._h, self._is_periodic,
-                                                               np.array([heights], dtype=float))[0]
+            return _SurfaceTopography.uniform2d_bearing_area(self._h, self._is_periodic,
+                                                             np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.uniform2d_bearing_area(self._dx, self._dy, self._h, self._is_periodic,
-                                                               heights.astype(float))
+            return _SurfaceTopography.uniform2d_bearing_area(self._h, self._is_periodic,
+                                                             heights.astype(float))
 
 
 def bearing_area(self, heights=None):
@@ -203,9 +198,9 @@ def bearing_area(self, heights=None):
         Instance of a class that caches the bearing area calculation.
     """
     if self.dim == 1:
-        b = Uniform1DBearingArea(*self.pixel_size, self.heights(), self.is_periodic)
+        b = Uniform1DBearingArea(self.heights(), self.is_periodic)
     elif self.dim == 2:
-        b = Uniform2DBearingArea(*self.pixel_size, self.heights(), self.is_periodic)
+        b = Uniform2DBearingArea(self.heights(), self.is_periodic)
     else:
         raise NotImplementedError('Bearing area is only implemented for 1D line scans and 2D topography maps.')
 

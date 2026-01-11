@@ -1,14 +1,13 @@
 import sys
 
-import muFFT
+import muGrid
 
 mpi_required = sys.argv[1] in ["yes", "1"]
 
-print('`muFFT` FFT engines:')
-for engine, (a, b, c) in muFFT.fft_engines.items():
-    print(f'* {engine}')
+print('`muGrid` imported successfully')
+print(f'muGrid version: {muGrid.__version__}')
 
 if mpi_required:
     # Make sure that we have the parallel version running
-    #assert muFFT.__has_parallel4_support__
-    assert muFFT.has_mpi
+    assert muGrid.has_mpi, "MPI support is required but muGrid.has_mpi is False"
+    print('MPI support: enabled')

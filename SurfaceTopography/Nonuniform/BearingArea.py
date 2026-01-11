@@ -29,7 +29,7 @@ distribution function of the surface heights.
 
 from functools import cached_property
 
-import _SurfaceTopographyPP
+import _SurfaceTopography
 import numpy as np
 
 from ..HeightContainer import NonuniformLineScanInterface
@@ -78,11 +78,11 @@ class NonuniformBearingArea:
             Fractional area above a the threshold height.
         """
         if np.isscalar(heights):
-            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
-                                                                np.array([heights], dtype=float))[0]
+            return _SurfaceTopography.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
+                                                              np.array([heights], dtype=float))[0]
         else:
-            return _SurfaceTopographyPP.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
-                                                                np.asanyarray(heights, dtype=float))
+            return _SurfaceTopography.nonuniform_bearing_area(self._x, self._h, self._el_sort_by_max,
+                                                              np.asanyarray(heights, dtype=float))
 
     def bounds(self, heights):
         """

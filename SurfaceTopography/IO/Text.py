@@ -26,19 +26,24 @@
 #
 
 import re
+from collections import defaultdict
 
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..HeightContainer import UniformTopographyInterface
+from ..Support.UnitConversion import length_units
 from ..UniformLineScanAndTopography import Topography, UniformLineScan
-from ..Support.UnitConversion import length_units, mangle_length_unit_utf8
-from .common import CHANNEL_NAME_INFO_KEY, text
+from . import ReaderBase
+from .common import CHANNEL_NAME_INFO_KEY, OpenFromAny, text
 from .FromFile import make_wrapped_reader
+from .Reader import ChannelInfo
 
 
 @text()
-def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False):
+def read_matrix(
+    fobj, physical_sizes=None, unit=None, height_scale_factor=None, periodic=False
+):
     """
     Reads a surface profile from a text file and presents in in a
     SurfaceTopography-conformant manner. No additional parsing of
@@ -58,231 +63,46 @@ def read_matrix(fobj, physical_sizes=None, unit=None, height_scale_factor=None, 
 
 
 MatrixReader = make_wrapped_reader(
-    read_matrix, class_name="MatrixReader", format='matrix', mime_types=['text/plain'],
-    file_extensions=['txt', 'asc', 'dat'],
-    name='Plain text (matrix)')
+    read_matrix,
+    class_name="MatrixReader",
+    format="matrix",
+    mime_types=["text/plain"],
+    file_extensions=["txt", "asc", "dat"],
+    name="Plain text (matrix)",
+)
+
+# Regex for floating-point numbers
+_float_regex = r"[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?"
 
 
-@text()
-def read_asc(fobj, physical_sizes=None, height_scale_factor=None, x_factor=1.0,
-             z_factor=None, unit=None, info={}, periodic=False):
-    # pylint: disable=too-many-branches,too-many-statements,invalid-name
-    """
-    Reads a surface profile (topography) from an generic asc file and presents
-    it in a surface-conformant manner. Applies some heuristic to extract
-    meta-information for different file formats.
-
-    The info dict of the topography returned is a copy from the given info dict
-    and may have some extra keys added:
-    - "unit": a common unit for the data, for dimensions and heights
-    - "channel_name": the name of the channel (if unknown "Default" is used")
-
-    Parameters
-    ----------
-
-    fobj: filename or file object
-    physical_sizes: tuple or None
-    height_scale_factor: float or None
-    x_factor: float
-        multiplication factor for physical_sizes
-    z_factor: float or None
-        multiplication factor for height
-    info: dict
-    periodic: bool
-    """
-    _float_regex = r'[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
-
-    checks = list()
-    # Resolution keywords
-    checks.append((re.compile(r"\b(?:x-pixels|h)\b\s*=\s*([0-9]+)"), int,
-                   "yres"))
-    checks.append((re.compile(r"\b(?:y-pixels|w)\b\s*=\s*([0-9]+)"), int,
-                   "xres"))
-
-    # Size keywords
-    checks.append(
-        (re.compile(r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<value>" +
-                    _float_regex + ")(?P<unit>.*)"), float, "xsiz"))
-    checks.append(
-        (re.compile(r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<value>" +
-                    _float_regex + ")(?P<unit>.*)"), float, "ysiz"))
-
-    # Unit keywords
-    checks.append(
-        (re.compile(r"\b(?:x-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "xunit"))
-    checks.append(
-        (re.compile(r"\b(?:y-unit)\b\s*(?:=|\:)\s*(\w+)"), str, "yunit"))
-    checks.append(
-        (re.compile(r"\b(?:z-unit|Value units)\b\s*(?:=|\:)\s*(\w+)"),
-         str, "zunit"))
-
-    # Scale factor keywords
-    checks.append(
-        (re.compile(r"(?:pixel\s+size)\s*=\s*(?P<value>" + _float_regex +
-                    ")(?P<unit>.*)"), float, "xfac"))
-    checks.append((
-        re.compile((
-                r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<unit>.*)\))\s*="
-                r"\s*(?P<value>" + _float_regex + ")")),
-        float, "zfac"))
-    # Channel name keywords
-    checks.append((
-        re.compile(r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*([\w|\s]+)"),
-        str, "channel_name"))
-
-    xres = yres = xsiz = ysiz = xunit = yunit = zunit = xfac = yfac = None
-    zfac = None
-    channel_name = "Default"
-
-    def process_comment(line):
-        """Find and interpret known comments in the header of the asc file"""
-        nonlocal xres, yres, xsiz, ysiz, xunit, yunit, zunit, data, xfac, yfac
-        nonlocal zfac
-        nonlocal channel_name
-        # TODO Is 'fun' needed here? No used so far..
-        for reg, fun, key in checks:
-            match = reg.search(line)
-            if match is None:
-                continue
-            if key == 'xres':
-                xres = int(match.group(1))
-            elif key == 'yres':
-                yres = int(match.group(1))
-            elif key == 'xsiz':
-                xsiz = float(match.group('value'))
-                x = match.group('unit')
-                if x:
-                    xunit = mangle_length_unit_utf8(x)
-            elif key == 'ysiz':
-                ysiz = float(match.group('value'))
-                y = match.group('unit')
-                if y:
-                    yunit = mangle_length_unit_utf8(y)
-            elif key == 'xunit':
-                xunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'yunit':
-                yunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'zunit':
-                zunit = mangle_length_unit_utf8(match.group(1))
-            elif key == 'xfac':
-                xfac = float(match.group('value'))
-                xunit = mangle_length_unit_utf8(match.group('unit'))
-            elif key == 'zfac':
-                zfac = float(match.group('value'))
-                zunit = mangle_length_unit_utf8(match.group('unit'))
-            elif key == 'channel_name':
-                channel_name = match.group(1).strip()
-
-    data = []
-    for line in fobj:
-        line_elements = line.strip().split()
-        if len(line_elements) > 0:
-            try:
-                data += [[float(strval) for strval in line_elements]]
-            except ValueError:
-                process_comment(line)
-
-    if (height_scale_factor is not None) and (zfac is not None):
-        # it should not be allowed to override a height scale factor if
-        # there is one already in the file
-        raise MetadataAlreadyFixedByFile('height_scale_factor')
-
-    data = np.array(data).T
-    nx, ny = data.shape
-    if nx == 2 or ny == 2:
-        raise Exception(
-            "This file has just two rows or two columns and is more likely a "
-            "line scan than a map.")
-    if xres is not None and xres != nx:
-        raise Exception(
-            "The number of rows (={}) open_topography from the file '{}' "
-            "does not match the nb_grid_pts in the file's metadata (={}).".format(nx, fobj, xres))
-    if yres is not None and yres != ny:
-        raise Exception(
-            "The number of columns (={}) open_topography from the file '{}' "
-            "does not match the nb_grid_pts in the file's metadata "
-            "(={}).".format(ny, fobj, yres))
-
-    # Handle scale factors
-    if xfac is not None and yfac is None:
-        yfac = xfac
-    elif xfac is None and yfac is not None:
-        xfac = yfac
-    if xfac is not None:
-        if xsiz is None:
-            xsiz = xfac * nx
-        else:
-            xsiz *= xfac
-    if yfac is not None:
-        if ysiz is None:
-            ysiz = yfac * ny
-        else:
-            ysiz *= yfac
-    if z_factor is not None:
-        zfac = z_factor if zfac is None else zfac * z_factor
-
-    info = info.copy()
-
-    # Handle units -> convert to target unit
-    if xunit is None and zunit is not None:
-        xunit = zunit
-    if yunit is None and zunit is not None:
-        yunit = zunit
-
-    if unit is None:
-        unit = zunit
-    if unit is not None:
-        if xunit is not None:
-            xsiz *= length_units[xunit] / length_units[unit]
-        if yunit is not None:
-            ysiz *= length_units[yunit] / length_units[unit]
-        if zunit is not None:
-            if zfac is None:
-                if length_units[zunit] != length_units[unit]:
-                    zfac = length_units[zunit] / length_units[unit]
-            else:
-                zfac *= length_units[zunit] / length_units[unit]
-
-    # handle channel name
-    # we use the info dict here to transfer the channel name
-    info[CHANNEL_NAME_INFO_KEY] = channel_name
-
-    # calculate physical sizes and generate topography
-    if xsiz is not None and ysiz is not None:
-        if physical_sizes is None:
-            physical_sizes = (x_factor * xsiz, x_factor * ysiz)
-        else:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
-    if data.shape[0] == 1:
-        if physical_sizes is not None and len(physical_sizes) > 1:
-            physical_sizes = physical_sizes[0]
-        surface = UniformLineScan(data[0, :], physical_sizes, unit=unit, info=info, periodic=periodic)
-    else:
-        surface = Topography(data, physical_sizes, unit=unit, info=info, periodic=periodic)
-    if height_scale_factor is not None:
-        zfac = height_scale_factor
-    if zfac is not None:
-        surface = surface.scale(zfac)
-    return surface
+# Convert to string, but empty strings to None
+def to_str(x):
+    if x == "":
+        return None
+    return str(x)
 
 
-AscReader = make_wrapped_reader(read_asc, class_name="AscReader", format='asc', mime_types=['text/plain'],
-                                file_extensions=['txt', 'asc', 'dat'],
-                                name='Plain text (with headers)',
-                                description='''
-SurfaceTopography data stored in plain text (ASCII) format needs to be stored
-in a matrix format. Each row contains the height information for subsequent
+class AscReader(ReaderBase):
+    _format = "asc"
+    _mime_types = ["text/plain"]
+    _file_extensions = ["txt", "asc", "dat"]
+
+    _name = "Plain text"
+    _description = """
+Imports plain text files. The reader supports parsing file headers for
+additional metadata. This allows to specify the physical size of the
+topography and the unit. In particular, it supports reading ASCII files
+exported from Wyko, SPIP and Gwyddion.
+
+Topography data stored in plain text (ASCII) format needs to be stored in a
+matrix format. Each row contains the height information for subsequent
 points in x-direction separated by a whitespace. The next row belong to the
 following y-coordinate. Note that if the file has three or less columns, it
 will be interpreted as a topography stored in a coordinate format (the three
 columns contain the x, y and z coordinates of the same points). The smallest
 topography that can be provided in this format is therefore 4 x 1.
 
-The reader supports parsing file headers for additional metadata. This allows
-to specify the physical size of the topography and the unit. In particular, it
-supports reading ASCII files exported from SPIP and Gwyddion.
-
-When writing your own ASCII files, we recommend to prepent the header with a
+When writing your own ASCII files, we recommend to prepend the header with a
 '#'. The following file is an example that contains 4 x 3 data points:
 ```
 # Channel: Main
@@ -293,7 +113,405 @@ When writing your own ASCII files, we recommend to prepent the header with a
  5.0  6.0  7.0  8.0
  9.0 10.0 11.0 12.0
 ```
-''')
+"""
+
+    # Regular expressions for parsing the header
+    _metadata_regex = [
+        # File format flavors
+        (re.compile(r"Wyko ASCII Data File Format\s*"), ("wyko",), ("format_flavor",)),
+        # Resolution keywords
+        (
+            re.compile(r"\b(?:x-pixels|h)\b\s*=\s*(?P<nb_grid_pts_y>[0-9]+)"),
+            (int,),
+            ("nb_grid_pts_y",),
+        ),
+        (
+            re.compile(r"\b(?:y-pixels|w)\b\s*=\s*(?P<nb_grid_pts_x>[0-9]+)"),
+            (int,),
+            ("nb_grid_pts_x",),
+        ),
+        (
+            re.compile(r"\b(?:X Size|h)\b\s*(?P<nb_grid_pts_y>[0-9]+)"),
+            (int,),
+            ("nb_grid_pts_y",),
+        ),
+        (
+            re.compile(r"\b(?:Y Size|h)\b\s*(?P<nb_grid_pts_x>[0-9]+)"),
+            (int,),
+            ("nb_grid_pts_x",),
+        ),
+        # Size keywords
+        (
+            re.compile(
+                r"\b(?:x-length|Width|Breite)\b\s*(?:=|\:)\s*(?P<physical_size_x>"
+                + _float_regex
+                + ")(?P<xunit>.*)"
+            ),
+            (float, to_str),
+            ("physical_size_x", "xunit"),
+        ),
+        (
+            re.compile(
+                r"\b(?:y-length|Height|Höhe)\b\s*(?:=|\:)\s*(?P<physical_size_y>"
+                + _float_regex
+                + ")(?P<yunit>.*)"
+            ),
+            (float, to_str),
+            ("physical_size_y", "yunit"),
+        ),
+        (
+            re.compile(
+                r"\b(?:Pixel_size|h)\b\s*7\s*[0-9]+\s*(?P<wyko_pixel_size>"
+                + _float_regex
+                + ")"
+            ),
+            (float,),
+            ("wyko_pixel_size",),
+        ),
+        (
+            re.compile(
+                r"\b(?:Aspect|h)\b\s*7\s*[0-9]+\s*(?P<wyko_aspect_ratio>"
+                + _float_regex
+                + ")"
+            ),
+            (float,),
+            ("wyko_aspect_ratio",),
+        ),
+        # Unit keywords
+        (re.compile(r"\b(?:x-unit)\b\s*(?:=|\:)\s*(\w+)"), (to_str,), ("xunit",)),
+        (re.compile(r"\b(?:y-unit)\b\s*(?:=|\:)\s*(\w+)"), (to_str,), ("yunit",)),
+        (
+            re.compile(r"\b(?:z-unit|Value units)\b\s*(?:=|\:)\s*(?P<zunit>\w+)"),
+            (to_str,),
+            ("zunit",),
+        ),
+        # Scale factor keywords
+        (
+            re.compile(
+                r"(?:pixel\s+size)\s*=\s*(?P<xfac>" + _float_regex + ")(?P<xunit>.*)"
+            ),
+            (float, to_str),
+            ("xfac", "xunit"),
+        ),
+        (
+            re.compile(
+                (
+                    r"(?:height\s+conversion\s+factor\s+\(->\s+(?P<zunit>.*)\))\s*="
+                    r"\s*(?P<zfac>" + _float_regex + ")"
+                )
+            ),
+            (
+                to_str,
+                float,
+            ),
+            (
+                "zunit",
+                "zfac",
+            ),
+        ),
+        (
+            re.compile(
+                r"\b(?:Mult|h)\b\s*7\s*[0-9]+\s*(?P<wyko_mult>" + _float_regex + ")"
+            ),
+            (float,),
+            ("wyko_mult",),
+        ),
+        (
+            re.compile(
+                r"\b(?:Wavelength|h)\b\s*7\s*[0-9]+\s*(?P<wyko_wavelength>"
+                + _float_regex
+                + ")"
+            ),
+            (float,),
+            ("wyko_wavelength",),
+        ),
+        # Channel name keywords
+        (
+            re.compile(
+                r"\b(?:Channel|Kanal)\b\s*(?:=|\:)\s*(?P<channel_name>[\w|\s]+)"
+            ),
+            (to_str,),
+            ("channel_name",),
+        ),
+    ]
+
+    _undefined_data_keywords = ["bad", "nan", "inf", "infinite"]
+
+    @classmethod
+    def to_float(cls, s):
+        if s.lower() in cls._undefined_data_keywords:
+            # This is a placeholder for missing data
+            return np.nan
+        return float(s)
+
+    def parse_data(self, line):
+        return [self.to_float(val) for val in line.split()]
+
+    def parse_metadata(self, line):
+        for reg, funs, keys in self._metadata_regex:
+            match = reg.search(line)
+            if match is not None:
+                for fun, key in zip(funs, keys):
+                    if callable(fun):
+                        self._metadata[key] = fun(match.group(key).strip())
+                    else:
+                        self._metadata[key] = fun
+
+        # Handling of special metadata
+        if self._metadata.get("format_flavor") == "wyko":
+            s = line.split()
+            if len(s) > 0:
+                self._metadata["channel_name"] = s[0].strip()
+                return
+
+    def __init__(self, file_path):
+        # Open file and parse
+        self._channel_names = []
+        self._metadata = defaultdict(None)
+        self._data = defaultdict(list)
+        self._dim = 2
+        with OpenFromAny(file_path, "r") as fobj:
+            for line in fobj:
+                try:
+                    # Try interpreting the line as data
+                    data_in_line = self.parse_data(line)
+                except ValueError:
+                    # If this fails, we look for metadata keys
+                    self.parse_metadata(line)
+                else:
+                    if data_in_line is not None and data_in_line != []:
+                        channel_name = self._metadata.get("channel_name", "Default")
+                        if channel_name not in self._channel_names:
+                            self._channel_names += [channel_name]
+                        self._data[channel_name] += [data_in_line]
+
+            nb_grid_pts_x = self._metadata.get("nb_grid_pts_x")
+            nb_grid_pts_y = self._metadata.get("nb_grid_pts_y")
+            for channel_name in self._channel_names:
+                data = np.array(self._data[channel_name]).T
+                if data.shape[0] == 1:
+                    self._dim = 1
+                    data = np.ravel(data)
+                self._data[channel_name] = data
+                try:
+                    nx, ny = data.shape
+                except ValueError:
+                    if nb_grid_pts_y is not None:
+                        raise Exception(
+                            "This file has just a single column and is hence a line "
+                            f"scan, but the files metadata specifies {nb_grid_pts_y} "
+                            "grid points in y-direction."
+                        )
+                    (nx,) = data.shape
+                    ny = None
+                else:
+                    if nx == 2 or ny == 2:
+                        raise Exception(
+                            "This file has just two rows or two columns and is more "
+                            "likely a line scan than a map."
+                        )
+                    if nb_grid_pts_y is not None and nb_grid_pts_y != ny:
+                        raise Exception(
+                            f"The number of columns (={ny}) of the topography from the "
+                            f"file '{fobj}' does not match the number of grid points "
+                            f"in the file's metadata (={nb_grid_pts_y})."
+                        )
+                if nb_grid_pts_x is not None and nb_grid_pts_x != nx:
+                    raise Exception(
+                        f"The number of rows (={nx}) of the topography from the file "
+                        f"'{fobj}' does not match the number of grid points in the "
+                        f"file's metadata (={nb_grid_pts_x})."
+                    )
+
+            # Set grid points if not in metadata
+            if nb_grid_pts_x is None:
+                nb_grid_pts_x = nx
+            if nb_grid_pts_y is None:
+                nb_grid_pts_y = ny
+
+            # Get physical sizes
+            physical_size_x = self._metadata.get("physical_size_x")
+            physical_size_y = self._metadata.get("physical_size_y")
+
+            # Handle scale factors
+            xfac = self._metadata.get("xfac")
+            yfac = self._metadata.get("yfac")
+            zfac = self._metadata.get("zfac")
+            if xfac is not None and yfac is None:
+                yfac = xfac
+            elif xfac is None and yfac is not None:
+                xfac = yfac
+            if xfac is not None:
+                if physical_size_x is None:
+                    if nb_grid_pts_x is not None:
+                        physical_size_x = xfac * nb_grid_pts_x
+                else:
+                    physical_size_x *= xfac
+            if yfac is not None:
+                if physical_size_y is None:
+                    if nb_grid_pts_y is not None:
+                        physical_size_y = yfac * nb_grid_pts_y
+                else:
+                    physical_size_y *= yfac
+
+            # Handle units -> convert to target unit
+            xunit = self._metadata.get("xunit")
+            yunit = self._metadata.get("yunit")
+            zunit = self._metadata.get("zunit")
+            if xunit is None and zunit is not None:
+                xunit = zunit
+            if yunit is None and zunit is not None:
+                yunit = zunit
+
+            if self._metadata.get("format_flavor") == "wyko":
+                # Wyko files have a special scale factor
+                wyko_pixel_size = self._metadata.get("wyko_pixel_size")
+                wyko_aspect_ratio = self._metadata.get("wyko_aspect_ratio", 1)
+                wyko_mult = self._metadata.get("wyko_mult")
+                wyko_wavelength = self._metadata.get("wyko_wavelength")
+                if wyko_mult is not None and wyko_wavelength is not None:
+                    zfac = wyko_wavelength / wyko_mult
+
+                if wyko_pixel_size is not None:
+                    physical_size_x = (
+                        wyko_pixel_size * wyko_aspect_ratio * nb_grid_pts_x
+                    )
+                    physical_size_y = wyko_pixel_size * nb_grid_pts_y
+
+                # Wyko files have special units
+                if xunit is None:
+                    xunit = "mm"
+                else:
+                    raise CorruptFile(
+                        "This is a Wyko file, but it appears to have unit metadata."
+                    )
+                if yunit is None:
+                    yunit = "mm"
+                else:
+                    raise CorruptFile(
+                        "This is a Wyko file, but it appears to have unit metadata."
+                    )
+                if zunit is None:
+                    zunit = "nm"
+                else:
+                    raise CorruptFile(
+                        "This is a Wyko file, but it appears to have unit metadata."
+                    )
+
+            unit = zunit
+            if unit is not None:
+                if xunit is not None:
+                    if physical_size_x is not None:
+                        physical_size_x *= length_units[xunit] / length_units[unit]
+                if yunit is not None:
+                    if physical_size_y is not None:
+                        physical_size_y *= length_units[yunit] / length_units[unit]
+                if zunit is not None:
+                    if zfac is None:
+                        if length_units[zunit] != length_units[unit]:
+                            zfac = length_units[zunit] / length_units[unit]
+                    else:
+                        zfac *= length_units[zunit] / length_units[unit]
+
+            # Store processed metadata
+            self._nb_grid_pts = None
+            if nb_grid_pts_x is not None:
+                if nb_grid_pts_y is not None:
+                    self._nb_grid_pts = (nb_grid_pts_x, nb_grid_pts_y)
+                else:
+                    self._nb_grid_pts = (nb_grid_pts_x,)
+            self._physical_sizes = None
+            if physical_size_x is not None:
+                if physical_size_y is not None:
+                    self._physical_sizes = (physical_size_x, physical_size_y)
+                else:
+                    self._physical_sizes = (physical_size_x,)
+            self._unit = unit
+            self._height_scale_factor = zfac
+
+    @property
+    def channels(self):
+        return [
+            ChannelInfo(
+                self,
+                i,  # channel index
+                name=name,
+                dim=self._dim,
+                nb_grid_pts=self._nb_grid_pts,
+                physical_sizes=self._physical_sizes,
+                uniform=True,
+                unit=self._unit,
+                height_scale_factor=self._height_scale_factor,
+                info={CHANNEL_NAME_INFO_KEY: name, "raw_metadata": self._metadata},
+            )
+            for i, name in enumerate(self._channel_names)
+        ]
+
+    def topography(
+        self,
+        channel_index=None,
+        physical_sizes=None,
+        height_scale_factor=None,
+        unit=None,
+        info={},
+        periodic=False,
+        subdomain_locations=None,
+        nb_subdomain_grid_pts=None,
+    ):
+        if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
+            raise RuntimeError("This reader does not support MPI parallelization.")
+
+        if channel_index is None:
+            channel_index = self._default_channel_index
+
+        if channel_index < 0 or channel_index > len(self._channel_names):
+            raise RuntimeError(
+                f"There are only {len(self._channel_names)} channels, but channel "
+                f"index is {channel_index}."
+            )
+
+        physical_sizes = self._check_physical_sizes(
+            physical_sizes, self._physical_sizes
+        )
+
+        if height_scale_factor is not None and self._height_scale_factor is not None:
+            raise MetadataAlreadyFixedByFile("height_scale_factor")
+
+        if unit is not None and self._unit is not None:
+            raise MetadataAlreadyFixedByFile("unit")
+
+        _info = info.copy()
+        _info["raw_metadata"] = self._metadata
+
+        # handle channel name
+        # we use the info dict here to transfer the channel name
+        channel_name = self._channel_names[channel_index]
+        _info[CHANNEL_NAME_INFO_KEY] = channel_name
+
+        data = self._data[channel_name]
+        if np.sum(np.isnan(data)) > 0:
+            data = np.ma.masked_invalid(data)
+        if self._dim == 1:
+            topography = UniformLineScan(
+                data,
+                physical_sizes,
+                unit=unit or self._unit,
+                info=_info,
+                periodic=periodic,
+            )
+        else:
+            topography = Topography(
+                data,
+                physical_sizes,
+                unit=unit or self._unit,
+                info=_info,
+                periodic=periodic,
+            )
+        if height_scale_factor is not None or self._height_scale_factor is not None:
+            topography = topography.scale(
+                height_scale_factor or self._height_scale_factor
+            )
+        return topography
 
 
 def write_matrix(self, fname):
@@ -305,4 +523,4 @@ def write_matrix(self, fname):
 
 
 # Register analysis functions from this module
-UniformTopographyInterface.register_function('to_matrix', write_matrix)
+UniformTopographyInterface.register_function("to_matrix", write_matrix)

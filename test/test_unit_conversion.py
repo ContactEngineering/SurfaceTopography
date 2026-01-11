@@ -25,39 +25,53 @@
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
-from SurfaceTopography.Support.UnitConversion import suggest_length_unit, suggest_length_unit_for_data
+from SurfaceTopography.Support.UnitConversion import (
+    mangle_length_unit_ascii,
+    mangle_length_unit_utf8,
+    suggest_length_unit,
+    suggest_length_unit_for_data,
+)
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_suggest_length_unit():
-    assert suggest_length_unit('log', 1e-3, 1e-2) == 'mm'
-    assert suggest_length_unit('log', 1e-6, 1e-5) == 'µm'
+    assert suggest_length_unit("log", 1e-3, 1e-2) == "mm"
+    assert suggest_length_unit("log", 1e-6, 1e-5) == "µm"
 
-    assert suggest_length_unit('linear', 0, 1e-2) == 'mm'
+    assert suggest_length_unit("linear", 0, 1e-2) == "mm"
 
-    assert suggest_length_unit('log', 1e-9, 1) == 'µm'
-    assert suggest_length_unit('log', 1e-9, 10) == 'µm'
-    assert suggest_length_unit('log', 1e-9, 100) == 'µm'
-    assert suggest_length_unit('log', 1e-9, 100) == 'µm'
-    assert suggest_length_unit('log', 1e-9, 10000) == 'mm'
-    assert suggest_length_unit('log', 1e-9, 100000) == 'mm'
+    assert suggest_length_unit("log", 1e-9, 1) == "µm"
+    assert suggest_length_unit("log", 1e-9, 10) == "µm"
+    assert suggest_length_unit("log", 1e-9, 100) == "µm"
+    assert suggest_length_unit("log", 1e-9, 100) == "µm"
+    assert suggest_length_unit("log", 1e-9, 10000) == "mm"
+    assert suggest_length_unit("log", 1e-9, 100000) == "mm"
 
 
 def test_unit_outside_range():
-    assert suggest_length_unit('log', 1e-21, 1e-18) == 'fm'
-    assert suggest_length_unit('log', 1e12, 1e15) == 'Gm'
+    assert suggest_length_unit("log", 1e-21, 1e-18) == "fm"
+    assert suggest_length_unit("log", 1e12, 1e15) == "Gm"
 
 
 def test_nan_and_inf():
-    assert suggest_length_unit_for_data('log', [1e-9, 10], 'm') == 'µm'
-    assert suggest_length_unit_for_data('log', [1e-9, 10, np.NaN], 'm') == 'µm'
-    assert suggest_length_unit_for_data('log', [1e-9, 10, np.Inf], 'm') == 'm'
-    assert suggest_length_unit_for_data('log', [1e-9, 10, np.Inf, np.Inf], 'm') == 'm'
+    assert suggest_length_unit_for_data("log", [1e-9, 10], "m") == "µm"
+    assert suggest_length_unit_for_data("log", [1e-9, 10, np.nan], "m") == "µm"
+    assert suggest_length_unit_for_data("log", [1e-9, 10, np.inf], "m") == "m"
+    assert suggest_length_unit_for_data("log", [1e-9, 10, np.inf, np.inf], "m") == "m"
     with pytest.raises(ValueError):
-        suggest_length_unit_for_data('log', [np.NaN, np.NaN], 'm')
+        suggest_length_unit_for_data("log", [np.nan, np.nan], "m")
+
+
+def test_mangle_length_unit_to_ascii():
+    assert mangle_length_unit_ascii("Å") == "A"
+
+
+def test_mangle_length_unit_is_partially_idempotent():
+    for unit in ["Å", "µm", "mm", "m"]:
+        assert mangle_length_unit_utf8(mangle_length_unit_ascii(unit)) == unit

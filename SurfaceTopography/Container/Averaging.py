@@ -25,9 +25,10 @@
 """Compute properties as averages over individual results."""
 
 import logging
+import warnings
+from collections import defaultdict
 
 import numpy as np
-from collections import defaultdict
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..Support.Regression import resample
@@ -103,16 +104,138 @@ def log_average(self, function_name, unit, nb_points_per_decade=10, reliable=Tru
     if len(results) == 0:
         raise NoReliableDataError('Container contains no reliable data.')
 
-    avgresults = np.array(sorted([np.nanmean(vals, axis=0) for vals in results.values()], key=lambda x: x[0]))
-    return avgresults.T[0], avgresults.T[1]
+    # Compute mean of results, handling masked values
+    # Sort keys to ensure correct order
+    sorted_keys = sorted(results.keys())
+    min_key, max_key = min(sorted_keys), max(sorted_keys)
+
+    # Allocate output arrays with all bins (including those with no data)
+    n_bins = max_key - min_key + 1
+    x_out = np.ma.zeros(n_bins)
+    y_out = np.ma.zeros(n_bins)
+    mask = np.ones(n_bins, dtype=bool)  # Start with all masked
+
+    for key in sorted_keys:
+        idx = key - min_key
+        # Masked values are converted to NaN; suppress the warning
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            vals = np.array(results[key])
+        # Filter out NaN values (which come from masked values)
+        valid_mask = np.isfinite(vals[:, 0]) & np.isfinite(vals[:, 1])
+        if valid_mask.sum() > 0:
+            x_out[idx] = np.mean(vals[valid_mask, 0])
+            y_out[idx] = np.mean(vals[valid_mask, 1])
+            mask[idx] = False
+
+    x_out.mask = mask
+    y_out.mask = mask
+    return x_out, y_out
 
 
-# All container functionsa are 'profile' functions, because container can contain mixtures of topgoraphic maps and line
+# All container functions are 'profile' functions, because container can contain mixtures of topographic maps and line
 # scans.
-SurfaceContainer.register_function(
-    'autocorrelation', lambda self, unit, **kwargs: log_average(self, 'autocorrelation_from_profile', unit, **kwargs))
-SurfaceContainer.register_function(
-    'power_spectrum', lambda self, unit, **kwargs: log_average(self, 'power_spectrum_from_profile', unit, **kwargs))
-SurfaceContainer.register_function(
-    'variable_bandwidth',
-    lambda self, unit, **kwargs: log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs))
+
+
+def autocorrelation(self, unit, **kwargs):
+    """
+    Return average autocorrelation function on a logarithmic grid.
+
+    This computes the autocorrelation function for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    distances : np.ma.MaskedArray
+        Distances on a logarithmic grid.
+    acf : np.ma.MaskedArray
+        Averaged autocorrelation function values.
+    """
+    return log_average(self, 'autocorrelation_from_profile', unit, **kwargs)
+
+
+def power_spectrum(self, unit, **kwargs):
+    """
+    Return average power spectral density on a logarithmic grid.
+
+    This computes the power spectral density for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    wavevectors : np.ma.MaskedArray
+        Wavevectors on a logarithmic grid.
+    psd : np.ma.MaskedArray
+        Averaged power spectral density values.
+    """
+    return log_average(self, 'power_spectrum_from_profile', unit, **kwargs)
+
+
+def variable_bandwidth(self, unit, **kwargs):
+    """
+    Return average variable bandwidth analysis on a logarithmic grid.
+
+    This computes the variable bandwidth analysis for each topography in the
+    container and returns an average over all topographies.
+
+    Parameters
+    ----------
+    self : SurfaceContainer
+        Container object containing the underlying data sets.
+    unit : str
+        Unit of the distance array. All topographies are converted to this
+        unit before the properties are computed.
+    nb_points_per_decade : int, optional
+        Number of points per decade in length for automatic grid construction.
+        (Default: 10)
+    reliable : bool, optional
+        Only return data deemed reliable. (Default: True)
+    progress_callback : func, optional
+        Function taking iteration and the total number of iterations as
+        arguments for progress reporting. (Default: None)
+
+    Returns
+    -------
+    magnifications : np.ma.MaskedArray
+        Magnifications on a logarithmic grid.
+    rms_heights : np.ma.MaskedArray
+        Averaged RMS height values.
+    """
+    return log_average(self, 'variable_bandwidth_from_profile', unit, **kwargs)
+
+
+SurfaceContainer.register_function('autocorrelation', autocorrelation)
+SurfaceContainer.register_function('power_spectrum', power_spectrum)
+SurfaceContainer.register_function('variable_bandwidth', variable_bandwidth)

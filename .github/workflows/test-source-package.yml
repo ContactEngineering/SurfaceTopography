@@ -12,10 +12,10 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
@@ -27,11 +27,10 @@ jobs:
             python3-dev \
             python3-pip \
             python3-venv \
-            meson \
             ninja-build
           python3 -m venv ../venv
           source ../venv/bin/activate
-          pip install build
+          python3 -m pip install --upgrade pip pip-tools meson build
 
       - name: Build package
         run: |
@@ -40,4 +39,5 @@ jobs:
 
       - name: Install package
         run: |
-          pip install dist/*.tar.gz
+          source ../venv/bin/activate
+          pip install -v dist/*.tar.gz

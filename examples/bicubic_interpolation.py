@@ -29,7 +29,7 @@ import numpy as np
 from SurfaceTopography.Support.Interpolation import Bicubic
 from SurfaceTopography.Generation import fourier_synthesis
 
-# from muFFT import FourierInterpolation # future
+# from muGrid import FourierInterpolation # future
 
 
 nx, ny = [512] * 2

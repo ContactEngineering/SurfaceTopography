@@ -24,6 +24,7 @@ python_sources = [
     'Mitutoyo.py',
     'MNT.py',
     'NC.py',
+    'NMM.py',
     'NPY.py',
     'OIR.py',
     'OPD.py',

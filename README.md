@@ -1,3 +1,7 @@
+[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/test-code-functionality.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ContactEngineering/SurfaceTopography)
+
 SurfaceTopography
 =================
 
@@ -9,13 +13,6 @@ Surface topographies can be easily analyzed using standard (rms height, power sp
 If you use this code, please cite:
 * [Jacobs, Junge, Pastewka, Surf. Topogr. Metrol. Prop. 1, 013001 (2017)](https://doi.org/10.1088/2051-672X/aa51f8)
 * [Röttger el al., Surf. Topogr. Metrol. Prop. 10, 035032 (2022)](https://doi.org/10.1088/2051-672X/ac860a) 
-
-Build status
-------------
-
-The following badge should say _tests passing_. This means that all automated tests completed successfully for the master branch.
-
-[![Build Status](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml/badge.svg)](https://github.com/ContactEngineering/SurfaceTopography/actions/workflows/tests.yml)
 
 Documentation
 -------------
@@ -30,16 +27,13 @@ you need to run `git submodule update --init` after a fresh checkout.
 
 The most basic configuration of SurfaceTopography installs all requirements autonomously `python3 -m pip install SurfaceTopgography`
 
-Containerized SurfaceTopography
--------------------------------
+If you need an editable install (e.g. for development purposes), make sure you disable build isolation:
 
-*ContactEngineering* provides container descriptions at the [ce-container-stack](https://github.com/ContactEngineering/ce-container-stack).
+    python3 -m pip install --no-build-isolation -e .
 
-For getting started quickly with [Docker](https://www.docker.com/) and `SurfaceTopography` in a ready-to-run JupyterLab environment, try
+You need to manually install `ninja`, `meson-python`, `pytest`, `runtests`, `DiscoverVersion` and `numpy` before:
 
-    docker run -p 8888:8888 imteksim/jupyterlab-surfacetopography:latest
-
-Navigate to the JupyterLab server in your browser as instructed by the terminal output and launch a notebook with the `SurfaceTopography` kernel.
+    python3 -m pip install ninja meson-python pytest runtests DiscoverVersion numpy
 
 Funding
 -------

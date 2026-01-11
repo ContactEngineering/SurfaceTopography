@@ -73,11 +73,8 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> x, Eigen::Ref<
 }
 
 
-Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
+Eigen::ArrayXd uniform1d_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
                                       Eigen::Ref<Eigen::ArrayXd> heights) {
-    /* The physical length of the line scan */
-    const double physical_size{periodic ? dx * topography_h.size() : dx * (topography_h.size()-1)};
-
     /* Bearing area values for each input height */
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
 
@@ -85,14 +82,19 @@ Eigen::ArrayXd uniform1d_bearing_area(double dx, Eigen::Ref<Eigen::ArrayXd> topo
     const auto maxi{periodic ? topography_h.size() : topography_h.size()-1};
     for (int j{0}; j < heights.size(); j++) {
         double bearing_area{0};
+        int physical_size{0};
         for (int i{0}; i < maxi; i++) {
             const auto i1{i < topography_h.size()-1 ? i+1 : 0};
             const double hi{topography_h(i)}, hi1{topography_h(i1)};
-            if (heights(j) < hi && heights(j) < hi1) {
-                bearing_area += dx;
-            } else if (!(heights(j) > hi && heights(j) > hi1)) {
-                auto [minh, maxh] = std::minmax(hi, hi1);
-                bearing_area += dx * (maxh - heights(j)) / (maxh - minh);
+            /* Check for NaNs and only add if there are no NaNs */
+            if (hi == hi && hi1 == hi1) {
+                if (heights(j) < hi && heights(j) < hi1) {
+                    bearing_area += 1;
+                } else if (!(heights(j) > hi && heights(j) > hi1)) {
+                    auto [minh, maxh] = std::minmax(hi, hi1);
+                    bearing_area += (maxh - heights(j)) / (maxh - minh);
+                }
+                physical_size += 1;
             }
         }
         fractional_bearing_areas(j) = bearing_area / physical_size;
@@ -123,15 +125,11 @@ double _triangle(double h1_in, double h2_in, double h3_in, double h) {
 }
 
 
-Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
+Eigen::ArrayXd uniform2d_bearing_area(Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
                                       Eigen::Ref<Eigen::ArrayXd> heights) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
-
-    /* The physical length of the line scan */
-    const double triangle_area{dx * dy / 2};
-    const double projected_area{dx * nx * dy * ny};
 
     /* Bearing area values for each input height */
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
@@ -139,14 +137,27 @@ Eigen::ArrayXd uniform2d_bearing_area(double dx, double dy, Eigen::Ref<RowMajorX
     /* Compute bearing areas */
     for (int j{0}; j < heights.size(); j++) {
         double bearing_area{0};
+        int projected_area{0};
+
         /* This is assuming column-major storage */
         for (int x{0}; x < nx; x++) {
             const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
             for (int y{0}; y < ny; y++) {
                 const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
-                bearing_area += triangle_area * (
-                    _triangle(topography_h(x, y), topography_h(x1, y), topography_h(x, y1), heights(j)) +
-                    _triangle(topography_h(x1, y), topography_h(x1, y1), topography_h(x, y1), heights(j)));
+                const double h00{topography_h(x, y)};
+                const double h10{topography_h(x1, y)};
+                const double h01{topography_h(x, y1)};
+                const double h11{topography_h(x1, y1)};
+                /* Check for NaNs and only add triangle if there are no NaNs */
+                if (h00 == h00 && h10 == h10 && h01 == h01) {
+                    bearing_area += _triangle(h00, h10, h01, heights(j));
+                    projected_area += 1;
+                }
+                /* Check for NaNs and only add triangle if there are no NaNs */
+                if (h10 == h10 && h11 == h11 && h01 == h01) {
+                    bearing_area += _triangle(h10, h11, h01, heights(j));
+                    projected_area += 1;
+                }
             }
         }
         fractional_bearing_areas(j) = bearing_area / projected_area;

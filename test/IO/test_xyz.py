@@ -24,20 +24,22 @@
 #
 
 import os
-import pytest
-from numpy.testing import assert_allclose
 
+import numpy as np
+import pytest
 from NuMPI import MPI
+from numpy.testing import assert_allclose
 
 from SurfaceTopography.IO import XYZReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
-    reason="tests only serial functionalities, please execute with pytest")
+    reason="tests only serial functionalities, please execute with pytest",
+)
 
 
 def test_read_1d(file_format_examples):
-    surface = XYZReader(os.path.join(file_format_examples, 'xy-1.txt')).topography()
+    surface = XYZReader(os.path.join(file_format_examples, "xy-1.txt")).topography()
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -48,7 +50,7 @@ def test_read_1d(file_format_examples):
 
 
 def test_read_1d_2(file_format_examples):
-    surface = XYZReader(os.path.join(file_format_examples, 'xy-2.txt')).topography()
+    surface = XYZReader(os.path.join(file_format_examples, "xy-2.txt")).topography()
     assert not surface.is_uniform
     x, y = surface.positions_and_heights()
     assert len(x) > 0
@@ -58,7 +60,9 @@ def test_read_1d_2(file_format_examples):
     assert not surface.is_periodic
 
 
-@pytest.mark.parametrize("filename", ['xyz-1.txt', 'xyz-1-different-order.txt', 'xyz-2.txt'])
+@pytest.mark.parametrize(
+    "filename", ["xyz-1.txt", "xyz-1-different-order.txt", "xyz-2.txt"]
+)
 def test_read_2d(filename, file_format_examples):
     """
     Here the order of points in the input file shouldn't matter.
@@ -71,38 +75,56 @@ def test_read_2d(filename, file_format_examples):
     assert z.shape == (4, 4)
     assert surface.dim == 2
     assert not surface.is_periodic
-    if filename.startswith('xyz-1'):
-        assert_allclose(z,
-                        [[1., 1., 1., 1.],
-                         [1., 2., 2., 1.],
-                         [1., 1., 1., 1.],
-                         [1., 1., 1., 1.]])
+    if filename.startswith("xyz-1"):
+        assert_allclose(
+            z,
+            [
+                [1.0, 1.0, 1.0, 1.0],
+                [1.0, 2.0, 2.0, 1.0],
+                [1.0, 1.0, 1.0, 1.0],
+                [1.0, 1.0, 1.0, 1.0],
+            ],
+        )
 
 
 def test_hfm_metadata(file_format_examples):
-    file_path = os.path.join(file_format_examples, 'hfm-1.hfm')
+    file_path = os.path.join(file_format_examples, "hfm-1.hfm")
 
     r = XYZReader(file_path)
     t = r.topography()
 
-    nx, = t.nb_grid_pts
+    (nx,) = t.nb_grid_pts
     assert nx == 9600
 
     assert t.is_uniform
 
-    sx, = t.physical_sizes
+    (sx,) = t.physical_sizes
     assert_allclose(sx, 4.8, rtol=1e-6)
 
-    assert t.unit == 'mm'
+    assert t.unit == "mm"
 
     assert_allclose(t.rms_height_from_profile(), 0.000906, rtol=1e-3)
 
-    t = t.detrend('curvature')
+    t = t.detrend("curvature")
     assert_allclose(t.rms_height_from_profile(), 0.000138, rtol=1e-3)
 
 
 def test_unit_1d(file_format_examples):
-    r = XYZReader(os.path.join(file_format_examples, 'xy-1.txt'))
+    r = XYZReader(os.path.join(file_format_examples, "xy-1.txt"))
     assert r.channels[0].unit is None
-    r = XYZReader(os.path.join(file_format_examples, 'xy-2.txt'))
+    r = XYZReader(os.path.join(file_format_examples, "xy-2.txt"))
     assert r.channels[0].unit is None
+
+
+def test_simple_nonuniform_line_scan(file_format_examples):
+    surf = XYZReader(os.path.join(file_format_examples, "xy-3.txt")).topography()
+
+    np.testing.assert_allclose(surf.physical_sizes, (9.0,))
+
+    assert not surf.is_uniform
+    assert not surf.is_reentrant
+    assert "unit" not in surf.info
+
+    bw = surf.bandwidth()
+    np.testing.assert_allclose(bw[0], (8 * 1.0 + 2 * 0.5 / 10) / 9)
+    np.testing.assert_allclose(bw[1], 9)

@@ -51,7 +51,7 @@ def short_reliability_cutoff(self, other_cutoff=None):
             if 'tip_radius' in parameters:
                 # We are carrying out a scanning probe analysis, get tip radius in correct units
                 tip_radius = parameters['tip_radius']
-                r = tip_radius['value'] * get_unit_conversion_factor(tip_radius['unit'], self.unit)
+                r = float(tip_radius['value']) * get_unit_conversion_factor(tip_radius['unit'], self.unit)
                 scanning_probe_cutoff = self.scanning_probe_reliability_cutoff(r)
                 return scanning_probe_cutoff if other_cutoff is None else \
                     other_cutoff if scanning_probe_cutoff is None else \
@@ -59,7 +59,7 @@ def short_reliability_cutoff(self, other_cutoff=None):
             elif 'resolution' in parameters:
                 # This topography just has a lateral resolution specified
                 resolution = parameters['resolution']
-                cutoff = resolution['value'] * get_unit_conversion_factor(resolution['unit'], self.unit)
+                cutoff = float(resolution['value']) * get_unit_conversion_factor(resolution['unit'], self.unit)
                 return cutoff if other_cutoff is None else \
                     other_cutoff if cutoff is None else \
                     max(cutoff, other_cutoff)

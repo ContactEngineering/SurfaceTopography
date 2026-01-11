@@ -36,17 +36,23 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from muFFT import FFT
+from muGrid import FFTEngine
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 from numpy.random import rand
 from numpy.testing import assert_array_equal
 
-from SurfaceTopography import (NonuniformLineScan, Topography, UniformLineScan,
-                               make_sphere, open_topography, read_topography)
+from SurfaceTopography import (
+    NonuniformLineScan,
+    Topography,
+    UniformLineScan,
+    make_sphere,
+    open_topography,
+    read_topography,
+)
 from SurfaceTopography.Generation import fourier_synthesis
 from SurfaceTopography.IO import XYZReader
-from SurfaceTopography.IO.Text import AscReader, read_asc, read_matrix
+from SurfaceTopography.IO.Text import read_matrix
 from SurfaceTopography.Support.UnitConversion import get_unit_conversion_factor
 
 pytestmark = pytest.mark.skipif(
@@ -86,102 +92,6 @@ class NumpyTxtSurfaceTest(unittest.TestCase):
         S3 = make_sphere(R, (res, res), (length, length), (x_c, y_c))
         self.assertTrue(np.array_equal(S1.heights(), S2.heights()))
         self.assertTrue(np.array_equal(S1.heights(), S3.heights()))
-
-
-class NumpyAscSurfaceTest(unittest.TestCase):
-    def test_example1(self):
-        surf = read_asc(os.path.join(DATADIR, 'matrix-1.txt'))
-        self.assertTrue(isinstance(surf, Topography))
-        self.assertEqual(surf.nb_grid_pts, (1024, 1024))
-        self.assertAlmostEqual(surf.physical_sizes[0], 2000)
-        self.assertAlmostEqual(surf.physical_sizes[1], 2000)
-        self.assertAlmostEqual(surf.rms_height_from_area(), 17.22950485567042)
-        self.assertAlmostEqual(surf.rms_gradient(), 0.4560243831362324)
-        self.assertTrue(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.unit, 'nm')
-
-    def test_example2(self):
-        surf = read_asc(os.path.join(DATADIR, 'matrix-2.txt'))
-        self.assertEqual(surf.nb_grid_pts, (650, 650))
-        self.assertAlmostEqual(surf.physical_sizes[0], 0.0002404103)
-        self.assertAlmostEqual(surf.physical_sizes[1], 0.0002404103)
-        self.assertAlmostEqual(surf.rms_height_from_area(), 2.7722350402740072e-07)
-        self.assertAlmostEqual(surf.rms_gradient(), 0.35152685030417763)
-        self.assertTrue(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.unit, 'm')
-
-    def test_example3(self):
-        surf = read_asc(os.path.join(DATADIR, 'matrix-3.txt'))
-        self.assertEqual(surf.nb_grid_pts, (256, 256))
-        self.assertAlmostEqual(surf.physical_sizes[0], 10e-6)
-        self.assertAlmostEqual(surf.physical_sizes[1], 10e-6)
-        self.assertAlmostEqual(surf.rms_height_from_area(), 3.5222918750198742e-08)
-        self.assertAlmostEqual(surf.rms_gradient(), 0.19235602282848963)
-        self.assertTrue(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.unit, 'm')
-
-    def test_example4(self):
-        surf = read_asc(os.path.join(DATADIR, 'matrix-4.txt'))
-        self.assertEqual(surf.nb_grid_pts, (75, 305))
-        self.assertAlmostEqual(surf.physical_sizes[0], 2.773965e-05)
-        self.assertAlmostEqual(surf.physical_sizes[1], 0.00011280791)
-        self.assertAlmostEqual(surf.rms_height_from_area(), 1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_height_from_profile(), 1.1745891510991089e-07)
-        self.assertAlmostEqual(surf.rms_gradient(), 0.06776316911544318)
-        self.assertTrue(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertEqual(surf.unit, 'm')
-
-        # test setting the physical_sizes
-        with self.assertRaises(AttributeError):
-            surf.physical_sizes = 1, 2
-
-    def test_example5(self):
-        surf = read_asc(os.path.join(DATADIR, 'matrix-5.txt'))
-        self.assertTrue(isinstance(surf, Topography))
-        self.assertEqual(surf.nb_grid_pts, (10, 10))
-        self.assertTrue(surf.physical_sizes is None)
-        self.assertAlmostEqual(surf.rms_height_from_area(), 1.0)
-        with self.assertRaises(ValueError):
-            surf.rms_gradient()
-        self.assertTrue(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertFalse('unit' in surf.info)
-
-        # test setting the physical_sizes
-        surf = read_asc(os.path.join(DATADIR, 'matrix-5.txt'), physical_sizes=(1, 2))
-        self.assertAlmostEqual(surf.physical_sizes[0], 1)
-        self.assertAlmostEqual(surf.physical_sizes[1], 2)
-
-        bw = surf.bandwidth()
-        self.assertAlmostEqual(bw[0], 1.5 / 10)
-        self.assertAlmostEqual(bw[1], 1.5)
-
-        reader = AscReader(os.path.join(DATADIR, 'matrix-5.txt'))
-        self.assertTrue(reader.default_channel.physical_sizes is None)
-
-    def test_example6(self):
-        topography_file = open_topography(
-            os.path.join(DATADIR, 'not-yet-working-1.txt'))
-        surf = topography_file.topography(physical_sizes=(1,))
-        self.assertTrue(isinstance(surf, UniformLineScan))
-        np.testing.assert_allclose(surf.heights(), [1, 2, 3, 4, 5, 6, 7, 8, 9])
-
-    def test_simple_nonuniform_line_scan(self):
-        surf = XYZReader(os.path.join(DATADIR, 'xy-3.txt')).topography()
-
-        self.assertAlmostEqual(surf.physical_sizes, (9.0,))
-
-        self.assertFalse(surf.is_uniform)
-        self.assertFalse(surf.is_reentrant)
-        self.assertFalse('unit' in surf.info)
-
-        bw = surf.bandwidth()
-        self.assertAlmostEqual(bw[0], (8 * 1. + 2 * 0.5 / 10) / 9)
-        self.assertAlmostEqual(bw[1], 9)
 
 
 class DetrendedSurfaceTest(unittest.TestCase):
@@ -463,11 +373,11 @@ class DetrendedSurfaceTest(unittest.TestCase):
         self.assertFalse(surface.is_reentrant)
         x, h = surface.positions_and_heights()
         s, = surface.physical_sizes
-        self.assertAlmostEqual(surface.mean(), np.trapz(h, x) / s)
+        self.assertAlmostEqual(surface.mean(), np.trapezoid(h, x) / s)
         detrended_surface = surface.detrend(detrend_mode='height')
         self.assertAlmostEqual(detrended_surface.mean(), 0)
         x, h = detrended_surface.positions_and_heights()
-        self.assertAlmostEqual(np.trapz(h, x), 0)
+        self.assertAlmostEqual(np.trapezoid(h, x), 0)
 
     def test_uniform_curvatures_2d(self):
         radius = 100.
@@ -592,9 +502,6 @@ def test_di_orientation():
     di_fn = os.path.join(DATADIR, "di-1.di")
 
     di_t = read_topography(di_fn)
-
-    with pytest.deprecated_call():
-        assert di_t.info['unit'] == 'nm'
 
     #
     # Check values in 4 corners, this should fix orientation
@@ -742,18 +649,20 @@ def test_positions(comm):
     nx, ny = (12 * comm.Get_size(), 10 * comm.Get_size() + 1)
     sx = 33.
     sy = 54.
-    fftengine = FFT((nx, ny), fft='mpi', communicator=comm)
+    fftengine = FFTEngine((nx, ny), communicator=comm)
+    nb_subdomain_grid_pts = fftengine.nb_subdomain_grid_pts
+    subdomain_locations = fftengine.subdomain_locations
 
-    surf = Topography(np.zeros(fftengine.nb_subdomain_grid_pts),
+    surf = Topography(np.zeros(nb_subdomain_grid_pts),
                       physical_sizes=(sx, sy),
                       decomposition='subdomain',
                       nb_grid_pts=(nx, ny),
-                      subdomain_locations=fftengine.subdomain_locations,
+                      subdomain_locations=subdomain_locations,
                       communicator=comm)
 
     x, y = surf.positions()
-    assert x.shape == fftengine.nb_subdomain_grid_pts
-    assert y.shape == fftengine.nb_subdomain_grid_pts
+    assert x.shape == nb_subdomain_grid_pts
+    assert y.shape == nb_subdomain_grid_pts
 
     assert Reduction(comm).min(x) == 0
     assert abs(Reduction(comm).max(x) - sx * (1 - 1. / nx)) \
