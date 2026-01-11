@@ -8,7 +8,75 @@ SurfaceTopography
 *Read and analyze surface topographies with Python.* This code implements basic classes for handling uniform and
 nonuniform surface topography data. It contains a rich set of import filters for experimental surface topography data.
 Surface topographies can be easily analyzed using standard (rms height, power spectrum, ...) and some special purpose
-(autocorrelation function, variable bandwidth analysis, ...) statistical techniques. 
+(autocorrelation function, variable bandwidth analysis, ...) statistical techniques.
+
+Quick Start
+-----------
+
+```python
+from SurfaceTopography import read_topography
+
+# Read a topography file (format is auto-detected)
+topography = read_topography('surface.opd')
+
+# Get basic properties
+print(f"Grid size: {topography.nb_grid_pts}")
+print(f"Physical size: {topography.physical_sizes}")
+print(f"RMS height: {topography.rms_height_from_area()}")
+
+# Compute the power spectral density (PSD)
+q, psd = topography.power_spectrum_from_profile()
+
+# Compute the autocorrelation function (ACF)
+r, acf = topography.autocorrelation_from_profile()
+
+# Plot the topography
+import matplotlib.pyplot as plt
+plt.pcolormesh(*topography.positions_and_heights())
+plt.colorbar(label='Height')
+plt.show()
+```
+
+Supported File Formats
+----------------------
+
+SurfaceTopography supports over 30 file formats from commercial surface profilometers:
+
+| Format | Description |
+|--------|-------------|
+| `al3d` | Alicona AL3D files |
+| `asc` | ASCII text files (generic) |
+| `bcr` | BCR-STM files |
+| `datx` | Zygo DATX files |
+| `di` | Digital Instruments / Bruker AFM files |
+| `ezd` | Nanosurf EZD files |
+| `frt` | FRT profilometer files |
+| `gwy` | Gwyddion GWY files |
+| `h5` | HDF5 files |
+| `hgt` | NASA SRTM HGT elevation files |
+| `ibw` | Igor Pro binary wave files (Asylum Research) |
+| `jpk` | JPK Instruments files |
+| `lext` | Olympus LEXT files |
+| `mat` | MATLAB .mat files |
+| `metropro` | Zygo MetroPro files |
+| `mi` | Park Systems / Molecular Imaging files |
+| `mitutoyo` | Mitutoyo surface roughness files |
+| `nc` | NetCDF files |
+| `nmm` | PTB NMM files |
+| `npy` | NumPy binary files |
+| `oir` | Olympus OIR files |
+| `opd` | Wyko OPD files |
+| `opdx` | Wyko OPDx files |
+| `plu` | Sensofar PLU files |
+| `plux` | Sensofar PLUX files |
+| `poir` | Olympus POIR (zip) files |
+| `ps` | Keyence profilometer files |
+| `sur` | Digital Surf Mountains files |
+| `vk` | Keyence VK files |
+| `wsxm` | WSxM files |
+| `x3p` | ISO 25178-72 X3P files |
+| `xyz` | XYZ point cloud files |
+| `zon` | Keyence ZON files |
 
 If you use this code, please cite:
 * [Jacobs, Junge, Pastewka, Surf. Topogr. Metrol. Prop. 1, 013001 (2017)](https://doi.org/10.1088/2051-672X/aa51f8)
