@@ -57,7 +57,7 @@ def bandwidth(self):
     return lower_bound, upper_bound
 
 
-def plot(self, subplot_location=111):
+def plot(self, subplot_location=111, axes_in_grid_points=False):
     """
     Plot the topography.
 
@@ -65,6 +65,9 @@ def plot(self, subplot_location=111):
     ----------
     subplot_location : int, optional
         The location of the subplot. The default is 111.
+    axes_in_grid_points : bool, optional
+        If True, label x-axis by grid point indices instead of physical
+        positions. (Default: False)
     """
     # We import here because we don't want a global dependence on matplotlib
     import matplotlib.pyplot as plt
@@ -73,8 +76,16 @@ def plot(self, subplot_location=111):
     unit = suggest_length_unit("linear", 0, sx)
     topography = self.to_unit(unit)
     ax = plt.subplot(subplot_location)
-    ax.plot(*topography.positions_and_heights(), label=f"Height ({unit})")
-    ax.set_xlabel(f"Position $x$ ({unit})")
+
+    if axes_in_grid_points:
+        # Plot against index instead of position
+        heights = topography.heights()
+        ax.plot(range(len(heights)), heights, label=f"Height ({unit})")
+        ax.set_xlabel("Grid point $i$")
+    else:
+        ax.plot(*topography.positions_and_heights(), label=f"Height ({unit})")
+        ax.set_xlabel(f"Position $x$ ({unit})")
+
     ax.set_ylabel(f"Height $h$ ({unit})")
     return ax
 

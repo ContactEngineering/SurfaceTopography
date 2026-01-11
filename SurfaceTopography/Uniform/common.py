@@ -100,7 +100,7 @@ def domain_decompose(
     )
 
 
-def plot_2d(topography, subplot_location=111):
+def plot_2d(topography, subplot_location=111, axes_in_grid_points=False):
     """
     Plot an image of the topography using matplotlib.
 
@@ -108,43 +108,78 @@ def plot_2d(topography, subplot_location=111):
     ----------
     topography : :obj:`SurfaceTopography`
         Height information
+    subplot_location : int, optional
+        Matplotlib subplot location. (Default: 111)
+    axes_in_grid_points : bool, optional
+        If True, label axes by grid point indices instead of physical
+        positions. (Default: False)
     """
     # We import here because we don't want a global dependence on matplotlib
     import matplotlib.pyplot as plt
 
-    try:
-        sx, sy = topography.to_unit("m").physical_sizes
-        unit = suggest_length_unit("linear", 0, max(sx, sy))
-        topography = topography.to_unit(unit)
-        (
-            sx,
-            sy,
-        ) = topography.physical_sizes
-    except TypeError:
-        sx, sy = topography.nb_grid_pts
-        unit = "a.u."
+    nx, ny = topography.nb_grid_pts
 
-    ax = plt.subplot(subplot_location, aspect=1)
-    mesh = ax.imshow(topography[...].T, extent=(0, sx, sy, 0))
-    plt.colorbar(mesh, ax=ax, label=f"Height ({unit})")
-    ax.set_xlabel(f"Position $x$ ({unit})")
-    ax.set_ylabel(f"Position $y$ ({unit})")
+    if axes_in_grid_points:
+        # Label axes by grid point indices
+        try:
+            topography_m = topography.to_unit("m")
+            sx_m, sy_m = topography_m.physical_sizes
+            unit = suggest_length_unit("linear", 0, max(sx_m, sy_m))
+            topography = topography.to_unit(unit)
+        except TypeError:
+            unit = "a.u."
+
+        ax = plt.subplot(subplot_location, aspect=ny / nx)
+        mesh = ax.imshow(topography[...].T, extent=(0, nx, ny, 0))
+        plt.colorbar(mesh, ax=ax, label=f"Height ({unit})")
+        ax.set_xlabel("Grid point $i$")
+        ax.set_ylabel("Grid point $j$")
+    else:
+        # Label axes by physical position
+        try:
+            sx, sy = topography.to_unit("m").physical_sizes
+            unit = suggest_length_unit("linear", 0, max(sx, sy))
+            topography = topography.to_unit(unit)
+            (
+                sx,
+                sy,
+            ) = topography.physical_sizes
+        except TypeError:
+            sx, sy = topography.nb_grid_pts
+            unit = "a.u."
+
+        ax = plt.subplot(subplot_location, aspect=1)
+        mesh = ax.imshow(topography[...].T, extent=(0, sx, sy, 0))
+        plt.colorbar(mesh, ax=ax, label=f"Height ({unit})")
+        ax.set_xlabel(f"Position $x$ ({unit})")
+        ax.set_ylabel(f"Position $y$ ({unit})")
     return ax
 
 
-def plot(topography, subplot_location=111):
+def plot(topography, subplot_location=111, axes_in_grid_points=False):
     """
-    Plot topogaphy.
+    Plot topography.
 
     Parameters
     ----------
     topography : :obj:`SurfaceTopography`
         Height information
+    subplot_location : int, optional
+        Matplotlib subplot location. (Default: 111)
+    axes_in_grid_points : bool, optional
+        If True, label axes by grid point indices instead of physical
+        positions. (Default: False)
     """
     if topography.dim == 2:
-        return plot_2d(topography, subplot_location=subplot_location)
+        return plot_2d(
+            topography,
+            subplot_location=subplot_location,
+            axes_in_grid_points=axes_in_grid_points,
+        )
     else:
-        return topography.to_nonuniform().plot()
+        return topography.to_nonuniform().plot(
+            axes_in_grid_points=axes_in_grid_points
+        )
 
 
 class FilledTopography(DecoratedUniformTopography):

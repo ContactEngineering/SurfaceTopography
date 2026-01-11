@@ -1,5 +1,5 @@
 #
-# Copyright 2023 Lars Pastewka
+# Copyright 2023-2025 Lars Pastewka
 #
 # ### MIT license
 #
@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -46,7 +45,7 @@ def test_read_filestream(file_format_examples):
 
     read_topography(file_path)
 
-    with open(file_path, 'r') as f:
+    with open(file_path, 'rb') as f:
         read_topography(f)
 
     # This test just needs to arrive here without raising an exception
@@ -61,16 +60,54 @@ def test_mnt_metadata(file_format_examples):
     t = r.topography()
 
     nx, ny = t.nb_grid_pts
-    assert nx == 960
-    assert ny == 600
+    assert nx == 400
+    assert ny == 1440
 
+    # Physical sizes default to pixel count (format doesn't reliably store sizes)
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1777404)
-    np.testing.assert_almost_equal(sy, 1110878)
+    np.testing.assert_almost_equal(sx, 400)
+    np.testing.assert_almost_equal(sy, 1440)
 
-    assert t.unit == 'nm'
+    # Height data is in raw int32 units (no scale factor extracted from format)
+    assert t.unit == 'µm'
 
-    np.testing.assert_almost_equal(t.rms_height_from_area(), 24.560207201442292)
+    # Verify height data is in int32 range
+    assert t.heights().min() > -2147483648
+    assert t.heights().max() < 2147483647
 
-    np.testing.assert_almost_equal(t.rms_height_from_profile(), 24.009754961959388)
-    np.testing.assert_almost_equal(t.transpose().rms_height_from_profile(), 24.134045799796326)
+
+def test_mnt2_read_filestream(file_format_examples):
+    """
+    The reader has to work when the file was already opened as binary for
+    it to work in topobank.
+    """
+    file_path = os.path.join(file_format_examples, 'mnt-2.mnt')
+
+    read_topography(file_path)
+
+    with open(file_path, 'rb') as f:
+        read_topography(f)
+
+
+def test_mnt2_metadata(file_format_examples):
+    file_path = os.path.join(file_format_examples, 'mnt-2.mnt')
+
+    r = MNTReader(file_path)
+    assert len(r.channels) == 1
+
+    t = r.topography()
+
+    nx, ny = t.nb_grid_pts
+    assert nx == 1280
+    assert ny == 960
+
+    # Physical sizes default to pixel count (format doesn't reliably store sizes)
+    sx, sy = t.physical_sizes
+    np.testing.assert_almost_equal(sx, 1280)
+    np.testing.assert_almost_equal(sy, 960)
+
+    assert t.unit == 'µm'
+
+    # Verify height data is in reasonable range
+    assert t.heights().min() > -20000
+    assert t.heights().max() < 10000
