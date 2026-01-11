@@ -71,7 +71,42 @@ and compressed height data.
 
     @classmethod
     def _init_block_structures(cls):
-        """Initialize block structure definitions using BlockDefinition."""
+        """Initialize block structure definitions using BlockDefinition.
+
+        MNT File Structure Overview
+        ===========================
+        The ScopedContents stream contains a hierarchical TLV structure:
+
+        [8 bytes: uint64 stream size]
+        [TLV entries...]
+
+        Top-level tags:
+        - 0x0001: Main data container (contains all measurement data)
+        - 0x0002: Format flags (uint32)
+        - 0x0003: Format version (uint32)
+
+        Main container (0x0001) children:
+        - 0x00c8: File metadata container (timestamps, software info)
+        - 0x00c9: Unknown (small, possibly flags)
+        - 0x00ca: Measurement parameters container
+        - 0x00cb: Serial number (UTF-16 encoded string)
+        - 0x012d: Extended metadata container
+        - 0x0003: Dimension parameters (nb_blocks, rows_per_block factors)
+        - 0x0006: Pixel scale factors (physical sizes, units)
+        - 0x02bd: Height data container (zlib-compressed blocks)
+        - 0x0258: Color palette/visualization settings
+        - 0xffff: Section delimiter/marker
+
+        Compressed Data Block Prefix (16 bytes before zlib stream):
+        - Bytes 0-7:  uint64 LE - Element offset (for block ordering)
+        - Bytes 8-11: uint32 LE - Elements per block (nx * rows_per_block)
+        - Bytes 12-15: uint32 LE - Compressed size
+
+        Height Data Format:
+        - Stored as int16 pairs: (height_value, validity_flag)
+        - Height values at even indices, validity at odd indices
+        - Validity: 0 = valid, -1 = invalid/masked
+        """
         # Use importlib to import tlv directly, bypassing package initialization
         # This avoids circular dependency during package initialization
         import importlib.util
@@ -82,50 +117,141 @@ and compressed height data.
         spec.loader.exec_module(tlv_module)
         BlockDefinition = tlv_module.BlockDefinition
 
-        # Main container children (tag 0x0001)
-        main_container_children = {
-            0x00c8: BlockDefinition(container=True),  # File metadata
-            0x00c9: BlockDefinition(),  # Unknown
-            0x00ca: BlockDefinition(container=True),  # Variable-size block
-            0x00cb: BlockDefinition(),  # Serial number (UTF-16)
-            0xffff: BlockDefinition(container=True),  # Marker
-            0x012d: BlockDefinition(container=True),  # Extended metadata
-            0x0190: BlockDefinition(),  # Unknown
-            0x0001: BlockDefinition(),  # Unknown
-            0x0002: BlockDefinition(),  # Unknown
-            0x0003: BlockDefinition(container=True),  # Dimension params
-            0x0004: BlockDefinition(),  # Unknown
-            0x0005: BlockDefinition(),  # Unknown
-            0x0006: BlockDefinition(container=True),  # Pixel scales
-            0x0007: BlockDefinition(),  # Unknown
-            0x0008: BlockDefinition(),  # Unknown
-            0x0009: BlockDefinition(),  # Unknown
-            0x000a: BlockDefinition(container=True),  # Unknown container
-            0x000b: BlockDefinition(),  # Pixel aspect ratio
-            0x000c: BlockDefinition(),  # Unknown
-            0x0064: BlockDefinition(),  # Unknown
-            0x0065: BlockDefinition(),  # Unknown
-            0x0066: BlockDefinition(),  # Unknown
-            0x000d: BlockDefinition(),  # Unknown
-            0x0258: BlockDefinition(container=True),  # Color palette
-            0x02bd: BlockDefinition(container=True),  # Height data container
-            0x0014: BlockDefinition(container=True),
-            0x0015: BlockDefinition(container=True),
-            0x0016: BlockDefinition(container=True),
-            0x0017: BlockDefinition(),
-            0x0018: BlockDefinition(),
-            0x0019: BlockDefinition(container=True),
-            0x001a: BlockDefinition(container=True),
-            0x001b: BlockDefinition(container=True),
+        # =====================================================================
+        # Nested container definitions (deepest first)
+        # =====================================================================
+
+        # File metadata container children (0x00c8)
+        # Contains software info, timestamps, and comments
+        file_metadata_children = {
+            0x0001: BlockDefinition(text=True),   # Software name/version
+            0x0002: BlockDefinition(text=True),   # File description
+            0x0003: BlockDefinition(text=True),   # Operator name
+            0x0004: BlockDefinition(),            # Creation timestamp (variable format)
+            0x0005: BlockDefinition(),            # Modification timestamp
+            0x0006: BlockDefinition(text=True),   # Comment/notes
         }
 
+        # Dimension parameters container children (0x0003 inside main)
+        # Defines the grid structure - critical for dimension extraction
+        dimension_params_children = {
+            0x0001: BlockDefinition(),            # X dimension info
+            0x0002: BlockDefinition(),            # Y dimension info
+            0x0003: BlockDefinition(),            # Block structure info (contains nb_blocks)
+            0x0004: BlockDefinition(),            # Rows per block factors
+        }
+
+        # Pixel scale container children (0x0006 inside main)
+        # Physical dimensions and units
+        pixel_scale_children = {
+            0x0001: BlockDefinition(),            # X scale (likely double)
+            0x0002: BlockDefinition(),            # Y scale (likely double)
+            0x0003: BlockDefinition(),            # Z scale (height scale factor)
+            0x0004: BlockDefinition(text=True),   # X unit string (e.g., "µm")
+            0x0005: BlockDefinition(text=True),   # Y unit string
+            0x0006: BlockDefinition(text=True),   # Z unit string
+        }
+
+        # Measurement parameters container children (0x00ca)
+        measurement_params_children = {
+            0x0001: BlockDefinition(text=True),   # Measurement type/mode
+            0x0002: BlockDefinition(),            # Scan parameters
+            0x0003: BlockDefinition(container=True),  # Instrument settings
+            0x0004: BlockDefinition(text=True),   # Instrument name
+            0x0005: BlockDefinition(text=True),   # Objective/lens info
+        }
+
+        # Height data container children (0x02bd)
+        # Contains the actual zlib-compressed measurement data
+        height_data_children = {
+            0x0001: BlockDefinition(),            # Data block header
+            0x0002: BlockDefinition(              # Compressed data blocks
+                trailing_data=True,               # Zlib stream follows fixed header
+            ),
+        }
+
+        # Extended metadata container children (0x012d)
+        extended_metadata_children = {
+            0x0001: BlockDefinition(text=True),   # Extended description
+            0x0002: BlockDefinition(container=True),  # Additional parameters
+            0x0003: BlockDefinition(),            # Processing flags
+        }
+
+        # Color palette container children (0x0258)
+        color_palette_children = {
+            0x0001: BlockDefinition(),            # Palette info
+            0x0002: BlockDefinition(              # Color data (RGB triplets)
+                trailing_data=True,
+            ),
+        }
+
+        # =====================================================================
+        # Main container children (tag 0x0001)
+        # =====================================================================
+        main_container_children = {
+            # File information
+            0x00c8: BlockDefinition(container=file_metadata_children),
+            0x00c9: BlockDefinition(),            # File flags
+            0x00cb: BlockDefinition(text=True),   # Serial number (UTF-16 LE)
+
+            # Measurement configuration
+            0x00ca: BlockDefinition(container=measurement_params_children),
+            0x012d: BlockDefinition(container=extended_metadata_children),
+            0x0190: BlockDefinition(),            # Acquisition mode
+
+            # Grid structure
+            0x0001: BlockDefinition(),            # Data type identifier
+            0x0002: BlockDefinition(),            # Data format flags
+            0x0003: BlockDefinition(container=dimension_params_children),
+            0x0004: BlockDefinition(),            # Grid type (0=uniform)
+            0x0005: BlockDefinition(),            # Data encoding (int16, etc.)
+
+            # Physical dimensions
+            0x0006: BlockDefinition(container=pixel_scale_children),
+            0x0007: BlockDefinition(),            # Origin X (likely double)
+            0x0008: BlockDefinition(),            # Origin Y
+            0x0009: BlockDefinition(),            # Origin Z
+            0x000a: BlockDefinition(container=True),  # Coordinate system info
+            0x000b: BlockDefinition(),            # Pixel aspect ratio
+            0x000c: BlockDefinition(),            # Rotation angle (degrees)
+            0x000d: BlockDefinition(),            # Tilt angles
+
+            # Statistics (pre-computed by Mountains software)
+            0x0064: BlockDefinition(),            # Height statistics (min, max, mean)
+            0x0065: BlockDefinition(),            # RMS/variance
+            0x0066: BlockDefinition(),            # Skewness/kurtosis
+
+            # Visualization
+            0x0258: BlockDefinition(container=color_palette_children),
+
+            # Height data - the main payload
+            0x02bd: BlockDefinition(container=height_data_children),
+
+            # Processing history
+            0x0014: BlockDefinition(container=True),  # Filter history
+            0x0015: BlockDefinition(container=True),  # Leveling history
+            0x0016: BlockDefinition(container=True),  # Form removal
+            0x0017: BlockDefinition(),            # Processing flags
+            0x0018: BlockDefinition(),            # Quality metrics
+
+            # Regions of interest
+            0x0019: BlockDefinition(container=True),  # ROI definitions
+            0x001a: BlockDefinition(container=True),  # Mask regions
+            0x001b: BlockDefinition(container=True),  # Annotation data
+
+            # Section delimiters
+            0xffff: BlockDefinition(),            # Section marker (empty)
+        }
+
+        # =====================================================================
         # Top-level block structures (after 8-byte size header)
+        # =====================================================================
         cls._block_structures = {
             0x0001: BlockDefinition(container=main_container_children),
-            0x0002: BlockDefinition(),  # Format flags
-            0x0003: BlockDefinition(),  # Format version
-            0x0004: BlockDefinition(),  # Unknown
-            0x0005: BlockDefinition(),  # Unknown
+            0x0002: BlockDefinition(),            # Format flags
+            0x0003: BlockDefinition(),            # Format version
+            0x0004: BlockDefinition(),            # File type identifier
+            0x0005: BlockDefinition(),            # Compatibility flags
         }
 
     def _tlv_read_header_from_bytes(self, data, offset):
