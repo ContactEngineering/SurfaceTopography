@@ -26,128 +26,11 @@ import muGrid
 import numpy as np
 
 
-class NumpyFFTEngine:
-    """
-    A numpy-based FFT engine for 1D topographies.
-
-    muGrid FFTEngine only supports 2D and 3D grids, so we use this wrapper
-    for 1D line scans.
-    """
-
-    class Field:
-        """Simple field wrapper with .p accessor for pixel data."""
-        def __init__(self, data):
-            self._data = data
-
-        @property
-        def p(self):
-            return self._data
-
-        @p.setter
-        def p(self, value):
-            self._data[...] = value
-
-    def __init__(self, nb_grid_pts):
-        self._nb_grid_pts = tuple(nb_grid_pts)
-        self._n = self._nb_grid_pts[0]
-        self._nb_fourier_pts = self._n // 2 + 1
-        # numpy's irfft already normalizes, so normalisation factor is 1.0
-        self._normalisation = 1.0
-        self._real_field = None
-        self._fourier_field = None
-
-    @property
-    def nb_domain_grid_pts(self):
-        return self._nb_grid_pts
-
-    @property
-    def nb_fourier_grid_pts(self):
-        return (self._nb_fourier_pts,)
-
-    @property
-    def normalisation(self):
-        return self._normalisation
-
-    @property
-    def fftfreq(self):
-        """Return normalized FFT frequencies for this engine."""
-        # Return shape (1, n_fourier) to match the expected (dim, *grid_pts) format
-        n = self._nb_grid_pts[0]
-        return (np.arange(n // 2 + 1) / n).reshape(1, -1)
-
-    def real_space_field(self, name, nb_components=1):
-        """Create a real-space field."""
-        if self._real_field is None:
-            self._real_field = self.Field(np.zeros(self._n, dtype=np.float64))
-        return self._real_field
-
-    def fourier_space_field(self, name, nb_components=1):
-        """Create a Fourier-space field."""
-        if self._fourier_field is None:
-            self._fourier_field = self.Field(np.zeros(self._nb_fourier_pts, dtype=np.complex128))
-        return self._fourier_field
-
-    def fft(self, real_field, fourier_field):
-        """Forward FFT: real space -> Fourier space."""
-        fourier_field.p[...] = np.fft.rfft(real_field.p)
-
-    def ifft(self, fourier_field, real_field):
-        """Inverse FFT: Fourier space -> real space."""
-        real_field.p[...] = np.fft.irfft(fourier_field.p, n=self._n)
-
-
-def fftfreq(fft):
-    """
-    Compute normalized FFT frequency grid for an FFT engine.
-
-    Returns an array of shape (dim, *nb_fourier_grid_pts) containing the
-    normalized frequencies (q/n where q is the frequency index and n is the
-    grid size) for each dimension. For a half-complex (r2c) transform,
-    the first dimension uses rfft_freqind and subsequent dimensions use fft_freqind.
-
-    The normalization is required by muGrid.ConvolutionOperator.fourier() which
-    expects phase values in the range [0, 1).
-
-    Parameters
-    ----------
-    fft : muGrid.FFTEngine or NumpyFFTEngine
-        The FFT engine object.
-
-    Returns
-    -------
-    fftfreq : np.ndarray
-        Array of shape (dim, *nb_fourier_grid_pts) containing normalized frequencies.
-        For 1D, shape is (1, nb_fourier_pts).
-        For 2D, shape is (2, nx_fourier, ny).
-    """
-    nb_domain_grid_pts = tuple(fft.nb_domain_grid_pts)
-    dim = len(nb_domain_grid_pts)
-
-    if dim == 1:
-        # For 1D, use numpy-style rfft frequency indices, normalized by n
-        # Return shape (1, n_fourier) to match the expected (dim, *grid_pts) format
-        n = nb_domain_grid_pts[0]
-        return (np.arange(n // 2 + 1) / n).reshape(1, -1)
-    elif dim == 2:
-        nx, ny = nb_domain_grid_pts
-        # First axis is half-complex (rfft), second axis is full (fft)
-        # Normalize by the respective grid size
-        qx = np.array(muGrid.rfft_freqind(nx)) / nx
-        qy = np.array(muGrid.fft_freqind(ny)) / ny
-        QX, QY = np.meshgrid(qx, qy, indexing='ij')
-        return np.array([QX, QY])
-    else:
-        raise NotImplementedError(f"fftfreq not implemented for dim={dim}")
-
-
 def make_fft(topography, communicator=None):
     """
     Instantiate an FFT engine object that can compute the Fourier transform of the
     topography and has the same decomposition layout (or raise an error if
     this is not the case).
-
-    For 1D topographies, a numpy-based FFT engine is used since muGrid only
-    supports 2D and 3D grids.
 
     This function checks if the topography object already has an FFT engine object
     attached to it. If it does, it returns that object. If it doesn't, it
@@ -166,7 +49,7 @@ def make_fft(topography, communicator=None):
 
     Returns
     -------
-    fft : muGrid.FFTEngine or NumpyFFTEngine
+    fft : muGrid.FFTEngine
         The FFT engine object that can compute the Fourier transform of the topography.
 
     Raises
@@ -177,12 +60,6 @@ def make_fft(topography, communicator=None):
     # We only initialize this once and attach it to the topography object
     if hasattr(topography, '_mufft'):
         return topography._mufft
-
-    # Use numpy FFT for 1D topographies (muGrid doesn't support 1D)
-    if topography.dim == 1:
-        fft = NumpyFFTEngine(topography.nb_grid_pts)
-        topography._mufft = fft
-        return fft
 
     if topography.is_domain_decomposed:
         fft = muGrid.FFTEngine(topography.nb_grid_pts,
