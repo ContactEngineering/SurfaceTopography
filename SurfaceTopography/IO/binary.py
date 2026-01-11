@@ -114,6 +114,15 @@ def decode(stream_obj, structure_format, byte_order='@', return_size=False, cont
     local_context = AttrDict()
     total_size = 0
     for entry in structure_format:
+        # Check if entry is a layout class (has from_stream method)
+        if hasattr(entry, 'from_stream'):
+            start_pos = stream_obj.tell()
+            result = entry.from_stream(stream_obj, AttrDict({**local_context, **context}))
+            total_size += stream_obj.tell() - start_pos
+            if isinstance(result, dict):
+                local_context.update(result)
+            continue
+
         entry = list(entry)
         name, format = entry[:2]
 
@@ -361,27 +370,42 @@ class BinaryArray:
 
 
 class RawBuffer:
-    def __init__(self, name, size):
+    def __init__(self, name, size=None, lazy=True):
         """
-        Defines flat binary data to be read into a numpy array.
+        Defines a raw binary data block.
 
         Parameters
         ----------
         name : str
-            Name of the array.
-        size : function or int
-            Function that returns the size and takes a input the current data
-            dictionary.
+            Name of the data block.
+        size : int, callable, or None
+            Size of the data block in bytes. Can be:
+            - An integer for fixed size
+            - A callable that takes context and returns size
+            - None to read size from context['_block_size'] (for TLV parsing)
+        lazy : bool, optional
+            If True, return a ReaderProxy for deferred reading.
+            If False, read data immediately. Default: True.
         """
         self._name = name
         self._size = size
+        self._lazy = lazy
 
     def name(self, context):
         return self._name
 
+    def _get_size(self, context):
+        """Get the size from the configured source."""
+        if self._size is None:
+            return context.get('_block_size', 0)
+        elif callable(self._size):
+            return self._size(context)
+        else:
+            return self._size
+
     def from_stream(self, stream_obj, context):
         """
-        Skip over data block and return reader for block.
+        Read or skip over data block.
 
         Parameters
         ----------
@@ -392,31 +416,35 @@ class RawBuffer:
 
         Returns
         -------
-        context : dict
-            Context dictionary with file reader.
+        dict
+            Dictionary with the data or a reader proxy.
         """
+        size = self._get_size(context)
+        name = self.name(context)
 
-        class ReaderProxy:
-            def __init__(self, raw_buffer, data, file_pos):
-                self._raw_buffer = raw_buffer
-                self._data = data
-                self._file_pos = file_pos
+        if self._lazy:
+            # Lazy loading - skip data and return proxy
+            class ReaderProxy:
+                def __init__(self, raw_buffer, data, file_pos):
+                    self._raw_buffer = raw_buffer
+                    self._data = data
+                    self._file_pos = file_pos
 
-            def __call__(self, stream_obj):
-                stream_obj.seek(self._file_pos)
-                return self._raw_buffer.read(stream_obj, self._data)
+                def __call__(self, stream_obj):
+                    stream_obj.seek(self._file_pos)
+                    return self._raw_buffer.read(stream_obj, self._data)
 
-        size = self._size(context) if callable(self._size) else self._size
-
-        file_pos = stream_obj.tell()
-
-        stream_obj.seek(size, os.SEEK_CUR)
-
-        return {self.name(context): ReaderProxy(self, context, file_pos)}
+            file_pos = stream_obj.tell()
+            stream_obj.seek(size, os.SEEK_CUR)
+            return {name: ReaderProxy(self, context, file_pos)}
+        else:
+            # Immediate loading - read data now
+            data = stream_obj.read(size)
+            return {name: {'_raw': data, '_size': size}}
 
     def read(self, stream_obj, context):
         """
-        Read data block into numpy array.
+        Read data block.
 
         Parameters
         ----------
@@ -430,5 +458,266 @@ class RawBuffer:
         buffer : bytes
             Buffer containing the raw data.
         """
-        size = self._size(context) if callable(self._size) else self._size
+        size = self._get_size(context)
         return stream_obj.read(size)
+
+
+class TextBuffer(LayoutWithNameBase):
+    """
+    Reads a text block from a binary stream.
+
+    Parameters
+    ----------
+    name : str
+        Name of the text entry.
+    size : int, callable, or None
+        Size of the text block in bytes. Can be:
+        - An integer for fixed size
+        - A callable that takes context and returns size
+        - None to read size from context['_block_size'] (for TLV parsing)
+    encoding : str, optional
+        Text encoding. Default: 'ascii'.
+    """
+
+    def __init__(self, name, size=None, encoding='ascii'):
+        self._name = name
+        self._size = size
+        self._encoding = encoding
+
+    def name(self, context):
+        return self._name
+
+    def _get_size(self, context):
+        """Get the size from the configured source."""
+        if self._size is None:
+            return context.get('_block_size', 0)
+        elif callable(self._size):
+            return self._size(context)
+        else:
+            return self._size
+
+    def from_stream(self, stream_obj, context):
+        size = self._get_size(context)
+        data = stream_obj.read(size)
+        text = data.decode(self._encoding, errors='replace').strip('\x00')
+        return {self.name(context): text}
+
+
+class TLVContainer(LayoutWithNameBase):
+    """
+    Reads TLV (Tag-Length-Value) encoded blocks from a binary stream.
+
+    TLV format:
+    - Tag: identifies the block type (uint16 by default)
+    - Length: size of the data section
+    - Value: the actual data
+
+    Parameters
+    ----------
+    tag_map : dict
+        Maps tag IDs to layout classes. Each layout class must have a
+        `from_stream(stream_obj, context)` method. Special values:
+        - None or missing: store raw bytes
+        - 'text': treat as ASCII text
+        - Layout class instance: use that layout to parse
+    name : str, optional
+        Name for this container in the result dict. Default: None.
+    tag_format : str, optional
+        Format for tag field. Default: '<H' (uint16 LE).
+    size_format : str, optional
+        Format for size field. Default: '<Q' (uint64 LE).
+        Use '<I' for uint32.
+    count : int or callable, optional
+        Number of TLV entries to read. If None, reads until end of
+        container (requires knowing the container size). Default: None.
+    container_size : int or callable, optional
+        Total size of the container in bytes. Used when count is None
+        to determine when to stop reading. Default: None.
+    store_by_name : bool, optional
+        If True, also store entries by their layout's name (if available)
+        in addition to by tag ID. Default: True.
+    """
+
+    def __init__(self, tag_map, name=None, tag_format='<H', size_format='<Q',
+                 count=None, container_size=None, store_by_name=True):
+        self._tag_map = tag_map
+        self._name = name
+        self._tag_format = tag_format
+        self._size_format = size_format
+        self._count = count
+        self._container_size = container_size
+        self._store_by_name = store_by_name
+
+    def name(self, context):
+        return self._name
+
+    def _read_header(self, stream_obj):
+        """Read TLV header (tag + size) from stream."""
+        tag_size = calcsize(self._tag_format)
+        tag_data = stream_obj.read(tag_size)
+        if len(tag_data) < tag_size:
+            return None, None
+        tag = unpack(self._tag_format, tag_data)[0]
+
+        size_size = calcsize(self._size_format)
+        size_data = stream_obj.read(size_size)
+        if len(size_data) < size_size:
+            return None, None
+        size = unpack(self._size_format, size_data)[0]
+
+        return tag, size
+
+    def _parse_entry(self, stream_obj, tag, size, context):
+        """Parse a single TLV entry based on its tag."""
+        layout = self._tag_map.get(tag)
+
+        if layout is None:
+            # Unknown tag - store raw bytes
+            return {'_raw': stream_obj.read(size), '_size': size}, None
+
+        if layout == 'text':
+            # Text block shorthand
+            data = stream_obj.read(size)
+            text = data.decode('ascii', errors='replace').strip('\x00')
+            return text, None
+
+        if isinstance(layout, TLVContainer):
+            # Nested container - create context with size info
+            nested_context = AttrDict({**context, '_container_size': size})
+            # Override container_size for nested parsing
+            old_size = layout._container_size
+            layout._container_size = size
+            result = layout.from_stream(stream_obj, nested_context)
+            layout._container_size = old_size
+            # Extract the inner dict if it was wrapped with a name
+            layout_name = layout.name(context)
+            if layout_name and layout_name in result:
+                return result[layout_name], layout_name
+            return result, layout_name
+
+        if hasattr(layout, 'from_stream'):
+            # Layout class with from_stream method
+            # Create a sub-context with size information
+            sub_context = AttrDict({**context, '_block_size': size})
+            result = layout.from_stream(stream_obj, sub_context)
+            layout_name = layout.name(context) if hasattr(layout, 'name') else None
+            # Handle layouts that return {name: value}
+            if layout_name and isinstance(result, dict) and layout_name in result:
+                return result[layout_name], layout_name
+            return result, layout_name
+
+        # Fallback - store raw bytes
+        return {'_raw': stream_obj.read(size), '_size': size}, None
+
+    def from_stream(self, stream_obj, context):
+        """
+        Parse TLV entries from stream.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        dict
+            Dictionary with parsed entries keyed by tag ID.
+        """
+        entries = {}
+        start_pos = stream_obj.tell()
+
+        # Determine how many entries to read
+        count = self._count(context) if callable(self._count) else self._count
+        container_size = (self._container_size(context)
+                          if callable(self._container_size)
+                          else self._container_size)
+
+        entries_read = 0
+        while True:
+            # Check termination conditions
+            if count is not None and entries_read >= count:
+                break
+            if container_size is not None:
+                if stream_obj.tell() - start_pos >= container_size:
+                    break
+
+            # Read header
+            tag, size = self._read_header(stream_obj)
+            if tag is None or size is None:
+                break
+
+            # Bounds check for container
+            if container_size is not None:
+                if stream_obj.tell() + size > start_pos + container_size:
+                    break
+
+            # Parse entry
+            entry, layout_name = self._parse_entry(stream_obj, tag, size, context)
+
+            # Store by tag ID
+            if tag in entries:
+                if not isinstance(entries[tag], list):
+                    entries[tag] = [entries[tag]]
+                entries[tag].append(entry)
+            else:
+                entries[tag] = entry
+
+            # Also store by name if available and enabled
+            if self._store_by_name and layout_name:
+                if layout_name in entries:
+                    if not isinstance(entries[layout_name], list):
+                        entries[layout_name] = [entries[layout_name]]
+                    entries[layout_name].append(entry)
+                else:
+                    entries[layout_name] = entry
+
+            entries_read += 1
+
+        # Wrap in name if provided
+        name = self.name(context)
+        if name is not None:
+            return {name: entries}
+        return entries
+
+
+class FieldsWithTrailingData(LayoutWithNameBase):
+    """
+    Layout that parses structured fields then stores remaining bytes as raw data.
+
+    This is useful for TLV blocks that have a known header structure followed
+    by variable-length data (e.g., compressed data blocks).
+
+    Parameters
+    ----------
+    name : str
+        Name for this block in the result dict.
+    fields : list
+        Field definitions for the header. Can include:
+        - Tuples: (name, format) following struct module conventions
+        - Layout classes: Objects with from_stream() method (like For)
+    """
+
+    def __init__(self, name, fields):
+        self._name = name
+        self._fields = fields
+
+    def from_stream(self, stream_obj, context):
+        block_size = context.get('_block_size', 0)
+
+        # Parse fields (decode handles layout classes in fields)
+        result, fields_size = decode(
+            stream_obj, self._fields, byte_order='<', return_size=True,
+            context=context
+        )
+
+        # Store remaining bytes as raw data
+        remaining = block_size - fields_size
+        if remaining > 0:
+            result['_raw'] = stream_obj.read(remaining)
+
+        name = self.name(context)
+        if name:
+            return {name: result}
+        return result

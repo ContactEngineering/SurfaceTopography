@@ -43,12 +43,14 @@ or other small values.
 
 import struct
 import zlib
+from io import BytesIO
 
 import numpy as np
 import olefile
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
+from .binary import BinaryStructure, RawBuffer, TextBuffer, TLVContainer
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
 
@@ -65,13 +67,13 @@ Microsoft Compound Document (OLE) file containing TLV-encoded metadata
 and compressed height data.
 '''
 
-    # Block structures are initialized lazily to avoid circular imports
+    # Block structures and TLV parser are initialized lazily to avoid circular imports
     _block_structures = None
-    _tlv_size_bytes = 8  # MNT uses uint64 size fields
+    _tlv_parser = None
 
     @classmethod
     def _init_block_structures(cls):
-        """Initialize block structure definitions using BlockDefinition.
+        """Initialize TLV block structure definitions.
 
         MNT File Structure Overview
         ===========================
@@ -107,260 +109,162 @@ and compressed height data.
         - Height values at even indices, validity at odd indices
         - Validity: 0 = valid, -1 = invalid/masked
         """
-        # Use importlib to import tlv directly, bypassing package initialization
-        # This avoids circular dependency during package initialization
-        import importlib.util
-        import os
-        tlv_path = os.path.join(os.path.dirname(__file__), 'tlv.py')
-        spec = importlib.util.spec_from_file_location('tlv', tlv_path)
-        tlv_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(tlv_module)
-        BlockDefinition = tlv_module.BlockDefinition
+
+        # Helper to create RawBuffer with immediate loading (for unknown blocks)
+        def raw(name):
+            return RawBuffer(name, size=None, lazy=False)
+
+        # Helper to create BinaryStructure with single uint32 field
+        def uint32(name):
+            return BinaryStructure([('value', 'I')], name=name)
 
         # =====================================================================
         # Nested container definitions (deepest first)
+        #
+        # Legend:
+        #   [CONFIRMED] - Verified through hex analysis of multiple files
+        #   [LIKELY]    - Strong evidence but not fully confirmed
+        #   [GUESS]     - Speculative based on tag position or similar formats
+        #   [UNKNOWN]   - Purpose unknown, included for completeness
         # =====================================================================
 
-        # File metadata container children (0x00c8)
-        # Contains software info, timestamps, and comments
-        file_metadata_children = {
-            0x0001: BlockDefinition(text=True),   # Software name/version
-            0x0002: BlockDefinition(text=True),   # File description
-            0x0003: BlockDefinition(text=True),   # Operator name
-            0x0004: BlockDefinition(),            # Creation timestamp (variable format)
-            0x0005: BlockDefinition(),            # Modification timestamp
-            0x0006: BlockDefinition(text=True),   # Comment/notes
+        SIZE_FMT = '<Q'  # MNT uses uint64 LE size fields
+
+        # Container 0x00c8 children - [CONFIRMED] block dimension parameters
+        # Evidence: Tags 0x0001 and 0x0002 contain factor_a and factor_b
+        # which multiply to give rows_per_block
+        block_params_children = {
+            0x0001: uint32('factor_a'),   # [CONFIRMED] uint32
+            0x0002: uint32('factor_b'),   # [CONFIRMED] uint32
+            0x0003: uint32('param_3'),    # [UNKNOWN] uint32
+            0x0004: uint32('param_4'),    # [UNKNOWN] uint32
+            0x0005: uint32('param_5'),    # [UNKNOWN] uint32
+            0x0006: uint32('param_6'),    # [UNKNOWN] uint32
+            0x0007: uint32('param_7'),    # [UNKNOWN] uint32
+            0x0008: raw('param_8'),       # [UNKNOWN] variable size
+            0x0009: raw('param_9'),       # [UNKNOWN] variable size
+            0x000a: raw('param_10'),      # [UNKNOWN] variable size
         }
 
-        # Dimension parameters container children (0x0003 inside main)
-        # Defines the grid structure - critical for dimension extraction
+        # Container 0x0003 children (inside main) - dimension parameters
         dimension_params_children = {
-            0x0001: BlockDefinition(),            # X dimension info
-            0x0002: BlockDefinition(),            # Y dimension info
-            0x0003: BlockDefinition(),            # Block structure info (contains nb_blocks)
-            0x0004: BlockDefinition(),            # Rows per block factors
+            0x0001: uint32('nx'),         # [LIKELY] X dimension as uint32
+            0x0002: uint32('ny'),         # [LIKELY] Y dimension as uint32
         }
 
-        # Pixel scale container children (0x0006 inside main)
-        # Physical dimensions and units
+        # Container 0x0006 children - [GUESS] possibly pixel scales/units
+        # Evidence: Similar structure to SUR format scale blocks
         pixel_scale_children = {
-            0x0001: BlockDefinition(),            # X scale (likely double)
-            0x0002: BlockDefinition(),            # Y scale (likely double)
-            0x0003: BlockDefinition(),            # Z scale (height scale factor)
-            0x0004: BlockDefinition(text=True),   # X unit string (e.g., "µm")
-            0x0005: BlockDefinition(text=True),   # Y unit string
-            0x0006: BlockDefinition(text=True),   # Z unit string
+            0x0001: raw('x_scale'),                  # [GUESS] Possibly X scale
+            0x0002: raw('y_scale'),                  # [GUESS] Possibly Y scale
+            0x0003: raw('z_scale'),                  # [GUESS] Possibly Z scale
+            0x0004: TextBuffer('x_unit'),            # [LIKELY] Contains ASCII text (unit?)
+            0x0005: TextBuffer('y_unit'),            # [LIKELY] Contains ASCII text (unit?)
+            0x0006: TextBuffer('z_unit'),            # [LIKELY] Contains ASCII text (unit?)
         }
 
-        # Measurement parameters container children (0x00ca)
+        # Container 0x00ca children - [GUESS] possibly measurement parameters
         measurement_params_children = {
-            0x0001: BlockDefinition(text=True),   # Measurement type/mode
-            0x0002: BlockDefinition(),            # Scan parameters
-            0x0003: BlockDefinition(container=True),  # Instrument settings
-            0x0004: BlockDefinition(text=True),   # Instrument name
-            0x0005: BlockDefinition(text=True),   # Objective/lens info
+            0x0001: raw('measurement_type'),         # [UNKNOWN] 1 byte
+            0x0002: raw('scan_params'),              # [UNKNOWN]
+            0x0003: raw('instrument_settings'),      # [CONFIRMED] Container with unknown structure
+            0x0004: TextBuffer('instrument_name'),   # [LIKELY] Contains ASCII text
+            0x0005: TextBuffer('objective'),         # [LIKELY] Contains ASCII text
         }
 
-        # Height data container children (0x02bd)
-        # Contains the actual zlib-compressed measurement data
+        # Container 0x02bd children - [CONFIRMED] height data
+        # Evidence: Contains zlib-compressed blocks with known prefix structure
         height_data_children = {
-            0x0001: BlockDefinition(),            # Data block header
-            0x0002: BlockDefinition(              # Compressed data blocks
-                trailing_data=True,               # Zlib stream follows fixed header
-            ),
+            0x0001: raw('data_header'),              # [UNKNOWN] Appears before compressed data
+            0x0002: raw('compressed_blocks'),        # [CONFIRMED] Compressed data blocks (zlib stream)
         }
 
-        # Extended metadata container children (0x012d)
+        # Container 0x012d children - [UNKNOWN]
         extended_metadata_children = {
-            0x0001: BlockDefinition(text=True),   # Extended description
-            0x0002: BlockDefinition(container=True),  # Additional parameters
-            0x0003: BlockDefinition(),            # Processing flags
+            0x0001: TextBuffer('extended_description'),  # [LIKELY] Contains ASCII text
+            0x0002: raw('extended_params'),          # [CONFIRMED] Container with unknown structure
+            0x0003: raw('extended_flags'),           # [UNKNOWN]
         }
 
-        # Color palette container children (0x0258)
+        # Container 0x0258 children - [GUESS] possibly visualization/palette
+        # Evidence: Only present in some files, similar tag range to other formats
         color_palette_children = {
-            0x0001: BlockDefinition(),            # Palette info
-            0x0002: BlockDefinition(              # Color data (RGB triplets)
-                trailing_data=True,
-            ),
+            0x0001: raw('palette_info'),             # [UNKNOWN]
+            0x0002: raw('palette_data'),             # [UNKNOWN]
         }
 
         # =====================================================================
         # Main container children (tag 0x0001)
+        # [CONFIRMED] Tag 0x0001 is the main container
         # =====================================================================
         main_container_children = {
-            # File information
-            0x00c8: BlockDefinition(container=file_metadata_children),
-            0x00c9: BlockDefinition(),            # File flags
-            0x00cb: BlockDefinition(text=True),   # Serial number (UTF-16 LE)
+            # [CONFIRMED] These tags exist and are containers or leaf nodes as marked
+            0x00c8: TLVContainer(block_params_children, name='block_params', size_format=SIZE_FMT),
+            0x00c9: raw('file_flags'),               # [UNKNOWN]
+            0x00cb: TextBuffer('serial_number'),     # [LIKELY] Contains text (serial number?)
 
-            # Measurement configuration
-            0x00ca: BlockDefinition(container=measurement_params_children),
-            0x012d: BlockDefinition(container=extended_metadata_children),
-            0x0190: BlockDefinition(),            # Acquisition mode
+            0x00ca: TLVContainer(measurement_params_children, name='measurement_params', size_format=SIZE_FMT),
+            0x012d: TLVContainer(extended_metadata_children, name='extended_metadata', size_format=SIZE_FMT),
+            0x0190: raw('acquisition_mode'),         # [UNKNOWN]
 
-            # Grid structure
-            0x0001: BlockDefinition(),            # Data type identifier
-            0x0002: BlockDefinition(),            # Data format flags
-            0x0003: BlockDefinition(container=dimension_params_children),
-            0x0004: BlockDefinition(),            # Grid type (0=uniform)
-            0x0005: BlockDefinition(),            # Data encoding (int16, etc.)
+            # Grid structure - [CONFIRMED] tag 0x0003 contains dimension info
+            0x0001: raw('data_type'),                # [UNKNOWN]
+            0x0002: raw('format_flags'),             # [UNKNOWN]
+            0x0003: TLVContainer(dimension_params_children, name='dimension_params', size_format=SIZE_FMT),
+            0x0004: raw('grid_type'),                # [UNKNOWN]
+            0x0005: raw('data_encoding'),            # [UNKNOWN]
 
-            # Physical dimensions
-            0x0006: BlockDefinition(container=pixel_scale_children),
-            0x0007: BlockDefinition(),            # Origin X (likely double)
-            0x0008: BlockDefinition(),            # Origin Y
-            0x0009: BlockDefinition(),            # Origin Z
-            0x000a: BlockDefinition(container=True),  # Coordinate system info
-            0x000b: BlockDefinition(),            # Pixel aspect ratio
-            0x000c: BlockDefinition(),            # Rotation angle (degrees)
-            0x000d: BlockDefinition(),            # Tilt angles
+            # [GUESS] Tags 0x0006-0x000d might be physical dimensions
+            0x0006: TLVContainer(pixel_scale_children, name='pixel_scales', size_format=SIZE_FMT),
+            0x0007: raw('origin_x'),                 # [UNKNOWN]
+            0x0008: raw('origin_y'),                 # [UNKNOWN]
+            0x0009: raw('origin_z'),                 # [UNKNOWN]
+            0x000a: raw('coordinate_system'),        # [CONFIRMED] Container with unknown structure
+            0x000b: raw('aspect_ratio'),             # [UNKNOWN]
+            0x000c: raw('rotation'),                 # [UNKNOWN]
+            0x000d: raw('tilt'),                     # [UNKNOWN]
 
-            # Statistics (pre-computed by Mountains software)
-            0x0064: BlockDefinition(),            # Height statistics (min, max, mean)
-            0x0065: BlockDefinition(),            # RMS/variance
-            0x0066: BlockDefinition(),            # Skewness/kurtosis
+            # [GUESS] Tags 0x0064-0x0066 grouped together, maybe statistics
+            0x0064: raw('height_stats'),             # [UNKNOWN]
+            0x0065: raw('rms_stats'),                # [UNKNOWN]
+            0x0066: raw('higher_moments'),           # [UNKNOWN]
 
-            # Visualization
-            0x0258: BlockDefinition(container=color_palette_children),
+            0x0258: TLVContainer(color_palette_children, name='color_palette', size_format=SIZE_FMT),
 
-            # Height data - the main payload
-            0x02bd: BlockDefinition(container=height_data_children),
+            # [CONFIRMED] Height data container
+            0x02bd: TLVContainer(height_data_children, name='height_data', size_format=SIZE_FMT),
 
-            # Processing history
-            0x0014: BlockDefinition(container=True),  # Filter history
-            0x0015: BlockDefinition(container=True),  # Leveling history
-            0x0016: BlockDefinition(container=True),  # Form removal
-            0x0017: BlockDefinition(),            # Processing flags
-            0x0018: BlockDefinition(),            # Quality metrics
+            # [GUESS] Tags 0x0014-0x001b might be processing/ROI related
+            # These are containers but with unknown child structure, so we store raw data
+            0x0014: raw('filter_history'),           # [CONFIRMED] Container with unknown structure
+            0x0015: raw('leveling_history'),         # [CONFIRMED] Container with unknown structure
+            0x0016: raw('form_removal'),             # [CONFIRMED] Container with unknown structure
+            0x0017: raw('processing_flags'),         # [UNKNOWN]
+            0x0018: raw('quality_score'),            # [UNKNOWN]
+            0x0019: raw('roi_definitions'),          # [CONFIRMED] Container with unknown structure
+            0x001a: raw('mask_regions'),             # [CONFIRMED] Container with unknown structure
+            0x001b: raw('annotations'),              # [CONFIRMED] Container with unknown structure
 
-            # Regions of interest
-            0x0019: BlockDefinition(container=True),  # ROI definitions
-            0x001a: BlockDefinition(container=True),  # Mask regions
-            0x001b: BlockDefinition(container=True),  # Annotation data
-
-            # Section delimiters
-            0xffff: BlockDefinition(),            # Section marker (empty)
+            0xffff: raw('section_marker'),           # [LIKELY] Delimiter/marker (common pattern)
         }
 
         # =====================================================================
         # Top-level block structures (after 8-byte size header)
+        # [CONFIRMED] TLV structure: uint16 tag + uint64 size + data
         # =====================================================================
         cls._block_structures = {
-            0x0001: BlockDefinition(container=main_container_children),
-            0x0002: BlockDefinition(),            # Format flags
-            0x0003: BlockDefinition(),            # Format version
-            0x0004: BlockDefinition(),            # File type identifier
-            0x0005: BlockDefinition(),            # Compatibility flags
+            0x0001: TLVContainer(main_container_children, name='main', size_format=SIZE_FMT),
+            0x0002: raw('format_flags'),             # [UNKNOWN]
+            0x0003: raw('format_version'),           # [UNKNOWN]
+            0x0004: raw('file_type'),                # [UNKNOWN]
+            0x0005: BinaryStructure([('value', 'Q')], name='num_blocks'),  # [CONFIRMED] uint64
         }
 
-    def _tlv_read_header_from_bytes(self, data, offset):
-        """Read TLV header (tag + size) from byte buffer."""
-        header_size = 2 + self._tlv_size_bytes
-        if offset + header_size > len(data):
-            return None, None, offset
-
-        tag = struct.unpack_from('<H', data, offset)[0]
-        size = struct.unpack_from('<Q', data, offset + 2)[0]
-        return tag, size, offset + header_size
-
-    def _tlv_parse_nested_bytes(self, data, start=0, end=None, block_defs=None):
-        """
-        Parse nested TLV structure from a byte buffer.
-
-        Parameters
-        ----------
-        data : bytes
-            Binary data buffer containing TLV entries.
-        start : int, optional
-            Start offset within buffer. Default: 0.
-        end : int, optional
-            End offset within buffer. Default: len(data).
-        block_defs : dict, optional
-            Block definitions to use. Default: self._block_structures.
-
-        Returns
-        -------
-        dict
-            Dictionary of parsed entries, keyed by tag ID.
-        """
-        if end is None:
-            end = len(data)
-        if block_defs is None:
-            block_defs = self._block_structures
-
-        entries = {}
-        pos = start
-
-        while pos < end:
-            tag, size, data_start = self._tlv_read_header_from_bytes(data, pos)
-            if tag is None or size is None:
-                break
-
-            data_end = data_start + size
-            if data_end > end:
-                break
-
-            block_def = block_defs.get(tag) if block_defs else None
-
-            if block_def is None:
-                # Unknown block - store raw data
-                entry = {'_raw': data[data_start:data_end], '_size': size}
-            elif block_def.text:
-                # ASCII text block
-                entry = {
-                    'text': data[data_start:data_end].decode(
-                        'ascii', errors='replace'
-                    ).strip('\x00')
-                }
-            elif block_def.container:
-                # Nested container - use child definitions if provided
-                if isinstance(block_def.container, dict):
-                    child_defs = block_def.container
-                else:
-                    child_defs = block_defs
-                entry = self._tlv_parse_nested_bytes(
-                    data, data_start, data_end, child_defs
-                )
-            elif block_def.fields:
-                # Structured block - parse fields
-                entry = self._parse_fields(data[data_start:data_end], block_def.fields)
-            else:
-                entry = {'_raw': data[data_start:data_end], '_size': size}
-
-            # Handle duplicate tags by converting to list
-            if tag in entries:
-                if not isinstance(entries[tag], list):
-                    entries[tag] = [entries[tag]]
-                entries[tag].append(entry)
-            else:
-                entries[tag] = entry
-
-            pos = data_end
-
-        return entries
-
-    def _parse_fields(self, data, fields):
-        """Parse structured fields from byte data."""
-        result = {}
-        offset = 0
-        for name, fmt in fields:
-            if fmt == 'B':
-                result[name] = data[offset]
-                offset += 1
-            elif fmt == 'H':
-                result[name] = struct.unpack_from('<H', data, offset)[0]
-                offset += 2
-            elif fmt == 'I':
-                result[name] = struct.unpack_from('<I', data, offset)[0]
-                offset += 4
-            elif fmt == 'Q':
-                result[name] = struct.unpack_from('<Q', data, offset)[0]
-                offset += 8
-            elif fmt == 'd':
-                result[name] = struct.unpack_from('<d', data, offset)[0]
-                offset += 8
-        return result
+        # Create top-level TLV parser
+        cls._tlv_parser = TLVContainer(
+            cls._block_structures,
+            size_format=SIZE_FMT
+        )
 
     def __init__(self, fobj):
         """
@@ -411,39 +315,58 @@ and compressed height data.
 
         # Parse TLV structure for metadata storage
         # First 8 bytes are stream size (skip), then TLV entries start
-        self._metadata = self._tlv_parse_nested_bytes(scoped_contents, start=8)
+        stream = BytesIO(scoped_contents[8:])
+        self._metadata = self._tlv_parser.from_stream(stream, {})
 
-        # Extract dimension parameters from fixed byte offsets within TLV structure
-        # These offsets are consistent across files and more reliable than
-        # parsing nested TLV values which have variable encodings
-        num_blocks = scoped_contents[0x3d]   # Number of compressed blocks
-        factor_a = scoped_contents[0x63]     # First rows-per-block factor
-        factor_b = scoped_contents[0x71]     # Second rows-per-block factor
+        # Extract dimension parameters from parsed metadata
+        try:
+            num_blocks = self._metadata['num_blocks']['value']
+        except (KeyError, TypeError):
+            ole.close()
+            raise CorruptFile('Missing num_blocks in metadata')
+
+        try:
+            main = self._metadata['main']
+            block_params = main['block_params']
+            factor_a = block_params['factor_a']['value']
+            factor_b = block_params['factor_b']['value']
+        except (KeyError, TypeError):
+            ole.close()
+            raise CorruptFile('Missing block parameters in metadata')
+
         rows_per_block = factor_a * factor_b
 
         if num_blocks == 0 or rows_per_block == 0:
             ole.close()
-            raise CorruptFile('Invalid dimension parameters in header')
+            raise CorruptFile('Invalid dimension parameters in metadata')
 
-        # Find all zlib-compressed blocks
+        # Extract compressed height data from parsed metadata
+        try:
+            height_data = main['height_data']
+            compressed_blocks_raw = height_data['compressed_blocks']['_raw']
+        except (KeyError, TypeError):
+            ole.close()
+            raise CorruptFile('Missing compressed height data in metadata')
+
+        # Find all zlib-compressed blocks within the compressed data
         # Each block has a 16-byte prefix:
         #   Bytes 0-7:  uint64 LE - Element offset (for ordering)
         #   Bytes 8-11: uint32 LE - Elements per block
         #   Bytes 12-15: uint32 LE - Compressed size
         zlib_blocks = []
         i = 0
-        while i < len(scoped_contents) - 2:
+        while i < len(compressed_blocks_raw) - 2:
             # Check for zlib header bytes
-            if (scoped_contents[i] == 0x78 and
-                    scoped_contents[i + 1] in [0x01, 0x5e, 0x9c, 0xda]):
+            if (compressed_blocks_raw[i] == 0x78 and
+                    compressed_blocks_raw[i + 1] in [0x01, 0x5e, 0x9c, 0xda]):
                 try:
-                    decompressed = zlib.decompress(scoped_contents[i:])
+                    decompressed = zlib.decompress(compressed_blocks_raw[i:])
                     if len(decompressed) >= 1000:  # Only substantial blocks
                         # Extract block prefix information
                         element_offset = 0
                         elements_per_block = 0
                         if i >= 16:
-                            prefix = scoped_contents[i - 16:i]
+                            prefix = compressed_blocks_raw[i - 16:i]
                             element_offset = struct.unpack('<Q', prefix[0:8])[0]
                             elements_per_block = struct.unpack('<I', prefix[8:12])[0]
                         zlib_blocks.append({
@@ -459,7 +382,7 @@ and compressed height data.
 
         if not zlib_blocks:
             ole.close()
-            raise CorruptFile('No zlib-compressed data found')
+            raise CorruptFile('No zlib-compressed data found in height data')
 
         # Group blocks by elements_per_block to identify height data blocks
         blocks_by_epb = {}
