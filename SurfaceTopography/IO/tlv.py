@@ -23,110 +23,327 @@
 #
 
 """
-TLV (Tag-Length-Value) parsing infrastructure for Digital Surf file formats.
+Unified TLV (Tag-Length-Value) reader infrastructure for Digital Surf formats.
 
-This module provides common TLV parsing functionality used by both FRT and MNT
-file format readers. Both formats use a similar structure:
+Both FRT and MNT formats use TLV encoding with:
 - Tag: uint16 LE
 - Size: uint32 LE (FRT 1.00) or uint64 LE (FRT 1.01, MNT)
 - Data: variable length
 
-The MNT format uses nested TLV structures where container tags hold additional
-TLV sequences.
+This module provides:
+- TLVReaderMixin: Common TLV parsing methods for reader classes
+
+Block definitions are in block_definition.py to avoid circular imports.
 """
 
+import os
 import struct
-from io import BytesIO
+
+from .binary import decode
+from .block_definition import BlockDefinition, block  # noqa: F401
 
 
-class TLVParser:
+class TLVReaderMixin:
     """
-    Parser for TLV (Tag-Length-Value) encoded binary data.
+    Mixin class providing TLV parsing methods for file format readers.
 
-    Parameters
-    ----------
-    size_bytes : int
-        Number of bytes for the size field (4 for uint32, 8 for uint64).
-    byte_order : str
-        Byte order ('<' for little-endian, '>' for big-endian).
+    Subclasses should define:
+    - _block_structures: dict mapping tag IDs to BlockDefinition instances
+    - _tlv_size_bytes: 4 for uint32, 8 for uint64 size fields (default: 8)
+
+    The mixin provides methods for:
+    - Reading TLV headers
+    - Parsing individual blocks according to their definitions
+    - Parsing flat block sequences (FRT style)
+    - Parsing nested containers (MNT style)
     """
 
-    def __init__(self, size_bytes=8, byte_order='<'):
-        self.size_bytes = size_bytes
-        self.byte_order = byte_order
-        if size_bytes == 4:
-            self._size_format = f'{byte_order}I'
-        elif size_bytes == 8:
-            self._size_format = f'{byte_order}Q'
-        else:
-            raise ValueError(f"Unsupported size_bytes: {size_bytes}")
-        self._tag_format = f'{byte_order}H'
-        self._header_size = 2 + size_bytes
+    _block_structures = {}  # Override in subclass
+    _tlv_size_bytes = 8  # Override in subclass if needed
 
-    def parse_header(self, data, offset):
+    def _tlv_read_header(self, f):
         """
-        Parse a TLV header at the given offset.
+        Read a TLV header (tag + size) from a file stream.
+
+        Parameters
+        ----------
+        f : file-like object
+            Binary file stream positioned at start of TLV entry.
 
         Returns
         -------
-        tuple : (tag, size, data_start)
-            Tag value, data size, and offset where data starts.
+        tag : int or None
+            Tag value (uint16), or None if end of data.
+        size : int or None
+            Size of data section in bytes, or None if end of data.
         """
-        if offset + self._header_size > len(data):
-            return None, None, None
-        tag = struct.unpack_from(self._tag_format, data, offset)[0]
-        size = struct.unpack_from(self._size_format, data, offset + 2)[0]
-        return tag, size, offset + self._header_size
+        tag_data = f.read(2)
+        if len(tag_data) < 2:
+            return None, None
+        tag = struct.unpack('<H', tag_data)[0]
 
-    def parse_entries(self, data, start, end, tag_structures=None, max_depth=10, depth=0):
+        if self._tlv_size_bytes == 4:
+            size_data = f.read(4)
+            if len(size_data) < 4:
+                return None, None
+            size = struct.unpack('<I', size_data)[0]
+        else:
+            size_data = f.read(8)
+            if len(size_data) < 8:
+                return None, None
+            size = struct.unpack('<Q', size_data)[0]
+
+        return tag, size
+
+    def _tlv_read_header_from_bytes(self, data, offset):
         """
-        Parse TLV entries from a byte buffer.
+        Read a TLV header from a byte buffer.
 
         Parameters
         ----------
         data : bytes
-            The binary data to parse.
-        start : int
-            Start offset in the data.
-        end : int
-            End offset in the data.
-        tag_structures : dict, optional
-            Dictionary mapping tag IDs to structure definitions.
-        max_depth : int
-            Maximum recursion depth for nested containers.
-        depth : int
-            Current recursion depth.
+            Binary data buffer.
+        offset : int
+            Offset within buffer to read from.
 
         Returns
         -------
-        dict : Parsed entries keyed by tag ID.
+        tag : int or None
+            Tag value, or None if insufficient data.
+        size : int or None
+            Size value, or None if insufficient data.
+        next_offset : int
+            Offset after the header (start of data section).
         """
-        if tag_structures is None:
-            tag_structures = {}
+        header_size = 2 + self._tlv_size_bytes
+        if offset + header_size > len(data):
+            return None, None, offset
+
+        tag = struct.unpack_from('<H', data, offset)[0]
+        if self._tlv_size_bytes == 4:
+            size = struct.unpack_from('<I', data, offset + 2)[0]
+        else:
+            size = struct.unpack_from('<Q', data, offset + 2)[0]
+
+        return tag, size, offset + header_size
+
+    def _tlv_parse_block(self, f, block_size, block_def):
+        """
+        Parse a single TLV block according to its definition.
+
+        Parameters
+        ----------
+        f : file-like object
+            Binary file stream positioned at start of block data.
+        block_size : int
+            Size of block data in bytes.
+        block_def : BlockDefinition or None
+            Block structure definition, or None for unknown blocks.
+
+        Returns
+        -------
+        dict
+            Parsed block metadata.
+        """
+        if block_def is None:
+            # Unknown block - store offset and skip
+            meta = {'block_size': block_size, 'block_offset': f.tell()}
+            f.seek(block_size, os.SEEK_CUR)
+            return meta
+
+        # Text block
+        if block_def.text:
+            text_data = f.read(block_size)
+            return {'text': text_data.decode('ascii', errors='replace').strip('\x00')}
+
+        # Container block (nested TLV)
+        if block_def.container:
+            return self._tlv_parse_container(f, block_size, block_def.container)
+
+        # Structured block with fields
+        if block_def.fields is None:
+            # No fields defined - skip block
+            meta = {'block_size': block_size, 'block_offset': f.tell()}
+            f.seek(block_size, os.SEEK_CUR)
+            return meta
+
+        meta, size = decode(f, block_def.fields, return_size=True)
+
+        # Handle trailing data
+        if block_def.trailing_data:
+            meta['data_offset'] = f.tell()
+            remaining = block_size - size
+            if remaining > 0:
+                f.seek(remaining, os.SEEK_CUR)
+            size = block_size
+
+        # Handle subblocks
+        if block_def.subblocks:
+            count_field, subblock_fields = block_def.subblocks
+            subblocks = []
+            for _ in range(meta[count_field]):
+                sub_meta, sub_size = decode(f, subblock_fields, return_size=True)
+                subblocks.append(sub_meta)
+                size += sub_size
+            meta['subblocks'] = subblocks
+
+        # Handle skip_rest
+        if block_def.skip_rest:
+            remaining = block_size - size
+            if remaining > 0:
+                f.seek(remaining, os.SEEK_CUR)
+
+        return meta
+
+    def _tlv_parse_container(self, f, container_size, child_defs):
+        """
+        Parse a container block with nested TLV entries.
+
+        Parameters
+        ----------
+        f : file-like object
+            Binary file stream positioned at start of container data.
+        container_size : int
+            Size of container data in bytes.
+        child_defs : dict or bool
+            If dict, maps child tag IDs to BlockDefinition instances.
+            If True, parse children generically (store offsets).
+
+        Returns
+        -------
+        dict
+            Dictionary of parsed child entries, keyed by tag ID.
+        """
+        entries = {}
+        end_pos = f.tell() + container_size
+
+        while f.tell() < end_pos:
+            tag, size = self._tlv_read_header(f)
+            if tag is None or size is None:
+                break
+
+            # Bounds check
+            if f.tell() + size > end_pos:
+                break
+
+            # Get child block definition
+            if isinstance(child_defs, dict):
+                child_def = child_defs.get(tag)
+            else:
+                child_def = None
+
+            # Parse child block
+            entry = self._tlv_parse_block(f, size, child_def)
+
+            # Handle duplicate tags by converting to list
+            if tag in entries:
+                if not isinstance(entries[tag], list):
+                    entries[tag] = [entries[tag]]
+                entries[tag].append(entry)
+            else:
+                entries[tag] = entry
+
+        return entries
+
+    def _tlv_parse_flat_blocks(self, f, num_blocks):
+        """
+        Parse a flat sequence of TLV blocks (FRT style).
+
+        Parameters
+        ----------
+        f : file-like object
+            Binary file stream positioned at start of block sequence.
+        num_blocks : int
+            Number of blocks to parse.
+
+        Returns
+        -------
+        dict
+            Dictionary of parsed blocks, keyed by hex tag string.
+        """
+        metadata = {}
+
+        for _ in range(num_blocks):
+            tag, size = self._tlv_read_header(f)
+            if tag is None or size is None:
+                break
+
+            block_def = self._block_structures.get(tag)
+            meta = self._tlv_parse_block(f, size, block_def)
+            metadata[hex(tag)] = meta
+
+        return metadata
+
+    def _tlv_parse_nested_bytes(self, data, start=0, end=None, block_defs=None):
+        """
+        Parse nested TLV structure from a byte buffer (MNT style).
+
+        Parameters
+        ----------
+        data : bytes
+            Binary data buffer containing TLV entries.
+        start : int, optional
+            Start offset within buffer. Default: 0.
+        end : int, optional
+            End offset within buffer. Default: len(data).
+        block_defs : dict, optional
+            Block definitions to use. Default: self._block_structures.
+
+        Returns
+        -------
+        dict
+            Dictionary of parsed entries, keyed by tag ID.
+        """
+        if end is None:
+            end = len(data)
+        if block_defs is None:
+            block_defs = self._block_structures
 
         entries = {}
         pos = start
 
         while pos < end:
-            tag, size, data_start = self.parse_header(data, pos)
+            tag, size, data_start = self._tlv_read_header_from_bytes(data, pos)
             if tag is None or size is None:
-                break
-            if size > end - data_start:
                 break
 
             data_end = data_start + size
-            content = data[data_start:data_end]
+            if data_end > end:
+                break
 
-            # Check if we have a structure definition for this tag
-            if tag in tag_structures:
-                structure = tag_structures[tag]
-                entry = self._parse_structure(content, structure, tag_structures,
-                                              max_depth, depth)
+            block_def = block_defs.get(tag)
+
+            if block_def is None:
+                # Unknown block
+                entry = {'_raw': data[data_start:data_end], '_size': size}
+            elif block_def.text:
+                # Text block
+                entry = {
+                    'text': data[data_start:data_end].decode(
+                        'ascii', errors='replace'
+                    ).strip('\x00')
+                }
+            elif block_def.container:
+                # Nested container
+                if isinstance(block_def.container, dict):
+                    child_defs = block_def.container
+                else:
+                    child_defs = block_defs
+                entry = self._tlv_parse_nested_bytes(
+                    data, data_start, data_end, child_defs
+                )
+            elif block_def.fields:
+                # Structured block - parse from BytesIO
+                from io import BytesIO
+                entry, _ = decode(
+                    BytesIO(data[data_start:data_end]),
+                    block_def.fields,
+                    return_size=True
+                )
             else:
-                # Unknown tag - store raw content
-                entry = {'_raw': content, '_size': size}
+                entry = {'_raw': data[data_start:data_end], '_size': size}
 
-            # Handle duplicate tags by converting to list
+            # Handle duplicate tags
             if tag in entries:
                 if not isinstance(entries[tag], list):
                     entries[tag] = [entries[tag]]
@@ -137,111 +354,3 @@ class TLVParser:
             pos = data_end
 
         return entries
-
-    def _parse_structure(self, content, structure, tag_structures, max_depth, depth):
-        """Parse content according to a structure definition."""
-        if structure is None:
-            return {'_raw': content, '_size': len(content)}
-
-        if isinstance(structure, str):
-            # Simple type: 'B', 'H', 'I', 'Q', 'd', 'f', 'utf16', etc.
-            return self._parse_simple_type(content, structure)
-
-        if isinstance(structure, list):
-            # List of (name, format) tuples - sequential structure
-            return self._parse_sequential(content, structure)
-
-        if isinstance(structure, dict):
-            # Nested TLV container
-            if '_type' in structure and structure['_type'] == 'container':
-                if depth >= max_depth:
-                    return {'_raw': content, '_size': len(content)}
-                nested_structures = structure.get('_children', {})
-                merged_structures = {**tag_structures, **nested_structures}
-                return self.parse_entries(content, 0, len(content),
-                                          merged_structures, max_depth, depth + 1)
-            else:
-                # Dictionary of tag -> structure mappings (alternative format)
-                return self.parse_entries(content, 0, len(content),
-                                          structure, max_depth, depth + 1)
-
-        return {'_raw': content, '_size': len(content)}
-
-    def _parse_simple_type(self, content, type_str):
-        """Parse content as a simple type."""
-        bo = self.byte_order
-        if type_str == 'B' and len(content) >= 1:
-            return struct.unpack_from(f'{bo}B', content)[0]
-        elif type_str == 'H' and len(content) >= 2:
-            return struct.unpack_from(f'{bo}H', content)[0]
-        elif type_str == 'I' and len(content) >= 4:
-            return struct.unpack_from(f'{bo}I', content)[0]
-        elif type_str == 'Q' and len(content) >= 8:
-            return struct.unpack_from(f'{bo}Q', content)[0]
-        elif type_str == 'd' and len(content) >= 8:
-            return struct.unpack_from(f'{bo}d', content)[0]
-        elif type_str == 'f' and len(content) >= 4:
-            return struct.unpack_from(f'{bo}f', content)[0]
-        elif type_str == 'utf16':
-            # UTF-16 string with type byte prefix (0x04)
-            if len(content) > 1 and content[0] == 0x04:
-                try:
-                    return content[1:].decode('utf-16-le').rstrip('\x00\uffff')
-                except UnicodeDecodeError:
-                    pass
-            return content
-        elif type_str == 'raw':
-            return content
-        else:
-            return content
-
-    def _parse_sequential(self, content, structure):
-        """Parse content as a sequential structure of named fields."""
-        result = {}
-        stream = BytesIO(content)
-        bo = self.byte_order
-
-        for field_def in structure:
-            name = field_def[0]
-            fmt = field_def[1]
-
-            if fmt == 'B':
-                data = stream.read(1)
-                if len(data) < 1:
-                    break
-                result[name] = struct.unpack(f'{bo}B', data)[0]
-            elif fmt == 'H':
-                data = stream.read(2)
-                if len(data) < 2:
-                    break
-                result[name] = struct.unpack(f'{bo}H', data)[0]
-            elif fmt == 'I':
-                data = stream.read(4)
-                if len(data) < 4:
-                    break
-                result[name] = struct.unpack(f'{bo}I', data)[0]
-            elif fmt == 'Q':
-                data = stream.read(8)
-                if len(data) < 8:
-                    break
-                result[name] = struct.unpack(f'{bo}Q', data)[0]
-            elif fmt == 'd':
-                data = stream.read(8)
-                if len(data) < 8:
-                    break
-                result[name] = struct.unpack(f'{bo}d', data)[0]
-            elif fmt == 'f':
-                data = stream.read(4)
-                if len(data) < 4:
-                    break
-                result[name] = struct.unpack(f'{bo}f', data)[0]
-            elif fmt.endswith('s'):
-                # Fixed-length string
-                length = int(fmt[:-1])
-                data = stream.read(length)
-                result[name] = data.decode('latin1').rstrip('\x00')
-            else:
-                # Unknown format, skip
-                break
-
-        return result
