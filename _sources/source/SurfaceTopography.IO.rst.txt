@@ -156,6 +156,14 @@ SurfaceTopography.IO.NMM module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.NMS module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.NMS
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.IO.NPY module
 -------------------------------
 
@@ -184,6 +192,14 @@ SurfaceTopography.IO.OPDx module
 --------------------------------
 
 .. automodule:: SurfaceTopography.IO.OPDx
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+SurfaceTopography.IO.OS3D module
+--------------------------------
+
+.. automodule:: SurfaceTopography.IO.OS3D
    :members:
    :show-inheritance:
    :undoc-members:
@@ -220,10 +236,26 @@ SurfaceTopography.IO.Reader module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.SDF module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.SDF
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.IO.SUR module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.SUR
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+SurfaceTopography.IO.TMD module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.TMD
    :members:
    :show-inheritance:
    :undoc-members:
@@ -264,6 +296,14 @@ SurfaceTopography.IO.XYZ module
 -------------------------------
 
 .. automodule:: SurfaceTopography.IO.XYZ
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+SurfaceTopography.IO.ZMG module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.ZMG
    :members:
    :show-inheritance:
    :undoc-members:
