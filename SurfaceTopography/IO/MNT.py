@@ -65,159 +65,176 @@ Microsoft Compound Document (OLE) file containing TLV-encoded metadata
 and compressed height data.
 '''
 
-    # TLV tag definitions for ScopedContents
-    # Structure: tag_id -> (name, format_or_children)
-    # Format codes: 'B'=uint8, 'H'=uint16, 'I'=uint32, 'Q'=uint64,
-    #               'd'=double, 'utf16'=UTF-16 string with 0x04 prefix
-    # Children: dict of nested tag definitions for container tags
+    # Block structures are initialized lazily to avoid circular imports
+    _block_structures = None
+    _tlv_size_bytes = 8  # MNT uses uint64 size fields
 
-    # Top-level tags (before main container)
-    _top_level_tags = {
-        0x0003: ('format_version', 'B'),
-        0x0002: ('format_flags', 'I'),
-        0x0004: ('unknown_1', 'Q'),
-        0x0005: ('unknown_2', 'Q'),
-        0x0001: ('main_container', 'container'),
-    }
+    @classmethod
+    def _init_block_structures(cls):
+        """Initialize block structure definitions using BlockDefinition."""
+        # Use importlib to import tlv directly, bypassing package initialization
+        # This avoids circular dependency during package initialization
+        import importlib.util
+        import os
+        tlv_path = os.path.join(os.path.dirname(__file__), 'tlv.py')
+        spec = importlib.util.spec_from_file_location('tlv', tlv_path)
+        tlv_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tlv_module)
+        BlockDefinition = tlv_module.BlockDefinition
 
-    # Tags inside tag 0x00c8 (file metadata)
-    _tag_c8_children = {
-        0x0001: ('factor_a', 'I'),  # Rows factor A for dimension calculation
-        0x0002: ('factor_b', 'I'),  # Rows factor B for dimension calculation
-        0x0003: ('unknown_c8_1', 'I'),
-        0x0004: ('build_number', 'I'),  # Software build number
-        0x0005: ('unknown_c8_2', 'I'),
-        0x0006: ('unknown_c8_3', 'I'),
-        0x0007: ('unknown_c8_4', 'I'),
-        0x0008: ('unknown_c8_5', 'container'),  # Variable-size block
-        0x0009: ('unknown_c8_6', 'H'),  # Value 67 = 'C' in ASCII
-        0x000a: ('unknown_c8_7', 'B'),
-    }
+        # Main container children (tag 0x0001)
+        main_container_children = {
+            0x00c8: BlockDefinition(container=True),  # File metadata
+            0x00c9: BlockDefinition(),  # Unknown
+            0x00ca: BlockDefinition(container=True),  # Variable-size block
+            0x00cb: BlockDefinition(),  # Serial number (UTF-16)
+            0xffff: BlockDefinition(container=True),  # Marker
+            0x012d: BlockDefinition(container=True),  # Extended metadata
+            0x0190: BlockDefinition(),  # Unknown
+            0x0001: BlockDefinition(),  # Unknown
+            0x0002: BlockDefinition(),  # Unknown
+            0x0003: BlockDefinition(container=True),  # Dimension params
+            0x0004: BlockDefinition(),  # Unknown
+            0x0005: BlockDefinition(),  # Unknown
+            0x0006: BlockDefinition(container=True),  # Pixel scales
+            0x0007: BlockDefinition(),  # Unknown
+            0x0008: BlockDefinition(),  # Unknown
+            0x0009: BlockDefinition(),  # Unknown
+            0x000a: BlockDefinition(container=True),  # Unknown container
+            0x000b: BlockDefinition(),  # Pixel aspect ratio
+            0x000c: BlockDefinition(),  # Unknown
+            0x0064: BlockDefinition(),  # Unknown
+            0x0065: BlockDefinition(),  # Unknown
+            0x0066: BlockDefinition(),  # Unknown
+            0x000d: BlockDefinition(),  # Unknown
+            0x0258: BlockDefinition(container=True),  # Color palette
+            0x02bd: BlockDefinition(container=True),  # Height data container
+            0x0014: BlockDefinition(container=True),
+            0x0015: BlockDefinition(container=True),
+            0x0016: BlockDefinition(container=True),
+            0x0017: BlockDefinition(),
+            0x0018: BlockDefinition(),
+            0x0019: BlockDefinition(container=True),
+            0x001a: BlockDefinition(container=True),
+            0x001b: BlockDefinition(container=True),
+        }
 
-    # Tags inside tag 0x012d -> 0x0009 (measurement settings)
-    _tag_012d_009_children = {
-        0x0001: ('unknown_009_1', 'I'),
-        0x0002: ('unknown_009_2', 'I'),
-        0x0003: ('unknown_009_3', 'I'),
-        0x0004: ('unknown_009_4', 'I'),
-        0x0005: ('unknown_009_5', 'I'),
-        0x0006: ('unknown_009_6', 'I'),
-        0x0007: ('unknown_009_7', 'I'),
-        0x0008: ('unknown_009_8', 'I'),
-        0x0009: ('unknown_009_9', 'I'),
-        0x000a: ('unknown_009_10', 'I'),
-        0x000b: ('unknown_009_11', 'I'),
-        0x000c: ('unknown_009_12', 'I'),
-        0x000d: ('unknown_009_13', 'I'),
-        0x000e: ('unknown_009_14', 'I'),
-        0x000f: ('unknown_009_15', 'I'),
-        0x0010: ('scale_x', 'd'),  # Scale factor X (10.0)
-        0x0011: ('scale_y', 'd'),  # Scale factor Y (10.0)
-        0x0012: ('scale_z', 'd'),  # Scale factor Z (10.0)
-        0x0013: ('unit_x', 'utf16'),  # Unit string X ('mm')
-        0x0014: ('unit_y', 'utf16'),  # Unit string Y ('mm')
-        0x0015: ('unit_z', 'utf16'),  # Unit string Z ('mm')
-        0x0016: ('unknown_009_16', 'I'),
-        0x0017: ('unknown_009_17', 'I'),
-        0x0018: ('unknown_009_18', 'I'),
-        0x0019: ('unknown_009_19', 'd'),  # Value 0.2
-        0x001a: ('unknown_009_20', 'd'),  # Value 0.2
-        0x001b: ('unknown_009_21', 'I'),
-        0x001c: ('unknown_009_22', 'I'),
-        0x001d: ('unknown_009_23', 'I'),
-        0x001e: ('unknown_009_24', 'I'),
-        0x001f: ('unit_display', 'utf16'),  # Display unit ('mm')
-        0x0020: ('unit_other', 'utf16'),  # Other unit ('eV')
-        0x0021: ('unknown_009_25', 'I'),
-    }
+        # Top-level block structures (after 8-byte size header)
+        cls._block_structures = {
+            0x0001: BlockDefinition(container=main_container_children),
+            0x0002: BlockDefinition(),  # Format flags
+            0x0003: BlockDefinition(),  # Format version
+            0x0004: BlockDefinition(),  # Unknown
+            0x0005: BlockDefinition(),  # Unknown
+        }
 
-    # Tags inside tag 0x012d -> 0x000a (height settings)
-    _tag_012d_00a_children = {
-        0x0001: ('unknown_00a_1', 'I'),
-        0x0002: ('unknown_00a_2', 'Q'),
-        0x0003: ('unknown_00a_3', 'Q'),
-        0x0004: ('height_unit', 'utf16'),  # Height unit ('µm')
-        0x0005: ('unknown_00a_4', 'I'),
-    }
+    def _tlv_read_header_from_bytes(self, data, offset):
+        """Read TLV header (tag + size) from byte buffer."""
+        header_size = 2 + self._tlv_size_bytes
+        if offset + header_size > len(data):
+            return None, None, offset
 
-    # Tags inside tag 0x012d (extended metadata container)
-    _tag_012d_children = {
-        0x0001: ('params_1', 'container'),  # Contains doubles: 0.5, 2.5, etc.
-        0x0002: ('params_2', 'container'),
-        0x0003: ('params_3', 'container'),
-        0x0004: ('params_4', 'container'),
-        0x0005: ('params_5', 'container'),
-        0x0006: ('params_6', 'container'),
-        0x0007: ('params_7', 'container'),
-        0x0008: ('params_8', 'container'),
-        0x0009: ('measurement_settings', 'container'),  # Uses _tag_012d_009_children
-        0x000a: ('height_settings', 'container'),  # Uses _tag_012d_00a_children
-        0x000b: ('params_9', 'container'),
-        0x000c: ('params_10', 'container'),
-        0x000d: ('params_11', 'container'),
-        0x000e: ('params_12', 'container'),
-        0x000f: ('params_13', 'container'),
-    }
+        tag = struct.unpack_from('<H', data, offset)[0]
+        size = struct.unpack_from('<Q', data, offset + 2)[0]
+        return tag, size, offset + header_size
 
-    # Tags inside tag 0x0006 (pixel scale factors)
-    _tag_0006_children = {
-        0x0001: ('pixel_scale_1', 'd'),  # Value 10.0
-        0x0002: ('pixel_scale_2', 'd'),  # Value 10.0
-        0x0003: ('pixel_scale_3', 'd'),  # Value 10.0
-        0x0004: ('pixel_scale_4', 'd'),  # Value 10.0
-    }
+    def _tlv_parse_nested_bytes(self, data, start=0, end=None, block_defs=None):
+        """
+        Parse nested TLV structure from a byte buffer.
 
-    # Tags inside tag 0x0003 (dimension parameters)
-    _tag_0003_children = {
-        0x0001: ('dimension_param_1', 'I'),  # Values: 1123 / 816
-        0x0002: ('dimension_param_2', 'I'),  # Values: 1588 / 1054
-    }
+        Parameters
+        ----------
+        data : bytes
+            Binary data buffer containing TLV entries.
+        start : int, optional
+            Start offset within buffer. Default: 0.
+        end : int, optional
+            End offset within buffer. Default: len(data).
+        block_defs : dict, optional
+            Block definitions to use. Default: self._block_structures.
 
-    # Tags inside tag 0x000a (at main level)
-    _tag_000a_children = {
-        0x0001: ('unknown_0a_1', 'H'),
-        0x0002: ('unknown_0a_2', 'H'),
-        0x0003: ('unknown_0a_3', 'container'),
-        0x0004: ('unknown_0a_4', 'container'),
-        0x0005: ('unknown_0a_5', 'container'),
-    }
+        Returns
+        -------
+        dict
+            Dictionary of parsed entries, keyed by tag ID.
+        """
+        if end is None:
+            end = len(data)
+        if block_defs is None:
+            block_defs = self._block_structures
 
-    # Tags at the main container level (inside tag 0x0001)
-    _main_container_tags = {
-        0x00c8: ('file_metadata', 'container'),  # Uses _tag_c8_children
-        0x00c9: ('unknown_c9', 'I'),
-        0x00ca: ('unknown_ca', 'container'),  # Variable-size block
-        0x00cb: ('serial_number', 'utf16'),  # DS-XXXXXXXXX
-        0xffff: ('marker', 'container'),  # Separator/marker
-        0x012d: ('extended_metadata', 'container'),  # Uses _tag_012d_children
-        0x0190: ('unknown_190', 'I'),
-        0x0001: ('unknown_main_1', 'I'),  # Value 1
-        0x0002: ('unknown_main_2', 'I'),  # Value 0
-        0x0003: ('dimension_params', 'container'),  # Uses _tag_0003_children
-        0x0004: ('unknown_main_3', 'I'),  # Values: 794 / 1054
-        0x0005: ('unknown_main_4', 'I'),  # Value 0
-        0x0006: ('pixel_scales', 'container'),  # Uses _tag_0006_children
-        0x0007: ('unknown_main_5', 'I'),  # Value 0
-        0x0008: ('unknown_main_6', 'I'),  # Values: 2 / 1
-        0x0009: ('unknown_main_7', 'I'),  # Value 0
-        0x000a: ('unknown_main_8', 'container'),  # Uses _tag_000a_children
-        0x000b: ('pixel_aspect_ratio', 'd'),  # Values: 0.918347 / 1.0
-        0x000c: ('unknown_main_9', 'I'),  # Value 96
-        0x0064: ('unknown_main_10', 'I'),  # Value 0
-        0x0065: ('unknown_main_11', 'I'),  # Value 1
-        0x0066: ('unknown_main_12', 'B'),  # Value 4
-        0x000d: ('unknown_main_13', 'I'),  # Values: 10 / 2
-        0x0258: ('color_palette', 'container'),  # Color palette data
-        0x02bd: ('height_data', 'container'),  # Compressed height blocks
-        0x0014: ('trailing_1', 'container'),
-        0x0015: ('trailing_2', 'container'),
-        0x0016: ('trailing_3', 'container'),
-        0x0017: ('trailing_4', 'B'),
-        0x0018: ('trailing_5', 'B'),
-        0x0019: ('trailing_6', 'container'),
-        0x001a: ('trailing_7', 'container'),
-        0x001b: ('trailing_8', 'container'),
-    }
+        entries = {}
+        pos = start
+
+        while pos < end:
+            tag, size, data_start = self._tlv_read_header_from_bytes(data, pos)
+            if tag is None or size is None:
+                break
+
+            data_end = data_start + size
+            if data_end > end:
+                break
+
+            block_def = block_defs.get(tag) if block_defs else None
+
+            if block_def is None:
+                # Unknown block - store raw data
+                entry = {'_raw': data[data_start:data_end], '_size': size}
+            elif block_def.text:
+                # ASCII text block
+                entry = {
+                    'text': data[data_start:data_end].decode(
+                        'ascii', errors='replace'
+                    ).strip('\x00')
+                }
+            elif block_def.container:
+                # Nested container - use child definitions if provided
+                if isinstance(block_def.container, dict):
+                    child_defs = block_def.container
+                else:
+                    child_defs = block_defs
+                entry = self._tlv_parse_nested_bytes(
+                    data, data_start, data_end, child_defs
+                )
+            elif block_def.fields:
+                # Structured block - parse fields
+                entry = self._parse_fields(data[data_start:data_end], block_def.fields)
+            else:
+                entry = {'_raw': data[data_start:data_end], '_size': size}
+
+            # Handle duplicate tags by converting to list
+            if tag in entries:
+                if not isinstance(entries[tag], list):
+                    entries[tag] = [entries[tag]]
+                entries[tag].append(entry)
+            else:
+                entries[tag] = entry
+
+            pos = data_end
+
+        return entries
+
+    def _parse_fields(self, data, fields):
+        """Parse structured fields from byte data."""
+        result = {}
+        offset = 0
+        for name, fmt in fields:
+            if fmt == 'B':
+                result[name] = data[offset]
+                offset += 1
+            elif fmt == 'H':
+                result[name] = struct.unpack_from('<H', data, offset)[0]
+                offset += 2
+            elif fmt == 'I':
+                result[name] = struct.unpack_from('<I', data, offset)[0]
+                offset += 4
+            elif fmt == 'Q':
+                result[name] = struct.unpack_from('<Q', data, offset)[0]
+                offset += 8
+            elif fmt == 'd':
+                result[name] = struct.unpack_from('<d', data, offset)[0]
+                offset += 8
+        return result
 
     def __init__(self, fobj):
         """
@@ -228,6 +245,10 @@ and compressed height data.
         fobj : filename or file object
             File or data stream to open.
         """
+        # Initialize block structures if not already done
+        if self._block_structures is None:
+            self._init_block_structures()
+
         self._fobj = fobj
         self._channels = []
 
@@ -262,11 +283,16 @@ and compressed height data.
             ole.close()
             raise CorruptFile('ScopedContents header too short')
 
-        # Extract dimension parameters from header
-        # These are at fixed byte offsets within the TLV structure
-        num_blocks = scoped_contents[0x3d]  # Number of compressed blocks
-        factor_a = scoped_contents[0x63]    # First rows-per-block factor
-        factor_b = scoped_contents[0x71]    # Second rows-per-block factor
+        # Parse TLV structure for metadata storage
+        # First 8 bytes are stream size (skip), then TLV entries start
+        self._metadata = self._tlv_parse_nested_bytes(scoped_contents, start=8)
+
+        # Extract dimension parameters from fixed byte offsets within TLV structure
+        # These offsets are consistent across files and more reliable than
+        # parsing nested TLV values which have variable encodings
+        num_blocks = scoped_contents[0x3d]   # Number of compressed blocks
+        factor_a = scoped_contents[0x63]     # First rows-per-block factor
+        factor_b = scoped_contents[0x71]     # Second rows-per-block factor
         rows_per_block = factor_a * factor_b
 
         if num_blocks == 0 or rows_per_block == 0:
@@ -282,7 +308,8 @@ and compressed height data.
         i = 0
         while i < len(scoped_contents) - 2:
             # Check for zlib header bytes
-            if scoped_contents[i] == 0x78 and scoped_contents[i + 1] in [0x01, 0x5e, 0x9c, 0xda]:
+            if (scoped_contents[i] == 0x78 and
+                    scoped_contents[i + 1] in [0x01, 0x5e, 0x9c, 0xda]):
                 try:
                     decompressed = zlib.decompress(scoped_contents[i:])
                     if len(decompressed) >= 1000:  # Only substantial blocks
