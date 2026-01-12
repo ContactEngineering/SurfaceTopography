@@ -990,11 +990,30 @@ class If:
 
 
 class Skip:
-    def __init__(self, size):
+    """
+    Skips over bytes in a binary stream without storing them.
+
+    Use this for TLV entries or file sections that should be ignored.
+
+    Parameters
+    ----------
+    size : int, callable, or None
+        Size of the data block in bytes. Can be:
+        - An integer for fixed size
+        - A callable that takes context and returns size
+        - None to read size from context['_block_size'] (for TLV parsing)
+    comment : str, optional
+        Description of what is being skipped (for documentation).
+    """
+
+    def __init__(self, size=None, comment=None):
         self._size = size
+        self._comment = comment
 
     def from_stream(self, stream_obj, context):
-        if callable(self._size):
+        if self._size is None:
+            size = context.get('_block_size', 0)
+        elif callable(self._size):
             size = self._size(context)
         else:
             size = self._size

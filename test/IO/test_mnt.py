@@ -64,12 +64,12 @@ def test_mnt_metadata(file_format_examples):
     assert nx == 960
     assert ny == 600
 
-    # Physical sizes default to pixel count (format doesn't reliably store sizes)
+    # Physical sizes extracted from TLV tags 0x0009 and 0x000a (in mm, converted to µm)
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 960)
-    np.testing.assert_almost_equal(sy, 600)
+    np.testing.assert_almost_equal(sx, 1777.404, decimal=2)  # 1.7774 mm -> µm
+    np.testing.assert_almost_equal(sy, 1110.878, decimal=2)  # 1.1109 mm -> µm
 
-    # Height data is in raw int32 units
+    # Unit is µm
     assert t.unit == 'µm'
 
     # This file uses pure int32 format without validity channel
@@ -101,10 +101,10 @@ def test_mnt2_metadata(file_format_examples):
     assert nx == 1280
     assert ny == 960
 
-    # Physical sizes default to pixel count (format doesn't reliably store sizes)
+    # Physical sizes extracted from TLV tags 0x0009 and 0x000a (in mm, converted to µm)
     sx, sy = t.physical_sizes
-    np.testing.assert_almost_equal(sx, 1280)
-    np.testing.assert_almost_equal(sy, 960)
+    np.testing.assert_almost_equal(sx, 95.77, decimal=1)  # 0.0958 mm -> µm
+    np.testing.assert_almost_equal(sy, 71.81, decimal=1)  # 0.0718 mm -> µm
 
     assert t.unit == 'µm'
 

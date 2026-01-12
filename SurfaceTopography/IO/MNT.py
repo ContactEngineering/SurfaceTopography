@@ -36,12 +36,24 @@ The ScopedContents stream uses a hierarchical TLV (Tag-Length-Value) structure:
 - First 8 bytes: uint64 LE size field (= stream size - 8)
 - Remaining bytes: TLV entries with tag (uint16 LE) + size (uint64 LE) + data
 
+Height data container (tag 0x02BD) structure:
+- compressed_blocks contains multiple sections separated by uint64 size fields:
+  - Section 1: Compressed height data blocks (zlib-compressed)
+  - Section 2: Additional metadata
+  - Section 3: Image parameters (nested ~6 levels deep in tag 0x0002 containers)
+
+Image parameters (in Section 3, innermost tag 0x0002 container):
+- 0x0007: Width in pixels (uint32)
+- 0x0008: Height in pixels (uint32)
+- 0x0009: Physical size X in mm (double)
+- 0x000a: Physical size Y in mm (double)
+
 Height data formats:
 - Int16 pairs: (height_value, validity_flag) - high bytes are 0 (valid) or -1 (invalid)
 - Pure int32: Full int32 height values without validity channel
 
-Image dimensions (width/height) are stored within the height_data container
-using TLV tags 0x0007 (width) and 0x0008 (height).
+Note: 0xFFFF tags are used as section markers/delimiters and must be skipped
+when parsing nested containers.
 """
 
 import struct
@@ -55,7 +67,7 @@ from ..Exceptions import CorruptFile, FileFormatMismatch
 from ..UniformLineScanAndTopography import Topography
 from .binary import BinaryStructure, RawBuffer, TextBuffer, TLVContainer
 from .common import OpenFromAny
-from .Reader import ChannelInfo, ReaderBase
+from .Reader import ChannelInfo, ReaderBase, Skip
 
 
 class MNTReader(ReaderBase):
@@ -73,6 +85,191 @@ and compressed height data.
     # Block structures and TLV parser are initialized lazily to avoid circular imports
     _block_structures = None
     _tlv_parser = None
+    _section3_parser = None
+
+    # TLV format constants
+    _TAG_WIDTH = 0x0007
+    _TAG_HEIGHT = 0x0008
+    _TLV_TAG_FORMAT = "<H"
+    _TLV_SIZE_FORMAT = "<Q"
+
+    # TLV tags for image parameters (found in Section 3 of compressed_blocks)
+    _TAG_PHYSICAL_SIZE_X = 0x0009
+    _TAG_PHYSICAL_SIZE_Y = 0x000A
+
+    @classmethod
+    def _parse_sections(cls, data):
+        """
+        Parse the section structure within compressed_blocks.
+
+        The compressed_blocks data has this structure:
+        - [0:10] Outer container (tag 0x0001, size uint64)
+        - [10:18] uint64 value (unknown purpose)
+        - [18:...] Sections as TLV containers, each followed by uint64 size field
+
+        Sections are:
+        - Section 1: Compressed height data blocks (large)
+        - Section 2: Additional metadata
+        - Section 3: Image parameters (contains width, height, physical sizes)
+
+        Parameters
+        ----------
+        data:bytes
+            Raw compressed_blocks data.
+
+        Returns
+        -------
+        sections:list of bytes
+            List of section data (excluding size headers).
+        """
+        sections = []
+
+        if len(data) < 28:
+            return sections
+
+        # Skip outer container header (10 bytes) and first uint64 value (8 bytes)
+        inner = data[18:]
+
+        pos = 0
+        while pos < len(inner) - 10:
+            # Read TLV entry for this section
+            tag = struct.unpack("<H", inner[pos:pos + 2])[0]
+            size = struct.unpack("<Q", inner[pos + 2:pos + 10])[0]
+
+            if tag > 0x2000 or size > len(inner) - pos - 10:
+                break
+
+            section_data = inner[pos + 10:pos + 10 + size]
+            sections.append(section_data)
+
+            # Move past this section
+            section_end = pos + 10 + size
+
+            # Check for uint64 size field after section (separator between sections)
+            if section_end + 8 <= len(inner):
+                next_size = struct.unpack("<Q", inner[section_end:section_end + 8])[0]
+                if next_size < 100000:  # Reasonable size for next section
+                    pos = section_end + 8
+                else:
+                    break
+            else:
+                break
+
+        return sections
+
+    @classmethod
+    def _find_image_params_container(cls, section_data):
+        """
+        Navigate through nested TLV containers to find the image parameters.
+
+        Uses the declarative _section3_parser to parse the nested structure:
+        Section 3 root -> 0x0002 -> level2 -> 0x0001 -> level3 -> 0x0002 ->
+        level4 -> 0x0002 -> level5 -> 0x0002 -> level6 (contains dimension info)
+
+        Parameters
+        ----------
+        section_data:bytes
+            Section 3 data.
+
+        Returns
+        -------
+        params:dict or None
+            Dictionary with parsed level6 data, or None if not found.
+        """
+        # Initialize parser if needed
+        if cls._section3_parser is None:
+            cls._init_block_structures()
+
+        try:
+            # Parse section 3 using declarative structure
+            stream = BytesIO(section_data)
+            parsed = cls._section3_parser.from_stream(stream, {})
+
+            # Navigate to level6 which contains the dimension info
+            # Structure: section3 -> 0x0002 -> level2 -> 0x0001 -> level3 ->
+            #            0x0002 -> level4 -> 0x0002 -> level5 -> 0x0002 -> level6
+            section3 = parsed.get("section3", parsed)
+            level1 = section3.get(0x0002) or section3.get("level2")
+            if level1 is None:
+                return None
+
+            level2 = level1.get("level2", level1)
+            level2_inner = level2.get(0x0001) or level2.get("level3")
+            if level2_inner is None:
+                return None
+
+            level3 = level2_inner.get("level3", level2_inner)
+            level3_inner = level3.get(0x0002) or level3.get("level4")
+            if level3_inner is None:
+                return None
+
+            level4 = level3_inner.get("level4", level3_inner)
+            level4_inner = level4.get(0x0002) or level4.get("level5")
+            if level4_inner is None:
+                return None
+
+            level5 = level4_inner.get("level5", level4_inner)
+            level5_inner = level5.get(0x0002) or level5.get("level6")
+            if level5_inner is None:
+                return None
+
+            level6 = level5_inner.get("level6", level5_inner)
+            return level6
+
+        except Exception:
+            return None
+
+    @classmethod
+    def _extract_image_params(cls, data):
+        """
+        Extract image parameters from compressed_blocks data.
+
+        Navigates the hierarchical TLV structure to find:
+        - Width (tag 0x0007, uint32)
+        - Height (tag 0x0008, uint32)
+        - Physical size X (tag 0x0009, double, in mm)
+        - Physical size Y (tag 0x000a, double, in mm)
+
+        Parameters
+        ----------
+        data:bytes
+            Raw compressed_blocks data.
+
+        Returns
+        -------
+        params:dict
+            Dictionary with keys: 'width', 'height', 'physical_size_x',
+            'physical_size_y'. Values are None if not found.
+        """
+        result = {
+            "width": None,
+            "height": None,
+            "physical_size_x": None,
+            "physical_size_y": None,
+        }
+
+        # Parse sections
+        sections = cls._parse_sections(data)
+
+        # Section 3 contains image parameters (index 2, 0-based)
+        if len(sections) < 3:
+            return result
+
+        section3 = sections[2]
+
+        # Find the innermost container with image parameters
+        params = cls._find_image_params_container(section3)
+        if params is None:
+            return result
+
+        # Extract values using declarative names or tag IDs
+        # Try by name first (more readable), then by tag ID
+        result["width"] = params["width"]["value"]
+        result["height"] = params["height"]["value"]
+        result["physical_size_x"] = params["physical_size_x"]["value"]
+        result["physical_size_y"] = params["physical_size_y"]["value"]
+
+        return result
 
     @classmethod
     def _init_block_structures(cls):
@@ -113,10 +310,6 @@ and compressed height data.
         - Validity: 0 = valid, -1 = invalid/masked
         """
 
-        # Helper to create RawBuffer with immediate loading (for unknown blocks)
-        def raw(name):
-            return RawBuffer(name, size=None, lazy=False)
-
         # Helper to create BinaryStructure with single uint32 field
         def uint32(name):
             return BinaryStructure([("value", "I")], name=name)
@@ -144,9 +337,9 @@ and compressed height data.
             0x0005: uint32("param_5"),  # [UNKNOWN] uint32
             0x0006: uint32("param_6"),  # [UNKNOWN] uint32
             0x0007: uint32("param_7"),  # [UNKNOWN] uint32
-            0x0008: raw("param_8"),  # [UNKNOWN] variable size
-            0x0009: raw("param_9"),  # [UNKNOWN] variable size
-            0x000A: raw("param_10"),  # [UNKNOWN] variable size
+            0x0008: Skip(comment="variable size"),
+            0x0009: Skip(comment="variable size"),
+            0x000A: Skip(comment="variable size"),
         }
 
         # Container 0x0003 children (inside main) - dimension parameters
@@ -158,9 +351,9 @@ and compressed height data.
         # Container 0x0006 children - [GUESS] possibly pixel scales/units
         # Evidence: Similar structure to SUR format scale blocks
         pixel_scale_children = {
-            0x0001: raw("x_scale"),  # [GUESS] Possibly X scale
-            0x0002: raw("y_scale"),  # [GUESS] Possibly Y scale
-            0x0003: raw("z_scale"),  # [GUESS] Possibly Z scale
+            0x0001: Skip(comment="possibly X scale"),
+            0x0002: Skip(comment="possibly Y scale"),
+            0x0003: Skip(comment="possibly Z scale"),
             0x0004: TextBuffer("x_unit"),  # [LIKELY] Contains ASCII text (unit?)
             0x0005: TextBuffer("y_unit"),  # [LIKELY] Contains ASCII text (unit?)
             0x0006: TextBuffer("z_unit"),  # [LIKELY] Contains ASCII text (unit?)
@@ -168,38 +361,98 @@ and compressed height data.
 
         # Container 0x00ca children - [GUESS] possibly measurement parameters
         measurement_params_children = {
-            0x0001: raw("measurement_type"),  # [UNKNOWN] 1 byte
-            0x0002: raw("scan_params"),  # [UNKNOWN]
-            0x0003: raw(
-                "instrument_settings"
-            ),  # [CONFIRMED] Container with unknown structure
+            0x0001: Skip(comment="1 byte, measurement type"),
+            0x0002: Skip(comment="scan params"),
+            0x0003: Skip(
+                comment="container with unknown structure, instrument settings"
+            ),
             0x0004: TextBuffer("instrument_name"),  # [LIKELY] Contains ASCII text
             0x0005: TextBuffer("objective"),  # [LIKELY] Contains ASCII text
         }
 
+        # =====================================================================
+        # Nested structure for image parameters in Section 3 of compressed_blocks
+        #
+        # Section 3 structure (from outermost to innermost):
+        # Section 3 root (tags: 0x0001, 0x0002, 0x0003)
+        # └── 0x0002 (level 1)
+        #     ├── [0xFFFF markers]
+        #     └── 0x0001 (level 2, tags: 0x0001, 0x0002, 0x0003)
+        #         └── 0x0002 (level 3)
+        #             ├── [0xFFFF markers]
+        #             └── 0x0002 (level 4, tags: 0x0001, 0x0002, 0x0003)
+        #                 └── 0x0002 (level 5)
+        #                     ├── [0xFFFF markers]
+        #                     └── 0x0002 (level 6 - innermost)
+        #                         ├── 0x0007 (width, uint32)
+        #                         ├── 0x0008 (height, uint32)
+        #                         ├── 0x0009 (physical_size_x, double in mm)
+        #                         └── 0x000a (physical_size_y, double in mm)
+        # =====================================================================
+
+        # Level 6 (innermost): Contains actual dimension info
+        level6_children = {
+            0xFFFF: Skip(comment="section delimiter/marker"),
+            0x0007: uint32("width"),  # [CONFIRMED] Image width in pixels
+            0x0008: uint32("height"),  # [CONFIRMED] Image height in pixels
+            0x0009: BinaryStructure([("value", "d")], name="physical_size_x"),
+            0x000A: BinaryStructure([("value", "d")], name="physical_size_y"),
+        }
+
+        # Level 5: Container wrapping level 6
+        level5_children = {
+            0xFFFF: Skip(comment="section delimiter/marker"),
+            0x0002: TLVContainer(level6_children, name="level6", size_format=SIZE_FMT),
+        }
+
+        # Level 4: Container wrapping level 5
+        level4_children = {
+            0xFFFF: Skip(comment="section delimiter/marker"),
+            0x0002: TLVContainer(level5_children, name="level5", size_format=SIZE_FMT),
+        }
+
+        # Level 3: Container wrapping level 4
+        level3_children = {
+            0x0002: TLVContainer(level4_children, name="level4", size_format=SIZE_FMT),
+        }
+
+        # Level 2: Container wrapping level 3
+        level2_children = {
+            0xFFFF: Skip(comment="section delimiter/marker"),
+            0x0001: TLVContainer(level3_children, name="level3", size_format=SIZE_FMT),
+        }
+
+        # Level 1 (Section 3 root): Container wrapping level 2
+        section3_children = {
+            0x0002: TLVContainer(level2_children, name="level2", size_format=SIZE_FMT),
+        }
+
+        # Store the section 3 parser for use in dimension extraction
+        cls._section3_parser = TLVContainer(
+            section3_children, name="section3", size_format=SIZE_FMT
+        )
+
         # Container 0x02bd children - [CONFIRMED] height data
-        # Evidence: Contains zlib-compressed blocks with known prefix structure
+        # Evidence: Contains TLV metadata followed by zlib-compressed blocks
+        # Note: compressed_blocks is stored as raw because it contains both
+        # TLV metadata (with dimensions) and binary zlib-compressed data
         height_data_children = {
-            0x0001: raw("data_header"),  # [UNKNOWN] Appears before compressed data
-            0x0002: raw(
-                "compressed_blocks"
-            ),  # [CONFIRMED] Compressed data blocks (zlib stream)
+            0x0001: Skip(comment="data header, appears before compressed data"),
+            0x0002: RawBuffer("compressed_blocks", size=None, lazy=False),
         }
 
         # Container 0x012d children - [UNKNOWN]
         extended_metadata_children = {
             0x0001: TextBuffer("extended_description"),  # [LIKELY] Contains ASCII text
-            0x0002: raw(
-                "extended_params"
-            ),  # [CONFIRMED] Container with unknown structure
-            0x0003: raw("extended_flags"),  # [UNKNOWN]
+            0x0002: Skip(comment="container with unknown structure, extended params"),
+            0x0003: Skip(comment="extended flags"),
         }
 
         # Container 0x0258 children - [GUESS] possibly visualization/palette
         # Evidence: Only present in some files, similar tag range to other formats
         color_palette_children = {
-            0x0001: raw("palette_info"),  # [UNKNOWN]
-            0x0002: raw("palette_data"),  # [UNKNOWN]
+            0x0001: Skip(comment="palette info"),
+            0x0002: Skip(comment="palette data"),
         }
 
         # =====================================================================
@@ -211,7 +464,7 @@ and compressed height data.
             0x00C8: TLVContainer(
                 block_params_children, name="block_params", size_format=SIZE_FMT
             ),
-            0x00C9: raw("file_flags"),  # [UNKNOWN]
+            0x00C9: Skip(comment="file flags"),
             0x00CB: TextBuffer(
                 "serial_number"
             ),  # [LIKELY] Contains text (serial number?)
@@ -225,32 +478,30 @@ and compressed height data.
                 name="extended_metadata",
                 size_format=SIZE_FMT,
             ),
-            0x0190: raw("acquisition_mode"),  # [UNKNOWN]
+            0x0190: Skip(comment="acquisition mode"),
             # Grid structure - [CONFIRMED] tag 0x0003 contains dimension info
-            0x0001: raw("data_type"),  # [UNKNOWN]
-            0x0002: raw("format_flags"),  # [UNKNOWN]
+            0x0001: Skip(comment="data type"),
+            0x0002: Skip(comment="format flags"),
             0x0003: TLVContainer(
                 dimension_params_children, name="dimension_params", size_format=SIZE_FMT
             ),
-            0x0004: raw("grid_type"),  # [UNKNOWN]
-            0x0005: raw("data_encoding"),  # [UNKNOWN]
+            0x0004: Skip(comment="grid type"),
+            0x0005: Skip(comment="data encoding"),
             # [GUESS] Tags 0x0006-0x000d might be physical dimensions
             0x0006: TLVContainer(
                 pixel_scale_children, name="pixel_scales", size_format=SIZE_FMT
             ),
-            0x0007: raw("origin_x"),  # [UNKNOWN]
-            0x0008: raw("origin_y"),  # [UNKNOWN]
-            0x0009: raw("origin_z"),  # [UNKNOWN]
-            0x000A: raw(
-                "coordinate_system"
-            ),  # [CONFIRMED] Container with unknown structure
-            0x000B: raw("aspect_ratio"),  # [UNKNOWN]
-            0x000C: raw("rotation"),  # [UNKNOWN]
-            0x000D: raw("tilt"),  # [UNKNOWN]
+            0x0007: Skip(comment="origin X"),
+            0x0008: Skip(comment="origin Y"),
+            0x0009: Skip(comment="origin Z"),
+            0x000A: Skip(comment="container with unknown structure, coordinate system"),
+            0x000B: Skip(comment="aspect ratio"),
+            0x000C: Skip(comment="rotation"),
+            0x000D: Skip(comment="tilt"),
             # [GUESS] Tags 0x0064-0x0066 grouped together, maybe statistics
-            0x0064: raw("height_stats"),  # [UNKNOWN]
-            0x0065: raw("rms_stats"),  # [UNKNOWN]
-            0x0066: raw("higher_moments"),  # [UNKNOWN]
+            0x0064: Skip(comment="height stats"),
+            0x0065: Skip(comment="RMS stats"),
+            0x0066: Skip(comment="higher moments"),
             0x0258: TLVContainer(
                 color_palette_children, name="color_palette", size_format=SIZE_FMT
             ),
@@ -259,22 +510,15 @@ and compressed height data.
                 height_data_children, name="height_data", size_format=SIZE_FMT
             ),
             # [GUESS] Tags 0x0014-0x001b might be processing/ROI related
-            # These are containers but with unknown child structure, so we store raw data
-            0x0014: raw(
-                "filter_history"
-            ),  # [CONFIRMED] Container with unknown structure
-            0x0015: raw(
-                "leveling_history"
-            ),  # [CONFIRMED] Container with unknown structure
-            0x0016: raw("form_removal"),  # [CONFIRMED] Container with unknown structure
-            0x0017: raw("processing_flags"),  # [UNKNOWN]
-            0x0018: raw("quality_score"),  # [UNKNOWN]
-            0x0019: raw(
-                "roi_definitions"
-            ),  # [CONFIRMED] Container with unknown structure
-            0x001A: raw("mask_regions"),  # [CONFIRMED] Container with unknown structure
-            0x001B: raw("annotations"),  # [CONFIRMED] Container with unknown structure
-            0xFFFF: raw("section_marker"),  # [LIKELY] Delimiter/marker (common pattern)
+            0x0014: Skip(comment="container with unknown structure, filter history"),
+            0x0015: Skip(comment="container with unknown structure, leveling history"),
+            0x0016: Skip(comment="container with unknown structure, form removal"),
+            0x0017: Skip(comment="processing flags"),
+            0x0018: Skip(comment="quality score"),
+            0x0019: Skip(comment="container with unknown structure, ROI definitions"),
+            0x001A: Skip(comment="container with unknown structure, mask regions"),
+            0x001B: Skip(comment="container with unknown structure, annotations"),
+            0xFFFF: Skip(comment="section delimiter/marker"),
         }
 
         # =====================================================================
@@ -285,9 +529,9 @@ and compressed height data.
             0x0001: TLVContainer(
                 main_container_children, name="main", size_format=SIZE_FMT
             ),
-            0x0002: raw("format_flags"),  # [UNKNOWN]
-            0x0003: raw("format_version"),  # [UNKNOWN]
-            0x0004: raw("file_type"),  # [UNKNOWN]
+            0x0002: Skip(comment="format flags"),
+            0x0003: Skip(comment="format version"),
+            0x0004: Skip(comment="file type"),
             0x0005: BinaryStructure(
                 [("value", "Q")], name="num_blocks"
             ),  # [CONFIRMED] uint64
@@ -414,71 +658,15 @@ and compressed height data.
         # Sort blocks by element_offset to get correct ordering
         height_blocks.sort(key=lambda b: b["element_offset"])
 
-        # Extract image dimensions from TLV tags within compressed_blocks_raw
-        # Dimensions are stored with tags 0x0007 (width) and 0x0008 (height)
-        # Search for these tags which appear as consecutive TLV entries
-        nx, ny = None, None
+        # Extract image parameters from TLV structure
+        # This includes width, height, and physical sizes
+        image_params = self._extract_image_params(compressed_blocks_raw)
+        nx = image_params["width"]
+        ny = image_params["height"]
 
-        # Search for dimension tags in the raw data
-        # Pattern: tag(2 bytes) + size(8 bytes) + value(4 bytes)
-        # Tag 0x0007 has width, tag 0x0008 has height
-        width_tag_bytes = struct.pack("<H", 0x0007)
-        height_tag_bytes = struct.pack("<H", 0x0008)
-
-        # Search for tag 0x0007 followed by size=4 and a value
-        pos = 0
-        while pos < len(compressed_blocks_raw) - 14:
-            if compressed_blocks_raw[pos:pos + 2] == width_tag_bytes:
-                # Check if size is 4
-                size = struct.unpack("<Q", compressed_blocks_raw[pos + 2:pos + 10])[0]
-                if size == 4:
-                    width_val = struct.unpack(
-                        "<I", compressed_blocks_raw[pos + 10:pos + 14]
-                    )[0]
-                    # Sanity check: width should be reasonable (100-10000)
-                    if 100 <= width_val <= 10000:
-                        # Check if tag 0x0008 follows at expected position
-                        height_pos = pos + 14
-                        if height_pos < len(compressed_blocks_raw) - 14:
-                            if (
-                                compressed_blocks_raw[height_pos:height_pos + 2]
-                                == height_tag_bytes
-                            ):
-                                h_size = struct.unpack(
-                                    "<Q",
-                                    compressed_blocks_raw[
-                                        height_pos + 2:height_pos + 10
-                                    ],
-                                )[0]
-                                if h_size == 4:
-                                    height_val = struct.unpack(
-                                        "<I",
-                                        compressed_blocks_raw[
-                                            height_pos + 10:height_pos + 14
-                                        ],
-                                    )[0]
-                                    if 100 <= height_val <= 10000:
-                                        nx, ny = width_val, height_val
-                                        break
-            pos += 1
-
-        # Fallback: calculate from block structure if dimensions not found
         if nx is None or ny is None:
-            num_blocks = len(height_blocks)
-            bytes_per_block = height_blocks[0]["size"]
-            elements_per_block = bytes_per_block // 4
-
-            try:
-                block_params = main["block_params"]
-                factor_a = block_params["factor_a"]["value"]
-                factor_b = block_params["factor_b"]["value"]
-                rows_per_block = factor_a * factor_b
-                nx = elements_per_block // rows_per_block
-                ny = num_blocks * rows_per_block
-            except (KeyError, TypeError):
-                total_elements = num_blocks * elements_per_block
-                nx = int(np.sqrt(total_elements))
-                ny = total_elements // nx
+            ole.close()
+            raise CorruptFile("Could not extract image dimensions from MNT file")
 
         # Store metadata for later use
         self._ole_data = file_data
@@ -486,10 +674,22 @@ and compressed height data.
         self._nx = nx
         self._ny = ny
 
-        # Physical sizes are difficult to reliably extract from MNT files
-        # Default to pixel count (user can override with physical_sizes parameter)
-        physical_size_x = float(nx)
-        physical_size_y = float(ny)
+        # Extract physical sizes from image parameters
+        # Tags 0x0009 and 0x000a contain physical sizes in mm
+        physical_size_x = image_params["physical_size_x"]
+        physical_size_y = image_params["physical_size_y"]
+
+        # Convert mm to µm if physical sizes were found
+        if physical_size_x is not None and physical_size_y is not None:
+            # Values are in mm, convert to µm
+            physical_size_x = physical_size_x * 1000.0  # mm -> µm
+            physical_size_y = physical_size_y * 1000.0  # mm -> µm
+            unit = "µm"
+        else:
+            # Fallback: use pixel count as physical size
+            physical_size_x = float(nx)
+            physical_size_y = float(ny)
+            unit = "µm"
 
         # Create channel info
         self._channels = [
@@ -501,8 +701,15 @@ and compressed height data.
                 nb_grid_pts=(nx, ny),
                 physical_sizes=(physical_size_x, physical_size_y),
                 uniform=True,
-                unit="µm",
-                info={"raw_metadata": {"nx": nx, "ny": ny}},
+                unit=unit,
+                info={
+                    "raw_metadata": {
+                        "nx": nx,
+                        "ny": ny,
+                        "physical_size_x_mm": image_params["physical_size_x"],
+                        "physical_size_y_mm": image_params["physical_size_y"],
+                    }
+                },
             )
         ]
 
