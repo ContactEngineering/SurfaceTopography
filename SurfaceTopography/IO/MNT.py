@@ -583,6 +583,8 @@ and compressed height data.
         #   Bytes 0-7:  uint64 LE - Element offset (for ordering)
         #   Bytes 8-11: uint32 LE - Elements per block
         #   Bytes 12-15: uint32 LE - Compressed size
+        # Note: MNT files may have multiple sections of zlib blocks separated
+        # by TLV structure, so we scan all blocks rather than chaining.
         zlib_blocks = []
         i = 0
         while i < len(compressed_blocks_raw) - 2:

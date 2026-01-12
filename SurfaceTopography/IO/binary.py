@@ -25,6 +25,8 @@
 import math
 import numbers
 import os
+import struct
+import zlib
 from struct import calcsize, unpack
 
 import numpy as np
@@ -733,3 +735,168 @@ class LayoutWithTrailingData(LayoutWithNameBase):
         if name:
             return {name: result}
         return result
+
+
+class ZlibBlockChain(LayoutWithNameBase):
+    """
+    Reads a chain of sequential zlib-compressed blocks from a binary stream.
+
+    This class is designed for file formats like MNT that store height data
+    as a series of zlib-compressed blocks with a fixed prefix structure.
+    The blocks are stored sequentially in memory and can be chained together
+    using the compressed_size field in each prefix.
+
+    Block structure:
+    ```
+    [prefix][zlib data][prefix][zlib data]...
+    ```
+
+    Default prefix format (16 bytes):
+    - Bytes 0-7:  uint64 LE - element_offset (for logical ordering)
+    - Bytes 8-11: uint32 LE - elements_per_block
+    - Bytes 12-15: uint32 LE - compressed_size
+
+    The class scans for the first zlib block by looking for the zlib magic
+    byte (0x78), then chains through all subsequent blocks using the
+    compressed_size field.
+
+    Parameters
+    ----------
+    name : str
+        Name for the parsed result in the context dictionary.
+    prefix_format : str, optional
+        Struct format for the block prefix. Default: '<QII' (uint64 + 2*uint32).
+        The last field must be the compressed_size.
+    min_decompressed_size : int, optional
+        Minimum decompressed size to consider a valid block. This filters
+        out false positive zlib matches. Default: 1000.
+
+    Examples
+    --------
+    >>> layout = ZlibBlockChain('height_blocks')
+    >>> result = layout.from_stream(stream, {})
+    >>> blocks = result['height_blocks']
+    >>> for block in blocks:
+    ...     elem_offset = block['elem_offset']
+    ...     data = block['data']  # decompressed bytes
+    """
+
+    # Valid zlib compression level markers
+    ZLIB_COMPRESSION_LEVELS = [0x01, 0x5E, 0x9C, 0xDA]
+
+    def __init__(self, name, prefix_format='<QII', min_decompressed_size=1000):
+        self._name = name
+        self._prefix_format = prefix_format
+        self._prefix_size = struct.calcsize(prefix_format)
+        self._min_decompressed_size = min_decompressed_size
+
+    def from_stream(self, stream_obj, context):
+        """
+        Parse zlib-compressed blocks from stream.
+
+        Parameters
+        ----------
+        stream_obj : stream-like object
+            Binary stream to decode.
+        context : dict
+            Dictionary with data that has been decoded at this point.
+
+        Returns
+        -------
+        dict
+            Dictionary with {name: list of block dicts}, where each block
+            dict contains 'elem_offset', 'elem_per_block', and 'data' keys.
+        """
+        data = stream_obj.read()
+        blocks = self._find_and_chain_blocks(data)
+        return {self._name: blocks}
+
+    def _find_first_zlib(self, data):
+        """
+        Scan for the first valid zlib block.
+
+        Parameters
+        ----------
+        data : bytes
+            Raw data to search.
+
+        Returns
+        -------
+        int or None
+            Position of the first zlib stream, or None if not found.
+        """
+        # Need at least prefix + 2 bytes for zlib header
+        for i in range(self._prefix_size, len(data) - 2):
+            # Check for zlib magic byte (0x78)
+            if data[i] == 0x78 and data[i + 1] in self.ZLIB_COMPRESSION_LEVELS:
+                # Verify there's a valid prefix before this position
+                prefix = data[i - self._prefix_size:i]
+                prefix_values = struct.unpack(self._prefix_format, prefix)
+                comp_size = prefix_values[-1]  # Last field is compressed_size
+
+                # Sanity check on compressed size
+                if 0 < comp_size < 10000000:
+                    try:
+                        decompressed = zlib.decompress(data[i:i + comp_size])
+                        if len(decompressed) >= self._min_decompressed_size:
+                            return i
+                    except zlib.error:
+                        pass
+        return None
+
+    def _find_and_chain_blocks(self, data):
+        """
+        Find the first zlib block, then chain through all blocks.
+
+        Parameters
+        ----------
+        data : bytes
+            Raw data containing the blocks.
+
+        Returns
+        -------
+        list of dict
+            List of block dictionaries, each containing:
+            - 'elem_offset': element offset for logical ordering
+            - 'elem_per_block': number of elements in this block
+            - 'data': decompressed data bytes
+        """
+        first_zlib = self._find_first_zlib(data)
+        if first_zlib is None:
+            return []
+
+        blocks = []
+        pos = first_zlib - self._prefix_size  # Start at first prefix
+
+        while pos < len(data) - self._prefix_size:
+            # Read prefix
+            prefix = data[pos:pos + self._prefix_size]
+            prefix_values = struct.unpack(self._prefix_format, prefix)
+
+            # Default prefix format is <QII: elem_offset, elem_per_block, comp_size
+            elem_offset = prefix_values[0]
+            elem_per_block = prefix_values[1] if len(prefix_values) > 2 else 0
+            comp_size = prefix_values[-1]
+
+            # Check for end of blocks
+            if comp_size == 0 or pos + self._prefix_size + comp_size > len(data):
+                break
+
+            # Decompress block
+            zlib_start = pos + self._prefix_size
+            try:
+                decompressed = zlib.decompress(
+                    data[zlib_start:zlib_start + comp_size]
+                )
+                blocks.append({
+                    'elem_offset': elem_offset,
+                    'elem_per_block': elem_per_block,
+                    'data': decompressed
+                })
+            except zlib.error:
+                break
+
+            # Move to next prefix
+            pos = zlib_start + comp_size
+
+        return blocks
