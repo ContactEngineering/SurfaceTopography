@@ -88,8 +88,6 @@ and compressed height data.
     _section3_parser = None
 
     # TLV format constants
-    _TAG_WIDTH = 0x0007
-    _TAG_HEIGHT = 0x0008
     _TLV_TAG_FORMAT = "<H"
     _TLV_SIZE_FORMAT = "<Q"
 
@@ -97,65 +95,8 @@ and compressed height data.
     _TAG_PHYSICAL_SIZE_X = 0x0009
     _TAG_PHYSICAL_SIZE_Y = 0x000A
 
-    @classmethod
-    def _parse_sections(cls, data):
-        """
-        Parse the section structure within compressed_blocks.
-
-        The compressed_blocks data has this structure:
-        - [0:10] Outer container (tag 0x0001, size uint64)
-        - [10:18] uint64 value (unknown purpose)
-        - [18:...] Sections as TLV containers, each followed by uint64 size field
-
-        Sections are:
-        - Section 1: Compressed height data blocks (large)
-        - Section 2: Additional metadata
-        - Section 3: Image parameters (contains width, height, physical sizes)
-
-        Parameters
-        ----------
-        data:bytes
-            Raw compressed_blocks data.
-
-        Returns
-        -------
-        sections:list of bytes
-            List of section data (excluding size headers).
-        """
-        sections = []
-
-        if len(data) < 28:
-            return sections
-
-        # Skip outer container header (10 bytes) and first uint64 value (8 bytes)
-        inner = data[18:]
-
-        pos = 0
-        while pos < len(inner) - 10:
-            # Read TLV entry for this section
-            tag = struct.unpack("<H", inner[pos:pos + 2])[0]
-            size = struct.unpack("<Q", inner[pos + 2:pos + 10])[0]
-
-            if tag > 0x2000 or size > len(inner) - pos - 10:
-                break
-
-            section_data = inner[pos + 10:pos + 10 + size]
-            sections.append(section_data)
-
-            # Move past this section
-            section_end = pos + 10 + size
-
-            # Check for uint64 size field after section (separator between sections)
-            if section_end + 8 <= len(inner):
-                next_size = struct.unpack("<Q", inner[section_end:section_end + 8])[0]
-                if next_size < 100000:  # Reasonable size for next section
-                    pos = section_end + 8
-                else:
-                    break
-            else:
-                break
-
-        return sections
+    # Parser for sections inside compressed_blocks - initialized lazily
+    _compressed_blocks_sections_parser = None
 
     @classmethod
     def _find_image_params_container(cls, section_data):
@@ -248,22 +189,44 @@ and compressed height data.
             "physical_size_y": None,
         }
 
-        # Parse sections
-        sections = cls._parse_sections(data)
+        # Initialize parsers if needed
+        if cls._compressed_blocks_sections_parser is None:
+            cls._init_block_structures()
+
+        # compressed_blocks structure:
+        # [outer_tag 0x0001][outer_size] = 10 bytes header
+        # [prefix][tag][size][data]...   = children with 8-byte prefixes
+        if len(data) < 28:
+            return result
+
+        # Skip outer container header (10 bytes), parse children with prefixes
+        stream = BytesIO(data[10:])
+
+        # Parse sections using declarative parser with entry_prefix_format
+        parsed = cls._compressed_blocks_sections_parser.from_stream(stream, {})
+        sections_data = parsed.get("sections", parsed)
+
+        # All sections have tag 0x0001, so they're stored as a list
+        sections = sections_data.get(0x0001, [])
+        if not isinstance(sections, list):
+            sections = [sections]
 
         # Section 3 contains image parameters (index 2, 0-based)
         if len(sections) < 3:
             return result
 
-        section3 = sections[2]
+        # Get the raw data of section 2
+        section3_entry = sections[2]
+        section3_raw = section3_entry.get("_raw") if isinstance(section3_entry, dict) else None
+        if section3_raw is None:
+            return result
 
         # Find the innermost container with image parameters
-        params = cls._find_image_params_container(section3)
+        params = cls._find_image_params_container(section3_raw)
         if params is None:
             return result
 
         # Extract values using declarative names or tag IDs
-        # Try by name first (more readable), then by tag ID
         result["width"] = params["width"]["value"]
         result["height"] = params["height"]["value"]
         result["physical_size_x"] = params["physical_size_x"]["value"]
@@ -430,6 +393,20 @@ and compressed height data.
         # Store the section 3 parser for use in dimension extraction
         cls._section3_parser = TLVContainer(
             section3_children, name="section3", size_format=SIZE_FMT
+        )
+
+        # Parser for sections inside compressed_blocks
+        # Structure: outer container header (10 bytes) + children with 8-byte prefixes
+        # Each section has tag 0x0001, so they'll be stored as a list
+        # We store sections as raw data since we only need section 2 for dimensions
+        compressed_blocks_sections_children = {
+            0x0001: RawBuffer("section", size=None, lazy=False),
+        }
+        cls._compressed_blocks_sections_parser = TLVContainer(
+            compressed_blocks_sections_children,
+            name="sections",
+            size_format=SIZE_FMT,
+            entry_prefix_format=SIZE_FMT,  # 8-byte look-ahead size before each entry
         )
 
         # Container 0x02bd children - [CONFIRMED] height data

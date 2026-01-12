@@ -536,10 +536,16 @@ class TLVContainer(LayoutWithNameBase):
     store_by_name : bool, optional
         If True, also store entries by their layout's name (if available)
         in addition to by tag ID. Default: True.
+    entry_prefix_format : str, optional
+        Format for a prefix field before each TLV entry. If set, this
+        many bytes are read and skipped before each entry. Used for
+        structures where each TLV entry is preceded by a size hint.
+        Default: None (no prefix).
     """
 
     def __init__(self, tag_map, name=None, tag_format='<H', size_format='<Q',
-                 count=None, container_size=None, store_by_name=True):
+                 count=None, container_size=None, store_by_name=True,
+                 entry_prefix_format=None):
         self._tag_map = tag_map
         self._name = name
         self._tag_format = tag_format
@@ -547,6 +553,7 @@ class TLVContainer(LayoutWithNameBase):
         self._count = count
         self._container_size = container_size
         self._store_by_name = store_by_name
+        self._entry_prefix_format = entry_prefix_format
 
     def name(self, context):
         return self._name
@@ -642,6 +649,11 @@ class TLVContainer(LayoutWithNameBase):
             if container_size is not None:
                 if stream_obj.tell() - start_pos >= container_size:
                     break
+
+            # Skip entry prefix if configured (e.g., look-ahead size field)
+            if self._entry_prefix_format is not None:
+                prefix_size = calcsize(self._entry_prefix_format)
+                stream_obj.seek(prefix_size, os.SEEK_CUR)
 
             # Read header
             tag, size = self._read_header(stream_obj)
