@@ -1,6 +1,16 @@
 Change log for SurfaceTopography
 ================================
 
+v1.21.0 (16Jan26)
+-----------------
+
+- ENH: Added reader for Digital Surf Mountains MNT files
+- ENH: Added readers for NMS, OS3D, SDF, TMF, and ZMG file formats
+- ENH: Added OLE and Zlib helper classes for declarative binary file parsing
+- BUG: Fixed treatment of masked values in MNT reader (data type tag now correctly determines masking behavior)
+- MAINT: Converted FRT reader to declarative style
+- MAINT: Use 1D capabilities of muGrid 0.105.x
+
 v1.20.0 (09Jan26)
 -----------------
 
