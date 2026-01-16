@@ -48,9 +48,12 @@ Image parameters (in Section 3, innermost tag 0x0002 container):
 - 0x0009: Physical size X in mm (double)
 - 0x000a: Physical size Y in mm (double)
 
-Height data formats:
-- Int16 pairs: (height_value, validity_flag) - high bytes are 0 (valid) or -1 (invalid)
-- Pure int32: Full int32 height values without validity channel
+Height data format:
+- Stored as int32 values
+- Data type tag (tag 0x0001 inside height_data container) indicates masking:
+  - Tag 12: zeros indicate undefined/masked pixels (common at image corners)
+  - Tag 39: pure int32 data, all values including zeros are valid heights
+- Height scale factor stored in pixel_scales container (typically 10 nm/count)
 
 Note: 0xFFFF tags are used as section markers/delimiters and must be skipped
 when parsing nested containers.
@@ -235,6 +238,91 @@ and compressed height data.
         return result
 
     @classmethod
+    def _extract_metadata(cls, main_container):
+        """
+        Extract human-readable metadata from the parsed main container.
+
+        Parameters
+        ----------
+        main_container : dict
+            Parsed main container from TLV structure.
+
+        Returns
+        -------
+        metadata : dict
+            Dictionary containing extracted metadata fields.
+        """
+        metadata = {}
+
+        # Extract pixel scales
+        pixel_scales = main_container.get("pixel_scales", {})
+        if pixel_scales:
+            scales = {}
+            for key, name in [
+                ("scale_x", "x"),
+                ("scale_y", "y"),
+                ("scale_z", "z"),
+                ("scale_4", "unknown"),
+            ]:
+                val = pixel_scales.get(key) or pixel_scales.get(
+                    {"scale_x": 1, "scale_y": 2, "scale_z": 3, "scale_4": 4}.get(key)
+                )
+                if isinstance(val, dict) and "value" in val:
+                    scales[name] = val["value"]
+            if scales:
+                metadata["pixel_scales_nm"] = scales
+
+        # Extract block params
+        block_params = main_container.get("block_params", {})
+        if block_params:
+            params = {}
+            for key in ["factor_a", "factor_b", "param_3", "param_4", "param_5"]:
+                val = block_params.get(key)
+                if isinstance(val, dict) and "value" in val:
+                    params[key] = val["value"]
+            if params:
+                metadata["block_params"] = params
+
+        # Extract dimension params
+        dim_params = main_container.get("dimension_params", {})
+        if dim_params:
+            dims = {}
+            for key in ["nx", "ny"]:
+                val = dim_params.get(key)
+                if isinstance(val, dict) and "value" in val:
+                    dims[key] = val["value"]
+            if dims:
+                metadata["dimension_params"] = dims
+
+        # Extract serial number
+        serial = main_container.get("serial_number")
+        if serial and isinstance(serial, str):
+            metadata["serial_number"] = serial.strip("\x00")
+
+        # Extract measurement params
+        meas_params = main_container.get("measurement_params", {})
+        if meas_params:
+            params = {}
+            for key in ["instrument_name", "objective"]:
+                val = meas_params.get(key)
+                if val and isinstance(val, str):
+                    params[key] = val.strip("\x00")
+            if params:
+                metadata["measurement_params"] = params
+
+        # Extract extended metadata
+        ext_meta = main_container.get("extended_metadata", {})
+        if ext_meta:
+            ext = {}
+            desc = ext_meta.get("extended_description")
+            if desc and isinstance(desc, str):
+                ext["description"] = desc.strip("\x00")
+            if ext:
+                metadata["extended_metadata"] = ext
+
+        return metadata
+
+    @classmethod
     def _init_block_structures(cls):
         """Initialize TLV block structure definitions.
 
@@ -268,9 +356,10 @@ and compressed height data.
         - Bytes 12-15: uint32 LE - Compressed size
 
         Height Data Format:
-        - Stored as int16 pairs: (height_value, validity_flag)
-        - Height values at even indices, validity at odd indices
-        - Validity: 0 = valid, -1 = invalid/masked
+        - Stored as int32 values
+        - Data type tag indicates masking behavior:
+          - Tag 12: zeros indicate undefined/masked pixels
+          - Tag 39: pure int32, all values including zeros are valid
         """
 
         # Helper to create BinaryStructure with single uint32 field
@@ -311,15 +400,17 @@ and compressed height data.
             0x0002: uint32("ny"),  # [LIKELY] Y dimension as uint32
         }
 
-        # Container 0x0006 children - [GUESS] possibly pixel scales/units
-        # Evidence: Similar structure to SUR format scale blocks
+        # Container 0x0006 children - [CONFIRMED] pixel scale factors
+        # Evidence: Tags 0x0001-0x0004 contain double values (all 10.0 in test file)
+        # These are likely scale factors in nm/count for X, Y, Z axes
         pixel_scale_children = {
-            0x0001: Skip(comment="possibly X scale"),
-            0x0002: Skip(comment="possibly Y scale"),
-            0x0003: Skip(comment="possibly Z scale"),
-            0x0004: TextBuffer("x_unit"),  # [LIKELY] Contains ASCII text (unit?)
-            0x0005: TextBuffer("y_unit"),  # [LIKELY] Contains ASCII text (unit?)
-            0x0006: TextBuffer("z_unit"),  # [LIKELY] Contains ASCII text (unit?)
+            0x0001: BinaryStructure([("value", "d")], name="scale_x"),  # [CONFIRMED] X scale (nm/count)
+            0x0002: BinaryStructure([("value", "d")], name="scale_y"),  # [CONFIRMED] Y scale (nm/count)
+            0x0003: BinaryStructure([("value", "d")], name="scale_z"),  # [CONFIRMED] Z scale (nm/count)
+            0x0004: BinaryStructure([("value", "d")], name="scale_4"),  # [CONFIRMED] Unknown scale
+            0x0005: TextBuffer("x_unit"),  # [LIKELY] Contains ASCII text (unit?)
+            0x0006: TextBuffer("y_unit"),  # [LIKELY] Contains ASCII text (unit?)
+            0x0007: TextBuffer("z_unit"),  # [LIKELY] Contains ASCII text (unit?)
         }
 
         # Container 0x00ca children - [GUESS] possibly measurement parameters
@@ -414,7 +505,8 @@ and compressed height data.
         # Note: compressed_blocks is stored as raw because it contains both
         # TLV metadata (with dimensions) and binary zlib-compressed data
         height_data_children = {
-            0x0001: Skip(comment="data header, appears before compressed data"),
+            # [CONFIRMED] Data type tag: 12 = zeros are undefined, 39 = pure int32
+            0x0001: BinaryStructure([("value", "B")], name="data_type"),
             0x0002: RawBuffer("compressed_blocks", size=None, lazy=False),
         }
 
@@ -578,6 +670,18 @@ and compressed height data.
             ole.close()
             raise CorruptFile("Missing compressed height data in metadata")
 
+        # Extract data type tag from height_data container
+        # Tag 0x0001 inside 0x02BD contains a type indicator:
+        #   - 12: int32 data with zero as undefined marker
+        #   - 39: pure int32 data (zeros are valid heights)
+        self._data_type_tag = None
+        try:
+            data_type = height_data.get("data_type")
+            if data_type is not None and isinstance(data_type, dict):
+                self._data_type_tag = data_type.get("value")
+        except (KeyError, TypeError):
+            pass
+
         # Find all zlib-compressed blocks within the compressed data
         # Each block has a 16-byte prefix:
         #   Bytes 0-7:  uint64 LE - Element offset (for ordering)
@@ -670,6 +774,35 @@ and compressed height data.
             physical_size_y = float(ny)
             unit = "µm"
 
+        # Extract height scale factor from pixel_scales container
+        # The scale values are in nm/count
+        height_scale_factor_nm = None
+        try:
+            pixel_scales = main.get("pixel_scales", {})
+            # Tag 0x0003 contains Z scale, or try scale_z by name
+            scale_z = pixel_scales.get("scale_z") or pixel_scales.get(0x0003)
+            if scale_z is not None and isinstance(scale_z, dict):
+                height_scale_factor_nm = scale_z.get("value")
+        except (KeyError, TypeError):
+            pass
+
+        # Convert nm/count to µm/count for consistency with physical_sizes
+        if height_scale_factor_nm is not None:
+            self._height_scale_factor = height_scale_factor_nm / 1000.0  # nm -> µm
+        else:
+            self._height_scale_factor = None
+
+        # Build metadata dictionary from parsed TLV structure
+        parsed_metadata = self._extract_metadata(main)
+        parsed_metadata["image_params"] = {
+            "nx": nx,
+            "ny": ny,
+            "physical_size_x_mm": image_params["physical_size_x"],
+            "physical_size_y_mm": image_params["physical_size_y"],
+        }
+        if height_scale_factor_nm is not None:
+            parsed_metadata["height_scale_factor_nm"] = height_scale_factor_nm
+
         # Create channel info
         self._channels = [
             ChannelInfo(
@@ -681,14 +814,7 @@ and compressed height data.
                 physical_sizes=(physical_size_x, physical_size_y),
                 uniform=True,
                 unit=unit,
-                info={
-                    "raw_metadata": {
-                        "nx": nx,
-                        "ny": ny,
-                        "physical_size_x_mm": image_params["physical_size_x"],
-                        "physical_size_y_mm": image_params["physical_size_y"],
-                    }
-                },
+                info={"raw_metadata": parsed_metadata},
             )
         ]
 
@@ -704,7 +830,7 @@ and compressed height data.
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
-        info={},
+        info=None,
         periodic=False,
         subdomain_locations=None,
         nb_subdomain_grid_pts=None,
@@ -721,38 +847,29 @@ and compressed height data.
         # Combine all blocks (already sorted by element_offset)
         combined_data = b"".join(data for pos, data in self._zlib_blocks)
 
-        # Detect data format by checking the high int16 bytes
-        # Int16 pairs format: high bytes are only 0 (valid) or -1 (invalid)
-        # Pure int32 format: high bytes have varying values
-        arr_i16 = np.frombuffer(combined_data, dtype="<i2")
-        high_bytes = arr_i16[1::2]  # Odd indices = high bytes of int32s
-        unique_high = np.unique(high_bytes)
-        is_int16_pairs = len(unique_high) <= 2 and set(unique_high).issubset({-1, 0})
-
-        if is_int16_pairs:
-            # Int16 pairs format: (height_int16, validity_int16)
-            heights_flat = arr_i16[::2].astype(float)  # Even indices = heights
-            validity_flat = arr_i16[
-                1::2
-            ]  # Odd indices = validity (0=valid, -1=invalid)
-            # Reshape using C-order (row-major storage)
-            heights = heights_flat[: nx * ny].reshape(ny, nx, order="C")
-            invalid_mask = (validity_flat[: nx * ny] == -1).reshape(ny, nx, order="C")
-        else:
-            # Pure int32 format
-            arr_i32 = np.frombuffer(combined_data, dtype="<i4").astype(float)
-            # Reshape using C-order (row-major storage)
-            heights = arr_i32[: nx * ny].reshape(ny, nx, order="C")
-            # No built-in validity mask
-            invalid_mask = np.zeros((ny, nx), dtype=bool)
+        # Height data is stored as int32 values
+        arr_i32 = np.frombuffer(combined_data, dtype="<i4")
+        heights = arr_i32[: nx * ny].astype(float).reshape(ny, nx, order="C")
 
         # Transpose to get (nx, ny) shape expected by SurfaceTopography
         heights = heights.T
-        invalid_mask = invalid_mask.T
 
-        # Apply scale factor if provided
+        # Determine if masking is needed based on data_type_tag
+        # Tag 12: zeros indicate undefined/masked pixels
+        # Tag 39: pure int32, all values including zeros are valid
+        if self._data_type_tag == 12:
+            invalid_mask = heights == 0
+        else:
+            invalid_mask = None
+
+        # Apply height scale factor
+        # If user provides explicit height_scale_factor, use that
+        # Otherwise, use the internal scale factor from pixel_scales if available
         if height_scale_factor is not None:
             heights = heights * height_scale_factor
+        elif self._height_scale_factor is not None:
+            # Apply internal scale factor (converts counts to µm)
+            heights = heights * self._height_scale_factor
 
         # Check physical sizes
         sx, sy = channel.physical_sizes
@@ -761,9 +878,10 @@ and compressed height data.
 
         # Build info dict
         _info = channel.info.copy()
-        _info.update(info)
+        if info is not None:
+            _info.update(info)
 
-        if invalid_mask.any():
+        if invalid_mask is not None and invalid_mask.any():
             heights = np.ma.masked_array(heights, mask=invalid_mask)
 
         topography = Topography(

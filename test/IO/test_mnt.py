@@ -108,10 +108,15 @@ def test_mnt2_metadata(file_format_examples):
 
     assert t.unit == 'µm'
 
-    # File has masked (invalid) regions at corners
+    # File has masked (invalid) regions at corners (zeros mark undefined pixels)
     assert t.has_undefined_data
 
-    # Verify valid height data range (corners are masked, valid region is positive)
+    # Verify valid height data range
+    # Heights are scaled by pixel_scales z value (10 nm/count = 0.01 µm/count)
+    # Valid data includes both positive and negative values
     h = t.heights()
-    assert h.compressed().min() >= 0
-    assert h.compressed().max() < 10000
+    assert h.compressed().min() > -150  # ~-111 µm after scaling
+    assert h.compressed().max() < 100  # ~49 µm after scaling
+
+    # Verify masked pixel count (zeros at corners/edges)
+    assert 40000 < h.mask.sum() < 50000  # About 45531 masked pixels
