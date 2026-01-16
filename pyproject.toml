@@ -60,6 +60,7 @@ dependencies = [
     "requests",
     "tiffile",
     "xmltodict",
+    "olefile",
     "pandas",
     "pydantic",
     "zstandard"

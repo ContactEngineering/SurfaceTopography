@@ -31,7 +31,6 @@ from zipfile import ZipFile
 import numpy as np
 import yaml
 
-from ...IO import open_topography
 from ...Version import __version__
 from ..SurfaceContainer import LazySurfaceContainer, SurfaceContainer
 from .Reader import ContainerReaderBase
@@ -162,6 +161,8 @@ class CEReader(ContainerReaderBase):
                     raise ValueError("Could not detect data file.")
 
                 # Inspect topography file; we pass a function that returns a file handle to reopen file
+                # Lazy import to avoid circular dependency during package initialization
+                from ...IO import open_topography
                 reader = open_topography(
                     CEFileOpener(self._fn, datafiles[datafile_key])
                 )

@@ -22,6 +22,7 @@ python_sources = [
     'MI.py',
     'MetroPro.py',
     'Mitutoyo.py',
+    'MNT.py',
     'NC.py',
     'NMM.py',
     'NMS.py',

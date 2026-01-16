@@ -54,12 +54,7 @@ from zipfile import ZipFile
 import defusedxml.ElementTree as ElementTree
 
 from ...Exceptions import CorruptFile, FileFormatMismatch
-from ...IO import ZONReader
-from ...IO.binary import decode
-from ...IO.common import OpenFromAny
-
 from ..SurfaceContainer import LazySurfaceContainer
-
 from .Reader import ContainerReaderBase
 
 _log = logging.Logger(__name__)
@@ -113,6 +108,10 @@ class ZAGReader(ContainerReaderBase):
         surface_containers : list of :obj:`SurfaceContainer`s
             List of all surfaces contained in this container file.
         """
+        # Lazy import to avoid circular dependency during package initialization
+        from ...IO.binary import decode
+        from ...IO.common import OpenFromAny
+
         # Open if a file name is given
         if not hasattr(fobj, "read"):
             # This is a string
@@ -153,6 +152,8 @@ class ZAGReader(ContainerReaderBase):
                     if item_root.tag == self._MEASUREMENT_TAG:
                         for data in item_root.findall(self._DATA_TAG):
                             # Construct reader - we currently assume that all are ZON files
+                            # Lazy import to avoid circular dependency during package initialization
+                            from ...IO import ZONReader
                             data_path = data.find(self._PATH_TAG).text
                             readers += [
                                 ZONReader(
