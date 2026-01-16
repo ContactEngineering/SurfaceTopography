@@ -67,6 +67,7 @@ import numpy as np
 import olefile
 
 from ..Exceptions import CorruptFile, FileFormatMismatch
+from ..Support.UnitConversion import get_unit_conversion_factor, mangle_length_unit_utf8
 from ..UniformLineScanAndTopography import Topography
 from .binary import BinaryStructure, RawBuffer, TextBuffer, TLVContainer
 from .common import OpenFromAny
@@ -511,10 +512,37 @@ and compressed height data.
         }
 
         # Container 0x012d children - [UNKNOWN]
+        # Unit info container (0x000A inside extended_metadata)
+        # Contains Z display unit
+        unit_info_children = {
+            0x0001: Skip(comment="unknown uint32"),
+            0x0002: Skip(comment="unknown double"),
+            0x0003: Skip(comment="unknown double"),
+            0x0004: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z unit as length-prefixed UTF-16
+            0x0005: Skip(comment="unknown uint32"),
+        }
+
+        # Axis info container (0x0009 inside extended_metadata)
+        # Contains X, Y, Z storage units and scale factors
+        axis_info_children = {
+            0x0010: BinaryStructure([("value", "d")], name="scale_x"),  # X scale factor
+            0x0011: BinaryStructure([("value", "d")], name="scale_y"),  # Y scale factor
+            0x0012: BinaryStructure([("value", "d")], name="scale_z"),  # Z scale factor
+            0x0013: RawBuffer("x_unit_raw", size=None, lazy=False),  # X unit (length-prefixed UTF-16)
+            0x0014: RawBuffer("y_unit_raw", size=None, lazy=False),  # Y unit (length-prefixed UTF-16)
+            0x0015: RawBuffer("z_unit_raw", size=None, lazy=False),  # Z storage unit (length-prefixed UTF-16)
+        }
+
         extended_metadata_children = {
             0x0001: TextBuffer("extended_description"),  # [LIKELY] Contains ASCII text
             0x0002: Skip(comment="container with unknown structure, extended params"),
             0x0003: Skip(comment="extended flags"),
+            0x0009: TLVContainer(
+                axis_info_children, name="axis_info", size_format=SIZE_FMT
+            ),  # [CONFIRMED] Contains X, Y, Z storage units
+            0x000A: TLVContainer(
+                unit_info_children, name="unit_info", size_format=SIZE_FMT
+            ),  # [CONFIRMED] Contains Z display unit
         }
 
         # Container 0x0258 children - [GUESS] possibly visualization/palette
@@ -758,21 +786,62 @@ and compressed height data.
         self._ny = ny
 
         # Extract physical sizes from image parameters
-        # Tags 0x0009 and 0x000a contain physical sizes in mm
         physical_size_x = image_params["physical_size_x"]
         physical_size_y = image_params["physical_size_y"]
 
-        # Convert mm to µm if physical sizes were found
+        # Helper to parse length-prefixed UTF-16 LE string
+        def parse_unit_string(raw_buffer):
+            if raw_buffer and isinstance(raw_buffer, dict):
+                raw_data = raw_buffer.get("_raw")
+                if raw_data and len(raw_data) >= 3:
+                    byte_len = raw_data[0]
+                    if len(raw_data) >= 1 + byte_len:
+                        return raw_data[1:1 + byte_len].decode("utf-16-le")
+            return None
+
+        # Extract units from extended_metadata
+        ext_meta = main.get("extended_metadata", {})
+
+        # Extract X and Y storage units from axis_info container (0x0009)
+        # Tags 0x0013 and 0x0014 contain X and Y units
+        x_storage_unit = None
+        y_storage_unit = None
+        try:
+            axis_info = ext_meta.get("axis_info") or ext_meta.get(0x0009)
+            if axis_info and isinstance(axis_info, dict):
+                x_unit_raw = axis_info.get("x_unit_raw") or axis_info.get(0x0013)
+                y_unit_raw = axis_info.get("y_unit_raw") or axis_info.get(0x0014)
+                x_storage_unit = parse_unit_string(x_unit_raw)
+                y_storage_unit = parse_unit_string(y_unit_raw)
+        except (KeyError, TypeError, UnicodeDecodeError):
+            pass
+
+        # Extract Z display unit from unit_info container (0x000A)
+        # Tag 0x0004 contains the Z unit for display
+        z_unit = None
+        try:
+            unit_info = ext_meta.get("unit_info") or ext_meta.get(0x000A)
+            if unit_info and isinstance(unit_info, dict):
+                z_unit_raw = unit_info.get("z_unit_raw") or unit_info.get(0x0004)
+                z_unit = parse_unit_string(z_unit_raw)
+        except (KeyError, TypeError, UnicodeDecodeError):
+            pass
+
+        # Normalize unit strings (e.g., ensure µ is MICRO SIGN not GREEK MU)
+        x_storage_unit = mangle_length_unit_utf8(x_storage_unit) if x_storage_unit else "mm"
+        y_storage_unit = mangle_length_unit_utf8(y_storage_unit) if y_storage_unit else "mm"
+        unit = mangle_length_unit_utf8(z_unit) if z_unit else "µm"
+
+        # Convert physical sizes from storage units to the target Z unit
         if physical_size_x is not None and physical_size_y is not None:
-            # Values are in mm, convert to µm
-            physical_size_x = physical_size_x * 1000.0  # mm -> µm
-            physical_size_y = physical_size_y * 1000.0  # mm -> µm
-            unit = "µm"
+            x_to_unit = get_unit_conversion_factor(x_storage_unit, unit)
+            y_to_unit = get_unit_conversion_factor(y_storage_unit, unit)
+            physical_size_x = physical_size_x * x_to_unit
+            physical_size_y = physical_size_y * y_to_unit
         else:
             # Fallback: use pixel count as physical size
             physical_size_x = float(nx)
             physical_size_y = float(ny)
-            unit = "µm"
 
         # Extract height scale factor from pixel_scales container
         # The scale values are in nm/count
@@ -786,9 +855,10 @@ and compressed height data.
         except (KeyError, TypeError):
             pass
 
-        # Convert nm/count to µm/count for consistency with physical_sizes
+        # Convert height scale factor from nm/count to unit/count
         if height_scale_factor_nm is not None:
-            self._height_scale_factor = height_scale_factor_nm / 1000.0  # nm -> µm
+            nm_to_unit = get_unit_conversion_factor("nm", unit)
+            self._height_scale_factor = height_scale_factor_nm * nm_to_unit
         else:
             self._height_scale_factor = None
 
