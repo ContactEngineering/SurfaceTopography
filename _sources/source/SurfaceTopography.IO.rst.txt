@@ -116,6 +116,14 @@ SurfaceTopography.IO.MI module
    :show-inheritance:
    :undoc-members:
 
+SurfaceTopography.IO.MNT module
+-------------------------------
+
+.. automodule:: SurfaceTopography.IO.MNT
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 SurfaceTopography.IO.Matlab module
 ----------------------------------
 

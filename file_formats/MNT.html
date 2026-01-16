@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Surf Mountains MNT Format &mdash; SurfaceTopography 1.20.0.dev33+gd4bc3cfd documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=629fc8fc"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Testing" href="../testing.html" />
+    <link rel="prev" title="File Format Details" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            SurfaceTopography
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supported_formats.html">Supported File Formats</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">File Format Details</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Digital Surf Mountains MNT Format</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-structure">File Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scopedcontents-structure">ScopedContents Structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tlv-entry-format">TLV Entry Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#top-level-structure">Top-Level Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#known-tags">Known Tags</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utf-16-string-encoding">UTF-16 String Encoding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dimension-parameters">Dimension Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#height-data-container-tag-0x02bd">Height Data Container (Tag 0x02bd)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#block-prefix-structure">Block Prefix Structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#zlib-compression">Zlib Compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#block-identification">Block Identification</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dimension-calculation">Dimension Calculation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-format">Data Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#block-ordering">Block Ordering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-reconstruction">Data Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#physical-units">Physical Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-files">Example Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#known-limitations">Known Limitations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-formats">Related Formats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to SurfaceTopography</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.html">SurfaceTopography package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Container.html">SurfaceTopography.Container package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Generic.html">SurfaceTopography.Generic package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.IO.html">SurfaceTopography.IO package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Nonuniform.html">SurfaceTopography.Nonuniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Support.html">SurfaceTopography.Support package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Uniform.html">SurfaceTopography.Uniform package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source/SurfaceTopography.Models.html">SurfaceTopography.Models package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SurfaceTopography</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">File Format Details</a></li>
+      <li class="breadcrumb-item active">Digital Surf Mountains MNT Format</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/file_formats/MNT.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="digital-surf-mountains-mnt-format">
+<h1>Digital Surf Mountains MNT Format<a class="headerlink" href="#digital-surf-mountains-mnt-format" title="Link to this heading"></a></h1>
+<p>This document describes the internal structure of the Digital Surf Mountains MNT
+file format, based on reverse engineering of example files.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The MNT format is used by Digital Surf’s Mountains software suite for storing
+surface topography data from profilometers, interferometers, and other surface
+measurement instruments. It is a Microsoft Compound Document File (OLE/COM
+structured storage) containing multiple streams.</p>
+</section>
+<section id="file-structure">
+<h2>File Structure<a class="headerlink" href="#file-structure" title="Link to this heading"></a></h2>
+<p>The file uses the OLE compound document format, identifiable by the magic bytes:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>D0 CF 11 E0 A1 B1 1A E1
+</pre></div>
+</div>
+<p>The file contains the following streams:</p>
+<dl class="simple">
+<dt>ImagePreview</dt><dd><p>A JPEG image showing a preview of the topography. Note that this preview
+may include user interface elements and its aspect ratio does not necessarily
+match the actual data dimensions.</p>
+</dd>
+<dt>ScopedContents</dt><dd><p>Binary stream containing the height data. This is the main data stream with
+a global header followed by zlib-compressed data blocks.</p>
+</dd>
+<dt>ScopedResults</dt><dd><p>Parameter data and analysis results. The exact structure is not fully
+documented.</p>
+</dd>
+<dt>XmlHeader</dt><dd><p>UTF-16 encoded XML metadata. Contains general file information (software
+version, serial number, operators) but does not store the data dimensions.</p>
+</dd>
+</dl>
+</section>
+<section id="scopedcontents-structure">
+<h2>ScopedContents Structure<a class="headerlink" href="#scopedcontents-structure" title="Link to this heading"></a></h2>
+<p>The ScopedContents stream uses a hierarchical TLV (Tag-Length-Value) encoding
+throughout. The entire stream can be traversed as a sequence of TLV entries.</p>
+<section id="tlv-entry-format">
+<h3>TLV Entry Format<a class="headerlink" href="#tlv-entry-format" title="Link to this heading"></a></h3>
+<p>Each TLV entry has the following structure:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tag</p></td>
+<td><p>uint16 LE</p></td>
+<td><p>Identifies the entry type</p></td>
+</tr>
+<tr class="row-odd"><td><p>Size</p></td>
+<td><p>uint64 LE</p></td>
+<td><p>Number of bytes in the data section</p></td>
+</tr>
+<tr class="row-even"><td><p>Data</p></td>
+<td><p>variable</p></td>
+<td><p>The payload (size bytes, may contain nested TLV entries)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="top-level-structure">
+<h3>Top-Level Structure<a class="headerlink" href="#top-level-structure" title="Link to this heading"></a></h3>
+<p>The stream begins with a size field followed by top-level TLV entries:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Offset 0x0000: uint64 LE - Total stream size minus 8 (integrity check)
+Offset 0x0008: Tag 0x03, size=1 - Format version
+Offset 0x0013: Tag 0x02, size=4 - Format flags
+Offset 0x0021: Tag 0x04, size=8 - Timestamp or identifier
+Offset 0x0033: Tag 0x05, size=8 - Contains dimension parameters
+Offset 0x0045: Tag 0x01        - Main container (rest of stream)
+</pre></div>
+</div>
+<p>The Tag 0x01 container holds all remaining data as nested TLV entries.</p>
+</section>
+<section id="known-tags">
+<h3>Known Tags<a class="headerlink" href="#known-tags" title="Link to this heading"></a></h3>
+<p>Tags observed in example files:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 85.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0x0001</p></td>
+<td><p>Container/nested structure</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x0002-0x0005</p></td>
+<td><p>Top-level metadata</p></td>
+</tr>
+<tr class="row-even"><td><p>0x00c8</p></td>
+<td><p>Metadata block (variable size)</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x00c9</p></td>
+<td><p>4-byte value</p></td>
+</tr>
+<tr class="row-even"><td><p>0x00ca</p></td>
+<td><p>Metadata block (variable size)</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x00cb</p></td>
+<td><p>Serial number string (UTF-16)</p></td>
+</tr>
+<tr class="row-even"><td><p>0x012d</p></td>
+<td><p>Extended metadata</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x02bd</p></td>
+<td><p>Height data container (contains compressed blocks)</p></td>
+</tr>
+<tr class="row-even"><td><p>0xffff</p></td>
+<td><p>Marker/separator</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="utf-16-string-encoding">
+<h3>UTF-16 String Encoding<a class="headerlink" href="#utf-16-string-encoding" title="Link to this heading"></a></h3>
+<p>String values (e.g., serial numbers) have a type byte prefix:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Type byte</p></td>
+<td><p>uint8</p></td>
+<td><p>Value 0x04 indicates a UTF-16 string</p></td>
+</tr>
+<tr class="row-odd"><td><p>String</p></td>
+<td><p>UTF-16 LE</p></td>
+<td><p>The string data (size - 1 bytes)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Example: Serial number “DS-364280957” is encoded as:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>cb 00                       Tag 0xcb (serial number)
+19 00 00 00 00 00 00 00     Size = 25 bytes
+04                          Type byte (string)
+44 00 53 00 2d 00 ...       UTF-16 LE &quot;DS-364280957&quot; (24 bytes)
+</pre></div>
+</div>
+</section>
+<section id="dimension-parameters">
+<h3>Dimension Parameters<a class="headerlink" href="#dimension-parameters" title="Link to this heading"></a></h3>
+<p>Key fields for calculating image dimensions are found at fixed byte offsets
+within the Tag 0x05 data block (offsets from start of ScopedContents):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Offset</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0x3d</p></td>
+<td><p>uint8</p></td>
+<td><p>Number of compressed data blocks</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x63</p></td>
+<td><p>uint8</p></td>
+<td><p>Rows factor A (first component of rows per block)</p></td>
+</tr>
+<tr class="row-even"><td><p>0x71</p></td>
+<td><p>uint8</p></td>
+<td><p>Rows factor B (second component of rows per block)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="height-data-container-tag-0x02bd">
+<h2>Height Data Container (Tag 0x02bd)<a class="headerlink" href="#height-data-container-tag-0x02bd" title="Link to this heading"></a></h2>
+<p>The height data is stored in a nested TLV structure within Tag 0x02bd:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Tag 0x02bd (height data container)
+├── Tag 0x0001, size=1: num_blocks (e.g., 32)
+└── Tag 0x0002 (compressed data container)
+    └── Tag 0x0001 (packed block data)
+        └── [16-byte prefix + zlib data] × num_blocks
+</pre></div>
+</div>
+<p><strong>Important</strong>: The innermost level does NOT use TLV encoding. The compressed
+blocks are packed sequentially with a fixed 16-byte prefix before each zlib
+stream.</p>
+<section id="block-prefix-structure">
+<h3>Block Prefix Structure<a class="headerlink" href="#block-prefix-structure" title="Link to this heading"></a></h3>
+<p>Each compressed block is preceded by a 16-byte prefix with a <strong>fixed structure</strong>
+(not TLV):</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Offset</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0-7</p></td>
+<td><p>uint64 LE</p></td>
+<td><p>Element offset. Used to determine the correct ordering of blocks
+when reconstructing the height map. Blocks must be sorted by this
+value in ascending order.</p></td>
+</tr>
+<tr class="row-odd"><td><p>8-11</p></td>
+<td><p>uint32 LE</p></td>
+<td><p>Elements per block. The number of height values (not bytes) contained
+in this block after decompression.</p></td>
+</tr>
+<tr class="row-even"><td><p>12-15</p></td>
+<td><p>uint32 LE</p></td>
+<td><p>Compressed size. The size in bytes of the following zlib-compressed
+data.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The packed block format is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[element_offset (8)] [elements_per_block (4)] [compressed_size (4)] [zlib data]
+[element_offset (8)] [elements_per_block (4)] [compressed_size (4)] [zlib data]
+... (repeated for each block)
+</pre></div>
+</div>
+</section>
+<section id="zlib-compression">
+<h3>Zlib Compression<a class="headerlink" href="#zlib-compression" title="Link to this heading"></a></h3>
+<p>The compressed data uses standard zlib compression. Common zlib header bytes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">78</span> <span class="pre">01</span></code> - No compression</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">78</span> <span class="pre">5E</span></code> - Fast compression</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">78</span> <span class="pre">9C</span></code> - Default compression</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">78</span> <span class="pre">DA</span></code> - Best compression</p></li>
+</ul>
+</section>
+<section id="block-identification">
+<h3>Block Identification<a class="headerlink" href="#block-identification" title="Link to this heading"></a></h3>
+<p>Height data blocks can be identified by:</p>
+<ol class="arabic simple">
+<li><p>Finding all zlib-compressed blocks with substantial decompressed size
+(typically ≥50000 bytes for height data)</p></li>
+<li><p>Grouping blocks by their <code class="docutils literal notranslate"><span class="pre">elements_per_block</span></code> value</p></li>
+<li><p>The largest group of blocks with the same <code class="docutils literal notranslate"><span class="pre">elements_per_block</span></code> contains
+the height data</p></li>
+</ol>
+</section>
+</section>
+<section id="dimension-calculation">
+<h2>Dimension Calculation<a class="headerlink" href="#dimension-calculation" title="Link to this heading"></a></h2>
+<p>The image dimensions are calculated from header parameters and block metadata:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>rows_per_block = header[0x63] × header[0x71]
+width = elements_per_block / rows_per_block
+height = num_blocks × rows_per_block
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">header[0x3d]</span></code> is the number of blocks (<code class="docutils literal notranslate"><span class="pre">num_blocks</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">header[0x63]</span></code> is rows factor A</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">header[0x71]</span></code> is rows factor B</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elements_per_block</span></code> is read from the block prefix (bytes 8-11)</p></li>
+</ul>
+<p>Example calculations:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>File mnt-1.mnt:
+  num_blocks = 32
+  factor_a = 9, factor_b = 2
+  rows_per_block = 9 × 2 = 18
+  elements_per_block = 18000
+  width = 18000 / 18 = 1000
+  height = 32 × 18 = 576
+  Result: 1000 × 576
+
+File mnt-2.mnt:
+  num_blocks = 32
+  factor_a = 10, factor_b = 3
+  rows_per_block = 10 × 3 = 30
+  elements_per_block = 38400
+  width = 38400 / 30 = 1280
+  height = 32 × 30 = 960
+  Result: 1280 × 960
+</pre></div>
+</div>
+</section>
+<section id="data-format">
+<h2>Data Format<a class="headerlink" href="#data-format" title="Link to this heading"></a></h2>
+<p>MNT files store height data as interleaved 16-bit signed integer pairs:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[height_0, secondary_0, height_1, secondary_1, height_2, secondary_2, ...]
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Height values</strong> (even indices): 16-bit signed integers representing height
+in raw units</p></li>
+<li><p><strong>Secondary values</strong> (odd indices): May contain different types of data:</p>
+<ul>
+<li><p><strong>Validity flag</strong>: If only values 0 and -1 are present, this indicates
+validity (0 = valid, -1 = invalid/masked)</p></li>
+<li><p><strong>Other data</strong>: Some files contain small integer values (e.g., error
+estimates) in the secondary channel; these are ignored for height
+reconstruction</p></li>
+</ul>
+</li>
+</ul>
+<p>The data format is always 4 bytes per pixel (two int16 values), regardless of
+the secondary channel content.</p>
+</section>
+<section id="block-ordering">
+<h2>Block Ordering<a class="headerlink" href="#block-ordering" title="Link to this heading"></a></h2>
+<p><strong>Important</strong>: Blocks may not appear in the file in the correct order for
+reconstruction. The <code class="docutils literal notranslate"><span class="pre">element_offset</span></code> value (bytes 0-7 of each block prefix)
+must be used to sort blocks before combining them.</p>
+<p>Example block ordering:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Block 0: element_offset = 0      → First block (top of image)
+Block 1: element_offset = 18000  → Second block
+Block 2: element_offset = 36000  → Third block
+...
+</pre></div>
+</div>
+<p>The element offset indicates the starting position of each block’s data in
+the final reconstructed array.</p>
+</section>
+<section id="data-reconstruction">
+<h2>Data Reconstruction<a class="headerlink" href="#data-reconstruction" title="Link to this heading"></a></h2>
+<p>To reconstruct the height map:</p>
+<ol class="arabic simple">
+<li><p>Collect all height data blocks (identified by <code class="docutils literal notranslate"><span class="pre">elements_per_block</span></code>)</p></li>
+<li><p>Sort blocks by their <code class="docutils literal notranslate"><span class="pre">element_offset</span></code> value (ascending)</p></li>
+<li><p>Concatenate the decompressed data in sorted order</p></li>
+<li><p>Parse as int16 pairs: extract heights from even indices</p></li>
+<li><p>Reshape to (height, width) and transpose to (width, height) for row-major
+storage</p></li>
+<li><p>If the secondary channel contains only 0 and -1 values, create a mask
+where <code class="docutils literal notranslate"><span class="pre">secondary</span> <span class="pre">!=</span> <span class="pre">0</span></code> indicates invalid data. Otherwise, mask only
+extreme int16 values (near ±32767).</p></li>
+</ol>
+</section>
+<section id="physical-units">
+<h2>Physical Units<a class="headerlink" href="#physical-units" title="Link to this heading"></a></h2>
+<p>The MNT format does not reliably store physical sizes or unit information in
+an easily accessible location. Users should:</p>
+<ul class="simple">
+<li><p>Provide physical sizes manually when loading</p></li>
+<li><p>Height values are in raw integer units; a scale factor may be needed</p></li>
+</ul>
+</section>
+<section id="example-files">
+<h2>Example Files<a class="headerlink" href="#example-files" title="Link to this heading"></a></h2>
+<p><strong>mnt-1.mnt</strong>: Uses int16 pairs format. Dimensions: 1000 × 576. The secondary
+channel contains small integer values (not a validity flag), so only extreme
+int16 values (near ±32767) are masked. A small number of pixels (~316) have
+invalid data.</p>
+<p><strong>mnt-2.mnt</strong>: Uses int16 pairs format with validity flag in the secondary
+channel (0 = valid, -1 = invalid). Dimensions: 1280 × 960. Corner regions
+contain masked (invalid) data.</p>
+</section>
+<section id="known-limitations">
+<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Physical sizes must be provided by the user</p></li>
+<li><p>Height scale factor not automatically extracted</p></li>
+<li><p>The meaning of storing rows_per_block as two factors (A × B) is not
+understood</p></li>
+<li><p>The complete TLV tag vocabulary is not documented; only tags observed in
+example files are described</p></li>
+</ul>
+</section>
+<section id="related-formats">
+<h2>Related Formats<a class="headerlink" href="#related-formats" title="Link to this heading"></a></h2>
+<p>The MNT TLV structure is similar to the MicroProf FRT format, also used by
+Digital Surf software. Both use:</p>
+<ul class="simple">
+<li><p>2-byte tags (uint16 LE)</p></li>
+<li><p>8-byte sizes (uint64 LE in newer versions)</p></li>
+</ul>
+<p>Key differences:</p>
+<ul class="simple">
+<li><p>FRT uses a flat block list with a count at the start</p></li>
+<li><p>MNT uses nested containers (Tag 0x01 wraps most content)</p></li>
+<li><p>Some tag IDs overlap (0x000b, 0x0065, 0x0066)</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p>The MNT format is proprietary to Digital Surf. This documentation is based on
+reverse engineering and may be incomplete or contain errors.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="File Format Details" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../testing.html" class="btn btn-neutral float-right" title="Testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015-2020 The Authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
