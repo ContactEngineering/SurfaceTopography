@@ -31,7 +31,7 @@ import pytest
 from NuMPI import MPI
 
 from SurfaceTopography import Topography, UniformLineScan
-from SurfaceTopography.IO import AscReader, open_topography, read_topography
+from SurfaceTopography.IO import AscReader, open_topography
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -51,6 +51,7 @@ def test_example1():
     assert not surf.is_reentrant
     assert surf.unit == "nm"
 
+
 def test_example2():
     surf = AscReader(os.path.join(DATADIR, "matrix-2.txt")).topography()
     assert surf.nb_grid_pts == (650, 650)
@@ -62,6 +63,7 @@ def test_example2():
     assert not surf.is_reentrant
     assert surf.unit == "m"
 
+
 def test_example3():
     surf = AscReader(os.path.join(DATADIR, "matrix-3.txt")).topography()
     assert surf.nb_grid_pts == (256, 256)
@@ -72,6 +74,7 @@ def test_example3():
     assert surf.is_uniform
     assert not surf.is_reentrant
     assert surf.unit == "m"
+
 
 @pytest.mark.parametrize("fn", ["matrix-4.txt", "matrix-4.txt.gz"])
 def test_example4(fn):
@@ -92,6 +95,7 @@ def test_example4(fn):
     # test setting the physical_sizes
     with pytest.raises(AttributeError):
         surf.physical_sizes = 1, 2
+
 
 def test_example5():
     r = AscReader(os.path.join(DATADIR, "matrix-5.txt"))
@@ -120,10 +124,9 @@ def test_example5():
     reader = AscReader(os.path.join(DATADIR, "matrix-5.txt"))
     assert reader.default_channel.physical_sizes is None
 
+
 def test_example6():
-    topography_file = open_topography(
-        os.path.join(DATADIR, "not-yet-working-1.txt")
-    )
+    topography_file = open_topography(os.path.join(DATADIR, "not-yet-working-1.txt"))
     surf = topography_file.topography(physical_sizes=(1,))
     assert isinstance(surf, UniformLineScan)
     np.testing.assert_allclose(surf.heights(), [1, 2, 3, 4, 5, 6, 7, 8, 9])
