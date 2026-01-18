@@ -40,7 +40,7 @@ plt.show()
 Supported File Formats
 ----------------------
 
-SurfaceTopography supports over 30 file formats from commercial surface profilometers:
+SurfaceTopography supports over 35 file formats from commercial surface profilometers:
 
 | Format | Description |
 |--------|-------------|
@@ -61,21 +61,27 @@ SurfaceTopography supports over 30 file formats from commercial surface profilom
 | `metropro` | Zygo MetroPro files |
 | `mi` | Park Systems / Molecular Imaging files |
 | `mitutoyo` | Mitutoyo surface roughness files |
+| `mnt` | Digital Surf Mountains MNT files |
 | `nc` | NetCDF files |
 | `nmm` | PTB NMM files |
+| `nms` | Nanofocus NMS files |
 | `npy` | NumPy binary files |
 | `oir` | Olympus OIR files |
 | `opd` | Wyko OPD files |
 | `opdx` | Wyko OPDx files |
+| `os3d` | Digital Metrology OmniSurf3D files |
 | `plu` | Sensofar PLU files |
 | `plux` | Sensofar PLUX files |
 | `poir` | Olympus POIR (zip) files |
 | `ps` | Keyence profilometer files |
-| `sur` | Digital Surf Mountains files |
+| `sdf` | ISO 25178-71 SDF files |
+| `sur` | Digital Surf SUR files |
+| `tmd` | TrueMap TMD files |
 | `vk` | Keyence VK files |
 | `wsxm` | WSxM files |
 | `x3p` | ISO 25178-72 X3P files |
 | `xyz` | XYZ point cloud files |
+| `zmg` | KLA Zeta ZMG files |
 | `zon` | Keyence ZON files |
 
 If you use this code, please cite:
