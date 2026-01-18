@@ -166,7 +166,8 @@ def _read_magic_buffer(fobj):
     if hasattr(fobj, 'read'):
         # File-like object
         # Check if file is in text mode - if so, we can't read binary magic
-        if hasattr(fobj, 'mode') and 'b' not in fobj.mode:
+        # Note: gzip.GzipFile has mode as an int, not a string
+        if hasattr(fobj, 'mode') and isinstance(fobj.mode, str) and 'b' not in fobj.mode:
             return b''  # Return empty buffer, fall back to full parsing
         pos = fobj.tell() if hasattr(fobj, 'tell') else 0
         try:

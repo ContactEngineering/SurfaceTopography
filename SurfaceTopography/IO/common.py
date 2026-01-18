@@ -22,6 +22,7 @@
 # SOFTWARE.
 #
 
+import gzip
 import io
 import zipfile
 
@@ -36,7 +37,8 @@ def is_binary_stream(fobj):
     """Check whether fobj is a binary stream"""
     return isinstance(fobj, io.BytesIO) or \
         isinstance(fobj, zipfile.ZipExtFile) or \
-        (hasattr(fobj, 'mode') and 'b' in fobj.mode)
+        isinstance(fobj, gzip.GzipFile) or \
+        (hasattr(fobj, 'mode') and isinstance(fobj.mode, str) and 'b' in fobj.mode)
 
 
 # Hint: We code use UnicodeDammit or chardet to guess the encoding

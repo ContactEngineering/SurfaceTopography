@@ -26,6 +26,7 @@
 # SOFTWARE.
 #
 
+import gzip
 import io
 import json
 import numbers
@@ -214,6 +215,11 @@ def test_no_resource_warning_on_failure(reader, file_format_examples):
 def test_uniform_stylus(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, "xy-4.txt"))
     assert t.is_uniform
+
+
+def test_read_gzip(file_format_examples):
+    t = read_topography(gzip.open(os.path.join(file_format_examples, "matrix-4.txt.gz")))
+    assert t.nb_grid_pts == (75, 305)
 
 
 def test_cannot_detect_file_format_on_txt(file_format_examples):

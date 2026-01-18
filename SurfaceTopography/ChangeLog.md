@@ -1,6 +1,11 @@
 Change log for SurfaceTopography
 ================================
 
+v1.21.1 (18Jan26)
+-----------------
+
+- BUG: Fixed `read_topography` not working with gzip streams (gzip.GzipFile objects have integer mode attribute, not string)
+
 v1.21.0 (16Jan26)
 -----------------
 
