@@ -30,14 +30,12 @@
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
 
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
-from ..UniformLineScanAndTopography import Topography
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ChannelInfo, MagicMatch, ReaderBase
+from ..Exceptions import CorruptFile, FileFormatMismatch
+from .binary import BinaryStructure, Convert, Validate
+from .Reader import ChannelInfo, CompoundLayout, DeclarativeReaderBase, For, MagicMatch
 
 
-class AL3DReader(ReaderBase):
+class AL3DReader(DeclarativeReaderBase):
     _format = 'al3d'
     _mime_types = ['application/x-alicona-imaging-al3d']
     _file_extensions = ['al3d']
@@ -57,57 +55,47 @@ AL3D format of Alicona Imaging.
             return MagicMatch.YES
         return MagicMatch.NO
 
+    _tag_structure = BinaryStructure([
+        ('key', '20s'),
+        ('value', '30s'),
+        ('crlf', '2s', Validate('\r\n', CorruptFile)),
+    ], byte_order='<')
+
+    _file_layout = CompoundLayout([
+        BinaryStructure([
+            ('magic', f'{len(_MAGIC)}s',
+             Validate(_MAGIC.decode('latin1').strip('\x00').strip(' '),
+                      FileFormatMismatch)),
+        ], byte_order='<', name='header'),
+        BinaryStructure([
+            ('key', '20s', Validate('Version', CorruptFile)),
+            ('value', '30s', Convert(lambda x: int(x))),
+            ('crlf', '2s', Validate('\r\n', CorruptFile)),
+        ], byte_order='<', name='version_tag'),
+        BinaryStructure([
+            ('key', '20s', Validate('TagCount', CorruptFile)),
+            ('value', '30s', Convert(lambda x: int(x))),
+            ('crlf', '2s', Validate('\r\n', CorruptFile)),
+        ], byte_order='<', name='tag_count_tag'),
+        For(lambda ctx: ctx.tag_count_tag.value, _tag_structure, name='tags')
+    ])
+
     # Relative tolerance for catching invalid pixels
     _INVALID_RELTOL = 1.5e-7
 
-    _tag_structure = [
-        ('key', '20s'),
-        ('value', '30s'),
-        ('crlf', '2s'),
-    ]
-
-    # Reads in the positions of all the data and metadata
-    def __init__(self, file_path):
-        self.file_path = file_path
-        with OpenFromAny(file_path, 'rb') as f:
-            # Detect file version
-            magic = f.read(len(self._MAGIC))
-
-            # Check AL3D file magic
-            if magic != self._MAGIC:
-                # This is not an AL3D file
-                raise FileFormatMismatch
-
-            version = int(self._read_tag(f, 'Version'))
-            nb_tags = int(self._read_tag(f, 'TagCount'))
-
-            self._header = {'Version': version, 'TagCount': nb_tags}
-            for i in range(nb_tags):
-                tag = decode(f, self._tag_structure, '<')
-                if tag['crlf'] != '\r\n':
-                    raise CorruptFile('CRLF tag terminator missing.')
-                self._header[tag['key']] = tag['value']
-
-            nx, ny = int(self._header['Cols']), int(self._header['Rows'])
-            self._nb_grid_pts = (nx, ny)
-            self._physical_sizes = (nx * float(self._header['PixelSizeXMeter']),
-                                    ny * float(self._header['PixelSizeYMeter']))
-
-        self._unit = 'm'
-
-    def _read_tag(self, f, key):
-        tag = decode(f, self._tag_structure, '<')
-        if tag['key'] != key:
-            raise CorruptFile('Expected tag key {}, found {}.'.format(key, tag['key']))
-        if tag['crlf'] != '\r\n':
-            raise CorruptFile('CRLF tag terminator missing.')
-        return tag['value']
+    def _validate_metadata(self):
+        self._header = {
+            'Version': self._metadata.version_tag.value,
+            'TagCount': self._metadata.tag_count_tag.value
+        }
+        for tag in self._metadata.tags:
+            self._header[tag.key] = tag.value
 
     def read_height_data(self, f):
         f.seek(int(self._header['DepthImageOffset']))
         invalid_pixel_value = float(self._header['InvalidPixelValue'])
         dtype = np.single
-        nx, ny = self._nb_grid_pts
+        nx, ny = int(self._header['Cols']), int(self._header['Rows'])
         rowstride = (nx * np.dtype(dtype).itemsize + 7) // 8 * 8
         buffer = f.read(rowstride * ny * np.dtype(dtype).itemsize)
         data = as_strided(np.frombuffer(buffer, dtype=dtype), shape=(ny, nx),
@@ -119,49 +107,16 @@ AL3D format of Alicona Imaging.
 
     @property
     def channels(self):
+        nx, ny = int(self._header['Cols']), int(self._header['Rows'])
         return [ChannelInfo(self,
                             0,  # channel index
                             name='Default',
                             dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
+                            nb_grid_pts=(nx, ny),
+                            physical_sizes=(nx * float(self._header['PixelSizeXMeter']),
+                                            ny * float(self._header['PixelSizeYMeter'])),
                             uniform=True,
-                            unit=self._unit,
+                            unit='m',
                             height_scale_factor=1,
-                            info={'raw_metadata': self._header})]
-
-    def topography(self, channel_index=None, physical_sizes=None,
-                   height_scale_factor=None, unit=None, info={},
-                   periodic=None, subdomain_locations=None,
-                   nb_subdomain_grid_pts=None):
-        if subdomain_locations is not None or \
-                nb_subdomain_grid_pts is not None:
-            raise RuntimeError('This reader does not support MPI parallelization.')
-
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        if channel_index != self._default_channel_index:
-            raise RuntimeError(f'There is only a single channel. Channel index must be {self._default_channel_index}.')
-
-        if physical_sizes is not None:
-            raise MetadataAlreadyFixedByFile('physical_sizes')
-
-        if height_scale_factor is not None:
-            raise MetadataAlreadyFixedByFile('height_scale_factor')
-
-        if unit is not None:
-            raise MetadataAlreadyFixedByFile('unit')
-
-        with OpenFromAny(self.file_path, 'rb') as f:
-            height_data = self.read_height_data(f)
-
-        _info = info.copy()
-        _info['raw_metadata'] = self._header
-
-        topo = Topography(height_data,
-                          self._physical_sizes,
-                          unit=self._unit,
-                          periodic=False if periodic is None else periodic,
-                          info=_info)
-        return topo.scale(1)
+                            info={'raw_metadata': self._header},
+                            tags={'reader': self.read_height_data})]
