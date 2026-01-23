@@ -212,9 +212,15 @@ The reader supports V4.3 and later version of the format.
                         unit = (xy_unit, height_unit)
 
                     if "microscope" in equipment:
-                        info["instrument"] = {"name": equipment["microscope"]}
+                        info["instrument"] = {
+                            "name": equipment["microscope"],
+                            "vendor": "Bruker",
+                        }
                     elif "description" in equipment:
-                        info["instrument"] = {"name": equipment["description"]}
+                        info["instrument"] = {
+                            "name": equipment["description"],
+                            "vendor": "Bruker",
+                        }
 
                     self._channels += [
                         ChannelInfo(

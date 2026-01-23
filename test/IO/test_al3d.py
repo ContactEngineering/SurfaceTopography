@@ -66,6 +66,8 @@ def test_al3d_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 0.000129655992, rtol=1e-6)
 
     assert t.unit == 'm'
+    assert t.info['instrument']['vendor'] == 'Alicona Imaging'
+    assert t.info['instrument']['software'] == 'MeasureSuite 5.3.6'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 7.688266102603082e-06, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.915731160953795e-06, rtol=1e-6)

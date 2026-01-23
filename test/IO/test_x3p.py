@@ -51,6 +51,7 @@ def test_read(file_format_examples):
     np.testing.assert_allclose(surface.rms_height_from_area(), 9.528212249587946e-05, rtol=1e-6)
     np.testing.assert_allclose(surface.interpolate_undefined_data().rms_gradient(), 0.15300265543799388, rtol=1e-6)
     assert surface.info['instrument']['name'] == 'Mountains Map Technology Software (DIGITAL SURF, version 6.2)'
+    assert surface.info['instrument']['vendor'] == 'DIGITAL SURF'
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-2.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -65,6 +66,7 @@ def test_read(file_format_examples):
     np.testing.assert_allclose(surface.rms_height_from_area(), 7.728033273597876e-08, rtol=1e-6)
     np.testing.assert_allclose(surface.rms_gradient(), 0.062070073998443276, rtol=1e-6)
     assert surface.info['instrument']['name'] == 'Mountains Map Technology Software (DIGITAL SURF, version 6.2)'
+    assert surface.info['instrument']['vendor'] == 'DIGITAL SURF'
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-3.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -79,6 +81,7 @@ def test_read(file_format_examples):
     np.testing.assert_allclose(surface.rms_height_from_area(), 3.6982281692457683e-06, rtol=1e-6)
     np.testing.assert_allclose(surface.rms_gradient(), 1.102796882522711, rtol=1e-6)
     assert surface.info['instrument']['name'] == 'NanoFocus AG'
+    assert surface.info['instrument']['vendor'] == 'NanoFocus AG'
 
     surface = X3PReader(os.path.join(file_format_examples, 'x3p-4.x3p')).topography()
     nx, ny = surface.nb_grid_pts
@@ -93,6 +96,7 @@ def test_read(file_format_examples):
     np.testing.assert_allclose(surface.rms_height_from_area(), 3.6582125376441385e-06, rtol=1e-6)
     np.testing.assert_allclose(surface.interpolate_undefined_data().rms_gradient(), 1.124560711465191, rtol=1e-6)
     assert surface.info['instrument']['name'] == 'NanoFocus AG'
+    assert surface.info['instrument']['vendor'] == 'NanoFocus AG'
 
 
 def test_points_for_uniform_topography(file_format_examples):

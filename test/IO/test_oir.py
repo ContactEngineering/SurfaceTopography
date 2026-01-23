@@ -81,6 +81,7 @@ def test_oir_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 2565.177801, rtol=1e-6)
 
     assert t.unit == 'µm'
+    assert t.info['instrument']['vendor'] == 'Olympus'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.048709, rtol=1e-6)
 

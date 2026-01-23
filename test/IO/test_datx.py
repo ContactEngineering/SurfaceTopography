@@ -46,6 +46,8 @@ def test_datx1_metadata(file_format_examples):
     assert ny == 1000
 
     assert t.unit == 'nm'
+    assert t.info['instrument']['vendor'] == 'Zygo'
+    assert t.info['instrument']['serial'] == '87266'
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 6306280.26666992, rtol=1e-6)
@@ -68,6 +70,8 @@ def test_datx2_metadata(file_format_examples):
     assert ny == 1000
 
     assert t.unit == 'nm'
+    assert t.info['instrument']['vendor'] == 'Zygo'
+    assert t.info['instrument']['serial'] == '78137'
 
     sx, sy = t.physical_sizes
     np.testing.assert_allclose(sx, 173108.716695, rtol=1e-6)

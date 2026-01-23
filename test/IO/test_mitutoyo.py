@@ -93,6 +93,7 @@ EXPECTED_CHANNEL_INFO = {
         "cut_off": {"value": "0.08", "unit": "mm"},
     },
     "acquisition_time": datetime.datetime(2022, 10, 10, 0, 0),
+    "instrument": {"vendor": "Mitutoyo"},
 }
 
 # channel info expected from 'mitutoyo_2_mock.xlsx'
@@ -126,6 +127,7 @@ EXPECTED_CHANNEL_INFO_2 = {
         "cut_off": {"value": "2.5", "unit": "mm"},
     },
     "acquisition_time": datetime.datetime(2023, 6, 20, 0, 0),
+    "instrument": {"vendor": "Mitutoyo"},
 }
 
 

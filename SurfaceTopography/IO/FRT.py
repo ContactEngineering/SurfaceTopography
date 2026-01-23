@@ -23,21 +23,25 @@
 #
 
 import os
+from struct import unpack
+
+import numpy as np
+
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    MetadataAlreadyFixedByFile,
+    UnsupportedFormatFeature,
+)
+from ..UniformLineScanAndTopography import Topography
+from .binary import decode
+from .common import OpenFromAny
+from .Reader import ChannelInfo, ReaderBase
 
 #
 # Reference information and implementations:
 # https://sourceforge.net/p/gwyddion/code/HEAD/tree/trunk/gwyddion/modules/file/microprof.c
 #
-
-from struct import unpack
-
-import numpy as np
-
-from .binary import decode
-from .common import OpenFromAny
-from .Reader import ReaderBase, ChannelInfo
-from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile, UnsupportedFormatFeature
-from ..UniformLineScanAndTopography import Topography
 
 
 class FRTReader(ReaderBase):
@@ -553,22 +557,34 @@ This reader imports MicroProf FRT profilometry data.
                                self._metadata['0x66']['nb_grid_pts_y'])
                 assert tags['block_size'] == tags['dtype'].itemsize * np.prod(nb_grid_pts)
 
+                # Extract instrument information
+                instrument_info = {"vendor": "FRT"}
+                if "0x8e" in self._metadata:
+                    instrument_info["serial"] = self._metadata["0x8e"]["serial_number"]
+
                 # Construct channel info
                 self._channels += [
                     ChannelInfo(
                         self,
                         0,
-                        name='default',
+                        name="default",
                         dim=2,
                         nb_grid_pts=nb_grid_pts,
-                        physical_sizes=(self._metadata['0x67']['physical_size_x'],
-                                        self._metadata['0x67']['physical_size_y']),
-                        unit='m',
-                        height_scale_factor=self._metadata['0x6c']['height_scale_factor'],  # All units m
+                        physical_sizes=(
+                            self._metadata["0x67"]["physical_size_x"],
+                            self._metadata["0x67"]["physical_size_y"],
+                        ),
+                        unit="m",
+                        height_scale_factor=self._metadata["0x6c"][
+                            "height_scale_factor"
+                        ],  # All units m
                         periodic=False,
                         uniform=True,
-                        info={'raw_metadata': self._metadata},
-                        tags=tags
+                        info={
+                            "instrument": instrument_info,
+                            "raw_metadata": self._metadata,
+                        },
+                        tags=tags,
                     )
                 ]
             else:

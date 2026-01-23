@@ -43,6 +43,7 @@ def test_di_date(file_format_examples):
     t = read_topography(os.path.join(file_format_examples, 'di-1.di'))
     assert t.info['acquisition_time'] == datetime.datetime(2016, 1, 12, 9, 57, 48)
     assert t.info['instrument']['name'] == 'Dimension V'
+    assert t.info['instrument']['vendor'] == 'Bruker'
 
 
 def test_4byte_data(file_format_examples):
@@ -50,6 +51,7 @@ def test_4byte_data(file_format_examples):
     t = r.topography()
     np.testing.assert_allclose(t.rms_height_from_area(), 5.831926)
     assert t.info['instrument']['name'] == 'Dimension Icon'
+    assert t.info['instrument']['vendor'] == 'Bruker'
 
 
 def test_corrupted_file(file_format_examples):

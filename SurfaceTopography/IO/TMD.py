@@ -123,7 +123,11 @@ This reader imports TrueMap TMD data files.
                 height_scale_factor=1.0,
                 uniform=True,
                 unit="µm",
-                info={"comment": comment, "raw_metadata": header},
+                info={
+                    "instrument": {"vendor": "TrueMap"},
+                    "comment": comment,
+                    "raw_metadata": header,
+                },
                 tags={"reader": self._metadata.data},
             )
         ]

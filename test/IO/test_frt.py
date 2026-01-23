@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -71,6 +70,7 @@ def test_frt1_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 0.012, rtol=1e-6)
 
     assert t.unit == 'm'
+    assert t.info['instrument']['vendor'] == 'FRT'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.047476e-05, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.23256e-05, rtol=1e-6)
@@ -101,6 +101,7 @@ def test_frt2_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 0.06, rtol=1e-6)
 
     assert t.unit == 'm'
+    assert t.info['instrument']['vendor'] == 'FRT'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1.853335e-05, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.439208e-05, rtol=1e-6)

@@ -25,16 +25,15 @@
 # SOFTWARE.
 #
 
-import unittest
 import os
-
-from SurfaceTopography.IO import detect_format
-from SurfaceTopography.IO.IBW import IBWReader
-from SurfaceTopography import read_topography
-from SurfaceTopography import open_topography
+import unittest
 
 import pytest
 from NuMPI import MPI
+
+from SurfaceTopography import open_topography, read_topography
+from SurfaceTopography.IO import detect_format
+from SurfaceTopography.IO.IBW import IBWReader
 
 pytestmark = pytest.mark.skipif(
     MPI.COMM_WORLD.Get_size() > 1,
@@ -125,6 +124,7 @@ class IBWSurfaceTest(unittest.TestCase):
         topo = reader.topography()
 
         self.assertAlmostEqual(topo.heights()[0, 0], -6.6641803e-10, places=3)
+        self.assertEqual(topo.info['instrument']['vendor'], 'Asylum Research')
 
     def test_topography_all_channels(self):
         """

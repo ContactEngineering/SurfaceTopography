@@ -357,10 +357,15 @@ This reader imports Zygo MetroPro data files.
         if self._header["sign"]:
             height_scale_factor *= -1
 
+        serial = str(self._header["sys_serial"])
+        if "sys_serial2" in self._header and self._header["sys_serial2"] != 0:
+            serial += f"/{self._header['sys_serial2']}"
+
         info = {
             "acquisition_time": datetime.datetime.fromtimestamp(
                 self._header["time_stamp"]
             ),
+            "instrument": {"vendor": "Zygo", "serial": serial},
             "raw_metadata": self._header,
         }
 

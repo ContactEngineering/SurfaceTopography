@@ -105,6 +105,7 @@ def test_topography(file_format_examples):
 
         # Check unit
         assert topography.unit == "µm"  # see GH 281
+        assert topography.info["instrument"]["vendor"] == "Bruker"
 
         # Check an entry in the metadata
         assert (
@@ -167,6 +168,7 @@ def test_opdx3(file_format_examples):
     r = OPDxReader(f"{file_format_examples}/opdx-3.opdx")
     t = r.topography()
     assert t.info["instrument"]["name"] == "Dektak Profiler"
+    assert t.info["instrument"]["vendor"] == "Bruker"
 
     x, y = np.loadtxt(f"{file_format_examples}/opdx-3.txt", unpack=True)
     np.testing.assert_allclose(t.heights(), y * 1e6)

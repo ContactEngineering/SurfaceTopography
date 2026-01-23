@@ -107,7 +107,10 @@ This reader imports Sensofar's XML SPM file format.
                 # Extract instrument information
                 for key, value in index_metadata["INFO"].items():
                     if isinstance(value, dict) and value["NAME"] == "Device":
-                        info["instrument"] = {"name": value["VALUE"]}
+                        info["instrument"] = {
+                            "name": value["VALUE"],
+                            "vendor": "Sensofar",
+                        }
 
                 # Extract data layers
                 self._channels = []

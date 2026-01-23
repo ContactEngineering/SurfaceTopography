@@ -108,15 +108,25 @@ AL3D format of Alicona Imaging.
     @property
     def channels(self):
         nx, ny = int(self._header['Cols']), int(self._header['Rows'])
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name='Default',
-                            dim=2,
-                            nb_grid_pts=(nx, ny),
-                            physical_sizes=(nx * float(self._header['PixelSizeXMeter']),
-                                            ny * float(self._header['PixelSizeYMeter'])),
-                            uniform=True,
-                            unit='m',
-                            height_scale_factor=1,
-                            info={'raw_metadata': self._header},
-                            tags={'reader': self.read_height_data})]
+        instrument_info = {"vendor": "Alicona Imaging"}
+        if "CreatingApplication" in self._header:
+            instrument_info["software"] = self._header["CreatingApplication"]
+
+        return [
+            ChannelInfo(
+                self,
+                0,  # channel index
+                name="Default",
+                dim=2,
+                nb_grid_pts=(nx, ny),
+                physical_sizes=(
+                    nx * float(self._header["PixelSizeXMeter"]),
+                    ny * float(self._header["PixelSizeYMeter"]),
+                ),
+                uniform=True,
+                unit="m",
+                height_scale_factor=1,
+                info={"instrument": instrument_info, "raw_metadata": self._header},
+                tags={"reader": self.read_height_data},
+            )
+        ]
