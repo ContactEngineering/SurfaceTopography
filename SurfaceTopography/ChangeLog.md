@@ -1,6 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+v1.21.0 (24Jan26)
+-----------------
+
+- API: Extended `InstrumentModel` metadata with `vendor`, `serial`, and `software` fields for standardized instrument information
+- ENH: Updated 16+ file format readers (including MetroPro, DATX, X3P, ZON, Bruker/DI, etc.) to extract and populate standardized instrument metadata
+- MAINT: Added comprehensive regression tests for instrument metadata across 17 file format readers
+
 v1.20.0 (09Jan26)
 -----------------
 
