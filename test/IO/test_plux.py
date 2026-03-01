@@ -26,7 +26,6 @@ import os
 
 import numpy as np
 import pytest
-
 from NuMPI import MPI
 
 from SurfaceTopography import read_topography
@@ -69,6 +68,8 @@ def test_plux_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 659.83498, rtol=1e-6)
 
     assert t.unit == 'µm'
+    assert t.info['instrument']['vendor'] == 'Sensofar'
+    assert t.info['instrument']['name'] == 'S neox'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.15209, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 1.582635, rtol=1e-6)

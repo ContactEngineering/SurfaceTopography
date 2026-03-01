@@ -148,16 +148,39 @@ Import filter for Zygo DATX, an HDF5-based format.
 
     @property
     def channels(self):
-        return [ChannelInfo(self,
-                            0,  # channel index
-                            name='Default',  # There is only a single channel
-                            dim=2,
-                            nb_grid_pts=self._nb_grid_pts,
-                            physical_sizes=self._physical_sizes,
-                            uniform=True,
-                            unit=self._unit,
-                            height_scale_factor=1,  # Data is in natural heights
-                            info={'raw_metadata': self._metadata})]
+        instrument_info = {"vendor": "Zygo"}
+
+        def find_key(d, target_key):
+            if target_key in d:
+                return d[target_key]
+            for v in d.values():
+                if isinstance(v, dict):
+                    res = find_key(v, target_key)
+                    if res is not None:
+                        return res
+            return None
+
+        name = find_key(self._metadata, "Instrument")
+        if name is not None:
+            instrument_info["name"] = str(name)
+        serial = find_key(self._metadata, "System Serial Number")
+        if serial is not None:
+            instrument_info["serial"] = str(serial)
+
+        return [
+            ChannelInfo(
+                self,
+                0,  # channel index
+                name="Default",  # There is only a single channel
+                dim=2,
+                nb_grid_pts=self._nb_grid_pts,
+                physical_sizes=self._physical_sizes,
+                uniform=True,
+                unit=self._unit,
+                height_scale_factor=1,  # Data is in natural heights
+                info={"instrument": instrument_info, "raw_metadata": self._metadata},
+            )
+        ]
 
     def topography(self, channel_index=None, physical_sizes=None, height_scale_factor=None, unit=None, info={},
                    periodic=False, subdomain_locations=None, nb_subdomain_grid_pts=None):
@@ -180,7 +203,7 @@ Import filter for Zygo DATX, an HDF5-based format.
         if unit is not None:
             raise MetadataAlreadyFixedByFile('unit')
 
-        _info = {'raw_metadata': self._metadata}
+        _info = self.channels[channel_index].info.copy()
         _info.update(info)
 
         fobj = self._fobj

@@ -273,6 +273,7 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                     datetime.timedelta(minutes=self._header["diff_utc_by_minutes"])
                 ),
             ),
+            "instrument": {"vendor": "Keyence"},
             "raw_metadata": self._header,
         }
 

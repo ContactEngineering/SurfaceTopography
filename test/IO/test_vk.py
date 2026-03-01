@@ -66,6 +66,7 @@ def test_vk3_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 528463000, rtol=1e-6)
 
     assert t.unit == 'pm'
+    assert t.info['instrument']['vendor'] == 'Keyence'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1223148.5774419378, rtol=1e-6)
 
@@ -87,6 +88,7 @@ def test_vk4_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 1046906679, rtol=1e-6)
 
     assert t.unit == 'pm'
+    assert t.info['instrument']['vendor'] == 'Keyence'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 54193042.85097, rtol=1e-6)
 
@@ -108,6 +110,7 @@ def test_vk6_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 72864915, rtol=1e-6)
 
     assert t.unit == 'pm'
+    assert t.info['instrument']['vendor'] == 'Keyence'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 1061663.7395845044, rtol=1e-6)
 

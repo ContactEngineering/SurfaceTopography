@@ -66,6 +66,7 @@ def test_metropro_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 0.000527160973433638, rtol=1e-6)
 
     assert t.unit == 'm'
+    assert t.info['instrument']['vendor'] == 'Zygo'
 
     np.testing.assert_allclose(t.rms_height_from_area(), 7.528822204734589e-08, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 7.524071e-08, rtol=1e-6)

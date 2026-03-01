@@ -194,6 +194,7 @@ This reader open ZON files that are written by some Keyence instruments.
                             "acquisition_time": acquisition_time,
                             "instrument": {
                                 "name": device_model_name,
+                                "vendor": "Keyence",
                                 "serial": device_serial_id,
                             },
                             "raw_metadata": {

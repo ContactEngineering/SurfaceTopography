@@ -73,3 +73,6 @@ def test_topography(file_format_examples):
     # Check the value of one of the metadata
     assert topography.unit == "m"
     assert "unit" not in topography.info
+    assert topography.info["instrument"]["vendor"] == "Keyence"
+    assert topography.info["instrument"]["name"] == "VR-3200"
+    assert topography.info["instrument"]["serial"] == "#3C810114"

@@ -447,7 +447,8 @@ This reader imports Olympus OIR data files.
                 image_properties["commonimage:general"]["base:creationDateTime"]
             ),
             "instrument": {
-                "name": image_properties["commonimage:microscope"]["base:name"]
+                "name": image_properties["commonimage:microscope"]["base:name"],
+                "vendor": "Olympus",
             },
         }
 

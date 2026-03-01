@@ -60,6 +60,8 @@ def test_zmg_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 262.08, rtol=1e-3)
 
     assert t.unit == 'µm'
+    assert t.info['instrument']['vendor'] == 'KLA Zeta'
+    assert t.info['instrument']['name'] == 'Zeta'
 
     # Verify heights are in reasonable range
     assert t.heights().min() > 0
