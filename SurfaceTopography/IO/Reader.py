@@ -49,15 +49,15 @@ class MagicMatch(Enum):
 class DataKind(Enum):
     """Kind of data stored in a channel."""
 
-    HEIGHT = "height"          # Topography height data
-    VOLTAGE = "voltage"        # Piezo voltage, bias voltage, etc.
-    CURRENT = "current"        # Tunneling current (STM), etc.
-    PHASE = "phase"            # AFM phase data
-    AMPLITUDE = "amplitude"    # AFM amplitude data
-    ERROR = "error"            # Error signal
+    HEIGHT = "height"  # Topography height data
+    VOLTAGE = "voltage"  # Piezo voltage, bias voltage, etc.
+    CURRENT = "current"  # Tunneling current (STM), etc.
+    PHASE = "phase"  # AFM phase data
+    AMPLITUDE = "amplitude"  # AFM amplitude data
+    ERROR = "error"  # Error signal
     DEFLECTION = "deflection"  # Cantilever deflection
-    FRICTION = "friction"      # Friction/lateral force
-    OTHER = "other"            # Generic non-height data
+    FRICTION = "friction"  # Friction/lateral force
+    OTHER = "other"  # Generic non-height data
 
 
 class ChannelInfo:
@@ -735,8 +735,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
             )
         return channel.height_index
 
-    def _resolve_channel(self, channel_index=None, channel_id=None,
-                         height_channel_index=None):
+    def _resolve_channel(
+        self, channel_index=None, channel_id=None, height_channel_index=None
+    ):
         """
         Resolve channel from any of the three selection methods.
 
@@ -766,8 +767,9 @@ class ReaderBase(metaclass=abc.ABCMeta):
             If more than one selection method is provided.
         """
         # Count how many selection methods are provided
-        n_specified = sum(x is not None for x in
-                          [channel_index, channel_id, height_channel_index])
+        n_specified = sum(
+            x is not None for x in [channel_index, channel_id, height_channel_index]
+        )
         if n_specified > 1:
             raise ValueError(
                 "Only one of channel_index, channel_id, or height_channel_index "
@@ -946,9 +948,18 @@ class CompoundLayout(LayoutWithNameBase):
 
     def to_dict(self):
         res = super().to_dict()
-        res.update({
-            'structures': [s.to_dict() if hasattr(s, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'} for s in self._structures]
-        })
+        res.update(
+            {
+                "structures": [
+                    (
+                        s.to_dict()
+                        if hasattr(s, "to_dict")
+                        else {"type": "lambda", "source": "callable_structure"}
+                    )
+                    for s in self._structures
+                ]
+            }
+        )
         return res
 
     def from_stream(self, stream_obj, context):
@@ -975,8 +986,15 @@ class If:
 
     def to_dict(self):
         return {
-            'type': 'If',
-            'args': [a.to_dict() if hasattr(a, 'to_dict') else {'type': 'lambda', 'source': 'callable_arg'} for a in self._args]
+            "type": "If",
+            "args": [
+                (
+                    a.to_dict()
+                    if hasattr(a, "to_dict")
+                    else {"type": "lambda", "source": "callable_arg"}
+                )
+                for a in self._args
+            ],
         }
 
     def name(self, context):
@@ -1025,14 +1043,18 @@ class Skip:
 
     def to_dict(self):
         return {
-            'type': 'Skip',
-            'size': self._size if not callable(self._size) else {'__type__': 'lambda', 'source': 'callable_size'},
-            'comment': self._comment
+            "type": "Skip",
+            "size": (
+                self._size
+                if not callable(self._size)
+                else {"__type__": "lambda", "source": "callable_size"}
+            ),
+            "comment": self._comment,
         }
 
     def from_stream(self, stream_obj, context):
         if self._size is None:
-            size = context.get('_block_size', 0)
+            size = context.get("_block_size", 0)
         elif callable(self._size):
             size = self._size(context)
         else:
@@ -1084,11 +1106,21 @@ class SizedChunk(LayoutWithNameBase):
 
     def to_dict(self):
         res = super().to_dict()
-        res.update({
-            'size': self._size if not callable(self._size) else {'__type__': 'lambda', 'source': 'callable_size'},
-            'structure': self._structure.to_dict() if hasattr(self._structure, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'},
-            'mode': self._mode
-        })
+        res.update(
+            {
+                "size": (
+                    self._size
+                    if not callable(self._size)
+                    else {"__type__": "lambda", "source": "callable_size"}
+                ),
+                "structure": (
+                    self._structure.to_dict()
+                    if hasattr(self._structure, "to_dict")
+                    else {"type": "lambda", "source": "callable_structure"}
+                ),
+                "mode": self._mode,
+            }
+        )
         return res
 
     def from_stream(self, stream_obj, context):
@@ -1176,10 +1208,20 @@ class For(LayoutWithNameBase):
 
     def to_dict(self):
         res = super().to_dict()
-        res.update({
-            'range': self._range if not callable(self._range) else {'__type__': 'lambda', 'source': 'callable_range'},
-            'structure': self._structure.to_dict() if hasattr(self._structure, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'}
-        })
+        res.update(
+            {
+                "range": (
+                    self._range
+                    if not callable(self._range)
+                    else {"__type__": "lambda", "source": "callable_range"}
+                ),
+                "structure": (
+                    self._structure.to_dict()
+                    if hasattr(self._structure, "to_dict")
+                    else {"type": "lambda", "source": "callable_structure"}
+                ),
+            }
+        )
         return res
 
     def from_stream(self, stream_obj, context):
