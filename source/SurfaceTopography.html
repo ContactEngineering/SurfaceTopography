@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography package &mdash; SurfaceTopography 1.21.1 documentation</title>
+  <title>SurfaceTopography package &mdash; SurfaceTopography 1.21.1.dev6+gb53db16b documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=ffc33bb7"></script>
+      <script src="../_static/documentation_options.js?v=0d8719b5"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -165,6 +165,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel"><code class="docutils literal notranslate"><span class="pre">InstrumentModel</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.name"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.vendor"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.vendor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.serial"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.serial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.software"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.software</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.parameters"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.parameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentModel.model_config"><code class="docutils literal notranslate"><span class="pre">InstrumentModel.model_config</span></code></a></li>
 </ul>
@@ -496,10 +499,8 @@
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.AL3D">SurfaceTopography.IO.AL3D module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader"><code class="docutils literal notranslate"><span class="pre">AL3DReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.can_read"><code class="docutils literal notranslate"><span class="pre">AL3DReader.can_read()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.__init__"><code class="docutils literal notranslate"><span class="pre">AL3DReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.read_height_data"><code class="docutils literal notranslate"><span class="pre">AL3DReader.read_height_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.channels"><code class="docutils literal notranslate"><span class="pre">AL3DReader.channels</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.AL3D.AL3DReader.topography"><code class="docutils literal notranslate"><span class="pre">AL3DReader.topography()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -549,6 +550,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.FRT">SurfaceTopography.IO.FRT module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader"><code class="docutils literal notranslate"><span class="pre">FRTReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.__init__"><code class="docutils literal notranslate"><span class="pre">FRTReader.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.channels"><code class="docutils literal notranslate"><span class="pre">FRTReader.channels</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.FRT.FRTReader.topography"><code class="docutils literal notranslate"><span class="pre">FRTReader.topography()</span></code></a></li>
 </ul>
@@ -657,10 +659,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="SurfaceTopography.IO.html#module-SurfaceTopography.IO.MetroPro">SurfaceTopography.IO.MetroPro module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader"><code class="docutils literal notranslate"><span class="pre">MetroProReader</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader.__init__"><code class="docutils literal notranslate"><span class="pre">MetroProReader.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader.read_height_data"><code class="docutils literal notranslate"><span class="pre">MetroProReader.read_height_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader.can_read"><code class="docutils literal notranslate"><span class="pre">MetroProReader.can_read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader.channels"><code class="docutils literal notranslate"><span class="pre">MetroProReader.channels</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="SurfaceTopography.IO.html#SurfaceTopography.IO.MetroPro.MetroProReader.topography"><code class="docutils literal notranslate"><span class="pre">MetroProReader.topography()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -2064,11 +2064,26 @@ data.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">InstrumentModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel" title="SurfaceTopography.Metadata.InstrumentParametersModel"><span class="pre">InstrumentParametersModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Metadata.</span></span><span class="sig-name descname"><span class="pre">InstrumentModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vendor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">software</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#SurfaceTopography.Metadata.InstrumentParametersModel" title="SurfaceTopography.Metadata.InstrumentParametersModel"><span class="pre">InstrumentParametersModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.name">
 <span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.vendor">
+<span class="sig-name descname"><span class="pre">vendor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.vendor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.serial">
+<span class="sig-name descname"><span class="pre">serial</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.serial" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="SurfaceTopography.Metadata.InstrumentModel.software">
+<span class="sig-name descname"><span class="pre">software</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#SurfaceTopography.Metadata.InstrumentModel.software" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
