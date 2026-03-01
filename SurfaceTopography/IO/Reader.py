@@ -944,6 +944,13 @@ class CompoundLayout(LayoutWithNameBase):
         self._name = name
         self._context_mapper = context_mapper
 
+    def to_dict(self):
+        res = super().to_dict()
+        res.update({
+            'structures': [s.to_dict() if hasattr(s, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'} for s in self._structures]
+        })
+        return res
+
     def from_stream(self, stream_obj, context):
         local_context = AttrDict()
         for structure in self._structures:
@@ -965,6 +972,12 @@ class If:
     def __init__(self, *args, context_mapper=None):
         self._args = args
         self._context_mapper = context_mapper
+
+    def to_dict(self):
+        return {
+            'type': 'If',
+            'args': [a.to_dict() if hasattr(a, 'to_dict') else {'type': 'lambda', 'source': 'callable_arg'} for a in self._args]
+        }
 
     def name(self, context):
         nb_conditions = len(self._args) // 2
@@ -1009,6 +1022,13 @@ class Skip:
     def __init__(self, size=None, comment=None):
         self._size = size
         self._comment = comment
+
+    def to_dict(self):
+        return {
+            'type': 'Skip',
+            'size': self._size if not callable(self._size) else {'__type__': 'lambda', 'source': 'callable_size'},
+            'comment': self._comment
+        }
 
     def from_stream(self, stream_obj, context):
         if self._size is None:
@@ -1061,6 +1081,15 @@ class SizedChunk(LayoutWithNameBase):
         self._name = name
         self._context_mapper = context_mapper
         self._debug = debug
+
+    def to_dict(self):
+        res = super().to_dict()
+        res.update({
+            'size': self._size if not callable(self._size) else {'__type__': 'lambda', 'source': 'callable_size'},
+            'structure': self._structure.to_dict() if hasattr(self._structure, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'},
+            'mode': self._mode
+        })
+        return res
 
     def from_stream(self, stream_obj, context):
         """
@@ -1144,6 +1173,14 @@ class For(LayoutWithNameBase):
 
         if self._name is None:
             raise ValueError("`For` statement must have a name.")
+
+    def to_dict(self):
+        res = super().to_dict()
+        res.update({
+            'range': self._range if not callable(self._range) else {'__type__': 'lambda', 'source': 'callable_range'},
+            'structure': self._structure.to_dict() if hasattr(self._structure, 'to_dict') else {'type': 'lambda', 'source': 'callable_structure'}
+        })
+        return res
 
     def from_stream(self, stream_obj, context):
         local_context = []
