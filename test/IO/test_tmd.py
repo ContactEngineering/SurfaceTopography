@@ -60,6 +60,7 @@ def test_tmd_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 18.9566, rtol=1e-3)
 
     assert t.unit == 'µm'
+    assert t.info['instrument']['vendor'] == 'TrueMap'
 
     # Verify heights are in reasonable range
     assert t.heights().min() >= 0

@@ -24,6 +24,9 @@ class InstrumentParametersModel(pydantic.BaseModel):
 
 class InstrumentModel(pydantic.BaseModel):
     name: str = None
+    vendor: str = None
+    serial: str = None
+    software: str = None
     parameters: InstrumentParametersModel = None
 
 

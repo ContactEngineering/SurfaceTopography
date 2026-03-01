@@ -296,6 +296,7 @@ TIFF-based file format of JPK instruments (now Bruker)
                         unit=default_slot_unit,
                         info={
                             "acquisition_time": acquisition_time,
+                            "instrument": {"vendor": "JPK Instruments"},
                             "raw_metadata": raw_metadata,
                         },
                         tags={"page_index": page_index},

@@ -210,9 +210,16 @@ File format of the Bruker Dektak XT* series stylus profilometer.
             pass
 
         try:
-            info["instrument"] = {
-                "name": self.manifest["/MetaData/MeasurementSettings/InstrumentName"]
-            }
+            instrument_info = {"vendor": "Bruker"}
+            name = self.manifest.get("/MetaData/MeasurementSettings/InstrumentName")
+            if name is not None:
+                instrument_info["name"] = name
+            serial = self.manifest.get("/MetaData/MeasurementSettings/InstrumentSerial")
+            if serial is None:
+                serial = self.manifest.get("/MetaData/MeasurementSettings/SerialNumber")
+            if serial is not None:
+                instrument_info["serial"] = serial
+            info["instrument"] = instrument_info
         except KeyError:
             pass
 

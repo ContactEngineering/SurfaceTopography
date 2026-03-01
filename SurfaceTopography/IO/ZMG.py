@@ -119,7 +119,10 @@ This reader imports KLA Zeta ZMG data files.
                 height_scale_factor=header.step_z,
                 uniform=True,
                 unit="µm",
-                info={"raw_metadata": header},
+                info={
+                    "instrument": {"vendor": "KLA Zeta", "name": "Zeta"},
+                    "raw_metadata": header,
+                },
                 tags={"reader": self._metadata.data},
             )
         ]

@@ -204,15 +204,26 @@ data. The full specification of the format can be found
                                 child.tag: child.text for child in instrument
                             }
                             raw_metadata["Instrument"] = instrument_metadata
-                            model = manufacturer = version = None
+                            model = manufacturer = version = serial = None
                             if "Model" in instrument_metadata:
                                 model = instrument_metadata["Model"]
                             if "Manufacturer" in instrument_metadata:
                                 manufacturer = instrument_metadata["Manufacturer"]
                             if "Version" in instrument_metadata:
                                 version = instrument_metadata["Version"]
+                            if "Serial" in instrument_metadata:
+                                serial = instrument_metadata["Serial"]
 
                             instrument_info = {}
+                            if manufacturer is not None and manufacturer != "unknown":
+                                instrument_info["vendor"] = manufacturer
+                            if (
+                                serial is not None
+                                and serial != "not available"
+                                and serial != "unknown"
+                            ):
+                                instrument_info["serial"] = serial
+
                             if model == "unknown":
                                 if manufacturer != "unknown":
                                     if version != "unknown":

@@ -70,6 +70,7 @@ def test_jpk1_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 3.5e-07, rtol=1e-6)
 
     assert t.unit == "m"
+    assert t.info["instrument"]["vendor"] == "JPK Instruments"
 
     np.testing.assert_allclose(t.rms_height_from_area(), 2.144639e-08, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 3.495942e-09, rtol=1e-6)
@@ -97,6 +98,7 @@ def test_jpk2_metadata(file_format_examples):
     np.testing.assert_allclose(sy, 5.0e-06, rtol=1e-6)
 
     assert t.unit == "m"
+    assert t.info["instrument"]["vendor"] == "JPK Instruments"
 
     np.testing.assert_allclose(t.rms_height_from_area(), 6.877323e-07, rtol=1e-6)
     np.testing.assert_allclose(t.rms_height_from_profile(), 5.946019e-07, rtol=1e-6)

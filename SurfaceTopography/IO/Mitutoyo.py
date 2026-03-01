@@ -161,6 +161,7 @@ surface roughness testers.
 
             self._info = {
                 "acquisition_time": datetime.strptime(_date_string, "%d-%b-%Y"),
+                "instrument": {"vendor": "Mitutoyo"},
                 "raw_metadata": {
                     "roughness_metrics": _roughness_metrics_list,
                     "cut_off": _cut_off_dict,

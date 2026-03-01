@@ -122,9 +122,20 @@ on the physical size of the topography map as well as its units.
         # Build channel information
         #
         self._channels = [
-            ChannelInfo(self, i, name=cn, dim=2, nb_grid_pts=(nx, ny), physical_sizes=self._physical_sizes,
-                        unit=self._data_unit, height_scale_factor=1, uniform=True)
-            for i, cn in enumerate(self._channel_names)]
+            ChannelInfo(
+                self,
+                i,
+                name=cn,
+                dim=2,
+                nb_grid_pts=(nx, ny),
+                physical_sizes=self._physical_sizes,
+                unit=self._data_unit,
+                height_scale_factor=1,
+                uniform=True,
+                info={"instrument": {"vendor": "Asylum Research"}},
+            )
+            for i, cn in enumerate(self._channel_names)
+        ]
 
         # Shall we use the channel names in order to assign a unit as Gwyddion
         # does?
