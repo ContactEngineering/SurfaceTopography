@@ -36,7 +36,7 @@ from tempfile import TemporaryDirectory as tmp_dir
 
 import numpy as np
 import pytest
-from muGrid import FFTEngine
+from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
 from NuMPI.Tools import Reduction
 from numpy.random import rand

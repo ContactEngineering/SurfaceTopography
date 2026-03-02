@@ -150,22 +150,51 @@ Import filter for Zygo DATX, an HDF5-based format.
     def channels(self):
         instrument_info = {"vendor": "Zygo"}
 
-        def find_key(d, target_key):
-            if target_key in d:
-                return d[target_key]
-            for v in d.values():
-                if isinstance(v, dict):
-                    res = find_key(v, target_key)
-                    if res is not None:
-                        return res
-            return None
+        fobj = self._fobj
+        if callable(fobj):
+            fobj = fobj()
+        with h5py.File(fobj, 'r') as h5:
+            def find_attr(obj, target_key):
+                for key, val in obj.attrs.items():
+                    if key.endswith(target_key):
+                        if isinstance(val, np.ndarray) and len(val) > 0:
+                            return val[0]
+                        return val
+                return None
 
-        name = find_key(self._metadata, "Instrument")
-        if name is not None:
-            instrument_info["name"] = str(name)
-        serial = find_key(self._metadata, "System Serial Number")
-        if serial is not None:
-            instrument_info["serial"] = str(serial)
+            # Search in the attributes of the group containing the surface data
+            # or any parent group.
+            node = h5[self._surface_path]
+            serial = None
+            instrument_name = None
+            while node.name != '/':
+                serial = find_attr(node, 'System Serial Number')
+                instrument_name = find_attr(node, 'System Type')
+                if serial is not None and instrument_name is not None:
+                    break
+                node = node.parent
+
+            # If not found yet, also check if there is an Attributes group
+            if serial is None or instrument_name is None:
+                def visit_func(name, obj):
+                    nonlocal serial, instrument_name
+                    if serial is None:
+                        serial = find_attr(obj, 'System Serial Number')
+                    if instrument_name is None:
+                        instrument_name = find_attr(obj, 'System Type')
+
+                if 'Attributes' in h5:
+                    h5['Attributes'].visititems(visit_func)
+
+            if serial is not None:
+                if isinstance(serial, bytes):
+                    serial = serial.decode('utf-8')
+                instrument_info["serial"] = str(serial)
+
+            if instrument_name is not None:
+                if isinstance(instrument_name, bytes):
+                    instrument_name = instrument_name.decode('utf-8')
+                instrument_info["name"] = str(instrument_name)
 
         return [
             ChannelInfo(
@@ -205,6 +234,7 @@ Import filter for Zygo DATX, an HDF5-based format.
 
         _info = self.channels[channel_index].info.copy()
         _info.update(info)
+        _info.update({'instrument': self.channels[channel_index].info['instrument']})
 
         fobj = self._fobj
         if callable(fobj):
