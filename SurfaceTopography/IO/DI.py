@@ -221,6 +221,16 @@ The reader supports V4.3 and later version of the format.
                             "name": equipment["description"],
                             "vendor": "Bruker",
                         }
+                    else:
+                        info["instrument"] = {"vendor": "Bruker"}
+
+                    if "serial number" in scanner:
+                        info["instrument"]["serial"] = scanner["serial number"]
+
+                    for n, p in parameters:
+                        if n == "file list":
+                            if "version" in p:
+                                info["instrument"]["software"] = p["version"]
 
                     self._channels += [
                         ChannelInfo(

@@ -29,7 +29,7 @@ import unittest
 
 import numpy as np
 import pytest
-from muGrid import FFTEngine
+from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
 
 from SurfaceTopography import (

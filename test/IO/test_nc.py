@@ -27,7 +27,7 @@ import tempfile
 
 import numpy as np
 import pytest
-from muGrid import FFTEngine
+from muGrid.Wrappers import FFTEngine
 from NuMPI import MPI
 from scipy.io import netcdf_file
 

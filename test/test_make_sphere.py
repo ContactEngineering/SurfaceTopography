@@ -24,7 +24,7 @@
 #
 
 import numpy as np
-from muGrid import FFTEngine
+from muGrid.Wrappers import FFTEngine
 
 from SurfaceTopography import make_sphere
 

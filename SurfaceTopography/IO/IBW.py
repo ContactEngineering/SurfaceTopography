@@ -119,6 +119,30 @@ on the physical size of the topography map as well as its units.
         # are interested in the width and height, not the absolute offsets.
 
         #
+        # Build instrument information
+        #
+        instrument_info = {"vendor": "Asylum Research"}
+        try:
+            note = self.data["note"].decode("latin-1")
+            for line in note.splitlines():
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    key = key.strip()
+                    value = value.strip()
+                    if key == "MicroscopeModel":
+                        instrument_info["name"] = value
+                    elif key == "IgorFileVersion":
+                        instrument_info["software"] = f"Igor Pro {value}"
+                    elif key == "Version":
+                        # This seems to be the software version of the Asylum software
+                        if "software" in instrument_info:
+                            instrument_info["software"] += f" (Asylum {value})"
+                        else:
+                            instrument_info["software"] = f"Asylum {value}"
+        except (KeyError, UnicodeDecodeError):
+            pass
+
+        #
         # Build channel information
         #
         self._channels = [
@@ -132,7 +156,7 @@ on the physical size of the topography map as well as its units.
                 unit=self._data_unit,
                 height_scale_factor=1,
                 uniform=True,
-                info={"instrument": {"vendor": "Asylum Research"}},
+                info={"instrument": instrument_info},
             )
             for i, cn in enumerate(self._channel_names)
         ]
@@ -174,7 +198,11 @@ on the physical size of the topography map as well as its units.
         else:
             raise MetadataAlreadyFixedByFile('physical_sizes')
 
-        topo = Topography(height_data, physical_sizes, unit=unit, info=info, periodic=periodic)
+        _info = self.channels[channel_index].info.copy()
+        _info.update(info)
+        _info.update({'instrument': self.channels[channel_index].info['instrument']})
+
+        topo = Topography(height_data, physical_sizes, unit=unit, info=_info, periodic=periodic)
         # we could pass the data units here, but they dont seem to be always
         # correct for all channels?!
 

@@ -22,7 +22,7 @@
 # SOFTWARE.
 #
 import numpy as np
-from muGrid import FFTEngine
+from muGrid.Wrappers import FFTEngine
 
 from SurfaceTopography.Special import make_topography_from_function
 
