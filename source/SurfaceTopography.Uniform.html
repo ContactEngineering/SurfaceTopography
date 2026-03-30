@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.21.1.dev14+g4a9ed3b5 documentation</title>
+  <title>SurfaceTopography.Uniform package &mdash; SurfaceTopography 1.21.1.dev15+g9b24b027 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=529dbb5c"></script>
+      <script src="../_static/documentation_options.js?v=18eff098"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
@@ -181,6 +181,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Uniform.Filtering">SurfaceTopography.Uniform.Filtering module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.nb_grid_pts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.heights"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.heights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.positions"><code class="docutils literal notranslate"><span class="pre">DownsampledUniformTopography.positions()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.name"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography.__init__"><code class="docutils literal notranslate"><span class="pre">WindowedUniformTopography.__init__()</span></code></a></li>
@@ -999,6 +1006,48 @@ Otherwise the detrended SurfaceTopography is non-periodic.</p>
 </section>
 <section id="module-SurfaceTopography.Uniform.Filtering">
 <span id="surfacetopography-uniform-filtering-module"></span><h2>SurfaceTopography.Uniform.Filtering module<a class="headerlink" href="#module-SurfaceTopography.Uniform.Filtering" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">DownsampledUniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nth'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="SurfaceTopography.html#SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography" title="SurfaceTopography.UniformLineScanAndTopography.DecoratedUniformTopography"><code class="xref py py-class docutils literal notranslate"><span class="pre">DecoratedUniformTopography</span></code></a></p>
+<p>Downsample topography by picking each n-th point or taking averages over
+rectangular patches.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nth'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topography</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">UniformTopographyInterface</span></code>) – Parent topography</p></li>
+<li><p><strong>factor</strong> (<em>int</em><em> or </em><em>tuple</em><em> of </em><em>ints</em>) – Downsampling factor. If an integer is given, the same factor is
+used for all dimensions.</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Downsampling mode. ‘nth’ picks each n-th point, ‘average’ takes
+the average over n x n patches. (Default: ‘nth’)</p></li>
+<li><p><strong>info</strong> (<em>dict</em><em>, </em><em>optional</em>) – Updated entries to the info dictionary. (Default: {})</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nb_grid_pts</span></span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.nb_grid_pts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.heights">
+<span class="sig-name descname"><span class="pre">heights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.heights" title="Link to this definition"></a></dt>
+<dd><p>Returns array containing the topography data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.positions">
+<span class="sig-name descname"><span class="pre">positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshgrid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.DownsampledUniformTopography.positions" title="Link to this definition"></a></dt>
+<dd><p>Returns array containing the lateral positions.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="SurfaceTopography.Uniform.Filtering.WindowedUniformTopography">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Uniform.Filtering.</span></span><span class="sig-name descname"><span class="pre">WindowedUniformTopography</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topography</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Uniform.Filtering.WindowedUniformTopography" title="Link to this definition"></a></dt>
