@@ -31,6 +31,89 @@ from ..HeightContainer import UniformTopographyInterface
 from ..UniformLineScanAndTopography import DecoratedUniformTopography
 
 
+class DownsampledUniformTopography(DecoratedUniformTopography):
+    """
+    Downsample topography by picking each n-th point or taking averages over
+    rectangular patches.
+    """
+
+    def __init__(self, topography, factor, mode='nth', info={}):
+        """
+        Parameters
+        ----------
+        topography : :obj:`UniformTopographyInterface`
+            Parent topography
+        factor : int or tuple of ints
+            Downsampling factor. If an integer is given, the same factor is
+            used for all dimensions.
+        mode : str, optional
+            Downsampling mode. 'nth' picks each n-th point, 'average' takes
+            the average over n x n patches. (Default: 'nth')
+        info : dict, optional
+            Updated entries to the info dictionary. (Default: {})
+        """
+        if topography.dim != 2:
+            raise ValueError("Downsampling is only supported for 2D topographies.")
+
+        super().__init__(topography, info=info)
+
+        if isinstance(factor, int):
+            self._factor = (factor, factor)
+        else:
+            self._factor = tuple(factor)
+
+        if len(self._factor) != 2:
+            raise ValueError("Factor must be an integer or a tuple of two integers.")
+
+        self._mode = mode
+        if self._mode not in ['nth', 'average']:
+            raise ValueError("Mode must be either 'nth' or 'average'.")
+
+    def __getstate__(self):
+        state = super().__getstate__(), self._factor, self._mode
+        return state
+
+    def __setstate__(self, state):
+        superstate, self._factor, self._mode = state
+        super().__setstate__(superstate)
+
+    @property
+    def nb_grid_pts(self):
+        return tuple(n // f for n, f in zip(self.parent_topography.nb_grid_pts, self._factor))
+
+    def heights(self):
+        heights = self.parent_topography.heights()
+        fx, fy = self._factor
+        nx, ny = self.nb_grid_pts
+        if self._mode == 'nth':
+            return heights[::fx, ::fy][:nx, :ny]
+        elif self._mode == 'average':
+            # We use reshape and mean to compute the average over patches
+            # This is more efficient than manual looping
+            return heights[:nx * fx, :ny * fy].reshape(nx, fx, ny, fy).mean(axis=(1, 3))
+
+    def positions(self, meshgrid=True):
+        # We need to override positions because the grid has changed
+        # The physical size remains the same, but nb_grid_pts has changed.
+        # DecoratedUniformTopography.positions calls parent_topography.positions
+        # which uses parent's nb_grid_pts.
+        nx, ny = self.nb_grid_pts
+        sx, sy = self.physical_sizes
+        # The new grid points are located at the same positions as the old ones
+        # if mode is 'nth'.
+        # If mode is 'average', the new grid points are at the centers of the patches.
+        # HOWEVER, in SurfaceTopography, uniform topographies usually have grid points
+        # starting at 0 and ending at (nb_grid_pts - 1) * pixel_size.
+        # Let's follow the convention in Topography.positions:
+        # x = (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx
+        # Here nx is the new nb_grid_pts.
+        x = np.arange(nx) * sx / nx
+        y = np.arange(ny) * sy / ny
+        if meshgrid:
+            x, y = np.meshgrid(x, y, indexing="ij")
+        return x, y
+
+
 class WindowedUniformTopography(DecoratedUniformTopography):
     """
     Construct a topography with a window function applied to it.
@@ -426,3 +509,4 @@ UniformTopographyInterface.register_function("window", WindowedUniformTopography
 UniformTopographyInterface.register_function("filter", FourierFilteredUniformTopography)
 UniformTopographyInterface.register_function("shortcut", ShortCutTopography)
 UniformTopographyInterface.register_function("longcut", LongCutTopography)
+UniformTopographyInterface.register_function("downsample", DownsampledUniformTopography)
