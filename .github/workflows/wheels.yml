@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - if: matrix.buildplat[2] == 'aarch64'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
