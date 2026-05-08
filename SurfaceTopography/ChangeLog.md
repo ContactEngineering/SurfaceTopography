@@ -1,19 +1,15 @@
 Change log for SurfaceTopography
 ================================
 
-v1.23.0 (08May26)
+v1.22.0 (08May26)
 -----------------
 
+- BUG: Fixed boundary bug in DZI tiling that excluded the last pixel row/column
 - ENH: Updated Deep Zoom Image (DZI) writer to output global physical coordinates and correct physical sizes in NetCDF tiles
 - ENH: Added unit metadata to NetCDF variables in DZI tiles
-- BUG: Fixed boundary bug in DZI tiling that excluded the last pixel row/column
-
-v1.22.0 (02Mar26)
------------------
-
-- API: Extended `InstrumentModel` metadata with `vendor`, `serial`, and `software` fields for standardized instrument information
 - ENH: Updated 16+ file format readers (including MetroPro, DATX, IBW, JPK, SUR, Bruker/DI, etc.) to extract and populate standardized instrument metadata
 - ENH: Added serialization of declarative readers
+- API: Extended `InstrumentModel` metadata with `vendor`, `serial`, and `software` fields for standardized instrument information
 - TST: Added comprehensive regression tests for instrument metadata across 17 file format readers
 
 v1.21.1 (18Jan26)
