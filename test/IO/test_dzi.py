@@ -312,9 +312,37 @@ def test_write_netcdf():
         )
 
         # Try reading one of the files
-        t = read_topography(f"{d}/synthetic_files/11/4_1.nc")
+        fn = f"{d}/synthetic_files/11/4_1.nc"
+        t = read_topography(fn)
         assert t.nb_grid_pts == (258, 258)
-        np.testing.assert_allclose(t.physical_sizes, (0.981873, 1.377727), rtol=1e-6)
+        # The physical size is now the actual physical size of the tile, not the pixel size
+        # Level 11, scale_factor 1
+        # sx = 1300, sy = 1200 (in um)
+        # nx = 1324, ny = 871
+        dx = 1300 / 1324
+        dy = 1200 / 871
+        np.testing.assert_allclose(t.physical_sizes, (258 * dx, 258 * dy), rtol=1e-6)
+
+        # We now check the NetCDF file directly to verify the offsets and coordinates
+        from scipy.io import netcdf_file
+        with netcdf_file(fn, "r") as nc:
+            assert nc.variables["x"].unit == b"um"
+            assert nc.variables["y"].unit == b"um"
+            assert nc.variables["heights"].unit == b"um"
+
+            # Level 11, scale_factor 1, column 4, row 1
+            # left = (4 * 256 - 1) * 1 = 1023
+            # bottom = (1 * 256 - 1) * 1 = 255
+            ox = 1023 / 1324 * 1300
+            oy = 255 / 871 * 1200
+            np.testing.assert_allclose(nc.variables["x"][0], ox)
+            np.testing.assert_allclose(nc.variables["y"][0], oy)
+            np.testing.assert_allclose(
+                nc.variables["x"][...], ox + np.arange(258) * dx
+            )
+            np.testing.assert_allclose(
+                nc.variables["y"][...], oy + np.arange(258) * dy
+            )
 
 
 def test_write_npy():

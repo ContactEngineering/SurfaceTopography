@@ -1,6 +1,13 @@
 Change log for SurfaceTopography
 ================================
 
+v1.23.0 (08May26)
+-----------------
+
+- ENH: Updated Deep Zoom Image (DZI) writer to output global physical coordinates and correct physical sizes in NetCDF tiles
+- ENH: Added unit metadata to NetCDF variables in DZI tiles
+- BUG: Fixed boundary bug in DZI tiling that excluded the last pixel row/column
+
 v1.22.0 (02Mar26)
 -----------------
 

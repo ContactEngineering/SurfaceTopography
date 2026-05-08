@@ -43,6 +43,7 @@ from ..HeightContainer import UniformTopographyInterface
 from ..Support.JSON import ExtendedJSONEncoder
 from ..Support.UnitConversion import (
     get_unit_conversion_factor,
+    mangle_length_unit_ascii,
     suggest_length_unit_for_data,
 )
 
@@ -108,25 +109,29 @@ def write_dzi(
         List with names of files created during write operation
     """
 
-    def write_data(fn, subdata, physical_sizes):
+    def write_data(fn, subdata, pixel_physical_sizes, physical_offsets):
         if format == "npy":
             # We write the raw data in the native numpy format
             np.save(fn, subdata)
         elif format == "nc":
             # We write the raw data in NetCDF-3 format
             nx, ny = subdata.shape
-            sx, sy = physical_sizes
+            dx, dy = pixel_physical_sizes
+            ox, oy = physical_offsets
             nc = netcdf_file(fn, "w")
             nc.createDimension("x", nx)
             nc.createDimension("y", ny)
             heights_var = nc.createVariable("heights", "f8", ("x", "y"))
             heights_var[...] = subdata
+            heights_var.unit = mangle_length_unit_ascii(unit)
             x_var = nc.createVariable("x", "f8", ("x",))
-            x_var.length = sx
-            x_var[...] = np.arange(nx) / nx * sx
+            x_var.length = nx * dx
+            x_var.unit = mangle_length_unit_ascii(unit)
+            x_var[...] = ox + np.arange(nx) * dx
             y_var = nc.createVariable("y", "f8", ("y",))
-            y_var.length = sy
-            y_var[...] = np.arange(ny) / ny * sy
+            y_var.length = ny * dy
+            y_var.unit = mangle_length_unit_ascii(unit)
+            y_var[...] = oy + np.arange(ny) * dy
         else:
             # Convert to image and save
             colors = (cmap(subdata.T) * 255).astype(np.uint8)
@@ -225,15 +230,16 @@ def write_dzi(
                     left = 0
                 if bottom < 0:
                     bottom = 0
-                if right > full_width - 1:
-                    right = full_width - 1
-                if top > full_height - 1:
-                    top = full_height - 1
+                if right > full_width:
+                    right = full_width
+                if top > full_height:
+                    top = full_height
 
                 write_data(
                     fn,
                     data[left:right:scale_factor, bottom:top:scale_factor],
                     (sx / full_width * scale_factor, sy / full_height * scale_factor),
+                    (left / full_width * sx, bottom / full_height * sy),
                 )
                 manifest += [fn]
 
