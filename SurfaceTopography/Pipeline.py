@@ -66,7 +66,7 @@ def pipeline_function(parent):
                 """ is called and the returned object is pickled as the contents for
                     the instance
                 """
-                state = super().__getstate__(), self._kwargs
+                state = super().__getstate__(), self._args, self._kwargs
                 return state
 
             def __setstate__(self, state):
@@ -74,7 +74,7 @@ def pipeline_function(parent):
                 Keyword Arguments:
                 state -- result of __getstate__
                 """
-                superstate, self._kwargs = state
+                superstate, self._args, self._kwargs = state
                 super().__setstate__(superstate)
 
             def __getattr__(self, name):
