@@ -32,7 +32,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
-from ..Support import doi
+from ..Support import doi, fold_fft_half
 from ..Support.Regression import resample, resample_radial
 
 
@@ -102,9 +102,7 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
 
     # Fold +q and -q branches. Note: Entry q=0 appears just once, hence
     # exclude from average!
-    C_all = C_raw[:nx // 2, ...]
-    C_all[1:nx // 2, ...] += C_raw[nx - 1:(nx + 1) // 2:-1, ...]
-    C_all /= 2
+    C_all = fold_fft_half(C_raw, nx)
 
     if resampling_method is None:
         # Only keep reliable data

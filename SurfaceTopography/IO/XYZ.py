@@ -28,7 +28,12 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile, UnknownFileFormat
+from ..Exceptions import (
+    CorruptFile,
+    FileFormatMismatch,
+    MetadataAlreadyFixedByFile,
+    UnknownFileFormat,
+)
 from ..NonuniformLineScan import NonuniformLineScan
 from ..Support.UnitConversion import (
     find_length_unit_in_string,
@@ -76,7 +81,8 @@ def read_text_header_hfm(fobj, unit, height_scale_factor):
     # X;Y;valid
     # [mm];[mm];[1/0]
     first_line = fobj.readline()
-    assert first_line.strip() == "X;Y;valid"  # This is the file magic
+    if first_line.strip() != "X;Y;valid":
+        raise FileFormatMismatch("File does not start with the expected 'X;Y;valid' header.")
     second_line = fobj.readline()
     xunit, zunit, _ = second_line.split(";")
     xunit = xunit.strip("[").strip("]")
@@ -138,7 +144,8 @@ def read_text_header_dektak(fobj, unit, height_scale_factor):
 
     # Next line should be empty
     line = fobj.readline()
-    assert len(line.strip()) == 0
+    if len(line.strip()) != 0:
+        raise CorruptFile("Expected an empty line in file header but found content.")
 
     # Next line contains a header, example: "Lateral um,Raw Micrometer,"
     line = fobj.readline()
@@ -493,22 +500,25 @@ The reader supports parsing HFM and Dektak header information.
             binx = np.array((x - x0) / dx + 0.5, dtype=int)
             n = np.bincount(binx)
             ny = n[0]
-            assert np.all(n == ny)  # FIXME: Turn assert into exception
+            if not np.all(n == ny):
+                raise CorruptFile("XYZ file does not contain a regular grid: unequal number of x-values per row.")
 
             # Sort y-values into bins.
             biny = np.array((y - y0) / dy + 0.5, dtype=int)
             n = np.bincount(biny)
             nx = n[0]
-            assert np.all(n == nx)  # FIXME: Turn assert into exception
+            if not np.all(n == nx):
+                raise CorruptFile("XYZ file does not contain a regular grid: unequal number of y-values per column.")
 
             # Sort data into bins.
             data = np.zeros((nx, ny))
             data[binx, biny] = z
 
-            # Sanity check. Should be covered by above asserts.
+            # Sanity check: every grid point must have exactly one data value.
             value_present = np.zeros((nx, ny), dtype=bool)
             value_present[binx, biny] = True
-            assert np.all(value_present)  # FIXME: Turn assert into exception
+            if not np.all(value_present):
+                raise CorruptFile("XYZ file does not contain a regular grid: some grid points have no data.")
 
             if physical_sizes is None:
                 physical_sizes = (dx * nx, dy * ny)

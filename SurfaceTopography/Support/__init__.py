@@ -29,6 +29,30 @@ from .Interpolation import Bicubic  # noqa: F401
 from .Regression import resample_radial  # noqa: F401
 
 
+def fold_fft_half(arr, n):
+    """
+    Fold the negative-frequency branch of an FFT result into the positive-
+    frequency branch, averaging the two symmetric contributions.
+
+    Parameters
+    ----------
+    arr : array_like
+        FFT output array with n elements along the first axis.
+    n : int
+        Length of the first axis (number of FFT points).
+
+    Returns
+    -------
+    result : ndarray
+        View of the first n//2 rows of arr, modified in-place so that
+        result[k] = (arr[k] + arr[n-k]) / 2 for k = 1 … n//2 - 1.
+    """
+    result = arr[:n // 2, ...]
+    result[1:n // 2, ...] += arr[n - 1:(n + 1) // 2:-1, ...]
+    result /= 2
+    return result
+
+
 def toiter(obj):
     """If `obj` is scalar, wrap it into a list"""
     try:

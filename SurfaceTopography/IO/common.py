@@ -134,7 +134,7 @@ class OpenFromAny(object):
                     self._need_detach = True
                     self._fstream = io.TextIOWrapper(_get_binary_stream(self._fobj), encoding=self._encoding)
             else:
-                return ValueError(f"Unknown file open mode '{self._mode}'.")
+                raise ValueError(f"Unknown file open mode '{self._mode}'.")
         elif callable(self._fobj):
             # This is a function that returns the file stream
             fobj = self._fobj()

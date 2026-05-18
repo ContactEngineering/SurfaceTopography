@@ -31,7 +31,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
-from ..Support import doi
+from ..Support import doi, fold_fft_half
 from ..Support.Regression import resample, resample_radial
 
 
@@ -115,9 +115,7 @@ def autocorrelation_from_profile(self, reliable=True, resampling_method='bin-ave
         #     <(h(x) - h(x+d))^2>/2 = <h^2(x)> - <h(x)h(x+d)>
         A_xy = A_xy[0] - A_xy
 
-        A = A_xy[:nx // 2]
-        A[1:nx // 2] += A_xy[nx - 1:(nx + 1) // 2:-1]
-        A /= 2
+        A = fold_fft_half(A_xy, nx)
 
         r = sx * np.arange(nx // 2) / nx
         max_distance = sx / 2
