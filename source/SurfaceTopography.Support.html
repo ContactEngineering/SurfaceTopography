@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.22.0 documentation</title>
+  <title>SurfaceTopography.Support package &mdash; SurfaceTopography 1.22.0.dev4+g8e27fe46 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=c9c46145"></script>
+      <script src="../_static/documentation_options.js?v=c43a1d81"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -141,6 +141,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-SurfaceTopography.Support">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.fold_fft_half"><code class="docutils literal notranslate"><span class="pre">fold_fft_half()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.toiter"><code class="docutils literal notranslate"><span class="pre">toiter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.fromiter"><code class="docutils literal notranslate"><span class="pre">fromiter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#SurfaceTopography.Support.build_tuple"><code class="docutils literal notranslate"><span class="pre">build_tuple()</span></code></a></li>
@@ -667,6 +668,28 @@ E.g. data in the range from 1e-3 to 1e-2 m is best represented by um.</p>
 </section>
 <section id="module-SurfaceTopography.Support">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-SurfaceTopography.Support" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="SurfaceTopography.Support.fold_fft_half">
+<span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.</span></span><span class="sig-name descname"><span class="pre">fold_fft_half</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.fold_fft_half" title="Link to this definition"></a></dt>
+<dd><p>Fold the negative-frequency branch of an FFT result into the positive-
+frequency branch, averaging the two symmetric contributions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>array_like</em>) – FFT output array with n elements along the first axis.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Length of the first axis (number of FFT points).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>result</strong> – View of the first n//2 rows of arr, modified in-place so that
+result[k] = (arr[k] + arr[n-k]) / 2 for k = 1 … n//2 - 1.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="SurfaceTopography.Support.toiter">
 <span class="sig-prename descclassname"><span class="pre">SurfaceTopography.Support.</span></span><span class="sig-name descname"><span class="pre">toiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SurfaceTopography.Support.toiter" title="Link to this definition"></a></dt>
