@@ -44,7 +44,7 @@ def test_scan_line_align_removes_offsets():
         h[i, :] += offsets[i]
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # Check that aligned heights have reduced line-to-line variation
     aligned_heights = aligned.heights()
@@ -65,7 +65,7 @@ def test_scan_line_align_removes_tilt():
         h[i, :] = slope * y
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # Check that slopes within lines are reduced
     aligned_heights = aligned.heights()
@@ -75,17 +75,22 @@ def test_scan_line_align_removes_tilt():
         assert abs(slope) < 0.001
 
 
-def test_scan_line_align_y_direction():
-    """Test scan line alignment in y-direction."""
+def test_scan_line_align_x_direction():
+    """Test scan line alignment in the (default) x-direction.
+
+    The first array index is the x index, so scan lines running along the
+    x direction are *columns* of the height array; each column has constant
+    y and is acquired as one fast scan.
+    """
     nx, ny = 32, 32
     h = np.zeros((nx, ny))
-    # Add offsets to columns instead of rows
+    # Add a per-scan-line offset; each scan line along x is a column
     np.random.seed(42)
     for j in range(ny):
         h[:, j] += np.random.randn() * 5
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align(direction='y')
+    aligned = topo.scan_line_align(direction='x')
 
     aligned_heights = aligned.heights()
     col_means = [aligned_heights[:, j].mean() for j in range(ny)]
@@ -106,7 +111,7 @@ def test_scan_line_align_preserves_features():
         h[i, :] += np.random.randn() * 0.1 * np.arange(ny) / ny  # Tilt
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # The bump should still be visible after alignment
     # (center should be higher than corners)
@@ -132,7 +137,7 @@ def test_scan_line_align_masked_data():
     h = np.ma.array(h, mask=mask)
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # Should complete without error
     aligned_heights = aligned.heights()
@@ -153,7 +158,7 @@ def test_scan_line_align_pipeline():
     topo = Topography(h, (1, 1), unit='um')
 
     # Should work in pipeline: first align scan lines, then global detrend
-    result = topo.scan_line_align().detrend()
+    result = topo.scan_line_align(direction='y').detrend()
     assert result.heights().shape == (32, 32)
 
     # The pipeline should be preserved
@@ -169,7 +174,7 @@ def test_scan_line_align_mode_mean():
         h[i, :] += np.random.randn() * 5
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align(mode='mean')
+    aligned = topo.scan_line_align(direction='y', mode='mean')
 
     aligned_heights = aligned.heights()
     line_means = [aligned_heights[i, :].mean() for i in range(nx)]
@@ -182,7 +187,7 @@ def test_scan_line_align_periodicity():
     topo = Topography(h, (1, 1), unit='um', periodic=True)
     assert topo.is_periodic
 
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
     assert not aligned.is_periodic
 
 
@@ -195,7 +200,7 @@ def test_scan_line_align_coefficients():
         h[i, :] = 2 + 3 * np.arange(ny) / ny  # Same tilt for all lines
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # Access coefficients
     coeffs = aligned.line_coeffs
@@ -229,7 +234,7 @@ def test_scan_line_align_pickling():
         h[i, :] += i * 0.5
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align()
+    aligned = topo.scan_line_align(direction='y')
 
     # Trigger computation
     original_heights = aligned.heights()
@@ -259,7 +264,7 @@ def test_scan_line_align_degree_0():
         h[i, :] += 5 * t
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align(degree=0)
+    aligned = topo.scan_line_align(direction='y', degree=0)
 
     # Offsets should be removed
     aligned_heights = aligned.heights()
@@ -293,7 +298,7 @@ def test_scan_line_align_degree_2():
     topo = Topography(h, (1, 1), unit='um')
 
     # With degree=2, quadratic term should be removed
-    aligned_deg2 = topo.scan_line_align(degree=2)
+    aligned_deg2 = topo.scan_line_align(direction='y', degree=2)
     aligned_heights_2 = aligned_deg2.heights()
     # Check residual curvature is small
     curvatures_2 = [np.polyfit(t, aligned_heights_2[i, :], 2)[0]
@@ -327,7 +332,7 @@ def test_scan_line_align_degree_3():
         h[i, :] = a * t**3 + b * t**2 + c * t + d
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align(degree=3)
+    aligned = topo.scan_line_align(direction='y', degree=3)
 
     # Check coefficients shape
     assert aligned.line_coeffs.shape == (nx, 4)
@@ -362,7 +367,7 @@ def test_scan_line_align_pickling_with_degree():
         h[i, :] = np.random.randn() * t**2 + np.random.randn() * t + i * 0.5
 
     topo = Topography(h, (1, 1), unit='um')
-    aligned = topo.scan_line_align(degree=2)
+    aligned = topo.scan_line_align(direction='y', degree=2)
 
     # Trigger computation
     original_heights = aligned.heights()
@@ -399,7 +404,7 @@ def test_scan_line_align_scanner_bow_correction():
     topo = Topography(h, (10, 20), unit='um')
 
     # Correct with degree=2
-    aligned = topo.scan_line_align(degree=2)
+    aligned = topo.scan_line_align(direction='y', degree=2)
     aligned_heights = aligned.heights()
 
     # The parabolic bow should be removed

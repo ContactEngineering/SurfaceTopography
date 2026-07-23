@@ -306,6 +306,16 @@ def fourier_synthesis(nb_grid_pts, physical_sizes,
                 karr[x, mask] = rolloff * ran[mask] * q_min ** (-(1 + hurst))
             else:
                 karr[mask] = rolloff * ran[mask] * q_min ** (-(0.5 + hurst))
+        if x == 0 and psd is None:
+            # The q=0 mode only controls the mean height, which we fix to
+            # zero. (Setting q_sq[0] to 1 above merely avoids a
+            # divide-by-zero; without zeroing this mode the surface would
+            # acquire a random mean offset of magnitude C(q=1), which is
+            # unit-dependent and typically dwarfs the rms height.)
+            if len(nb_grid_pts) == 2:
+                karr[0, 0] = 0.
+            else:
+                karr[0] = 0.
     if len(nb_grid_pts) == 2:
         for iy in [0, -1] if ny % 2 == 0 else [0]:
             # Enforce symmetry

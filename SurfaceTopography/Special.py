@@ -214,18 +214,21 @@ def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,
                           "Should be 'sphere' or 'paraboloid'".format(kind)))
 
     if dim == 1:
-        ret_top = UniformLineScan(h + offset, physical_sizes)
+        ret_top = UniformLineScan(h + offset, physical_sizes,
+                                  periodic=periodic)
     else:
         ret_top = Topography(h + offset, physical_sizes,
+                             periodic=periodic,
                              decomposition='subdomain',
                              nb_grid_pts=nb_grid_pts,
                              subdomain_locations=subdomain_locations,
                              communicator=communicator)
 
-    if standoff == "undefined":
-        return ret_top
-    else:
-        return ret_top.fill_undefined_data(standoff_val)
+    # For `standoff="undefined"` the region outside the sphere contains NaNs,
+    # which the constructors above turn into masked (undefined) data points.
+    # For a numeric standoff the heights outside the sphere were already set
+    # to the (finite) standoff value above; no filling is necessary.
+    return ret_top
 
 
 class PlasticTopography(DecoratedUniformTopography):
