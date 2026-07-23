@@ -12,6 +12,19 @@ Severity legend:
 - **MEDIUM** — crashes on valid inputs, wrong results under non-default but supported options, resource/metadata correctness.
 - **LOW** — edge cases, performance, documentation drift, code health.
 
+> **Status update (2026-07-23):** All findings in section 1 (the
+> wrong-results tier, §1.1–§1.17) have been **fixed** on this branch, with
+> regression tests; see the commit history following the commit that added
+> this report. Exceptions and adjacent items: the latent non-square
+> axis-pairing in DATX/LEXT noted under §1.3 is *not* changed (unprovable
+> without a non-square reference file); a handful of adjacent §2 items that
+> shared code with §1 fixes were fixed along the way (EZD magic check, MI
+> ASCII crash and `scanUp` flag, the dead `interpolation='disable'` guard
+> in `Uniform/Derivative.py`, scalar bicubic derivative returns, the ZAG
+> logger instantiation, and the 1D crash in
+> `TransposedUniformTopography.positions`). Sections 2–3 otherwise remain
+> open.
+
 ---
 
 ## 1. High severity — silent data corruption / wrong results
