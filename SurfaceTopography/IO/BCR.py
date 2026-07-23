@@ -214,9 +214,24 @@ BCR-STM and BCRF file formats
         # or pcolormesh(t.heights().T) for origin in lower left and
         # with inverted y axis (cartesian coordinate system)
 
-        invalid_pixel_value = float(self._metadata['voidpixels'])
+        # `voidpixels` holds the *number* of void (undefined) pixels in the
+        # file, not the marker value; if the key is missing, the file
+        # contains no void pixels. Void pixels are marked by the maximum
+        # value of the respective data type: 32767 for 16-bit integer
+        # (bcrstm) files and single-precision FLT_MAX (~3.4028235e38) for
+        # floating-point (bcrf) files.
+        try:
+            nb_void_pixels = float(self._metadata.get('voidpixels', 0))
+        except ValueError:
+            nb_void_pixels = 0
+        if nb_void_pixels > 0:
+            if self._file_type == 'bcrstm':
+                mask = data == 32767
+            else:
+                mask = data >= 3.4028e38
+            data = np.ma.masked_array(data, mask=mask)
         topography = Topography(
-            np.ma.masked_array(data, mask=data == invalid_pixel_value),
+            data,
             physical_sizes=(sx, sy),
             unit=channel.unit,
             info=_info,

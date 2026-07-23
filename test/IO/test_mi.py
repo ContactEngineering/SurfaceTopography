@@ -61,7 +61,11 @@ def test_read_header():
     # Check if metadata has been read in correctly
     assert loader.channels[0].dim == 2
     assert loader.channels[0].nb_grid_pts == (256, 256)
-    assert loader.channels[0].physical_sizes == (2e-05, 2e-05)
+    # `xLength`/`yLength` are stored in meters (2e-05 m) but the channel unit
+    # is µm, so the physical sizes must be reported as 20 µm
+    np.testing.assert_allclose(loader.channels[0].physical_sizes, (20.0, 20.0))
+    # Non-length channels (V) keep the lateral sizes in meters
+    np.testing.assert_allclose(loader.channels[1].physical_sizes, (2e-05, 2e-05))
     assert (
         loader.channels[0].info["raw_metadata"]["DisplayOffset"]
         == "8.8577270507812517e-004"

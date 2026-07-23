@@ -520,7 +520,11 @@ This reader imports Olympus OIR data files.
                         tags={
                             # The suffix _0 is probably the frame number, but I have
                             # never seen files with multiple frames.
-                            "reader": lambda stream_obj: np.frombuffer(
+                            # Note: The loop variables are bound as default
+                            # arguments; a plain closure would capture them
+                            # by reference and every channel would end up
+                            # reading the *last* channel's data.
+                            "reader": lambda stream_obj, prefix=prefix, uuid=uuid, nx=nx, ny=ny, dtype=dtype: np.frombuffer(  # noqa: E501
                                 data[f"{prefix}_{uuid}_0"](stream_obj), dtype
                             )
                             .reshape((ny, nx))
@@ -566,6 +570,11 @@ containers that contain a number of OIR files.
         for fn, r in self._readers:
             for c in r.channels:
                 c.reader = self
+                # Renumber the channel to its position in the concatenated
+                # list; it otherwise retains the index within its own file
+                # and `topography()` would return the data of a different
+                # channel.
+                c.index = len(channels)
                 c.tags["fn"] = fn
                 channels += [c]
         return channels

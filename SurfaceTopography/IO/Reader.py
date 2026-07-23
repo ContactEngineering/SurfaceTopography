@@ -238,6 +238,15 @@ class ChannelInfo:
         """Unique integer channel index."""
         return self._index
 
+    @index.setter
+    def index(self, value):
+        """
+        Set the channel index. This is used by container readers that
+        aggregate the channels of multiple file readers into a single list
+        and need to renumber them.
+        """
+        self._index = value
+
     @property
     def name(self):
         """

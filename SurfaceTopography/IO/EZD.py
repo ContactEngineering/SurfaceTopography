@@ -68,7 +68,7 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
         with OpenFromAny(self._file_path, "rb") as fobj:
             metadata = {}
             line = fobj.readline()
-            if line == self._MAGIC:
+            if line != self._MAGIC.encode("latin-1"):
                 raise FileFormatMismatch("This is not a NanoSurf easyScan data file")
 
             section_name = "DataSet"
@@ -218,8 +218,13 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
 
             fobj.seek(self._start_of_data + offset)
             rawdata = fobj.read(nx * ny * dtype.itemsize)
-            unscaleddata = np.frombuffer(rawdata, count=nx * ny, dtype=dtype).reshape(
-                nx, ny
+            # The data is stored line by line, i.e. the buffer has C-order
+            # shape (ny, nx). Transposing yields the (nx, ny) array with the
+            # x index first that `Topography` expects.
+            unscaleddata = (
+                np.frombuffer(rawdata, count=nx * ny, dtype=dtype)
+                .reshape(ny, nx)
+                .T
             )
 
         # internal information from file
@@ -236,7 +241,7 @@ NanoSurf easyScan data file with typical file extension .ezd/.nid
         # with inverted y axis (cartesian coordinate system)
 
         topography = Topography(
-            np.fliplr(unscaleddata.T),
+            np.fliplr(unscaleddata),
             physical_sizes=(sx, sy),
             unit=channel.unit,
             info=_info,
