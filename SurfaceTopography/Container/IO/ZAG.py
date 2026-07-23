@@ -57,7 +57,30 @@ from ...Exceptions import CorruptFile, FileFormatMismatch
 from ..SurfaceContainer import LazySurfaceContainer
 from .Reader import ContainerReaderBase
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
+
+
+class ZAGFileOpener(object):
+    """
+    Callable that (re)opens a member of the ZIP archive embedded in a ZAG
+    file. Readers constructed from ZAG containers hold on to this callable
+    instead of an open stream, so that reading topographies still works
+    after `ZAGReader.close` has been called (e.g. when the reader was used
+    as a context manager by `read_container`).
+    """
+
+    def __init__(self, fobj, filename):
+        self._fobj = fobj  # file name or stream
+        self._filename = filename
+
+    def __call__(self):
+        # `ZipFile` automatically skips the ZAG header (magic + BMP
+        # thumbnail) preceding the ZIP archive, since ZIP archives are
+        # located through their central directory at the end of the file.
+        if hasattr(self._fobj, "read"):
+            return ZipFile(self._fobj, "r").open(self._filename, "r")
+        else:
+            return ZipFile(open(self._fobj, "rb"), "r").open(self._filename, "r")
 
 
 class ZAGReader(ContainerReaderBase):
@@ -113,6 +136,7 @@ class ZAGReader(ContainerReaderBase):
         from ...IO.common import OpenFromAny
 
         # Open if a file name is given
+        self._fobj = fobj
         if not hasattr(fobj, "read"):
             # This is a string
             self._fstream = open(fobj, "rb")
@@ -155,10 +179,16 @@ class ZAGReader(ContainerReaderBase):
                             # Lazy import to avoid circular dependency during package initialization
                             from ...IO import ZONReader
                             data_path = data.find(self._PATH_TAG).text
+                            # We pass a callable that reopens the ZIP member
+                            # rather than an open stream: the stream `f`
+                            # is closed when this reader is closed, but the
+                            # lazy container must be able to read
+                            # topographies after that (see `read_container`).
                             readers += [
                                 ZONReader(
-                                    z.open(
-                                        f"{data_uuid}/{data_path}/{self._ZON_UUID}", "r"
+                                    ZAGFileOpener(
+                                        self._fobj,
+                                        f"{data_uuid}/{data_path}/{self._ZON_UUID}",
                                     )
                                 ).topography
                             ]
