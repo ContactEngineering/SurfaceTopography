@@ -161,8 +161,13 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
     def heights(self):
         """ Computes the rescaled profile.
         """
-        x = self.positions()
-        return np.interp(x, *self.parent_topography.positions_and_heights())
+        parent_x, parent_h = self.parent_topography.positions_and_heights()
+        # The uniform grid starts at zero, but the parent topography's
+        # x-coordinates may start anywhere; shift the interpolation points
+        # by the parent's origin. (np.interp clamps outside the data range,
+        # so without the shift most of the grid would be filled with the
+        # first or last height value.)
+        return np.interp(self.positions() + parent_x[0], parent_x, parent_h)
 
 
 # Register pipeline functions from this module

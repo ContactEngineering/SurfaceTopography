@@ -106,7 +106,9 @@ def apply_window(x, y, window=None):
     """
     if window == 'hann':
         length = x.max() - x.min()
-        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * x / length)) * y
+        # The window argument must be relative to the start of the scan;
+        # the x-coordinates do not necessarily start at zero.
+        return (2 / 3) ** (1 / 2) * (1 - np.cos(2 * np.pi * (x - x.min()) / length)) * y
     elif window is None or window == 'None':
         return y
     else:

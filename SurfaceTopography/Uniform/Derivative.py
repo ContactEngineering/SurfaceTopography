@@ -446,7 +446,7 @@ def derivative(
             interpolation_required = (
                 np.any(s - s.astype(int) != 0) or interpolation == "fourier"
             )
-            if interpolation_required and interpolation == "disabled":
+            if interpolation_required and interpolation == "disable":
                 raise ValueError(
                     "Interpolation is required to compute derivative at the "
                     "desired scale but is explicitly disabled through the "

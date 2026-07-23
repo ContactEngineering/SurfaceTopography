@@ -88,6 +88,24 @@ def polyfit(self, deg):
     return np.linalg.solve(A, b)
 
 
+def _slope_detrend_coeffs(topography):
+    """
+    Compute the coefficients [a0, a1] that minimize the rms slope of the
+    detrended profile and center it around zero.
+
+    The constant slope that minimizes the rms slope is the length-weighted
+    mean of the derivative, i.e. (h(x_max) - h(x_min)) / (x_max - x_min).
+    (A plain mean over the per-segment slopes would weight each segment
+    equally, irrespective of its length.) The offset a0 removes the mean of
+    the tilt-corrected profile; note that the trend a0 + a1 x is evaluated
+    at the absolute positions x, which do not necessarily start at zero.
+    """
+    x, h = topography.positions_and_heights()
+    a1 = (h[-1] - h[0]) / (x[-1] - x[0])
+    a0 = topography.mean() - a1 * (x[0] + x[-1]) / 2
+    return [a0, a1]
+
+
 class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
     """
     Remove trends from a topography. This is achieved by fitting polynomials
@@ -104,7 +122,7 @@ class DetrendedNonuniformTopography(DecoratedNonuniformTopography):
         # same as 'rms-tilt', deprecate 'height' in the future
         'height': lambda self: self.parent_topography.polyfit(1),
         'mad-tilt': lambda self: self.parent_topography.mad_polyfit(1),
-        'slope': lambda self: [self.parent_topography.mean(), self.parent_topography.derivative(1).mean()],
+        'slope': lambda self: _slope_detrend_coeffs(self.parent_topography),
         'rms-curvature': lambda self: self.parent_topography.polyfit(2),
         # same as 'rms-curvature', deprecate 'curvature' in the future
         'curvature': lambda self: self.parent_topography.polyfit(2),
