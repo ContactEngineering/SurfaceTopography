@@ -26,8 +26,8 @@ SOFTWARE.
 #include "bearing_area.h"
 
 
-Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> x, Eigen::Ref<Eigen::ArrayXd> h,
-                                       Eigen::Ref<ArrayXl> el_sort_by_max, Eigen::Ref<Eigen::ArrayXd> heights) {
+Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<const Eigen::ArrayXd> x, Eigen::Ref<const Eigen::ArrayXd> h,
+                                       Eigen::Ref<const ArrayXl> el_sort_by_max, Eigen::Ref<const Eigen::ArrayXd> heights) {
     if (x.size() != h.size()) {
         throw std::runtime_error("`x` and `h` must have the same size");
     }
@@ -73,8 +73,8 @@ Eigen::ArrayXd nonuniform_bearing_area(Eigen::Ref<Eigen::ArrayXd> x, Eigen::Ref<
 }
 
 
-Eigen::ArrayXd uniform1d_bearing_area(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights) {
+Eigen::ArrayXd uniform1d_bearing_area(Eigen::Ref<const Eigen::ArrayXd> topography_h, bool periodic,
+                                      Eigen::Ref<const Eigen::ArrayXd> heights) {
     /* Bearing area values for each input height */
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
 
@@ -125,8 +125,8 @@ double _triangle(double h1_in, double h2_in, double h3_in, double h) {
 }
 
 
-Eigen::ArrayXd uniform2d_bearing_area(Eigen::Ref<RowMajorXXd> topography_h, bool periodic,
-                                      Eigen::Ref<Eigen::ArrayXd> heights) {
+Eigen::ArrayXd uniform2d_bearing_area(Eigen::Ref<const RowMajorXXd> topography_h, bool periodic,
+                                      Eigen::Ref<const Eigen::ArrayXd> heights) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
@@ -135,14 +135,16 @@ Eigen::ArrayXd uniform2d_bearing_area(Eigen::Ref<RowMajorXXd> topography_h, bool
     Eigen::ArrayXd fractional_bearing_areas(heights.size());
 
     /* Compute bearing areas */
-    for (int j{0}; j < heights.size(); j++) {
+    for (Eigen::Index j{0}; j < heights.size(); j++) {
         double bearing_area{0};
-        int projected_area{0};
+        /* Note: 64-bit counter; an `int` would overflow at 2^31 triangles */
+        std::int64_t projected_area{0};
 
-        /* This is assuming column-major storage */
-        for (int x{0}; x < nx; x++) {
+        /* The inner loop runs over the last (fast) index of the row-major
+           storage */
+        for (Eigen::Index x{0}; x < nx; x++) {
             const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
-            for (int y{0}; y < ny; y++) {
+            for (Eigen::Index y{0}; y < ny; y++) {
                 const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
                 const double h00{topography_h(x, y)};
                 const double h10{topography_h(x1, y)};

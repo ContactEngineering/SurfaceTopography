@@ -61,11 +61,13 @@ void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
         stack.pop_bottom(i, j);
 
         for (const auto &[di, dj] : stencil) {
-            // Periodic boundary conditions
+            // Periodic boundary conditions. Note: user-provided stencils
+            // can contain offsets larger than the grid dimensions; a single
+            // `if` would wrap only one period and index out of bounds.
             std::ptrdiff_t jj = j + dj;
             if (periodic) {
-                if (jj < 0) jj += ny;
-                if (jj > ny - 1) jj -= ny;
+                while (jj < 0) jj += ny;
+                while (jj > ny - 1) jj -= ny;
             } else {
                 if (jj < 0) continue;
                 if (jj > ny - 1) continue;
@@ -74,8 +76,8 @@ void fill_patch(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
             // Periodic boundary conditions
             std::ptrdiff_t ii = i + di;
             if (periodic) {
-                if (ii < 0) ii += nx;
-                if (ii > nx - 1) ii -= nx;
+                while (ii < 0) ii += nx;
+                while (ii > nx - 1) ii -= nx;
             } else {
                 if (ii < 0) continue;
                 if (ii > nx - 1) continue;

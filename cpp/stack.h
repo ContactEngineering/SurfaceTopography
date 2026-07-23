@@ -39,6 +39,7 @@ SOFTWARE.
 
 #include <iostream>
 #include <cassert>
+#include <new>
 
 #define DEBUG_STACK_MAGIC_START std::size_t(0xDEADBEEF)
 #define DEBUG_STACK_MAGIC_END std::size_t(0xBEEFDEAD)
@@ -52,10 +53,17 @@ class Stack {
     bp_ = 0;
     is_empty_ = true;
     data_ = malloc(buffer_size_);
+    if (!data_) {
+      throw std::bad_alloc();
+    }
   }
   ~Stack() {
     free(data_);
   }
+
+  /* The class manages a raw buffer; copying would lead to a double free */
+  Stack(const Stack &) = delete;
+  Stack &operator=(const Stack &) = delete;
 
   bool is_empty() {
     return is_empty_;
@@ -270,14 +278,15 @@ class Stack {
   void *data_;          /* Buffer containing the actual data. */
 
   void expand(size_t new_size) {
-    printf("Expanding stack size to %3.2f MB.\n",
-	   ((double) new_size)/(1024*1024));
     void *new_data = malloc(new_size);
 #ifdef DEBUG_STACK_PRINT
         std::cout << "tp_ = " << tp_ << ", bp_ = " << bp_ << ", top_ = " << top_ << ", buffer_size_ = " << buffer_size_ << ", is_empty = " << is_empty_ << std::endl;
 #endif
     if (!new_data) {
-      printf("Failed to allocate new stack!\n");
+      /* Note: propagate the failure; dereferencing the null pointer in the
+         memcpy below would crash the interpreter instead of raising
+         MemoryError */
+      throw std::bad_alloc();
     }
     if (tp_ > bp_) {
       assert(top_ == 0);

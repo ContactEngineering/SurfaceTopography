@@ -74,7 +74,7 @@ public:
 
 
 template <int order>
-double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eigen::ArrayXd> topography_h,
+double nonuniform_moment(Eigen::Ref<const Eigen::ArrayXd> topography_x, Eigen::Ref<const Eigen::ArrayXd> topography_h,
                          double ref_h) {
     if (topography_x.size() != topography_h.size()) {
         throw std::runtime_error("`topography_x` and `topography_h` must have the same size");
@@ -87,7 +87,7 @@ double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eig
     double moment{0};
 
     /* Compute moment */
-    for (int i{0}; i < topography_x.size()-1; i++) {
+    for (Eigen::Index i{0}; i < topography_x.size()-1; i++) {
         const double hi{topography_h(i) - ref_h}, hi1{topography_h(i+1) - ref_h};
         double dx = topography_x(i+1) - topography_x(i);
         moment += dx * _LineScanMoment<order>::eval(hi, hi1);
@@ -98,14 +98,15 @@ double nonuniform_moment(Eigen::Ref<Eigen::ArrayXd> topography_x, Eigen::Ref<Eig
 
 
 template <int order>
-double uniform1d_moment(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
+double uniform1d_moment(Eigen::Ref<const Eigen::ArrayXd> topography_h, bool periodic, double ref_h) {
     /* Accumulator for moment */
     double moment{0};
-    int physical_size{0};
+    /* Note: 64-bit counter; an `int` would overflow for large grids */
+    std::int64_t physical_size{0};
 
     /* Compute moment */
     const auto maxi{periodic ? topography_h.size() : topography_h.size()-1};
-    for (int i{0}; i < maxi; i++) {
+    for (Eigen::Index i{0}; i < maxi; i++) {
         const auto i1{i < topography_h.size()-1 ? i+1 : 0};
         const double hi{topography_h(i) - ref_h}, hi1{topography_h(i1) - ref_h};
         /* Check for NaNs and only add if there are no NaNs */
@@ -145,19 +146,22 @@ public:
 
 
 template <int order>
-double uniform2d_moment(Eigen::Ref<RowMajorXXd> topography_h, bool periodic, double ref_h) {
+double uniform2d_moment(Eigen::Ref<const RowMajorXXd> topography_h, bool periodic, double ref_h) {
     /* Number of grid points for looping */
     const auto nx{periodic ? topography_h.rows() : topography_h.rows()-1};
     const auto ny{periodic ? topography_h.cols() : topography_h.cols()-1};
 
     /* Accumulator for moment */
     double moment{0};
-    int projected_area{0};
+    /* Note: 64-bit counter; an `int` would overflow at 2^31 triangles,
+       i.e. maps larger than 32768 x 32768 pixels */
+    std::int64_t projected_area{0};
 
-    /* Compute moment. Loop assumes column-major storage */
-    for (int x{0}; x < nx; x++) {
+    /* Compute moment. The inner loop runs over the last (fast) index of the
+       row-major storage. */
+    for (Eigen::Index x{0}; x < nx; x++) {
         const auto x1{x < topography_h.rows()-1 ? x+1 : 0};
-        for (int y{0}; y < ny; y++) {
+        for (Eigen::Index y{0}; y < ny; y++) {
             const auto y1{y < topography_h.cols()-1 ? y+1 : 0};
             const double h00{topography_h(x, y)};
             const double h10{topography_h(x1, y)};

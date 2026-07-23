@@ -38,10 +38,10 @@ SOFTWARE.
 
 
 std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
-    Eigen::Ref<Eigen::ArrayXd> x,
-    Eigen::Ref<Eigen::ArrayXd> h,
+    Eigen::Ref<const Eigen::ArrayXd> x,
+    Eigen::Ref<const Eigen::ArrayXd> h,
     double physical_size,
-    std::optional<Eigen::Ref<Eigen::ArrayXd>> distances_opt)
+    std::optional<Eigen::Ref<const Eigen::ArrayXd>> distances_opt)
 {
     const auto nb_grid_pts = x.size();
 
@@ -53,6 +53,13 @@ std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
     Eigen::ArrayXd distances;
     if (distances_opt) {
         distances = *distances_opt;
+        // The normalization below divides by (physical_size - distance);
+        // distances at or beyond the physical size have no data and would
+        // silently produce NaNs or wrong-signed values
+        if ((distances >= physical_size).any()) {
+            throw std::invalid_argument(
+                "All distances must be smaller than the physical size of the line scan.");
+        }
     } else {
         distances = Eigen::ArrayXd::LinSpaced(nb_grid_pts, 0.0, physical_size * (nb_grid_pts - 1) / nb_grid_pts);
     }
