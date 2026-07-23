@@ -138,11 +138,21 @@ def self_affine_prefactor(nb_grid_pts, physical_sizes, Hurst, rms_height=None,
     area = np.prod(physical_sizes)
 
     if rms_height is not None:
+        if Hurst <= 0:
+            # The prefactor expression below has a 0/0 limit at Hurst = 0
+            # (the rms height integral diverges logarithmically); evaluating
+            # it would silently produce an all-NaN topography
+            raise ValueError(
+                'Scaling to a target rms height requires a positive Hurst exponent.')
         # Assuming no rolloff region
         fac = 2 * rms_height / np.sqrt(q_min ** (-2 * Hurst) -
                                        q_max ** (-2 * Hurst)) * np.sqrt(
             Hurst * np.pi)
     elif rms_slope is not None:
+        if Hurst >= 1:
+            # Same 0/0 limit at Hurst = 1 for the rms slope integral
+            raise ValueError(
+                'Scaling to a target rms slope requires a Hurst exponent below unity.')
         fac = 2 * rms_slope / np.sqrt(q_max ** (2 - 2 * Hurst) -
                                       q_min ** (2 - 2 * Hurst)) * np.sqrt(
             (1 - Hurst) * np.pi)

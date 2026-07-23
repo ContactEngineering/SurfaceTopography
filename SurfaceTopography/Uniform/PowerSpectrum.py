@@ -126,7 +126,12 @@ def power_spectrum_from_profile(self, window=None, reliable=True, resampling_met
         if self.dim == 2:
             q = np.resize(q, (C_all.shape[1], q.shape[0])).T.ravel()
             C_all = np.ravel(C_all)
-        q, _, C, _ = resample(q, C_all, min_value=q[1], max_value=short_cutoff, collocation=collocation,
+        # The smallest positive wavevector limits the resampling range; note
+        # that q = 0 has either been stripped above (log collocation) or
+        # carries the (uninteresting) mean of the topography. Using q[1]
+        # here would discard the fundamental mode when q = 0 has already
+        # been stripped.
+        q, _, C, _ = resample(q, C_all, min_value=np.min(q[q > 0]), max_value=short_cutoff, collocation=collocation,
                               nb_points=nb_points, nb_points_per_decade=nb_points_per_decade, method=resampling_method)
         return q, C
 

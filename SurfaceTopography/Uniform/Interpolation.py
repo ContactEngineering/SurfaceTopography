@@ -50,7 +50,10 @@ def interpolate_linear(self):
         if not periodic:
             if np.any(scaled_x < 0) or np.any(scaled_x > nx-1):
                 raise ValueError('Cannot interpolate outside of physical domain for nonperiodic line scans.')
-        int_x = np.array(scaled_x, dtype=int)
+        # Note: `floor` (not truncation towards zero) is required so that
+        # negative positions on periodic line scans interpolate rather than
+        # extrapolate
+        int_x = np.array(np.floor(scaled_x), dtype=int)
         frac_x = scaled_x - int_x
         return (1 - frac_x) * heights[int_x % nx] + frac_x * heights[(int_x + 1) % nx]
 
@@ -62,8 +65,11 @@ def interpolate_linear(self):
         if not periodic:
             if np.any(scaled_x < 0) or np.any(scaled_x > nx-1) or np.any(scaled_y < 0) or np.any(scaled_y > ny-1):
                 raise ValueError('Cannot interpolate outside of physical domain for nonperiodic topographies.')
-        int_x = np.array(scaled_x, dtype=int)
-        int_y = np.array(scaled_y, dtype=int)
+        # Note: `floor` (not truncation towards zero) is required so that
+        # negative positions on periodic topographies interpolate rather
+        # than extrapolate
+        int_x = np.array(np.floor(scaled_x), dtype=int)
+        int_y = np.array(np.floor(scaled_y), dtype=int)
         frac_x = scaled_x - int_x
         frac_y = scaled_y - int_y
 
@@ -201,13 +207,17 @@ def interpolate_fourier(self, nb_grid_pts):
     # the entries at the nyquist frequency are the superposition of the
     # positive and negative frequency. When we increase the fourier domain, we
     # will split that again between positive and negative, therefore we divide
-    # the value by two and copy it to the corresponding negative vector
-    if ny % 2 == 0:
+    # the value by two and copy it to the corresponding negative vector.
+    # Note: this splitting must only happen in directions that are actually
+    # enlarged; if the grid size in a direction is unchanged, the entry
+    # remains the (folded) Nyquist entry of the output spectrum and halving
+    # it would corrupt the data.
+    if ny % 2 == 0 and nb_grid_pts[1] > ny:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
         smallspectrum[:, -1] = smallspectrum[:, -1] / 2
 
-    if nx % 2 == 0:
+    if nx % 2 == 0 and nb_grid_pts[0] > nx:
         # the nyquist frequency also contains the symmetric and will be
         # twice too big when the symmetric will be included
         smallspectrum[int(nx / 2), :] = smallspectrum[int(nx / 2), :] / 2
@@ -223,7 +233,7 @@ def interpolate_fourier(self, nb_grid_pts):
     # To ensure the same behaviour in the x direction
     # (see test_fourier_interpolate_transpose_symmetry`)`
     # we have to mirror the entries at the niquist frequency by hand
-    if snx % 2 == 0:
+    if snx % 2 == 0 and nb_grid_pts[0] > nx:
         bigspectrum[i, :sny] = smallspectrum[i, :sny]
 
     return Topography(np.fft.irfft2(bigspectrum, s=nb_grid_pts)

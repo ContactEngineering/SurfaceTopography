@@ -49,7 +49,9 @@ def fold_fft_half(arr, n):
     """
     result = arr[:n // 2, ...]
     result[1:n // 2, ...] += arr[n - 1:(n + 1) // 2:-1, ...]
-    result /= 2
+    # The entry at zero frequency appears just once in the FFT output and
+    # received no mirrored contribution above; it must not be halved.
+    result[1:n // 2, ...] /= 2
     return result
 
 
