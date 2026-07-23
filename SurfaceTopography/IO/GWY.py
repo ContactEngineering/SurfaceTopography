@@ -146,9 +146,9 @@ def _gwy_read_object(f, skip_arrays=False):
     return {name: data}
 
 
-def _gwy_read_object_array(f):
-    nb_items = unpack("<L", f.read(4))
-    return [_gwy_read_object(f) for i in range(nb_items)]
+def _gwy_read_object_array(f, skip_arrays=False):
+    (nb_items,) = unpack("<L", f.read(4))
+    return [_gwy_read_object(f, skip_arrays=skip_arrays) for i in range(nb_items)]
 
 
 _gwy_readers = {
@@ -201,7 +201,11 @@ visualization and analysis software Gwyddion.
             self._indices = []
             for key, value in self._metadata.items():
                 if key.endswith("/data"):
-                    index = int(re.match(r"\/([0-9])\/data", key)[1])
+                    match = re.match(r"\/([0-9]+)\/data", key)
+                    if match is None:
+                        # Not a channel key (e.g. '/sps/data' or similar)
+                        continue
+                    index = int(match[1])
                     data = value["GwyDataField"]
 
                     # It's not height data if 'si_unit_z' is missing.
@@ -247,7 +251,10 @@ visualization and analysis software Gwyddion.
                                 tags={"data": data["data"], "index": index},
                             )
                 elif key.endswith("/mask"):
-                    index = int(re.match(r"\/([0-9])\/mask", key)[1])
+                    match = re.match(r"\/([0-9]+)\/mask", key)
+                    if match is None:
+                        continue
+                    index = int(match[1])
                     data = value["GwyDataField"]
                     self._masks[index] = data["data"]
 

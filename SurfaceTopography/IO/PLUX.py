@@ -174,9 +174,10 @@ This reader imports Sensofar's XML SPM file format.
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if channel_index != self._default_channel_index:
+        if channel_index < 0 or channel_index >= len(self._channels):
             raise RuntimeError(
-                f"There is only a single channel. Channel index must be {self._default_channel_index}."
+                f"Channel index is {channel_index} but must be between 0 and "
+                f"{len(self._channels) - 1}."
             )
 
         if physical_sizes is not None:

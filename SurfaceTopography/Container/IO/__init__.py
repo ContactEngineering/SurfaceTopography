@@ -68,7 +68,7 @@ def detect_format(fobj):
     raise CannotDetectFileFormat(msg)
 
 
-def open_container(fobj, format=None):
+def open_container(fobj, format=None, **kwargs):
     r"""
     Returns a container reader object for the file `fobj`.
 
@@ -79,6 +79,9 @@ def open_container(fobj, format=None):
     format : str, optional
         Specify in which format the file should be interpreted.
         (Default: None, which means autodetect file format)
+    **kwargs : dict
+        Additional keyword arguments passed to the reader's constructor
+        (e.g. `datafile_keys` or `ignore_filters` of `CEReader`).
 
     Returns
     -------
@@ -87,13 +90,13 @@ def open_container(fobj, format=None):
     """  # noqa: E501
     if not hasattr(fobj, 'read'):  # fobj is a path
         if not os.path.isfile(fobj):
-            raise FileExistsError("file {} not found".format(fobj))
+            raise FileNotFoundError("file {} not found".format(fobj))
 
     if format is None:
         msg = ""
         for reader in readers:
             try:
-                return reader(fobj)
+                return reader(fobj, **kwargs)
             except Exception as err:
                 msg += "tried {}: \n {}\n\n".format(reader.__name__, err)
             finally:
@@ -107,7 +110,7 @@ def open_container(fobj, format=None):
             raise UnknownFileFormat(
                 "{} not in registered container file formats {}".format(
                     fobj, lookup_reader_by_format.keys()))
-        return lookup_reader_by_format[format](fobj)
+        return lookup_reader_by_format[format](fobj, **kwargs)
 
 
 def read_container(fn, format=None, **kwargs):
@@ -116,8 +119,14 @@ def read_container(fn, format=None, **kwargs):
 
     Parameters
     ----------
-    fobj : str or filelike object
+    fn : str or filelike object
         Path of the file or file-like object.
+    format : str, optional
+        Specify in which format the file should be interpreted.
+        (Default: None, which means autodetect file format)
+    **kwargs : dict
+        Additional keyword arguments passed to the reader's constructor
+        (e.g. `datafile_keys` or `ignore_filters` of `CEReader`).
 
     Returns
     -------
@@ -125,9 +134,9 @@ def read_container(fn, format=None, **kwargs):
         A list of container objects.
     """
     containers = []
-    with open_container(fn, format=format) as reader:
+    with open_container(fn, format=format, **kwargs) as reader:
         for i in range(reader.nb_containers):
-            containers += [reader.container(index=i, **kwargs)]
+            containers += [reader.container(index=i)]
     return containers
 
 
@@ -147,12 +156,21 @@ def read_published_container(publication_url, **request_args):
     container : SurfaceContainer
         Surface container object read from URL.
     """
+    # Default to a finite timeout so a stale server cannot hang the caller
+    # indefinitely; can be overridden through `request_args`
+    request_args.setdefault('timeout', 60)
+
     # If we send json as a request header, then contact.engineering will response with a JSON dictionary
-    response = requests.get(publication_url, headers={'Accept': 'application/json'})
+    custom_headers = request_args.pop('headers', {})
+    response = requests.get(publication_url,
+                            headers={'Accept': 'application/json', **custom_headers},
+                            **request_args)
+    response.raise_for_status()
     data = response.json()
     download_url = data['download_url']
 
     # Then download and read container
-    container_response = requests.get(download_url, **request_args)
+    container_response = requests.get(download_url, headers=custom_headers, **request_args)
+    container_response.raise_for_status()
     container_file = io.BytesIO(container_response.content)
     return read_container(container_file)

@@ -320,7 +320,7 @@ def open_topography(fobj, format=None, communicator=None):
 
     if not hasattr(fobj, 'read') and not callable(fobj):  # fobj is a path
         if not os.path.isfile(fobj):
-            raise FileExistsError("file {} not found".format(fobj))
+            raise FileNotFoundError("file {} not found".format(fobj))
 
     if format is None:
         # Read magic buffer once for fast pre-filtering

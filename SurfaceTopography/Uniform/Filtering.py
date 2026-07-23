@@ -241,7 +241,7 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
     name = 'filtered_topography'
 
     def __init__(self, topography,
-                 filter_function=lambda qx, qy: (np.abs(qx) <= 1) * np.abs(qy) <= 1,
+                 filter_function=lambda q: q <= 1,
                  isotropic=True,
                  info={}):
 
@@ -286,9 +286,9 @@ class FourierFilteredUniformTopography(DecoratedUniformTopography):
 
         if self.dim == 2 and not self.is_filter_isotropic \
                 and len(args) != 2:
-            raise ("ValueError: qx, qy expected")
+            raise ValueError("qx, qy expected")
         elif self.dim == 1 and len(args) != 1:
-            raise ("ValueError: q expected")
+            raise ValueError("q expected")
 
         return self._filter_function(*args)
 

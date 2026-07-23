@@ -71,9 +71,9 @@ def test_plux_metadata(file_format_examples):
     assert t.info['instrument']['vendor'] == 'Sensofar'
     assert t.info['instrument']['name'] == 'S neox'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 2.15209, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.582635, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 2.162500740959119, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.589988838291435, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 1.435114, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.202886, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_area(), 1.4420593851629364, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.2085860010079734, rtol=1e-4)

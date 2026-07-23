@@ -116,8 +116,8 @@ def scale_dependent_statistical_property(
     able to accept one argument (for line scans) and two arguments
     (for topographies).
 
-    >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distance=[0.1, 1.0, 10], unit='um')
-    """
+    >>> s = c.scale_dependent_statistical_property(lambda x, y=None: np.var(x), n=1, distances=[0.1, 1.0, 10], unit='um')
+    """  # noqa: E501
     results = defaultdict(list)
     empty = None
     for i, topography in enumerate(self):
@@ -156,8 +156,9 @@ def scale_dependent_statistical_property(
                 len(existing_distances)
             )
         else:
-            existing_distances = np.array(distances)
-            unique_distance_index = np.arange(len(distances))
+            # `distances` may be a scalar
+            existing_distances = np.atleast_1d(np.asarray(distances, dtype=float))
+            unique_distance_index = np.arange(len(existing_distances))
         # For the factor n see 10.1016/j.apsadv.2021.100190
         m = np.logical_and(existing_distances > n * lower, existing_distances < upper)
         existing_distances = existing_distances[m]
@@ -172,11 +173,12 @@ def scale_dependent_statistical_property(
                 distance=existing_distances,
                 **kwargs,
             )
-            # Append results to our return values
-            for i, e, s in zip(unique_distance_index, existing_distances, stat):
+            # Append results to our return values. (Note: do not reuse the
+            # outer loop variable `i` here.)
+            for j, e, s in zip(unique_distance_index, existing_distances, stat):
                 if empty is None:
                     empty = np.zeros_like(s) * np.nan
-                results[i] += [(e, s)]
+                results[j] += [(e, s)]
         else:
             _log.warning(f"Topography {topography} contributes no data to average.")
 
@@ -189,6 +191,7 @@ def scale_dependent_statistical_property(
     if distances is not None:
         # If distances are specified by the user, we return exactly those distances; whether data actually exists is
         # indicated through the mask of a masked array
+        distances = np.atleast_1d(np.asarray(distances, dtype=float))
         data = np.array(
             [
                 (

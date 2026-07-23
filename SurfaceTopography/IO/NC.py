@@ -285,14 +285,16 @@ plt.show()
                     ny = self._y_dim
                 nb_grid_pts = (nx, ny)
         else:
-            # This is a nonuniform line scan
+            # This is a nonuniform line scan; the number of points is stored
+            # in the 'n' dimension (there is no 'x' dimension here, which is
+            # why we ended up in this branch)
             uniform = False
             try:
                 # netCDF4
-                nx = self._x_dim.size
+                nx = self._n_dim.size
             except AttributeError:
                 # scipy.io.netcdf_file
-                nx = self._x_dim
+                nx = self._n_dim
             nb_grid_pts = (nx,)
         return [
             ChannelInfo(
@@ -449,7 +451,10 @@ def write_nc_uniform(topography, fobj, format="NETCDF3_64BIT_OFFSET"):
         Dataset = _SpecialNetCDFFile
         kwargs = dict(version=format_to_scipy_version[format], maskandscale=True)
         var_kwargs = {}
-    if not topography.is_domain_decomposed and topography.communicator.rank > 1:
+    if not topography.is_domain_decomposed and topography.communicator.rank > 0:
+        # Only the root rank writes the file if the topography is not
+        # decomposed; with `rank > 1` both ranks 0 and 1 would write the
+        # same file concurrently and corrupt it
         return
     with Dataset(fobj, "w", **kwargs) as nc:
         # Serialize info dictionary as JSON and write to NetCDF file

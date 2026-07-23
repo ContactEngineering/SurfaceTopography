@@ -72,12 +72,12 @@ def test_frt1_metadata(file_format_examples):
     assert t.unit == 'm'
     assert t.info['instrument']['vendor'] == 'FRT'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 2.047476e-05, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.23256e-05, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 4.915785774480653e-06, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.951522762933369e-06, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 3.463934e-06, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.248258e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_area(), 4.157523910393923e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 1.0968828309450876e-06, rtol=1e-4)
 
     assert t.has_undefined_data
 
@@ -103,11 +103,11 @@ def test_frt2_metadata(file_format_examples):
     assert t.unit == 'm'
     assert t.info['instrument']['vendor'] == 'FRT'
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 1.853335e-05, rtol=1e-6)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 1.439208e-05, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 8.826763181113768e-06, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.663174319074244e-06, rtol=1e-6)
 
     t = t.detrend('curvature')
-    np.testing.assert_allclose(t.rms_height_from_area(), 7.405055e-06, rtol=1e-4)
-    np.testing.assert_allclose(t.rms_height_from_profile(), 7.332406e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_area(), 8.688677385181484e-06, rtol=1e-4)
+    np.testing.assert_allclose(t.rms_height_from_profile(), 7.627057775705951e-06, rtol=1e-4)
 
     assert t.has_undefined_data

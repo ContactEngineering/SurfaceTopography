@@ -22,10 +22,12 @@
 # SOFTWARE.
 #
 
+import re
+
 import numpy as np
 
 length_units = {'Gm': 1e9, 'Mm': 1e6, 'km': 1000.0, 'm': 1.0, 'mm': 1e-3, 'µm': 1e-6, 'um': 1e-6, 'nm': 1e-9,
-                'Å': 1e-10, 'pm': 1e-12, 'fm': 1e-15}
+                'Å': 1e-10, 'A': 1e-10, 'pm': 1e-12, 'fm': 1e-15}
 voltage_units = {'GV': 1e9, 'MV': 1e6, 'kV': 1000.0, 'V': 1.0, 'mV': 1e-3, 'µV': 1e-6, 'nV': 1e-9, 'pV': 1e-12,
                  'fV': 1e-15}
 
@@ -178,8 +180,17 @@ def suggest_length_unit(scale, lower_in_meters, upper_in_meters):
     """
     if scale == 'linear':
         v = max(abs(lower_in_meters), abs(upper_in_meters))
+        if v == 0:
+            # All-zero data can be represented in any unit
+            return 'm'
         m10 = 3 * int(np.floor(np.log10(v) / 3))
     elif scale == 'log':
+        if upper_in_meters <= 0:
+            # Nothing can be displayed on a log axis anyway
+            return 'm'
+        if lower_in_meters <= 0:
+            # Base the suggestion on the upper bound only
+            lower_in_meters = upper_in_meters
         u10 = int(np.ceil(np.log10(upper_in_meters)))
         l10 = int(np.floor(np.log10(lower_in_meters)))
         m10 = 3 * int(np.ceil((l10 + u10) / 6) - 1)
@@ -241,7 +252,12 @@ def suggest_length_unit_for_data(scale, data, unit):
 
 def find_length_unit_in_string(s):
     """Check the string `s` contains any length information"""
-    for unit, normalized_unit in length_units_to_utf8.items():
-        if s.find(unit) >= 0:
-            return normalized_unit
+    # Match whole tokens only. Substring matching would produce false
+    # positives, e.g. the alias 'A' (Angstrom) would match 'X Axis' and
+    # 'nm' embedded in a longer word; a false unit silently rescales data.
+    for token in re.split(r'[\s()\[\]{},;:=/-]+', s):
+        if token in length_units:
+            return mangle_length_unit_utf8(token)
+        if token in length_units_to_utf8:
+            return length_units_to_utf8[token]
     return None

@@ -267,6 +267,16 @@ class MirrorStichedTopography(DecoratedUniformTopography):
     def nb_grid_pts(self):
         return [2 * s for s in self.parent_topography.nb_grid_pts]
 
+    @property
+    def nb_subdomain_grid_pts(self):
+        # This class is serial only (see constructor); the subdomain is the
+        # full (mirrored) domain, not the parent's subdomain
+        return self.nb_grid_pts
+
+    @property
+    def subdomain_locations(self):
+        return (0, 0)
+
     def heights(self):
         h = self.parent_topography.heights()
         return np.block([[h[:, :], h[:, ::-1]],
@@ -274,12 +284,10 @@ class MirrorStichedTopography(DecoratedUniformTopography):
 
     def positions(self):
         nx, ny = self.nb_grid_pts
-        lnx, lny = self.nb_subdomain_grid_pts
         sx, sy = self.physical_sizes
-        return np.meshgrid(
-            (self.subdomain_locations[0] + np.arange(lnx)) * sx / nx,
-            (self.subdomain_locations[1] + np.arange(lny)) * sy / ny,
-            indexing='ij')
+        return np.meshgrid(np.arange(nx) * sx / nx,
+                           np.arange(ny) * sy / ny,
+                           indexing='ij')
 
 
 Topography.register_function("mirror_stitch", MirrorStichedTopography)

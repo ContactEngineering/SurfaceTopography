@@ -457,7 +457,7 @@ This reader imports MicroProf FRT profilometry data.
             ('filter', 'I'),
             ('reference_type', 'I'),
             ('layer_stack_id', 'I'),
-            ('reference_material_id', 'gint32'),
+            ('reference_material_id', 'i'),
             ('reference_constant', 'd'),
             ('material_thickness', 'd'),
         ],

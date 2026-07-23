@@ -165,6 +165,7 @@ def scale_dependent_statistical_property(self, func, n=1, scale_factor=None, dis
             retvals = np.array([func(dx, dy) for dx, dy in zip(*d)])
         except TypeError:
             # If there is a single distance, the reliability analysis is skipped
+            d = list(d)  # may be a tuple, which does not support item assignment
             for i in range(0, len(d)):
                 if len(d[i]) < threshold:
                     d[i] = np.nan

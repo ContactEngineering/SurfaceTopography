@@ -283,6 +283,10 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
             return p, h
 
     def __eq__(self, other):
+        if not isinstance(other, UniformTopographyInterface):
+            return NotImplemented
+        if self.nb_grid_pts != other.nb_grid_pts:
+            return False
         return Reduction(self._communicator).all(
             self.unit == other.unit
             and self.info == other.info
@@ -290,6 +294,12 @@ class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):
             and np.allclose(self.positions(), other.positions())
             and np.allclose(self.heights(), other.heights())
         )
+
+    # Height containers compare by value but are mutable in principle;
+    # identity-based hashing nevertheless allows them to be used in sets
+    # and as dictionary keys. (Defining `__eq__` without `__hash__` would
+    # make them unhashable.)
+    __hash__ = object.__hash__
 
     def __getitem__(self, i):
         return self.heights()[i]
@@ -304,7 +314,11 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
 
     @property
     def is_reentrant(self):
-        return np.min(np.diff(self.positions())) <= 0
+        positions = self.positions()
+        if len(positions) < 2:
+            # A line scan with less than two points cannot be reentrant
+            return False
+        return np.min(np.diff(positions)) <= 0
 
     @property
     @abc.abstractmethod
@@ -346,12 +360,19 @@ class NonuniformLineScanInterface(TopographyInterface, metaclass=abc.ABCMeta):
         return False
 
     def __eq__(self, other):
+        if not isinstance(other, NonuniformLineScanInterface):
+            return NotImplemented
+        if self.nb_grid_pts != other.nb_grid_pts:
+            return False
         return Reduction(self._communicator).all(
             self.unit == other.unit
             and self.info == other.info
             and self.is_periodic == other.is_periodic
             and np.allclose(self.positions_and_heights(), other.positions_and_heights())
         )
+
+    # See note on `UniformTopographyInterface.__hash__`
+    __hash__ = object.__hash__
 
     def __getitem__(self, i):
         return self.positions()[i], self.heights()[i]

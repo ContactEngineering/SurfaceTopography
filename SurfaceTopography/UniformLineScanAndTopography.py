@@ -759,6 +759,12 @@ class TranslatedTopography(DecoratedUniformTopography):
 
     def heights(self):
         """Computes the translated profile."""
+        if self.dim == 1:
+            # Line scans have a single offset; accept scalars as well as
+            # (possibly longer, from the default value) tuples
+            offset = self.offset
+            offsetx = offset[0] if np.ndim(offset) > 0 else offset
+            return np.roll(self.parent_topography.heights(), offsetx, axis=0)
         offsetx, offsety = self.offset
         return np.roll(
             np.roll(self.parent_topography.heights(), offsetx, axis=0), offsety, axis=1

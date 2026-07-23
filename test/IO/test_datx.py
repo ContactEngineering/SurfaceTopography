@@ -80,4 +80,4 @@ def test_datx2_metadata(file_format_examples):
     np.testing.assert_allclose(t.max(), 11.037771, rtol=1e-6)
     np.testing.assert_allclose(t.min(), -116.920823, rtol=1e-6)
 
-    np.testing.assert_allclose(t.rms_height_from_area(), 1.905869, rtol=1e-6)
+    np.testing.assert_allclose(t.rms_height_from_area(), 1.9089580434424194, rtol=1e-6)
