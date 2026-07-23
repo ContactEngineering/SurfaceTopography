@@ -28,3 +28,9 @@ docs/_build
 /subprojects/*
 !/subprojects/*.wrap
 .junie
+
+# NetCDF files written to the working directory by the test suite
+/angstrom_unit.nc
+/no_physical_sizes.nc
+/no_unit.nc
+/parallel_save_test.nc
