@@ -31,7 +31,6 @@ import numpy as np
 from ..Exceptions import UndefinedDataError
 from ..HeightContainer import UniformTopographyInterface
 from ..Support import toiter
-from ..UniformLineScanAndTopography import Topography
 
 
 class FourierDerivative:
