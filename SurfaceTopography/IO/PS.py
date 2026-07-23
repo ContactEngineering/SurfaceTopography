@@ -29,7 +29,7 @@
 import io
 
 import numpy as np
-from tiffile import TiffFile, TiffFileError
+from tifffile import TiffFile, TiffFileError
 
 from ..Exceptions import CorruptFile, FileFormatMismatch, MetadataAlreadyFixedByFile
 from ..Support.UnitConversion import get_unit_conversion_factor

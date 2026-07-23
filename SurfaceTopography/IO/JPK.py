@@ -30,7 +30,7 @@ import warnings
 
 import dateutil
 from dateutil.parser import UnknownTimezoneWarning
-from tiffile import TiffFile, TiffFileError
+from tifffile import TiffFile, TiffFileError
 
 from ..Exceptions import (
     CorruptFile,

@@ -58,7 +58,7 @@ dependencies = [
     "python-dateutil",
     "pyyaml",
     "requests",
-    "tiffile",
+    "tifffile",
     "xmltodict",
     "olefile",
     "pandas",
@@ -68,10 +68,8 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "flake8<8",
     "pytest",
     "pytest-cov",
-    "pytest-flake8",
     "runtests"
 ]
 
