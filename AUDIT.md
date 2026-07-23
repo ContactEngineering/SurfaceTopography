@@ -13,17 +13,19 @@ Severity legend:
 - **LOW** — edge cases, performance, documentation drift, code health.
 
 > **Status update (2026-07-23):** All findings in section 1 (the
-> wrong-results tier, §1.1–§1.17) have been **fixed** on this branch, with
-> regression tests; see the commit history following the commit that added
-> this report. Exceptions and adjacent items: the latent non-square
-> axis-pairing in DATX/LEXT noted under §1.3 is *not* changed (unprovable
-> without a non-square reference file); a handful of adjacent §2 items that
-> shared code with §1 fixes were fixed along the way (EZD magic check, MI
-> ASCII crash and `scanUp` flag, the dead `interpolation='disable'` guard
-> in `Uniform/Derivative.py`, scalar bicubic derivative returns, the ZAG
-> logger instantiation, and the 1D crash in
-> `TransposedUniformTopography.positions`). Sections 2–3 otherwise remain
-> open.
+> wrong-results tier, §1.1–§1.17) and sections §2.1–§2.4 have been
+> **fixed** on this branch, with regression tests; see the commit history
+> following the commit that added this report. Exceptions: the latent
+> non-square axis-pairing in DATX/LEXT noted under §1.3 is *not* changed
+> (unprovable without a non-square reference file); of the packaging items
+> (T8), the broken `pytest-flake8` plugin and the `tiffile` alias package
+> were fixed because they broke CI, while the remaining build-system
+> hardening (meson `python` alias, glob check for meson file lists) is
+> still open. The performance tier (§2.5), section 3 (low severity) and
+> the remaining architectural themes in section 4 remain open. Note that
+> the masked-data normalization fix (§2.2) changed the reference values of
+> several IO tests whose fixtures contain undefined data points; the old
+> values were dominated by a mean-normalization artifact.
 
 ---
 
