@@ -606,6 +606,8 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
     )
 
 
-# Register analysis functions from this module
+# Register analysis functions from this module. Note: `fourier_derivative`
+# is registered on the interface (it is dimension-agnostic); registering on
+# `Topography` would make it unavailable on decorated topographies.
 UniformTopographyInterface.register_function("derivative", derivative)
-Topography.register_function("fourier_derivative", fourier_derivative)
+UniformTopographyInterface.register_function("fourier_derivative", fourier_derivative)

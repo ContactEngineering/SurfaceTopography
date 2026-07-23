@@ -139,11 +139,8 @@ class DecoratedNonuniformTopography(DecoratedTopography, NonuniformLineScanInter
         else:
             return self._unit
 
-    @property
-    def info(self) -> dict:
-        info = self.parent_topography.info
-        info.update(self._info.model_dump(exclude_none=True))
-        return info
+    # Note: `info` is merged with the parent topography's dictionary in the
+    # `DecoratedTopography` base class
 
     @property
     def physical_sizes(self):

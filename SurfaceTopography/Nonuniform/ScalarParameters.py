@@ -175,9 +175,14 @@ def rms_curvature(self):
 NonuniformLineScanInterface.register_function(
     'mean', lambda self: _SurfaceTopography.nonuniform_mean(*self.positions_and_heights()))
 NonuniformLineScanInterface.register_function('moment', moment)
-NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height, deprecated=True)
+# Note: The `rms_*_from_profile` names are not marked as deprecated here
+# (although they used to carry an inactive `deprecated` flag): they are the
+# primary names of the corresponding uniform analysis functions, so
+# deprecating only the nonuniform variants would make generic code warn
+# depending on the data type it happens to operate on.
+NonuniformLineScanInterface.register_function('rms_height_from_profile', rms_height)
 NonuniformLineScanInterface.register_function('Rq', rms_height)
-NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope, deprecated=True)
+NonuniformLineScanInterface.register_function('rms_slope_from_profile', rms_slope)
 NonuniformLineScanInterface.register_function('Rdq', rms_slope)
-NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature, deprecated=True)
+NonuniformLineScanInterface.register_function('rms_curvature_from_profile', rms_curvature)
 NonuniformLineScanInterface.register_function('Rddq', rms_curvature)

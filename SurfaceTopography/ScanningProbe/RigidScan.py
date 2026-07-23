@@ -25,6 +25,7 @@
 
 import numpy as np
 
+from ..HeightContainer import NonuniformLineScanInterface, UniformTopographyInterface
 from ..NonuniformLineScan import NonuniformLineScan
 from ..UniformLineScanAndTopography import UniformLineScan
 
@@ -90,6 +91,10 @@ def pipeline_scan_with_rigid_sphere(self, radius):
     topography : :obj:`SurfaceTopography.UniformLineScan` or :obj:`SurfaceTopography.NonuniformLineScan`
          Topography with scannned heights on the same grid as the topography.
     """
+    if self.dim != 1:
+        raise ValueError(
+            "Scanning with a rigid sphere is only supported for line scans."
+        )
     info_dict = dict(
         instrument=dict(
             name="Scanning rigid sphere simulation",
@@ -109,7 +114,9 @@ def pipeline_scan_with_rigid_sphere(self, radius):
             unit=self.unit,
             info=info_dict,
         )
-    elif isinstance(self, UniformLineScan):
+    elif self.is_uniform:
+        # Note: structural check rather than isinstance, so that decorated
+        # line scans (detrended, scaled, ...) can be scanned as well
         scanned_heights = scan_with_rigid_sphere(self, radius)
         return UniformLineScan(
             scanned_heights,
@@ -118,18 +125,19 @@ def pipeline_scan_with_rigid_sphere(self, radius):
             unit=self.unit,
             info=info_dict,
         )
-    elif isinstance(self, NonuniformLineScan):
+    else:
         scanned_heights = scan_with_rigid_sphere(self, radius)
         return NonuniformLineScan(
             self.positions(), scanned_heights, unit=self.unit, info=info_dict
         )
-    else:
-        raise ValueError("Unexpected topography instance", type(self))
 
 
-UniformLineScan.register_function(
+# Register on the interfaces so that decorated topographies (detrended,
+# scaled, etc.) can also be scanned; the function itself checks that the
+# data is one-dimensional
+UniformTopographyInterface.register_function(
     "scan_with_rigid_sphere", pipeline_scan_with_rigid_sphere
 )
-NonuniformLineScan.register_function(
+NonuniformLineScanInterface.register_function(
     "scan_with_rigid_sphere", pipeline_scan_with_rigid_sphere
 )

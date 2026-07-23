@@ -275,9 +275,12 @@ TIFF-based file format of JPK instruments (now Bruker)
                 # Conversion from meters to reported unit
                 fac = get_unit_conversion_factor("m", default_slot_unit)
 
-                # Construct raw metadata dictionary
+                # Construct raw metadata dictionary. Note: `channel` is the
+                # metadata of the present channel; `channel_metadata` is a
+                # stale loop variable from the parsing loop above that
+                # always refers to the last TIFF page.
                 raw_metadata = global_metadata.copy()
-                raw_metadata.update(channel_metadata)
+                raw_metadata.update(channel)
 
                 # Construct channel info
                 self._channels += [

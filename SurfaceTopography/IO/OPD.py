@@ -26,7 +26,7 @@ from struct import unpack
 
 import numpy as np
 
-from ..Exceptions import MetadataAlreadyFixedByFile
+from ..Exceptions import CorruptFile, MetadataAlreadyFixedByFile
 from ..UniformLineScanAndTopography import Topography
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
@@ -102,9 +102,16 @@ interferometer.
             pixel_size = 1.0
             aspect = 1.0
             mult = 1.0
+            wavelength = None
             for n, t, L, a in blocks:
                 if L <= 0:
                     continue
+                # Remember the block start; each block occupies exactly the
+                # length L declared in the directory, independent of how
+                # many bytes we actually interpret. (Consuming fixed byte
+                # counts would silently shift all subsequent block offsets
+                # if L differs.)
+                block_start = f.tell()
                 if n == "RAW DATA" or n == "RAW_DATA" or n == "OPD" or n == "Raw":
                     nx, ny, elsize = unpack("<HHH", f.read(6))
                     if elsize == 1:
@@ -136,9 +143,6 @@ interferometer.
                         )
                     ]
                     channel_index += 1
-
-                    # Skip over data buffer
-                    f.seek(nx * ny * dtype.itemsize, 1)
                 elif n == "Wavelength":
                     (wavelength,) = unpack("<f", f.read(4))
                 elif n == "Mult":
@@ -147,8 +151,15 @@ interferometer.
                     (aspect,) = unpack("<f", f.read(4))
                 elif n == "Pixel_size":
                     (pixel_size,) = unpack("<f", f.read(4))
-                else:
-                    f.read(L)
+
+                # Position the stream at the start of the next block
+                f.seek(block_start + L)
+
+        if wavelength is None:
+            raise CorruptFile(
+                "File does not contain a 'Wavelength' block; cannot determine "
+                "the height scale."
+            )
 
         # Loop over all channels and adjust physical sizes and height scale factor
         for channel in self._channels:

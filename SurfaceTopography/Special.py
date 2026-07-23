@@ -93,20 +93,29 @@ def make_topography_from_function(fun, physical_sizes,
         # serial code
         nb_subdomain_grid_pts = nb_grid_pts
         nb_grid_pts = None
-    topography = Topography(heights=np.zeros(nb_subdomain_grid_pts),
-                            physical_sizes=physical_sizes,
-                            subdomain_locations=subdomain_locations,
-                            nb_grid_pts=nb_grid_pts,
-                            decomposition="subdomain",
-                            **kwargs,
-                            )
+    # We need a topography object to compute the positions, but the heights
+    # are only known afterwards; construct a second topography with the
+    # actual heights so that the constructor's validation (array shape,
+    # conversion to float, masking of NaNs as undefined data) is applied.
+    # (Assigning to `_heights` directly would bypass all of this.)
+    dummy = Topography(heights=np.zeros(nb_subdomain_grid_pts),
+                       physical_sizes=physical_sizes,
+                       subdomain_locations=subdomain_locations,
+                       nb_grid_pts=nb_grid_pts,
+                       decomposition="subdomain",
+                       **kwargs,
+                       )
 
     cx, cy = centre
-    x, y = topography.positions()
+    x, y = dummy.positions()
 
-    topography._heights = fun(x - cx, y - cy)
-
-    return topography
+    return Topography(heights=fun(x - cx, y - cy),
+                      physical_sizes=physical_sizes,
+                      subdomain_locations=subdomain_locations,
+                      nb_grid_pts=nb_grid_pts,
+                      decomposition="subdomain",
+                      **kwargs,
+                      )
 
 
 def make_sphere(radius, nb_grid_pts, physical_sizes, centre=None,

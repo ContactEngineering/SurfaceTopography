@@ -1304,6 +1304,8 @@ class DeclarativeReaderBase(ReaderBase):
     def topography(
         self,
         channel_index=None,
+        channel_id=None,
+        height_channel_index=None,
         physical_sizes=None,
         height_scale_factor=None,
         unit=None,
@@ -1315,17 +1317,11 @@ class DeclarativeReaderBase(ReaderBase):
         if subdomain_locations is not None or nb_subdomain_grid_pts is not None:
             raise RuntimeError("This reader does not support MPI parallelization.")
 
-        if channel_index is None:
-            channel_index = self._default_channel_index
-
-        channels = self.channels
-        if channel_index < 0 or channel_index >= len(channels):
-            raise RuntimeError(
-                f"Channel index is {channel_index} but must be between 0 and {len(channels) - 1}."
-            )
-
-        # Get channel information
-        channel = channels[channel_index]
+        # Get channel information (this also supports the `channel_id` and
+        # `height_channel_index` selection methods of the base class)
+        channel, channel_index = self._resolve_channel(
+            channel_index, channel_id, height_channel_index
+        )
 
         if physical_sizes is None:
             physical_sizes = channel.physical_sizes
@@ -1355,4 +1351,8 @@ class DeclarativeReaderBase(ReaderBase):
             periodic=False if periodic is None else periodic,
             info=_info,
         )
+        if height_scale_factor is None:
+            # A declarative reader is not required to provide height-scale
+            # metadata; without it, the heights are returned unscaled
+            return topo
         return topo.scale(height_scale_factor)

@@ -73,7 +73,7 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
 
         # This is populated with functions from the nonuniform topography, but
         # this is a uniform topography
-        self._functions = UniformLineScan._functions
+        self._functions = UniformLineScan._all_functions()
 
     def _update_nb_points_and_pixel_size(self):
         """Automatically compute `nb_points` and `pixel_size` if it is None"""

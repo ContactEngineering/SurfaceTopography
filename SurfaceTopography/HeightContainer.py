@@ -37,6 +37,7 @@ from NuMPI.Tools import Reduction
 
 from .Metadata import InfoModel
 from .Support import doi
+from .Support.Deprecation import deprecated as deprecation_warning
 
 
 class AbstractTopography(object):
@@ -64,27 +65,46 @@ class AbstractTopography(object):
         self._info = InfoModel(**info)
         self._communicator = communicator
 
+    def _function_registry(self):
+        """
+        Return the dictionary of registered analysis and pipeline functions
+        for this object. Functions registered on any class in the MRO are
+        visible; functions registered on a subclass are confined to that
+        subclass (e.g. functions registered on `Topography` do not appear
+        on line scans). An instance-level `_functions` attribute overrides
+        the class registry (used by converter classes that redirect
+        dispatch).
+        """
+        try:
+            return self.__dict__['_functions']
+        except KeyError:
+            functions = {}
+            for klass in reversed(type(self).__mro__):
+                functions.update(klass.__dict__.get('_functions', {}))
+            return functions
+
     def apply(self, name, *args, **kwargs):
-        self._functions[name](self, *args, **kwargs)
+        return self._function_registry()[name](self, *args, **kwargs)
 
     def __getattr__(self, name):
-        if name in self._functions:
+        functions = self._function_registry()
+        if name in functions:
 
             def func(*args, **kwargs):
-                return self._functions[name](self, *args, **kwargs)
+                return functions[name](self, *args, **kwargs)
 
-            update_wrapper(func, self._functions[name])
+            update_wrapper(func, functions[name])
             return func
         else:
             raise AttributeError(
                 "Unkown attribute '{}' and no analysis or pipeline function of this name registered (class {}). "
                 "Available functions: {}".format(
-                    name, self.__class__.__name__, ", ".join(self._functions.keys())
+                    name, self.__class__.__name__, ", ".join(functions.keys())
                 )
             )
 
     def __dir__(self):
-        return sorted(super().__dir__() + [*self._functions])
+        return sorted(super().__dir__() + [*self._function_registry()])
 
     def __getstate__(self):
         """
@@ -183,10 +203,13 @@ class DecoratedTopography(AbstractTopography):
 
     @property
     def info(self) -> dict:
-        """Return info dictionary"""
-        return self.parent_topography._info.model_copy(update=self._info).model_dump(
-            exclude_none=True
-        )
+        """
+        Return the info dictionary of the parent topography, updated with
+        the entries of this decorator.
+        """
+        info = self.parent_topography.info
+        info.update(self._info.model_dump(exclude_none=True))
+        return info
 
     @property
     def nb_subdomain_grid_pts(self):
@@ -199,13 +222,33 @@ class DecoratedTopography(AbstractTopography):
 class TopographyInterface(object):
     @classmethod
     def register_function(cls, name, function, deprecated=False):  # noqa: N805
-        # FIXME! Wrap in warnings.deprecated decorator, will be introduced in Python 3.13
-        if function.__name__ != "func_with_doi":
+        if deprecated:
+            function = deprecation_warning()(function)
+        if not getattr(function, '__has_doi__', False):
             # We want the `dois` argument for all pipeline functions. If no
             # doi has been specified, we simply wrap it in an empty decorator.
-            cls._functions.update({name: doi()(function)})
-        else:
-            cls._functions.update({name: function})
+            # (Note: the doi decorator marks its wrappers with `__has_doi__`;
+            # checking the function name would be defeated by
+            # functools.wraps.)
+            function = doi()(function)
+        if '_functions' not in cls.__dict__:
+            # Copy on write: registering a function on a subclass (e.g. a
+            # 2D-only analysis on `Topography`) must not leak into the
+            # shared registry of the base class, where it would become
+            # visible on line scans as well.
+            cls._functions = {}
+        cls._functions[name] = function
+
+    @classmethod
+    def _all_functions(cls):  # noqa: N805
+        """
+        Return the merged registry of analysis and pipeline functions
+        registered on this class and its bases.
+        """
+        functions = {}
+        for klass in reversed(cls.__mro__):
+            functions.update(klass.__dict__.get('_functions', {}))
+        return functions
 
 
 class UniformTopographyInterface(TopographyInterface, metaclass=abc.ABCMeta):

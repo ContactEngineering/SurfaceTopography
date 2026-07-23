@@ -240,7 +240,13 @@ This reader open ZON files that are written by some Keyence instruments.
             physical_sizes, channel_info.physical_sizes
         )
 
-        info.update(channel_info.info)
+        # Merge file metadata with user-provided info; do not mutate the
+        # `info` argument (updating the mutable default dictionary would
+        # leak metadata into all subsequent calls), and let user-provided
+        # entries take precedence like in the other readers
+        _info = channel_info.info.copy()
+        _info.update(info)
+        info = _info
 
         if unit is not None:
             raise MetadataAlreadyFixedByFile("unit")

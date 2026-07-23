@@ -250,6 +250,9 @@ class MirrorStichedTopography(DecoratedUniformTopography):
     """
 
     def __init__(self, parent_topography, info={}):
+        if parent_topography.dim != 2:
+            raise ValueError('Mirror stitching is only implemented for '
+                             'topographies (not line scans).')
         if parent_topography.communicator.Get_size() > 1:
             raise (NotImplementedError("MirrorStichedTopography "
                                        "not domain decomposable"))
@@ -290,7 +293,11 @@ class MirrorStichedTopography(DecoratedUniformTopography):
                            indexing='ij')
 
 
-Topography.register_function("mirror_stitch", MirrorStichedTopography)
-Topography.register_function("interpolate_linear", interpolate_linear)
-Topography.register_function("interpolate_bicubic", interpolate_bicubic)
+# Note: these are registered on the interface (rather than on `Topography`)
+# because decorated topographies do not derive from `Topography`; the
+# 2D-only functions carry explicit dimension checks with clear error
+# messages for line scans
+UniformTopographyInterface.register_function("mirror_stitch", MirrorStichedTopography)
+UniformTopographyInterface.register_function("interpolate_linear", interpolate_linear)
+UniformTopographyInterface.register_function("interpolate_bicubic", interpolate_bicubic)
 UniformTopographyInterface.register_function('interpolate_fourier', interpolate_fourier)

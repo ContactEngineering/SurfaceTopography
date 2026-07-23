@@ -44,7 +44,7 @@ from ..UniformLineScanAndTopography import Topography, UniformLineScan
 from .common import OpenFromAny
 from .Reader import ChannelInfo, ReaderBase
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def read_text_header_hfm(fobj, unit, height_scale_factor):

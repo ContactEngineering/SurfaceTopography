@@ -77,7 +77,18 @@ class CEFileOpener(object):
         self._filename = filename
 
     def __call__(self):
-        return ZipFile(self._zipname, mode="r").open(self._filename, mode="r")
+        zipfile = ZipFile(self._zipname, mode="r")
+        stream = zipfile.open(self._filename, mode="r")
+        # Close the containing ZipFile together with the member stream;
+        # otherwise its file descriptor leaks until garbage collection
+        original_close = stream.close
+
+        def close():
+            original_close()
+            zipfile.close()
+
+        stream.close = close
+        return stream
 
 
 class CEReader(ContainerReaderBase):

@@ -34,7 +34,7 @@ import numpy as np
 
 from ..Exceptions import NoReliableDataError
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_decade=10, dectol=0.01):

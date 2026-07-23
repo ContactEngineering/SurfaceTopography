@@ -32,7 +32,7 @@ import numpy as np
 from ..Exceptions import NoReliableDataError
 from .SurfaceContainer import SurfaceContainer
 
-_log = logging.Logger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def scale_dependent_statistical_property(

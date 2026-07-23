@@ -78,10 +78,19 @@ def pipeline_function(parent):
                 super().__setstate__(superstate)
 
             def __getattr__(self, name):
-                if name in self._kwargs:
-                    return self._kwargs[name]
-                else:
-                    return getattr(self.parent_topography, name)
+                # Expose keyword arguments as attributes; everything else
+                # goes through the regular dispatch of the parent class.
+                # (Delegating to `getattr(self.parent_topography, name)`
+                # here would silently apply chained pipeline functions to
+                # the *parent*, discarding this transformation.)
+                if name != '_kwargs':
+                    try:
+                        kwargs = object.__getattribute__(self, '_kwargs')
+                    except AttributeError:
+                        kwargs = {}
+                    if name in kwargs:
+                        return kwargs[name]
+                return super().__getattr__(name)
 
             def heights(self):
                 return func(self.parent_topography, *self._args, **self._kwargs)

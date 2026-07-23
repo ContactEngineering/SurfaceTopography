@@ -78,9 +78,25 @@ class ZAGFileOpener(object):
         # thumbnail) preceding the ZIP archive, since ZIP archives are
         # located through their central directory at the end of the file.
         if hasattr(self._fobj, "read"):
-            return ZipFile(self._fobj, "r").open(self._filename, "r")
+            zipfile = ZipFile(self._fobj, "r")
+            close_files = [zipfile]
         else:
-            return ZipFile(open(self._fobj, "rb"), "r").open(self._filename, "r")
+            rawfile = open(self._fobj, "rb")
+            zipfile = ZipFile(rawfile, "r")
+            close_files = [zipfile, rawfile]
+        stream = zipfile.open(self._filename, "r")
+        # Close the containing ZipFile (and raw file) together with the
+        # member stream; otherwise file descriptors leak until garbage
+        # collection
+        original_close = stream.close
+
+        def close():
+            original_close()
+            for f in close_files:
+                f.close()
+
+        stream.close = close
+        return stream
 
 
 class ZAGReader(ContainerReaderBase):

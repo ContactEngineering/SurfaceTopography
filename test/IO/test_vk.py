@@ -62,8 +62,9 @@ def test_vk3_metadata(file_format_examples):
     assert ny == 768
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 704847000, rtol=1e-6)
-    np.testing.assert_allclose(sy, 528463000, rtol=1e-6)
+    # Physical size follows the pixel convention (nb_pixels * pixel_size)
+    np.testing.assert_allclose(sx, 705536000, rtol=1e-6)
+    np.testing.assert_allclose(sy, 529152000, rtol=1e-6)
 
     assert t.unit == 'pm'
     assert t.info['instrument']['vendor'] == 'Keyence'
@@ -84,8 +85,8 @@ def test_vk4_metadata(file_format_examples):
     assert ny == 768
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 1396330551, rtol=1e-6)
-    np.testing.assert_allclose(sy, 1046906679, rtol=1e-6)
+    np.testing.assert_allclose(sx, 1397695488, rtol=1e-6)
+    np.testing.assert_allclose(sy, 1048271616, rtol=1e-6)
 
     assert t.unit == 'pm'
     assert t.info['instrument']['vendor'] == 'Keyence'
@@ -106,8 +107,8 @@ def test_vk6_metadata(file_format_examples):
     assert ny == 1536
 
     sx, sy = t.physical_sizes
-    np.testing.assert_allclose(sx, 97169043, rtol=1e-6)
-    np.testing.assert_allclose(sy, 72864915, rtol=1e-6)
+    np.testing.assert_allclose(sx, 97216512, rtol=1e-6)
+    np.testing.assert_allclose(sy, 72912384, rtol=1e-6)
 
     assert t.unit == 'pm'
     assert t.info['instrument']['vendor'] == 'Keyence'

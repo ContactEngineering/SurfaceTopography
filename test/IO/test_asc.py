@@ -141,7 +141,9 @@ def test_wyko_matrix8(file_format_examples, filename="matrix-8.txt"):
     t = r.topography()
     assert t.unit == "nm"
     np.testing.assert_allclose(t.physical_sizes, (950400, 1267200))
-    np.testing.assert_allclose(t.rms_height_from_area(), 74424.357775)
+    # Note: about half of this file's data points are undefined; sums and
+    # means are normalized by the number of *defined* points
+    np.testing.assert_allclose(t.rms_height_from_area(), 7804.797789741755)
 
 
 def test_single_column(file_format_examples, filename="single_column.txt"):

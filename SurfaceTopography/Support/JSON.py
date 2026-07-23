@@ -18,13 +18,25 @@ def nan_to_none(obj):
     elif isinstance(obj, list) or isinstance(obj, set):
         return [nan_to_none(v) for v in obj]
     elif isinstance(obj, MaskedArray):
-        return [None if m else nan_to_none(v) for v, m in zip(obj.data, obj.mask)]
+        # Note: `getmaskarray` always returns a full boolean array, while
+        # `obj.mask` can be the scalar `nomask` (which cannot be iterated)
+        mask = np.ma.getmaskarray(obj)
+        if obj.ndim == 0:
+            return None if bool(mask) else nan_to_none(obj.item())
+        return [
+            # Recurse row by row for multidimensional arrays
+            nan_to_none(np.ma.masked_array(v, mask=m)) if np.ndim(v) > 0
+            else (None if m else nan_to_none(v))
+            for v, m in zip(obj.data, mask)
+        ]
     elif isinstance(obj, np.ndarray) or isinstance(obj, ArrayImpl):
         if obj.ndim == 0:
             return nan_to_none(obj.item())
         else:
             return [nan_to_none(v) for v in obj]
-    elif isinstance(obj, float) and np.isnan(obj):
+    elif isinstance(obj, float) and not np.isfinite(obj):
+        # NaN as well as +/-Inf have no JSON representation ('NaN' and
+        # 'Infinity' produced by the stdlib encoder are not valid JSON)
         return None
     return obj
 
@@ -123,3 +135,10 @@ class ExtendedJSONEncoder(JSONEncoder):
         # https://stackoverflow.com/questions/28639953/python-json-encoder-convert-nans-to-null-instead
         obj = nan_to_none(obj)
         return super().encode(obj, *args, **kwargs)
+
+    def iterencode(self, obj, *args, **kwargs):
+        # Note: `json.dump` calls `iterencode` directly and never goes
+        # through `encode`; without this override, `json.dump` with this
+        # encoder would emit invalid JSON (bare NaN/Infinity tokens)
+        obj = nan_to_none(obj)
+        return super().iterencode(obj, *args, **kwargs)

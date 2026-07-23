@@ -255,9 +255,13 @@ VK3, VK4, VK6 and VK7 file formats of the Keyence laser confocal microscope.
                 )
             )
 
+        # Note: the physical size is the number of pixels times the pixel
+        # size (pixel convention, like everywhere else in this library and
+        # in other implementations of this file format), not the distance
+        # between the first and last pixel centers
         self._physical_sizes = (
-            float(self._data["width"] - 1) * self._header["x_length_per_pixel"],
-            float(self._data["height"] - 1) * self._header["y_length_per_pixel"],
+            float(self._data["width"]) * self._header["x_length_per_pixel"],
+            float(self._data["height"]) * self._header["y_length_per_pixel"],
         )
         self._unit = "pm"
 
