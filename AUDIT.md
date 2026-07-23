@@ -29,8 +29,13 @@ Severity legend:
 > the actionable items have been addressed: property-based invariant
 > tests (transpose/translate/scale/origin invariance, decorator geometry
 > consistency, bearing-area CDF properties) were added in
-> `test/test_invariants.py` (T1/T3/T6), and the meson version discovery
-> now calls `python3` instead of the bare `python` alias (T8). The
+> `test/test_invariants.py` (T1/T3/T6). The meson version-discovery
+> interpreter (T8) must remain the bare `python`: switching it to
+> `python3` broke all Windows wheel builds, because pip's isolated build
+> environment provides no `python3.exe` on Windows and the name resolved
+> to an interpreter without the DiscoverVersion build requirement. This
+> is now documented in `meson.build`; building with bare meson outside a
+> venv requires a `python` alias. The
 > proposed dedup of the three `bandwidth` implementations and of the
 > `compute_1d_moment`/`compute_iso_moment` pair was assessed and
 > deliberately rejected: the `bandwidth` variants differ semantically
