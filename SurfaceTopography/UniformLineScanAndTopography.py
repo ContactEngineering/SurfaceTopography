@@ -478,7 +478,14 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def pixel_size(self):
-        return self.parent_topography.pixel_size
+        # Derive the pixel size from the physical sizes and number of grid
+        # points of the decorated topography itself, not of the parent.
+        # Decorators that change the geometry (e.g. transposition or
+        # downsampling) override `physical_sizes` and `nb_grid_pts`, and the
+        # pixel size must remain consistent with those.
+        return tuple(
+            s / n for s, n in zip(self.physical_sizes, self.nb_grid_pts)
+        )
 
     @property
     def unit(self):
@@ -518,7 +525,7 @@ class DecoratedUniformTopography(DecoratedTopography, UniformTopographyInterface
 
     @property
     def area_per_pt(self):
-        return self.parent_topography.area_per_pt
+        return np.prod(self.pixel_size)
 
     def positions(self, **kwargs):
         return self.parent_topography.positions(**kwargs)
@@ -576,19 +583,9 @@ class ScaledUniformTopography(DecoratedUniformTopography):
         return get_unit_conversion_factor(self.parent_topography.unit, self.unit)
 
     @property
-    def pixel_size(self):
-        """Compute rescaled pixel sizes."""
-        return tuple(self.position_scale_factor * s for s in super().pixel_size)
-
-    @property
     def physical_sizes(self):
         """Compute rescaled physical sizes."""
         return tuple(self.position_scale_factor * s for s in super().physical_sizes)
-
-    @property
-    def area_per_pt(self):
-        """Compute rescaled physical sizes."""
-        return np.prod(self.pixel_size)
 
     def positions(self, **kwargs):
         """Compute the rescaled positions."""
@@ -700,11 +697,29 @@ class TransposedUniformTopography(DecoratedUniformTopography):
             sx, sy = self.parent_topography.physical_sizes
             return sy, sx
 
+    @property
+    def nb_subdomain_grid_pts(self):
+        if self.dim == 1:
+            return self.parent_topography.nb_subdomain_grid_pts
+        else:
+            nx, ny = self.parent_topography.nb_subdomain_grid_pts
+            return ny, nx
+
+    @property
+    def subdomain_locations(self):
+        if self.dim == 1:
+            return self.parent_topography.subdomain_locations
+        else:
+            ix, iy = self.parent_topography.subdomain_locations
+            return iy, ix
+
     def heights(self):
         """Computes the rescaled profile."""
         return self.parent_topography.heights().T
 
     def positions(self, **kwargs):
+        if self.dim == 1:
+            return self.parent_topography.positions(**kwargs)
         X, Y = self.parent_topography.positions(**kwargs)
         return Y.T, X.T
 

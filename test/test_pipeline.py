@@ -297,6 +297,17 @@ def test_transposed_topography():
     assert sx == sy2
     assert sy == sx2
     assert (surf.heights() == surf2.heights().T).all()
+    # Pixel size and subdomain information must be transposed as well
+    px, py = surf.pixel_size
+    px2, py2 = surf2.pixel_size
+    assert px == py2
+    assert py == px2
+    assert surf2.nb_subdomain_grid_pts == (ny, nx)
+    assert surf2.subdomain_locations == tuple(reversed(surf.subdomain_locations))
+    np.testing.assert_almost_equal(surf2.area_per_pt, surf.area_per_pt)
+    # Scalar analysis results must be invariant under transposition, also for
+    # anisotropic pixels
+    np.testing.assert_almost_equal(surf2.rms_gradient(), surf.rms_gradient())
 
 
 def test_undefined_data_and_squeeze():
