@@ -135,7 +135,7 @@ def polyfit2_topography(self, full_output=False):
 
     coeffs ordered as follows
 
-    {5} + {0} x + {1} y + {2} x^2 + {3} y^2 + {4} xy
+    {0} + {1} x + {2} y + {3} x^2 + {4} y^2 + {5} xy
 
     """
     arr = self.heights()

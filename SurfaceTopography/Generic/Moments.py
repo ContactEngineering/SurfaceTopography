@@ -27,11 +27,14 @@ Computation of moments of a discrete curve, e.g. the PSD
 
 The example below computes the PSD of a surface topography and integrates it to obtain the RMS height.
 
+>>> import numpy as np
 >>> from SurfaceTopography.Generation import fourier_synthesis
->>> t = fourier_synthesis((256, 256), (256,256), hurst=0.8, rms_height=1, short_cutoff=4, long_cutoff=64)
+>>> from SurfaceTopography.Generic.Moments import compute_1d_moment
+>>> t = fourier_synthesis((256, 256), (256, 256), hurst=0.8, rms_height=1, short_cutoff=4, long_cutoff=64)
 >>> hrms = t.rms_height_from_profile()
->>> hrms_from_psd = np.sqrt(compute_1d_moment(,)
->>> assert abs(hrms_from_psd / hrms - 1)  < 0.1
+>>> q, C = t.power_spectrum_from_profile(reliable=False)
+>>> hrms_from_psd = np.sqrt(compute_1d_moment(q, C, order=0))
+>>> assert abs(hrms_from_psd / hrms - 1) < 0.1
 
 However, because the averaging of the PSD before integration introduces errors,
 it is better to sum directly the raw spectum,
@@ -49,9 +52,12 @@ def compute_1d_moment(x, y, order=1, cumulative=False):
 
     .. math::
 
-        m_\alpha = \int dx y x^{\alpha}
+        m_\alpha = \frac{1}{\pi} \int dx\, y x^{\alpha}
 
-    using trapezoidal interpolation of the integrand
+    using trapezoidal interpolation of the integrand. (The prefactor
+    :math:`1/\pi` corresponds to the moment of a two-sided function
+    :math:`y(|x|)` with the :math:`1/(2\pi)` Fourier-transform convention
+    used for power spectra in this package.)
 
     Parameters:
     -----------
@@ -89,9 +95,12 @@ def compute_iso_moment(x, y, order=1, cumulative=False):
 
     .. math::
 
-        m_\alpha = \int dx_1 dx_2 y_{2D}(x_1, x_2) |\vec  x|^{\alpha} = 2\pi \int dx y(x) x^{\alpha + 1}
+        m_\alpha = \frac{1}{(2\pi)^2} \int dx_1 dx_2\, y_{2D}(x_1, x_2) |\vec x|^{\alpha}
+                 = \frac{1}{2\pi} \int dx\, y(x) x^{\alpha + 1}
 
-    using trapezoidal interpolation of the integrand
+    using trapezoidal interpolation of the integrand. (The prefactor
+    corresponds to the :math:`1/(2\pi)^2` Fourier-transform convention used
+    for power spectra in this package.)
 
     Parameters:
     -----------

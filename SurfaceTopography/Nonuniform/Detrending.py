@@ -28,6 +28,7 @@ Helper functions to compute trends of surfaces
 """
 
 import numpy as np
+from numpy.polynomial import polynomial as npoly
 
 from SurfaceTopography.HeightContainer import NonuniformLineScanInterface
 from SurfaceTopography.NonuniformLineScan import DecoratedNonuniformTopography
@@ -75,17 +76,31 @@ def polyfit(self, deg):
         Array with coefficients :math:`a_k`.
     """  # noqa: E501
     x, h = self.positions_and_heights()
-    dx = np.diff(x)
+    # Solve the normal equations in coordinates centered on the scan:
+    # raw monomials x^k make the system ill-conditioned when the scan
+    # is short compared to its distance from x = 0. The coefficients
+    # are transformed back to monomials of the absolute position below.
+    x0 = (x[0] + x[-1]) / 2
+    xs = x - x0
+    dx = np.diff(xs)
     k = np.arange(deg + 1).reshape(-1, 1)
-    b = np.sum(((2 * h[:-1] + h[1:]) * x[:-1] ** k +
-                (2 * h[1:] + h[:-1]) * x[1:] ** k) * dx,
+    b = np.sum(((2 * h[:-1] + h[1:]) * xs[:-1] ** k +
+                (2 * h[1:] + h[:-1]) * xs[1:] ** k) * dx,
                axis=1)
     L = k.reshape(1, -1, 1)
     k = k.reshape(-1, 1, 1)
-    A = np.sum((2 * x[:-1] ** (k + L) + 2 * x[1:] ** (k + L) +
-                x[:-1] ** k * x[1:] ** L + x[1:] ** k * x[:-1] ** L) * dx,
+    A = np.sum((2 * xs[:-1] ** (k + L) + 2 * xs[1:] ** (k + L) +
+                xs[:-1] ** k * xs[1:] ** L + xs[1:] ** k * xs[:-1] ** L) * dx,
                axis=2)
-    return np.linalg.solve(A, b)
+    a = np.linalg.solve(A, b)
+    # Expand p(x) = sum_k a_k (x - x0)^k into monomial coefficients of x.
+    # (numpy's polypow trims trailing zeros, hence the copy into a
+    # fixed-size output array.)
+    p = np.zeros(deg + 1)
+    for n, a_n in enumerate(a):
+        term = a_n * npoly.polypow([-x0, 1.0], n)
+        p[:len(term)] += term
+    return p
 
 
 def _slope_detrend_coeffs(topography):

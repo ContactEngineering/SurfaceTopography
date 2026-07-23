@@ -188,7 +188,10 @@ def power_spectrum_from_area(self, window=None, reliable=True, collocation='log'
     nx, ny = self.nb_grid_pts
     sx, sy = self.physical_sizes
 
-    qmax = 2 * np.pi * nx / (2 * sx)
+    # Radial averaging is meaningful up to the smaller of the two Nyquist
+    # frequencies; using only the x-Nyquist would make the result depend on
+    # the orientation of the map for anisotropic pixels
+    qmax = np.pi * min(nx / sx, ny / sy)
 
     if reliable:
         # Update qmax

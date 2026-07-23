@@ -210,7 +210,7 @@ def variable_bandwidth_from_profile(self, quantities='bh', reliable=True, resamp
             - 'm': Magnification (Unit: dimensionless)
             - 'b': Bandwidth (Unit: length)
             - 'h': Statistical property (Unit: default length, see func)
-            - 's': RMS detrending slope (Unit: dimensionless)
+            - 'g': RMS detrending slope/gradient (Unit: dimensionless)
         For example, 'mbh' return a tuple with the three entries
         magnification, bandwidth, rms height.
         (Default: 'bh')
@@ -331,7 +331,7 @@ def variable_bandwidth_from_area(self, quantities='bh', reliable=True, resamplin
         corresponding to the respective magnification.
     """
     if resampling_method is not None:
-        raise ValueError('`variable_bandwidth_from_profile` does not support resampling.')
+        raise ValueError('`variable_bandwidth_from_area` does not support resampling.')
 
     magnification = 1
     physical_sizes = np.array(self.physical_sizes)

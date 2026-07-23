@@ -136,6 +136,29 @@ class DiscreteDerivative:
         return self._operator.fourier(phase)
 
 
+def _operator_direction(op):
+    """
+    Return the Cartesian axis an axis-aligned derivative operator acts
+    along, or None if the direction cannot be determined (e.g. for mixed
+    stencils).
+    """
+    direction = getattr(op, 'direction', None)
+    if direction is not None:
+        return direction
+    try:
+        stencil = np.asarray(op.stencil)
+    except AttributeError:
+        return None
+    # An axis-aligned operator has nonzero coefficients that vary along a
+    # single axis only. (The stencil array itself may be zero-padded, so
+    # its shape is not a reliable indicator.)
+    nonzero = np.nonzero(stencil)
+    axes = [axis for axis, indices in enumerate(nonzero) if len(set(indices)) > 1]
+    if len(axes) == 1:
+        return axes[0]
+    return None
+
+
 #
 # Stencils for first and second derivatives
 #
@@ -329,8 +352,9 @@ def derivative(
         unity (line scan), then an array of the same shape as the
         topography is returned. Otherwise, the first array index contains
         the direction of the derivative. If the topgography is nonperiodic,
-        then all returning array with have shape one less than the input
-        arrays.
+        then the returned arrays are trimmed at the boundary where the
+        derivative stencil sticks out of the data region; the number of
+        trimmed points is the stencil extent times the scale factor.
     """
     if self.physical_sizes is None:
         raise ValueError(
@@ -512,8 +536,16 @@ def derivative(
             if not is_periodic:
                 _der = trim_nonperiodic(_der, s, op)
 
-            # We need to divide by the grid spacing to make this a derivative
-            _der /= scaled_pixel_size[i] ** n
+            # We need to divide by the grid spacing to make this a
+            # derivative. The grid spacing is that of the direction the
+            # operator acts along; the operator index only coincides with
+            # the direction for the default one-operator-per-direction case
+            # (e.g. a single y-direction operator must not be normalized by
+            # the x grid spacing).
+            direction = _operator_direction(op)
+            if direction is None:
+                direction = i
+            _der /= scaled_pixel_size[direction] ** n
 
             # Mask array if it has NaNs
             if np.sum(~np.isfinite(_der)) > 0:
@@ -591,8 +623,9 @@ def fourier_derivative(self, scale_factor=None, distance=None, mask_function=Non
         unity (line scan), then an array of the same shape as the
         topography is returned. Otherwise, the first array index contains
         the direction of the derivative. If the topgography is nonperiodic,
-        then all returning array with have shape one less than the input
-        arrays.
+        then the returned arrays are trimmed at the boundary where the
+        derivative stencil sticks out of the data region; the number of
+        trimmed points is the stencil extent times the scale factor.
     """
     dim = self.dim
     return self.derivative(

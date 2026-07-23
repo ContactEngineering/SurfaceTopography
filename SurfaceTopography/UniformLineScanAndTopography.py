@@ -748,11 +748,10 @@ class TranslatedTopography(DecoratedUniformTopography):
         return self._offset
 
     @offset.setter
-    def offset(self, offset, offsety=None):
-        if offsety is None:
-            self._offset = offset
-        else:
-            self._offset = (offset, offsety)
+    def offset(self, offset):
+        # Note: property setters receive exactly one value; a second
+        # parameter would be unreachable
+        self._offset = offset
 
     def heights(self):
         """Computes the translated profile."""
@@ -782,7 +781,7 @@ class CompoundTopography(DecoratedUniformTopography):
 
         super().__init__(topography_a, info=info)
 
-        def combined_val(prop_a, prop_b, propname):
+        def check_combined_val(prop_a, prop_b, propname):
             """
             topographies can have a fixed or dynamic, adaptive nb_grid_pts (or
             other attributes). This function assures that -- if this function
@@ -793,20 +792,19 @@ class CompoundTopography(DecoratedUniformTopography):
             prop_b   -- field of other topography
             propname -- field identifier (for error messages only)
             """
-            if prop_a is None:
-                return prop_b
-            else:
-                if prop_b is not None:
-                    assert prop_a == prop_b, "{} incompatible:{} <-> {}".format(
-                        propname, prop_a, prop_b
-                    )
-                return prop_a
+            # Note: raise a proper exception; an `assert` would vanish under
+            # `python -O` and allow silent superposition of incompatible
+            # grids
+            if prop_a is not None and prop_b is not None and prop_a != prop_b:
+                raise ValueError(
+                    "{} incompatible: {} <-> {}".format(propname, prop_a, prop_b)
+                )
 
-        self._dim = combined_val(topography_a.dim, topography_b.dim, "dim")
-        self._nb_grid_pts = combined_val(
+        check_combined_val(topography_a.dim, topography_b.dim, "dim")
+        check_combined_val(
             topography_a.nb_grid_pts, topography_b.nb_grid_pts, "nb_grid_pts"
         )
-        self._size = combined_val(
+        check_combined_val(
             topography_a.physical_sizes, topography_b.physical_sizes, "physical_sizes"
         )
         self.parent_topography_a = topography_a

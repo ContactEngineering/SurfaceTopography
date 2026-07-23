@@ -57,13 +57,18 @@ def make_fft(topography, communicator=None):
     RuntimeError
         If the muGrid FFTEngine object's domain decomposition does not match the topography's domain decomposition.
     """
-    # We only initialize this once and attach it to the topography object
-    if hasattr(topography, '_mufft'):
+    if communicator is None:
+        communicator = topography.communicator
+
+    # We only initialize this once and attach it to the topography object.
+    # Note: The cache is only valid for the communicator it was created
+    # with; a subsequent call with a different communicator must not return
+    # the cached engine.
+    if hasattr(topography, '_mufft') and topography._mufft_communicator is communicator:
         return topography._mufft
 
     if topography.is_domain_decomposed:
-        fft = muGrid.FFTEngine(topography.nb_grid_pts,
-                               communicator=topography.communicator if communicator is None else communicator)
+        fft = muGrid.FFTEngine(topography.nb_grid_pts, communicator=communicator)
         if fft.subdomain_locations != topography.subdomain_locations or \
                 fft.nb_subdomain_grid_pts != topography.nb_subdomain_grid_pts:
             raise RuntimeError('muGrid suggested a domain decomposition that '
@@ -71,6 +76,7 @@ def make_fft(topography, communicator=None):
     else:
         fft = muGrid.FFTEngine(topography.nb_grid_pts)
     topography._mufft = fft
+    topography._mufft_communicator = communicator
     return fft
 
 

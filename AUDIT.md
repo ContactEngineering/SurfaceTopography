@@ -21,11 +21,29 @@ Severity legend:
 > (T8), the broken `pytest-flake8` plugin and the `tiffile` alias package
 > were fixed because they broke CI, while the remaining build-system
 > hardening (meson `python` alias, glob check for meson file lists) is
-> still open. The performance tier (§2.5), section 3 (low severity) and
-> the remaining architectural themes in section 4 remain open. Note that
-> the masked-data normalization fix (§2.2) changed the reference values of
-> several IO tests whose fixtures contain undefined data points; the old
-> values were dominated by a mean-normalization artifact.
+> still open. Section 3 (low severity) has also been **fixed**, with two
+> deliberate exceptions: the NMS height scale divisor `2**16 - 2` (§3,
+> IO) was left untouched because no reference implementation or fixture
+> is available to decide between `2**16 - 2` and `2**16 - 1`, and the
+> DATX/LEXT axis-pairing exception above applies here too. Of section 4,
+> the actionable items have been addressed: property-based invariant
+> tests (transpose/translate/scale/origin invariance, decorator geometry
+> consistency, bearing-area CDF properties) were added in
+> `test/test_invariants.py` (T1/T3/T6), and the meson version discovery
+> now calls `python3` instead of the bare `python` alias (T8). The
+> proposed dedup of the three `bandwidth` implementations and of the
+> `compute_1d_moment`/`compute_iso_moment` pair was assessed and
+> deliberately rejected: the `bandwidth` variants differ semantically
+> (pixel size vs. mean point spacing vs. unit-converting container
+> variant) and the moment helpers are seven lines each, so a shared
+> helper would add indirection without reducing risk. The larger
+> refactoring themes (shared row-major reader helper for IO, unifying
+> the Uniform/Nonuniform/Container analysis-function triplication)
+> remain proposals — see section 4. The performance tier (§2.5) remains
+> open. Note that the masked-data normalization fix
+> (§2.2) changed the reference values of several IO tests whose fixtures
+> contain undefined data points; the old values were dominated by a
+> mean-normalization artifact.
 
 ---
 

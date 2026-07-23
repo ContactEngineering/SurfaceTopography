@@ -151,7 +151,7 @@ def rms_slope(self):
 
 def rms_curvature(self):
     r"""
-    Computes root-mean square slope fluctuation of the line scan:
+    Computes root-mean square curvature fluctuation of the line scan:
 
     Parameters
     ----------
@@ -160,8 +160,8 @@ def rms_curvature(self):
 
     Returns
     -------
-    rms_slope : float
-        Root-mean square slope.
+    rms_curvature : float
+        Root-mean square curvature.
     """
     x = self.positions()
     d2 = self.derivative(n=2)

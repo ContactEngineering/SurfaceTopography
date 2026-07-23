@@ -513,7 +513,7 @@ This reader imports MicroProf FRT profilometry data.
                     block_id, block_size = unpack('<HQ', data)
 
                 if block_id in self._block_structures.keys():
-                    meta, size = decode(f, self._block_structures[block_id], return_size=True)
+                    meta, size = decode(f, self._block_structures[block_id], byte_order="<", return_size=True)
 
                     if block_id == 0x0075:
                         # There is a data block at the end of this section
@@ -524,7 +524,7 @@ This reader imports MicroProf FRT profilometry data.
                         # There are subblocks at the end
                         subblocks = []
                         for i in range(meta['nb_subblocks']):
-                            _meta, _size = decode(f, self._subblocks_0x0091, return_size=True)
+                            _meta, _size = decode(f, self._subblocks_0x0091, byte_order="<", return_size=True)
                             subblocks += [_meta]
                             size += _size
                         meta['subblocks'] = subblocks

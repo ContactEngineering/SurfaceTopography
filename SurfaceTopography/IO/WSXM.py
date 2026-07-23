@@ -150,7 +150,12 @@ scanning probe microscopy available at http://www.wsxm.eu/.
             z_amplitude = float(z_amplitude)
             min_value = float(metadata["Miscellaneous"]["Minimum"])
             max_value = float(metadata["Miscellaneous"]["Maximum"])
-            height_scale_factor = z_amplitude / (max_value - min_value)
+            if max_value > min_value:
+                height_scale_factor = z_amplitude / (max_value - min_value)
+            else:
+                # A perfectly flat scan has zero data range; any scale
+                # factor reproduces it
+                height_scale_factor = 1
 
             self._channels = [
                 ChannelInfo(
@@ -234,7 +239,6 @@ scanning probe microscopy available at http://www.wsxm.eu/.
             periodic=False if periodic is None else periodic,
             info=_info,
         )
-        print(height_data.min(), height_data.max())
         return topo.scale(channel.height_scale_factor)
 
     channels.__doc__ = ReaderBase.channels.__doc__

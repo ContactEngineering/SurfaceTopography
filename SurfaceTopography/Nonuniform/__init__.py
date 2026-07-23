@@ -24,5 +24,5 @@
 #
 
 """
-Module containing all functions operating on uniform topographies
+Module containing all functions operating on nonuniform topographies
 """

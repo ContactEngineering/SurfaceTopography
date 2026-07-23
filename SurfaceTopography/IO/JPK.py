@@ -334,7 +334,7 @@ TIFF-based file format of JPK instruments (now Bruker)
 
         try:
             channel = self.channels[channel_index]
-        except KeyError as exc:
+        except IndexError as exc:
             raise RuntimeError(
                 f"Channel index must be in range 0 to {len(self._channels) - 1}."
             ) from exc

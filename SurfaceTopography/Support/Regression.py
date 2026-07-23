@@ -57,7 +57,10 @@ def make_grid(collocation, min_value, max_value, nb_points=None, nb_points_per_d
         Maximum value.
     nb_points : int, optional
         Number of bins for averaging. Bins are automatically determined if set
-        to None. (Default: None)
+        to None. Caution: for 'log' collocation, this is the number of bin
+        *edges*, i.e. `nb_points` - 1 collocation points are returned, while
+        for 'linear' and 'quadratic' collocation it is the number of
+        collocation points (`nb_points` + 1 edges). (Default: None)
     nb_points_per_decade : int, optional
         Number of points per decade for log-spaced collocation points.
         (Default: None)

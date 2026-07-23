@@ -56,7 +56,9 @@ class UniformlyInterpolatedLineScan(DecoratedUniformTopography):
             automatically computed from the mean grid spacing and
             `nb_interpolate` if set to None. (Default: None)
         padding : int, optional
-            Number of padding grid points, zeros appended to the data.
+            Number of padding grid points appended to the data; they hold
+            the value of the final data point (np.interp clamps to the
+            boundary values).
             (Default: 0)
         nb_interpolate : int, optional
             Number of grid points to between closest points on surface.

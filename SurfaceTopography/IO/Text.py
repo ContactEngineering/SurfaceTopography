@@ -267,7 +267,9 @@ When writing your own ASCII files, we recommend to prepend the header with a
     def __init__(self, file_path):
         # Open file and parse
         self._channel_names = []
-        self._metadata = defaultdict(None)
+        # Note: this is a plain dictionary; `defaultdict(None)` behaves
+        # identically (None is not callable and cannot construct defaults)
+        self._metadata = {}
         self._data = defaultdict(list)
         self._dim = 2
         with OpenFromAny(file_path, "r") as fobj:
@@ -464,7 +466,7 @@ When writing your own ASCII files, we recommend to prepend the header with a
         if channel_index is None:
             channel_index = self._default_channel_index
 
-        if channel_index < 0 or channel_index > len(self._channel_names):
+        if channel_index < 0 or channel_index >= len(self._channel_names):
             raise RuntimeError(
                 f"There are only {len(self._channel_names)} channels, but channel "
                 f"index is {channel_index}."

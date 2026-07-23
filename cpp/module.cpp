@@ -52,24 +52,30 @@ PYBIND11_MODULE(_SurfaceTopography, mod) {
             py::arg("map"), py::arg("periodic"), py::arg("stencil") = std::nullopt,
             py::call_guard<py::gil_scoped_release>());
     mod.def("assign_segment_numbers", &assign_segment_numbers,
-            "Assign unique numbers to connected 1D segments",
+            "Assign unique numbers to connected 1D segments; the map is "
+            "always treated as periodic",
             py::arg("map"));
     mod.def("distance_map", &distance_map,
-            "Compute distance from each point to nearest marked point",
+            "Compute distance from each point to nearest marked point; "
+            "distances are always measured with periodic boundary conditions",
             py::arg("map"), py::call_guard<py::gil_scoped_release>());
     mod.def("closest_patch_map", &closest_patch_map,
-            "Compute the tag of the closest patch for each point",
+            "Compute the tag of the closest patch for each point; distances "
+            "are always measured with periodic boundary conditions",
             py::arg("map"), py::call_guard<py::gil_scoped_release>());
     mod.def("shortest_distance", &shortest_distance,
-            "Compute shortest distance between patches",
+            "Compute shortest distance between patches; distances are always "
+            "measured with periodic boundary conditions",
             py::arg("fromc"), py::arg("fromp"), py::arg("to"), py::arg("maxd") = -1,
             py::call_guard<py::gil_scoped_release>());
     mod.def("correlation_function", &correlation_function,
-            "Compute real-space correlation function between two maps",
+            "Compute real-space correlation function between two maps; the "
+            "maps are always treated as periodic",
             py::arg("map1"), py::arg("map2"), py::arg("max_dist"),
             py::call_guard<py::gil_scoped_release>());
     mod.def("perimeter_length", &perimeter_length,
-            "Compute total perimeter length of marked regions",
+            "Compute total perimeter length of marked regions; the map is "
+            "always treated as periodic",
             py::arg("map"));
 
     // === Bicubic interpolation (from former C module) ===

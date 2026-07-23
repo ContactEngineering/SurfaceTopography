@@ -84,7 +84,7 @@ def integrate_psd_from_profile(self, factor, unit, window=None, reliable=True):
 
     .. math::
 
-        \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
+        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x factor(q_x) C^{1D}(q_x)
 
     Discrete
 

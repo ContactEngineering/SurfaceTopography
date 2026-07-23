@@ -3,7 +3,9 @@ project(
     'SurfaceTopography', # Project name
     'cpp', # Project type. We need a C++ compiler.
     default_options : ['cpp_std=c++17'], # Yes, we need C++17, at least for constexpr
-    version: run_command('python', '-m', 'DiscoverVersion', check: true).stdout().strip(),
+    # Use 'python3': the bare 'python' alias does not exist on many systems
+    # (e.g. Debian/Ubuntu without python-is-python3)
+    version: run_command('python3', '-m', 'DiscoverVersion', check: true).stdout().strip(),
 )
 
 # https://mesonbuild.com/Python-module.html

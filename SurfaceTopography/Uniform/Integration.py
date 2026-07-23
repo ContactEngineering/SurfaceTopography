@@ -21,6 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
+import inspect
+
 import numpy as np
 
 from ..Exceptions import NoReliableDataError, UndefinedDataError
@@ -78,10 +80,17 @@ def integrate_psd(self, factor=lambda q: 1, window=None, reliable=True, ):
             raise NoReliableDataError('Dataset contains no reliable data.')
         C_raw = C_raw * mask
 
-    qvec = self.fftfreq()
+    # Dispatch on the number of arguments the factor accepts rather than
+    # catching TypeError, which would silently mask genuine TypeErrors
+    # raised inside a user-supplied factor function
     try:
+        nb_factor_args = len(inspect.signature(factor).parameters)
+    except (TypeError, ValueError):
+        nb_factor_args = 1
+    if self.dim == 2 and nb_factor_args >= 2:
+        qvec = self.fftfreq()
         return np.sum(C_raw * factor(*qvec)) / np.prod(self.physical_sizes)
-    except TypeError:
+    else:
         return np.sum(C_raw * factor(q)) / np.prod(self.physical_sizes)
 
 
@@ -94,7 +103,7 @@ def integrate_psd_from_profile(self, factor=lambda qx: 1, window=None, reliable=
 
     .. math::
 
-        \frac{1}{2 \pi} \int_0^\infty dq_x factor(q_x) C^{1D}(q_x)
+        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x factor(q_x) C^{1D}(q_x)
 
     Discrete
 
@@ -173,7 +182,7 @@ def moment_power_spectrum(self, order=0, window=None, reliable=True, ):
 
     .. math::
 
-        \frac{1}{2 \pi} \int_0^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
+        \frac{1}{2 \pi} \int_{-\infty}^\infty dq_x |q|^{\alpha} C^{1D}(q_x)
 
     Discrete
 

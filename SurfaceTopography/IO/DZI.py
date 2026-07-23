@@ -151,7 +151,12 @@ def write_dzi(
 
     # Get heights and rescale to interval 0, 1
     mx, mn = data.max(), data.min()
-    data = (data - mn) / (mx - mn)
+    if mx > mn:
+        data = (data - mn) / (mx - mn)
+    else:
+        # A perfectly flat topography would otherwise divide by zero and
+        # produce an all-NaN image pyramid
+        data = np.zeros_like(data)
 
     # Write configuration file
     if meta_format == "xml":

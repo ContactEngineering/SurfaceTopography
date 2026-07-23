@@ -82,10 +82,17 @@ std::tuple<Eigen::ArrayXd, Eigen::ArrayXd> nonuniform_autocorrelation(
                 double b = (b1 + b2) / 2;
                 double db = (b2 - b1) / 2;
                 if (db > 0) {
-                    // f1[x_] := (h1 + s1*(x - x1))
-                    // f2[x_] := (h2 + s2*(x - x2))
-                    // FullSimplify[Integrate[f1[x]*f2[x + d], {x, b - db, b + db}]]
-                    //   = 2 * f1[b] * f2[b + d] * db + 2 * s1 * s2 * db ** 3 / 3
+                    // This accumulates the height-difference autocorrelation
+                    //     A(d) = (1/2) < [h(x+d) - h(x)]^2 >,
+                    // i.e. the conventional factor 1/2 is folded into the
+                    // expression below. With
+                    //     f1[x_] := (h1 + s1*(x - x1))
+                    //     f2[x_] := (h2 + s2*(x - x2))
+                    // the difference on the overlap is
+                    //     f2[x + d] - f1[x] = z - (s1 - s2)*(x - b)
+                    // where z = f2[b + d] - f1[b], and
+                    //     (1/2) Integrate[(f2[x + d] - f1[x])^2, {x, b - db, b + db}]
+                    //       = db*z^2 + (s1 - s2)^2 * db^3 / 3
                     double z = h2 - s2 * x2 + (b + distances(k)) * s2 - h1 + s1 * x1 - b * s1;
                     double ds = s1 - s2;
                     acf(k) += (db * (3 * z * z + ds * ds * db * db)) / 3;

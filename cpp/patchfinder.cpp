@@ -179,7 +179,7 @@ std::tuple<int, RowMajorXXi> assign_segment_numbers(Eigen::Ref<RowMajorXXb> map)
 
 
 void track_distance(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
-                    RowMajorXXd &dist, RowMajorXXi &next)
+                    RowMajorXXd &dist)
 {
     Stack stack(DEFAULT_STACK_SIZE);
 
@@ -212,7 +212,6 @@ void track_distance(Eigen::Index nx, Eigen::Index ny, const RowMajorXXb &map,
         // Is i0, j0 closer than what is currently stored?
         if (d < dist(i, j)) {
             dist(i, j) = d;
-            next(i, j) = i0 * ny + j0;
 
             // Loop over all neighbors
             for (int joff = -1; joff <= 1; ++joff) {
@@ -249,11 +248,8 @@ RowMajorXXd distance_map(Eigen::Ref<RowMajorXXb> map)
     // This stores the distance to the closest point on the contour
     RowMajorXXd dist = RowMajorXXd::Constant(nx, ny, nx * ny);
 
-    // This stores the index of the closest point
-    RowMajorXXi next = RowMajorXXi::Constant(nx, ny, nx * ny);
-
     // Track distances from contact edge
-    track_distance(nx, ny, map, dist, next);
+    track_distance(nx, ny, map, dist);
 
     return dist;
 }

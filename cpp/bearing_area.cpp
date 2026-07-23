@@ -21,7 +21,6 @@ SOFTWARE.
 */
 
 #include <algorithm>
-#include <iostream>
 
 #include "bearing_area.h"
 
