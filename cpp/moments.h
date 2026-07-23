@@ -32,11 +32,18 @@ template <int order>
 class _LineScanMoment {
 public:
     static double eval(double h1, double h2) {
-        if (std::abs(h2 - h1) < 1e-12) {
-            return 0;
+        /* (order+1) times the mean of h^order over a segment with linearly
+           interpolated end point heights h1 and h2. Analytically this is
+           (h2^(order+1) - h1^(order+1)) / (h2 - h1), which equals the
+           complete homogeneous symmetric polynomial of degree `order` in h1
+           and h2. The polynomial form is exact for equal heights (where the
+           quotient is 0/0) and does not suffer from cancellation for nearly
+           equal heights. */
+        double sum{0};
+        for (int k{0}; k <= order; k++) {
+            sum += std::pow(h1, k) * std::pow(h2, order - k);
         }
-        // This is the generic expression, but it has numerical issues when h1 and h2 are close to each other
-        return (std::pow(h2, order+1) - std::pow(h1, order+1)) / (h2 - h1);
+        return sum;
     }
 };
 
@@ -115,62 +122,24 @@ double uniform1d_moment(Eigen::Ref<Eigen::ArrayXd> topography_h, bool periodic, 
 template <int order>
 class _TriangleMoment {
 public:
-    static double eval(double h1_in, double h2_in, double h3_in) {
-        double h1{h1_in}, h2{h2_in}, h3{h3_in};
-
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return ((std::pow(h2, order+2) - std::pow(h1, order+2)) / (h2 - h1) +
-                (std::pow(h3, order+2) - std::pow(h2, order+2)) / (h3 - h2)) / (order + 2) -
-               (h1*(std::pow(h2, order+1) - std::pow(h1, order+1)) / (h2 - h1) +
-                h3*(std::pow(h3, order+1) - std::pow(h2, order+1)) / (h3 - h2)) / (order + 1);
-    }
-};
-
-template <>
-class _TriangleMoment<1> {
-public:
     static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (4*h2*h2 - h1*h1 - h3*h3 - h1*h2 - h2*h3) / 6;
-    }
-};
-
-template <>
-class _TriangleMoment<2> {
-public:
-    static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (6*h2*h2*h2 - h1*h1*h1 - h3*h3*h3 - h1*h1*h2 - h1*h2*h2 - h2*h2*h3 - h2*h3*h3) / 12;
-    }
-};
-
-template <>
-class _TriangleMoment<3> {
-public:
-    static double eval(double h1, double h2, double h3) {
-        /* Sort h1, h2, h3 in ascending order */
-        if (h1 > h2)  std::swap(h1, h2);
-        if (h2 > h3)  std::swap(h2, h3);
-        if (h1 > h2)  std::swap(h1, h2);
-
-        /* Compute moment */
-        return (8*h2*h2*h2*h2 - h1*h1*h1*h1 - h3*h3*h3*h3 - h1*h1*h1*h2 - h1*h1*h2*h2 - h1*h2*h2*h2 - h2*h2*h2*h3 -
-                h2*h2*h3*h3 - h2*h3*h3*h3) / 20;
+        /* Mean of h^order over a triangle whose corner heights are h1, h2
+           and h3 (linear interpolation). Using the barycentric integral
+           formula
+               int_T l1^i l2^j l3^k dA = 2 A i! j! k! / (i+j+k+2)!
+           the mean evaluates to
+               <h^order> = 2 / ((order+1) (order+2)) * H_order(h1, h2, h3)
+           where H_order is the complete homogeneous symmetric polynomial of
+           degree `order`. This expression is exact, requires no sorting of
+           the corner heights and remains valid for degenerate (equal
+           height) corners. */
+        double sum{0};
+        for (int i{0}; i <= order; i++) {
+            for (int j{0}; j <= order - i; j++) {
+                sum += std::pow(h1, i) * std::pow(h2, j) * std::pow(h3, order - i - j);
+            }
+        }
+        return 2 * sum / ((order + 1) * (order + 2));
     }
 };
 

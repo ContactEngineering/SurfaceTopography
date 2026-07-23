@@ -353,14 +353,27 @@ Bicubic::call(py::object py_x, py::object py_y, int derivative)
       double x = py_x.cast<double>();
       double y = py_y.cast<double>();
       double v, dx_out, dy_out;
-      eval(x, y, v, dx_out, dy_out);
-      return py::float_(v);
+      if (derivative == 0) {
+        eval(x, y, v);
+        return py::float_(v);
+      } else if (derivative == 1) {
+        eval(x, y, v, dx_out, dy_out);
+        return py::make_tuple(v, dx_out, dy_out);
+      } else {
+        double d2x, d2y, d2xy;
+        eval(x, y, v, dx_out, dy_out, d2x, d2y, d2xy);
+        return py::make_tuple(v, dx_out, dy_out, d2x, d2y, d2xy);
+      }
     }
   }
 
-  // Array inputs - convert to numpy arrays
-  py::array_t<double> x_arr = py::array_t<double>::ensure(py_x);
-  py::array_t<double> y_arr = py::array_t<double>::ensure(py_y);
+  // Array inputs - convert to numpy arrays. Note: `c_style` forces a
+  // C-contiguous copy for strided views; the evaluation loop below walks
+  // the buffers linearly and would silently read wrong (or out-of-bounds)
+  // elements from non-contiguous arrays.
+  using carray_t = py::array_t<double, py::array::c_style | py::array::forcecast>;
+  carray_t x_arr = carray_t::ensure(py_x);
+  carray_t y_arr = carray_t::ensure(py_y);
 
   if (!x_arr || !y_arr) {
     throw std::invalid_argument("Could not convert inputs to arrays.");

@@ -63,15 +63,22 @@ def moment(topography, alpha):
 
     Returns
     -------
-    moment : float or array
-        Root-mean square height.
+    moment : float
+        Moment of order `alpha` of the heights.
     """  # noqa: E501
     x, h = topography.positions_and_heights()
     dx = np.diff(x)
     if len(x) <= 1:
         return 0.0
     L = x[-1] - x[0]
-    return 1 / (alpha + 1) * np.sum(dx * (h[1:] ** (alpha + 1) - h[:-1] ** (alpha + 1)) / (h[1:] - h[:-1])) / L
+    # The quotient (h2^(alpha+1) - h1^(alpha+1)) / (h2 - h1) given in the
+    # docstring equals the complete homogeneous symmetric polynomial of
+    # degree alpha in h1 and h2. The polynomial form is exact for equal
+    # heights (where the quotient is 0/0, e.g. for quantized instrument
+    # data) and avoids cancellation for nearly equal heights.
+    h1, h2 = h[:-1], h[1:]
+    s = sum(h1 ** k * h2 ** (alpha - k) for k in range(alpha + 1))
+    return np.sum(dx * s) / ((alpha + 1) * L)
 
 
 def rms_height(self):
