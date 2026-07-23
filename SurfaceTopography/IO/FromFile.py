@@ -198,18 +198,19 @@ def read_hgt(
         (dim, dim)
     )
 
-    if physical_sizes is None:
-        topography = Topography(
-            data,
-            physical_sizes=tuple(float(x) for x in data.shape),
-            unit=unit,
-            info=info,
-            periodic=periodic,
-        )
-    else:
-        topography = Topography(
-            data, physical_sizes=physical_sizes, unit=unit, info=info, periodic=periodic
-        )
+    # SRTM marks voids (missing data, e.g. over water or in radar shadows)
+    # with the value -32768
+    _SRTM_VOID = -32768
+    if np.any(data == _SRTM_VOID):
+        data = np.ma.masked_array(data, mask=data == _SRTM_VOID)
+
+    # If no physical sizes are given, the topography is constructed without
+    # them and the user must supply them when calling `topography()`.
+    # (Fabricating sizes from the pixel counts would silently fix wrong
+    # metadata that could then no longer be overridden.)
+    topography = Topography(
+        data, physical_sizes=physical_sizes, unit=unit, info=info, periodic=periodic
+    )
     if height_scale_factor is not None:
         topography = topography.scale(height_scale_factor)
     return topography

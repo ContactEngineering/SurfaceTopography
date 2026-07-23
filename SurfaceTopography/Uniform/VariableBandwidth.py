@@ -85,10 +85,19 @@ def checkerboard_detrend_profile(self, subdivisions, order=1, return_plane=False
     x = x.reshape(-1)
     region_index = region_index.reshape(-1)
 
-    b = np.array([np.bincount(region_index, h * (x ** i)) for i in range(order + 1)])
-    C = np.array([[np.bincount(region_index, x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
+    # Undefined (masked) data points must not contribute to the fit; they
+    # enter both the right-hand side and the normal-equation matrix with
+    # zero weight. (`np.bincount` silently strips masks and would otherwise
+    # ingest the raw values stored under the mask.)
+    w = 1.0 - np.ma.getmaskarray(h)
+    hf = np.ma.filled(h, 0)
+
+    b = np.array([np.bincount(region_index, w * hf * (x ** i)) for i in range(order + 1)])
+    C = np.array([[np.bincount(region_index, w * x ** (k + i)) for i in range(order + 1)] for k in range(order + 1)])
     a = np.linalg.solve(C.T, b.T.reshape(b.T.shape + (1,))).T[0]
 
+    # Subtracting from the original (possibly masked) heights preserves the
+    # mask on undefined data points
     detrended_h = h - np.sum([a[i, region_index] * x ** i for i in range(order + 1)], axis=0)
     detrended_h.shape = shape
 
@@ -166,8 +175,13 @@ def checkerboard_detrend_area(self, subdivisions, order=1, return_plane=False):
     y = y.reshape(-1)
     region_index = region_index.reshape(-1)
 
-    b = np.array([np.bincount(region_index, h * (x ** i) * (y ** j)) for i, j in ij])
-    C = np.array([[np.bincount(region_index, x ** (k + i) * y ** (l + j)) for i, j in ij] for k, l in ij])
+    # See `checkerboard_detrend_profile`: masked data points enter the fit
+    # with zero weight
+    w = 1.0 - np.ma.getmaskarray(h)
+    hf = np.ma.filled(h, 0)
+
+    b = np.array([np.bincount(region_index, w * hf * (x ** i) * (y ** j)) for i, j in ij])
+    C = np.array([[np.bincount(region_index, w * x ** (k + i) * y ** (l + j)) for i, j in ij] for k, l in ij])
     a = np.linalg.solve(C.T, b.T.reshape(b.T.shape + (1,))).T[0]
 
     detrended_h = h - np.sum([a[k, region_index] * (x ** i) * (y ** j) for k, (i, j) in enumerate(ij)], axis=0)

@@ -46,6 +46,12 @@ def polyfit_line_scan(self, deg):
     """
     x, h = self.positions_and_heights()
     x /= self.physical_sizes[0]
+    # Exclude undefined (masked) data points from the fit; np.polyfit on a
+    # masked array would silently fit the raw values under the mask
+    mask = np.ma.getmaskarray(h)
+    if mask.any():
+        x = x[~mask]
+        h = np.asarray(h[~mask])
     coeffs = np.polyfit(x, h, deg)
     return np.array(coeffs)[::-1]
 

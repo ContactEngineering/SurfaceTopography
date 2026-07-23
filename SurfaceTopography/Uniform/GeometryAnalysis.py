@@ -110,8 +110,11 @@ def assign_patch_numbers_profile(mask, periodic):
         # Patches are odd numbers
         patch_ids += 1
         if periodic and mask[-1]:
-            # Assign same patch id to first and last patch
-            patch_ids[patch_ids == patch_ids[-1]] = patch_ids[0]
+            # Assign same patch id to first and last patch. Note that the
+            # patch containing the first pixel always has (pre-transform)
+            # id 1 here; `patch_ids[0]` would be the id of the *second*
+            # pixel, which is not necessarily part of the first patch.
+            patch_ids[patch_ids == patch_ids[-1]] = 1
     # Patches are odd numbers, set even numbers to zero
     patch_ids += 1
     patch_ids[(patch_ids & 0x1).astype(bool)] = 0

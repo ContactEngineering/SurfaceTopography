@@ -147,6 +147,11 @@ data. The full specification of the format can be found
                     else:
                         self._height_scale_factor = None
 
+                    # The z-axis may carry an offset: h = raw * Increment + Offset.
+                    # This is typically present for integer data types.
+                    offset = cz.find("Offset")
+                    self._height_offset = float(offset.text) if offset is not None else 0.0
+
                     # Parse record3
                     matrix_dimension = record3.find("MatrixDimension")
                     nb_grid_pts_x = int(matrix_dimension.find("SizeX").text)
@@ -166,6 +171,14 @@ data. The full specification of the format can be found
 
                     data_link = record3.find("DataLink")
                     self._name_of_binary_file = data_link.find("PointDataLink").text
+
+                    # Optional file marking invalid (undefined) data points,
+                    # one bit per point (ISO 5436-2). This is the only way
+                    # invalid points can be encoded for integer data types.
+                    valid_points_link = data_link.find("ValidPointsLink")
+                    self._name_of_valid_points_file = (
+                        valid_points_link.text if valid_points_link is not None else None
+                    )
 
                     # Check if binary file exists and has a reasonable size
                     binary_info = x3p.getinfo(self._name_of_binary_file)
@@ -322,6 +335,27 @@ data. The full specification of the format can be found
                     .T
                 )
 
+                if self._name_of_valid_points_file is not None:
+                    # One bit per point, least-significant bit first, in the
+                    # same point order as the height data
+                    validdata = x3p.open(self._name_of_valid_points_file).read()
+                    valid = (
+                        np.unpackbits(
+                            np.frombuffer(validdata, dtype=np.uint8), bitorder="little"
+                        )[: nx * ny]
+                        .reshape(ny, nx)
+                        .T.astype(bool)
+                    )
+                    if not valid.all():
+                        height_data = np.ma.masked_array(height_data, mask=~valid)
+
+        if self._height_offset != 0:
+            # h = raw * Increment + Offset; we fold the offset into the raw
+            # data so that the height scale factor can still be applied
+            # through the pipeline
+            fac = self._height_scale_factor if self._height_scale_factor is not None else 1
+            height_data = height_data + self._height_offset / fac
+
         topo = Topography(
             height_data,
             self._physical_sizes,
@@ -408,12 +442,13 @@ def write_x3p(
     dx = sx * scale_to_meters / nx
     dy = sy * scale_to_meters / ny
 
-    # Get height data and convert to meters
-    heights = self.heights()
-    if np.ma.isMaskedArray(heights):
-        # X3P doesn't directly support masked data - use NaN for undefined
-        heights = np.ma.filled(heights, np.nan)
-    heights = heights * scale_to_meters
+    # Get height data and convert to meters. Undefined (masked) data points
+    # are encoded as NaN for floating-point data types; for integer data
+    # types they are stored as the minimum raw value and marked as invalid
+    # in the validity file (written below).
+    heights = np.ma.filled(self.heights(), np.nan) * scale_to_meters
+    invalid_mask = np.isnan(heights)
+    has_invalid = invalid_mask.any()
 
     # For integer types, we need to scale the data
     if dtype in ("I", "L"):
@@ -422,6 +457,11 @@ def write_x3p(
         height_range = height_max - height_min
         if height_range == 0:
             height_range = 1.0
+        if has_invalid:
+            # NaN cannot be cast to an integer; the actual value stored for
+            # invalid points is arbitrary since they are flagged in the
+            # validity file
+            heights = np.where(invalid_mask, height_min, heights)
         if dtype == "I":
             scale_factor = height_range / 65535
             heights = ((heights - height_min) / scale_factor).astype(np_dtype)
@@ -522,6 +562,17 @@ def write_x3p(
     ElementTree.SubElement(data_link, "PointDataLink").text = "bindata/data.bin"
     ElementTree.SubElement(data_link, "MD5ChecksumPointData").text = md5_hash
 
+    # Validity data: one bit per point, least-significant bit first, in the
+    # same point order as the height data
+    valid_data = None
+    if has_invalid:
+        valid_data = np.packbits(
+            ~invalid_mask.T.reshape(-1), bitorder="little"
+        ).tobytes()
+        ElementTree.SubElement(data_link, "ValidPointsLink").text = "bindata/valid.bin"
+        ElementTree.SubElement(data_link, "MD5ChecksumValidPoints").text = \
+            hashlib.md5(valid_data).hexdigest().upper()
+
     # Record4: Checksum file reference (optional, but included for completeness)
     record4 = ElementTree.SubElement(root, "Record4")
     ElementTree.SubElement(record4, "ChecksumFile").text = "md5checksum.hex"
@@ -566,18 +617,13 @@ def write_x3p(
     # Create checksum file content
     checksum_content = f"{md5_hash} *bindata/data.bin\n"
 
-    # Write ZIP file
-    if isinstance(fobj, str):
-        with ZipFile(fobj, "w") as x3p:
-            x3p.writestr("main.xml", xml_string.encode("utf-8"))
-            x3p.writestr("bindata/data.bin", binary_data)
-            x3p.writestr("md5checksum.hex", checksum_content.encode("utf-8"))
-    else:
-        # File-like object
-        with ZipFile(fobj, "w") as x3p:
-            x3p.writestr("main.xml", xml_string.encode("utf-8"))
-            x3p.writestr("bindata/data.bin", binary_data)
-            x3p.writestr("md5checksum.hex", checksum_content.encode("utf-8"))
+    # Write ZIP file (`ZipFile` accepts both file names and file-like objects)
+    with ZipFile(fobj, "w") as x3p:
+        x3p.writestr("main.xml", xml_string.encode("utf-8"))
+        x3p.writestr("bindata/data.bin", binary_data)
+        if valid_data is not None:
+            x3p.writestr("bindata/valid.bin", valid_data)
+        x3p.writestr("md5checksum.hex", checksum_content.encode("utf-8"))
 
 
 UniformTopographyInterface.register_function("to_x3p", write_x3p)

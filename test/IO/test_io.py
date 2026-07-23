@@ -179,7 +179,9 @@ text_example_file_list = _convert_filelist(
 )
 
 explicit_physical_sizes = _convert_filelist(
-    ["matrix-5.txt", "mat-1.mat", "example-2d.npy"]
+    # Note: SRTM (.hgt) files do not carry physical sizes; the user needs
+    # to provide them
+    ["matrix-5.txt", "mat-1.mat", "example-2d.npy", "N46E013.hgt"]
 )
 
 text_example_memory_list = [
